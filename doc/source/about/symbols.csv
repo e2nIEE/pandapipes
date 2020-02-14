@@ -1,0 +1,18 @@
+**Symbol**;**Meaning**
+:math:`\dot{m}`;Mass flow
+:math:`c_p`;Heat capacity at constant pressure
+:math:`T`;Temperature
+:math:`p`;Pressure
+:math:`\rho`;Density
+:math:`g`;Gravitational constant
+:math:`\Delta h`;Height difference
+:math:`\lambda`;Darcy friction factor
+:math:`l`;Length
+:math:`v`;Flow velocity
+:math:`d`;Pipe diameter
+:math:`\zeta`;Pressure loss coefficient
+:math:`K`;Compressibility factor
+:math:`Re`;Reynolds number
+:math:`k`;Pipe roughness
+:math:`Q`;Heat flow
+:math:`\alpha`;Heat transfer coefficient

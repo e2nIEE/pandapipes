@@ -1,0 +1,4 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+p_bar;list;:math:`>` 0;A list of pressure values
+Vdot_m3ph; list;:math:`>` 0;A list of flowrates corresponding to the pressure values
+degree; integer;:math:`>` 0;The degree of the polynomial setting pressure and flowrate in context

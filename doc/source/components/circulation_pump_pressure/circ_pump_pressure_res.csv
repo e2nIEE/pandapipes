@@ -1,0 +1,3 @@
+**Parameter**;**Datatype**;**Explanation**
+deltap_bar;float;The pressure lift caused by the pump [bar]
+mdot_kg_per_s;float;The mass flow running through the pump [bar]

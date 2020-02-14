@@ -1,0 +1,20 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+net;pandapipesNet;;network to be plotted
+respect_valves;boolean;True/ False;respect valves if artificial geodata is created, note: this Flag is ignored if plot_line_switches is true
+pipe_width;float;:math:`>` 0;specifies the pipe width
+junction_size;float;:math:`>` 0;relative size of junctions to plot
+ext_grid_size;float;:math:`>` 0;relative size of ext_grids to plot
+plot_sinks;boolean;True/ False;flag to decide whether sink symbols should be drawn
+plot_sources;boolean;True/ False;flag to decide whether source symbols should be drawn
+sink_size;float;:math:`>` 0;relative size of sinks to plot
+source_size;float;:math:`>` 0;relative size of sources to plot
+valve_size;float;:math:`>` 0;relative size of valves to plot
+heat_exchanger_size;float;:math:`>` 0;relative size of heat exchanger to plot
+valve_distance;float;:math:`>` 0; relative distance of the valve to its corresponding junction
+scale_size;boolean;True/ False;flag if junction_size, ext_grid_size, valve_size- and distance will be scaled with respect to grid mean distances
+junction_color;string/ tuple;;junction color
+pipe_color;string/ tuple;;pipe color
+ext_grid_color;string/ tuple;;external grid color
+library;string;"""igraph""/ ""networkx""";library name to create generic coordinates (case of missing geodata)
+show_plot;boolean;True/ False;if True, show plot at the end of plotting
+ax;object;;matplotlib axis to plot

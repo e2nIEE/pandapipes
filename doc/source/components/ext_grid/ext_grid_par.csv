@@ -1,0 +1,11 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;name of the external grid
+junction;integer;;index of connected junction
+p_bar;float;:math:`>` 0;pressure set point [bar]
+t_k;float;:math:`>` 0;temperature set point [K]
+in_service;boolean;True / False;specifies if the external grid is in service.
+type;string;"| Naming conventions:
+
+| *""p""* - for node with fixed pressure
+| *""t""* - for node with fixed temperature
+| *""pt""* - for node with fixed pressure and temperature ";type variable to classify external grids

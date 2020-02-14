@@ -1,0 +1,7 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;name of the pump
+from_junction;integer;:math:`>` 0;index of junction at which the pump starts
+to_junction;integer;:math:`>` 0;index of junction at which the pump ends
+std_type;string;;the selected standard type for the pump. Can be found in net.std_type.
+in_serivce;boolean;True/ False;True for in service or False for out of service
+type;string;;type variable to classify the pump

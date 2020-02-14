@@ -1,0 +1,9 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;name of the heat exchanger
+from_junction;integer;:math:`>` 0;Index of junction at which the heat exchanger starts
+to_junction;integer;:math:`>` 0;Index of junction at which the heat exchanger ends
+diameter_m;float;:math:`\gt` 0   ;equivalent inner diameter of the heat exchanger [m]
+qext_w;float;;The heat flow entering or leaving the heat exchanger [W]
+loss_coefficient;float;:math:`\geq` 0   ;An additional loss coefficient which might account for e.g. bends
+in_service;boolean;True / False;specifies if the heat exchanger is in service.
+type;string;;type variable to classify heat exchangers

@@ -1,0 +1,15 @@
+**Parameter**;**Datatype**;**Explanation**
+v_from_m_per_s;float;The velocity at the valve entry [m/s]
+v_to_m_per_s;float;The velocity at the valve exit [m/s]
+v_mean_m_per_s;float;The mean valve velocity [m/s]
+p_from_bar;float;pressure at "from"-junction [bar]
+p_to_bar;float;pressure  at "to" junction [bar]
+t_from_k;float;temperature at "from"-junction [K]
+t_to_k;float;temperature at "to"-junction [K]
+mdot_from_kg_per_s;float;massflow into valve [kg/s]
+mdot_to_kg_per_s;float;massflow out of valve [kg/s]
+vdot_norm_m3_per_s;float;norm volume flow [m^3/s]
+reynolds;float;Average Reynolds number
+lambda;float;Average valve friction factor
+normfactor_from;float;Normfactor to calculate real gas velocity at "from"-junction (only for gas flows)
+normfactor_to;float;Normfactor to calculate real gas velocity at "to"-junction (only for gas flows)

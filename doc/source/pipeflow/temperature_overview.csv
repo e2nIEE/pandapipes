@@ -1,0 +1,6 @@
+**Parameter**;**component**;**Defined in module**;**Explanation**
+NORMAL_TEMPERATURE;/;constants.py;The temperature used as a reference value for the calculation of compressible fluids. Should not be changed by a user of pandapipes.
+ambient_temperature;/;pipeflow_setup.py;The ambient temperature used to calculate air pressure. Needed for hydraulic calculations if junctions have different height levels. Default value of 293 K can be changed by specifying a new value as a pipeflow option.
+tfluid_k;junction;create.py;The fluid temperature at the junction.
+t_k;external_grid;create.py;Fixes the temperature value at a specified junction
+text_k;pipe;create.py;The external temperature used to calculate heat losses.

@@ -1,0 +1,14 @@
+[run]
+omit = 
+    pandapipes/test/*
+    pandapipes/plotting/geo.py
+
+[report]
+exclude_lines =
+    if 0:
+    if __name__ == .__main__.:
+    pragma: no cover
+
+omit =
+    pandapipes/test/*
+    pandapipes/plotting/geo.py

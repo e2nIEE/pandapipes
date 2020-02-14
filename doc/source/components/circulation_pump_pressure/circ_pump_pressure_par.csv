@@ -1,0 +1,9 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;name of the pump
+from_junction;integer;:math:`>` 0;index of junction at which the pump starts
+to_junction;integer;:math:`>` 0;index of junction at which the pump ends
+p_bar;float;:math:`>` 0;pressure set point [bar]
+mdot_kg_per_s;float;:math:`>` 0;mass flow transported by the pump [bar]
+t_k;float;:math:`>` 0;temperature set point [K]
+in_serivce;boolean;True/ False;True for in service or False for out of service
+type;string;;type variable to classify the pump

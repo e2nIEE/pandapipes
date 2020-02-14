@@ -1,0 +1,7 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;Name of the source
+junction;integer;;Index of connected junction
+mdot_kg_per_s;float;:math:`\geq` 0;The mass flow injected by the source [kg/s]
+scaling;float;:math:`\geq` 0;Scaling factor for the injected mass flow
+in_service;boolean;True / False;Specifies if the source is in service.
+type;string;;Type variable to classify sources

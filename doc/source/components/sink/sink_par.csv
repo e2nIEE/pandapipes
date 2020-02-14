@@ -1,0 +1,7 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;Name of the sink
+junction;integer;;Index of connected junction
+mdot_kg_per_s;float;:math:`\leq 0`;Drawn mass flow [kg/s]
+scaling *;float;:math:`\geq 0`;Scaling factor to adapt the drawn mass flow
+in_service*;boolean;True / False;Specifies if the sink is in service.
+type;string;;Component type

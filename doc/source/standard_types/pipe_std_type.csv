@@ -1,0 +1,6 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+std_type;string;;Name of the concrete pipe standard type
+nominal_width;float;:math:`>` 0;Nominal diamater of a pipe
+outer_diameter;float;:math:`>` 0;Outer diameter of a pipe
+inner_diameter;float;:math:`>` 0;Inner and for the pipeflow relevant diameter
+material;string;;Material the pipe consists of. Possibly relevant if a pipe is useful for specific fluids or not.

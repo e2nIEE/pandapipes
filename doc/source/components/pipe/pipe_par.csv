@@ -1,0 +1,15 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;name of the pipe
+from_junction;integer;:math:`>` 0;Index of junction at which the pipe starts
+to_junction;integer;:math:`>` 0;Index of junction at which the pipe ends
+std_type;string;;A selected std type for the pipe
+length_km;float;:math:`>` 0;length of the pipe [km]
+diameter_m;float;:math:`\gt` 0   ;inner diameter of the pipe [m]
+k_mm;float;:math:`\gt` 0   ;pipe roughness [mm]
+loss_coefficient;float;:math:`\geq` 0   ;An additional loss coefficient which might account for e.g. bends
+alpha_w_per_m2k;float;:math:`\geq` 0   ;heat transfer coefficient [W/(m^2K)]
+qext_w;float;:math:`>` 0   ;An additional heat flow entering or leaving the pipe [W]
+text_k;float;:math:`>` 0   ;The ambient temperature used for calculating heat losses [K]
+sections;integer;:math:`\geq` 1   ;The number of internal pipe sections
+in_service;boolean;True / False;specifies if the line is in service.
+type;string;;type variable to classify junctions

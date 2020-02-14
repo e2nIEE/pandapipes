@@ -1,0 +1,4 @@
+**Parameter**;**read as**
+p_bar;:math:`p  [bar]`
+alpha_w_per_m2k;:math:`\alpha [\frac{W}{m^2 \cdot K}]`
+vdot_m3_per_s;:math:`\dot{V} [\frac{m^3}{s}]`

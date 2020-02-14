@@ -1,0 +1,11 @@
+**Parameter**;**component**;**Explanation**
+pn_bar;junction;Initial value used for pressure
+tfluid_k;junction;Temperature value at the junction. Used for pressure calculation.
+height_m;junction;Defines the height level of the junction
+loss_coefficient;pipe;A coefficient which introduces additional pressure losses
+length_km;pipe;Length of the pipe
+diameter_m;pipe;Inner pipe diameter
+k_mm;pipe;Pipe roughness
+alpha_Wpm2K;pipe;No function for hydraulic calculation of incompressible media.
+qext_w;pipe;No function for hydraulic calculation of incompressible media.
+text_w;pipe;No function for hydraulic calculation of incompressible media.

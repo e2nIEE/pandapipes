@@ -1,0 +1,8 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;name of the valve
+from_junction;integer;:math:`>` 0;index of junction at which the valve starts
+to_junction;integer;:math:`>` 0;Index of junction at which the valve ends
+diameter_m;float;:math:`\gt` 0   ;inner diameter of the pipe [m]
+opened;boolean;true/false;Indicates if the valve is opened
+loss coefficient;float;:math:`\geq` 0   ;An additional pressure loss coefficient
+type;string;;type variable to classify junctions

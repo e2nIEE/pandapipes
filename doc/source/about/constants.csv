@@ -1,0 +1,4 @@
+**Constant**;**value**;**Meaning**
+GRAVITATION_CONSTANT;9.81 :math:`[\frac{m}{s^2}]`;Gravitation constant
+MOLAR_MASS_AIR;0.02896 :math:`[\frac{m^3}{mol}]`;Molar mass of air
+R_UNIVERSAL;8.314 :math:`[\frac{J}{K\cdotmol}]`;Universal gas constant
