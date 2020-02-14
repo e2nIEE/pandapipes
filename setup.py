@@ -9,15 +9,11 @@ import re
 from setuptools import find_packages
 from setuptools import setup
 
+with open('README.rst', 'rb') as f:
+    install = f.read().decode('utf-8')
 
-def read(filename):
-    filename = os.path.join(os.path.dirname(__file__), filename)
-    text_type = type(u"")
-    with io.open(filename, mode="r", encoding='utf-8') as fd:
-        return re.sub(text_type(r':[a-z]+:`~?(.*?)`'), text_type(r'``\1``'), fd.read())
-
-
-install = read("README.rst")
+with open('CHANGELOG.rst', 'rb') as f:
+    changelog = f.read().decode('utf-8')
 
 classifiers = [
     'Development Status :: 5 - Production/Stable',
@@ -32,7 +28,7 @@ classifiers = [
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.6']
 
-long_description = '\n\n'.join((install))
+long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
