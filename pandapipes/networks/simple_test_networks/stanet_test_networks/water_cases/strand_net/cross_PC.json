@@ -1694,7 +1694,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0],\"data\":[[\"sink_node_sink1\",3,1.305555555555556,1.0,true,null,4.0]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0],\"data\":[[\"sink_node_sink1\",3,1.305555555555556,1.0,true,\"sink\",4.0]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -1709,7 +1709,7 @@
     "source": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0],\"data\":[[\"sink_node_source1\",4,1.944444444444444,1.0,true,null,5.0]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0],\"data\":[[\"sink_node_source1\",4,1.944444444444444,1.0,true,\"source\",5.0]]}",
       "orient": "split",
       "dtype": {
         "name": "object",

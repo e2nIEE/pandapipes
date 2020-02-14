@@ -1694,7 +1694,7 @@
     "valve": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"diameter_m\",\"opened\",\"loss_coefficient\",\"type\",\"in_service\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1],\"data\":[[\"valve_aux_K1029_K1029\",6,5,0.1,true,0.0,null,true,1.0,\"VEN0000015D67D53F8A85\",null],[\"valve_aux_K1026_K1026\",7,2,0.1,false,0.0,null,true,2.0,\"VEN0000025D67D544169E\",null]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"diameter_m\",\"opened\",\"loss_coefficient\",\"type\",\"in_service\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1],\"data\":[[\"valve_aux_K1029_K1029\",6,5,0.1,true,0.0,\"valve\",true,1.0,\"VEN0000015D67D53F8A85\",null],[\"valve_aux_K1026_K1026\",7,2,0.1,false,0.0,\"valve\",true,2.0,\"VEN0000025D67D544169E\",null]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -1713,7 +1713,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0],\"data\":[[\"sink_node_K1028\",4,10.0,1.0,true,null,5.0]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0],\"data\":[[\"sink_node_K1028\",4,10.0,1.0,true,\"sink\",5.0]]}",
       "orient": "split",
       "dtype": {
         "name": "object",

@@ -1680,7 +1680,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[2],\"data\":[[null,2,13.890000000000001,1.0,true,null]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[2],\"data\":[[null,2,13.890000000000001,1.0,true,\"sink\"]]}",
       "orient": "split",
       "dtype": {
         "name": "object",

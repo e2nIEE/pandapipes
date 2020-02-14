@@ -1685,7 +1685,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[1],\"data\":[[null,1,0.2778,1.0,true,null]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[1],\"data\":[[null,1,0.2778,1.0,true,\"sink\"]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -1699,7 +1699,7 @@
     "source": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[2],\"data\":[[null,2,0.2778,1.0,true,null]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[2],\"data\":[[null,2,0.2778,1.0,true,\"source\"]]}",
       "orient": "split",
       "dtype": {
         "name": "object",

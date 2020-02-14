@@ -1704,7 +1704,7 @@
     "valve": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"diameter_m\",\"opened\",\"loss_coefficient\",\"type\",\"in_service\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1],\"data\":[[\"valve_aux_sink3_sink3\",10,4,0.075,true,0.0,null,true,1.0,\"VEN0000015DCD6E688961\",null],[\"valve_aux_sink6_sink6\",11,7,0.1,true,0.0,null,true,2.0,\"VEN0000025DCD6E6B3D42\",null]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"diameter_m\",\"opened\",\"loss_coefficient\",\"type\",\"in_service\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1],\"data\":[[\"valve_aux_sink3_sink3\",10,4,0.075,true,0.0,\"valve\",true,1.0,\"VEN0000015DCD6E688961\",null],[\"valve_aux_sink6_sink6\",11,7,0.1,true,0.0,\"valve\",true,2.0,\"VEN0000025DCD6E6B3D42\",null]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -1740,7 +1740,7 @@
     "source": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0,1],\"data\":[[\"sink_node_source1\",0,5.555555555555555,1.0,true,null,1.0],[\"sink_node_source2\",1,3.611111111111111,1.0,true,null,2.0]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0,1],\"data\":[[\"sink_node_source1\",0,5.555555555555555,1.0,true,\"source\",1.0],[\"sink_node_source2\",1,3.611111111111111,1.0,true,\"source\",2.0]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -1755,7 +1755,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0,1,2,3,4,5],\"data\":[[\"sink_node_sink1\",2,0.833333333333333,1.0,true,null,3.0],[\"sink_node_sink2\",3,0.027777777777778,1.0,true,null,4.0],[\"sink_node_sink3\",4,0.138888888888889,1.0,true,null,5.0],[\"sink_node_sink4\",5,1.388888888888889,1.0,true,null,6.0],[\"sink_node_sink5\",6,1.388888888888889,1.0,true,null,7.0],[\"sink_node_sink6\",7,0.777777777777778,1.0,true,null,8.0]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0,1,2,3,4,5],\"data\":[[\"sink_node_sink1\",2,0.833333333333333,1.0,true,\"sink\",3.0],[\"sink_node_sink2\",3,0.027777777777778,1.0,true,\"sink\",4.0],[\"sink_node_sink3\",4,0.138888888888889,1.0,true,\"sink\",5.0],[\"sink_node_sink4\",5,1.388888888888889,1.0,true,\"sink\",6.0],[\"sink_node_sink5\",6,1.388888888888889,1.0,true,\"sink\",7.0],[\"sink_node_sink6\",7,0.777777777777778,1.0,true,\"sink\",8.0]]}",
       "orient": "split",
       "dtype": {
         "name": "object",

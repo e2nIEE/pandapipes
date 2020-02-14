@@ -1685,7 +1685,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[1,2],\"data\":[[null,1,0.3,1.0,true,null],[null,2,2.0,1.0,true,null]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[1,2],\"data\":[[null,1,0.3,1.0,true,\"sink\"],[null,2,2.0,1.0,true,\"sink\"]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -1699,7 +1699,7 @@
     "valve": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"diameter_m\",\"opened\",\"loss_coefficient\",\"type\",\"v_om\"],\"index\":[0,1],\"data\":[[null,3,2,0.025,true,0.01,null,4.081794303299104],[null,3,1,0.025,true,0.01,null,0.612269145494845]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"diameter_m\",\"opened\",\"loss_coefficient\",\"type\",\"v_om\"],\"index\":[0,1],\"data\":[[null,3,2,0.025,true,0.01,\"valve\",4.081794303299104],[null,3,1,0.025,true,0.01,\"valve\",0.612269145494845]]}",
       "orient": "split",
       "dtype": {
         "name": "object",

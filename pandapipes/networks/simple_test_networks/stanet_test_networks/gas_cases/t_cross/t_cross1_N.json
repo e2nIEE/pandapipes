@@ -1690,7 +1690,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0,1],\"data\":[[\"sink_node_D118\",2,0.002333333333333,1.0,true,null,3.0],[\"sink_node_D119\",3,0.002333333333333,1.0,true,null,4.0]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\",\"stanet_nr\"],\"index\":[0,1],\"data\":[[\"sink_node_D118\",2,0.002333333333333,1.0,true,\"sink\",3.0],[\"sink_node_D119\",3,0.002333333333333,1.0,true,\"sink\",4.0]]}",
       "orient": "split",
       "dtype": {
         "name": "object",

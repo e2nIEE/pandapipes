@@ -1680,7 +1680,7 @@
     "sink": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[1,2,3,4,5,6,7,8],\"data\":[[null,1,1.389,1.0,true,null],[null,2,2.23,1.0,true,null],[null,3,0.833,1.0,true,null],[null,4,2.78,1.0,true,null],[null,5,1.67,1.0,true,null],[null,6,0.56,1.0,true,null],[null,7,0.56,1.0,true,null],[null,8,0.833,1.0,true,null]]}",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[1,2,3,4,5,6,7,8],\"data\":[[null,1,1.389,1.0,true,\"sink\"],[null,2,2.23,1.0,true,\"sink\"],[null,3,0.833,1.0,true,\"sink\"],[null,4,2.78,1.0,true,\"sink\"],[null,5,1.67,1.0,true,\"sink\"],[null,6,0.56,1.0,true,\"sink\"],[null,7,0.56,1.0,true,\"sink\"],[null,8,0.833,1.0,true,\"sink\"]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
