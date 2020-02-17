@@ -1,5 +1,3 @@
-A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids
-
 .. image:: https://pandapipes.readthedocs.io/en/latest/_images/pandapipes_logo.png
    :target: https://www.pandapipes.org
    :alt: logo
