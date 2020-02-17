@@ -1,4 +1,0 @@
-packaging
-coverage
-requests
-tqdm
