@@ -36,3 +36,8 @@ Institute for Energy Economics and Energy System Technology (IEE), Kassel.
 |
 We welcome contributions to pandapipes of any kind - if you want to contribute, please check out
 the `pandapipes contribution guidelines <https://github.com/e2nIEE/pandapipes/blob/develop/CONTRIBUTING.rst>`_.
+
+
+.. image:: https://api.codacy.com/project/badge/Grade/86c876ab23fc40d98e85f7d59bdef928
+   :alt: Codacy Badge
+   :target: https://app.codacy.com/gh/e2nIEE/pandapipes?utm_source=github.com&utm_medium=referral&utm_content=e2nIEE/pandapipes&utm_campaign=Badge_Grade_Dashboard
