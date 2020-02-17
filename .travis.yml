@@ -24,6 +24,12 @@ install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.5" ]]; then
          pip install pypower;
     fi
+  - if [[ "$CI_COMMIT_REF_NAME" == "master" ]]; then
+         git clone --single-branch --branch master https://github.com/e2nIEE/pandapower.git --depth 1 /tmp/pandapower;
+    else
+         git clone --single-branch --branch develop https://github.com/e2nIEE/pandapower.git --depth 1 /tmp/pandapower;
+    fi
+  - pip install /tmp/pandapipes
   - conda install matplotlib --yes
   - conda install -c conda-forge python-igraph --yes
   - pip install pytest pytest-cov
