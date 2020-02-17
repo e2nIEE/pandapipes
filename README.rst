@@ -6,6 +6,14 @@
    :target: http://pandapipes.readthedocs.io/
    :alt: docs
 
+.. image:: https://travis-ci.org/e2nIEE/pandapipes.svg?branch=develop
+   :target: https://travis-ci.org/e2nIEE/pandapipes/branches
+   :alt: travis
+
+.. image:: https://codecov.io/gh/e2nIEE/pandapipes/branch/develop/graph/badge.svg
+   :target: https://codecov.io/github/e2nIEE/pandapipes?branch=master
+   :alt: codecov
+
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://github.com/e2nIEE/pandapipes/blob/master/LICENSE
    :alt: BSD
