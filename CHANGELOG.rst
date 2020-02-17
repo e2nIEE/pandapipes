@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[1.0.4] - 2020-02-17
+-------------------------------
+- [ADDED] Codacy
+
 [1.0.3] - 2020-02-17
 -------------------------------
 - [CHANGED] required changes in Codecov reverted due to problems in Codecov
