@@ -6,7 +6,7 @@
    :target: http://pandapipes.readthedocs.io/
    :alt: docs
 
-.. image:: https://travis-ci.org/e2nIEE/pandapipes.svg?branch=develop
+.. image:: https://travis-ci.org/e2nIEE/pandapipes.svg?branch=master
    :target: https://travis-ci.org/e2nIEE/pandapipes/branches
    :alt: travis
 
