@@ -29,7 +29,7 @@ install:
     else
          git clone --single-branch --branch develop https://github.com/e2nIEE/pandapower.git --depth 1 /tmp/pandapower;
     fi
-  - pip install /tmp/pandapipes
+  - pip install /tmp/pandapower
   - conda install matplotlib --yes
   - conda install -c conda-forge python-igraph --yes
   - pip install pytest pytest-cov
