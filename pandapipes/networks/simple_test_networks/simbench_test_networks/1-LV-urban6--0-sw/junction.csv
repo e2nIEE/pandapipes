@@ -1,0 +1,174 @@
+id;pn_bar;tfluid_k;height_m;in_service;type
+Junction 1;1.05;293.0;0.0;True;junction
+Junction 2;1.05;293.0;0.0;True;junction
+Junction 3;1.05;293.0;0.0;True;junction
+Junction 4;1.05;293.0;0.0;True;junction
+Junction 5;1.05;293.0;0.0;True;junction
+Junction 6;1.05;293.0;0.0;True;junction
+Junction 7;1.05;293.0;0.0;True;junction
+Junction 8;1.05;293.0;0.0;True;junction
+Junction 9;1.05;293.0;0.0;True;junction
+Junction 10;1.05;293.0;0.0;True;junction
+Junction 11;1.05;293.0;0.0;True;junction
+Junction 12;1.05;293.0;0.0;True;junction
+Junction 13;1.05;293.0;0.0;True;junction
+Junction 14;1.05;293.0;0.0;True;junction
+Junction 15;1.05;293.0;0.0;True;junction
+Junction 16;1.05;293.0;0.0;True;junction
+Junction 17;1.05;293.0;0.0;True;junction
+Junction 18;1.05;293.0;0.0;True;junction
+Junction 19;1.05;293.0;0.0;True;junction
+Junction 20;1.05;293.0;0.0;True;junction
+Junction 21;1.05;293.0;0.0;True;junction
+Junction 22;1.05;293.0;0.0;True;junction
+Junction 23;1.05;293.0;0.0;True;junction
+Junction 24;1.05;293.0;0.0;True;junction
+Junction 25;1.05;293.0;0.0;True;junction
+Junction 26;1.05;293.0;0.0;True;junction
+Junction 27;1.05;293.0;0.0;True;junction
+Junction 28;1.05;293.0;0.0;True;junction
+Junction 29;1.05;293.0;0.0;True;junction
+Junction 30;1.05;293.0;0.0;True;junction
+Junction 31;1.05;293.0;0.0;True;junction
+Junction 32;1.05;293.0;0.0;True;junction
+Junction 33;1.05;293.0;0.0;True;junction
+Junction 34;1.05;293.0;0.0;True;junction
+Junction 35;1.05;293.0;0.0;True;junction
+Junction 36;1.05;293.0;0.0;True;junction
+Junction 37;1.05;293.0;0.0;True;junction
+Junction 38;1.05;293.0;0.0;True;junction
+Junction 39;1.05;293.0;0.0;True;junction
+Junction 40;1.05;293.0;0.0;True;junction
+Junction 41;1.05;293.0;0.0;True;junction
+Junction 42;1.05;293.0;0.0;True;junction
+Junction 43;1.05;293.0;0.0;True;junction
+Junction 44;1.05;293.0;0.0;True;junction
+Junction 45;1.05;293.0;0.0;True;junction
+Junction 46;1.05;293.0;0.0;True;junction
+Junction 47;1.05;293.0;0.0;True;junction
+Junction 48;1.05;293.0;0.0;True;junction
+Junction 49;1.05;293.0;0.0;True;junction
+Junction 50;1.05;293.0;0.0;True;junction
+Junction 51;1.05;293.0;0.0;True;junction
+Junction 52;1.05;293.0;0.0;True;junction
+Junction 53;1.05;293.0;0.0;True;junction
+Junction 54;1.05;293.0;0.0;True;junction
+Junction 55;1.05;293.0;0.0;True;junction
+Junction 56;1.05;293.0;0.0;True;junction
+Junction 57;1.05;293.0;0.0;True;junction
+Junction 58;1.05;293.0;0.0;True;junction
+Junction Artificial 1;1.05;293.0;0.0;True;junction
+Junction Artificial 2;1.05;293.0;0.0;True;junction
+Junction Artificial 3;1.05;293.0;0.0;True;junction
+Junction Artificial 4;1.05;293.0;0.0;True;junction
+Junction Artificial 5;1.05;293.0;0.0;True;junction
+Junction Artificial 6;1.05;293.0;0.0;True;junction
+Junction Artificial 7;1.05;293.0;0.0;True;junction
+Junction Artificial 8;1.05;293.0;0.0;True;junction
+Junction Artificial 9;1.05;293.0;0.0;True;junction
+Junction Artificial 10;1.05;293.0;0.0;True;junction
+Junction Artificial 11;1.05;293.0;0.0;True;junction
+Junction Artificial 12;1.05;293.0;0.0;True;junction
+Junction Artificial 13;1.05;293.0;0.0;True;junction
+Junction Artificial 14;1.05;293.0;0.0;True;junction
+Junction Artificial 15;1.05;293.0;0.0;True;junction
+Junction Artificial 16;1.05;293.0;0.0;True;junction
+Junction Artificial 17;1.05;293.0;0.0;True;junction
+Junction Artificial 18;1.05;293.0;0.0;True;junction
+Junction Artificial 19;1.05;293.0;0.0;True;junction
+Junction Artificial 20;1.05;293.0;0.0;True;junction
+Junction Artificial 21;1.05;293.0;0.0;True;junction
+Junction Artificial 22;1.05;293.0;0.0;True;junction
+Junction Artificial 23;1.05;293.0;0.0;True;junction
+Junction Artificial 24;1.05;293.0;0.0;True;junction
+Junction Artificial 25;1.05;293.0;0.0;True;junction
+Junction Artificial 26;1.05;293.0;0.0;True;junction
+Junction Artificial 27;1.05;293.0;0.0;True;junction
+Junction Artificial 28;1.05;293.0;0.0;True;junction
+Junction Artificial 29;1.05;293.0;0.0;True;junction
+Junction Artificial 30;1.05;293.0;0.0;True;junction
+Junction Artificial 31;1.05;293.0;0.0;True;junction
+Junction Artificial 32;1.05;293.0;0.0;True;junction
+Junction Artificial 33;1.05;293.0;0.0;True;junction
+Junction Artificial 34;1.05;293.0;0.0;True;junction
+Junction Artificial 35;1.05;293.0;0.0;True;junction
+Junction Artificial 36;1.05;293.0;0.0;True;junction
+Junction Artificial 37;1.05;293.0;0.0;True;junction
+Junction Artificial 38;1.05;293.0;0.0;True;junction
+Junction Artificial 39;1.05;293.0;0.0;True;junction
+Junction Artificial 40;1.05;293.0;0.0;True;junction
+Junction Artificial 41;1.05;293.0;0.0;True;junction
+Junction Artificial 42;1.05;293.0;0.0;True;junction
+Junction Artificial 43;1.05;293.0;0.0;True;junction
+Junction Artificial 44;1.05;293.0;0.0;True;junction
+Junction Artificial 45;1.05;293.0;0.0;True;junction
+Junction Artificial 46;1.05;293.0;0.0;True;junction
+Junction Artificial 47;1.05;293.0;0.0;True;junction
+Junction Artificial 48;1.05;293.0;0.0;True;junction
+Junction Artificial 49;1.05;293.0;0.0;True;junction
+Junction Artificial 50;1.05;293.0;0.0;True;junction
+Junction Artificial 51;1.05;293.0;0.0;True;junction
+Junction Artificial 52;1.05;293.0;0.0;True;junction
+Junction Artificial 53;1.05;293.0;0.0;True;junction
+Junction Artificial 54;1.05;293.0;0.0;True;junction
+Junction Artificial 55;1.05;293.0;0.0;True;junction
+Junction Artificial 56;1.05;293.0;0.0;True;junction
+Junction Artificial 57;1.05;293.0;0.0;True;junction
+Junction Artificial 58;1.05;293.0;0.0;True;junction
+Junction Artificial 59;1.05;293.0;0.0;True;junction
+Junction Artificial 60;1.05;293.0;0.0;True;junction
+Junction Artificial 61;1.05;293.0;0.0;True;junction
+Junction Artificial 62;1.05;293.0;0.0;True;junction
+Junction Artificial 63;1.05;293.0;0.0;True;junction
+Junction Artificial 64;1.05;293.0;0.0;True;junction
+Junction Artificial 65;1.05;293.0;0.0;True;junction
+Junction Artificial 66;1.05;293.0;0.0;True;junction
+Junction Artificial 67;1.05;293.0;0.0;True;junction
+Junction Artificial 68;1.05;293.0;0.0;True;junction
+Junction Artificial 69;1.05;293.0;0.0;True;junction
+Junction Artificial 70;1.05;293.0;0.0;True;junction
+Junction Artificial 71;1.05;293.0;0.0;True;junction
+Junction Artificial 72;1.05;293.0;0.0;True;junction
+Junction Artificial 73;1.05;293.0;0.0;True;junction
+Junction Artificial 74;1.05;293.0;0.0;True;junction
+Junction Artificial 75;1.05;293.0;0.0;True;junction
+Junction Artificial 76;1.05;293.0;0.0;True;junction
+Junction Artificial 77;1.05;293.0;0.0;True;junction
+Junction Artificial 78;1.05;293.0;0.0;True;junction
+Junction Artificial 79;1.05;293.0;0.0;True;junction
+Junction Artificial 80;1.05;293.0;0.0;True;junction
+Junction Artificial 81;1.05;293.0;0.0;True;junction
+Junction Artificial 82;1.05;293.0;0.0;True;junction
+Junction Artificial 83;1.05;293.0;0.0;True;junction
+Junction Artificial 84;1.05;293.0;0.0;True;junction
+Junction Artificial 85;1.05;293.0;0.0;True;junction
+Junction Artificial 86;1.05;293.0;0.0;True;junction
+Junction Artificial 87;1.05;293.0;0.0;True;junction
+Junction Artificial 88;1.05;293.0;0.0;True;junction
+Junction Artificial 89;1.05;293.0;0.0;True;junction
+Junction Artificial 90;1.05;293.0;0.0;True;junction
+Junction Artificial 91;1.05;293.0;0.0;True;junction
+Junction Artificial 92;1.05;293.0;0.0;True;junction
+Junction Artificial 93;1.05;293.0;0.0;True;junction
+Junction Artificial 94;1.05;293.0;0.0;True;junction
+Junction Artificial 95;1.05;293.0;0.0;True;junction
+Junction Artificial 96;1.05;293.0;0.0;True;junction
+Junction Artificial 97;1.05;293.0;0.0;True;junction
+Junction Artificial 98;1.05;293.0;0.0;True;junction
+Junction Artificial 99;1.05;293.0;0.0;True;junction
+Junction Artificial 100;1.05;293.0;0.0;True;junction
+Junction Artificial 101;1.05;293.0;0.0;True;junction
+Junction Artificial 102;1.05;293.0;0.0;True;junction
+Junction Artificial 103;1.05;293.0;0.0;True;junction
+Junction Artificial 104;1.05;293.0;0.0;True;junction
+Junction Artificial 105;1.05;293.0;0.0;True;junction
+Junction Artificial 106;1.05;293.0;0.0;True;junction
+Junction Artificial 107;1.05;293.0;0.0;True;junction
+Junction Artificial 108;1.05;293.0;0.0;True;junction
+Junction Artificial 109;1.05;293.0;0.0;True;junction
+Junction Artificial 110;1.05;293.0;0.0;True;junction
+Junction Artificial 111;1.05;293.0;0.0;True;junction
+Junction Artificial 112;1.05;293.0;0.0;True;junction
+Junction Artificial 113;1.05;293.0;0.0;True;junction
+Junction Artificial 114;1.05;293.0;0.0;True;junction
+Junction Artificial 115;1.05;293.0;0.0;True;junction
