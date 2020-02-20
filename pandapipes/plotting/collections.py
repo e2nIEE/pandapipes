@@ -191,8 +191,7 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
     if len(sinks) == 0:
         return None
     infos = [infofunc(i) for i in range(len(sinks))] if infofunc is not None else []
-    node_coords = net.junction_geodata.loc[:, ["x", "y"]].values[net.sink.loc[sinks,
-                                                                              "junction"].values]
+    node_coords = net.junction_geodata.loc[net.sink.junction.values][['x','y']].values
     sink_pc, sink_lc = _create_node_element_collection(
         node_coords, load_patches, size=size, infos=infos, orientation=orientation,
         picker=picker, **kwargs)
