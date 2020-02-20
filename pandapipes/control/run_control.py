@@ -25,7 +25,7 @@ def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_dive
     if ctrl_variables is None:
         ctrl_variables = ctrl_variables_ppipe_default(net)
     else:
-        ctrl_variables["initial_powerflow"] = ctrl_variables["initial_pipeflow"]
+        ctrl_variables["initial_run"] = ctrl_variables["initial_run"]
     run_control(net, ctrl_variables=ctrl_variables, max_iter=max_iter,
                      continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
 
@@ -42,13 +42,13 @@ def ctrl_variables_ppipe_default(net):
     ctrl_variables = dict()
     ctrl_variables["level"], ctrl_variables["controller_order"] = get_controller_order(net)
     ctrl_variables["run"] = ppipe.pipeflow
-    ctrl_variables["initial_pipeflow"] = check_for_initial_pipeflow(
+    ctrl_variables["initial_pipeflow"] = check_for_initial_run(
         ctrl_variables["controller_order"])
-    ctrl_variables["initial_powerflow"] = ctrl_variables["initial_pipeflow"]
+
     return ctrl_variables
 
 
-def check_for_initial_pipeflow(controllers):
+def check_for_initial_run(controllers):
     """
     Function checking if any of the controllers need an initial pipe flow
     If net has no controllers, an initial pipe flow is done by default.
@@ -62,7 +62,7 @@ def check_for_initial_pipeflow(controllers):
 
     for order in controllers:
         for ctrl in order:
-            if ctrl.initial_pipeflow:
+            if ctrl.initial_run:
                 return True
     return False
 

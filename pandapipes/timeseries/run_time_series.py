@@ -11,7 +11,7 @@ from pandapower.control.run_control import ControllerNotConverged, get_controlle
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.output_writer import OutputWriter
 import pandapipes as ppipe
-from pandapipes.control.run_control import check_for_initial_pipeflow, run_control_ppipe
+from pandapipes.control.run_control import check_for_initial_run, run_control_ppipe
 
 try:
     import pplog as logging
@@ -286,8 +286,7 @@ def init_time_series_ppipe(net, time_steps, output_writer=None, continue_on_dive
 
     # True at default. Initial power flow is calculated before each control step
     # (some controllers need inits)
-    ts_variables["initial_pipeflow"] = check_for_initial_pipeflow(order)
-    ts_variables["initial_powerflow"] = ts_variables["initial_pipeflow"]
+    ts_variables["initial_run"] = check_for_initial_run(order)
     # order of controller (controllers are called in a for loop.)
     ts_variables["controller_order"] = order
     # run function to be called in run_control - default is pp.runpp, but can be runopf or whatever
