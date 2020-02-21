@@ -2,18 +2,16 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import io
-import os
-import re
-
 from setuptools import find_packages
 from setuptools import setup
 
 with open('README.rst', 'rb') as f:
     install = f.read().decode('utf-8')
+    install = install.replace('\r\n', '\n')
 
 with open('CHANGELOG.rst', 'rb') as f:
     changelog = f.read().decode('utf-8')
+    changelog = changelog.replace('\r\n', '\n')
 
 classifiers = [
     'Development Status :: 5 - Production/Stable',
@@ -30,18 +28,21 @@ classifiers = [
 
 long_description = '\n\n'.join((install, changelog))
 
+
 setup(
     name='pandapipes',
-    version='1.0.4',
+    version='1.1.4',
     author='Dennis Cronbach, Daniel Lohmeier, Simon Ruben Drauz',
     author_email='dennis.cronbach@iee.fraunhofer.de, daniel.lohmeier@iee.fraunhofer.de, '
                  'simon.ruben.drauz@iee.fraunhofer.de',
-    description='Convenient Power System Modelling and Analysis based on PYPOWER and pandas',
+    description='A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids',
     long_description=long_description,
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.0"],
-    extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"]},
+    install_requires=["pandapower>=2.0", "matplotlib"],
+    extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
+					"plotting": ["plotly", "python-igraph"],
+					"test": ["pytest"]},
     python_requires='>=3, <4',
     packages=find_packages(),
     include_package_data=True,
