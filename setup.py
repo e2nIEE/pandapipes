@@ -4,6 +4,7 @@
 
 from setuptools import find_packages
 from setuptools import setup
+import re
 
 with open('README.rst', 'rb') as f:
     install = f.read().decode('utf-8')
@@ -23,8 +24,12 @@ classifiers = [
     'Natural Language :: English',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.6']
+    'Programming Language :: Python :: 3',]
+
+with open('.travis.yml', 'rb') as f:
+    lines = f.read().decode('utf-8')
+    for version in re.findall('python: 3.[0-9]', lines):
+        classifiers.append('Programming Language :: Python :: 3.%s' % version[-1])
 
 long_description = '\n\n'.join((install, changelog))
 
