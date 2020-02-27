@@ -14,6 +14,7 @@ Water network with a tree topology.
 	:alt: alternate Text
 	:align: center
 
+.. _water_simple_strand_net:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_simple_strand_net
 
 
@@ -29,10 +30,12 @@ Two pipes connected by a junction.
 
 *Water:*
 
+.. _water_strand_2pipes:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_strand_2pipes
 
 *Gas:*
 
+.. _gas_strand_2pipes:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_strand_2pipes
 
 Cross
@@ -45,6 +48,7 @@ Water network with one intersection and three external grids.
 	:alt: alternate Text
 	:align: center
 
+.. _water_strand_cross:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_strand_cross
 
 Two Pumps
@@ -57,6 +61,7 @@ Water network with two sources, two pumps, one external grid and three sinks.
 	:alt: alternate Text
 	:align: center
 
+.. _water_strand_net_2pumps:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_strand_net_2pumps
 
 Pump
@@ -72,8 +77,10 @@ only Nikuradse is available for the water and gas case.
 
 *Water:*
 
+.. _water_strand_pump:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_strand_pump
 
 *Gas:*
 
+.. _gas_strand_pump:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_strand_pump
