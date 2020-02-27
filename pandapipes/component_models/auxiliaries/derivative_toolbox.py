@@ -45,6 +45,9 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
     if friction_model == "colebrook":
         lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy)
         return lambda_colebrook, re
+    elif friction_model == "swamee-jain":
+        lambda_swamee_jain = 0.25 / ((np.log10(k/(3.7*d) + 5.74/(re**0.9)))**2)
+        return lambda_swamee_jain, re
     else:
         # lambda_tot = np.where(re > 2300, lambda_laminar + lambda_nikuradse, lambda_laminar)
         lambda_tot = lambda_laminar + lambda_nikuradse
@@ -91,7 +94,11 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
         lambda_colebrook_der = df_dv / df_dlambda
 
         return lambda_colebrook_der
-
+    elif friction_model == "swamee-jain":
+        param = k/(3.7*d) + 5.74 * (np.abs(eta))**0.9 / ((np.abs(rho*v_corr*d))**0.9)
+        lambda_swamee_jain_der = 0.5/np.log(10) * 1/(np.log(param) ** 3) * 1/param * 5.166 \
+                                 * (np.abs(eta))**0.9/(((np.abs((rho*d)))**0.9) * (np.abs(v_corr))**1.9)
+        return lambda_swamee_jain_der
     else:
         return lambda_laminar_der
 

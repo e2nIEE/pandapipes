@@ -16,6 +16,7 @@ Display of a small district with different height information and with water as 
 	:alt: alternate Text
 	:align: center
 
+.. _water_district_grid:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_district_grid
 
 
@@ -29,6 +30,7 @@ Water network with a mesh in which one source appears.
 	:alt: alternate Text
 	:align: center
 
+.. _water_combined_mixed:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_combined_mixed
 
 
@@ -44,6 +46,7 @@ Network with one pump, two sources and two opened valves.
 	:alt: alternate Text
 	:align: center
 
+.. _water_combined_versatility:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_combined_versatility
 
 *Gas:*
@@ -53,6 +56,7 @@ Network with one pump, two sources and two opened valves.
 	:alt: alternate Text
 	:align: center
 
+.. _gas_versatility:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_versatility
 
 
@@ -66,4 +70,5 @@ Gas network with the characteristic of three parallel pipes between two junction
 	:alt: alternate Text
 	:align: center
 
+.. _gas_3parallel:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_3parallel
