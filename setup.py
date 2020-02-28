@@ -40,7 +40,7 @@ setup(
     long_description=long_description,
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.0"],
+    install_requires=["pandapower>=2.0", "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"]},
     python_requires='>=3, <4',
     packages=find_packages(),
