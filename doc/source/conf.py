@@ -13,10 +13,10 @@
 import os
 import sys
 
-sys.path.append(0, os.path.abspath('../..'))
-sys.path.append(0, os.path.abspath('..'))
-sys.path.append(0, os.path.abspath('../../..'))
-sys.path.append(0, os.path.abspath('../../../pandapower'))
+sys.path.append(os.path.abspath('..'))
+sys.path.append(os.path.abspath('../..'))
+sys.path.append(os.path.abspath('../../..'))
+sys.path.append(os.path.abspath('../../../pandapower'))
 
 
 master_doc = 'index'
