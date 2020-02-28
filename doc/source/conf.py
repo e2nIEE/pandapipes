@@ -12,13 +12,11 @@
 #
 import os
 import sys
-sys.path.append("C:\\Users\\vkiesewetter\\workspace\\pandapipes")
-sys.path.append("C:\\Users\\vkiesewetter\\workspace\\pandapower")
-print(os.path.abspath('../..'))
-sys.path.insert(0, os.path.abspath('../..'))
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../../..'))
-sys.path.insert(0, os.path.abspath('../../../pandapower'))
+
+sys.path.append(0, os.path.abspath('../..'))
+sys.path.append(0, os.path.abspath('..'))
+sys.path.append(0, os.path.abspath('../../..'))
+sys.path.append(0, os.path.abspath('../../../pandapower'))
 
 
 master_doc = 'index'
@@ -34,10 +32,8 @@ copyright = '2020 by Fraunhofer Institute for Energy Economics and Energy System
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-	'sphinx_rtd_theme',  'sphinx.ext.intersphinx', 'sphinx.ext.mathjax', 'sphinx.ext.autodoc', 'numpydoc',
-              'sphinx.ext.autosummary', 'sphinxcontrib.bibtex'
-]
+extensions = ['sphinx_rtd_theme',  'sphinx.ext.intersphinx', 'sphinx.ext.mathjax', 'sphinx.ext.autodoc', 'numpydoc',
+              'sphinx.ext.autosummary', 'sphinxcontrib.bibtex']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
