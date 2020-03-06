@@ -17,12 +17,12 @@ and gas systems. It utilizes the data analysis library pandas and is also closel
 the power systems calculation program pandapower.
 
 pandapipes and pandapower can be used in combination to analyze multi energy networks. An environment able to couple both
-tools is pandapowerpro.
+tools is pandapower-Pro.
 
-More information about pandapipes will be available soon here: www.pandapipes.org.
-Visit also www.pandapower.org.
+More information about pandapipes will be available soon here: `www.pandapipes.org <https://www.pandapipes.org>`_.
+Please also visit `www.pandapower.org <https://www.pandapower.org>`_.
 
-This is the contents section of the Pandapipes documentation.
+This is the contents section of the pandapipes documentation.
 
 .. automodule:: pandapipes
 
