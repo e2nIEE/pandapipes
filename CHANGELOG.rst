@@ -7,7 +7,7 @@ Change Log
 - [ADDED] adding example grids with similiar topology as the SimBench grids
 - [ADDED] simple pandapipes2simbench.py converter --> creating .csv files like in SimBench
 - [CHANGED] required adaptions in setup.py, CHANGELOG.rst, README.rst, MANIFEST.in in order to enable pypi integration
-- [CHANGED] setup.py and *rst-files adapted in order to enable correct pypi integration
+- [CHANGED] setup.py and .rst-files adapted in order to enable correct pypi integration
 
 [1.0.4] - 2020-02-17
 -------------------------------
