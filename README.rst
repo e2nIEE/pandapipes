@@ -34,6 +34,9 @@
    :target: https://pepy.tech/project/pandapipes
    :alt: pepy
 
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/e2nIEE/pandapipes/master
+
 
 A pipeflow calculation tool that complements `pandapower <https://www.pandapower.org>`_ in the
 simulation of multi energy grids.
@@ -41,6 +44,10 @@ simulation of multi energy grids.
 Getting Started:
 
 - `Documentation <https://pandapipes.readthedocs.io/en/latest/>`_
+- `Tutorials on github <https://github.com/e2nIEE/pandapipes/tree/develop/tutorials>`_
+- `Interactive Tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/master?filepath=tutorials>`_
+
+
 
 pandapipes is a development of the Department for Distribution System Operation at the Fraunhofer
 Institute for Energy Economics and Energy System Technology (IEE), Kassel.
