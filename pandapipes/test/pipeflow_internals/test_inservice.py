@@ -283,5 +283,26 @@ def test_connectivity_heat3(complex_heat_connectivity_grid):
                        rtol=1e-10, atol=0)
 
 
+def test_exclude_unconnected_junction():
+    """
+    test if unconnected junctions that do not have the highest index are excluded correctly
+    (pipeflow fails if reduced_pit does not reindex the reduced nodes correctly)
+    :return:
+    :rtype:
+    """
+    net = pandapipes.create_empty_network(fluid="lgas")
+
+    j1 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 1")
+    j2 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="unconnected junction")
+    j3 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 3")
+
+    pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15)
+    pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.045)
+    pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j3, length_km=0.1,
+                                   diameter_m=0.05)
+    pandapipes.pipeflow(net)
+    assert net.converged
+
+
 if __name__ == "__main__":
     pytest.main([r'pandapipes/test/pipeflow_internals/test_inservice.py'])
