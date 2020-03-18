@@ -45,7 +45,7 @@ def get_p_v_values(path):
 
 def regression_function(p_values, v_values, degree):
     """
-    Regression function.
+    Regression function..
 
     :param p_values:
     :type p_values:
