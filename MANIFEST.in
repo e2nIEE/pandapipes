@@ -1,4 +1,4 @@
 include LICENSE AUTHORS README.rst CHANGELOG.rst .travis.yml
 global-include *.json
 global-include *.csv
-prune pandapipes/data
+global-include *.txt
