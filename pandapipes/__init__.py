@@ -14,6 +14,6 @@ from pandapipes.properties.fluids import *
 from pandapipes.create import *
 from pandapipes.io.file_io import *
 from pandapipes.pipeflow import *
-from pandapipes.toolbox import nets_equal
+from pandapipes.toolbox import *
 from pandapipes.pipeflow_setup import *
 from pandapipes.std_types import *
