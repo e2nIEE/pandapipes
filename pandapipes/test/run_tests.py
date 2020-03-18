@@ -10,7 +10,7 @@ try:
     import coverage as cov
 except ImportError:
     pass
-from pandapower.test.run_tests import _get_cpus
+from pandapower.test.run_tests import _get_cpus, _create_logger
 
 
 def _get_test_dir(pp_module=None):
@@ -36,6 +36,7 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     :return: No Output.
     """
 
+    logger = _create_logger()
     test_dir = _get_test_dir()
 
     if coverage:
@@ -45,7 +46,12 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     if parallel:
         if n_cpu is None:
             n_cpu = _get_cpus()
-        pytest.main([test_dir, "-xs", "-n", str(n_cpu)])
+        err = pytest.main([test_dir, "-xs", "-n", str(n_cpu)])
+        if err == 4:
+            logger.error("Parallel testing not possible. "
+                         "Please make sure that pytest-xdist is installed correctly.")
+        elif err > 2:
+            logger.error("Testing not successfully finished.")
     else:
         pytest.main([test_dir, "-xs"])
 
@@ -58,4 +64,4 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
 
 
 if __name__ == "__main__":
-    run_tests(True, 3)
+    run_tests()
