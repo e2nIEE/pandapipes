@@ -45,7 +45,7 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     if parallel:
         if n_cpu is None:
             n_cpu = _get_cpus()
-        pytest.main([test_dir, "-xs", "-n", n_cpu])
+        pytest.main([test_dir, "-xs", "-n", str(n_cpu)])
     else:
         pytest.main([test_dir, "-xs"])
 
@@ -58,4 +58,4 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
 
 
 if __name__ == "__main__":
-    run_tests()
+    run_tests(True, 3)
