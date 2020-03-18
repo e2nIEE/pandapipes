@@ -136,11 +136,9 @@ class Pump(BranchWZeroLengthComponent):
 
     @classmethod
     def get_result_table(cls, net):
-        """
-
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        """:param net:
+           :type net:
+           :return:
+           :rtype:
         """
         return [("deltap_bar", "f8")]
