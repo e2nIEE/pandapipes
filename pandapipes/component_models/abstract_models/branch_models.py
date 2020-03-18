@@ -84,7 +84,7 @@ class BranchComponent(Component):
         from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
         to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
-        branch_component_pit[:, VINIT] = 0.1
+        branch_component_pit[:, VINIT] = 1
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
 

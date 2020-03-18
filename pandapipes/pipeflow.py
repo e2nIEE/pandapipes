@@ -24,6 +24,7 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
+logger.setLevel('WARNING')
 
 
 def set_logger_level_pipeflow(level):
