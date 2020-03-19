@@ -124,6 +124,8 @@ class Pump(BranchWZeroLengthComponent):
     def get_component_input(cls):
         """
 
+        Get component input.
+
         :return:
         :rtype:
         """
@@ -137,6 +139,8 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_result_table(cls, net):
         """
+
+        Gets the result table.
 
         :param net:
         :type net:

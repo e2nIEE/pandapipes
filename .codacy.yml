@@ -1,6 +1,7 @@
 ---
 exclude_paths:
   - '**/test/**'
+  - '**/__init__.py'
   - 'doc/**'
   - 'tutorials/**'
   - 'pandapipes/networks/simple_test_networks/**'
