@@ -82,7 +82,6 @@ class ConstFlow(NodeElementComponent):
     def get_result_table(cls, net):
         """Get results.
 
-        Parameters:
         :param net:
         :type net:
         :return:
