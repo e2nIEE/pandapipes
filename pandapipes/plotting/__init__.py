@@ -9,7 +9,6 @@ from pandapipes.plotting.geo import *
 from pandapower.plotting.collections import add_collections_to_axes, add_cmap_to_collection, \
     add_single_collection
 
-
 import types
 from matplotlib.backend_bases import GraphicsContextBase, RendererBase
 
@@ -18,6 +17,7 @@ class GC(GraphicsContextBase):
     """
 
     """
+
     def __init__(self):
         super().__init__()
         self._capstyle = 'round'

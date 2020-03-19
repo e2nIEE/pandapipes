@@ -46,7 +46,6 @@ class NodeComponent(Component):
         """
         raise NotImplementedError
 
-
     @classmethod
     def create_pit_node_entries(cls, net, node_pit, node_name):
         """
@@ -58,5 +57,3 @@ class NodeComponent(Component):
         :return: No Output.
         """
         raise NotImplementedError
-
-

@@ -55,8 +55,6 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     else:
         pytest.main([test_dir, "-xs"])
 
-    pytest.main(['-xs', __file__])
-
     if coverage:
         cov_tracker.stop()
         cov_tracker.save()

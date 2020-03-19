@@ -22,7 +22,7 @@ classifiers = [
     'Natural Language :: English',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3',]
+    'Programming Language :: Python :: 3']
 
 with open('.travis.yml', 'rb') as f:
     lines = f.read().decode('utf-8')
@@ -30,7 +30,6 @@ with open('.travis.yml', 'rb') as f:
         classifiers.append('Programming Language :: Python :: 3.%s' % version[-1])
 
 long_description = '\n\n'.join((install, changelog))
-
 
 setup(
     name='pandapipes',
@@ -44,8 +43,8 @@ setup(
     license='BSD',
     install_requires=["pandapower>=2.2.2", "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
-					"plotting": ["plotly", "python-igraph"],
-					"test": ["pytest"]},
+                    "plotting": ["plotly", "python-igraph"],
+                    "test": ["pytest"]},
     python_requires='>=3, <4',
     packages=find_packages(),
     include_package_data=True,

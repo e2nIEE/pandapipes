@@ -34,7 +34,7 @@ def get_default_output_writer_ppipe(net, timesteps):
     :rtype: ?
     """
 
-    ow = OutputWriter(net, timesteps, output_path=tempfile.gettempdir(), log_variables = [])
+    ow = OutputWriter(net, timesteps, output_path=tempfile.gettempdir(), log_variables=[])
     ow.log_variable('res_sink', 'mdot_kg_per_s')
     ow.log_variable('res_source', 'mdot_kg_per_s')
     ow.log_variable('res_ext_grid', 'mdot_kg_per_s')
