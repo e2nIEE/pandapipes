@@ -68,8 +68,8 @@ class ExtGrid(NodeElementComponent):
         node_pit[index, NODE_TYPE_T] = T
         node_pit[index, EXT_GRID_OCCURENCE_T] += number
 
-        net["_lookups"]["ext_grid"] = np.array(
-            list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
+        net["_lookups"]["ext_grid"] = \
+            np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
             "ext_grid" in net['_lookups'] else index_p
         return ext_grids, press
 

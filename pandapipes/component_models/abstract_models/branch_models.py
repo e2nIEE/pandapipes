@@ -143,11 +143,9 @@ class BranchComponent(Component):
         pl = branch_component_pit[:, PL]
 
         if not gas_mode:
-            branch_component_pit[:, JAC_DERIV_DV] = rho / (P_CONVERSION * 2) \
-                                                    * (length / d * (der_lambda_pipe * v_init2
-                                                                     + 2 * lambda_pipe * np.abs(
-                        v_init))
-                                                       + 2 * loss_coef * np.abs(v_init))
+            branch_component_pit[:, JAC_DERIV_DV] = \
+                rho / (P_CONVERSION * 2) * (length / d * (der_lambda_pipe * v_init2 + 2 *
+                lambda_pipe * np.abs(v_init)) + 2 * loss_coef * np.abs(v_init))
 
             branch_component_pit[:, LOAD_VEC_BRANCHES] = \
                 - (-p_init_i_abs + p_init_i1_abs - pl
@@ -168,8 +166,8 @@ class BranchComponent(Component):
                         / (p_init_i_abs[mask] ** 2 - p_init_i1_abs[mask] ** 2)
             comp_fact = get_fluid(net).get_property("compressibility", p_m)
 
-            const_lambda = NORMAL_PRESSURE * rho * comp_fact * t_init / (
-                        NORMAL_TEMPERATURE * P_CONVERSION)
+            const_lambda = NORMAL_PRESSURE * rho * comp_fact * t_init \
+                           / (NORMAL_TEMPERATURE * P_CONVERSION)
             const_height = rho * NORMAL_TEMPERATURE / (2 * NORMAL_PRESSURE * t_init * P_CONVERSION)
 
             branch_component_pit[:, LOAD_VEC_BRANCHES] = \

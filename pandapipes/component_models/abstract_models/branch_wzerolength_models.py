@@ -37,8 +37,8 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         :type internal_pipe_number:
         :return: No Output.
         """
-        branch_wizerolength_pit = super().create_pit_branch_entries(net, branch_wzerolength_pit,
-                                                                    node_name)
+        branch_wizerolength_pit = \
+            super().create_pit_branch_entries(net, branch_wzerolength_pit, node_name)
         branch_wizerolength_pit[:, LENGTH] = 0
         branch_wizerolength_pit[:, K] = 1000
         return branch_wizerolength_pit

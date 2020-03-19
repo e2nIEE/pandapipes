@@ -71,8 +71,8 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        placement_table, heat_exchanger_pit, res_table = super().extract_results(net, options,
-                                                                                 node_name)
+        placement_table, heat_exchanger_pit, res_table = \
+            super().extract_results(net, options, node_name)
 
         node_pit = net["_active_pit"]["node"]
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]

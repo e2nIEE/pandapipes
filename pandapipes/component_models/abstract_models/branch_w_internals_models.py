@@ -161,8 +161,8 @@ class BranchWInternalsComponent(BranchComponent):
         branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
         branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
         branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ACTIVE] = np.repeat(
-            net[cls.table_name()][cls.active_identifier()].values,internal_pipe_number)
+        branch_winternals_pit[:, ACTIVE] = \
+            np.repeat(net[cls.table_name()][cls.active_identifier()].values,internal_pipe_number)
 
         return branch_winternals_pit, internal_pipe_number
 
