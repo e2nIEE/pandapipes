@@ -37,5 +37,4 @@ def test_heat_exchanger():
 
     temp_diff = np.abs(1 - t_pan / temp_an)
   
-
     assert np.all(temp_diff < 0.01)
