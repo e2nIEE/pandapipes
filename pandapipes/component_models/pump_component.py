@@ -136,7 +136,8 @@ class Pump(BranchWZeroLengthComponent):
 
     @classmethod
     def get_result_table(cls, net):
-        """Gets the result table.
+        """
+        Gets the result table.
         :param net:
         :type net:
         :return:
