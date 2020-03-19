@@ -69,7 +69,6 @@ class ConstFlow(NodeElementComponent):
 
         :return:
         :rtype:
-        
         """
         input = [("name", dtype(object)),
                  ("junction", "u4"),
@@ -89,7 +88,6 @@ class ConstFlow(NodeElementComponent):
         :type net:
         :return:
         :rtype:
-
         """
         output = [("mdot_kg_per_s", "f8")]
         return output

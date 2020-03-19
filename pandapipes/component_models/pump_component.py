@@ -128,7 +128,6 @@ class Pump(BranchWZeroLengthComponent):
 
         :return:
         :rtype:
-
         """
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
@@ -147,6 +146,5 @@ class Pump(BranchWZeroLengthComponent):
         :type net:
         :return:
         :rtype:
-
         """
         return [("deltap_bar", "f8")]
