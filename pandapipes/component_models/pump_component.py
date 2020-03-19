@@ -123,10 +123,12 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_component_input(cls):
         """
+
         Get component input.
 
         :return:
         :rtype:
+
         """
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
@@ -138,10 +140,13 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_result_table(cls, net):
         """
+
         Gets the result table.
+
         :param net:
         :type net:
         :return:
         :rtype:
+
         """
         return [("deltap_bar", "f8")]
