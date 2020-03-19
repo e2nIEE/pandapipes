@@ -53,8 +53,9 @@ class Component:
 
     @classmethod
     def get_result_table(cls, net):
-        """
+        """Get result table.
 
+        Parameters:
         :param net:
         :type net:
         :return:
