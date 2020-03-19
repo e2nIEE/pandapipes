@@ -49,7 +49,6 @@ class NodeComponent(Component):
     @classmethod
     def create_pit_node_entries(cls, net, node_pit, node_name):
         """
-        Function that creates pit node entries.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
