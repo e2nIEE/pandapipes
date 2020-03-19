@@ -36,6 +36,6 @@ def test_heat_exchanger():
     t_pan = net.res_junction.t_k
 
     temp_diff = np.abs(1 - t_pan / temp_an)
-    print(net.res_heat_exchanger)
+  
 
     assert np.all(temp_diff < 0.01)
