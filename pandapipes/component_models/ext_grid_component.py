@@ -7,8 +7,8 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models import NodeElementComponent
 
-from pandapipes.idx_node import PINIT, LOAD, TINIT, NODE_TYPE, NODE_TYPE_T, P, T, EXT_GRID_OCCURENCE, \
-    EXT_GRID_OCCURENCE_T
+from pandapipes.idx_node import PINIT, LOAD, TINIT, NODE_TYPE, NODE_TYPE_T, P, T, \
+    EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
 
 from pandapipes.pipeflow_setup import get_lookup
@@ -26,6 +26,7 @@ class ExtGrid(NodeElementComponent):
     """
 
     """
+
     @classmethod
     def table_name(cls):
         return "ext_grid"
@@ -67,8 +68,9 @@ class ExtGrid(NodeElementComponent):
         node_pit[index, NODE_TYPE_T] = T
         node_pit[index, EXT_GRID_OCCURENCE_T] += number
 
-        net["_lookups"]["ext_grid"] = np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
-        "ext_grid" in net['_lookups'] else index_p
+        net["_lookups"]["ext_grid"] = np.array(
+            list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
+            "ext_grid" in net['_lookups'] else index_p
         return ext_grids, press
 
     @classmethod

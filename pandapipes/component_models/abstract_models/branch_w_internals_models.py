@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE,TINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
 from pandapipes.idx_node import TINIT as TINIT_NODE, L, node_cols
 
 from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
@@ -111,7 +111,7 @@ class BranchWInternalsComponent(BranchComponent):
         table_lookup = get_lookup(net, "node", "table")
         table_nr = get_table_number(table_lookup, cls.internal_node_name())
         if table_nr is None:
-            return None, 0,0, None, None, None
+            return None, 0, 0, None, None, None
         ft_lookup = get_lookup(net, "node", "from_to")
         f, t = ft_lookup[cls.internal_node_name()]
 
@@ -127,7 +127,6 @@ class BranchWInternalsComponent(BranchComponent):
         to_junctions = net[cls.table_name()].to_junction.values.astype(np.int32)
         return table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions
 
-
     @classmethod
     def create_pit_branch_entries(cls, net, branch_winternals_pit, node_name):
         """
@@ -139,7 +138,7 @@ class BranchWInternalsComponent(BranchComponent):
         :type branch_pit:
         :return: No Output.
         """
-        branch_winternals_pit, node_pit, from_nodes, to_nodes\
+        branch_winternals_pit, node_pit, from_nodes, to_nodes \
             = super().create_pit_branch_entries(net, branch_winternals_pit, node_name)
 
         internal_pipe_number = cls.get_internal_pipe_number(net)
@@ -152,16 +151,18 @@ class BranchWInternalsComponent(BranchComponent):
             from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
             to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
 
-        branch_winternals_pit[:, ELEMENT_IDX] = np.repeat(net[cls.table_name()].index.values, internal_pipe_number)
+        branch_winternals_pit[:, ELEMENT_IDX] = np.repeat(net[cls.table_name()].index.values,
+                                                          internal_pipe_number)
         branch_winternals_pit[:, FROM_NODE] = from_nodes
         branch_winternals_pit[:, TO_NODE] = to_nodes
-        branch_winternals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[to_nodes, TINIT_NODE]) / 2
+        branch_winternals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
+            to_nodes, TINIT_NODE]) / 2
         fluid = get_fluid(net)
         branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
         branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
         branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ACTIVE] = np.repeat(net[cls.table_name()][cls.active_identifier()].values,
-                                           internal_pipe_number)
+        branch_winternals_pit[:, ACTIVE] = np.repeat(
+            net[cls.table_name()][cls.active_identifier()].values,internal_pipe_number)
 
         return branch_winternals_pit, internal_pipe_number
 
@@ -188,6 +189,3 @@ class BranchWInternalsComponent(BranchComponent):
         :rtype:
         """
         raise NotImplementedError
-
-
-

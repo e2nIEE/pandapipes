@@ -14,6 +14,7 @@ class ConstFlow(NodeElementComponent):
     """
 
     """
+
     @classmethod
     def sign(cls):
         raise NotImplementedError()

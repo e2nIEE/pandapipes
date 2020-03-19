@@ -7,12 +7,12 @@ import numpy as np
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 
 from pandapipes.idx_node import ELEMENT_IDX, PINIT, TINIT as TINIT_NODE, PAMB
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, LOAD_VEC_NODES, PL, TL, ALPHA, TEXT, QEXT, T_OUT,\
-                                  D, AREA, LOSS_COEFFICIENT as LC, RE, LAMBDA
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, LOAD_VEC_NODES, PL, TL, ALPHA, \
+    TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC, RE, LAMBDA
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
 from pandapipes.toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_net_option,get_fluid, get_lookup
+from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
 
 from numpy import dtype
 
@@ -29,6 +29,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
     """
 
     """
+
     @classmethod
     def table_name(cls):
         return "heat_exchanger"
@@ -70,7 +71,8 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        placement_table, heat_exchanger_pit, res_table = super().extract_results(net, options, node_name)
+        placement_table, heat_exchanger_pit, res_table = super().extract_results(net, options,
+                                                                                 node_name)
 
         node_pit = net["_active_pit"]["node"]
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
@@ -223,4 +225,3 @@ class HeatExchanger(BranchWZeroLengthComponent):
                       ("reynolds", "f8"),
                       ("lambda", "f8")]
         return output
-
