@@ -80,16 +80,16 @@ def get_default_pandapipes_structure():
     :rtype:
     """
     default_pandapipes_structure = {
-            # structure data
-            # f8, u4 etc. are probably referencing numba or numpy data types
-            "fluid": None,
-            "converged": False,
-            "name": "",
-            "version": __version__,
-            "controller": [('controller', dtype(object)),
-                           ('in_service', "bool"),
-                           ('order', "float64"),
-                           ('level', dtype(object)),
-                           ("recycle", "bool")],
-            "component_list": []}
+        # structure data
+        # f8, u4 etc. are probably referencing numba or numpy data types
+        "fluid": None,
+        "converged": False,
+        "name": "",
+        "version": __version__,
+        "controller": [('controller', dtype(object)),
+                       ('in_service', "bool"),
+                       ('order', "float64"),
+                       ('level', dtype(object)),
+                       ("recycle", "bool")],
+        "component_list": []}
     return default_pandapipes_structure

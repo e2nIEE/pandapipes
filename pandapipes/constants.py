@@ -9,7 +9,6 @@ NORMAL_PRESSURE = 1.01325  # pressure under normal conditions (at sea level) in 
 MOLAR_MASS_AIR = 0.02896  # molar mass of air in m³/mol
 R_UNIVERSAL = 8.314  # universal gas constant (molar) in J/(mol * K)
 
-
 # specific constants
 HEIGHT_EXPONENT = 5.255  # exponent for height correction (typical value of international equation)
 TEMP_GRADIENT_KPM = 0.0065  # temperature gradient for moist air in K / m

@@ -8,6 +8,7 @@ import os
 from pandapipes.test.pipeflow_internals import internals_data_path
 import numpy as np
 
+
 def test_heat_exchanger():
     """
 
@@ -36,5 +37,5 @@ def test_heat_exchanger():
     t_pan = net.res_junction.t_k
 
     temp_diff = np.abs(1 - t_pan / temp_an)
-  
+
     assert np.all(temp_diff < 0.01)
