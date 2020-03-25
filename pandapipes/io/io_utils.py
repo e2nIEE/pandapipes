@@ -35,7 +35,7 @@ try:
     import shapely.geometry
 
     SHAPELY_INSTALLED = True
-except ImportError:
+except (ImportError, OSError):
     SHAPELY_INSTALLED = False
 
 

@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+
 import pytest
 from pandapipes.test import test_path
 
@@ -48,8 +49,9 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
             n_cpu = _get_cpus()
         err = pytest.main([test_dir, "-xs", "-n", str(n_cpu)])
         if err == 4:
-            logger.error("Parallel testing not possible. "
-                         "Please make sure that pytest-xdist is installed correctly.")
+            if err == 4:
+                raise ModuleNotFoundError("Parallel testing not possible. Please make sure that "
+                                          "pytest-xdist is installed correctly.")
         elif err > 2:
             logger.error("Testing not successfully finished.")
     else:
