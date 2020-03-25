@@ -14,6 +14,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class CirculationPump(ExtGrid):
 
     @classmethod
@@ -31,7 +32,8 @@ class CirculationPump(ExtGrid):
         :type options:
         :return: No Output.
         """
-        res_table, circ_pump, index_nodes_from, node_pit, branch_pit = super().extract_results(net, options, node_name)
+        res_table, circ_pump, index_nodes_from, node_pit, branch_pit = \
+            super().extract_results(net, options, node_name)
 
         index_juncts_to = circ_pump.to_junction.values
         junct_uni_to = np.array(list(set(index_juncts_to)))

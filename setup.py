@@ -22,7 +22,7 @@ classifiers = [
     'Natural Language :: English',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3',]
+    'Programming Language :: Python :: 3']
 
 with open('.travis.yml', 'rb') as f:
     lines = f.read().decode('utf-8')
@@ -31,10 +31,9 @@ with open('.travis.yml', 'rb') as f:
 
 long_description = '\n\n'.join((install, changelog))
 
-
 setup(
     name='pandapipes',
-    version='0.0.1',
+    version='0.1.0',
     author='Dennis Cronbach, Daniel Lohmeier, Simon Ruben Drauz',
     author_email='dennis.cronbach@iee.fraunhofer.de, daniel.lohmeier@iee.fraunhofer.de, '
                  'simon.ruben.drauz@iee.fraunhofer.de',

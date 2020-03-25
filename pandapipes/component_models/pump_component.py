@@ -9,7 +9,7 @@ from operator import itemgetter
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 
 from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.idx_branch import STD_TYPE, VINIT, D,  AREA, TL, \
+from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
     LOSS_COEFFICIENT as LC, FROM_NODE, TO_NODE, TINIT, PL
 
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
@@ -21,6 +21,7 @@ class Pump(BranchWZeroLengthComponent):
     """
 
     """
+
     @classmethod
     def table_name(cls):
         return "pump"
@@ -44,7 +45,7 @@ class Pump(BranchWZeroLengthComponent):
         pump_pit = super().create_pit_branch_entries(net, pump_pit, node_name)
         std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                            == std_types_lookup[:, np.newaxis])
+                                 == std_types_lookup[:, np.newaxis])
         pump_pit[pos, STD_TYPE] = std_type
         pump_pit[:, D] = 0.1
         pump_pit[:, AREA] = pump_pit[:, D] ** 2 * np.pi / 4
@@ -124,6 +125,8 @@ class Pump(BranchWZeroLengthComponent):
     def get_component_input(cls):
         """
 
+        Get component input.
+
         :return:
         :rtype:
         """
@@ -137,6 +140,8 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_result_table(cls, net):
         """
+
+        Gets the result table.
 
         :param net:
         :type net:

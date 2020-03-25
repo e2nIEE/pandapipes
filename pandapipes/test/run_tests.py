@@ -11,13 +11,7 @@ try:
     import coverage as cov
 except ImportError:
     pass
-try:
-    import pplog as logging
-except ImportError:
-    import logging
-from pandapower.test.run_tests import _get_cpus
-
-logger = logging.getLogger(__name__)
+from pandapower.test.run_tests import _get_cpus, _create_logger
 
 
 def _get_test_dir(pp_module=None):
@@ -43,6 +37,7 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     :return: No Output.
     """
 
+    logger = _create_logger()
     test_dir = _get_test_dir()
 
     if coverage:
@@ -62,8 +57,6 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     else:
         pytest.main([test_dir, "-xs"])
 
-    pytest.main(['-xs', __file__])
-
     if coverage:
         cov_tracker.stop()
         cov_tracker.save()
@@ -71,4 +64,4 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
 
 
 if __name__ == "__main__":
-    run_tests(True, 3)
+    run_tests()

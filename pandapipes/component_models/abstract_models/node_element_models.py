@@ -33,4 +33,3 @@ class NodeElementComponent(Component):
         :return: No Output.
         """
         raise NotImplementedError
-

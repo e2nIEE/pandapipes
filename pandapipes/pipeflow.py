@@ -10,13 +10,13 @@ from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_
     TO_NODE_T, VINIT, T_OUT, VINIT_T
 from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
 from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
-    init_options, create_internal_results, write_internal_results,  extract_all_results,\
+    init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     extract_results_active_pit, set_user_pf_options
 from scipy.sparse.linalg import spsolve
 from pandapipes.component_models import Junction
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, BranchComponent, \
-    BranchWInternalsComponent
+from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
+    BranchComponent, BranchWInternalsComponent
 
 try:
     import pplog as logging
@@ -345,7 +345,7 @@ def set_damping_factor(net, niter, error):
     current_alpha = get_net_option(net, "alpha")
 
     if error_x0_increased and error_x1_increased:
-        set_net_option(net, "alpha",  current_alpha / 10 if current_alpha >= 0.1 else current_alpha)
+        set_net_option(net, "alpha", current_alpha / 10 if current_alpha >= 0.1 else current_alpha)
     else:
         set_net_option(net, "alpha", current_alpha * 10 if current_alpha <= 0.1 else 1.0)
 

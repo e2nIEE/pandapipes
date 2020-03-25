@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-
 import matplotlib.pyplot as plt
 
 from pandapipes.plotting.plotting_toolbox import get_collection_sizes
@@ -25,10 +24,10 @@ logger = logging.getLogger(__name__)
 
 def simple_plot(net, respect_valves=False, pipe_width=2.0, junction_size=1.0, ext_grid_size=1.0,
                 plot_sinks=False, plot_sources=False, sink_size=1.0, source_size=1.0,
-                valve_size=1.0, pump_size=1.0, heat_exchanger_size=1.0, scale_size=True, junction_color="r",
-                pipe_color='silver', ext_grid_color='orange', valve_color='silver',
-                pump_color='silver', heat_exchanger_color='silver', library="igraph", show_plot=True,
-                ax=None, **kwargs):  # pragma: no cover
+                valve_size=1.0, pump_size=1.0, heat_exchanger_size=1.0, scale_size=True,
+                junction_color="r", pipe_color='silver', ext_grid_color='orange',
+                valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
+                library="igraph", show_plot=True, ax=None, **kwargs):  # pragma: no cover
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
     geodata is generated. For advanced plotting see the tutorial
@@ -202,12 +201,13 @@ def create_simple_collections(net, respect_valves=False, pipe_width=5.0, junctio
         collections["sink"] = sink_colls
 
     if 'valve' in net:
-        valve_colls = create_valve_collection(net, size=valve_size, linewidths=pipe_width, color=valve_color,
-                                              respect_valves=respect_valves)
+        valve_colls = create_valve_collection(net, size=valve_size, linewidths=pipe_width,
+                                              color=valve_color, respect_valves=respect_valves)
         collections["valve"] = valve_colls
 
     if 'pump' in net:
-        pump_colls = create_pump_collection(net, size=pump_size, linewidths=pipe_width, color=pump_color)
+        pump_colls = create_pump_collection(net, size=pump_size, linewidths=pipe_width,
+                                            color=pump_color)
         collections["pump"] = pump_colls
 
     if 'circ_pump_mass' in net:
@@ -234,6 +234,3 @@ def create_simple_collections(net, respect_valves=False, pipe_width=5.0, junctio
         return collections
     return list(chain.from_iterable([list(c) if hasattr(c, "__iter__") else [c]
                                      for c in collections.values()]))
-
-
-
