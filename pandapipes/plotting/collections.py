@@ -265,8 +265,8 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
     if ext_grid_junctions is None:
         ext_grid_junctions = net.ext_grid.junction.loc[ext_grids].values
     else:
-        assert len(ext_grids) == len(ext_grid_junctions), \
-            "Length mismatch between chosen ext_grids and ext_grid_junctions."
+        if len(ext_grids) != len(ext_grid_junctions):
+            raise ValueError("Length mismatch between chosen ext_grids and ext_grid_junctions.")
     infos = [infofunc(ext_grid_idx) for ext_grid_idx in ext_grids] if infofunc is not None else []
 
     node_coords = net.junction_geodata.loc[ext_grid_junctions, ["x", "y"]].values
