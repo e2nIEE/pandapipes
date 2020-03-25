@@ -498,9 +498,10 @@ def perform_connectivity_search(net, node_pit, slack_nodes, from_nodes, to_nodes
     nodes_connected = np.zeros(len(active_node_lookup), dtype=np.bool)
     nodes_connected[reachable_nodes] = True
 
-    assert np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]), \
-        "An error occured in the %s connectivity check. Please contact the pandapipes development" \
-        " team!" % mode
+    if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
+        raise ValueError(
+            "An error occured in the %s connectivity check. Please contact the pandapipes development" \
+            " team!" % mode)
     branches_connected = active_branch_lookup & nodes_connected[from_nodes]
 
     oos_nodes = np.where(~nodes_connected & active_node_lookup)[0]
