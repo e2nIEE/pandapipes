@@ -19,6 +19,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class CirculationPumpMass(CirculationPump):
 
     @classmethod

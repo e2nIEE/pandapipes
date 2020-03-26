@@ -12,9 +12,9 @@ from setuptools import find_packages
 
 
 def test_import_packages():
-    all_packages = find_packages(os.path.dirname(pp_dir))
+    all_packages = find_packages(pp_dir)
     for pck in all_packages:
-        spec = importlib.util.find_spec(pck)
+        spec = importlib.util.find_spec(os.path.split(pp_dir)[-1] + "." + pck)
         new_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(new_module)
     assert True

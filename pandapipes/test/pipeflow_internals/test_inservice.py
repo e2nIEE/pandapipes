@@ -197,7 +197,7 @@ def test_connectivity_hydraulic(create_test_net):
     active_branches = get_lookup(net, "branch", "active")
     active_nodes = get_lookup(net, "node", "active")
 
-    assert np.all(active_nodes == np.array([True,  True, False,  True,  True, False, False, False,
+    assert np.all(active_nodes == np.array([True, True, False, True, True, False, False, False,
                                             False, True]))
     assert np.all(active_branches == np.array([True, False, False, False, False, False, True,
                                                True, True, False]))
@@ -208,7 +208,7 @@ def test_connectivity_heat1(complex_heat_connectivity_grid):
     pandapipes.pipeflow(net, mode="all", check_connectivity=True)
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) == {8, 9, 10}
-    assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index)\
+    assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index) \
            == set(net.junction.index) - {8, 9, 10}
     assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.notnull()].index) == {1, 2}
     assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.isnull()].index) \
@@ -234,9 +234,9 @@ def test_connectivity_heat2(complex_heat_connectivity_grid):
     pandapipes.pipeflow(net, mode="all", check_connectivity=True)
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index) == {4}
-    assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index)\
+    assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) \
            == set(net.junction.index) - {4}
-    assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.notnull()].index)\
+    assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.notnull()].index) \
            == set(net.pipe.loc[net.pipe.in_service].index)
     assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.isnull()].index) \
            == set(net.pipe.loc[~net.pipe.in_service].index)
@@ -263,9 +263,9 @@ def test_connectivity_heat3(complex_heat_connectivity_grid):
     pandapipes.pipeflow(net, mode="all", check_connectivity=True)
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index) == set()
-    assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index)\
+    assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) \
            == set(net.junction.index)
-    assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.notnull()].index)\
+    assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.notnull()].index) \
            == set(net.pipe.loc[net.pipe.in_service].index)
     assert set(net.res_pipe.loc[net.res_pipe.v_mean_m_per_s.isnull()].index) \
            == set(net.pipe.loc[~net.pipe.in_service].index)
@@ -281,6 +281,29 @@ def test_connectivity_heat3(complex_heat_connectivity_grid):
     assert np.allclose(net.res_ext_grid.mdot_kg_per_s.sum(),
                        -net.res_sink.mdot_kg_per_s.sum() + net.res_source.mdot_kg_per_s.sum(),
                        rtol=1e-10, atol=0)
+
+
+@pytest.mark.xfail(
+    reason="reduced_pit does not reindex the reduced nodes correctly, will be fixed.")
+def test_exclude_unconnected_junction():
+    """
+    test if unconnected junctions that do not have the highest index are excluded correctly
+    (pipeflow fails if reduced_pit does not reindex the reduced nodes correctly)
+    :return:
+    :rtype:
+    """
+    net = pandapipes.create_empty_network(fluid="lgas")
+
+    j1 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 1")
+    _ = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="unconnected junction")
+    j3 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 3")
+
+    pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15)
+    pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.045)
+    pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j3, length_km=0.1,
+                                           diameter_m=0.05)
+    pandapipes.pipeflow(net)
+    assert net.converged
 
 
 if __name__ == "__main__":

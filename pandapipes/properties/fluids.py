@@ -21,6 +21,7 @@ class Fluid(JSONSerializableClass):
     """
 
     """
+
     def __init__(self, name, fluid_type, **kwargs):
         """
 
@@ -126,6 +127,7 @@ class FluidProperty(JSONSerializableClass):
     """
     Property Base Class
     """
+
     def __init__(self):
         super().__init__()
 
@@ -340,7 +342,7 @@ def call_lib(fluid):
     gases = ["air", "lgas", "hgas"]
 
     if fluid == "natural_gas":
-        logger.Error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
+        logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
                      "(high- or low caloric natural gas)")
     if fluid not in liquids and fluid not in gases:
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "

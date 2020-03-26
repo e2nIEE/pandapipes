@@ -10,9 +10,11 @@ from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, RHO, ETA, \
     VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, branch_cols, \
     T_OUT, CP, VINIT_T, FROM_NODE_T, PL, TL, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, JAC_DERIV_DV_NODE, \
+    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, \
+    JAC_DERIV_DV_NODE, \
     LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
-from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, P_CONVERSION
+from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
+    P_CONVERSION
 
 from pandapipes.pipeflow_setup import get_table_number, get_lookup
 from pandapipes.properties.fluids import get_fluid
@@ -87,7 +89,6 @@ class BranchComponent(Component):
         branch_component_pit[:, VINIT] = 0.1
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
-
     @classmethod
     def calculate_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         """
@@ -142,10 +143,9 @@ class BranchComponent(Component):
         pl = branch_component_pit[:, PL]
 
         if not gas_mode:
-            branch_component_pit[:, JAC_DERIV_DV] = rho / (P_CONVERSION * 2) \
-                                        * (length / d * (der_lambda_pipe * v_init2
-                                                         + 2 * lambda_pipe * np.abs(v_init))
-                                           + 2 * loss_coef * np.abs(v_init))
+            branch_component_pit[:, JAC_DERIV_DV] = \
+                rho / (P_CONVERSION * 2) * (length / d * (der_lambda_pipe * v_init2 + 2 *
+                lambda_pipe * np.abs(v_init)) + 2 * loss_coef * np.abs(v_init))
 
             branch_component_pit[:, LOAD_VEC_BRANCHES] = \
                 - (-p_init_i_abs + p_init_i1_abs - pl
@@ -166,11 +166,13 @@ class BranchComponent(Component):
                         / (p_init_i_abs[mask] ** 2 - p_init_i1_abs[mask] ** 2)
             comp_fact = get_fluid(net).get_property("compressibility", p_m)
 
-            const_lambda = NORMAL_PRESSURE * rho * comp_fact * t_init / (NORMAL_TEMPERATURE * P_CONVERSION)
+            const_lambda = NORMAL_PRESSURE * rho * comp_fact * t_init \
+                           / (NORMAL_TEMPERATURE * P_CONVERSION)
             const_height = rho * NORMAL_TEMPERATURE / (2 * NORMAL_PRESSURE * t_init * P_CONVERSION)
 
             branch_component_pit[:, LOAD_VEC_BRANCHES] = \
-                -(-p_init_i_abs + p_init_i1_abs - pl + const_lambda * v_init2 * (lambda_pipe * length / d + loss_coef)
+                -(-p_init_i_abs + p_init_i1_abs - pl + const_lambda * v_init2 * (
+                            lambda_pipe * length / d + loss_coef)
                   * (p_init_i_abs + p_init_i1_abs) ** (-1)
                   - const_height * (p_init_i_abs + p_init_i1_abs) * g_const * height_difference)
 
@@ -234,11 +236,12 @@ class BranchComponent(Component):
             -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
               - alpha * (t_amb - t_m) * length + qext)
 
-        branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha/2 * length
-        branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha/2 * length
+        branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
+        branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
 
         branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
-        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] * t_init_i1
+        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:,
+                                                                   AREA] * t_init_i1
 
     @classmethod
     def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
@@ -287,6 +290,3 @@ class BranchComponent(Component):
         branch_pit = net["_active_pit"]["branch"][fa:ta, :]
 
         return placement_table, branch_pit, results
-
-
-

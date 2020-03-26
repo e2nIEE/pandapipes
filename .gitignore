@@ -16,4 +16,5 @@ doc/.build/*
 doc/_build/*
 doc/build/*
 tutorials/.ipynb_checkpoints
-pandapipes/io_owncloud/*
+pandapipes/data/*
+pandapipes.egg-info/
