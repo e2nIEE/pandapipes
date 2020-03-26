@@ -3,6 +3,7 @@ omit =
     pandapipes/test/*
     pandapipes/plotting/geo.py
 
+
 [report]
 exclude_lines =
     if 0:
