@@ -9,6 +9,7 @@ import numpy as np
 
 def get_data(path, std_type_category):
     """
+    get_data.
 
     :param path:
     :type path:
@@ -44,6 +45,7 @@ def get_p_v_values(path):
 
 def regression_function(p_values, v_values, degree):
     """
+    Regression function...
 
     :param p_values:
     :type p_values:

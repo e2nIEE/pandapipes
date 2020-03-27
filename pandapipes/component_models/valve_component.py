@@ -131,8 +131,9 @@ class Valve(BranchWZeroLengthComponent):
                               / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
 
-            idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum = _sum_by_group(
-                    idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to)
+            idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum = \
+                _sum_by_group(idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from,
+                              normfactor_to)
 
             res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_sum
             res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_sum
@@ -206,5 +207,3 @@ class Valve(BranchWZeroLengthComponent):
                       ("reynolds", "f8"),
                       ("lambda", "f8")]
         return output
-
-
