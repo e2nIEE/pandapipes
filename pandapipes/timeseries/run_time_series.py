@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.WARNING)
 
 
-def get_default_output_writer_ppipe(net, timesteps, tmp_path):
+def get_default_output_writer_ppipe(net, timesteps):
     """
     Creates a default output writer for the time series calculation.
 
