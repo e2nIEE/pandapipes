@@ -2,9 +2,9 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import tempfile
 
 import numpy as np
+import os
 
 from pandapower import LoadflowNotConverged, OPFNotConverged
 from pandapower.control.run_control import ControllerNotConverged, get_controller_order
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.WARNING)
 
 
-def get_default_output_writer_ppipe(net, timesteps):
+def get_default_output_writer_ppipe(net, timesteps, tmp_path):
     """
     Creates a default output writer for the time series calculation.
 
@@ -34,7 +34,8 @@ def get_default_output_writer_ppipe(net, timesteps):
     :rtype: ?
     """
 
-    ow = OutputWriter(net, timesteps, output_path=tempfile.gettempdir(), log_variables=[])
+    ow = OutputWriter(net, timesteps, output_path=os.path.abspath(str(tmp_path)) + "ts_test_path",
+                      log_variables=[])
     ow.log_variable('res_sink', 'mdot_kg_per_s')
     ow.log_variable('res_source', 'mdot_kg_per_s')
     ow.log_variable('res_ext_grid', 'mdot_kg_per_s')
