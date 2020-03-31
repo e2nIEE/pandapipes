@@ -36,6 +36,7 @@
 
 .. image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop
+   :alt: binder
 
 
 A pipeflow calculation tool that complements `pandapower <https://www.pandapower.org>`_ in the
