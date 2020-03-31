@@ -178,7 +178,8 @@ class FluidPropertyInterExtra(FluidProperty):
     @classmethod
     def from_path(cls, path, method="interpolate_extrapolate"):
         """
-
+        Reads a text file with temperature values in the first column and property values in
+        second column.
         :param path:
         :type path:
         :param method:
