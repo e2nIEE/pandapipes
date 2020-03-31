@@ -327,7 +327,7 @@ def create_constant_fluid(name=None, fluid_type=None, **kwargs):
 def call_lib(fluid):
     """
     Creates a fluid with default fluid properties.
-    Currently implemented: Water, air and natural gas.
+    Currently implemented: High or low caloric natural gas (hgas or lgas), water and air.
 
     :param fluid: Fluid which should be used
     :type fluid: str
