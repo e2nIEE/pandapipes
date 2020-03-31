@@ -417,7 +417,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default 293
     :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["source"] table
+            net["pipe"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
@@ -514,7 +514,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default 293
     :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["source"] table
+            net["pipe"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
