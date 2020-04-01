@@ -46,7 +46,7 @@ def load_net():
                                            geodata=[(7, -4), (7, -3), (5, -3)])
 
     pandapipes.create_valve(net, from_junction=j5, to_junction=j6, diameter_m=0.05,
-                                    opened=True)
+                            opened=True)
 
     pandapipes.create_sink(net, junction=j4, mdot_kg_per_s=5.45e-5, name="Sink 1")
 
@@ -117,7 +117,7 @@ def test_json_string():
     del net.pipe_geodata
     del net2.pipe_geodata
 
-    assert pandapipes.nets_equal(net, net2),\
+    assert pandapipes.nets_equal(net, net2), \
         "Error in comparison after saving to JSON string."
 
 

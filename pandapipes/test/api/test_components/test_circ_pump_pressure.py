@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from pandapipes.test.pipeflow_internals import internals_data_path
 
+
 def test_circulation_pump_constant_pressure():
     """
         :return:

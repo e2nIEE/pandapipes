@@ -31,11 +31,11 @@ try:
 except ImportError:
     GEOPANDAS_INSTALLED = False
 
-
 try:
     import shapely.geometry
+
     SHAPELY_INSTALLED = True
-except ImportError:
+except (ImportError, OSError):
     SHAPELY_INSTALLED = False
 
 
@@ -145,12 +145,13 @@ def json_component(class_):
         d = with_signature(class_(), str(class_().__dict__))
         return d
     else:
-        raise(UserWarning('with_signature needs to be defined for '
-                          'class %s in @to_serializable.register(type)!' % class_))
+        raise (UserWarning('with_signature needs to be defined for '
+                           'class %s in @to_serializable.register(type)!' % class_))
 
 
 if __name__ == '__main__':
     ntw = create_fluid_network()
     import pandapipes as pp
+
     pp.to_json(ntw, 'test.json')
     ntw = pp.from_json('test.json')

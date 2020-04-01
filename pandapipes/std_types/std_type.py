@@ -160,15 +160,17 @@ def add_std_type(net, std_type_category, component_name, component_object, overw
         net.update({'std_type': {std_type_category: {component_name: component_object}}})
     elif not std_type_category in net.std_type:
         std_types = net.std_type
-        std_types.update({std_type_category:  {component_name: component_object}})
+        std_types.update({std_type_category: {component_name: component_object}})
         net.std_type = std_types
     elif not overwrite and component_name in net['std_type'][std_type_category]:
-        raise(ValueError('%s is already in net.std_type["%s"]. Set overwrite = True if you want to change values!'
-              %(component_name, std_type_category)))
+        raise (ValueError(
+            '%s is already in net.std_type["%s"]. Set overwrite = True if you want to change values!'
+            % (component_name, std_type_category)))
     else:
         std_types = net.std_type[std_type_category]
         std_types.update({component_name: component_object})
         net.std_type[std_type_category] = std_types
+
 
 def add_std_types(net, std_type_category, component_dictionary, overwrite=False):
     """
@@ -190,11 +192,11 @@ def add_std_types(net, std_type_category, component_dictionary, overwrite=False)
         net.update({'std_type': {std_type_category: component_dictionary}})
     elif not std_type_category in net.std_type:
         std_types = net.std_type
-        std_types.update({std_type_category:  component_dictionary})
+        std_types.update({std_type_category: component_dictionary})
         net.std_type = std_types
     elif not overwrite:
         std_types = net.std_type[std_type_category]
-        std_types.update({k:v for k,v in component_dictionary.items() if k not in std_types})
+        std_types.update({k: v for k, v in component_dictionary.items() if k not in std_types})
         net.std_type[std_type_category] = std_types
     else:
         net.std_type[std_type_category].update(component_dictionary)

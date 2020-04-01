@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from pandapipes.pandapipes_net import pandapipesNet, logger
 from pandapower.toolbox import dataframes_equal
+from pandapower.auxiliary import get_indices
 import os
 
 try:
@@ -124,3 +125,66 @@ def _sum_by_group(indices, *values):
         val[i] = val[i][order]
 
     return _sum_by_group_sorted(indices, *val)
+
+
+def element_junction_tuples(junction_elements=True, branch_elements=True, res_elements=False):
+    """
+    Utility function
+    Provides the tuples of elements and corresponding columns for junctions they are connected to
+    :param junction_elements: whether tuples for junction elements e.g. sink, source,
+    ... are included
+    :param branch_elements: whether branch elements e.g. pipe, pumps, ... are included
+    :return: set of tuples with element names and column names
+    """
+    ejts = set()
+    if junction_elements:
+        elements = ["sink", "source", "ext_grid"]
+        for elm in elements:
+            ejts.update([(elm, "junction")])
+    if branch_elements:
+        elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
+                    "heat_exchanger"]
+        for elm in elements:
+            ejts.update([(elm, "from_junction"), (elm, "to_junction")])
+    if res_elements:
+        elements_without_res = ["valve"]
+        ejts.update(
+            [("res_" + ejt[0], ejt[1]) for ejt in ejts if ejt[0] not in elements_without_res])
+    return ejts
+
+
+def reindex_junctions(net, junction_lookup):
+    """
+    Changes the index of net.junction and considers the new junction indices in all other
+    pandapipes element tables.
+
+    INPUT:
+      **net** - pandapipes network
+
+      **junction_lookup** (dict) - the keys are the old junction indices, the values the new junction indices
+    """
+    not_fitting_junction_lookup_keys = set(junction_lookup.keys()) - set(net.junction.index)
+    if len(not_fitting_junction_lookup_keys):
+        logger.error("These junction indices are unknown to net. Thus, they cannot be reindexed: " +
+                     str(not_fitting_junction_lookup_keys))
+
+    missing_junction_indices = sorted(set(net.junction.index) - set(junction_lookup.keys()))
+    if len(missing_junction_indices):
+        duplicates = set(missing_junction_indices).intersection(set(junction_lookup.values()))
+        if len(duplicates):
+            logger.error("The junctions %s are not listed in junction_lookup but their index is "
+                         "used as a new index. This would result in duplicated junction indices."
+                         % (str(duplicates)))
+        else:
+            junction_lookup.update({j: j for j in missing_junction_indices})
+
+    net.junction.index = get_indices(net.junction.index, junction_lookup)
+    if hasattr(net, "res_junction"):
+        net.res_junction.index = get_indices(net.res_junction.index, junction_lookup)
+
+    for element, value in element_junction_tuples():
+        if element in net.keys():
+            net[element][value] = get_indices(net[element][value], junction_lookup)
+    net["junction_geodata"].set_index(get_indices(net["junction_geodata"].index, junction_lookup),
+                                      inplace=True)
+    return junction_lookup

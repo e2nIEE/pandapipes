@@ -21,6 +21,7 @@ class Fluid(JSONSerializableClass):
     """
 
     """
+
     def __init__(self, name, fluid_type, **kwargs):
         """
 
@@ -126,6 +127,7 @@ class FluidProperty(JSONSerializableClass):
     """
     Property Base Class
     """
+
     def __init__(self):
         super().__init__()
 

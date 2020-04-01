@@ -24,7 +24,7 @@ def test_default_input_tables():
 
     pipe_input = list(copy.deepcopy(net.pipe.columns))
     pandapipes.create_pipe_from_parameters(net, 0, 1, 6, diameter_m=0.2, k_mm=.1, sections=6,
-                                  alpha_w_per_m2k=5)
+                                           alpha_w_per_m2k=5)
     pipe_input_create = list(net.pipe.columns)
     assert pipe_input == pipe_input_create, "Input does not equal Table in create-function"
 
@@ -80,8 +80,3 @@ def test_additional_tables():
     pandapipes.create_heat_exchanger(net, 0, 1, 0.2, qext_w=20000)
     hex_input_create = list(net.heat_exchanger.columns)
     assert hex_input == hex_input_create, "Input does not equal create-table"
-
-
-
-
-

@@ -1,0 +1,1694 @@
+{
+  "_module": "pandapipes.pandapipes_net",
+  "_class": "pandapipesNet",
+  "_object": {
+    "fluid": {
+      "_module": "pandapipes.properties.fluids",
+      "_class": "Fluid",
+      "_object": "{\"name\": \"lgas\", \"fluid_type\": \"gas\", \"is_gas\": true, \"all_properties\": {\"density\": {\"_module\": \"pandapipes.properties.fluids\", \"_class\": \"FluidPropertyInterExtra\", \"_object\": \"{\\\"x\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [263.0, 273.0, 283.0, 293.0, 303.0, 313.0, 323.0, 333.0], \\\"dtype\\\": \\\"float64\\\"}, \\\"y\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [0.8061384658565334, 0.776244645669407, 0.7486623252182165, 0.7228932415821546, 0.6988702058487433, 0.6764325042987719, 0.6553291931563104, 0.6355887607852605], \\\"dtype\\\": \\\"float64\\\"}, \\\"_fill_value_orig\\\": \\\"extrapolate\\\"}\"}, \"viscosity\": {\"_module\": \"pandapipes.properties.fluids\", \"_class\": \"FluidPropertyInterExtra\", \"_object\": \"{\\\"x\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [263.0, 273.0, 283.0, 293.0, 303.0, 313.0, 323.0, 333.0], \\\"dtype\\\": \\\"float64\\\"}, \\\"y\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [1.0611887533890938e-05, 1.097999656553613e-05, 1.13003513726697e-05, 1.1620561612045843e-05, 1.1962418232021982e-05, 1.2342087570589509e-05, 1.266064664279232e-05, 1.2977373081403864e-05], \\\"dtype\\\": \\\"float64\\\"}, \\\"_fill_value_orig\\\": \\\"extrapolate\\\"}\"}, \"heat_capacity\": {\"_module\": \"pandapipes.properties.fluids\", \"_class\": \"FluidPropertyInterExtra\", \"_object\": \"{\\\"x\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [263.0, 273.0, 283.0, 293.0, 303.0, 313.0, 323.0, 333.0], \\\"dtype\\\": \\\"float64\\\"}, \\\"y\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [1988.0279940929372, 2004.2383040682475, 2022.2062184118254, 2041.8360344488058, 2063.044947202759, 2085.72538899377, 2109.8124859346017, 2135.097361889473], \\\"dtype\\\": \\\"float64\\\"}, \\\"_fill_value_orig\\\": \\\"extrapolate\\\"}\"}, \"compressibility\": {\"_module\": \"pandapipes.properties.fluids\", \"_class\": \"FluidPropertyLinear\", \"_object\": \"{\\\"slope\\\": -0.0022, \\\"offset\\\": 1}\"}, \"der_compressibility\": {\"_module\": \"pandapipes.properties.fluids\", \"_class\": \"FluidPropertyConstant\", \"_object\": \"{\\\"value\\\": -0.0022}\"}}}"
+    },
+    "converged": false,
+    "name": "",
+    "version": "0.2",
+    "controller": {
+      "_module": "pandas.core.frame",
+      "_class": "DataFrame",
+      "_object": "{\"columns\":[\"controller\",\"in_service\",\"order\",\"level\",\"recycle\"],\"index\":[],\"data\":[]}",
+      "orient": "split",
+      "dtype": {
+        "controller": "object",
+        "in_service": "bool",
+        "order": "float64",
+        "level": "object",
+        "recycle": "bool"
+      }
+    },
+    "component_list": [
+      {
+        "_module": "pandapipes.component_models.junction_component",
+        "_class": "Junction",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.pipe_component",
+        "_class": "Pipe",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.ext_grid_component",
+        "_class": "ExtGrid",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.sink_component",
+        "_class": "Sink",
+        "_object": "{}"
+      }
+    ],
+    "junction": {
+      "_module": "pandas.core.frame",
+      "_class": "DataFrame",
+      "_object": "{\"columns\":[\"name\",\"pn_bar\",\"tfluid_k\",\"height_m\",\"in_service\",\"type\"],\"index\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13],\"data\":[[\"Junction 1\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 2\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 3\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 4\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 5\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 6\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 7\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 8\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 9\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 10\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 11\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 12\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 13\",1.05,293.0,0.0,true,\"junction\"],[\"Junction 14\",1.05,293.0,0.0,true,\"junction\"]]}",
+      "orient": "split",
+      "dtype": {
+        "name": "object",
+        "pn_bar": "float64",
+        "tfluid_k": "float64",
+        "height_m": "float64",
+        "in_service": "bool",
+        "type": "object"
+      }
+    },
+    "junction_geodata": {
+      "_module": "pandas.core.frame",
+      "_class": "DataFrame",
+      "_object": "{\"columns\":[\"x\",\"y\",\"coords\"],\"index\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13],\"data\":[[11.411,53.640700000000002,null],[11.4102,53.640700000000002,null],[11.4085,53.639200000000002,null],[11.409700000000001,53.641300000000001,null],[11.4093,53.6387,null],[11.4093,53.639200000000002,null],[11.4093,53.640700000000002,null],[11.4085,53.640700000000002,null],[11.4102,53.6402,null],[11.4085,53.639699999999998,null],[11.4085,53.6402,null],[11.4093,53.640300000000003,null],[11.410299999999999,53.639699999999998,null],[11.4093,53.639699999999998,null]]}",
+      "orient": "split",
+      "dtype": {
+        "x": "float64",
+        "y": "float64",
+        "coords": "object"
+      }
+    },
+    "pipe": {
+      "_module": "pandas.core.frame",
+      "_class": "DataFrame",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"alpha_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\"],\"index\":[0,1,2,3,4,5,6,7,8,9,10,11,12],\"data\":[[\"Pipe 1\",9,2,null,0.0557667,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 2\",13,11,null,0.0535763,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 3\",6,3,null,0.0498145,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 4\",8,1,null,0.0178861,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 5\",7,10,null,0.0160892,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 6\",10,9,null,0.0247661,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 7\",3,7,null,0.00514112,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 8\",11,6,null,0.00214695,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 9\",5,13,null,0.137215,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 10\",3,0,null,0.132499,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 11\",1,3,null,0.0162072,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 12\",12,8,null,0.0460153,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"],[\"Pipe 13\",4,5,null,0.00258257,0.02,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\"]]}",
+      "orient": "split",
+      "dtype": {
+        "name": "object",
+        "from_junction": "uint32",
+        "to_junction": "uint32",
+        "std_type": "object",
+        "length_km": "float64",
+        "diameter_m": "float64",
+        "k_mm": "float64",
+        "loss_coefficient": "float64",
+        "alpha_w_per_m2k": "float64",
+        "text_k": "float64",
+        "qext_w": "float64",
+        "sections": "uint32",
+        "in_service": "bool",
+        "type": "object"
+      }
+    },
+    "pipe_geodata": {
+      "_module": "pandas.core.frame",
+      "_class": "DataFrame",
+      "_object": "{\"columns\":[\"coords\"],\"index\":[0,1,2,3,4,5,6,7,8,9,10,11,12],\"data\":[[[[11.4085,53.639699999999998],[11.4085,53.639200000000002]]],[[[11.4093,53.639699999999998],[11.4093,53.640300000000003]]],[[[11.4093,53.640700000000002],[11.409700000000001,53.641300000000001]]],[[[11.4102,53.6402],[11.4102,53.640700000000002]]],[[[11.4085,53.640700000000002],[11.4085,53.6402]]],[[[11.4085,53.6402],[11.4085,53.639699999999998]]],[[[11.409700000000001,53.641300000000001],[11.4085,53.640700000000002]]],[[[11.4093,53.640300000000003],[11.4093,53.640700000000002]]],[[[11.4093,53.639200000000002],[11.4093,53.639699999999998]]],[[[11.409700000000001,53.641300000000001],[11.411,53.640700000000002]]],[[[11.4102,53.640700000000002],[11.409700000000001,53.641300000000001]]],[[[11.410299999999999,53.639699999999998],[11.4102,53.6402]]],[[[11.4093,53.6387],[11.4093,53.639200000000002]]]]}",
+      "orient": "split",
+      "dtype": {
+        "coords": "object"
+      }
+    },
+    "ext_grid": {
+      "_module": "pandas.core.frame",
+      "_class": "DataFrame",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"p_bar\",\"t_k\",\"in_service\",\"type\"],\"index\":[0],\"data\":[[\"Ext_Grid 1\",3,1.05,293.0,true,\"pt\"]]}",
+      "orient": "split",
+      "dtype": {
+        "name": "object",
+        "junction": "uint32",
+        "p_bar": "float64",
+        "t_k": "float64",
+        "in_service": "bool",
+        "type": "object"
+      }
+    },
+    "std_type": {
+      "pump": {
+        "P1": {
+          "_module": "pandapipes.std_types.std_type",
+          "_class": "PumpStdType",
+          "_object": "{\"name\": \"P1\", \"type\": \"pump\", \"reg_par\": {\"_module\": \"numpy\", \"_class\": \"array\", \"_object\": [-0.00014862079898541572, -0.01296567850348759, 6.099999999999999], \"dtype\": \"float64\"}}"
+        },
+        "P2": {
+          "_module": "pandapipes.std_types.std_type",
+          "_class": "PumpStdType",
+          "_object": "{\"name\": \"P2\", \"type\": \"pump\", \"reg_par\": {\"_module\": \"numpy\", \"_class\": \"array\", \"_object\": [-0.0008247610475333237, -0.0026404783335478273, 9.972144357292878], \"dtype\": \"float64\"}}"
+        },
+        "P3": {
+          "_module": "pandapipes.std_types.std_type",
+          "_class": "PumpStdType",
+          "_object": "{\"name\": \"P3\", \"type\": \"pump\", \"reg_par\": {\"_module\": \"numpy\", \"_class\": \"array\", \"_object\": [8.069273780037227e-20, -1.0000000000022346e-05, 5.0], \"dtype\": \"float64\"}}"
+        }
+      },
+      "pipe": {
+        "80_GGG": {
+          "nominal_width_mm": 80,
+          "outer_diameter_mm": 98.0,
+          "inner_diameter_mm": 86.0,
+          "standard_dimension_ratio": 16.33,
+          "material": "GGG"
+        },
+        "100_GGG": {
+          "nominal_width_mm": 100,
+          "outer_diameter_mm": 118.0,
+          "inner_diameter_mm": 105.8,
+          "standard_dimension_ratio": 19.34,
+          "material": "GGG"
+        },
+        "125_GGG": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 144.0,
+          "inner_diameter_mm": 131.6,
+          "standard_dimension_ratio": 23.23,
+          "material": "GGG"
+        },
+        "150_GGG": {
+          "nominal_width_mm": 150,
+          "outer_diameter_mm": 170.0,
+          "inner_diameter_mm": 157.0,
+          "standard_dimension_ratio": 26.15,
+          "material": "GGG"
+        },
+        "200_GGG": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 222.0,
+          "inner_diameter_mm": 208.0,
+          "standard_dimension_ratio": 31.71,
+          "material": "GGG"
+        },
+        "250_GGG": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 274.0,
+          "inner_diameter_mm": 259.0,
+          "standard_dimension_ratio": 36.53,
+          "material": "GGG"
+        },
+        "300_GGG": {
+          "nominal_width_mm": 300,
+          "outer_diameter_mm": 326.0,
+          "inner_diameter_mm": 310.0,
+          "standard_dimension_ratio": 40.75,
+          "material": "GGG"
+        },
+        "350_GGG": {
+          "nominal_width_mm": 350,
+          "outer_diameter_mm": 378.0,
+          "inner_diameter_mm": 361.0,
+          "standard_dimension_ratio": 44.47,
+          "material": "GGG"
+        },
+        "400_GGG": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 429.0,
+          "inner_diameter_mm": 411.0,
+          "standard_dimension_ratio": 47.67,
+          "material": "GGG"
+        },
+        "500_GGG": {
+          "nominal_width_mm": 500,
+          "outer_diameter_mm": 532.0,
+          "inner_diameter_mm": 512.0,
+          "standard_dimension_ratio": 53.2,
+          "material": "GGG"
+        },
+        "600_GGG": {
+          "nominal_width_mm": 600,
+          "outer_diameter_mm": 635.0,
+          "inner_diameter_mm": 613.0,
+          "standard_dimension_ratio": 57.73,
+          "material": "GGG"
+        },
+        "20_PE_100_SDR_11": {
+          "nominal_width_mm": 20,
+          "outer_diameter_mm": 20.0,
+          "inner_diameter_mm": 16.2,
+          "standard_dimension_ratio": 10.53,
+          "material": "PE 100"
+        },
+        "25_PE_100_SDR_11": {
+          "nominal_width_mm": 25,
+          "outer_diameter_mm": 25.0,
+          "inner_diameter_mm": 20.4,
+          "standard_dimension_ratio": 10.87,
+          "material": "PE 100"
+        },
+        "32_PE_100_SDR_11": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 32.0,
+          "inner_diameter_mm": 26.2,
+          "standard_dimension_ratio": 11.03,
+          "material": "PE 100"
+        },
+        "40_PE_100_SDR_11": {
+          "nominal_width_mm": 40,
+          "outer_diameter_mm": 40.0,
+          "inner_diameter_mm": 32.6,
+          "standard_dimension_ratio": 10.81,
+          "material": "PE 100"
+        },
+        "50_PE_100_SDR_11": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 50.0,
+          "inner_diameter_mm": 40.8,
+          "standard_dimension_ratio": 10.87,
+          "material": "PE 100"
+        },
+        "63_PE_100_SDR_11": {
+          "nominal_width_mm": 63,
+          "outer_diameter_mm": 63.0,
+          "inner_diameter_mm": 51.4,
+          "standard_dimension_ratio": 10.86,
+          "material": "PE 100"
+        },
+        "75_PE_100_SDR_11": {
+          "nominal_width_mm": 75,
+          "outer_diameter_mm": 75.0,
+          "inner_diameter_mm": 61.4,
+          "standard_dimension_ratio": 11.03,
+          "material": "PE 100"
+        },
+        "90_PE_100_SDR_11": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 73.6,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE 100"
+        },
+        "90_PE_100_SDR_17": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 79.2,
+          "standard_dimension_ratio": 16.67,
+          "material": "PE 100"
+        },
+        "110_PE_100_SDR_11": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 90.0,
+          "standard_dimension_ratio": 11.0,
+          "material": "PE 100"
+        },
+        "110_PE_100_SDR_17": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 96.8,
+          "standard_dimension_ratio": 16.67,
+          "material": "PE 100"
+        },
+        "125_PE_100_SDR_11": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 125.0,
+          "inner_diameter_mm": 102.2,
+          "standard_dimension_ratio": 10.96,
+          "material": "PE 100"
+        },
+        "125_PE_100_SDR_17": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 125.0,
+          "inner_diameter_mm": 110.2,
+          "standard_dimension_ratio": 16.89,
+          "material": "PE 100"
+        },
+        "140_PE_100_SDR_17": {
+          "nominal_width_mm": 140,
+          "outer_diameter_mm": 140.0,
+          "inner_diameter_mm": 123.4,
+          "standard_dimension_ratio": 16.87,
+          "material": "PE 100"
+        },
+        "160_PE_100_SDR_11": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 130.8,
+          "standard_dimension_ratio": 10.96,
+          "material": "PE 100"
+        },
+        "160_PE_100_SDR_17": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 141.0,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 100"
+        },
+        "180_PE_100_SDR_17": {
+          "nominal_width_mm": 180,
+          "outer_diameter_mm": 180.0,
+          "inner_diameter_mm": 158.6,
+          "standard_dimension_ratio": 16.82,
+          "material": "PE 100"
+        },
+        "180_PE_100_SDR_11": {
+          "nominal_width_mm": 180,
+          "outer_diameter_mm": 180.0,
+          "inner_diameter_mm": 147.2,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE 100"
+        },
+        "200_PE_100_SDR_17": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 200.0,
+          "inner_diameter_mm": 176.2,
+          "standard_dimension_ratio": 16.81,
+          "material": "PE 100"
+        },
+        "225_PE_100_SDR_11": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 184.0,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE 100"
+        },
+        "225_PE_100_SDR_17": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 198.2,
+          "standard_dimension_ratio": 16.79,
+          "material": "PE 100"
+        },
+        "250_PE_100_SDR_11": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 250.0,
+          "inner_diameter_mm": 204.6,
+          "standard_dimension_ratio": 11.01,
+          "material": "PE 100"
+        },
+        "250_PE_100_SDR_17": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 250.0,
+          "inner_diameter_mm": 220.4,
+          "standard_dimension_ratio": 16.89,
+          "material": "PE 100"
+        },
+        "280_PE_100_SDR_11": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 229.2,
+          "standard_dimension_ratio": 11.02,
+          "material": "PE 100"
+        },
+        "280_PE_100_SDR_17": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 246.8,
+          "standard_dimension_ratio": 16.87,
+          "material": "PE 100"
+        },
+        "315_PE_100_SDR_17": {
+          "nominal_width_mm": 315,
+          "outer_diameter_mm": 315.0,
+          "inner_diameter_mm": 277.6,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 100"
+        },
+        "315_PE_100_SDR_11": {
+          "nominal_width_mm": 315,
+          "outer_diameter_mm": 315.0,
+          "inner_diameter_mm": 257.8,
+          "standard_dimension_ratio": 11.01,
+          "material": "PE 100"
+        },
+        "355_PE_100_SDR_11": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 290.6,
+          "standard_dimension_ratio": 11.02,
+          "material": "PE 100"
+        },
+        "355_PE_100_SDR_17": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 312.8,
+          "standard_dimension_ratio": 16.82,
+          "material": "PE 100"
+        },
+        "400_PE_100_SDR_11": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 327.4,
+          "standard_dimension_ratio": 11.02,
+          "material": "PE 100"
+        },
+        "400_PE_100_SDR_17": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 352.6,
+          "standard_dimension_ratio": 16.88,
+          "material": "PE 100"
+        },
+        "450_PE_100_SDR_17": {
+          "nominal_width_mm": 450,
+          "outer_diameter_mm": 450.0,
+          "inner_diameter_mm": 396.6,
+          "standard_dimension_ratio": 16.85,
+          "material": "PE 100"
+        },
+        "450_PE_100_SDR_11": {
+          "nominal_width_mm": 450,
+          "outer_diameter_mm": 450.0,
+          "inner_diameter_mm": 368.0,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE 100"
+        },
+        "500_PE_100_SDR_17": {
+          "nominal_width_mm": 500,
+          "outer_diameter_mm": 500.0,
+          "inner_diameter_mm": 440.6,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 100"
+        },
+        "560_PE_100_SDR_17": {
+          "nominal_width_mm": 560,
+          "outer_diameter_mm": 560.0,
+          "inner_diameter_mm": 493.6,
+          "standard_dimension_ratio": 16.87,
+          "material": "PE 100"
+        },
+        "630_PE_100_SDR_17": {
+          "nominal_width_mm": 630,
+          "outer_diameter_mm": 630.0,
+          "inner_diameter_mm": 555.2,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 100"
+        },
+        "710_PE_100_SDR_17": {
+          "nominal_width_mm": 710,
+          "outer_diameter_mm": 710.0,
+          "inner_diameter_mm": 625.8,
+          "standard_dimension_ratio": 16.86,
+          "material": "PE 100"
+        },
+        "800_PE_100_SDR_17": {
+          "nominal_width_mm": 800,
+          "outer_diameter_mm": 800.0,
+          "inner_diameter_mm": 705.2,
+          "standard_dimension_ratio": 16.88,
+          "material": "PE 100"
+        },
+        "900_PE_100_SDR_17": {
+          "nominal_width_mm": 900,
+          "outer_diameter_mm": 900.0,
+          "inner_diameter_mm": 793.4,
+          "standard_dimension_ratio": 16.89,
+          "material": "PE 100"
+        },
+        "20_PE_80_SDR_11": {
+          "nominal_width_mm": 20,
+          "outer_diameter_mm": 20.0,
+          "inner_diameter_mm": 16.2,
+          "standard_dimension_ratio": 10.53,
+          "material": "PE 80"
+        },
+        "25_PE_80_SDR_11": {
+          "nominal_width_mm": 25,
+          "outer_diameter_mm": 25.0,
+          "inner_diameter_mm": 20.4,
+          "standard_dimension_ratio": 10.87,
+          "material": "PE 80"
+        },
+        "32_PE_80_SDR_17.6": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 32.0,
+          "inner_diameter_mm": 28.4,
+          "standard_dimension_ratio": 17.78,
+          "material": "PE 80"
+        },
+        "32_PE_80_SDR_11": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 32.0,
+          "inner_diameter_mm": 26.2,
+          "standard_dimension_ratio": 11.03,
+          "material": "PE 80"
+        },
+        "40_PE_80_SDR_11": {
+          "nominal_width_mm": 40,
+          "outer_diameter_mm": 40.0,
+          "inner_diameter_mm": 32.6,
+          "standard_dimension_ratio": 10.81,
+          "material": "PE 80"
+        },
+        "50_PE_80_SDR_11": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 50.0,
+          "inner_diameter_mm": 40.8,
+          "standard_dimension_ratio": 10.87,
+          "material": "PE 80"
+        },
+        "63_PE_80_SDR_11": {
+          "nominal_width_mm": 63,
+          "outer_diameter_mm": 63.0,
+          "inner_diameter_mm": 51.4,
+          "standard_dimension_ratio": 10.86,
+          "material": "PE 80"
+        },
+        "75_PE_80_SDR_11": {
+          "nominal_width_mm": 75,
+          "outer_diameter_mm": 75.0,
+          "inner_diameter_mm": 61.4,
+          "standard_dimension_ratio": 11.03,
+          "material": "PE 80"
+        },
+        "90_PE_80_SDR_17": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 79.2,
+          "standard_dimension_ratio": 16.67,
+          "material": "PE 80"
+        },
+        "90_PE_80_SDR_11": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 73.6,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE 80"
+        },
+        "110_PE_80_SDR_17": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 96.8,
+          "standard_dimension_ratio": 16.67,
+          "material": "PE 80"
+        },
+        "110_PE_80_SDR_11": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 90.0,
+          "standard_dimension_ratio": 11.0,
+          "material": "PE 80"
+        },
+        "125_PE_80_SDR_17": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 125.0,
+          "inner_diameter_mm": 110.2,
+          "standard_dimension_ratio": 16.89,
+          "material": "PE 80"
+        },
+        "125_PE_80_SDR_11": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 125.0,
+          "inner_diameter_mm": 102.2,
+          "standard_dimension_ratio": 10.96,
+          "material": "PE 80"
+        },
+        "140_PE_80_SDR_17": {
+          "nominal_width_mm": 140,
+          "outer_diameter_mm": 140.0,
+          "inner_diameter_mm": 123.4,
+          "standard_dimension_ratio": 16.87,
+          "material": "PE 80"
+        },
+        "160_PE_80_SDR_17": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 141.0,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 80"
+        },
+        "160_PE_80_SDR_11": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 130.8,
+          "standard_dimension_ratio": 10.96,
+          "material": "PE 80"
+        },
+        "180_PE_80_SDR_11": {
+          "nominal_width_mm": 180,
+          "outer_diameter_mm": 180.0,
+          "inner_diameter_mm": 147.2,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE 80"
+        },
+        "180_PE_80_SDR_17": {
+          "nominal_width_mm": 180,
+          "outer_diameter_mm": 180.0,
+          "inner_diameter_mm": 158.6,
+          "standard_dimension_ratio": 16.82,
+          "material": "PE 80"
+        },
+        "200_PE_80_SDR_17": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 200.0,
+          "inner_diameter_mm": 176.2,
+          "standard_dimension_ratio": 16.81,
+          "material": "PE 80"
+        },
+        "225_PE_80_SDR_17": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 198.2,
+          "standard_dimension_ratio": 16.79,
+          "material": "PE 80"
+        },
+        "225_PE_80_SDR_11": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 184.0,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE 80"
+        },
+        "250_PE_80_SDR_17": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 250.0,
+          "inner_diameter_mm": 220.4,
+          "standard_dimension_ratio": 16.89,
+          "material": "PE 80"
+        },
+        "250_PE_80_SDR_11": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 250.0,
+          "inner_diameter_mm": 204.6,
+          "standard_dimension_ratio": 11.01,
+          "material": "PE 80"
+        },
+        "280_PE_80_SDR_17": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 246.8,
+          "standard_dimension_ratio": 16.87,
+          "material": "PE 80"
+        },
+        "280_PE_80_SDR_11": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 229.2,
+          "standard_dimension_ratio": 11.02,
+          "material": "PE 80"
+        },
+        "315_PE_80_SDR_17": {
+          "nominal_width_mm": 315,
+          "outer_diameter_mm": 315.0,
+          "inner_diameter_mm": 277.6,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 80"
+        },
+        "315_PE_80_SDR_11": {
+          "nominal_width_mm": 315,
+          "outer_diameter_mm": 315.0,
+          "inner_diameter_mm": 257.8,
+          "standard_dimension_ratio": 11.01,
+          "material": "PE 80"
+        },
+        "355_PE_80_SDR_11": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 290.6,
+          "standard_dimension_ratio": 11.02,
+          "material": "PE 80"
+        },
+        "355_PE_80_SDR_17": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 312.8,
+          "standard_dimension_ratio": 16.82,
+          "material": "PE 80"
+        },
+        "400_PE_80_SDR_11": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 327.4,
+          "standard_dimension_ratio": 11.02,
+          "material": "PE 80"
+        },
+        "400_PE_80_SDR_17": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 352.6,
+          "standard_dimension_ratio": 16.88,
+          "material": "PE 80"
+        },
+        "450_PE_80_SDR_17": {
+          "nominal_width_mm": 450,
+          "outer_diameter_mm": 450.0,
+          "inner_diameter_mm": 396.6,
+          "standard_dimension_ratio": 16.85,
+          "material": "PE 80"
+        },
+        "500_PE_80_SDR_17": {
+          "nominal_width_mm": 500,
+          "outer_diameter_mm": 500.0,
+          "inner_diameter_mm": 440.6,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 80"
+        },
+        "560_PE_80_SDR_17": {
+          "nominal_width_mm": 560,
+          "outer_diameter_mm": 560.0,
+          "inner_diameter_mm": 493.6,
+          "standard_dimension_ratio": 16.87,
+          "material": "PE 80"
+        },
+        "630_PE_80_SDR_17": {
+          "nominal_width_mm": 630,
+          "outer_diameter_mm": 630.0,
+          "inner_diameter_mm": 555.2,
+          "standard_dimension_ratio": 16.84,
+          "material": "PE 80"
+        },
+        "710_PE_80_SDR_17": {
+          "nominal_width_mm": 710,
+          "outer_diameter_mm": 710.0,
+          "inner_diameter_mm": 625.8,
+          "standard_dimension_ratio": 16.86,
+          "material": "PE 80"
+        },
+        "800_PE_80_SDR_17": {
+          "nominal_width_mm": 800,
+          "outer_diameter_mm": 800.0,
+          "inner_diameter_mm": 705.2,
+          "standard_dimension_ratio": 16.88,
+          "material": "PE 80"
+        },
+        "900_PE_80_SDR_17": {
+          "nominal_width_mm": 900,
+          "outer_diameter_mm": 900.0,
+          "inner_diameter_mm": 793.4,
+          "standard_dimension_ratio": 16.89,
+          "material": "PE 80"
+        },
+        "75_PE-HD_10": {
+          "nominal_width_mm": 75,
+          "outer_diameter_mm": 75.0,
+          "inner_diameter_mm": 61.2,
+          "standard_dimension_ratio": 10.87,
+          "material": "PE-HD 10"
+        },
+        "90_PE-HD_10": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 73.6,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE-HD 10"
+        },
+        "110_PE-HD_10": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 90.0,
+          "standard_dimension_ratio": 11.0,
+          "material": "PE-HD 10"
+        },
+        "140_PE-HD_10": {
+          "nominal_width_mm": 140,
+          "outer_diameter_mm": 140.0,
+          "inner_diameter_mm": 114.4,
+          "standard_dimension_ratio": 10.94,
+          "material": "PE-HD 10"
+        },
+        "160_PE-HD_10": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 130.8,
+          "standard_dimension_ratio": 10.96,
+          "material": "PE-HD 10"
+        },
+        "225_PE-HD_10": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 184.0,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE-HD 10"
+        },
+        "280_PE-HD_10": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 229.0,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE-HD 10"
+        },
+        "355_PE-HD_10": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 290.4,
+          "standard_dimension_ratio": 10.99,
+          "material": "PE-HD 10"
+        },
+        "400_PE-HD_10": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 327.2,
+          "standard_dimension_ratio": 10.99,
+          "material": "PE-HD 10"
+        },
+        "450_PE-HD_10": {
+          "nominal_width_mm": 450,
+          "outer_diameter_mm": 450.0,
+          "inner_diameter_mm": 368.0,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE-HD 10"
+        },
+        "20_PE-HD_16": {
+          "nominal_width_mm": 20,
+          "outer_diameter_mm": 20.0,
+          "inner_diameter_mm": 14.4,
+          "standard_dimension_ratio": 7.14,
+          "material": "PE-HD 16"
+        },
+        "25_PE-HD_16": {
+          "nominal_width_mm": 25,
+          "outer_diameter_mm": 25.0,
+          "inner_diameter_mm": 18.0,
+          "standard_dimension_ratio": 7.14,
+          "material": "PE-HD 16"
+        },
+        "32_PE-HD_16": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 32.0,
+          "inner_diameter_mm": 23.0,
+          "standard_dimension_ratio": 7.11,
+          "material": "PE-HD 16"
+        },
+        "40_PE-HD_16": {
+          "nominal_width_mm": 40,
+          "outer_diameter_mm": 40.0,
+          "inner_diameter_mm": 28.8,
+          "standard_dimension_ratio": 7.14,
+          "material": "PE-HD 16"
+        },
+        "50_PE-HD_16": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 50.0,
+          "inner_diameter_mm": 36.2,
+          "standard_dimension_ratio": 7.25,
+          "material": "PE-HD 16"
+        },
+        "63_PE-HD_16": {
+          "nominal_width_mm": 63,
+          "outer_diameter_mm": 63.0,
+          "inner_diameter_mm": 45.6,
+          "standard_dimension_ratio": 7.24,
+          "material": "PE-HD 16"
+        },
+        "75_PE-HD_16": {
+          "nominal_width_mm": 75,
+          "outer_diameter_mm": 75.0,
+          "inner_diameter_mm": 54.2,
+          "standard_dimension_ratio": 7.21,
+          "material": "PE-HD 16"
+        },
+        "90_PE-HD_16": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 65.0,
+          "standard_dimension_ratio": 7.2,
+          "material": "PE-HD 16"
+        },
+        "110PE-HD_16": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 79.6,
+          "standard_dimension_ratio": 7.24,
+          "material": "PE-HD 16"
+        },
+        "125_PE-HD_16": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 125.0,
+          "inner_diameter_mm": 90.4,
+          "standard_dimension_ratio": 7.23,
+          "material": "PE-HD 16"
+        },
+        "140_PE-HD_16": {
+          "nominal_width_mm": 140,
+          "outer_diameter_mm": 140.0,
+          "inner_diameter_mm": 103.2,
+          "standard_dimension_ratio": 7.61,
+          "material": "PE-HD 16"
+        },
+        "160_PE-HD_16": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 115.8,
+          "standard_dimension_ratio": 7.24,
+          "material": "PE-HD 16"
+        },
+        "180-PE-HD_16": {
+          "nominal_width_mm": 180,
+          "outer_diameter_mm": 180.0,
+          "inner_diameter_mm": 130.2,
+          "standard_dimension_ratio": 7.23,
+          "material": "PE-HD 16"
+        },
+        "200-PE-HD_16": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 200.0,
+          "inner_diameter_mm": 144.8,
+          "standard_dimension_ratio": 7.25,
+          "material": "PE-HD 16"
+        },
+        "225_PE-HD_16": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 162.8,
+          "standard_dimension_ratio": 7.23,
+          "material": "PE-HD 16"
+        },
+        "250_PE-HD_16": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 250.0,
+          "inner_diameter_mm": 181.0,
+          "standard_dimension_ratio": 7.25,
+          "material": "PE-HD 16"
+        },
+        "280_PE-HD_16": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 202.6,
+          "standard_dimension_ratio": 7.24,
+          "material": "PE-HD 16"
+        },
+        "315_PE-HD_16": {
+          "nominal_width_mm": 315,
+          "outer_diameter_mm": 315.0,
+          "inner_diameter_mm": 228.0,
+          "standard_dimension_ratio": 7.24,
+          "material": "PE-HD 16"
+        },
+        "355_PE-HD_16": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 257.0,
+          "standard_dimension_ratio": 7.24,
+          "material": "PE-HD 16"
+        },
+        "400_PE-HD_16": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 289.6,
+          "standard_dimension_ratio": 7.25,
+          "material": "PE-HD 16"
+        },
+        "90_PE-HD_6": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 79.8,
+          "standard_dimension_ratio": 17.65,
+          "material": "PE-HD 6"
+        },
+        "110_PE-HD_6": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 97.4,
+          "standard_dimension_ratio": 17.46,
+          "material": "PE-HD 6"
+        },
+        "125_PE-HD_6": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 125.0,
+          "inner_diameter_mm": 110.8,
+          "standard_dimension_ratio": 17.61,
+          "material": "PE-HD 6"
+        },
+        "140_PE-HD_6": {
+          "nominal_width_mm": 140,
+          "outer_diameter_mm": 140.0,
+          "inner_diameter_mm": 124.0,
+          "standard_dimension_ratio": 17.5,
+          "material": "PE-HD 6"
+        },
+        "160_PE-HD_6": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 141.8,
+          "standard_dimension_ratio": 17.58,
+          "material": "PE-HD 6"
+        },
+        "180_PE-HD_6": {
+          "nominal_width_mm": 180,
+          "outer_diameter_mm": 180.0,
+          "inner_diameter_mm": 159.6,
+          "standard_dimension_ratio": 17.65,
+          "material": "PE-HD 6"
+        },
+        "200_PE-HD_6": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 200.0,
+          "inner_diameter_mm": 177.2,
+          "standard_dimension_ratio": 17.54,
+          "material": "PE-HD 6"
+        },
+        "225_PE-HD_6": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 199.4,
+          "standard_dimension_ratio": 17.58,
+          "material": "PE-HD 6"
+        },
+        "250_PE-HD_6": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 250.0,
+          "inner_diameter_mm": 221.6,
+          "standard_dimension_ratio": 17.61,
+          "material": "PE-HD 6"
+        },
+        "280_PE-HD_6": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 248.2,
+          "standard_dimension_ratio": 17.61,
+          "material": "PE-HD 6"
+        },
+        "315_PE-HD_6": {
+          "nominal_width_mm": 315,
+          "outer_diameter_mm": 315.0,
+          "inner_diameter_mm": 279.2,
+          "standard_dimension_ratio": 17.6,
+          "material": "PE-HD 6"
+        },
+        "355_PE-HD_6": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 314.8,
+          "standard_dimension_ratio": 17.66,
+          "material": "PE-HD 6"
+        },
+        "400_PE-HD_6": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 354.6,
+          "standard_dimension_ratio": 17.62,
+          "material": "PE-HD 6"
+        },
+        "450_PE-HD_6": {
+          "nominal_width_mm": 450,
+          "outer_diameter_mm": 450.0,
+          "inner_diameter_mm": 399.0,
+          "standard_dimension_ratio": 17.65,
+          "material": "PE-HD 6"
+        },
+        "500_PE-HD_6": {
+          "nominal_width_mm": 500,
+          "outer_diameter_mm": 500.0,
+          "inner_diameter_mm": 443.4,
+          "standard_dimension_ratio": 17.67,
+          "material": "PE-HD 6"
+        },
+        "560_PE-HD_6": {
+          "nominal_width_mm": 560,
+          "outer_diameter_mm": 560.0,
+          "inner_diameter_mm": 496.6,
+          "standard_dimension_ratio": 17.67,
+          "material": "PE-HD 6"
+        },
+        "630_PE-HD_6": {
+          "nominal_width_mm": 630,
+          "outer_diameter_mm": 630.0,
+          "inner_diameter_mm": 558.6,
+          "standard_dimension_ratio": 17.65,
+          "material": "PE-HD 6"
+        },
+        "25_PE-Xa_SDR_11": {
+          "nominal_width_mm": 25,
+          "outer_diameter_mm": 32.0,
+          "inner_diameter_mm": 26.2,
+          "standard_dimension_ratio": 11.03,
+          "material": "PE-Xa"
+        },
+        "32_PE-Xa_SDR_11": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 40.0,
+          "inner_diameter_mm": 32.6,
+          "standard_dimension_ratio": 10.81,
+          "material": "PE-Xa"
+        },
+        "40_PE-Xa_SDR_11": {
+          "nominal_width_mm": 40,
+          "outer_diameter_mm": 50.0,
+          "inner_diameter_mm": 40.8,
+          "standard_dimension_ratio": 10.87,
+          "material": "PE-Xa"
+        },
+        "50_PE-Xa_SDR_11": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 63.0,
+          "inner_diameter_mm": 51.4,
+          "standard_dimension_ratio": 10.86,
+          "material": "PE-Xa"
+        },
+        "65_PE-Xa_SDR_11": {
+          "nominal_width_mm": 65,
+          "outer_diameter_mm": 75.0,
+          "inner_diameter_mm": 61.4,
+          "standard_dimension_ratio": 11.03,
+          "material": "PE-Xa"
+        },
+        "80_PE-Xa_SDR_11": {
+          "nominal_width_mm": 80,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 73.6,
+          "standard_dimension_ratio": 10.98,
+          "material": "PE-Xa"
+        },
+        "40_PE_80_SDR_17.6": {
+          "nominal_width_mm": 40,
+          "outer_diameter_mm": 40.0,
+          "inner_diameter_mm": 35.4,
+          "standard_dimension_ratio": 17.39,
+          "material": "PE 80"
+        },
+        "50_PE_80_SDR_17.6": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 50.0,
+          "inner_diameter_mm": 44.2,
+          "standard_dimension_ratio": 17.24,
+          "material": "PE 80"
+        },
+        "63_PE_80_SDR_17.6": {
+          "nominal_width_mm": 63,
+          "outer_diameter_mm": 63.0,
+          "inner_diameter_mm": 55.8,
+          "standard_dimension_ratio": 17.5,
+          "material": "PE 80"
+        },
+        "90_PE_80_SDR_17.6": {
+          "nominal_width_mm": 90,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 79.8,
+          "standard_dimension_ratio": 17.65,
+          "material": "PE 80"
+        },
+        "110_PE_80_SDR_17.6": {
+          "nominal_width_mm": 110,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 97.4,
+          "standard_dimension_ratio": 17.46,
+          "material": "PE 80"
+        },
+        "125_PE_80_SDR_17.6": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 125.0,
+          "inner_diameter_mm": 110.8,
+          "standard_dimension_ratio": 17.61,
+          "material": "PE 80"
+        },
+        "160_PE_80_SDR_17.6": {
+          "nominal_width_mm": 160,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 141.8,
+          "standard_dimension_ratio": 17.58,
+          "material": "PE 80"
+        },
+        "180_PE_80_SDR_17.6": {
+          "nominal_width_mm": 180,
+          "outer_diameter_mm": 180.0,
+          "inner_diameter_mm": 159.6,
+          "standard_dimension_ratio": 17.65,
+          "material": "PE 80"
+        },
+        "225_PE_80_SDR_17.6": {
+          "nominal_width_mm": 225,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 199.4,
+          "standard_dimension_ratio": 17.58,
+          "material": "PE 80"
+        },
+        "250_PE_80_SDR_17.6": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 250.0,
+          "inner_diameter_mm": 221.6,
+          "standard_dimension_ratio": 17.61,
+          "material": "PE 80"
+        },
+        "280_PE_80_SDR_17.6": {
+          "nominal_width_mm": 280,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 248.2,
+          "standard_dimension_ratio": 17.61,
+          "material": "PE 80"
+        },
+        "315_PE_80_SDR_17.6": {
+          "nominal_width_mm": 315,
+          "outer_diameter_mm": 315.0,
+          "inner_diameter_mm": 279.2,
+          "standard_dimension_ratio": 17.6,
+          "material": "PE 80"
+        },
+        "355_PE_80_SDR_17.6": {
+          "nominal_width_mm": 355,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 314.8,
+          "standard_dimension_ratio": 17.66,
+          "material": "PE 80"
+        },
+        "400_PE_80_SDR_17.6": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 354.6,
+          "standard_dimension_ratio": 17.62,
+          "material": "PE 80"
+        },
+        "50_PVC_10": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 63.0,
+          "inner_diameter_mm": 57.0,
+          "standard_dimension_ratio": 21.0,
+          "material": "PVC"
+        },
+        "80_PVC_10": {
+          "nominal_width_mm": 80,
+          "outer_diameter_mm": 90.0,
+          "inner_diameter_mm": 81.4,
+          "standard_dimension_ratio": 20.93,
+          "material": "PVC"
+        },
+        "100_PVC_10": {
+          "nominal_width_mm": 100,
+          "outer_diameter_mm": 110.0,
+          "inner_diameter_mm": 99.4,
+          "standard_dimension_ratio": 20.75,
+          "material": "PVC"
+        },
+        "125_PVC_10": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 140.0,
+          "inner_diameter_mm": 126.6,
+          "standard_dimension_ratio": 20.9,
+          "material": "PVC"
+        },
+        "150_PVC_10": {
+          "nominal_width_mm": 150,
+          "outer_diameter_mm": 160.0,
+          "inner_diameter_mm": 144.6,
+          "standard_dimension_ratio": 20.78,
+          "material": "PVC"
+        },
+        "200_PVC_10": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 225.0,
+          "inner_diameter_mm": 203.4,
+          "standard_dimension_ratio": 20.83,
+          "material": "PVC"
+        },
+        "250_PVC_10": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 280.0,
+          "inner_diameter_mm": 253.2,
+          "standard_dimension_ratio": 20.9,
+          "material": "PVC"
+        },
+        "300_PVC_10": {
+          "nominal_width_mm": 300,
+          "outer_diameter_mm": 355.0,
+          "inner_diameter_mm": 321.2,
+          "standard_dimension_ratio": 21.01,
+          "material": "PVC"
+        },
+        "350_PVC_10": {
+          "nominal_width_mm": 350,
+          "outer_diameter_mm": 400.0,
+          "inner_diameter_mm": 361.8,
+          "standard_dimension_ratio": 20.94,
+          "material": "PVC"
+        },
+        "400_PVC_10": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 450.0,
+          "inner_diameter_mm": 407.0,
+          "standard_dimension_ratio": 20.93,
+          "material": "PVC"
+        },
+        "500_PVC_10": {
+          "nominal_width_mm": 500,
+          "outer_diameter_mm": 560.0,
+          "inner_diameter_mm": 506.6,
+          "standard_dimension_ratio": 20.97,
+          "material": "PVC"
+        },
+        "600_PVC_10": {
+          "nominal_width_mm": 600,
+          "outer_diameter_mm": 630.0,
+          "inner_diameter_mm": 570.0,
+          "standard_dimension_ratio": 21.0,
+          "material": "PVC"
+        },
+        "20_ST": {
+          "nominal_width_mm": 20,
+          "outer_diameter_mm": 25.0,
+          "inner_diameter_mm": 21.0,
+          "standard_dimension_ratio": 12.5,
+          "material": "ST"
+        },
+        "20_ST<16": {
+          "nominal_width_mm": 20,
+          "outer_diameter_mm": 26.9,
+          "inner_diameter_mm": 22.3,
+          "standard_dimension_ratio": 11.7,
+          "material": "ST"
+        },
+        "25_ST": {
+          "nominal_width_mm": 25,
+          "outer_diameter_mm": 30.0,
+          "inner_diameter_mm": 26.0,
+          "standard_dimension_ratio": 15.0,
+          "material": "ST"
+        },
+        "25_ST<16": {
+          "nominal_width_mm": 25,
+          "outer_diameter_mm": 33.7,
+          "inner_diameter_mm": 28.5,
+          "standard_dimension_ratio": 12.96,
+          "material": "ST"
+        },
+        "25_ST>16": {
+          "nominal_width_mm": 25,
+          "outer_diameter_mm": 33.7,
+          "inner_diameter_mm": 27.9,
+          "standard_dimension_ratio": 11.62,
+          "material": "ST"
+        },
+        "32_ST": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 38.0,
+          "inner_diameter_mm": 33.4,
+          "standard_dimension_ratio": 16.52,
+          "material": "ST"
+        },
+        "32_ST<16": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 42.4,
+          "inner_diameter_mm": 37.2,
+          "standard_dimension_ratio": 16.31,
+          "material": "ST"
+        },
+        "32_ST>16": {
+          "nominal_width_mm": 32,
+          "outer_diameter_mm": 42.4,
+          "inner_diameter_mm": 36.6,
+          "standard_dimension_ratio": 14.62,
+          "material": "ST"
+        },
+        "40_ST": {
+          "nominal_width_mm": 40,
+          "outer_diameter_mm": 48.3,
+          "inner_diameter_mm": 43.7,
+          "standard_dimension_ratio": 21.0,
+          "material": "ST"
+        },
+        "40_ST<16": {
+          "nominal_width_mm": 40,
+          "outer_diameter_mm": 48.3,
+          "inner_diameter_mm": 43.1,
+          "standard_dimension_ratio": 18.58,
+          "material": "ST"
+        },
+        "50_ST": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 60.3,
+          "inner_diameter_mm": 55.7,
+          "standard_dimension_ratio": 26.22,
+          "material": "ST"
+        },
+        "50_ST<16": {
+          "nominal_width_mm": 50,
+          "outer_diameter_mm": 60.3,
+          "inner_diameter_mm": 54.5,
+          "standard_dimension_ratio": 20.79,
+          "material": "ST"
+        },
+        "65_ST": {
+          "nominal_width_mm": 65,
+          "outer_diameter_mm": 88.9,
+          "inner_diameter_mm": 83.7,
+          "standard_dimension_ratio": 34.19,
+          "material": "ST"
+        },
+        "65_ST<16": {
+          "nominal_width_mm": 65,
+          "outer_diameter_mm": 76.1,
+          "inner_diameter_mm": 70.3,
+          "standard_dimension_ratio": 26.24,
+          "material": "ST"
+        },
+        "65_ST>16": {
+          "nominal_width_mm": 65,
+          "outer_diameter_mm": 88.9,
+          "inner_diameter_mm": 82.5,
+          "standard_dimension_ratio": 27.78,
+          "material": "ST"
+        },
+        "80_ST": {
+          "nominal_width_mm": 80,
+          "outer_diameter_mm": 88.9,
+          "inner_diameter_mm": 84.3,
+          "standard_dimension_ratio": 38.65,
+          "material": "ST"
+        },
+        "80_ST<16": {
+          "nominal_width_mm": 80,
+          "outer_diameter_mm": 88.9,
+          "inner_diameter_mm": 82.5,
+          "standard_dimension_ratio": 27.78,
+          "material": "ST"
+        },
+        "80_ST>16": {
+          "nominal_width_mm": 80,
+          "outer_diameter_mm": 88.9,
+          "inner_diameter_mm": 81.7,
+          "standard_dimension_ratio": 24.69,
+          "material": "ST"
+        },
+        "100_ST": {
+          "nominal_width_mm": 100,
+          "outer_diameter_mm": 114.3,
+          "inner_diameter_mm": 109.1,
+          "standard_dimension_ratio": 43.96,
+          "material": "ST"
+        },
+        "100_ST<16": {
+          "nominal_width_mm": 100,
+          "outer_diameter_mm": 114.3,
+          "inner_diameter_mm": 107.9,
+          "standard_dimension_ratio": 35.72,
+          "material": "ST"
+        },
+        "100_ST>16": {
+          "nominal_width_mm": 100,
+          "outer_diameter_mm": 114.3,
+          "inner_diameter_mm": 107.1,
+          "standard_dimension_ratio": 31.75,
+          "material": "ST"
+        },
+        "125_ST<16": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 139.7,
+          "inner_diameter_mm": 132.5,
+          "standard_dimension_ratio": 38.81,
+          "material": "ST"
+        },
+        "125_ST>16": {
+          "nominal_width_mm": 125,
+          "outer_diameter_mm": 139.7,
+          "inner_diameter_mm": 131.7,
+          "standard_dimension_ratio": 34.92,
+          "material": "ST"
+        },
+        "150_ST": {
+          "nominal_width_mm": 150,
+          "outer_diameter_mm": 168.3,
+          "inner_diameter_mm": 162.5,
+          "standard_dimension_ratio": 58.03,
+          "material": "ST"
+        },
+        "150_ST<16": {
+          "nominal_width_mm": 150,
+          "outer_diameter_mm": 168.3,
+          "inner_diameter_mm": 160.3,
+          "standard_dimension_ratio": 42.08,
+          "material": "ST"
+        },
+        "150_ST>16": {
+          "nominal_width_mm": 150,
+          "outer_diameter_mm": 168.3,
+          "inner_diameter_mm": 159.3,
+          "standard_dimension_ratio": 37.4,
+          "material": "ST"
+        },
+        "200_ST": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 219.1,
+          "inner_diameter_mm": 212.7,
+          "standard_dimension_ratio": 68.47,
+          "material": "ST"
+        },
+        "200_ST<16": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 219.1,
+          "inner_diameter_mm": 210.1,
+          "standard_dimension_ratio": 48.69,
+          "material": "ST"
+        },
+        "200_ST>16": {
+          "nominal_width_mm": 200,
+          "outer_diameter_mm": 219.1,
+          "inner_diameter_mm": 209.1,
+          "standard_dimension_ratio": 43.82,
+          "material": "ST"
+        },
+        "250_ST": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 273.0,
+          "inner_diameter_mm": 265.8,
+          "standard_dimension_ratio": 75.83,
+          "material": "ST"
+        },
+        "250_ST<16": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 273.0,
+          "inner_diameter_mm": 263.0,
+          "standard_dimension_ratio": 54.6,
+          "material": "ST"
+        },
+        "250_ST>16": {
+          "nominal_width_mm": 250,
+          "outer_diameter_mm": 273.0,
+          "inner_diameter_mm": 261.8,
+          "standard_dimension_ratio": 48.75,
+          "material": "ST"
+        },
+        "300_ST": {
+          "nominal_width_mm": 300,
+          "outer_diameter_mm": 323.9,
+          "inner_diameter_mm": 315.9,
+          "standard_dimension_ratio": 80.97,
+          "material": "ST"
+        },
+        "300_ST<16": {
+          "nominal_width_mm": 300,
+          "outer_diameter_mm": 323.9,
+          "inner_diameter_mm": 312.7,
+          "standard_dimension_ratio": 57.84,
+          "material": "ST"
+        },
+        "300_ST>16": {
+          "nominal_width_mm": 300,
+          "outer_diameter_mm": 323.9,
+          "inner_diameter_mm": 311.3,
+          "standard_dimension_ratio": 51.41,
+          "material": "ST"
+        },
+        "350_ST": {
+          "nominal_width_mm": 350,
+          "outer_diameter_mm": 355.6,
+          "inner_diameter_mm": 346.6,
+          "standard_dimension_ratio": 79.02,
+          "material": "ST"
+        },
+        "350_ST<16": {
+          "nominal_width_mm": 350,
+          "outer_diameter_mm": 355.6,
+          "inner_diameter_mm": 344.4,
+          "standard_dimension_ratio": 63.5,
+          "material": "ST"
+        },
+        "400_ST": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 406.4,
+          "inner_diameter_mm": 397.4,
+          "standard_dimension_ratio": 90.31,
+          "material": "ST"
+        },
+        "400_ST<16": {
+          "nominal_width_mm": 400,
+          "outer_diameter_mm": 406.4,
+          "inner_diameter_mm": 393.8,
+          "standard_dimension_ratio": 64.51,
+          "material": "ST"
+        },
+        "500_ST": {
+          "nominal_width_mm": 500,
+          "outer_diameter_mm": 508.0,
+          "inner_diameter_mm": 496.8,
+          "standard_dimension_ratio": 90.71,
+          "material": "ST"
+        },
+        "500_ST<16": {
+          "nominal_width_mm": 500,
+          "outer_diameter_mm": 508.0,
+          "inner_diameter_mm": 495.4,
+          "standard_dimension_ratio": 80.63,
+          "material": "ST"
+        },
+        "600_ST": {
+          "nominal_width_mm": 600,
+          "outer_diameter_mm": 610.0,
+          "inner_diameter_mm": 598.8,
+          "standard_dimension_ratio": 108.93,
+          "material": "ST"
+        },
+        "600_ST<16": {
+          "nominal_width_mm": 600,
+          "outer_diameter_mm": 610.0,
+          "inner_diameter_mm": 597.4,
+          "standard_dimension_ratio": 96.83,
+          "material": "ST"
+        },
+        "700_ST<16": {
+          "nominal_width_mm": 700,
+          "outer_diameter_mm": 711.0,
+          "inner_diameter_mm": 696.8,
+          "standard_dimension_ratio": 100.14,
+          "material": "ST"
+        },
+        "800_ST<16": {
+          "nominal_width_mm": 800,
+          "outer_diameter_mm": 813.0,
+          "inner_diameter_mm": 797.0,
+          "standard_dimension_ratio": 101.62,
+          "material": "ST"
+        },
+        "900_ST<16": {
+          "nominal_width_mm": 900,
+          "outer_diameter_mm": 914.0,
+          "inner_diameter_mm": 894.0,
+          "standard_dimension_ratio": 91.4,
+          "material": "ST"
+        },
+        "1000_ST<16": {
+          "nominal_width_mm": 1000,
+          "outer_diameter_mm": 1016.0,
+          "inner_diameter_mm": 996.0,
+          "standard_dimension_ratio": 101.6,
+          "material": "ST"
+        },
+        "1200_ST<16": {
+          "nominal_width_mm": 1200,
+          "outer_diameter_mm": 1220.0,
+          "inner_diameter_mm": 1198.0,
+          "standard_dimension_ratio": 110.91,
+          "material": "ST"
+        },
+        "1400_ST<16": {
+          "nominal_width_mm": 1400,
+          "outer_diameter_mm": 1420.0,
+          "inner_diameter_mm": 1398.0,
+          "standard_dimension_ratio": 129.09,
+          "material": "ST"
+        },
+        "1600_ST<16": {
+          "nominal_width_mm": 1600,
+          "outer_diameter_mm": 1620.0,
+          "inner_diameter_mm": 1588.0,
+          "standard_dimension_ratio": 101.25,
+          "material": "ST"
+        },
+        "1800_ST<16": {
+          "nominal_width_mm": 1800,
+          "outer_diameter_mm": 1820.0,
+          "inner_diameter_mm": 1785.0,
+          "standard_dimension_ratio": 104.0,
+          "material": "ST"
+        },
+        "2000_ST<16": {
+          "nominal_width_mm": 2000,
+          "outer_diameter_mm": 2020.0,
+          "inner_diameter_mm": 1980.0,
+          "standard_dimension_ratio": 101.0,
+          "material": "ST"
+        }
+      }
+    },
+    "sink": {
+      "_module": "pandas.core.frame",
+      "_class": "DataFrame",
+      "_object": "{\"columns\":[\"name\",\"junction\",\"mdot_kg_per_s\",\"scaling\",\"in_service\",\"type\"],\"index\":[0,1,2,3,4,5,6,7,8,9,10,11,12],\"data\":[[\"Sink 1\",9,0.00006,1.0,true,\"sink\"],[\"Sink 2\",7,0.00003,1.0,true,\"sink\"],[\"Sink 3\",13,0.00005,1.0,true,\"sink\"],[\"Sink 4\",12,0.00002,1.0,true,\"sink\"],[\"Sink 5\",8,0.00004,1.0,true,\"sink\"],[\"Sink 6\",5,0.00003,1.0,true,\"sink\"],[\"Sink 7\",2,0.00008,1.0,true,\"sink\"],[\"Sink 8\",0,0.00014,1.0,true,\"sink\"],[\"Sink 9\",6,0.00003,1.0,true,\"sink\"],[\"Sink 10\",11,0.00012,1.0,true,\"sink\"],[\"Sink 11\",10,0.00002,1.0,true,\"sink\"],[\"Sink 12\",1,0.00004,1.0,true,\"sink\"],[\"Sink 13\",4,0.00014,1.0,true,\"sink\"]]}",
+      "orient": "split",
+      "dtype": {
+        "name": "object",
+        "junction": "uint32",
+        "mdot_kg_per_s": "float64",
+        "scaling": "float64",
+        "in_service": "bool",
+        "type": "object"
+      }
+    }
+  }
+}

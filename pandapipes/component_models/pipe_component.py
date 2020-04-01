@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, vinterp
+from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
+    vinterp
 from pandapipes.component_models.junction_component import Junction
 
 from pandapipes.idx_node import ELEMENT_IDX, PINIT, HEIGHT, TINIT as TINIT_NODE, \
@@ -69,8 +70,8 @@ class Pipe(BranchWInternalsComponent):
         :rtype:
         """
         end, current_table, internal_nodes, internal_pipes, int_nodes_num, int_pipes_num = \
-        super().create_node_lookups(net, ft_lookups, table_lookup, idx_lookups,
-                                    current_start, current_table, internal_nodes_lookup)
+            super().create_node_lookups(net, ft_lookups, table_lookup, idx_lookups,
+                                        current_start, current_table, internal_nodes_lookup)
         if np.any(internal_nodes > 0):
             internal_nodes_lookup["TPINIT"] = np.empty((int_nodes_num, 2), dtype=np.int32)
             internal_nodes_lookup["TPINIT"][:, 0] = np.repeat(net[cls.table_name()].index,
@@ -108,8 +109,8 @@ class Pipe(BranchWInternalsComponent):
                                               int_node_number)
         int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
         int_node_pit[:, RHO_NODES] = get_fluid(net).get_density(int_node_pit[:, TINIT_NODE])
-        int_node_pit[:, ACTIVE_ND] = np.repeat(net[cls.table_name()][cls.active_identifier()].values,
-                                               int_node_number)
+        int_node_pit[:, ACTIVE_ND] = \
+            np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
 
     @classmethod
     def create_pit_branch_entries(cls, net, pipe_pit, node_name):
@@ -122,7 +123,7 @@ class Pipe(BranchWInternalsComponent):
         :type branch_pit:
         :return: No Output.
         """
-        pipe_pit, internal_pipe_number =\
+        pipe_pit, internal_pipe_number = \
             super().create_pit_branch_entries(net, pipe_pit, node_name)
 
         pipe_pit[:, LENGTH] = np.repeat(net[cls.table_name()].length_km.values * 1000 /
@@ -230,9 +231,9 @@ class Pipe(BranchWInternalsComponent):
             v_gas_mean = v_mps * normfactor_mean
 
             idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
-                internal_pipes = _sum_by_group(
-                    idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
-                    np.ones_like(idx_active))
+            internal_pipes = _sum_by_group(
+                idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
+                np.ones_like(idx_active))
 
             res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_sum / internal_pipes
             res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_sum / internal_pipes

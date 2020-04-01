@@ -8,6 +8,7 @@ import pandapipes.plotting as plot
 from matplotlib.collections import PatchCollection, LineCollection
 from pandapipes.test.test_toolbox import net_plotting
 
+
 def test_simple_collections(net_plotting):
     net = copy.deepcopy(net_plotting)
     collections = plot.create_simple_collections(net, plot_sinks=True, plot_sources=True)
@@ -48,4 +49,3 @@ def test_simple_collections(net_plotting):
     assert isinstance(collections["pump"][1], LineCollection)
     assert len(collections["pump"][0].get_paths()) == len(net.pump)
     assert len(collections["pump"][1].get_paths()) == 4 * len(net.pump)
-
