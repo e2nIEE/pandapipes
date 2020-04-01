@@ -66,7 +66,8 @@ The pressure loss for incompressible media is calculated according to the follow
    :nowrap:
 
    \begin{align*}
-    p_{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \lambda(v) \cdot l v^2}{ 2 d} - \zeta \frac{\rho v^2}{2}  \\
+    p_\text{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \lambda(v) \cdot l v^2}{ 2 d} - \zeta
+\frac{\rho v^2}{2}  \\
    \end{align*}
 
 
@@ -102,7 +103,8 @@ pressure drop for compressible media:
    :nowrap:
 
    \begin{align*}
-    dp_{loss} &= -\lambda(v) \frac{dl}{d} \cdot \frac{\rho_N v_N^2}{2}\cdot \frac{p_N}{p} \cdot \frac{T}{T_N} \cdot K   \\
+    \text{d}p_\text{loss} &= -\lambda(v) \frac{\rho_N v_N^2}{2 d}\cdot \frac{p_N}{p} \cdot
+\frac{T}{T_N} \cdot K \text{d}l  \\
    \end{align*}
 
 The equation for pressure drop also introduces a variable K. This is the compressibility factor, which is used to
@@ -185,7 +187,7 @@ The heat losses are described by
    :nowrap:
 
    \begin{align*}
-    Q_{loss} &= \alpha \cdot (T - T_{ext})\\
+    Q_\text{loss} &= \alpha \cdot (T - T_\text{ext})\\
    \end{align*}
 
 
