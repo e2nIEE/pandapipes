@@ -105,6 +105,9 @@ pressure drop for compressible media:
     dp_{loss} &= -\lambda(v) \frac{dl}{d} \cdot \frac{\rho_N v_N^2}{2}\cdot \frac{p_N}{p} \cdot \frac{T}{T_N} \cdot K   \\
    \end{align*}
 
+The equation for pressure drop also introduces a variable K. This is the compressibility factor, which is used to
+account for real gas behaviour.
+
 After calculating the gas network, the pressure losses and velocities for the reference state are
 known. During post processing, the reference velocities are recalculated according to
 
@@ -120,9 +123,6 @@ The equations from above were implemented following :cite:`Eberhard1990`
 Because the velocity of a compressible fluid changes along the pipe axis, it is possible to split a pipe into
 several sections, increasing the internal resolution. The parameter *sections* is used to increase the amount of internal
 pipe sections.
-
-The equation for pressure drop also introduces a variable K. This is the compressibility factor, which is used to
-account for real gas behaviour.
 
 
 
