@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[1.0.5] - 2020-02-19
+-------------------------------
+- [FIXED] in fluids.py bugfix --> logger.error instead of logger.Error
+
 [1.0.4] - 2020-02-17
 -------------------------------
 - [ADDED] Codacy
