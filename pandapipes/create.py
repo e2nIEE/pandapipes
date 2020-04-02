@@ -9,7 +9,7 @@ from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_stru
 from pandapipes.properties import call_lib, add_fluid_to_net
 from pandapower.auxiliary import get_free_id, _preserve_dtypes
 from pandapipes.properties.fluids import Fluid
-from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type,\
+from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
@@ -417,7 +417,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default 293
     :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["source"] table
+            net["pipe"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
@@ -445,7 +445,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
                           'set add_stdtypes=True in create_empty_network.' % std_type)
     if std_type not in net['std_type']['pipe']:
         raise UserWarning('%s is not given in std_type. Either change std_type or define new '
-                            'one' % std_type)
+                          'one' % std_type)
     pipe_parameter = load_std_type(net, std_type, "pipe")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "length_km": length_km, "diameter_m":
@@ -514,7 +514,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default 293
     :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["source"] table
+            net["pipe"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
@@ -781,9 +781,10 @@ def create_pump_from_parameters(net, from_junction, to_junction, pump_name, pres
 
     return index
 
+
 def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plift_bar,
-                            t_k=None, name=None, index=None, in_service=True,
-                            type="pt", **kwargs):
+                                    t_k=None, name=None, index=None, in_service=True, type="pt",
+                                    **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"].
 
@@ -821,7 +822,9 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     for b in [from_junction, to_junction]:
         if b not in net["junction"].index.values:
-            raise UserWarning("CirculationPumpPressure %s tries to attach to non-existing junction %s" % (name, b))
+            raise UserWarning(
+                    "CirculationPumpPressure %s tries to attach to non-existing junction %s"
+                    % (name, b))
 
     if index is None:
         index = get_free_id(net["circ_pump_pressure"])
@@ -844,8 +847,8 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
 
 def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdot_kg_per_s,
-                            t_k=None, name=None, index=None, in_service=True,
-                            type="pt", **kwargs):
+                                     t_k=None, name=None, index=None, in_service=True,
+                                     type="pt", **kwargs):
     """
     Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].
 
@@ -883,7 +886,8 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     for b in [from_junction, to_junction]:
         if b not in net["junction"].index.values:
-            raise UserWarning("CirculationPumpMass %s tries to attach to non-existing junction %s" % (name, b))
+            raise UserWarning("CirculationPumpMass %s tries to attach to non-existing junction %s"
+                              % (name, b))
 
     if index is None:
         index = get_free_id(net["circ_pump_mass"])

@@ -16,7 +16,7 @@ except ImportError:
     GEOPANDAS_INSTALLED = False
 
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.io_utils import PPJSONEncoder, PPJSONDecoder, to_dict_with_coord_transform,\
+from pandapower.io_utils import PPJSONEncoder, PPJSONDecoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo
 from pandapipes.io.io_utils import ppipes_hook, isinstance_partial
 

@@ -21,6 +21,7 @@ class Fluid(JSONSerializableClass):
     """
 
     """
+
     def __init__(self, name, fluid_type, **kwargs):
         """
 
@@ -126,6 +127,7 @@ class FluidProperty(JSONSerializableClass):
     """
     Property Base Class
     """
+
     def __init__(self):
         super().__init__()
 
@@ -176,7 +178,8 @@ class FluidPropertyInterExtra(FluidProperty):
     @classmethod
     def from_path(cls, path, method="interpolate_extrapolate"):
         """
-
+        Reads a text file with temperature values in the first column and property values in
+        second column.
         :param path:
         :type path:
         :param method:
@@ -324,7 +327,7 @@ def create_constant_fluid(name=None, fluid_type=None, **kwargs):
 def call_lib(fluid):
     """
     Creates a fluid with default fluid properties.
-    Currently implemented: Water, air and natural gas.
+    Currently implemented: High or low caloric natural gas (hgas or lgas), water and air.
 
     :param fluid: Fluid which should be used
     :type fluid: str
