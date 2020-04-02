@@ -140,9 +140,10 @@ class ExtGrid(NodeElementComponent):
     def get_result_table(cls, net):
         """
 
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: (columns, all_float) - the column names and whether they are all float type. Only
+                if False, returns columns as tuples also specifying the dtypes
+        :rtype: (list, bool)
         """
-        return [("mdot_kg_per_s", "f8")]
+        return ["mdot_kg_per_s"], True
