@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 def simple_plot(net, respect_valves=False, pipe_width=2.0, junction_size=1.0, ext_grid_size=1.0,
                 plot_sinks=False, plot_sources=False, sink_size=1.0, source_size=1.0,
                 valve_size=1.0, pump_size=1.0, heat_exchanger_size=1.0, scale_size=True, junction_color="r",
-                pipe_color='silver', ext_grid_color='orange', valve_color='silver',
+                pipe_color='silver', ext_grid_color='red', valve_color='silver', ext_grid_hatch='\\/\\/',
                 pump_color='silver', heat_exchanger_color='silver', library="igraph", show_plot=True,
                 ax=None, **kwargs):  # pragma: no cover
     """
@@ -84,7 +84,7 @@ def simple_plot(net, respect_valves=False, pipe_width=2.0, junction_size=1.0, ex
                                             ext_grid_size, plot_sinks, plot_sources, sink_size,
                                             source_size, valve_size, pump_size, heat_exchanger_size,
                                             scale_size, junction_color, pipe_color, ext_grid_color,
-                                            valve_color, pump_color, heat_exchanger_color,
+                                            valve_color, pump_color, heat_exchanger_color, ext_grid_hatch,
                                             library, as_dict=False, **kwargs)
     ax = draw_collections(collections, ax=ax)
 
@@ -97,9 +97,10 @@ def create_simple_collections(net, respect_valves=False, pipe_width=5.0, junctio
                               ext_grid_size=1.0, plot_sinks=False, plot_sources=False,
                               sink_size=1.0, source_size=1.0, valve_size=1.0, pump_size=1.0,
                               heat_exchanger_size=1.0, scale_size=True, junction_color="r",
-                              pipe_color='silver', ext_grid_color='orange', valve_color='silver',
+                              pipe_color='silver', ext_grid_color='red', valve_color='silver',
                               pump_color='silver', heat_exchanger_color='silver',
-                              library="igraph", as_dict=True, **kwargs):
+                              ext_grid_hatch='\\/\\/', library="igraph", as_dict=True,
+                              **kwargs):
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
     geodata is generated. For advanced plotting see the tutorial
@@ -171,7 +172,8 @@ def create_simple_collections(net, respect_valves=False, pipe_width=5.0, junctio
         heat_exchanger_size = sizes["heat_exchanger"]
 
     # create junction collections to plot
-    junction_coll = create_junction_collection(net, net.junction.index, size=junction_size,
+    junction_coll = create_junction_collection(net, net.junction.index,
+                                               size=junction_size,
                                                color=junction_color, zorder=10)
 
     # if bus geodata is available, but no line geodata
@@ -190,7 +192,8 @@ def create_simple_collections(net, respect_valves=False, pipe_width=5.0, junctio
     if len(eg_junctions_with_geo_coordinates) > 0:
         eg_coll = create_junction_collection(
             net, eg_junctions_with_geo_coordinates, patch_type="rect", size=ext_grid_size,
-            color=ext_grid_color, zorder=11)
+            facecolor='white', zorder=11, edgecolor=ext_grid_color, linewidth=pipe_width,
+            hatch=ext_grid_hatch)
         collections["ext_grid"] = eg_coll
 
     if 'source' in net and plot_sources and len(net.source) > 0:
