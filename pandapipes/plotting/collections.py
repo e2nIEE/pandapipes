@@ -164,8 +164,8 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
     return lc
 
 
-def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False, orientation=np.pi,
-                           **kwargs):
+def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False,
+                           orientation=(np.pi*5/6), **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes sinks.
 
@@ -200,7 +200,7 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
 
 
 def create_source_collection(net, sources=None, size=1., infofunc=None, picker=False,
-                             orientation=np.pi, **kwargs):
+                             orientation=(np.pi*7/6), **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes sources.
 

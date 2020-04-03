@@ -63,7 +63,7 @@ def vrange(starts, lengths):
     return cat_range
 
 
-def init_results_element(net, element, output):
+def init_results_element(net, element, output, all_float):
     """
 
     :param net: The pandapipes network
@@ -72,12 +72,16 @@ def init_results_element(net, element, output):
     :type element:
     :param output:
     :type output:
+    :param all_float:
+    :type all_float:
     :return: No Output.
     """
     res_element = "res_" + element
-    net.update({res_element: output})
-    if isinstance(net[res_element], list):
-        net[res_element] = pd.DataFrame(np.zeros(0, dtype=net[res_element]), index=[])
+    if all_float:
+        net[res_element] = pd.DataFrame(np.NAN, columns=output, index=net[element].index,
+                                        dtype=np.float64)
+    else:
+        net[res_element] = pd.DataFrame(np.zeros(0, dtype=output), index=[])
         net[res_element] = pd.DataFrame(np.NaN, index=net[element].index,
                                         columns=net[res_element].columns)
 
@@ -110,6 +114,8 @@ def add_new_component(net, component, overwrite=False):
         net.update({name: comp_input})
         if isinstance(net[name], list):
             net[name] = pd.DataFrame(np.zeros(0, dtype=net[name]), index=[])
+        # init_empty_results_table(net, name, component.get_result_table(net))
+
         if geodata is not None:
             net.update({name + '_geodata': geodata})
             if isinstance(net[name + '_geodata'], list):
