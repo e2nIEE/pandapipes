@@ -33,7 +33,7 @@ long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.1.0',
+    version='0.1.1',
     author='Dennis Cronbach, Daniel Lohmeier, Simon Ruben Drauz',
     author_email='dennis.cronbach@iee.fraunhofer.de, daniel.lohmeier@iee.fraunhofer.de, '
                  'simon.ruben.drauz@iee.fraunhofer.de',
@@ -43,8 +43,8 @@ setup(
     license='BSD',
     install_requires=["pandapower>=2.2.2", "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
-					"plotting": ["plotly", "python-igraph"],
-					"test": ["pytest", "pytest-xdist"]},
+                    "plotting": ["plotly", "python-igraph"],
+                    "test": ["pytest", "pytest-xdist"]},
     python_requires='>=3, <4',
     packages=find_packages(),
     include_package_data=True,

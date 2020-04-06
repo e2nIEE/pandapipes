@@ -103,8 +103,8 @@ def create_generic_coordinates(net, mg=None, library="igraph"):
         net.junction_geodata = pd.DataFrame(columns=["x", "y"])
 
     gnet = copy.deepcopy(net)
-    gnet.junction = gnet.junction[gnet.junction.in_service == True]
-    gnet.pipe = gnet.pipe[gnet.pipe.in_service == True]
+    gnet.junction = gnet.junction[gnet.junction.in_service]
+    gnet.pipe = gnet.pipe[gnet.pipe.in_service]
 
     if library == "igraph":
         if not IGRAPH_INSTALLED:
