@@ -103,8 +103,7 @@ pressure drop for compressible media:
    :nowrap:
 
    \begin{align*}
-    \text{d}p_\text{loss} &= -\lambda(v) \frac{\rho_N v_N^2}{2 d}\cdot \frac{p_N}{p} \cdot
-\frac{T}{T_N} \cdot K \text{d}l  \\
+    \text{d}p_\text{loss} &= -\lambda(v) \frac{\rho_N v_N^2}{2 d}\cdot \frac{p_N}{p} \cdot \frac{T}{T_N} \cdot K \text{d}l  \\
    \end{align*}
 
 The equation for pressure drop also introduces a variable K. This is the compressibility factor, which is used to
