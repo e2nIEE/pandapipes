@@ -66,8 +66,7 @@ The pressure loss for incompressible media is calculated according to the follow
    :nowrap:
 
    \begin{align*}
-    p_\text{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \lambda(v) \cdot l v^2}{ 2 d} - \zeta
-\frac{\rho v^2}{2}  \\
+    p_\text{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \lambda(v) \cdot l v^2}{ 2 d} - \zeta \frac{\rho v^2}{2}  \\
    \end{align*}
 
 
