@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='colebrook',
-                                     mode='normal', only_update_hydraulic_matrix=False):
+                                     mode='hydraulics', only_update_hydraulic_matrix=False):
     """
         Comparison of the calculations of OpenModelica and pandapipes.
 
@@ -39,14 +39,12 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
     pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
                 mode=mode, only_update_hydraulic_matrix=only_update_hydraulic_matrix)
 
+    print(net.res_junction)
+    print(net.res_pipe)
+
     p_om = net.junction.p_om
     p_valid = pd.notnull(p_om)
     p_om = p_om.loc[p_valid]
-
-    T_diff_abs_pipe = pd.Series()
-    T_om_pipe = pd.Series()
-    T_mean_pandapipes_pipe = pd.Series()
-    T_diff_mean_pipe = pd.Series()
 
     if get_fluid(net).is_gas:
         if 'pipe' in net:
@@ -83,7 +81,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
             v_diff_mean_pipe, v_diff_abs_pipe, v_mean_pandapipes_pipe, v_om_pipe = \
                 retrieve_velocity_liquid(net, element="pipe")
 
-            if mode == "all" or mode == "heat":
+            if mode != "hydraulics":
                 T_diff_mean_pipe, T_diff_abs_pipe, T_mean_pandapipes_pipe, T_om_pipe = \
                     retrieve_temperature_liquid(net)
         else:
@@ -91,6 +89,12 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
             v_om_pipe = pd.Series()
             v_mean_pandapipes_pipe = pd.Series()
             v_diff_mean_pipe = pd.Series()
+
+            if mode != "hydraulics":
+                T_diff_abs_pipe = pd.Series()
+                T_om_pipe = pd.Series()
+                T_mean_pandapipes_pipe = pd.Series()
+                T_diff_mean_pipe = pd.Series()
 
         if 'valve' in net:
             v_diff_mean_valve, v_diff_abs_valve, v_mean_pandapipes_valve, v_om_valve = \
@@ -135,7 +139,10 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
         logger.info("velocity difference pipe: \n %s" % diff_results_v_pipe)
         logger.info("velocity difference valve: \n %s" % diff_results_v_valve)
 
-    return p_diff, v_diff_abs, T_diff_mean_pipe
+    if mode == "hydraulics":
+        return p_diff, v_diff_abs
+    else:
+        return p_diff, v_diff_abs, T_diff_mean_pipe
 
 
 def retrieve_velocity_liquid(net, element="pipe"):
