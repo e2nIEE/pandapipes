@@ -81,7 +81,7 @@ def create_junction_collection(net, junctions=None, size=5, patch_type="circle",
 
     if cmap is not None:
         if z is None:
-            z = net.res_junction.p_bar.loc[junctions_with_geo]
+            z = net.res_junction.t_k.loc[junctions_with_geo]
         add_cmap_to_collection(pc, cmap, norm, z, cbar_title)
 
     return pc

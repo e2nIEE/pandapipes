@@ -39,6 +39,7 @@ def set_logger_level_pipeflow(level):
     """
     logger.setLevel(level)
 
+set_logger_level_pipeflow('WARNING')
 
 def pipeflow(net, sol_vec=None, **kwargs):
     """
