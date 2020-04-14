@@ -1,8 +1,12 @@
 # Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-import pandapipes
+import numpy as np
+import pandas as pd
 import pytest
+
+import pandapipes
+from pandapipes import networks as nw
 
 
 @pytest.fixture
@@ -55,3 +59,29 @@ def net_plotting():
     pandapipes.create_pump_from_parameters(net, junction4, junction7, 'P1')
 
     return net
+
+
+def test_reindex_junctions():
+    net_orig = nw.simple_gas_networks.gas_tcross1()
+    net = nw.simple_gas_networks.gas_tcross1()
+
+    to_add = 5
+    new_junction_idxs = np.array(list(net.junction.index)) + to_add
+    junction_lookup = dict(zip(net["junction"].index.values, new_junction_idxs))
+    # a more complexe junction_lookup of course should also work, but this one is easy to check
+    _ = pandapipes.reindex_junctions(net, junction_lookup)
+
+    for elm in net.keys():
+        if isinstance(net[elm], pd.DataFrame) and net[elm].shape[0]:
+            cols = pd.Series(net[elm].columns)
+            junction_cols = cols.loc[cols.str.contains("junction")]
+            if len(junction_cols):
+                for junction_col in junction_cols:
+                    assert all(net[elm][junction_col] == net_orig[elm][junction_col] + to_add)
+            if elm == "junction":
+                assert all(np.array(list(net[elm].index)) == np.array(list(
+                    net_orig[elm].index)) + to_add)
+
+
+if __name__ == '__main__':
+    n = pytest.main(["test_toolbox.py"])
