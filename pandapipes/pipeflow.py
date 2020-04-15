@@ -69,7 +69,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
                                           NodeComponent, NodeElementComponent,
                                           BranchComponent, BranchWInternalsComponent)
-    if not (len(node_pit) & len(branch_pit)):
+    if ((len(node_pit) == 0) & (len(branch_pit) == 0)):
         return
     calculation_mode = get_net_option(net, "mode")
 
