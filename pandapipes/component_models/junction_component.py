@@ -9,7 +9,7 @@ from numpy import dtype
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air
 from pandapipes.component_models.abstract_models import NodeComponent
 
-from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, TINIT, PAMB,\
+from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
     ACTIVE as ACTIVE_ND
 
 from pandapipes.pipeflow_setup import add_table_lookup, get_table_number, \
@@ -21,6 +21,7 @@ class Junction(NodeComponent):
     """
 
     """
+
     @classmethod
     def table_name(cls):
         return "junction"
@@ -53,7 +54,7 @@ class Junction(NodeComponent):
         end = current_start + table_len
         ft_lookups[cls.table_name()] = (current_start, end)
         add_table_lookup(table_lookup, cls.table_name(), current_table)
-        idx_lookups[cls.table_name()] = -np.ones(np.max(table_indices) + 1, dtype=np.int32)
+        idx_lookups[cls.table_name()] = -np.ones(table_indices.max() + 1, dtype=np.int32)
         idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
         return end, current_table + 1
 
@@ -138,10 +139,10 @@ class Junction(NodeComponent):
     def get_result_table(cls, net):
         """
 
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: (columns, all_float) - the column names and whether they are all float type. Only
+                if False, returns columns as tuples also specifying the dtypes
+        :rtype: (list, bool)
         """
-        return [("p_bar", "f8"),
-                ("t_k", "f8")]
+        return ["p_bar", "t_k"], True

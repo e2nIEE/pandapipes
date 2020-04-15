@@ -14,7 +14,6 @@ from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.test import test_path
 
-
 data_path = os.path.join(test_path, "pipeflow_internals", "data")
 
 
@@ -36,7 +35,7 @@ def test_hydraulic_only():
     pp.create_fluid_from_lib(net, "water", overwrite=True)
 
     pp.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                 transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                transient=False, nonlinear_method="automatic", tol_p=1e-4,
                 tol_v=1e-4)
 
     data = pd.read_csv(os.path.join(data_path, "hydraulics.csv"), sep=';', header=0,
@@ -45,17 +44,18 @@ def test_hydraulic_only():
     node_pit = net["_pit"]["node"]
     branch_pit = net["_pit"]["branch"]
 
-    v_an = data.loc[0,"pv"]
+    v_an = data.loc[0, "pv"]
     p_an = data.loc[1:3, "pv"]
 
     p_pandapipes = node_pit[:, PINIT]
     v_pandapipes = branch_pit[:, VINIT]
 
     p_diff = np.abs(1 - p_pandapipes / p_an)
-    v_diff = np.abs(v_pandapipes-v_an)
+    v_diff = np.abs(v_pandapipes - v_an)
 
     assert np.all(p_diff < 0.01)
-    assert(np.all(v_diff<0.05))
+    assert (np.all(v_diff < 0.05))
+
 
 def test_heat_only():
     net = pp.create_empty_network("net")
@@ -70,7 +70,7 @@ def test_heat_only():
     pp.create_fluid_from_lib(net, "water", overwrite=True)
 
     pp.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                 nonlinear_method="automatic", mode="all")
+                nonlinear_method="automatic", mode="all")
 
     ntw = pp.create_empty_network("net")
     d = 75e-3
@@ -83,7 +83,6 @@ def test_heat_only():
 
     pp.create_fluid_from_lib(ntw, "water", overwrite=True)
 
-
     pp.pipeflow(ntw, stop_condition="tol", iter=50, friction_model="nikuradse",
                 nonlinear_method="automatic", mode="hydraulics")
 
@@ -91,9 +90,8 @@ def test_heat_only():
     v = ntw._pit["branch"][:, 12]
     u = np.concatenate((p, v))
 
-
-    pp.pipeflow(ntw, sol_vec = u, stop_condition="tol", iter=50, friction_model="nikuradse",
-                 nonlinear_method="automatic", mode = "heat")
+    pp.pipeflow(ntw, sol_vec=u, stop_condition="tol", iter=50, friction_model="nikuradse",
+                nonlinear_method="automatic", mode="heat")
 
     T_net = net.res_junction.t_k
     T_ntw = ntw.res_junction.t_k
@@ -101,6 +99,3 @@ def test_heat_only():
     T_diff = np.abs(1 - T_net / T_ntw)
 
     assert np.all(T_diff < 0.01)
-
-
-

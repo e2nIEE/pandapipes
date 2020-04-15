@@ -7,12 +7,12 @@ import numpy as np
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 
 from pandapipes.idx_node import ELEMENT_IDX, PINIT, TINIT as TINIT_NODE, PAMB
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, LOAD_VEC_NODES, PL, TL, ALPHA, TEXT, QEXT, T_OUT,\
-                                  D, AREA, LOSS_COEFFICIENT as LC, RE, LAMBDA
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, LOAD_VEC_NODES, PL, TL, ALPHA, \
+    TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC, RE, LAMBDA
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
 from pandapipes.toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_net_option,get_fluid, get_lookup
+from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
 
 from numpy import dtype
 
@@ -29,6 +29,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
     """
 
     """
+
     @classmethod
     def table_name(cls):
         return "heat_exchanger"
@@ -70,7 +71,8 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        placement_table, heat_exchanger_pit, res_table = super().extract_results(net, options, node_name)
+        placement_table, heat_exchanger_pit, res_table = \
+            super().extract_results(net, options, node_name)
 
         node_pit = net["_active_pit"]["node"]
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
@@ -191,36 +193,19 @@ class HeatExchanger(BranchWZeroLengthComponent):
     def get_result_table(cls, net):
         """
 
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: (columns, all_float) - the column names and whether they are all float type. Only
+                if False, returns columns as tuples also specifying the dtypes
+        :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = [("v_from_m_per_s", "f8"),
-                      ("v_to_m_per_s", "f8"),
-                      ("v_mean_m_per_s", "f8"),
-                      ("p_from_bar", "f8"),
-                      ("p_to_bar", "f8"),
-                      ("t_from_k", "f8"),
-                      ("t_to_k", "f8"),
-                      ("mdot_from_kg_per_s", "f8"),
-                      ("mdot_to_kg_per_s", "f8"),
-                      ("vdot_norm_m3_per_s", "f8"),
-                      ("reynolds", "f8"),
-                      ("lambda", "f8"),
-                      ("normfactor_from", "f8"),
-                      ("normfactor_to", "f8")]
+            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "normfactor_to"]
         else:
-            output = [("v_mean_m_per_s", "f8"),
-                      ("p_from_bar", "f8"),
-                      ("p_to_bar", "f8"),
-                      ("t_from_k", "f8"),
-                      ("t_to_k", "f8"),
-                      ("mdot_from_kg_per_s", "f8"),
-                      ("mdot_to_kg_per_s", "f8"),
-                      ("vdot_norm_m3_per_s", "f8"),
-                      ("reynolds", "f8"),
-                      ("lambda", "f8")]
-        return output
-
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                      "lambda"]
+        return output, True

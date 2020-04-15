@@ -131,8 +131,9 @@ class Valve(BranchWZeroLengthComponent):
                               / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
 
-            idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum = _sum_by_group(
-                    idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to)
+            idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum = \
+                _sum_by_group(idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from,
+                              normfactor_to)
 
             res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_sum
             res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_sum
@@ -174,37 +175,19 @@ class Valve(BranchWZeroLengthComponent):
     def get_result_table(cls, net):
         """
 
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: (columns, all_float) - the column names and whether they are all float type. Only
+                if False, returns columns as tuples also specifying the dtypes
+        :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = [("v_from_m_per_s", "f8"),
-                      ("v_to_m_per_s", "f8"),
-                      ("v_mean_m_per_s", "f8"),
-                      ("p_from_bar", "f8"),
-                      ("p_to_bar", "f8"),
-                      ("t_from_k", "f8"),
-                      ("t_to_k", "f8"),
-                      ("mdot_from_kg_per_s", "f8"),
-                      ("mdot_to_kg_per_s", "f8"),
-                      ("vdot_norm_m3_per_s", "f8"),
-                      ("reynolds", "f8"),
-                      ("lambda", "f8"),
-                      ("normfactor_from", "f8"),
-                      ("normfactor_to", "f8")]
+            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "normfactor_to"]
         else:
-            output = [("v_mean_m_per_s", "f8"),
-                      ("p_from_bar", "f8"),
-                      ("p_to_bar", "f8"),
-                      ("t_from_k", "f8"),
-                      ("t_to_k", "f8"),
-                      ("mdot_from_kg_per_s", "f8"),
-                      ("mdot_to_kg_per_s", "f8"),
-                      ("vdot_norm_m3_per_s", "f8"),
-                      ("reynolds", "f8"),
-                      ("lambda", "f8")]
-        return output
-
-
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                      "lambda"]
+        return output, True

@@ -83,7 +83,7 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
         b_term = 2.51 * eta / (rho * d * np.sqrt(lambda_pipe) * v_corr) + k / (3.71 * d)
 
         df_dv = -2 * (2.51 * eta / (rho * np.sqrt(lambda_pipe) * v_corr ** 2)) \
-               / (np.log(10) * b_term)
+                / (np.log(10) * b_term)
 
         df_dlambda = -0.5 * lambda_pipe ** (-3 / 2) - ((2.51 * eta) / (rho * d * v_corr)) \
                      * lambda_pipe ** (-3 / 2) * 1 / (np.log(10) * b_term)

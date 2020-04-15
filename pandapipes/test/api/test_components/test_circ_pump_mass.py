@@ -34,7 +34,6 @@ def test_circulation_pump_constant_mass():
                         mode="all", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_v=1e-4)
 
-
     data = pd.read_csv(os.path.join(internals_data_path, "test_circ_pump_mass.csv"), sep=';')
 
     res_junction = net.res_junction

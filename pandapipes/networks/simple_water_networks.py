@@ -6,11 +6,11 @@ import os
 from pandapipes.io.file_io import from_json
 from pandapipes import pp_dir
 from pandapipes.networks.nw_aux import log_result_upon_loading
+
 try:
     import pplog as logging
 except ImportError:
     import logging
-
 
 logger = logging.getLogger(__name__)
 water_stanet_path = os.path.join(pp_dir, "networks", "simple_test_networks", "stanet_test_networks",
@@ -296,6 +296,7 @@ def water_strand_pump():
     log_result_upon_loading(logger, method="n", converter="stanet")
     return from_json(os.path.join(water_stanet_path, "strand_net", "pump_N.json"))
 
+
 # -------------- t_cross --------------
 def water_tcross(method="nikuradse", results_from="openmodelica"):
     """
@@ -352,4 +353,3 @@ def water_2eg_two_pipes(method="nikuradse", results_from="openmodelica"):
     if results_from.lower() == "stanet":
         return from_json(os.path.join(water_stanet_path, "two_pressure_junctions", net_name))
     return from_json(os.path.join(water_modelica_path, "two_pressure_junctions", "two_pipes.json"))
-

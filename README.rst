@@ -2,11 +2,11 @@
    :target: https://www.pandapipes.org
    :alt: logo
 
-.. .. image:: https://badge.fury.io/py/pandapipes.svg
-   :target: https://pypi.python.org/pypi/pandapipes
+.. image:: https://badge.fury.io/py/pandapipes.svg
+   :target: https://badge.fury.io/py/pandapipes
    :alt: PyPI
 
-.. .. image:: https://img.shields.io/pypi/pyversions/pandapipes.svg
+.. image:: https://img.shields.io/pypi/pyversions/pandapipes.svg
    :target: https://pypi.python.org/pypi/pandapipes
    :alt: versions
 
@@ -35,7 +35,8 @@
    :alt: pepy
 
 .. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/e2nIEE/pandapipes/master
+   :target: https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop
+   :alt: binder
 
 
 A pipeflow calculation tool that complements `pandapower <https://www.pandapower.org>`_ in the
@@ -45,7 +46,7 @@ Getting Started:
 
 - `Documentation <https://pandapipes.readthedocs.io/en/latest/>`_
 - `Tutorials on github <https://github.com/e2nIEE/pandapipes/tree/develop/tutorials>`_
-- `Interactive Tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/master?filepath=tutorials>`_
+- `Interactive Tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop?filepath=tutorials>`_
 
 
 

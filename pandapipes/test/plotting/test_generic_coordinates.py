@@ -9,6 +9,7 @@ from pandapipes.test.test_toolbox import net_plotting
 
 try:
     import igraph
+
     IGRAPH_INSTALLED = True
 except ImportError:
     IGRAPH_INSTALLED = False

@@ -7,7 +7,7 @@ from pandapower.plotting.collections import _create_node_collection, \
     _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
-from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches,\
+from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
     pump_patches
 from pandapower.plotting.plotting_toolbox import get_index_array
 
@@ -77,7 +77,7 @@ def create_junction_collection(net, junctions=None, size=5, patch_type="circle",
     infos = [infofunc(junc) for junc in junctions_with_geo] if infofunc is not None else []
 
     pc = _create_node_collection(junctions_with_geo, coords, size, patch_type, color, picker, infos,
-                                **kwargs)
+                                 **kwargs)
 
     if cmap is not None:
         if z is None:
@@ -158,14 +158,14 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
 
     if cmap is not None:
         if z is None:
-            z = net.res_pipe.loading_percent.loc[pipes_with_geo]
+            z = net.res_pipe.v_mean_m_per_s.loc[pipes_with_geo]
         add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim)
 
     return lc
 
 
-def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False, orientation=np.pi,
-                           **kwargs):
+def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False,
+                           orientation=(np.pi*5/6), **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes sinks.
 
@@ -191,7 +191,8 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
     if len(sinks) == 0:
         return None
     infos = [infofunc(i) for i in range(len(sinks))] if infofunc is not None else []
-    node_coords = net.junction_geodata.loc[net.sink.loc[sinks, "junction"].values, ['x', 'y']].values
+    node_coords = net.junction_geodata.loc[
+        net.sink.loc[sinks, "junction"].values, ['x', 'y']].values
     sink_pc, sink_lc = _create_node_element_collection(
         node_coords, load_patches, size=size, infos=infos, orientation=orientation,
         picker=picker, **kwargs)
@@ -199,7 +200,7 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
 
 
 def create_source_collection(net, sources=None, size=1., infofunc=None, picker=False,
-                             orientation=np.pi, **kwargs):
+                             orientation=(np.pi*7/6), **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes sources.
 
@@ -264,8 +265,8 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
     if ext_grid_junctions is None:
         ext_grid_junctions = net.ext_grid.junction.loc[ext_grids].values
     else:
-        assert len(ext_grids) == len(ext_grid_junctions), \
-            "Length mismatch between chosen ext_grids and ext_grid_junctions."
+        if len(ext_grids) != len(ext_grid_junctions):
+            raise ValueError("Length mismatch between chosen ext_grids and ext_grid_junctions.")
     infos = [infofunc(ext_grid_idx) for ext_grid_idx in ext_grids] if infofunc is not None else []
 
     node_coords = net.junction_geodata.loc[ext_grid_junctions, ["x", "y"]].values
@@ -276,7 +277,7 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
 
 
 def create_heat_exchanger_collection(net, hex=None, size=5., junction_geodata=None, color='k',
-                            infofunc=None, picker=False, **kwargs):
+                                     infofunc=None, picker=False, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction heat_exchangers.
     Heat_exchangers are plotted in the center between two junctions with a "helper" line
@@ -307,8 +308,8 @@ def create_heat_exchanger_collection(net, hex=None, size=5., junction_geodata=No
 
     coords, hex_with_geo = coords_from_node_geodata(
         hex, hex_table.from_junction.values, hex_table.to_junction.values,
-        junction_geodata if junction_geodata is not None else net["junction_geodata"], "heat_exchanger",
-        "Junction")
+        junction_geodata if junction_geodata is not None else net["junction_geodata"],
+        "heat_exchanger", "Junction")
 
     if len(hex_with_geo) == 0:
         return None
@@ -382,15 +383,15 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, co
     if fill_closed:
         filled = ~filled
     lc, pc = _create_complex_branch_collection(coords, valve_patches, size, infos,
-                                              picker=picker, linewidths=linewidths, filled=filled,
-                                              patch_facecolor=color, line_color=color,
-                                              **kwargs)
+                                               picker=picker, linewidths=linewidths, filled=filled,
+                                               patch_facecolor=color, line_color=color,
+                                               **kwargs)
 
     return lc, pc
 
 
-def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None, color='k',
-                            infofunc=None, picker=False, **kwargs):
+def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None,
+                           color='k', infofunc=None, picker=False, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
     plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
@@ -437,8 +438,8 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     infos = list(np.repeat([infofunc(i) for i in range(len(pumps_with_geo))], 2)) \
         if infofunc is not None else []
     lc, pc = _create_complex_branch_collection(coords, pump_patches, size, infos,
-                                              picker=picker, linewidths=linewidths,
-                                              patch_edgecolor=color, line_color=color,
-                                              **kwargs)
+                                               picker=picker, linewidths=linewidths,
+                                               patch_edgecolor=color, line_color=color,
+                                               **kwargs)
 
     return lc, pc
