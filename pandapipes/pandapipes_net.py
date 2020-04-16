@@ -86,7 +86,7 @@ def get_default_pandapipes_structure():
         "converged": False,
         "name": "",
         "version": __version__,
-        "controller": [('controller', dtype(object)),
+        "controller": [('object', dtype(object)),
                        ('in_service', "bool"),
                        ('order', "float64"),
                        ('level', dtype(object)),
