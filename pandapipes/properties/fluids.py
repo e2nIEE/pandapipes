@@ -46,6 +46,10 @@ class Fluid(JSONSerializableClass):
                 logger.warning("The property %s was not defined as a fluid property. This might "
                                "cause problems when trying to ask for values." % prop_name)
 
+    def __repr__(self):
+        return "Fluid %s (%s) with properties: %s." % (self.name, self.fluid_type,
+                                                       list(self.all_properties.keys()))
+
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
         """
         This function adds a new property.
