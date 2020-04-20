@@ -193,11 +193,13 @@ def create_simple_collections(net, respect_valves=False, pipe_width=5.0, junctio
         collections["ext_grid"] = eg_coll
 
     if 'source' in net and plot_sources and len(net.source) > 0:
-        source_colls = create_source_collection(net, size=source_size)
+        source_colls = create_source_collection(net, size=source_size, patch_edgecolor='silver', line_color='silver',
+                                            linewidths=pipe_width)
         collections["source"] = source_colls
 
     if 'sink' in net and plot_sinks and len(net.sink) > 0:
-        sink_colls = create_sink_collection(net, size=sink_size)
+        sink_colls = create_sink_collection(net, size=sink_size, patch_edgecolor='silver', line_color='silver',
+                                            linewidths=pipe_width)
         collections["sink"] = sink_colls
 
     if 'valve' in net:
