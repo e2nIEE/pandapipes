@@ -47,8 +47,10 @@ class pandapipesNet(ADict):
             for tb in res:
                 r += "\n   - %s (%s elements)" % (tb, len(self[tb]))
         r += "."
-        if "fluid" in self:
+        if "fluid" in self and self["fluid"] is not None:
             r += "\nIt contains the following fluid: %s" % self["fluid"]
+        else:
+            r += "\nIt does not contain any defined fluid"
         if "component_list" in self:
             r += "\nand uses the following component models: %s" % self["component_list"]
         return r
