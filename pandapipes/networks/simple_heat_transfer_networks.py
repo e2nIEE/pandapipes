@@ -5,7 +5,6 @@
 import os
 from pandapipes.io.file_io import from_json
 from pandapipes import pp_dir
-from pandapipes.networks.nw_aux import log_result_upon_loading
 try:
     import pplog as logging
 except ImportError:
