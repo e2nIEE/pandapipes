@@ -47,7 +47,7 @@ class Fluid(JSONSerializableClass):
                                "cause problems when trying to ask for values." % prop_name)
 
     def __repr__(self):
-        return "Fluid %s (%s) with properties: %s." % (self.name, self.fluid_type,
+        return "Fluid %s (%s) with properties: %s" % (self.name, self.fluid_type,
                                                        list(self.all_properties.keys()))
 
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
