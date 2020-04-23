@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def create_junction_collection(net, junctions=None, size=5, patch_type="circle", color=None,
                                z=None, cmap=None, norm=None, infofunc=None, picker=False,
                                junction_geodata=None, cbar_title="Junction Pressure [bar]",
-                               hatch=None, **kwargs):
+                               **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junctions.
 
@@ -76,8 +76,8 @@ def create_junction_collection(net, junctions=None, size=5, patch_type="circle",
 
     infos = [infofunc(junc) for junc in junctions_with_geo] if infofunc is not None else []
 
-    pc = _create_node_collection(junctions_with_geo, coords, size, patch_type, color, picker, infos, hatch,
-                                **kwargs)
+    pc = _create_node_collection(junctions_with_geo, coords, size, patch_type, color, picker, infos,
+                                 **kwargs)
 
     if cmap is not None:
         if z is None:

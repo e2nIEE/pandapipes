@@ -221,7 +221,7 @@ class Pipe(BranchWInternalsComponent):
                             / (p_to * NORMAL_TEMPERATURE)
             v_gas_from = v_mps * normfactor_from
             v_gas_to = v_mps * normfactor_to
-            mask = ~np.isclose(p_from, p_to)
+            mask = p_from != p_to
             p_mean = np.empty_like(p_to)
             p_mean[~mask] = p_from[~mask]
             p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \

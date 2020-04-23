@@ -54,12 +54,8 @@ class Junction(NodeComponent):
         end = current_start + table_len
         ft_lookups[cls.table_name()] = (current_start, end)
         add_table_lookup(table_lookup, cls.table_name(), current_table)
-        if not table_len:
-            idx_lookups[cls.table_name()] = np.array([], dtype=np.int32)
-            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
-        else:
-            idx_lookups[cls.table_name()] = -np.ones(table_indices.max() + 1, dtype=np.int32)
-            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
+        idx_lookups[cls.table_name()] = -np.ones(table_indices.max() + 1, dtype=np.int32)
+        idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
         return end, current_table + 1
 
     @classmethod
