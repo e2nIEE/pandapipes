@@ -170,8 +170,7 @@ def create_simple_collections(net, respect_valves=False, pipe_width=5.0, junctio
         heat_exchanger_size = sizes["heat_exchanger"]
 
     # create junction collections to plot
-    junction_coll = create_junction_collection(net, net.junction[net.junction.in_service].index,
-                                               size=junction_size,
+    junction_coll = create_junction_collection(net, net.junction.index, size=junction_size,
                                                color=junction_color, zorder=10)
 
     # if bus geodata is available, but no line geodata
