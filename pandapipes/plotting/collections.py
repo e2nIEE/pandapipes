@@ -222,12 +222,12 @@ def create_source_collection(net, sources=None, size=1., infofunc=None, picker=F
     :return: source_pc - patch collection
              source_lc - line collection
     """
-    sources = get_index_array(sources, net.sink.index)
+    sources = get_index_array(sources, net.source.index)
     if len(sources) == 0:
         return None
     infos = [infofunc(i) for i in range(len(sources))] if infofunc is not None else []
-    node_coords = net.junction_geodata.loc[:, ["x", "y"]].values[net.source.loc[sources,
-                                                                                "junction"].values]
+    node_coords = net.junction_geodata.loc[
+        net.source.loc[sources, "junction"].values, ["x", "y"]].values
     source_pc, source_lc = _create_node_element_collection(
         node_coords, source_patches, size=size, infos=infos, orientation=orientation,
         picker=picker, repeat_infos=(1, 3), **kwargs)
