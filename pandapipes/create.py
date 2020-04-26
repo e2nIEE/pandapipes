@@ -208,7 +208,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     :type index: int, default None
     :param in_service: True for in service, false for out of service
     :type in_service: bool, default True
-    :param type: Type variable to classify the sink
+    :param type: Type variable to classify the source
     :type type: str, default None
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["source"] table
@@ -228,7 +228,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
         index = get_free_id(net["source"])
 
     if index in net["source"].index:
-        raise UserWarning("A sink with the id %s already exists" % index)
+        raise UserWarning("A source with the id %s already exists" % index)
 
     # store dtypes
     dtypes = net.source.dtypes
