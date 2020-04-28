@@ -49,7 +49,7 @@ class Fluid(JSONSerializableClass):
     def __repr__(self):
         r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
         for key in self.all_properties.keys():
-            r += "\n   - %s" %key
+            r += "\n   - %s (%s)" %(key, self.all_properties[key].__class__.__name__[13:])
         return r
 
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
