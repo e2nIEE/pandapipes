@@ -70,6 +70,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
                                           NodeComponent, NodeElementComponent,
                                           BranchComponent, BranchWInternalsComponent)
     if ((len(node_pit) == 0) & (len(branch_pit) == 0)):
+        logger.warning("There are no node and branch entries defined. It might be that your net is empty")
         return
     calculation_mode = get_net_option(net, "mode")
 
