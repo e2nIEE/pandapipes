@@ -8,7 +8,7 @@ from pandapipes.component_models.abstract_models import BranchWZeroLengthCompone
 from pandapipes.idx_node import ELEMENT_IDX, PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, D, TINIT, AREA, VINIT, \
     LOAD_VEC_NODES, LOSS_COEFFICIENT as LC, PL, TL, RE, LAMBDA
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 from numpy import dtype
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 

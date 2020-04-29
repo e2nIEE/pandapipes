@@ -17,7 +17,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 from numpy import dtype
 
 try:
