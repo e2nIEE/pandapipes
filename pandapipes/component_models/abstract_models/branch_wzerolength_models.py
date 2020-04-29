@@ -7,11 +7,6 @@ from pandapipes.component_models.abstract_models.branch_wo_internals_models impo
 from pandapipes.idx_branch import LENGTH, K
 
 try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
-
-try:
     import pplog as logging
 except ImportError:
     import logging
