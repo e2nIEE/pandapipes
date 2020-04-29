@@ -4,7 +4,6 @@
 
 from numpy import linalg
 import numpy as np
-from numba import jit, float64
 
 
 def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
@@ -32,10 +31,6 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
     :return:
     :rtype:
     """
-    # len_v = len(v)
-    # re = calc_reynolds(v, eta, rho, d, len_v)
-    # lambda_laminar = calc_lambda_laminar(v, re, len_v)
-
     v_corr = np.where(np.abs(v) < 1e-6, 1e-6 * np.sign(v), v)
     lambda_laminar = np.zeros_like(v)
 
@@ -43,9 +38,9 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
     lambda_laminar[v != 0] = 64 / re[v != 0]
 
     if gas_mode:
-        lambda_nikuradse = calc_lambda_nik_comp(d, k)
+        lambda_nikuradse = 1 / (2 * np.log10(d / k) + 1.14) ** 2
     else:
-        lambda_nikuradse = calc_lambda_nik_incomp(d, k)
+        lambda_nikuradse = 1 / (-2 * np.log10(k / (3.71 * d))) ** 2
 
     if friction_model == "colebrook":
         lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy)
@@ -54,36 +49,6 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
         # lambda_tot = np.where(re > 2300, lambda_laminar + lambda_nikuradse, lambda_laminar)
         lambda_tot = lambda_laminar + lambda_nikuradse
         return lambda_tot, re
-
-
-@jit
-def calc_lambda_nik_comp(d, k):
-    return 1 / (2 * np.log10(d / k) + 1.14) ** 2
-
-
-@jit
-def calc_lambda_nik_incomp(d, k):
-    return 1 / (-2 * np.log10(k / (3.71 * d))) ** 2
-
-
-@jit
-def calc_reynolds(v, eta, rho, d, len_v):
-    re = []
-    for i in range(len_v):
-        if abs(v[i]) > 1e-6:
-            re.append(abs(rho[i] * v[i] * d[i] / eta[i]))
-        else:
-            re.append(abs(rho[i] * 1e-6 * d[i] / eta[i]))
-    return np.array(re)
-
-
-@jit
-def calc_lambda_laminar(v, re, len_v):
-    lambda_laminar = np.zeros(len_v)
-    for i in range(len_v):
-        if v[i] != 0:
-            lambda_laminar[i] = 64 / re[i]
-    return lambda_laminar
 
 
 def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
