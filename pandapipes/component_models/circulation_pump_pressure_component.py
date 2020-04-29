@@ -8,7 +8,7 @@ from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
 from pandapipes.pipeflow_setup import get_lookup
 from numpy import dtype
 
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 
 try:
     import pplog as logging
