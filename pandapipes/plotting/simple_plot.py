@@ -95,7 +95,8 @@ def simple_plot(net, respect_valves=False, respect_in_service=True,
     return ax
 
 
-def create_simple_collections(net, respect_valves=False, respect_in_service=True, pipe_width=5.0, junction_size=1.0,
+def create_simple_collections(net, respect_valves=False, respect_in_service=True, 
+                              pipe_width=5.0, junction_size=1.0,
                               ext_grid_size=1.0, plot_sinks=False, plot_sources=False,
                               sink_size=1.0, source_size=1.0, valve_size=1.0, pump_size=1.0,
                               heat_exchanger_size=1.0, scale_size=True, junction_color="r",
