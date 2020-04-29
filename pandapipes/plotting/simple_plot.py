@@ -214,17 +214,21 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     if 'source' in net and plot_sources and len(net.source) > 0:
         if respect_in_service:
             source_colls = create_source_collection(net, sources=net.source[net.source.in_service].index,
-                                                    size=source_size)
+                                                    size=source_size, patch_edgecolor='silver', line_color='silver',
+                                                    linewidths=pipe_width)
         else:
-            source_colls = create_source_collection(net, size=source_size)
+            source_colls = create_source_collection(net, size=source_size, patch_edgecolor='silver', line_color='silver',
+                                                    linewidths=pipe_width)
         collections["source"] = source_colls
 
     if 'sink' in net and plot_sinks and len(net.sink) > 0:
         if respect_in_service:
             sink_colls = create_sink_collection(net, sinks=net.sink[net.sink.in_service].index,
-                                                size=sink_size)
+                                                size=sink_size, patch_edgecolor='silver', line_color='silver',
+                                                linewidths=pipe_width)
         else:
-            sink_colls = create_sink_collection(net, size=sink_size)
+            sink_colls = create_sink_collection(net, size=sink_size, patch_edgecolor='silver', line_color='silver',
+                                                linewidths=pipe_width)
         collections["sink"] = sink_colls
 
     if 'valve' in net:
