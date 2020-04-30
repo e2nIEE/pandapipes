@@ -226,8 +226,8 @@ def create_source_collection(net, sources=None, size=1., infofunc=None, picker=F
     if len(sources) == 0:
         return None
     infos = [infofunc(i) for i in range(len(sources))] if infofunc is not None else []
-    node_coords = net.junction_geodata.loc[
-        net.source.loc[sources, "junction"].values, ["x", "y"]].values
+    node_coords = net.junction_geodata.loc[net.source.loc[sources, "junction"].values,
+                                           ["x", "y"]].values
     source_pc, source_lc = _create_node_element_collection(
         node_coords, source_patches, size=size, infos=infos, orientation=orientation,
         picker=picker, repeat_infos=(1, 3), **kwargs)
