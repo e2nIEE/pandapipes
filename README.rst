@@ -1,6 +1,10 @@
-.. image:: https://pandapipes.readthedocs.io/en/latest/_images/pandapipes_logo.png
+
+.. image:: https://www.pandapipes.org/images/pp.svg
    :target: https://www.pandapipes.org
+   :width: 300em
    :alt: logo
+
+|
 
 .. image:: https://badge.fury.io/py/pandapipes.svg
    :target: https://badge.fury.io/py/pandapipes
@@ -30,7 +34,7 @@
    :target: https://github.com/e2nIEE/pandapipes/blob/master/LICENSE
    :alt: BSD
 
-.. .. image:: https://pepy.tech/badge/pandapipes
+.. image:: https://pepy.tech/badge/pandapipes
    :target: https://pepy.tech/project/pandapipes
    :alt: pepy
 
@@ -62,7 +66,3 @@ Institute for Energy Economics and Energy System Technology (IEE), Kassel.
 
 We welcome contributions to pandapipes of any kind - if you want to contribute, please check out
 the `pandapipes contribution guidelines <https://github.com/e2nIEE/pandapipes/blob/develop/CONTRIBUTING.rst>`_.
-
-
-
-
