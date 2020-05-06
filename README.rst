@@ -44,13 +44,14 @@
 
 
 A pipeflow calculation tool that complements `pandapower <https://www.pandapower.org>`_ in the
-simulation of multi energy grids.
+simulation of multi energy grids, in particular heat and gas networks. More information can be found on `www.pandapipes.org <https://www.pandapipes.org>`_.
 
-Getting Started:
+Getting started:
 
+- `Installation Notes <https://www.pandapipes.org/start/>`_
 - `Documentation <https://pandapipes.readthedocs.io/en/latest/>`_
 - `Tutorials on github <https://github.com/e2nIEE/pandapipes/tree/develop/tutorials>`_
-- `Interactive Tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop?filepath=tutorials>`_
+- `Interactive tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop?filepath=tutorials>`_
 
 
 
