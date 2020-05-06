@@ -18,7 +18,7 @@ from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_T
 
 from pandapipes.pipeflow_setup import get_table_number, get_lookup
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 
 from pandapipes.component_models.auxiliaries.derivative_toolbox import calc_der_lambda, calc_lambda
 

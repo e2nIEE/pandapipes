@@ -6,7 +6,7 @@ import numpy as np
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
 from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 from numpy import dtype
 
 
