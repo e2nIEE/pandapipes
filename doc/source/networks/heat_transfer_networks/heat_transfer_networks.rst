@@ -22,7 +22,7 @@ Triangular network.
 .. autofunction:: pandapipes.networks.simple_heat_transfer_networks.heat_transfer_delta
 
 
-Delta With 2 Sinks
+Delta with 2 Sinks
 ==================
 
 Triangular network with two sinks.

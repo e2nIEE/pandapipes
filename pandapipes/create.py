@@ -27,14 +27,14 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     """
     This function initializes the pandapipes datastructure.
 
-    :param name: name for the network
+    :param name: Name for the network
     :type name: string, default None
     :param fluid: A fluid that can be added to the net from the start. Should be either of type\
             Fluid (c.f. pandapipes.properties.fluids.Fluid) or a string which refers to a standard\
             fluid type used to call `create_fluid_from_lib`. A fluid is required for pipeflow\
             calculations, but can also be added later.
     :type fluid: Fluid or str, default None
-    :param add_stdtypes: flag whether to add a dictionary of typical pump and pipe std types
+    :param add_stdtypes: Flag whether to add a dictionary of typical pump and pipe std types
     :type add_stdtypes: bool, default True
     :return: net - pandapipesNet with empty tables
     :rtype: pandapipesNet
@@ -68,30 +68,29 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
 def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in_service=True,
                     type="junction", geodata=None, **kwargs):
     """
-    Adds one junction in table net["junction"].
-
-    Junctions are the nodes of the network that all other elements connect to.
+    Adds one junction in table net["junction"]. Junctions are the nodes of the network that
+    all other elements connect to.
 
     :param net: The pandapipes network in which the element is created
     :type net: pandapipesNet
     :param pn_bar: The nominal pressure in [bar]. Used as an initial value for pressure calculation.
     :type pn_bar: float
     :param tfluid_k: The fluid temperature in [K]. Used as parameter for gas calculations and as\
-            initial value for temperature calculations
+            initial value for temperature calculations.
     :type tfluid_k: float
     :param height_m: Height of node above sea level in [m]
     :type height_m: float, default 0
-    :param name: the name for this junction
+    :param name: The name for this junction
     :type name: string, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the \
             highest already existing index is selected.
     :type index: int, default None
     :param in_service: True for in_service or False for out of service
     :type in_service: boolean, default True
-    :param type: not used yet - designed for type differentiation on pandas lookups (e.g. household\
+    :param type: not used yet - Designed for type differentiation on pandas lookups (e.g. household\
             connection vs. crossing)
     :type type: string, default "junction"
-    :param geodata: coordinates used for plotting
+    :param geodata: Coordinates used for plotting
     :type geodata: (x,y)-tuple, default None
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["junction"] table
@@ -148,7 +147,7 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
     :param index: Force a specified ID if it is available. If None, the index one higher than the \
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in service, false for out of service
+    :param in_service: True for in service, False for out of service
     :type in_service: bool, default True
     :param type: Type variable to classify the sink
     :type type: str, default None
@@ -206,7 +205,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     :param index: Force a specified ID if it is available. If None, the index one higher than the \
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in service, false for out of service
+    :param in_service: True for in service, False for out of service
     :type in_service: bool, default True
     :param type: Type variable to classify the source
     :type type: str, default None
@@ -263,16 +262,14 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     :type t_k: float, default 285.15
     :param name: A name tag for this ext_grid
     :type name: str, default None
-    :param in_service: True for in service, false for out of service
+    :param in_service: True for in service, False for out of service
     :type in_service: bool, default True
     :param index: Force a specified ID if it is available. If None, the index one higher than the \
             highest already existing index is selected.
-    :param type: The external grid type denotes the values that are fixed at the respective node:\
-            - "p": The pressure is fixed, the node acts as a slack node for the mass flow.\
-            - "t": The temperature is fixed and will not be solved for, but is assumed as the \
-                   node's mix temperature. Please note that pandapipes cannot check for \
-                   inconsistencies in the formulation of heat transfer equations yet.
-            - "pt": The external grid shows both "p" and "t" behasior.
+    :param type: The external grid type denotes the values that are fixed at the respective node: \n
+            - "p": The pressure is fixed, the node acts as a slack node for the mass flow.
+            - "t": The temperature is fixed and will not be solved for, but is assumed as the node's mix temperature. Please note that pandapipes cannot check for inconsistencies in the formulation of heat transfer equations yet. \n
+            - "pt": The external grid shows both "p" and "t" behavior.
     :type type: str, default "pt"
     :type index: int, default None
     :return: index - The unique ID of the created element
@@ -320,9 +317,9 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :param to_junction: ID of the junction on the other side which the heat exchanger  will be \
             connected with
     :type to_junction: int
-    :param diameter_m: The heat exchanger inner diameter im [m]
+    :param diameter_m: The heat exchanger inner diameter in [m]
     :type diameter_m: float
-    :param qext_w: external heat feed-in through the heat exchanger in [W]
+    :param qext_w: External heat feed-in through the heat exchanger in [W]
     :type qext_w: float, default 0.0
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float
@@ -340,8 +337,8 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :return: index - The unique ID of the created heat exchanger
     :rtype: int
 
-    EXAMPLE:
-        create_heat_exchanger(net, from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=2000)
+    :Example:
+        >>> create_heat_exchanger(net, from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=2000)
     """
     add_new_component(net, HeatExchanger)
 
@@ -386,7 +383,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     :type from_junction: int
     :param to_junction: ID of the junction on the other side which the pipe will be connected to
     :type to_junction: int
-    :param std_type: name of standard type
+    :param std_type: Name of standard type
     :type std_type: str
     :param length_km: Length of the pipe in [km]
     :type length_km: float
@@ -406,13 +403,13 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     :type index: int, default None
     :param geodata: The coordinates of the pipe. The first row should be the coordinates of \
             junction a and the last should be the coordinates of junction b. The points in the\
-            middle represent the bending points of the pipe
-    :type geodata: array, shape= (,2L), default None
-    :param in_service: True for in service, false for out of service
+            middle represent the bending points of the pipe.
+    :type geodata: array, shape = (,2L), default None
+    :param in_service: True for in service, False for out of service
     :type in_service: bool, default True
     :param type: An identifier for special types of pipes (e.g. below or above ground)
     :type type: str, default "pipe"
-    :param qext_w: external heat feed-in to the pipe in [W]
+    :param qext_w: External heat feed-in to the pipe in [W]
     :type qext_w: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default 293
@@ -648,7 +645,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     :type index: int, default None
     :param in_service: True for in_service or False for out of service
     :type in_service: bool, default True
-    :param type:  type variable to classify the pump
+    :param type:  Type variable to classify the pump
     :type type: str, default "pump"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["pump"] table
@@ -790,30 +787,34 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     :param net: The net within this pump should be created
     :type net: pandapipesNet
-    :param from_junction:
-    :type from_junction:
-    :param to_junction:
-    :type to_junction:
-    :param p_bar:
-    :type p_bar:
-    :param plift_bar:
-    :type plift_bar:
-    :param t_k:
-    :type t_k:
-    :param name:
-    :type name:
-    :param index:
-    :type index:
-    :param in_service:
-    :type in_service:
-    :param type:
-    :type type:
-    :param kwargs:
-    :type kwargs:
-    :return:
-    :rtype:
+    :param from_junction: ID of the junction on one side which the pump will be connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the pump will be connected with
+    :type to_junction: int
+    :param p_bar: Pressure set point
+    :type p_bar: float
+    :param plift_bar: Pressure lift induced by the pump
+    :type plift_bar: float
+    :param t_k: Temperature set point
+    :type t_k: float
+    :param name: Name of the pump
+    :type name: str
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param type: The pump type denotes the values that are fixed: \n
+            - "p": The pressure is fixed.
+            - "t": The temperature is fixed and will not be solved. Please note that pandapipes cannot check for inconsistencies in the formulation of heat transfer equations yet.
+            - "pt": The pump shows both "p" and "t" behavior.
+    :type type: str, default "pt"
+    :param kwargs: Additional keyword arguments will be added as further columns to the net["circ_pump_pressure"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
 
-    EXAMPLE:
+    :Example:
         >>> create_circ_pump_const_pressure(net, 0, 1, p_bar=5, plift_bar=2, t_k=350, type="p")
 
     """
@@ -854,31 +855,35 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     :param net: The net within this pump should be created
     :type net: pandapipesNet
-    :param from_junction:
-    :type from_junction:
-    :param to_junction:
-    :type to_junction:
-    :param p_bar:
-    :type p_bar:
-    :param mdot_kg_per_s:
-    :type mdot_kg_per_s:
-    :param t_k:
-    :type t_k:
-    :param name:
-    :type name:
-    :param index:
-    :type index:
-    :param in_service:
-    :type in_service:
-    :param type:
-    :type type:
-    :param kwargs:
-    :type kwargs:
-    :return:
-    :rtype:
+    :param from_junction: ID of the junction on one side which the pump will be connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the pump will be connected with
+    :type to_junction: int
+    :param p_bar: Pressure set point
+    :type p_bar: float
+    :param mdot_kg_per_s: Constant mass flow, which is transported through the pump
+    :type mdot_kg_per_s: float
+    :param t_k: Temperature set point
+    :type t_k: float
+    :param name: Name of the pump
+    :type name: str
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param type: The pump type denotes the values that are fixed: \n
+            - "p": The pressure is fixed.
+            - "t": The temperature is fixed and will not be solved. Please note that pandapipes cannot check for inconsistencies in the formulation of heat transfer equations yet.
+            - "pt": The pump shows both "p" and "t" behavior.
+    :type type: str, default "pt"
+    :param kwargs: Additional keyword arguments will be added as further columns to the net["circ_pump_mass"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
 
-    EXAMPLE:
-        >>> create_circ_pump_const_pressure(net, 0, 1, p_bar=5, mdot_kg_per_s=2, t_k=350, type="p")
+    :Example:
+        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_kg_per_s=2, t_k=350, type="p")
 
     """
 
@@ -912,18 +917,19 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently existing fluids in the library are: "water", "natural_gas", "air".
+    Currently existing fluids in the library are: "hgas", "lgas", "water", "air", "carbondioxid",
+    "ethane", "hydrogen", "methane", "nitrogen" and "oxygen"
 
     :param net: The net for which this fluid should be created
     :type net: pandapipesNet
     :param name: The name of the fluid that shall be extracted from the fluid lib
     :type name: str
-    :param overwrite: Flag if a possibly existing fluid in the net shall be overwritten.
+    :param overwrite: Flag if a possibly existing fluid in the net shall be overwritten
     :type overwrite: bool, default True
-    :return: No output.
+    :return: No output
 
-    EXAMPLE:
-        pp.create_fluid_from_lib(net, name="water")
+    :Example:
+        >>> pp.create_fluid_from_lib(net, name="water")
 
     """
     add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
