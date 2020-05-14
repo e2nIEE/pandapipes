@@ -31,20 +31,22 @@ def simple_plot(net, respect_valves=False, pipe_width=2.0, junction_size=1.0, ex
                 ax=None, **kwargs):  # pragma: no cover
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
-    geodata is generated. For advanced plotting see the tutorial
+    geodata is generated. For advanced plotting see
+    the `tutorial <https://github.com/e2nIEE/pandapipes/blob/master/tutorials/simple_plot.ipynb>`_.
 
     :param net: The pandapipes format network.
     :type net: pandapipesNet
     :param respect_valves: Respect valves if artificial geodata is created. \
-            .. note:: This Flag is ignored if plot_line_switches is True
+            Note: This Flag is ignored if plot_line_switches is True
     :type respect_valves: bool default False
-    :param pipe_width: width of pipes
+    :param respect_in_service: Respect only components which are in service.
+    :type respect_in_service: bool default True
+    :param pipe_width: Width of pipes
     :type pipe_width: float, default 5.0
     :param junction_size: Relative size of junctions to plot. The value junction_size is multiplied\
             with mean_distance_between_buses, which equals the distance between the max geoocord\
-            and the min divided by 200: \
-            mean_distance_between_buses = sum((net['bus_geodata'].max() \
-                                               - net['bus_geodata'].min()) / 200)
+            and the min divided by 200: \n
+            >>> mean_distance_between_buses = sum((net['bus_geodata'].max() - net['bus_geodata'].min()) / 200)
     :type junction_size: float, default 1.0
     :param ext_grid_size: Relative size of ext_grids to plot. See bus sizes for details. Note: \
             ext_grids are plottet as rectangles
@@ -59,26 +61,27 @@ def simple_plot(net, respect_valves=False, pipe_width=2.0, junction_size=1.0, ex
     :type source_size: float, default 1.0
     :param valve_size: Relative size of valves to plot.
     :type valve_size: float, default 1.0
-    :param heat_exchanger_size:
-    :type heat_exchanger_size:
+    :param heat_exchanger_size: Relative size of heat_exchanger to plot.
+    :type heat_exchanger_size: float, default 1.0
     :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
             scaled with respect to grid mean distances
     :type scale_size: bool, default True
     :param junction_color: Junction Color. See also matplotlib or seaborn documentation on how to\
             choose colors.
     :type junction_color: str, tuple, default "r"
-    :param pipe_color: Pipe Color.
+    :param pipe_color: Pipe color
     :type pipe_color: str, tuple, default "silver"
-    :param ext_grid_color: External Grid Color.
+    :param ext_grid_color: External grid color
     :type ext_grid_color: str, tuple, default "orange"
-    :param library: library name to create generic coordinates (case of missing geodata). Choose\
+    :param library: Library name to create generic coordinates (case of missing geodata). Choose\
             "igraph" to use igraph package or "networkx" to use networkx package.
     :type library: str, default "igraph"
     :param show_plot: If True, show plot at the end of plotting
     :type show_plot: bool, default True
     :param ax: matplotlib axis to plot to
     :type ax: object, default None
-    :return: ax - axes of figure
+    :return: ax - Axes of figure
+
     """
     collections = create_simple_collections(net, respect_valves, pipe_width, junction_size,
                                             ext_grid_size, plot_sinks, plot_sources, sink_size,

@@ -10,9 +10,10 @@ Fluid from Library
 ==================
 
 In the fluid library some default fluids are already implemented. Currently it is
-possible to work with the default fluids water, air and natural_gas. One of these
-default fluids can be created and added to an existing network by calling the
-following function.
+possible to work with the default fluids high and low caloric natural
+gas (hgas and lgas), water, air, carbon dioxide, ethane, hydrogen, methane, nitrogen and oxygen.
+One of these default fluids can be created and added to an
+existing network by calling the following function.
 
 .. autofunction:: pandapipes.create_fluid_from_lib
 
