@@ -23,7 +23,7 @@ water_modelica_path = os.path.join(pp_dir, "networks", "simple_test_networks",
 def water_district_grid(method="nikuradse"):
     """
 
-    :param method: which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -40,6 +40,8 @@ def water_district_grid(method="nikuradse"):
 def water_combined_mixed():
     """
 
+    :param method: Which results should be loaded: prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -54,10 +56,10 @@ def water_combined_mixed():
 def water_combined_versatility(results_from="openmodelica", method="n"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> nikuradse or prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -77,8 +79,10 @@ def water_combined_versatility(results_from="openmodelica", method="n"):
 def water_meshed_delta(results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
+    :param method: results_from = "stanet" -> nikuradse, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -95,13 +99,15 @@ def water_meshed_delta(results_from="openmodelica"):
 def water_meshed_pumps(results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
+    :param method: results_from = "stanet" -> nikuradse or prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
     :Example:
-        >>> pandapipes.networks.simple_water_networks.water_meshed_pumps()
+        >>> pandapipes.networks.simple_water_networks.water_meshed_pumps(method="swamee")
 
     """
     log_result_upon_loading(logger, method="n", converter=results_from)
@@ -112,7 +118,8 @@ def water_meshed_pumps(results_from="openmodelica"):
 
 def water_meshed_heights():
     """
-
+    :param method: which results should be loaded: prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -127,15 +134,15 @@ def water_meshed_heights():
 def water_meshed_2valves(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> nikuradse or prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
     :Example:
-        >>> pandapipes.networks.simple_water_networks.water_meshed_2valves()
+        >>> pandapipes.networks.simple_water_networks.water_meshed_2valves(method="swamee-jain")
 
     """
     log_result_upon_loading(logger, method=method, converter=results_from)
@@ -149,10 +156,10 @@ def water_meshed_2valves(method="nikuradse", results_from="openmodelica"):
 def water_one_pipe1(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> nikuradse or prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -170,10 +177,10 @@ def water_one_pipe1(method="nikuradse", results_from="openmodelica"):
 def water_one_pipe2(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> nikuradse or prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -191,7 +198,7 @@ def water_one_pipe2(method="nikuradse", results_from="openmodelica"):
 def water_one_pipe3(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
     :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -213,10 +220,10 @@ def water_one_pipe3(method="nikuradse", results_from="openmodelica"):
 def water_simple_strand_net(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> nikuradse or prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -234,10 +241,10 @@ def water_simple_strand_net(method="nikuradse", results_from="openmodelica"):
 def water_strand_2pipes(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> nikuradse or prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -255,8 +262,10 @@ def water_strand_2pipes(method="nikuradse", results_from="openmodelica"):
 def water_strand_cross(results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
+    :param method: results_from = "stanet" -> prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network (method = "prandtl-colebrook")
     :rtype: pandapipesNet
 
@@ -272,7 +281,8 @@ def water_strand_cross(results_from="openmodelica"):
 
 def water_strand_net_2pumps():
     """
-
+    :param method: Which results should be loaded: prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -301,10 +311,10 @@ def water_strand_pump():
 def water_tcross(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -321,7 +331,8 @@ def water_tcross(method="nikuradse", results_from="openmodelica"):
 
 def water_tcross_valves():
     """
-
+    :param method: Which results should be loaded: prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
@@ -337,10 +348,10 @@ def water_tcross_valves():
 def water_2eg_two_pipes(method="nikuradse", results_from="openmodelica"):
     """
 
-    :param results_from: which converted net should be loaded: openmodelica or stanet
+    :param results_from: Which converted net should be loaded: openmodelica or stanet
     :type results_from: str, default "openmodelica"
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
-    :type method: str, default "nikuradse"
+    :param method: results_from = "stanet" -> prandtl-colebrook, results_from = "openmodelica" -> prandtl-colebrook or swamee-jain
+    :type method: str, default "colebrook"
     :return: net - STANET resp. OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
 
