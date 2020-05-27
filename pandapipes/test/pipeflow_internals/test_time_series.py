@@ -22,6 +22,24 @@ logger = logging.getLogger(__name__)
 
 path = os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results')
 
+def _preparte_grid(net):
+    """
+
+    :param net:
+    :type net:
+    :return:
+    :rtype:
+    """
+
+    ds_sink, ds_source = _data_source()
+    control.ConstControl(net, element='sink', variable='mdot_kg_per_s',
+                                      element_index=net.sink.index.values, data_source=ds_sink,
+                                      profile_name=net.sink.index.values.astype(str))
+    control.ConstControl(net, element='source', variable='mdot_kg_per_s',
+                                        element_index=net.source.index.values,
+                                        data_source=ds_source,
+                                        profile_name=net.source.index.values.astype(str))
+
 
 def _save_profiles_csv(net):
     """
@@ -135,6 +153,7 @@ def test_time_series():
     :rtype:
     """
     net = nw.gas_versatility()
+    _preparte_grid(net)
     time_steps = range(25)
     _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
     run_timeseries(net, time_steps)
@@ -149,6 +168,7 @@ def test_time_series_default_ow():
     :rtype:
     """
     net = nw.gas_versatility()
+    _preparte_grid(net)
     time_steps = range(25)
     init_default_outputwriter(net, time_steps)
     run_timeseries(net, time_steps)
