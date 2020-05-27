@@ -52,7 +52,9 @@ class pandapipesNet(ADict):
         else:
             r += "\nIt does not contain any defined fluid"
         if "component_list" in self:
-            r += "\nand uses the following component models: %s" % self["component_list"]
+            r += "\nand uses the following component models:"
+            for component in self.component_list:
+                r += "\n   - %s" %component.__name__
         return r
 
 
