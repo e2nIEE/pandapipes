@@ -53,7 +53,6 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     if add_stdtypes:
         add_basic_std_types(net)
 
-    net["name"] = name
     if fluid is not None:
         if isinstance(fluid, Fluid):
             net["fluid"] = fluid
