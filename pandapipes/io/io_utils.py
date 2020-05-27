@@ -9,7 +9,7 @@ from inspect import isclass
 
 import pandapower as pp
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, from_serializable_registry, pp_hook_object_preparation, from_serializable
+    isinstance_partial as ppow_isinstance, from_serializable_registry, from_serializable
 
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network as create_fluid_network
@@ -51,10 +51,24 @@ class PPJSONDecoder(json.JSONDecoder):
         super_kwargs.update(kwargs)
         super().__init__(**super_kwargs)
 
-
 def ppipes_hook(d, net=None):
+    if "_object" in d:
+        obj = d.pop('_object')
+    elif "_state" in d:
+        obj = d['_state']
+        if d['has_net']:
+            obj['net'] = 'net'
+        if '_init' in obj:
+            del obj['_init']
+        return obj  # backwards compatibility
+    else:
+        # obj = {"_init": d, "_state": dict()}  # backwards compatibility
+        obj = {key: val for key, val in d.items() if key not in ['_module', '_class']}
+    return ppipes_hook_serialization(obj, d, net=net)
+
+
+def ppipes_hook_serialization(obj, d, net):
     if '_module' in d and '_class' in d:
-        obj = pp_hook_object_preparation(d)
         class_name = d.pop('_class')
         module_name = d.pop('_module')
         fs = from_serializable_registry_ppipe(obj, d, net)
