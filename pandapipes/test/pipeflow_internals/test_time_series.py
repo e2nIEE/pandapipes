@@ -8,10 +8,9 @@ import pytest
 import pandapower.control as control
 import pandas as pd
 from pandapipes import networks as nw
-from pandapipes.timeseries.run_time_series import run_timeseries_ppipe, \
-    get_default_output_writer_ppipe
 from pandapower.timeseries import DFData
 from pandapower.timeseries import OutputWriter
+from pandapipes.timeseries import run_timeseries, init_default_outputwriter
 from pandapipes import pp_dir
 
 try:
@@ -58,30 +57,6 @@ def _data_source():
     ds_sink = DFData(profiles_sink)
     ds_source = DFData(profiles_source)
     return ds_sink, ds_source
-
-
-def _preparte_grid(net):
-    """
-
-    :param net:
-    :type net:
-    :return:
-    :rtype:
-    """
-
-    ds_sink, ds_source = _data_source()
-    const_sink = control.ConstControl(net, element='sink', variable='mdot_kg_per_s',
-                                      element_index=net.sink.index.values, data_source=ds_sink,
-                                      profile_name=net.sink.index.values.astype(str))
-    const_source = control.ConstControl(net, element='source', variable='mdot_kg_per_s',
-                                        element_index=net.source.index.values,
-                                        data_source=ds_source,
-                                        profile_name=net.source.index.values.astype(str))
-    del const_sink.initial_powerflow
-    const_sink.initial_pipeflow = False
-    del const_source.initial_powerflow
-    const_source.initial_pipeflow = False
-    return net
 
 
 def _compare_results(ow):
@@ -160,10 +135,10 @@ def test_time_series():
     :rtype:
     """
     net = nw.gas_versatility()
-    net = _preparte_grid(net)
     time_steps = range(25)
-    ow = _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
-    run_timeseries_ppipe(net, time_steps, output_writer=ow)
+    _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
+    run_timeseries(net, time_steps)
+    ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
 
 
@@ -174,10 +149,10 @@ def test_time_series_default_ow():
     :rtype:
     """
     net = nw.gas_versatility()
-    net = _preparte_grid(net)
     time_steps = range(25)
-    ow = get_default_output_writer_ppipe(net, time_steps)
-    run_timeseries_ppipe(net, time_steps, output_writer=ow)
+    init_default_outputwriter(net, time_steps)
+    run_timeseries(net, time_steps)
+    ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
 
 

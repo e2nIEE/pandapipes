@@ -6,7 +6,7 @@ from pandapower.control import *
 import pandapipes as ppipe
 
 
-def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence=False,
+def run_control(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence=False,
                       **kwargs):
     """
     Function to run a control of the pandapipes network.
@@ -23,14 +23,12 @@ def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_dive
     :return: No Output.
     """
     if ctrl_variables is None:
-        ctrl_variables = ctrl_variables_ppipe_default(net)
-    else:
-        ctrl_variables["initial_powerflow"] = ctrl_variables["initial_pipeflow"]
+        ctrl_variables = prepare_run_ctrl
     run_control(net, ctrl_variables=ctrl_variables, max_iter=max_iter,
                 continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
 
 
-def ctrl_variables_ppipe_default(net):
+def prepare_run_ctrl(net, ctrl_variables):
     """
     Function that defines default control variables.
 
@@ -39,29 +37,10 @@ def ctrl_variables_ppipe_default(net):
     :return: ctrl_variables
     :rtype: ?
     """
-    ctrl_variables = dict()
-    ctrl_variables["level"], ctrl_variables["controller_order"] = get_controller_order(net)
-    ctrl_variables["run"] = ppipe.pipeflow
-    ctrl_variables["initial_pipeflow"] = check_for_initial_pipeflow(
-        ctrl_variables["controller_order"])
-    ctrl_variables["initial_powerflow"] = ctrl_variables["initial_pipeflow"]
+    if ctrl_variables is None:
+        ctrl_variables = ctrl_variables_default(net)
+        ctrl_variables["run"] = ppipe.pipeflow
     return ctrl_variables
 
 
-def check_for_initial_pipeflow(controllers):
-    """
-    Function checking if any of the controllers need an initial pipe flow
-    If net has no controllers, an initial pipe flow is done by default.
-    :param controllers:
-    :type controllers:
-    :return:
-    :rtype:
-    """
-    if not len(controllers[0]):
-        return True
 
-    for order in controllers:
-        for ctrl in order:
-            if ctrl.initial_pipeflow:
-                return True
-    return False
