@@ -306,7 +306,7 @@ def fuse_junctions(net, j1, j2, drop=True):
     :param j2: junction(s) that shall be fused into junction 1
     :type j2: Iterable or int
     :param drop: if True, junction(s) j2 will be dropped after fusing all elements
-    :type drop: boold, default True
+    :type drop: boolean, default True
     :return: net - the new pandapipes network
     :rtype: pandapipesNet
     """
