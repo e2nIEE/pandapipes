@@ -8,7 +8,7 @@ from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
 from pandapipes.pipeflow_setup import get_lookup
 from numpy import dtype
 
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 
 try:
     import pplog as logging
@@ -16,6 +16,7 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
+
 
 class CirculationPumpPressure(CirculationPump):
 
@@ -37,7 +38,8 @@ class CirculationPumpPressure(CirculationPump):
         circ_pump, press = super().create_pit_node_entries(net, node_pit, node_name)
 
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
-        juncts_p, press_sum, number = _sum_by_group(circ_pump.to_junction.values, press - circ_pump.plift_bar.values,
+        juncts_p, press_sum, number = _sum_by_group(circ_pump.to_junction.values,
+                                                    press - circ_pump.plift_bar.values,
                                                     np.ones_like(press, dtype=np.int32))
 
         index_p = junction_idx_lookups[juncts_p]
@@ -45,7 +47,8 @@ class CirculationPumpPressure(CirculationPump):
         node_pit[index_p, NODE_TYPE] = P
         node_pit[index_p, EXT_GRID_OCCURENCE] += number
 
-        net["_lookups"]["ext_grid"] = np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p]))))
+        net["_lookups"]["ext_grid"] = \
+            np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p]))))
 
     @classmethod
     def get_component_input(cls):

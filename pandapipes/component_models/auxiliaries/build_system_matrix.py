@@ -8,7 +8,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DV, JAC_DERIV_DP
     JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T
 from pandapipes.idx_node import LOAD, TINIT
 from pandapipes.idx_node import P, NODE_TYPE, T, NODE_TYPE_T
-from pandapipes.toolbox import _sum_by_group, _sum_by_group_sorted
+from pandapipes.internals_toolbox import _sum_by_group_sorted, _sum_by_group
 from scipy.sparse import csr_matrix
 from pandapipes.pipeflow_setup import get_net_option
 
@@ -57,7 +57,6 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         len_tn1 = len_fn1 + len_b
         full_len = len_tn1 + slack_nodes.shape[0]
 
-
     system_data = np.zeros(full_len, dtype=np.float64)
 
     if not heat_mode:
@@ -87,8 +86,6 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         data = data[index]
         system_data[len_fn1:len_fn1 + len_b] = data
         system_data[len_fn1 + len_b:] = 1
-
-
 
     if not update_only:
         system_cols = np.zeros(full_len, dtype=np.int32)
@@ -143,10 +140,9 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
             system_cols[len_fn1:len_fn1 + len_b] = branch_matrix_indices[branch_order]
             system_rows[len_fn1:len_fn1 + len_b] = len(slack_nodes) + row_index
 
-
         if not update_option:
             system_matrix = csr_matrix((system_data, (system_rows, system_cols)),
-                                           shape=(len_n + len_b, len_n + len_b))
+                                       shape=(len_n + len_b, len_n + len_b))
 
 
 
@@ -188,8 +184,5 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         load_vector[0:len(slack_nodes)] = 0.
 
         load_vector[len_n:] = branch_pit[:, LOAD_VEC_BRANCHES_T]
-
-
-
 
     return system_matrix, load_vector

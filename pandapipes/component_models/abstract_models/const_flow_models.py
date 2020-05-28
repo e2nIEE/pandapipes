@@ -6,7 +6,7 @@ import numpy as np
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
 from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 from numpy import dtype
 
 
@@ -14,6 +14,7 @@ class ConstFlow(NodeElementComponent):
     """
 
     """
+
     @classmethod
     def sign(cls):
         raise NotImplementedError()
@@ -82,10 +83,10 @@ class ConstFlow(NodeElementComponent):
     def get_result_table(cls, net):
         """
 
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: (columns, all_float) - the column names and whether they are all float type. Only
+                if False, returns columns as tuples also specifying the dtypes
+        :rtype: (list, bool)
         """
-        output = [("mdot_kg_per_s", "f8")]
-        return output
+        return ["mdot_kg_per_s"], True

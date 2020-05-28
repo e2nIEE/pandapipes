@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 import pandapipes.networks.simple_water_networks as nw
 from pandapipes.pipeflow import logger as pf_logger
-from pandapipes.test.openmodelica_comparison.pipeflow_openmodelica_comparison\
+from pandapipes.test.openmodelica_comparison.pipeflow_openmodelica_comparison \
     import pipeflow_openmodelica_comparison
 
 try:

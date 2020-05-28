@@ -2,11 +2,11 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import numpy as np
+from matplotlib.patches import RegularPolygon, Rectangle, Circle, PathPatch
+from matplotlib.path import Path
 from pandapower.plotting.plotting_toolbox import get_color_list, _rotate_dim2, get_angle_list, \
     get_list
-import numpy as np
-from matplotlib.patches import RegularPolygon, Rectangle, Polygon, Circle, PathPatch
-from matplotlib.path import Path
 
 
 def get_filled_list(filled, number_entries, name_entries="valves"):
@@ -57,16 +57,15 @@ def heat_exchanger_patches(coords, size, **kwargs):
         radius = size #np.sqrt(diff[0]**2+diff[1]**2)/15
 
         pa = Path(path)
-        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor = "w", lw=lw))
-        polys.append(PathPatch(pa, fill = False, lw=lw, edgecolor=col))
-        lines.append([p1, p1 + diff / 2 - direc *radius])
-        lines.append([p2, p1 + diff / 2 + direc *radius])
+        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor="w", lw=lw))
+        polys.append(PathPatch(pa, fill=False, lw=lw, edgecolor=col))
+        lines.append([p1, p1 + diff / 2 - direc * radius])
+        lines.append([p2, p1 + diff / 2 + direc * radius])
     return lines, polys, {}
 
 
 def source_patches(node_coords, size, angles, **kwargs):
-    """
-    Creation function of patches for sources.
+    """Creation function of patches for sources.
 
     :param node_coords: coordinates of the nodes that the sources belong to.
     :type node_coords: iterable

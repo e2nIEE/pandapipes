@@ -21,6 +21,7 @@ class Fluid(JSONSerializableClass):
     """
 
     """
+
     def __init__(self, name, fluid_type, **kwargs):
         """
 
@@ -44,6 +45,12 @@ class Fluid(JSONSerializableClass):
             if not isinstance(prop, FluidProperty):
                 logger.warning("The property %s was not defined as a fluid property. This might "
                                "cause problems when trying to ask for values." % prop_name)
+
+    def __repr__(self):
+        r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
+        for key in self.all_properties.keys():
+            r += "\n   - %s (%s)" %(key, self.all_properties[key].__class__.__name__[13:])
+        return r
 
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
         """
@@ -121,15 +128,48 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("heat_capacity", temperature)
 
+    def get_molar_mass(self):
+        """
+        This function returns the molar mass.
+
+        :return: molar mass
+
+        """
+
+        return self.get_property("molar_mass")
+
+    def get_compressibility(self, temperature):
+        """
+        This function returns the compressibility at a certain temperature.
+
+        :param temperature: Temperature at which the compressibility is queried
+        :type temperature: float
+        :return: compressibility at the required temperature
+
+        """
+
+        return self.get_property("compressibility", temperature)
+
+    def get_der_compressibility(self):
+        """
+        This function returns the derivation of the compressibility.
+
+        :return: derivation of the compressibility
+
+        """
+
+        return self.get_property("der_compressibility")
+
 
 class FluidProperty(JSONSerializableClass):
     """
     Property Base Class
     """
+
     def __init__(self):
         super().__init__()
 
-    def get_property(self, arg):
+    def get_property(self, *args):
         """
 
         :param arg:
@@ -176,7 +216,8 @@ class FluidPropertyInterExtra(FluidProperty):
     @classmethod
     def from_path(cls, path, method="interpolate_extrapolate"):
         """
-
+        Reads a text file with temperature values in the first column and property values in
+        second column.
         :param path:
         :type path:
         :param method:
@@ -220,7 +261,7 @@ class FluidPropertyConstant(FluidProperty):
         super(FluidPropertyConstant, self).__init__()
         self.value = value
 
-    def get_property(self, arg):
+    def get_property(self, *args):
         """
 
         :param arg:
@@ -228,7 +269,30 @@ class FluidPropertyConstant(FluidProperty):
         :return:
         :rtype:
         """
-        return self.value if type(arg) == np.float else self.value * np.ones(len(arg))
+        if len(args) > 1:
+            raise(UserWarning('Please define either none or an array-like argument'))
+        elif len(args) == 1:
+            logger.warning('One constant property has several input variables even though it is '
+                           'independent of these')
+            output = np.array([self.value]) * np.ones(len(args[0]))
+        else:
+            output = np.array([self.value])
+        return  output
+
+    @classmethod
+    def from_path(cls, path):
+        """
+        Reads a text file with temperature values in the first column and property values in
+        second column.
+        :param path:
+        :type path:
+        :param method:
+        :type method:
+        :return:
+        :rtype:
+        """
+        value = np.loadtxt(path).item()
+        return cls(value)
 
 
 class FluidPropertyLinear(FluidProperty):
@@ -252,7 +316,22 @@ class FluidPropertyLinear(FluidProperty):
         if type(arg) == pd.Series:
             return self.offset + self.slope * arg.values
         else:
-            return self.offset + self.slope * arg
+            return self.offset + self.slope * np.array(arg)
+
+    @classmethod
+    def from_path(cls, path):
+        """
+        Reads a text file with temperature values in the first column and property values in
+        second column.
+        :param path:
+        :type path:
+        :param method:
+        :type method:
+        :return:
+        :rtype:
+        """
+        slope, offset = np.loadtxt(path)
+        return cls(slope, offset)
 
 
 def create_constant_property(net, property_name, value, overwrite=True, warn_on_duplicates=True):
@@ -324,7 +403,7 @@ def create_constant_fluid(name=None, fluid_type=None, **kwargs):
 def call_lib(fluid):
     """
     Creates a fluid with default fluid properties.
-    Currently implemented: Water, air and natural gas.
+    Currently implemented: High or low caloric natural gas (hgas or lgas), water and air.
 
     :param fluid: Fluid which should be used
     :type fluid: str
@@ -334,6 +413,14 @@ def call_lib(fluid):
 
     def interextra_property(prop):
         return FluidPropertyInterExtra.from_path(
+            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+
+    def constant_property(prop):
+        return FluidPropertyConstant.from_path(
+            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+
+    def linear_property(prop):
+        return FluidPropertyLinear.from_path(
             os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
 
     liquids = ["water"]
@@ -349,16 +436,14 @@ def call_lib(fluid):
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
     heat_capacity = interextra_property("heat_capacity")
-
-    der_comps = {"water": 0, "air": -0.001, "lgas": -0.0022, "hgas": -0.0022}
-    der_comp = der_comps[fluid]
-    compressibility = FluidPropertyConstant(1) if der_comp == 0 \
-        else FluidPropertyLinear(der_comp, 1)
-    der_compressibility = FluidPropertyConstant(der_comp)
+    molar_mass = constant_property("molar_mass")
+    der_compr = constant_property("der_compressibility")
+    compr = linear_property("compressibility")
 
     phase = "liquid" if fluid in liquids else "gas"
     return Fluid(fluid, phase, density=density, viscosity=viscosity, heat_capacity=heat_capacity,
-                 compressibility=compressibility, der_compressibility=der_compressibility)
+                 molar_mass=molar_mass,
+                 compressibility=compr, der_compressibility=der_compr)
 
 
 def get_fluid(net):

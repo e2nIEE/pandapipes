@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='colebrook',
                                      only_update_hydraulic_matrix=False):
-
     pp.pipeflow(
         net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
         only_update_hydraulic_matrix=only_update_hydraulic_matrix)
@@ -60,7 +59,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
     else:
         if 'pipe' in net:
             v_diff_mean_pipe, v_diff_abs_pipe, v_mean_pandapipes_pipe, v_om_pipe = \
-                retrieve_velocity_liquid(net, element = "pipe")
+                retrieve_velocity_liquid(net, element="pipe")
         else:
             v_diff_abs_pipe = pd.Series()
             v_om_pipe = pd.Series()
@@ -69,7 +68,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
 
         if 'valve' in net:
             v_diff_mean_valve, v_diff_abs_valve, v_mean_pandapipes_valve, v_om_pipe = \
-                retrieve_velocity_liquid(net, element = "valve")
+                retrieve_velocity_liquid(net, element="valve")
         else:
             v_diff_abs_valve = pd.Series()
             v_om_valve = pd.Series()
@@ -136,7 +135,7 @@ def retrieve_velocity_liquid(net, element="pipe"):
 
     v_diff_mean = pd.Series(v_diff_mean, range(len(v_diff_mean)))
     v_diff_abs = pd.Series(v_diff_abs, range(len(v_diff_abs)))
-    v_om = pd.Series(v_om,range(len(v_om)))
+    v_om = pd.Series(v_om, range(len(v_om)))
 
     return v_diff_mean, v_diff_abs, v_mean_pandapipes, v_om
 

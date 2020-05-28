@@ -14,6 +14,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class CirculationPump(ExtGrid):
 
     @classmethod
@@ -31,7 +32,8 @@ class CirculationPump(ExtGrid):
         :type options:
         :return: No Output.
         """
-        res_table, circ_pump, index_nodes_from, node_pit, branch_pit = super().extract_results(net, options, node_name)
+        res_table, circ_pump, index_nodes_from, node_pit, branch_pit = \
+            super().extract_results(net, options, node_name)
 
         index_juncts_to = circ_pump.to_junction.values
         junct_uni_to = np.array(list(set(index_juncts_to)))
@@ -49,10 +51,10 @@ class CirculationPump(ExtGrid):
     def get_result_table(cls, net):
         """
 
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: (columns, all_float) - the column names and whether they are all float type. Only
+                if False, returns columns as tuples also specifying the dtypes
+        :rtype: (list, bool)
         """
-        return [("mdot_kg_per_s", "f8"),
-                ("deltap_bar", "f8")]
+        return ["mdot_kg_per_s", "deltap_bar"], True

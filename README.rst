@@ -1,6 +1,18 @@
-.. image:: https://pandapipes.readthedocs.io/en/latest/_images/pandapipes_logo.png
+
+.. image:: https://www.pandapipes.org/images/pp.svg
    :target: https://www.pandapipes.org
+   :width: 300em
    :alt: logo
+
+|
+
+.. image:: https://badge.fury.io/py/pandapipes.svg
+   :target: https://badge.fury.io/py/pandapipes
+   :alt: PyPI
+
+.. image:: https://img.shields.io/pypi/pyversions/pandapipes.svg
+   :target: https://pypi.python.org/pypi/pandapipes
+   :alt: versions
 
 .. image:: https://readthedocs.org/projects/pandapipes/badge/
    :target: http://pandapipes.readthedocs.io/
@@ -22,12 +34,26 @@
    :target: https://github.com/e2nIEE/pandapipes/blob/master/LICENSE
    :alt: BSD
 
+.. image:: https://pepy.tech/badge/pandapipes
+   :target: https://pepy.tech/project/pandapipes
+   :alt: pepy
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop
+   :alt: binder
+
+
 A pipeflow calculation tool that complements `pandapower <https://www.pandapower.org>`_ in the
-simulation of multi energy grids.
+simulation of multi energy grids, in particular heat and gas networks. More information can be found on `www.pandapipes.org <https://www.pandapipes.org>`_.
 
-Getting Started:
+Getting started:
 
+- `Installation Notes <https://www.pandapipes.org/start/>`_
 - `Documentation <https://pandapipes.readthedocs.io/en/latest/>`_
+- `Tutorials on github <https://github.com/e2nIEE/pandapipes/tree/develop/tutorials>`_
+- `Interactive tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop?filepath=tutorials>`_
+
+
 
 pandapipes is a development of the Department for Distribution System Operation at the Fraunhofer
 Institute for Energy Economics and Energy System Technology (IEE), Kassel.
@@ -38,9 +64,6 @@ Institute for Energy Economics and Energy System Technology (IEE), Kassel.
     :width: 25em
 
 |
+
 We welcome contributions to pandapipes of any kind - if you want to contribute, please check out
 the `pandapipes contribution guidelines <https://github.com/e2nIEE/pandapipes/blob/develop/CONTRIBUTING.rst>`_.
-
-
-
-

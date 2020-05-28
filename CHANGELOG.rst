@@ -1,25 +1,14 @@
 Change Log
 =============
 
-[1.0.5] - 2020-02-19
+[0.1.1] - 2020-04-03
 -------------------------------
-- [FIXED] in fluids.py bugfix --> logger.error instead of logger.Error
+- [ADDED] badges for pypi and versions
+- [CHANGED] result table initialization now in most cases only contains one DF creation call #42
+- [CHANGED] from pandapower tempdir to pytest tmp_path in test
+- [CHANGED] default orientation of sink and source collections to avoid overlapping
+- [FIXED] missing images and typos in documentation
 
-[1.0.4] - 2020-02-17
+[0.1.0] - 2020-03-18
 -------------------------------
-- [ADDED] Codacy
-
-[1.0.3] - 2020-02-17
--------------------------------
-- [CHANGED] required changes in Codecov reverted due to problems in Codecov
-
-[1.0.2] - 2020-02-17
--------------------------------
-- [CHANGED] required changes in Codecov due to problems in Codecov
-
-[1.0.1] - 2020-02-17
--------------------------------
-- [CHANGED] default type change in networks for different components (update of networks)
-- [ADDED] README.rst
-- [ADDED] Travis CI and Codecov
-- [ADDED] embedded Sphinx Read the Docs
+- first release of pandapipes

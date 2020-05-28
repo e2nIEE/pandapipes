@@ -6,7 +6,6 @@ import os
 
 import pandapipes
 import pytest
-from pandapower.test.toolbox import tempdir
 from pandas.testing import assert_frame_equal
 
 
@@ -46,7 +45,7 @@ def load_net():
                                            geodata=[(7, -4), (7, -3), (5, -3)])
 
     pandapipes.create_valve(net, from_junction=j5, to_junction=j6, diameter_m=0.05,
-                                    opened=True)
+                            opened=True)
 
     pandapipes.create_sink(net, junction=j4, mdot_kg_per_s=5.45e-5, name="Sink 1")
 
@@ -55,7 +54,7 @@ def load_net():
     return net
 
 
-def test_pickle(tempdir):
+def test_pickle(tmp_path):
     """
     Checks if a network saved and reloaded as a pickle file is identical.
     :return:
@@ -63,7 +62,7 @@ def test_pickle(tempdir):
     """
 
     net = load_net()
-    filename = os.path.join(tempdir, "test_net_1.p")
+    filename = os.path.abspath(str(tmp_path)) + "test_net_1.p"
 
     # save test network
     pandapipes.to_pickle(net, filename)
@@ -75,14 +74,14 @@ def test_pickle(tempdir):
     assert pandapipes.nets_equal(net, net2), "Error in comparison after saving to Pickle."
 
 
-def test_json(tempdir):
+def test_json(tmp_path):
     """
     Checks if a network saved and reloaded as a json file is identical.
     :return:
     :rtype:
     """
     net = load_net()
-    filename = os.path.join(tempdir, "test_net_1.json")
+    filename = os.path.abspath(str(tmp_path)) + "test_net_1.json"
 
     # save test network
     pandapipes.to_json(net, filename)
@@ -117,7 +116,7 @@ def test_json_string():
     del net.pipe_geodata
     del net2.pipe_geodata
 
-    assert pandapipes.nets_equal(net, net2),\
+    assert pandapipes.nets_equal(net, net2), \
         "Error in comparison after saving to JSON string."
 
 

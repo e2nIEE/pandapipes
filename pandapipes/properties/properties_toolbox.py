@@ -5,7 +5,8 @@
 import numpy as np
 
 
-def calculate_mixture_viscosity(components_viscosities, components_molar_proportions, components_molar_mass):
+def calculate_mixture_viscosity(components_viscosities, components_molar_proportions,
+                                components_molar_mass):
     """
     Todo: Fill out parameters.
 
@@ -30,11 +31,11 @@ def calculate_mixture_viscosity(components_viscosities, components_molar_proport
     else:
         com_array = np.empty([shape[0], shape[1], 5], dtype=np.float64)
         com_array[:, :, 0] = components_viscosities
-        com_array[:, :, 1] = np.reshape(components_molar_proportions.repeat(shape[1]),shape)
+        com_array[:, :, 1] = np.reshape(components_molar_proportions.repeat(shape[1]), shape)
         com_array[:, :, 2] = np.reshape(components_molar_mass.repeat(shape[1]), shape)
         com_array[:, :, 3] = com_array[:, :, 0] * com_array[:, :, 1] * np.sqrt(com_array[:, :, 2])
         com_array[:, :, 4] = com_array[:, :, 1] * np.sqrt(com_array[:, :, 2])
-        res = com_array[:, :, 3].sum(axis = 0) / com_array[:, :, 4].sum(axis = 0)
+        res = com_array[:, :, 3].sum(axis=0) / com_array[:, :, 4].sum(axis=0)
     return res
 
 
@@ -60,10 +61,10 @@ def calculate_mixture_density(components_density, components_mass_proportions):
         res = 1 / com_array[:, 2].sum()
     else:
         com_array = np.empty([shape[0], shape[1], 3], dtype=np.float64)
-        com_array[:, :, 0] = np.reshape(components_mass_proportions.repeat(shape[1]),shape)
+        com_array[:, :, 0] = np.reshape(components_mass_proportions.repeat(shape[1]), shape)
         com_array[:, :, 1] = components_density
         com_array[:, :, 2] = com_array[:, :, 0] / com_array[:, :, 1]
-        res = 1 / com_array[:, :, 2].sum(axis = 0)
+        res = 1 / com_array[:, :, 2].sum(axis=0)
     return res
 
 
@@ -87,7 +88,7 @@ def calculate_mixture_heat_capacity(components_capacity, components_mass_proport
         res = com_array[:, 2].sum()
     else:
         com_array = np.empty([shape[0], shape[1], 3], dtype=np.float64)
-        com_array[:, :, 0] = np.reshape(components_mass_proportions.repeat(shape[1]),shape)
+        com_array[:, :, 0] = np.reshape(components_mass_proportions.repeat(shape[1]), shape)
         com_array[:, :, 1] = components_capacity
         com_array[:, :, 2] = com_array[:, :, 1] * com_array[:, :, 0]
         res = com_array[:, :, 2].sum(axis=0)
