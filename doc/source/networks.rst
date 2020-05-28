@@ -10,8 +10,7 @@ STANET as well as in OpenModelica and converted to pandapipes. Each converted
 network was saved in one json file. Calling the corresponding function loads the
 results from the json file and saves them as pandapipes net. In the case of a
 STANET net, you can usually choose between the friction models Nikuradse and
-Prandtl-Colebrook. For OpenModelica the results exist for Prandtl-Colebrook
-and Swamee-Jain, which approximates the Prandtl-Colebrook formula.
+Prandtl-Colebrook. For OpenModelica only the results for Prandtl-Colebrook exist.
 
 
 .. toctree::
