@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='colebrook',
-
                                      mode='hydraulics', only_update_hydraulic_matrix=False):
     """
         Comparison of the calculations of OpenModelica and pandapipes.
