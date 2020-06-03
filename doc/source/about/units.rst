@@ -1,10 +1,11 @@
 ﻿.. _conventions:
 
 ***************************
-Unit system and Conventions
+Unit System and Conventions
 ***************************
 
-**Naming conventions**
+Naming Conventions
+==================
 
 .. tabularcolumns:: |l|l|
 .. csv-table:: 
@@ -13,7 +14,8 @@ Unit system and Conventions
    :widths: 30, 30
 
 
-**Reference state values**
+Reference State Values
+======================
 
 For calculations of compressible media, the normal conditions following DIN 1343 are used:
 
@@ -24,7 +26,8 @@ For calculations of compressible media, the normal conditions following DIN 1343
    :widths: 30, 30
 
 
-**Implemented Constants**
+Implemented Constants
+=====================
 
 Implemented physical constants can be found in the python module "constants.py":
 
@@ -35,7 +38,8 @@ Implemented physical constants can be found in the python module "constants.py":
    :widths: 30, 30, 30
 
 
-**Flow directions**
+Flow Directions
+===============
 
 Edges between junctions are created using functions, which require a "from_junction" and a "to_junction"
 parameter, so the edges in the network are directed. A positive velocity value calculated for an edge is assumed to

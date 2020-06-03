@@ -1,5 +1,5 @@
 ********************************
-Networks with two External Grids
+Networks with Two External Grids
 ********************************
 
 This section contains only networks that have two external grids.

@@ -1,14 +1,14 @@
 .. _run_pipeflow:
 
 ******************
-Running A Pipeflow
+Running a Pipeflow
 ******************
 
 If you want to run a pipeflow with pandapipes, it might be the easiest to just try running the code
 
 >>> pp.pipeflow(net)
 
-However, this might not always suit your  purpose. In order to control what is calculated and which
+However, this might not always suit your purpose. In order to control what is calculated and which
 precise boundary conditions to use, some options exist that influence the internals. Changing the
 default options can not only influence the boundary conditions, but also the execution time, the
 convergence behavior or the output that is calculated.

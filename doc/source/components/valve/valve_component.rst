@@ -9,7 +9,8 @@ Create Function
 
 .. autofunction:: pandapipes.create_valve
 
-Component Table Data====================
+Component Table Data
+====================
 
 *net.valve*
 
