@@ -100,9 +100,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
 
         if 'valve' in net:
 
-            v_diff_mean_valve, v_diff_abs_valve, v_mean_pandapipes_valve, v_om_valve = \
-
-                retrieve_velocity_liquid(net, element="valve")
+            v_diff_mean_valve, v_diff_abs_valve, v_mean_pandapipes_valve, v_om_valve = retrieve_velocity_liquid(net, element="valve")
         else:
             v_diff_abs_valve = pd.Series(dtype="float64")
             v_om_valve = pd.Series(dtype="float64")
