@@ -36,11 +36,11 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
         :return: p_diff, v_diff_abs
         :rtype: one-dimensional ndarray with axis labels
     """
-   
-    pp.pipeflow(
-        net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
-        only_update_hydraulic_matrix=only_update_hydraulic_matrix)
+    pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
+                mode=mode, only_update_hydraulic_matrix=only_update_hydraulic_matrix)
 
+    print(net.res_junction)
+    print(net.res_pipe)
 
     p_om = net.junction.p_om
     p_valid = pd.notnull(p_om)
@@ -51,12 +51,12 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
             v_diff_from_pipe, v_diff_to_pipe, v_diff_mean_pipe, v_diff_abs_pipe, \
             v_mean_pandapipes_pipe, v_om_pipe = retrieve_velocity_gas(net, 'pipe')
         else:
-            v_diff_abs_pipe = pd.Series(dtype="float64")
-            v_om_pipe = pd.Series(dtype="float64")
-            v_mean_pandapipes_pipe = pd.Series(dtype="float64")
-            v_diff_from_pipe = pd.Series(dtype="float64")
-            v_diff_to_pipe = pd.Series(dtype="float64")
-            v_diff_mean_pipe = pd.Series(dtype="float64")
+            v_diff_abs_pipe = pd.Series()
+            v_om_pipe = pd.Series()
+            v_mean_pandapipes_pipe = pd.Series()
+            v_diff_from_pipe = pd.Series()
+            v_diff_to_pipe = pd.Series()
+            v_diff_mean_pipe = pd.Series()
 
         diff_results_v_pipe = pd.DataFrame(
             {"diff_v_from_pipe": v_diff_from_pipe, "diff_v_to_pipe": v_diff_to_pipe,
@@ -66,12 +66,12 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
             v_diff_from_valve, v_diff_to_valve, v_diff_mean_valve, v_diff_abs_valve, \
             v_mean_pandapipes_valve, v_om_valve = retrieve_velocity_gas(net, 'valve')
         else:
-            v_diff_abs_valve = pd.Series(dtype="float64")
-            v_om_valve = pd.Series(dtype="float64")
-            v_mean_pandapipes_valve = pd.Series(dtype="float64")
-            v_diff_from_valve = pd.Series(dtype="float64")
-            v_diff_to_valve = pd.Series(dtype="float64")
-            v_diff_mean_valve = pd.Series(dtype="float64")
+            v_diff_abs_valve = pd.Series()
+            v_om_valve = pd.Series()
+            v_mean_pandapipes_valve = pd.Series()
+            v_diff_from_valve = pd.Series()
+            v_diff_to_valve = pd.Series()
+            v_diff_mean_valve = pd.Series()
 
         diff_results_v_valve = pd.DataFrame(
             {"diff_v_from_valve": v_diff_from_valve, "diff_v_to_valve": v_diff_to_valve,
@@ -81,16 +81,14 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
             v_diff_mean_pipe, v_diff_abs_pipe, v_mean_pandapipes_pipe, v_om_pipe = \
                 retrieve_velocity_liquid(net, element="pipe")
 
-
             if mode != "hydraulics":
                 T_diff_mean_pipe, T_diff_abs_pipe, T_mean_pandapipes_pipe, T_om_pipe = \
                     retrieve_temperature_liquid(net)
-
         else:
-            v_diff_abs_pipe = pd.Series(dtype="float64")
-            v_om_pipe = pd.Series(dtype="float64")
-            v_mean_pandapipes_pipe = pd.Series(dtype="float64")
-            v_diff_mean_pipe = pd.Series(dtype="float64")
+            v_diff_abs_pipe = pd.Series()
+            v_om_pipe = pd.Series()
+            v_mean_pandapipes_pipe = pd.Series()
+            v_diff_mean_pipe = pd.Series()
 
             if mode != "hydraulics":
                 T_diff_abs_pipe = pd.Series()
@@ -99,13 +97,13 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
                 T_diff_mean_pipe = pd.Series()
 
         if 'valve' in net:
-
-            v_diff_mean_valve, v_diff_abs_valve, v_mean_pandapipes_valve, v_om_valve = retrieve_velocity_liquid(net, element="valve")
+            v_diff_mean_valve, v_diff_abs_valve, v_mean_pandapipes_valve, v_om_valve = \
+                retrieve_velocity_liquid(net, element="valve")
         else:
-            v_diff_abs_valve = pd.Series(dtype="float64")
-            v_om_valve = pd.Series(dtype="float64")
-            v_mean_pandapipes_valve = pd.Series(dtype="float64")
-            v_diff_mean_valve = pd.Series(dtype="float64")
+            v_diff_abs_valve = pd.Series()
+            v_om_valve = pd.Series()
+            v_mean_pandapipes_valve = pd.Series()
+            v_diff_mean_valve = pd.Series()
 
         diff_results_v_pipe = pd.DataFrame({"diff_v_mean_pipe": v_diff_mean_pipe,
                                             "diff_v_abs_pipe": v_diff_abs_pipe})
@@ -230,7 +228,6 @@ def retrieve_velocity_gas(net, element='pipe'):
     return v_diff_from, v_diff_to, v_diff_mean, v_diff_abs, v_mean_pandapipes, v_om
 
 
-
 def retrieve_temperature_liquid(net):
     """
         Get the calculated temperatures for a liquid fluid in pandapipes and OpenModelica and
@@ -264,4 +261,3 @@ def retrieve_temperature_liquid(net):
     T_mean_pandapipes = pd.Series(T_mean_pandapipes, range(len(T_mean_pandapipes)))
 
     return T_diff_mean, T_diff_abs, T_mean_pandapipes, T_om
-
