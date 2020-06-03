@@ -46,7 +46,7 @@ The equations added by a junction correspond to a mass flow balance for hydrauli
    :nowrap:
 
    \begin{align*}
-    \sum_{n=0}^N \dot{m}_{in_n} - \sum_{n=0}^N \dot{m}_{out_n} = 0
+    \sum_{n=0}^N \dot{m}_{in_n} - \sum_{l=0}^M \dot{m}_{out_l} = 0
    \end{align*}
 
 For temperature calculations, the thermal power carried by the incoming fluids is balanced:
@@ -60,7 +60,7 @@ For temperature calculations, the thermal power carried by the incoming fluids i
    :nowrap:
 
    \begin{align*}
-    \sum_{n=0}^N \dot{m}_{in_n}c_p T_{in_n} - \sum_{n=0}^N \dot{m}_{in_n} c_p T_{m} = 0
+    \sum_{n=0}^N \dot{m}_{in_n}c_p T_{in_n} - \sum_{l=0}^M \dot{m}_{out_l} c_p T_{m} = 0
    \end{align*}
 
 

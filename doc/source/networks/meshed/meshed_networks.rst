@@ -18,10 +18,12 @@ for the water case and Prandtl-Colebrook for the gas case.
 
 *Water:*
 
+.. _water_meshed_delta:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_meshed_delta
 
 *Gas:*
 
+.. _gas_meshed_delta:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_meshed_delta
 
 Pumps
@@ -37,10 +39,12 @@ only Nikuradse is available for the water and gas case.
 
 *Water:*
 
+.. _water_meshed_pumps:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_meshed_pumps
 
 *Gas:*
 
+.. _gas_meshed_pumps:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_meshed_pumps
 
 Heights
@@ -54,6 +58,7 @@ OpenModelica to pandapipes.
 	:alt: alternate Text
 	:align: center
 
+.. _water_meshed_heights:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_meshed_heights
 
 Two Valves
@@ -68,10 +73,12 @@ A mesh with two opened valves has been placed in the net.
 
 *Water:*
 
+.. _water_meshed_2valves:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_meshed_2valves
 
 *Gas:*
 
+.. _gas_meshed_two_valves:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_meshed_two_valves
 
 
@@ -85,5 +92,6 @@ Gas network with square arrangement of junctions and height informations.
 	:alt: alternate Text
 	:align: center
 
+.. _gas_meshed_square:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_meshed_square
 

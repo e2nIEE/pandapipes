@@ -33,6 +33,10 @@ pump specific technical product properties setting flowrate and pressure in corr
 given flowrate the pressure lift can be calculated. There are three different standard types
 defined by default (P1, P2, P3). However, the user can easily extend the standard type list.
 
+.. image:: pump_characteristic_curves.png
+	:alt: alternate Text
+	:align: center
+
 In pandapipes the pump is considered as branch element with zero length (pumps are considered ideal).
 Thus it behaves and is considered accordingly.
 

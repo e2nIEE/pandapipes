@@ -1,5 +1,5 @@
 ********************************
-Networks with two External Grids
+Networks with Two External Grids
 ********************************
 
 This section contains only networks that have two external grids.
@@ -14,6 +14,7 @@ Water network with a sink, which connects the external grids by means of two pip
 	:alt: alternate Text
 	:align: center
 
+.. _water_2eg_two_pipes:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_2eg_two_pipes
 
 
@@ -27,6 +28,7 @@ An H-shaped gas net with two junctions and two sinks.
 	:alt: alternate Text
 	:align: center
 
+.. _gas_2eg_hnet:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_2eg_hnet
 
 

@@ -11,7 +11,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, LOAD_VEC_NOD
     TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC, RE, LAMBDA
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
 
 from numpy import dtype
