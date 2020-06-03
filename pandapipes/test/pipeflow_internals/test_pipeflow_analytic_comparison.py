@@ -67,6 +67,50 @@ def test_gas_internal_nodes():
     assert np.all(v_diff < 0.4)
 
 
+def test_gas_internal_nodes_modelica():
+    """
+
+    :return:
+    :rtype:
+    """
+    modelica_data = pd.read_csv("C:\\Users\\dcronbach\\pandapipes\\pandapipes\\non_git\\modelica_vergleich\\Test_res",
+                                sep=',', header=0,
+                                keep_default_na=False)
+
+    print(modelica_data)
+    p0_modelica = modelica_data.loc[500, "boundary.medium.p_bar"]
+    p1_modelica = modelica_data.loc[500, "boundary1.medium.p_bar"]
+    v0_modelica = modelica_data.loc[500, "pipe.flowModel.vs[1]"]
+    v1_modelica = modelica_data.loc[500, "pipe.flowModel.vs[2]"]
+
+    net = pandapipes.create_empty_network("net", add_stdtypes=False)
+    d = 209.1e-3
+    pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
+    pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 12.0, d, k_mm=.5, sections=12)
+    pandapipes.create_ext_grid(net, 0, p_bar=51, t_k=285.15, type="pt")
+    pandapipes.create_sink(net, 1, mdot_kg_per_s=7.8)
+    pandapipes.add_fluid_to_net(net, pandapipes.create_constant_fluid(
+        name="natural_gas", fluid_type="gas", viscosity=1.0728e-5, heat_capacity=2185,
+        compressibility=1, der_compressibility=0, density=0.7157  # 0.82752
+    ))
+    pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="Prandtl-Colebrook",
+                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
+
+    pipe_results = Pipe.get_internal_results(net, [0])
+    v_pandapipes_from = pipe_results['VINIT'][0][1]
+    v_pandapipes_to = pipe_results['VINIT'][-1][1]
+    p_pandapipes_from = net.res_junction.p_bar[0]
+    p_pandapipes_to = net.res_junction.p_bar[1]
+
+    print("p_panda_to", p_pandapipes_to)
+    print("p_modelica_to", p1_modelica)
+    print("p_panda_from", p_pandapipes_from)
+    print("p_modelica_from", p0_modelica)
+    print("v_panda_to", v_pandapipes_to)
+    print("v_mpodeliv_to", v1_modelica)
+
+
 def test_temperature_internal_nodes_single_pipe():
     """
 

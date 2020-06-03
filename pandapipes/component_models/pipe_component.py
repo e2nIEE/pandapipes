@@ -310,13 +310,14 @@ class Pipe(BranchWInternalsComponent):
                 to_nodes = pipe_pit[v_nodes, TO_NODE].astype(np.int32)
                 p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
                 p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
-                p_mean = np.where(p_from == p_to, p_from,
-                                  2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
+                #p_mean = np.where(p_from == p_to, p_from,
+                #                  2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
-                normfactor = numerator * fluid.get_property("compressibility", p_mean) \
-                             / (p_mean * NORMAL_TEMPERATURE)
+                normfactor = numerator * fluid.get_property("compressibility", p_to) \
+                             / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data = v_pipe_data * normfactor
+
 
             pipe_results["PINIT"][:, 0] = p_node_idx
             pipe_results["PINIT"][:, 1] = p_node_data
