@@ -37,11 +37,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
         :return: p_diff, v_diff_abs
         :rtype: one-dimensional ndarray with axis labels
     """
-    pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
-                mode=mode, only_update_hydraulic_matrix=only_update_hydraulic_matrix)
-
-
-                                     only_update_hydraulic_matrix=False):
+   
     pp.pipeflow(
         net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
         only_update_hydraulic_matrix=only_update_hydraulic_matrix)
