@@ -66,7 +66,7 @@ The pressure loss for incompressible media is calculated according to the follow
    :nowrap:
 
    \begin{align*}
-    p_{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \lambda(v) \cdot l v^2}{ 2 d} - \zeta \frac{\rho v^2}{2}  \\
+    p_\text{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \cdot \lambda(v) \cdot l \cdot v^2}{ 2 \cdot d} - \zeta \cdot \frac{\rho \cdot v^2}{2}  \\
    \end{align*}
 
 
@@ -79,7 +79,7 @@ For compressible media, the density is expressed with respect to a reference sta
    :nowrap:
 
    \begin{align*}
-    \rho &= \frac{\rho_N p T_N}{T p_N} \\
+    \rho &= \frac{\rho_N \cdot p \cdot T_N}{T \cdot p_N} \\
    \end{align*}
 
 
@@ -90,7 +90,7 @@ relation, also the pipe velocity can be expressed using reference values:
    :nowrap:
 
    \begin{align*}
-    v &= \frac{T p_N}{p T_N}v_N \\
+    v &= \frac{T \cdot p_N}{p \cdot T_N} \cdot v_N \\
    \end{align*}
 
 Inserting the equations from above in the differential equation for describing the pressure drop
@@ -102,8 +102,11 @@ pressure drop for compressible media:
    :nowrap:
 
    \begin{align*}
-    dp_{loss} &= -\lambda(v) \frac{dl}{d} \cdot \frac{\rho_N v_N^2}{2}\cdot \frac{p_N}{p} \cdot \frac{T}{T_N} \cdot K   \\
+    \text{d}p_\text{loss} &= -\lambda(v) \cdot \frac{\rho_N \cdot v_N^2}{2 \cdot d}\cdot \frac{p_N}{p} \cdot \frac{T}{T_N} \cdot K \cdot \text{d}l  \\
    \end{align*}
+
+The equation for pressure drop also introduces a variable K. This is the compressibility factor, which is used to
+account for real gas behaviour.
 
 After calculating the gas network, the pressure losses and velocities for the reference state are
 known. During post processing, the reference velocities are recalculated according to
@@ -112,17 +115,14 @@ known. During post processing, the reference velocities are recalculated accordi
    :nowrap:
 
    \begin{align*}
-    v &= \frac{T p_N}{p T_N}v_N \\
+    v &= \frac{T \cdot p_N}{p \cdot T_N} \cdot v_N \\
    \end{align*}
 
-The equations from above were implemented following :cite:`Eberhard1990`
+The equations from above were implemented following :cite:`Eberhard1990`.
 
 Because the velocity of a compressible fluid changes along the pipe axis, it is possible to split a pipe into
 several sections, increasing the internal resolution. The parameter *sections* is used to increase the amount of internal
 pipe sections.
-
-The equation for pressure drop also introduces a variable K. This is the compressibility factor, which is used to
-account for real gas behaviour.
 
 
 
@@ -185,7 +185,7 @@ The heat losses are described by
    :nowrap:
 
    \begin{align*}
-    Q_{loss} &= \alpha \cdot (T - T_{ext})\\
+    Q_\text{loss} &= \alpha \cdot (T - T_\text{ext})\\
    \end{align*}
 
 

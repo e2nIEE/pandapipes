@@ -85,6 +85,9 @@ Contribute from your develop branch
     
 #. Put in a Pull request to the main repository: https://help.github.com/articles/creating-a-pull-request-from-a-fork/
 
+#. For each Pull request, some checks will start automatically. It is required that the travis-ci
+   check passes (i. e. all pandapipes tests pass) to enable merging into the develop branch.
+
 #. If you want to amend the pull request (for example because tests are failing, or because the community/maintainers have asked for modifications), simply push more commits to the branch: ::
 
     git add --all
@@ -125,7 +128,10 @@ Contribute from a feature branch
     
    this pushes the new branch to your fork and also sets up the remote tracking. 
    
-#. Put in a Pull request to the official repository (see https://help.github.com/articles/creating-a-pull-request-from-a-fork/)
+#. Put in a Pull request to the official repository (see https://help.github.com/articles/creating-a-pull-request-from-a-fork/).
+
+#. For each Pull request, some checks will start automatically. It is required that the travis-ci
+   check passes (i. e. all pandapipes tests pass) to enable merging into the develop branch.
 
 #. If you want to amend the pull request (for example because tests are failing, or because the community/maintainers have asked for modifications), simply push more commits to the branch. Since the remote tracking branch has been set up, this is as easy as: ::
 

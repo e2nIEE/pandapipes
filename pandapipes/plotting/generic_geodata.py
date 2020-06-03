@@ -11,6 +11,7 @@ from pandapower.plotting.generic_geodata import coords_from_igraph
 
 try:
     import igraph
+
     IGRAPH_INSTALLED = True
 except ImportError:
     IGRAPH_INSTALLED = False
@@ -102,8 +103,8 @@ def create_generic_coordinates(net, mg=None, library="igraph"):
         net.junction_geodata = pd.DataFrame(columns=["x", "y"])
 
     gnet = copy.deepcopy(net)
-    gnet.junction = gnet.junction[gnet.junction.in_service == True]
-    gnet.pipe = gnet.pipe[gnet.pipe.in_service == True]
+    gnet.junction = gnet.junction[gnet.junction.in_service]
+    gnet.pipe = gnet.pipe[gnet.pipe.in_service]
 
     if library == "igraph":
         if not IGRAPH_INSTALLED:

@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, vinterp
+from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
+    vinterp
 from pandapipes.component_models.junction_component import Junction
 
 from pandapipes.idx_node import ELEMENT_IDX, PINIT, HEIGHT, TINIT as TINIT_NODE, \
@@ -16,7 +17,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group
 from numpy import dtype
 
 try:
@@ -69,8 +70,8 @@ class Pipe(BranchWInternalsComponent):
         :rtype:
         """
         end, current_table, internal_nodes, internal_pipes, int_nodes_num, int_pipes_num = \
-        super().create_node_lookups(net, ft_lookups, table_lookup, idx_lookups,
-                                    current_start, current_table, internal_nodes_lookup)
+            super().create_node_lookups(net, ft_lookups, table_lookup, idx_lookups,
+                                        current_start, current_table, internal_nodes_lookup)
         if np.any(internal_nodes > 0):
             internal_nodes_lookup["TPINIT"] = np.empty((int_nodes_num, 2), dtype=np.int32)
             internal_nodes_lookup["TPINIT"][:, 0] = np.repeat(net[cls.table_name()].index,
@@ -108,8 +109,8 @@ class Pipe(BranchWInternalsComponent):
                                               int_node_number)
         int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
         int_node_pit[:, RHO_NODES] = get_fluid(net).get_density(int_node_pit[:, TINIT_NODE])
-        int_node_pit[:, ACTIVE_ND] = np.repeat(net[cls.table_name()][cls.active_identifier()].values,
-                                               int_node_number)
+        int_node_pit[:, ACTIVE_ND] = \
+            np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
 
     @classmethod
     def create_pit_branch_entries(cls, net, pipe_pit, node_name):
@@ -122,7 +123,7 @@ class Pipe(BranchWInternalsComponent):
         :type branch_pit:
         :return: No Output.
         """
-        pipe_pit, internal_pipe_number =\
+        pipe_pit, internal_pipe_number = \
             super().create_pit_branch_entries(net, pipe_pit, node_name)
 
         pipe_pit[:, LENGTH] = np.repeat(net[cls.table_name()].length_km.values * 1000 /
@@ -220,7 +221,7 @@ class Pipe(BranchWInternalsComponent):
                             / (p_to * NORMAL_TEMPERATURE)
             v_gas_from = v_mps * normfactor_from
             v_gas_to = v_mps * normfactor_to
-            mask = p_from != p_to
+            mask = ~np.isclose(p_from, p_to)
             p_mean = np.empty_like(p_to)
             p_mean[~mask] = p_from[~mask]
             p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
@@ -230,9 +231,9 @@ class Pipe(BranchWInternalsComponent):
             v_gas_mean = v_mps * normfactor_mean
 
             idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
-                internal_pipes = _sum_by_group(
-                    idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
-                    np.ones_like(idx_active))
+            internal_pipes = _sum_by_group(
+                idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
+                np.ones_like(idx_active))
 
             res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_sum / internal_pipes
             res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_sum / internal_pipes
@@ -363,38 +364,22 @@ class Pipe(BranchWInternalsComponent):
     def get_result_table(cls, net):
         """
 
-        :param net:
-        :type net:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: (columns, all_float) - the column names and whether they are all float type. Only
+                if False, returns columns as tuples also specifying the dtypes
+        :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = [("v_from_m_per_s", "f8"),
-                      ("v_to_m_per_s", "f8"),
-                      ("v_mean_m_per_s", "f8"),
-                      ("p_from_bar", "f8"),
-                      ("p_to_bar", "f8"),
-                      ("t_from_k", "f8"),
-                      ("t_to_k", "f8"),
-                      ("mdot_from_kg_per_s", "f8"),
-                      ("mdot_to_kg_per_s", "f8"),
-                      ("vdot_norm_m3_per_s", "f8"),
-                      ("reynolds", "f8"),
-                      ("lambda", "f8"),
-                      ("normfactor_from", "f8"),
-                      ("normfactor_to", "f8")]
+            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "normfactor_to"]
         else:
-            output = [("v_mean_m_per_s", "f8"),
-                      ("p_from_bar", "f8"),
-                      ("p_to_bar", "f8"),
-                      ("t_from_k", "f8"),
-                      ("t_to_k", "f8"),
-                      ("mdot_from_kg_per_s", "f8"),
-                      ("mdot_to_kg_per_s", "f8"),
-                      ("vdot_norm_m3_per_s", "f8"),
-                      ("reynolds", "f8"),
-                      ("lambda", "f8")]
-        return output
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                      "lambda"]
+        return output, True
 
     @classmethod
     def plot_pipe(cls, net, pipe, pipe_results):

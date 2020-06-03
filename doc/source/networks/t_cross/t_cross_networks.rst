@@ -14,10 +14,12 @@ T-Cross
 	:alt: alternate Text
 	:align: center
 
+.. _water_tcross:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_tcross
 
 *Gas:*
 
+.. _gas_tcross1:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_tcross1
 
 
@@ -28,6 +30,7 @@ In the subsequent gas network a sink from the previous net has been replaced by 
 	:alt: alternate Text
 	:align: center
 
+.. _gas_tcross2:
 .. autofunction:: pandapipes.networks.simple_gas_networks.gas_tcross2
 
 
@@ -41,6 +44,7 @@ Water network with two opened valves and two sinks.
 	:alt: alternate Text
 	:align: center
 
+.. _water_tcross_valves:
 .. autofunction:: pandapipes.networks.simple_water_networks.water_tcross_valves
 
 

@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+
 import pytest
 from pandapipes.test import test_path
 
@@ -10,7 +11,7 @@ try:
     import coverage as cov
 except ImportError:
     pass
-from pandapower.test.run_tests import _get_cpus
+from pandapower.test.run_tests import _get_cpus, _create_logger
 
 
 def _get_test_dir(pp_module=None):
@@ -36,6 +37,7 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     :return: No Output.
     """
 
+    logger = _create_logger()
     test_dir = _get_test_dir()
 
     if coverage:
@@ -45,11 +47,15 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     if parallel:
         if n_cpu is None:
             n_cpu = _get_cpus()
-        pytest.main([test_dir, "-xs", "-n", n_cpu])
+        err = pytest.main([test_dir, "-xs", "-n", str(n_cpu)])
+        if err == 4:
+            if err == 4:
+                raise ModuleNotFoundError("Parallel testing not possible. Please make sure that "
+                                          "pytest-xdist is installed correctly.")
+        elif err > 2:
+            logger.error("Testing not successfully finished.")
     else:
         pytest.main([test_dir, "-xs"])
-
-    pytest.main(['-xs', __file__])
 
     if coverage:
         cov_tracker.stop()

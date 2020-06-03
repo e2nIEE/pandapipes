@@ -40,11 +40,11 @@ class PumpStdType(StdType):
     def __init__(self, name, reg_par):
         """
 
-        :param name: name of the pump object
+        :param name: Name of the pump object
         :type name: str
-        :param reg_par: if the parameteres of a regression function are already determined they \
+        :param reg_par: If the parameters of a regression function are already determined they \
                 can be directly be set by initializing a pump object
-        :type reg_par: list of floats
+        :type reg_par: List of floats
         """
         super(PumpStdType, self).__init__(name, 'pump')
         self.reg_par = reg_par
@@ -52,10 +52,10 @@ class PumpStdType(StdType):
     def get_pressure(self, vdot_m3_per_s):
         """
 
-        :param vdot_m3_per_s: volume flowrate of a fluid in :math:`[\\frac{m^3}{s}]`
+        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s]
         :type vdot_m3_per_s: float
-        :return: this function returns the corresponding pressure to the given volume flowrate \
-                in :math:`[bar]`
+        :return: This function returns the corresponding pressure to the given volume flow rate \
+                in [bar]
         :rtype: float
         """
         n = np.arange(len(self.reg_par), 0, -1)
@@ -66,9 +66,9 @@ class PumpStdType(StdType):
     def from_path(cls, name, path):
         """
 
-        :param name: name of the pump object
+        :param name: Name of the pump object
         :type name: str
-        :param path: path where the CSV file, defining a pump object, is stored
+        :param path: Path where the CSV file, defining a pump object, is stored
         :type path: str
         :return: An object of the pump standard type class
         :rtype: PumpStdType
@@ -81,10 +81,9 @@ class PumpStdType(StdType):
 def add_basic_std_types(net):
     """
 
-    :param net:
-    :type net:
-    :return:
-    :rtype:
+    :param net: pandapipes network in which the standard types should be added
+    :type net: pandapipesNet
+
     """
     pump_files = os.listdir(os.path.join(pp_dir, 'std_types', 'library', 'Pump'))
     for pump_file in pump_files:
@@ -160,15 +159,17 @@ def add_std_type(net, std_type_category, component_name, component_object, overw
         net.update({'std_type': {std_type_category: {component_name: component_object}}})
     elif not std_type_category in net.std_type:
         std_types = net.std_type
-        std_types.update({std_type_category:  {component_name: component_object}})
+        std_types.update({std_type_category: {component_name: component_object}})
         net.std_type = std_types
     elif not overwrite and component_name in net['std_type'][std_type_category]:
-        raise(ValueError('%s is already in net.std_type["%s"]. Set overwrite = True if you want to change values!'
-              %(component_name, std_type_category)))
+        raise (ValueError(
+            '%s is already in net.std_type["%s"]. Set overwrite = True if you want to change values!'
+            % (component_name, std_type_category)))
     else:
         std_types = net.std_type[std_type_category]
         std_types.update({component_name: component_object})
         net.std_type[std_type_category] = std_types
+
 
 def add_std_types(net, std_type_category, component_dictionary, overwrite=False):
     """
@@ -190,11 +191,11 @@ def add_std_types(net, std_type_category, component_dictionary, overwrite=False)
         net.update({'std_type': {std_type_category: component_dictionary}})
     elif not std_type_category in net.std_type:
         std_types = net.std_type
-        std_types.update({std_type_category:  component_dictionary})
+        std_types.update({std_type_category: component_dictionary})
         net.std_type = std_types
     elif not overwrite:
         std_types = net.std_type[std_type_category]
-        std_types.update({k:v for k,v in component_dictionary.items() if k not in std_types})
+        std_types.update({k: v for k, v in component_dictionary.items() if k not in std_types})
         net.std_type[std_type_category] = std_types
     else:
         net.std_type[std_type_category].update(component_dictionary)
