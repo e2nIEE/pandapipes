@@ -37,8 +37,8 @@ class Component:
         :type options:
         :return: No Output.
         """
-        output = cls.get_result_table(net)
-        init_results_element(net, cls.table_name(), output)
+        output, all_float = cls.get_result_table(net)
+        init_results_element(net, cls.table_name(), output, all_float)
         res_table = net["res_" + cls.table_name()]
         return res_table
 
@@ -53,8 +53,9 @@ class Component:
 
     @classmethod
     def get_result_table(cls, net):
-        """
+        """Get result table.
 
+        Parameters:
         :param net:
         :type net:
         :return:

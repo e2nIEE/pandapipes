@@ -8,6 +8,7 @@ import os
 from pandapipes.test.pipeflow_internals import internals_data_path
 import numpy as np
 
+
 def test_heat_exchanger():
     """
 

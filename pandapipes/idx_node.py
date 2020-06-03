@@ -11,9 +11,9 @@ NONE = 3  # None
 # define the indices
 TABLE_IDX = 0  # number of the table that this node belongs to
 ELEMENT_IDX = 1  # index of the element that this node belongs to (within the given table)
-NODE_TYPE = 2    # junction type
+NODE_TYPE = 2  # junction type
 ACTIVE = 3
-RHO = 4    # Density in [kg/m^3]
+RHO = 4  # Density in [kg/m^3]
 PINIT = 5
 LOAD = 6
 HEIGHT = 7

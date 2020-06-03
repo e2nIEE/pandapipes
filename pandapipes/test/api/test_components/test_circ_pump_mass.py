@@ -21,8 +21,8 @@ def test_circulation_pump_constant_mass():
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, k=0.1, length_km=0.43380, diameter_m=0.1022)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, k=0.1, length_km=0.26370, diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380, diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370, diameter_m=0.1022)
     pandapipes.create_circ_pump_const_mass_flow(net, j1, j4, 5, 5, 300, type='pt')
     pandapipes.create_heat_exchanger(net, j2, j3, 0.1, qext_w=200000)
     pandapipes.create_sink(net, j1, 2)
@@ -33,7 +33,6 @@ def test_circulation_pump_constant_mass():
     pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_v=1e-4)
-
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_circ_pump_mass.csv"), sep=';')
 

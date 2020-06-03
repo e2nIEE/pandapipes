@@ -8,7 +8,7 @@ import numpy as np
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, branch_cols, \
     ACTIVE as ACTIVE_BR
-from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols,\
+from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, \
     ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
 from pandapipes.properties.fluids import get_fluid
 from scipy.sparse import coo_matrix, csgraph
@@ -312,7 +312,8 @@ def write_internal_results(net, **kwargs):
     net["_internal_results"].update(kwargs)
 
 
-def initialize_pit(net, node_name, NodeComponent, NodeElementComponent, BranchComponent, BranchWInternalsComponent):
+def initialize_pit(net, node_name, NodeComponent, NodeElementComponent, BranchComponent,
+                   BranchWInternalsComponent):
     """
     Initializes and fills the internal structure which is called pit (pandapipes internal tables).
     The structure is a dictionary which should contain one array for all nodes and one array for all
@@ -327,8 +328,8 @@ def initialize_pit(net, node_name, NodeComponent, NodeElementComponent, BranchCo
 
     for comp in net['component_list']:
         if issubclass(comp, NodeComponent) | \
-                issubclass(comp, BranchWInternalsComponent) |\
-                issubclass(comp, NodeElementComponent) :
+                issubclass(comp, BranchWInternalsComponent) | \
+                issubclass(comp, NodeElementComponent):
             comp.create_pit_node_entries(net, pit["node"], node_name)
         if issubclass(comp, BranchComponent):
             comp.create_pit_branch_entries(net, pit["branch"], node_name)
@@ -395,7 +396,7 @@ def create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponen
     :return: No output.
 
     """
-    node_ft_lookups, node_idx_lookups,  node_from, node_table_nr = dict(), dict(), 0, 0
+    node_ft_lookups, node_idx_lookups, node_from, node_table_nr = dict(), dict(), 0, 0
     branch_ft_lookups, branch_idx_lookups, branch_from, branch_table_nr = dict(), dict(), 0, 0
     branch_table_lookups = {"t2n": dict(), "n2t": dict()}
     node_table_lookups = {"t2n": dict(), "n2t": dict()}
@@ -408,8 +409,8 @@ def create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponen
                 branch_from)
         if issubclass(comp, NodeComponent) | issubclass(comp, BranchWInternalsComponent):
             node_from, node_table_nr = comp.create_node_lookups(
-                net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from, node_table_nr,
-                internal_nodes_lookup)
+                net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from,
+                node_table_nr, internal_nodes_lookup)
 
     net["_lookups"] = {"node_from_to": node_ft_lookups, "branch_from_to": branch_ft_lookups,
                        "node_table": node_table_lookups, "branch_table": branch_table_lookups,
@@ -497,9 +498,10 @@ def perform_connectivity_search(net, node_pit, slack_nodes, from_nodes, to_nodes
     nodes_connected = np.zeros(len(active_node_lookup), dtype=np.bool)
     nodes_connected[reachable_nodes] = True
 
-    assert np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]), \
-        "An error occured in the %s connectivity check. Please contact the pandapipes development" \
-        " team!" % mode
+    if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
+        raise ValueError(
+            "An error occured in the %s connectivity check. Please contact the pandapipes development" \
+            " team!" % mode)
     branches_connected = active_branch_lookup & nodes_connected[from_nodes]
 
     oos_nodes = np.where(~nodes_connected & active_node_lookup)[0]

@@ -27,7 +27,7 @@ def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_dive
     else:
         ctrl_variables["initial_powerflow"] = ctrl_variables["initial_pipeflow"]
     run_control(net, ctrl_variables=ctrl_variables, max_iter=max_iter,
-                     continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
+                continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
 
 
 def ctrl_variables_ppipe_default(net):
@@ -65,4 +65,3 @@ def check_for_initial_pipeflow(controllers):
             if ctrl.initial_pipeflow:
                 return True
     return False
-
