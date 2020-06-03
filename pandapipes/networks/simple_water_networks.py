@@ -6,11 +6,11 @@ import os
 from pandapipes.io.file_io import from_json
 from pandapipes import pp_dir
 from pandapipes.networks.nw_aux import log_result_upon_loading
+
 try:
     import pplog as logging
 except ImportError:
     import logging
-
 
 logger = logging.getLogger(__name__)
 water_stanet_path = os.path.join(pp_dir, "networks", "simple_test_networks", "stanet_test_networks",
@@ -42,7 +42,9 @@ def water_district_grid(method="nikuradse"):
 
 def water_combined_mixed(method="colebrook"):
     """
+
     :param method: Which results should be loaded: prandtl-colebrook or swamee-jain
+
     :type method: str, default "colebrook"
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -131,10 +133,10 @@ def water_meshed_pumps(results_from="openmodelica", method="colebrook"):
         return from_json(os.path.join(water_modelica_colebrook_path, "meshed_networks", "pumps.json"))
     return from_json(os.path.join(water_modelica_swamee_path, "meshed_networks", "pumps.json"))
 
-
 def water_meshed_heights(method="colebrook"):
+
     """
-    :param method: Which results should be loaded: prandtl-colebrook or swamee-jain
+    :param method: which results should be loaded: prandtl-colebrook or swamee-jain
     :type method: str, default "colebrook"
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -421,6 +423,7 @@ def water_2eg_two_pipes(results_from="openmodelica", method="colebrook"):
     if results_from.lower() == "stanet":
         net_name = "two_pipes_N.json" if method_str == "Nikuradse" else "two_pipes_PC.json"
         return from_json(os.path.join(water_stanet_path, "two_pressure_junctions", net_name))
+
 
     if method_str == "Prandtl-Colebrook":
         return from_json(os.path.join(water_modelica_colebrook_path, "two_pressure_junctions", "two_pipes.json"))

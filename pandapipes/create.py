@@ -53,7 +53,6 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     if add_stdtypes:
         add_basic_std_types(net)
 
-    net["name"] = name
     if fluid is not None:
         if isinstance(fluid, Fluid):
             net["fluid"] = fluid
@@ -917,8 +916,7 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently existing fluids in the library are: "hgas", "lgas", "water", "air", "carbondioxid",
-    "ethane", "hydrogen", "methane", "nitrogen" and "oxygen"
+    Currently existing fluids in the library are: "hgas", "lgas", "water", "air".
 
     :param net: The net for which this fluid should be created
     :type net: pandapipesNet
