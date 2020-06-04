@@ -1,7 +1,7 @@
 # Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-from collections import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -306,7 +306,7 @@ def fuse_junctions(net, j1, j2, drop=True):
     :param j2: junction(s) that shall be fused into junction 1
     :type j2: Iterable or int
     :param drop: if True, junction(s) j2 will be dropped after fusing all elements
-    :type drop: boold, default True
+    :type drop: boolean, default True
     :return: net - the new pandapipes network
     :rtype: pandapipesNet
     """

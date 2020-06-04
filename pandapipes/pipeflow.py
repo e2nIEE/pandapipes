@@ -43,19 +43,19 @@ def set_logger_level_pipeflow(level):
 
 def pipeflow(net, sol_vec=None, **kwargs):
     """
-    The main method used to start the solver to calculate the veatity, pressure and temperature\
+    The main method used to start the solver to calculate the velocity, pressure and temperature\
     distribution for a given net. Different options can be entered for \\**kwargs, which control\
-    the solver behaviour (see function init constants for more information).
+    the solver behaviour (see function :func:`init_options` for more information).
 
     :param net: The pandapipes net for which to perform the pipeflow
     :type net: pandapipesNet
-    :param sol_vec:
-    :type sol_vec:
+    :param sol_vec: Initializes the start values for the heating network calculation
+    :type sol_vec: numpy.ndarray, default None
     :param kwargs: A list of options controlling the solver behaviour
     :return: No output
 
-    EXAMPLE:
-        pipeflow(net, mode="hydraulic")
+    :Example:
+        >>> pipeflow(net, mode="hydraulic")
 
     """
     local_params = dict(locals())

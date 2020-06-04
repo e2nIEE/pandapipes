@@ -2,7 +2,7 @@
 Simple Plot
 ***********
 
-Creating a simple network plot
+Creating a Simple Network Plot
 ==============================
 
 .. autofunction:: pandapipes.plotting.simple_plot
