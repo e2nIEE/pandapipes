@@ -30,7 +30,7 @@ def run_control(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence
                            continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
 
 
-def prepare_run_ctrl(net, ctrl_variables):
+def prepare_run_ctrl(net, ctrl_variables, **kwargs):
     """
     Function that defines default control variables.
 
@@ -40,12 +40,12 @@ def prepare_run_ctrl(net, ctrl_variables):
     :rtype: ?
     """
     if ctrl_variables is None:
-        ctrl_variables = prepare_run_control_pandapower(net, None)
+        ctrl_variables, kwargs = prepare_run_control_pandapower(net, None, **kwargs)
         ctrl_variables["run"] = ppipe.pipeflow
 
-    if not "error_repair" in ctrl_variables:
-        ctrl_variables["error_repair"] = (PipeflowNotConverged)
-    return ctrl_variables
+    ctrl_variables["errors"] = (PipeflowNotConverged)
+
+    return ctrl_variables, kwargs
 
 
 
