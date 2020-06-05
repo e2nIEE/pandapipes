@@ -58,13 +58,16 @@ class Fluid(JSONSerializableClass):
 
         :param property_name: Name of the new property
         :type property_name: str
-        :param prop:
-        :type prop:
+        :param prop: Values for the property, for example a curve or just a constant value
+        :type prop: pandapipes.FluidProperty
         :param overwrite: True if existing property with the same name shall be overwritten
         :type overwrite: bool
         :param warn_on_duplicates: True, if a warning of properties with the same name should be
                                     returned
         :type warn_on_duplicates: bool
+
+        :Example:
+            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061), overwrite=True, warn_on_duplicates=False)
 
         """
         if property_name in self.all_properties:
@@ -84,7 +87,7 @@ class Fluid(JSONSerializableClass):
         :param at_values: Value for which the property should be returned
         :type at_values:
         :return: Returns property at the certain value
-        :rtype:
+        :rtype: pandapipes.FluidProperty
         """
 
         if property_name not in self.all_properties:
@@ -206,10 +209,10 @@ class FluidPropertyInterExtra(FluidProperty):
     def get_property(self, arg):
         """
 
-        :param arg:
-        :type arg:
-        :return:
-        :rtype:
+        :param arg: Name of the property and one or more values (x-values) for which the y-values of the property are to be displayed
+        :type arg: str, float or array
+        :return: y-value/s
+        :rtype: float, array
         """
         return self.prop_getter(arg)
 
@@ -218,12 +221,13 @@ class FluidPropertyInterExtra(FluidProperty):
         """
         Reads a text file with temperature values in the first column and property values in
         second column.
-        :param path:
-        :type path:
-        :param method:
-        :type method:
-        :return:
-        :rtype:
+
+        :param path: Target path of the txt file
+        :type path: str
+        :param method: Method with which the values are to be interpolated
+        :type method: str
+        :return: interpolated values
+        :rtype: pandapipes.FluidProperty
         """
         values = np.loadtxt(path)
         return cls(values[:, 0], values[:, 1], method=method)
@@ -264,10 +268,13 @@ class FluidPropertyConstant(FluidProperty):
     def get_property(self, *args):
         """
 
-        :param arg:
-        :type arg:
-        :return:
-        :rtype:
+        :param arg: Name of the property
+        :type arg: str
+        :return: Value of the property
+        :rtype: float
+
+        :Example:
+            >>> heat_capacity = get_fluid(net).get_property("heat_capacity")
         """
         if len(args) > 1:
             raise(UserWarning('Please define either none or an array-like argument'))
@@ -307,12 +314,24 @@ class FluidPropertyLinear(FluidProperty):
         :type slope:
         :param offset:
         :type offset:
+
         """
         super(FluidPropertyLinear, self).__init__()
         self.slope = slope
         self.offset = offset
 
     def get_property(self, arg):
+        """
+
+        :param arg: Name of the property and one or more values (x-values) for which the function of the property should be calculated
+        :type arg: str, float or array
+        :return: y-value or function values
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).get_property("compressibility", p_bar)
+
+        """
         if type(arg) == pd.Series:
             return self.offset + self.slope * arg.values
         else:
@@ -403,7 +422,6 @@ def create_constant_fluid(name=None, fluid_type=None, **kwargs):
 def call_lib(fluid):
     """
     Creates a fluid with default fluid properties.
-    Currently implemented: High or low caloric natural gas (hgas or lgas), water and air.
 
     :param fluid: Fluid which should be used
     :type fluid: str

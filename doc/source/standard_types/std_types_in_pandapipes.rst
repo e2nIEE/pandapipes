@@ -1,8 +1,8 @@
 ****************************
-Standard types in pandapipes
+Standard Types in pandapipes
 ****************************
 
-In pandapipes there are several standard types given for different components.
+In pandapipes are several standard types given for different components.
 For each component, standard types are defined for, one can find the corresponding CSV-files under
 pandapipes.std_types.library.
 
@@ -15,14 +15,14 @@ Within this subfolder, each single CSV-file contains the required additional inf
 In the following the currently implemented standard type categories and their implementation are shortly
 described.
 
-Property based standard types
-=============================
+Property Based Standard Types
+-----------------------------
 
-In terms of the property based standard types all required information is stored as dictonary. The keys
+In terms of the property based standard types all required information is stored as dictionary. The keys
 of the dictionary correspond to the standard type name. All component realizations are saved
-within one component category. At the moment there is
+within one component category. At the moment there is:
 
-Pipe standard type
+Pipe Standard Type
 ==================
 
 A concrete pipe standard type has following properties:
@@ -33,16 +33,16 @@ A concrete pipe standard type has following properties:
    :delim: ;
    :widths: 15, 10, 25, 40
 
-All pipe standard types currently realized can be found in pipe.csv in pandapipes.std_types.library
+All pipe standard types currently realized can be found in Pipe.csv in pandapipes.std_types.library.
 
 
-Model based standard types
-=============================
+Model Based Standard Types
+--------------------------
 
 In case of the model based standard types a model is derived which is able to describe the behaviour
 of a concrete component. As part of the component category within the standard type catalog of a
 certain pandapipes net, the different realisations of concrete component models are saved as dictionary
-where the keys give the names of the defined
+where the keys give the names of the defined.
 
 
 Standard type class
@@ -63,11 +63,11 @@ Pump standard type class
 A standard type of pump is an object of the pump standard type class. It is a subclass of the standard type class.
 
 In order to call a pump standard type object one needs to give an arbitrarily chosen name and the parameters of
-a regression function which returns the pressure lift to a given volume flowrate. The paramters of the regression function
+a regression function which returns the pressure lift to a given volume flow rate. The parameters of the regression function
 are pump specific. There are two ways to determine these. One way is, that they are already known and can be directly handed over
-when initializing a pump standard type object. Alternatively, a list of pressure values, their corresponding volume flowrate values
+when initializing a pump standard type object. Alternatively, a list of pressure values, their corresponding volume flow rate values
 and the degree of the regression function are given. In terms of the second option one can call the classmethod
-:meth:`pandapipes.PumpStdType.from_path` overhanding the path of a CSV file containing following information.
+:meth:`pandapipes.PumpStdType.from_path` overhanging the path of a CSV file containing following information.
 
 .. tabularcolumns:: |p{0.15\linewidth}|p{0.10\linewidth}|p{0.25\linewidth}|p{0.40\linewidth}|
 .. csv-table::
