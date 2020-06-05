@@ -22,7 +22,7 @@ sys.path.append(os.path.abspath('../../../pandapower'))
 master_doc = 'index'
 # -- Project information -----------------------------------------------------
 
-project = 'Pandapipes'
+project = 'pandapipes'
 copyright = '2020 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE), Kassel. '
 
 
