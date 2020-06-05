@@ -21,7 +21,7 @@ gas_stanet_path = os.path.join(pp_dir, "networks", "simple_test_networks", "stan
 def gas_3parallel(method="nikuradse"):
     """
 
-    :param method: which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -82,7 +82,7 @@ def gas_meshed_pumps():
 def gas_meshed_square(method="nikuradse"):
     """
 
-    :param method: which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -99,7 +99,7 @@ def gas_meshed_square(method="nikuradse"):
 def gas_meshed_two_valves(method="nikuradse"):
     """
 
-    :param method: which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -117,7 +117,7 @@ def gas_meshed_two_valves(method="nikuradse"):
 def gas_one_pipe1(method="nikuradse"):
     """
 
-    :param method: which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -134,7 +134,7 @@ def gas_one_pipe1(method="nikuradse"):
 def gas_one_pipe2(method="nikuradse"):
     """
 
-    :param method: which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -152,7 +152,7 @@ def gas_one_pipe2(method="nikuradse"):
 def gas_strand_2pipes(method="nikuradse"):
     """
 
-    :param method: which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -184,7 +184,7 @@ def gas_strand_pump():
 def gas_tcross1(method="nikuradse"):
     """
 
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: If results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -201,7 +201,7 @@ def gas_tcross1(method="nikuradse"):
 def gas_tcross2(method="nikuradse"):
     """
 
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: If results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -219,7 +219,7 @@ def gas_tcross2(method="nikuradse"):
 def gas_2eg_hnet(method="nikuradse"):
     """
 
-    :param method: if results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
+    :param method: If results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
     :return: net - STANET network converted to a pandapipes network
     :rtype: pandapipesNet

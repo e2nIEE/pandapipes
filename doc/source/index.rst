@@ -1,4 +1,4 @@
-.. Pandapipes documentation master file, created by
+.. pandapipes documentation master file, created by
    sphinx-quickstart on Mon Feb  4 11:09:46 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -17,7 +17,7 @@ and gas systems. It utilizes the data analysis library pandas and is also closel
 the power systems calculation program pandapower.
 
 pandapipes and pandapower can be used in combination to analyze multi energy networks. An environment able to couple both
-tools is pandapower-Pro.
+tools is pandapower Pro.
 
 More information about pandapipes will be available soon here: `www.pandapipes.org <https://www.pandapipes.org>`_.
 Please also visit `www.pandapower.org <https://www.pandapower.org>`_.

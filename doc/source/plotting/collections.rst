@@ -1,5 +1,5 @@
 ************************
-Collections for plotting
+Collections for Plotting
 ************************
 
 
@@ -10,7 +10,7 @@ components of a pandapipes network, there are some functions to be found in the
 plotting module of pandapipes.
 
 
-Creating collections
+Creating Collections
 ====================
 
 The following functions can be used to create collections for the most important
@@ -32,7 +32,7 @@ fact return more than just one collection:
 .. autofunction:: pandapipes.plotting.create_heat_exchanger_collection
 
 
-Drawing collections
+Drawing Collections
 ===================
 
 In order to draw a number of created collections, they can be added to a list and
