@@ -181,7 +181,7 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
     :type picker: bool, default False
     :param orientation: Orientation of sink collection. pi is directed downwards, increasing values\
         lead to clockwise direction changes.
-    :type orientation: float, default np.pi
+    :type orientation: float, default np.pi*(5/6)
     :param kwargs: Keyword arguments are passed to the patch function
     :return: sink_pc - patch collection, sink_lc - line collection
     """
@@ -215,7 +215,7 @@ def create_source_collection(net, sources=None, size=1., infofunc=None, picker=F
     :type picker: bool, default False
     :param orientation: Orientation of source collection. pi is directed downwards, increasing\
         values lead to clockwise direction changes.
-    :type orientation: float, default np.pi
+    :type orientation: float, default np.pi*(7/6)
     :param kwargs: Keyword arguments are passed to the patch function
     :return: source_pc - patch collection, source_lc - line collection
     """
