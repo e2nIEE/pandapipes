@@ -28,10 +28,10 @@ def get_default_output_writer_ppipe(net, timesteps):
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param timesteps: timesteps to calculate as list
+    :param timesteps: Time steps to calculate as list
     :type timesteps: list
-    :return: output_writer - The default output_writer
-    :rtype: ?
+    :return: ow - The default output writer
+    :rtype: pandapower.timeseries.output_writer.OutputWriter
     """
 
     ow = OutputWriter(net, timesteps, output_path=tempfile.gettempdir(), log_variables=[])
@@ -46,16 +46,16 @@ def get_default_output_writer_ppipe(net, timesteps):
 
 def init_outputwriter_ppipe(net, time_steps, output_writer=None):
     """
-    Initilizes output writer. If output_writer is None, default output_writer is created.
+    Initializes output writer. If output_writer is None, default output writer is created.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_steps: timesteps to calculate as list
+    :param time_steps: Time steps to calculate as list
     :type time_steps: list
-    :param output_writer: An output_writer
-    :type output_writer: ?
-    :return: output_writer - The initialized output_writer
-    :rtype: ?
+    :param output_writer: An output writer
+    :type output_writer: pandapower.timeseries.output_writer.OutputWriter
+    :return: output_writer - The initialized output writer
+    :rtype: pandapower.timeseries.output_writer.OutputWriter
     """
 
     if output_writer is None:
@@ -71,25 +71,25 @@ def init_outputwriter_ppipe(net, time_steps, output_writer=None):
 
 def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█'):
     """
-     Call in a loop to create terminal progress bar.
-    the idea was mentioned in :
+    Call in a loop to create terminal progress bar.
+    The idea was mentioned in:
     https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 
     :param iteration: Current iteration
     :type iteration: int
-    :param total: total iterations
+    :param total: Total iterations
     :type total: int
-    :param prefix: prefix string
+    :param prefix: Prefix string
     :type prefix: str
-    :param suffix: suffix string
+    :param suffix: Suffix string
     :type suffix: str
-    :param decimals: positive number of decimals in percent complete
+    :param decimals: Positive number of decimals in percent complete
     :type decimals: int
-    :param length: character length of bar
+    :param length: Character length of bar
     :type length: int
-    :param fill: bar fill character
+    :param fill: Bar fill character
     :type fill: str
-    :return: No output.
+    :return: No output
     """
 
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
@@ -104,16 +104,14 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
 
 def controller_not_converged(net, time_step, ts_variables):
     """
-    Todo: Fill out parameters.
 
-    :param net:
-    :type net:
-    :param time_step:
-    :type time_step:
-    :param ts_variables:
-    :type ts_variables:
-    :return:
-    :rtype:
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param time_step: Time step to be calculated
+    :type time_step: int
+    :param ts_variables: Contains settings for controller and time series simulation
+    :type ts_variables: dict
+    :return: No output
     """
 
     logger.error('ControllerNotConverged at time step %s' % time_step)
@@ -123,15 +121,13 @@ def controller_not_converged(net, time_step, ts_variables):
 
 def pf_not_converged(time_step, ts_variables):
     """
-    Todo: Fill out parameters.
 
-    :param time_step: time_step to be calculated
+    :param time_step: Time step to be calculated
     :type time_step: int
-    :param ts_variables: contains settings for controller and time series simulation. \n
-                                  See init_time_series()
+    :param ts_variables: Contains settings for controller and time series simulation. \n
+                         See init_time_series()
     :type ts_variables: dict
-    :return:
-    :rtype:
+    :return: No output
     """
     logger.error('PipeflowNotConverged at time step %s' % time_step)
     if not ts_variables["continue_on_divergence"]:
@@ -141,19 +137,21 @@ def pf_not_converged(time_step, ts_variables):
 def run_time_step(net, time_step, ts_variables, **kwargs):
     """
     Time Series step function
+
     Should be called to run the PANDAPOWER AC power flows based on time series in controllers
     (or other functions).
-    **NOTE: Description refers to pandapower power flow.
+
+    .. note:: Description refers to pandapower power flow.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_step: time_step to be calculated
+    :param time_step: Time step to be calculated
     :type time_step: int
-    :param ts_variables: contains settings for controller and time series simulation. \n
-                                  See init_time_series()
+    :param ts_variables: Contains settings for controller and time series simulation. See init_time_series()
     :type ts_variables: dict
-    :param kwargs:
-    :return: No output.
+    :param kwargs: Keyword arguments for run_control and runpp
+    :type kwargs: dict
+    :return: No output
     """
 
     ctrl_converged = True
@@ -186,30 +184,30 @@ def run_time_step(net, time_step, ts_variables, **kwargs):
 def all_controllers_recycleable(net):
     """
 
-    :param net:
-    :type net:
-    :return:
-    :rtype:
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :return: recyclable - Is the controller recyclable?
+    :rtype: bool
     """
-    # checks if controller are recycleable
-    recycleable = np.alltrue(net["controller"]["recycle"].values)
-    if not recycleable:
+    # checks if controller are recyclable
+    recyclable = np.alltrue(net["controller"]["recycle"].values)
+
+    if not recyclable:
         logger.warning("recycle feature not supported by some controllers in net. I have to "
                        "deactive recycle")
-    return recycleable
+    return recyclable
 
 
 def get_run_function(**kwargs):
     """
-    Todo: Fill out parameters.
-    checks if "run" is specified in kwargs and calls this function in time series loop.
-    if "recycle" is in kwargs we use the TimeSeriesRunpp class.
+    Checks if "run" is specified in kwargs and calls this function in time series loop.
+    If "recycle" is in kwargs, we use the TimeSeriesRunpp class.
 
-    :param kwargs:
-    :type kwargs:
+    :param kwargs: Keyword arguments for run_control and runpp
+    :type kwargs: dict
     :return: run - the run function to be called (default is pp.runpp())
              recycle_class - class to recycle implementation
-    :rtype:
+    :rtype: function, NoneType
     """
 
     recycle_class = None
@@ -223,16 +221,15 @@ def get_run_function(**kwargs):
 
 def init_time_steps_ppipe(net, time_steps, **kwargs):
     """
-    Todo: Fill out parameters.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_steps: time_steps to calculate as list
-    :type time_steps:
-    :param kwargs:
-    :type kwargs:
-    :return:
-    :rtype:
+    :param time_steps: Time steps to calculate as list or range
+    :type time_steps: list or range
+    :param kwargs: Keyword arguments for run_control and runpp
+    :type kwargs: dict
+    :return: time_steps
+    :rtype: range
     """
     # initializes time steps if as a range
     if not (isinstance(time_steps, list) or isinstance(time_steps, range)):
@@ -253,26 +250,25 @@ def init_time_steps_ppipe(net, time_steps, **kwargs):
 def init_time_series_ppipe(net, time_steps, output_writer=None, continue_on_divergence=False,
                            verbose=True, **kwargs):
     """
-    Inits the time series calculation.
-    Creates the dict ts_variables, which includes necessary variables for the time series / control
-    function.
+    Initializes the time series calculation. Creates the dict ts_variables, which includes
+    necessary variables for the time series / control function.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_steps: time_steps to calculate as list or tuple (start, stop) if None, all time
-                        steps from provided data source are simulated
+    :param time_steps: Time steps to calculate as list or tuple (start, stop). If None, all time
+                       steps from provided data source are simulated.
     :type time_steps: list or tuple
-    :param output_writer: A predefined output writer. If None the a default one is created with
-                            get_default_output_writer()
-    :type output_writer: ?, default None
-    :param continue_on_divergence: If True time series calculation continues in case of errors.
+    :param output_writer: A predefined output writer. If None, a default one is created with
+                          get_default_output_writer().
+    :type output_writer: pandapower.timeseries.output_writer.OutputWriter, default None
+    :param continue_on_divergence: If True, time series calculation continues in case of errors.
     :type continue_on_divergence: bool, default False
-    :param verbose: prints progess bar or logger debug messages
+    :param verbose: Prints progress bar or logger debug messages
     :type verbose: bool, default True
-    :param kwargs:
-    :type kwargs:
-    :return:
-    :rtype:
+    :param kwargs: Keyword arguments for run_control and runpp
+    :type kwargs: dict
+    :return: ts_variables, kwargs
+    :rtype: dict, dict
     """
 
     time_steps = init_time_steps_ppipe(net, time_steps, **kwargs)
@@ -281,14 +277,14 @@ def init_time_series_ppipe(net, time_steps, output_writer=None, continue_on_dive
 
     output_writer = init_outputwriter_ppipe(net, time_steps, output_writer)
     level, order = get_controller_order(net)
-    # use faster runpp if timeseries possible
+    # use faster runpp if time series possible
     run, recycle_class = get_run_function(**kwargs)
 
-    # True at default. Initial power flow is calculated before each control step
+    # True at default. Initial power flow is calculated before each control step.
     # (some controllers need inits)
     ts_variables["initial_pipeflow"] = check_for_initial_pipeflow(order)
     ts_variables["initial_powerflow"] = ts_variables["initial_pipeflow"]
-    # order of controller (controllers are called in a for loop.)
+    # order of controller (controllers are called in a for loop)
     ts_variables["controller_order"] = order
     # run function to be called in run_control - default is pp.runpp, but can be runopf or whatever
     # you like
@@ -314,11 +310,11 @@ def init_time_series_ppipe(net, time_steps, output_writer=None, continue_on_dive
 
 def cleanup(ts_variables):
     """
+    Cleanup function that can be called after the last time step has been calculated.
 
-    :param ts_variables:
-    :type ts_variables:
-    :return:
-    :rtype:
+    :param ts_variables: Contains settings for controller and time series simulation
+    :type ts_variables: dict
+    :return: No output
     """
     if ts_variables["recycle_class"] is not None:
         ts_variables["recycle_class"].cleanup()
@@ -326,17 +322,18 @@ def cleanup(ts_variables):
 
 def print_progress(i, time_step, time_steps, verbose, **kwargs):
     """
-    Todo: Fill out parameters.
-    :param i:
-    :type i:
-    :param time_step:
-    :type time_step:
-    :param time_steps:
-    :type time_steps:
-    :param verbose:
-    :type verbose:
-    :param kwargs:
-    :type kwargs:
+    Indicates the progress of the time series calculation as bars and in percent.
+
+    :param i: Index or counter that is assigned to a time step
+    :type i: int
+    :param time_step: A time step
+    :type time_step: int
+    :param time_steps: Time steps to calculate
+    :type time_steps: list or range
+    :param verbose: Prints progress bar or if *logger.level == Debug*, it prints debug messages
+    :type verbose: bool
+    :param kwargs: Keyword arguments for run_control and runpp
+    :type kwargs: dict
     """
     # simple status print in each time step.
     if (logger.level != 10) and verbose:
@@ -362,24 +359,27 @@ def run_timeseries_ppipe(net, time_steps=None, output_writer=None, continue_on_d
                          verbose=True, **kwargs):
     """
     Time Series main function
-    Runs multiple PANDAPOWER AC power flows based on time series in controllers
-    Optionally other functions than the pp power flow can be called by setting the run function in
-    kwargs.
-    **NOTE: refers to pandapower power flow.
+
+    Execution of pipe flow calculations for a time series using controllers.
+    Optionally other functions than pipeflow can be called by setting the run function in kwargs.
+
+    .. note:: Refers to pandapower power flow.
+
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_steps: time_steps to calculate as list or tuple(start, stop) if None, all time steps
-                        from provided data source are simulated
+    :param time_steps: Time steps to calculate as list or tuple(start, stop). If None, all time steps
+                       from provided data source are simulated.
     :type time_steps: list or tuple, default None
-    :param output_writer: A predefined output writer. If None the a default one is created with
-                            get_default_output_writer()
-    :type output_writer: ?, default None
-    :param continue_on_divergence: If True time series calculation continues in case of errors.
+    :param output_writer: A predefined output writer. If None, a default one is created with
+                          get_default_output_writer().
+    :type output_writer: pandapower.timeseries.output_writer.OutputWriter, default None
+    :param continue_on_divergence: If True, time series calculation continues in case of errors.
     :type continue_on_divergence: bool, default False
-    :param verbose: prints progress bar or if logger.level == Debug it prints debug  messages
+    :param verbose: Prints progress bar or if *logger.level == Debug*, it prints debug messages
     :type verbose: bool, default True
     :param kwargs: Keyword arguments for run_control and runpp
-    :return: No output.
+    :type kwargs: dict
+    :return: No output
     """
     ts_variables, kwargs = init_time_series_ppipe(net, time_steps, output_writer,
                                                   continue_on_divergence, verbose, **kwargs)
