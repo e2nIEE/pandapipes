@@ -155,9 +155,9 @@ class Fluid(JSONSerializableClass):
 
     def get_der_compressibility(self):
         """
-        This function returns the derivation of the compressibility.
+        This function returns the derivative of the compressibility.
 
-        :return: derivation of the compressibility
+        :return: derivative of the compressibility
 
         """
 
@@ -291,6 +291,7 @@ class FluidPropertyConstant(FluidProperty):
         """
         Reads a text file with temperature values in the first column and property values in
         second column.
+
         :param path:
         :type path:
         :param method:
@@ -342,6 +343,7 @@ class FluidPropertyLinear(FluidProperty):
         """
         Reads a text file with temperature values in the first column and property values in
         second column.
+
         :param path:
         :type path:
         :param method:

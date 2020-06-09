@@ -17,7 +17,7 @@ install:
 
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas=0 networkx numpydoc numba xlsxwriter xlrd
   - source activate test-environment
-  - if [[ "$CI_COMMIT_REF_NAME" == "master" ]]; then
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then
          git clone --single-branch --branch master https://github.com/e2nIEE/pandapower.git --depth 1 /tmp/pandapower;
     else
          git clone --single-branch --branch develop https://github.com/e2nIEE/pandapower.git --depth 1 /tmp/pandapower;
