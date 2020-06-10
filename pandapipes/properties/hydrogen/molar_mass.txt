@@ -1,2 +1,2 @@
-# kg / kmol H2
+# kg/kmol H2
 2.01588
