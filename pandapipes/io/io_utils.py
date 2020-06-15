@@ -9,7 +9,7 @@ from inspect import isclass
 
 import pandapower as pp
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, from_serializable_registry, from_serializable
+    isinstance_partial as ppow_isinstance, from_serializable_registry, from_serializable, PPJSONDecoder
 
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network as create_fluid_network
@@ -44,39 +44,32 @@ def isinstance_partial(obj, cls):
     return ppow_isinstance(obj, cls)
 
 
-class PPJSONDecoder(json.JSONDecoder):
-    def __init__(self, **kwargs):
-        net = create_fluid_network(add_stdtypes=False)
-        super_kwargs = {"object_hook": partial(ppipes_hook, net=net)}
-        super_kwargs.update(kwargs)
-        super().__init__(**super_kwargs)
-
 def ppipes_hook(d, net=None):
-    if "_object" in d:
-        obj = d.pop('_object')
-    elif "_state" in d:
-        obj = d['_state']
-        if d['has_net']:
-            obj['net'] = 'net'
-        if '_init' in obj:
-            del obj['_init']
-        return obj  # backwards compatibility
+    if '_module' in d and '_class' in d:
+        if "_object" in d:
+            obj = d.pop('_object')
+        elif "_state" in d:
+            obj = d['_state']
+            if d['has_net']:
+                obj['net'] = 'net'
+            if '_init' in obj:
+                del obj['_init']
+            return obj  # backwards compatibility
+        else:
+            # obj = {"_init": d, "_state": dict()}  # backwards compatibility
+            obj = {key: val for key, val in d.items() if key not in ['_module', '_class']}
+        return ppipes_hook_serialization(obj, d, net=net)
     else:
-        # obj = {"_init": d, "_state": dict()}  # backwards compatibility
-        obj = {key: val for key, val in d.items() if key not in ['_module', '_class']}
-    return ppipes_hook_serialization(obj, d, net=net)
+        return d
 
 
 def ppipes_hook_serialization(obj, d, net):
-    if '_module' in d and '_class' in d:
-        class_name = d.pop('_class')
-        module_name = d.pop('_module')
-        fs = from_serializable_registry_ppipe(obj, d, net)
-        fs.class_name = class_name
-        fs.module_name = module_name
-        return fs.from_serializable()
-    else:
-        return d
+    class_name = d.pop('_class')
+    module_name = d.pop('_module')
+    fs = from_serializable_registry_ppipe(obj, d, net, ppipes_hook)
+    fs.class_name = class_name
+    fs.module_name = module_name
+    return fs.from_serializable()
 
 
 class from_serializable_registry_ppipe(from_serializable_registry):
@@ -84,8 +77,8 @@ class from_serializable_registry_ppipe(from_serializable_registry):
     class_name = ''
     module_name = ''
 
-    def __init__(self, obj, d, net):
-        super().__init__(obj, d, net)
+    def __init__(self, obj, d, net, ppipes_hook):
+        super().__init__(obj, d, net, ppipes_hook)
 
     @from_serializable.register(class_name='Series', module_name='pandas.core.series')
     def Series(self):
@@ -131,7 +124,7 @@ class from_serializable_registry_ppipe(from_serializable_registry):
         # class_ = getattr(module, obj) # doesn't work
         return func
 
-    @from_serializable.register(class_name='pandapipesNet', module_name='pandapower.pandapipes_net')
+    @from_serializable.register(class_name='pandapipesNet', module_name='pandapipes.pandapipes_net')
     def pandapipesNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
             from pandapipes import from_json_string
@@ -146,8 +139,8 @@ class from_serializable_registry_ppipe(from_serializable_registry):
         class_ = getattr(module, self.class_name)
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
-                obj = json.loads(self.obj, cls=PPJSONDecoder)  # backwards compatibility
-            return class_.from_dict(obj, self.net)
+                self.obj = json.loads(self.obj, cls=PPJSONDecoder, object_hook=partial(ppipes_hook, net=self.net)) # backwards compatibility
+            return class_.from_dict(self.obj, self.net)
         if isclass(class_) and issubclass(class_, Component):
             return class_
         else:
