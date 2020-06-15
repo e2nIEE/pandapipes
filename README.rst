@@ -39,7 +39,7 @@
    :alt: pepy
 
 .. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop
+   :target: https://mybinder.org/v2/gh/e2nIEE/pandapipes/master?filepath=tutorials
    :alt: binder
 
 
@@ -50,8 +50,8 @@ Getting started:
 
 - `Installation Notes <https://www.pandapipes.org/start/>`_
 - `Documentation <https://pandapipes.readthedocs.io/en/latest/>`_
-- `Tutorials on github <https://github.com/e2nIEE/pandapipes/tree/develop/tutorials>`_
-- `Interactive tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/develop?filepath=tutorials>`_
+- `Tutorials on github <https://github.com/e2nIEE/pandapipes/tree/master/tutorials>`_
+- `Interactive tutorials on Binder <https://mybinder.org/v2/gh/e2nIEE/pandapipes/master?filepath=tutorials>`_
 
 
 
