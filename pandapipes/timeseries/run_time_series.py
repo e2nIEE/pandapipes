@@ -95,7 +95,9 @@ def init_time_series(net, time_steps, output_writer=None, continue_on_divergence
 
     ts_variables = init_time_series_pp(net, time_steps, continue_on_divergence, verbose, run=run, **kwargs)
 
-    return ts_variables, kwargs
+    ts_variables["errors"] = (PipeflowNotConverged)
+
+    return ts_variables
 
 
 def run_timeseries(net, time_steps=None, output_writer=None, continue_on_divergence=False,
@@ -121,8 +123,8 @@ def run_timeseries(net, time_steps=None, output_writer=None, continue_on_diverge
     :param kwargs: Keyword arguments for run_control and runpp
     :return: No output.
     """
-    ts_variables, kwargs = init_time_series(net, time_steps, output_writer,
-                                            continue_on_divergence, verbose, **kwargs)
+    ts_variables = init_time_series(net, time_steps, output_writer,
+                                    continue_on_divergence, verbose, **kwargs)
 
     control_diagnostic(net)
     run_loop(net, ts_variables, **kwargs)
