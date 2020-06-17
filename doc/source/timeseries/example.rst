@@ -89,7 +89,6 @@ In the following the code for the previous descriptions is listed:
 
     import pandapipes.test.pipeflow_internals.test_time_series as tts
     from pandapipes.timeseries import run_timeseries_ppipe
-    from pandapipes import networks
 
     net = tts._prepare_grid(net)
     time_steps = range(7)
