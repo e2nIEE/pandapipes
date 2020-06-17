@@ -60,7 +60,7 @@ def _data_source():
     return ds_sink, ds_source
 
 
-def _preparte_grid(net):
+def _prepare_grid(net):
     """
 
     :param net:
@@ -160,7 +160,7 @@ def test_time_series():
     :rtype:
     """
     net = nw.gas_versatility()
-    net = _preparte_grid(net)
+    net = _prepare_grid(net)
     time_steps = range(25)
     ow = _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
     run_timeseries_ppipe(net, time_steps, output_writer=ow)
@@ -174,7 +174,7 @@ def test_time_series_default_ow():
     :rtype:
     """
     net = nw.gas_versatility()
-    net = _preparte_grid(net)
+    net = _prepare_grid(net)
     time_steps = range(25)
     ow = get_default_output_writer_ppipe(net, time_steps)
     run_timeseries_ppipe(net, time_steps, output_writer=ow)
