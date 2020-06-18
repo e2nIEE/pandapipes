@@ -6,7 +6,7 @@ Time Series Example
 
 Before a time series calculation can take place, a pandapipes network must be created.
 This can be created by yourself as described in `Creating a Network <https://www.pandapipes.org/start/>`_
-or loaded from the existing :ref:`networks` via :code:`pandapipes.networks.<network name/ path>`.
+or loaded from the existing :ref:`networks` via ``pandapipes.networks.<network name/ path>``.
 In this case the following simple water network is created:
 
 .. image:: timeseries_example_network.png
@@ -53,8 +53,8 @@ In this case the following simple water network is created:
     pandapipes.create_pipe_from_parameters(net, j0, j2, length_km=1, diameter_m=d, k_mm=0.35, name="Pipe 5")
 
 
-Then the network must be prepared with the function :code:`_prepare_grid(net)`.
-Here the time series for the occurring sinks and sources of the network must be given.
+Then the network must be prepared. Here the time series for the occurring
+sinks and sources of the network must be given.
 As in a steady-state calculation, the mass flows must be specified, whereby the
 number of mass flows corresponds to the number T of time steps. The mass flows
 for N sinks have to be written into a csv file as follows:
@@ -75,24 +75,56 @@ The corresponding csv file is afterwards read out and the resulting DataFrames a
 then written into the network with the help of the controller `ConstControl <https://pandapower.readthedocs.io/en/v2.2.2/control/controller.html#constcontrol>`_.
 Now a variable ``time_steps`` can be defined, which contains integer steps
 from 0 to T, in the example T is equal to 6. The prepared network and ``time_steps``
-are passed to the function :code:`_output_writer(net, time_steps)`
-which creates an `OutputWriter <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/output_writer.html>`_
-that later contains the results of the time series simulation.
+are needed to create an `OutputWriter <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/output_writer.html>`_ ``ow``.
+This later contains the results of the time series simulation.
 Finally, the main function for starting the simulation can be called.
-:code:`run_timeseries_ppipe(net, time_steps, output_writer=ow)` contains the
-time loop in which the :code:`run_control` function of pandapower is nested,
+``run_timeseries_ppipe(net, time_steps, output_writer=ow)`` contains the
+time loop in which the ``run_control`` function of pandapower is nested,
 see :ref:`overview`.
 
 In the following the code for the previous descriptions is listed:
 
 ::
 
-    import pandapipes.test.pipeflow_internals.test_time_series as tts
+    import os
+    import pandas as pd
+    import pandapower.control as control
+    from pandapower.timeseries import DFData
+    from pandapower.timeseries import OutputWriter
     from pandapipes.timeseries import run_timeseries_ppipe
 
-    net = tts._prepare_grid(net)
+    # prepare grid
+    profiles_sink = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
+                                             'test_time_series_sink_profiles.csv'), index_col=0)
+    profiles_source = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
+                                               'test_time_series_source_profiles.csv'), index_col=0)
+    ds_sink = DFData(profiles_sink)
+    ds_source = DFData(profiles_source)
+
+    const_sink = control.ConstControl(net, element='sink', variable='mdot_kg_per_s',
+                                      element_index=net.sink.index.values, data_source=ds_sink,
+                                      profile_name=net.sink.index.values.astype(str))
+    const_source = control.ConstControl(net, element='source', variable='mdot_kg_per_s',
+                                        element_index=net.source.index.values,
+                                        data_source=ds_source,
+                                        profile_name=net.source.index.values.astype(str))
+    del const_sink.initial_powerflow
+    const_sink.initial_pipeflow = False
+    del const_source.initial_powerflow
+    const_source.initial_pipeflow = False
+
+    # define time steps
     time_steps = range(7)
-    ow = tts._output_writer(net, time_steps)
+
+    # create OutputWriter
+    log_variables = [
+        ('res_junction', 'p_bar'), ('res_pipe', 'v_mean_m_per_s'),
+        ('res_pipe', 'reynolds'), ('res_pipe', 'lambda'),
+        ('res_sink', 'mdot_kg_per_s'), ('res_source', 'mdot_kg_per_s'),
+        ('res_ext_grid', 'mdot_kg_per_s')]
+    ow = OutputWriter(net, time_steps, output_path=path, log_variables=log_variables)
+
+    # run
     run_timeseries_ppipe(net, time_steps, output_writer=ow)
 
 Furthermore, the results of the simulation are accessible

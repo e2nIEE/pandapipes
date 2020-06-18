@@ -18,3 +18,4 @@ time step within a time series.
     timeseries/overview
     timeseries/example
     timeseries/functions
+    timeseries/tutorials_ts

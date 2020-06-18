@@ -14,17 +14,18 @@ Run Function
 .. _run_timeseries_ppipe:
 .. autofunction:: pandapipes.timeseries.run_time_series.run_timeseries_ppipe
 
-Preparatory Functions
-=====================
+Functions for Preparation
+=========================
 
-.. _prepare_grid:
-.. autofunction:: pandapipes.test.pipeflow_internals.test_time_series._prepare_grid
+To prepare a time series simulation, classes/ methods of pandapower are accessed.
+``DFData`` is derived from the `DataSource <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/data_source.html>`_
+class. The controller ``ConstControl`` is also required and can be
+found in chapter :ref:`controller_classes`. In the following all functions
+for the preparation are listed:
 
-
-.. _output_writer:
-.. autofunction:: pandapipes.test.pipeflow_internals.test_time_series._output_writer
-
-.. note:: The previous method :code:`_output_writer()` returns an object of the `OutputWriter <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/output_writer.html>`_ class of pandapower.
+- `DFData <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/data_source.html#dataframe-data-source>`_
+- `ConstControl <https://pandapower.readthedocs.io/en/v2.2.2/control/controller.html#constcontrol>`_
+- `OutputWriter <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/output_writer.html>`_
 
 Further Functions
 =================
@@ -45,14 +46,3 @@ The following functions are called within :code:`run_timeseries_ppipe`.
 
 .. _cleanup:
 .. autofunction:: pandapipes.timeseries.run_time_series.cleanup
-
-Data Source Function
-====================
-
-The data sources resp. the given time series of the sinks and sources
-are read out with the below method. It is called within :code:`_prepare_grid(net)`
-and uses the class `DFData <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/data_source.html#dataframe-data-source>`_
-from pandapower.
-
-.. _data_source:
-.. autofunction:: pandapipes.test.pipeflow_internals.test_time_series._data_source
