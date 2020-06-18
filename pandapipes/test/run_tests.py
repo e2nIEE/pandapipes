@@ -5,13 +5,27 @@
 import os
 
 import pytest
+
 from pandapipes.test import test_path
 
 try:
     import coverage as cov
 except ImportError:
     pass
-from pandapower.test.run_tests import _get_cpus, _create_logger
+from pandapower.test.run_tests import _get_cpus
+
+try:
+    import pplog as logging
+    # logger = logging.getLogger()
+    # for handler in logger.handlers:
+    #     logger.removeHandler(handler)
+except ImportError:
+    import logging
+
+logger = logging.getLogger()
+for handler in logger.handlers:
+    logger.removeHandler(handler)
+    logger.setLevel(logging.CRITICAL)
 
 
 def _get_test_dir(pp_module=None):
@@ -37,7 +51,6 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
     :return: No Output.
     """
 
-    logger = _create_logger()
     test_dir = _get_test_dir()
 
     if coverage:
