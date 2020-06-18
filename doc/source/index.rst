@@ -34,6 +34,7 @@ This is the contents section of the pandapipes documentation.
    fluid_properties
    std_types
    pipeflow
+   controller
    timeseries
    networks
    save_load

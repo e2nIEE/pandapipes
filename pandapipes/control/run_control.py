@@ -15,7 +15,7 @@ def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_dive
     :type net: pandapipesNet
     :param ctrl_variables: Used control variables. If None, default control variables are used.
     :type ctrl_variables: dict, default None
-    :param max_iter: maximal amount of iterations
+    :param max_iter: Maximal amount of iterations
     :type max_iter: int, default 30
     :param continue_on_lf_divergence: ?
     :type continue_on_lf_divergence: bool, default False
