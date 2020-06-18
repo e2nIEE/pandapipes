@@ -89,9 +89,11 @@ In the following the code for the previous descriptions is listed:
     import os
     import pandas as pd
     import pandapower.control as control
+    import pandapipes
     from pandapower.timeseries import DFData
     from pandapower.timeseries import OutputWriter
     from pandapipes.timeseries import run_timeseries_ppipe
+    from pandapipes import pp_dir
 
     # prepare grid
     profiles_sink = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
@@ -122,7 +124,7 @@ In the following the code for the previous descriptions is listed:
         ('res_pipe', 'reynolds'), ('res_pipe', 'lambda'),
         ('res_sink', 'mdot_kg_per_s'), ('res_source', 'mdot_kg_per_s'),
         ('res_ext_grid', 'mdot_kg_per_s')]
-    ow = OutputWriter(net, time_steps, output_path=path, log_variables=log_variables)
+    ow = OutputWriter(net, time_steps, output_path=None, log_variables=log_variables)
 
     # run
     run_timeseries_ppipe(net, time_steps, output_writer=ow)
