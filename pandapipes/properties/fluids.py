@@ -448,7 +448,7 @@ def call_lib(fluid):
 
     if fluid == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
-                     "(high- or low caloric natural gas)")
+                     "(high- or low calorific natural gas)")
     if fluid not in liquids and fluid not in gases:
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
                              "implemented yet." % fluid)
