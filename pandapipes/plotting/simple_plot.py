@@ -5,13 +5,15 @@
 
 import matplotlib.pyplot as plt
 
-from pandapipes.plotting.plotting_toolbox import get_collection_sizes
+from pandapipes.plotting.plotting_toolbox import get_collection_sizes, get_collection_sizes_pps
 from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
      create_valve_collection, create_source_collection, \
      create_heat_exchanger_collection, create_sink_collection, create_pump_collection
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
 from pandapower.plotting import draw_collections
 from itertools import chain
+from pandapower.plotting.collections import create_bus_collection, create_line_collection, \
+     create_load_collection, create_sgen_collection, create_trafo_collection
 import numpy as np
 
 try:
@@ -283,6 +285,164 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         collections["additional"] = list()
         for collection in kwargs.pop('additional_collections'):
             collections["additional"].extend(collection)
+
+    if as_dict:
+        return collections
+    return list(chain.from_iterable([list(c) if hasattr(c, "__iter__") else [c]
+                                     for c in collections.values()]))
+
+def create_simple_collections_pps(net, respect_in_service=True,
+                              line_width=5.0, bus_size=1.0,
+                              ext_grid_size=1.0, plot_loads=False, plot_sgens=True,
+                              load_size=1.0, sgen_size=1.0,
+                              trafo_size=3.0, trafo_color ='silver', scale_size=True, bus_color="r",
+                              line_color='silver', plot_trafos=True, ext_grid_color='orange', load_color='dimgrey', sgen_color='dimgrey',
+                              library="igraph", as_dict=True, **kwargs):
+    """
+    Plots a pandapipes network as simple as possible. If no geodata is available, artificial
+    geodata is generated. For advanced plotting see the tutorial
+
+    :param net: The pandapipes format network.
+    :type net: pandapipesNet
+    :param respect_valves: Respect valves if artificial geodata is created. \
+            .. note:: This Flag is ignored if plot_line_switches is True
+    :type respect_valves: bool default False
+    :param respect_in_service: Respect only components which are in service.
+    :type respect_in_service: bool default True
+    :param pipe_width: width of pipes
+    :type pipe_width: float, default 5.0
+    :param junction_size: Relative size of junctions to plot. The value junction_size is multiplied\
+            with mean_distance_between_buses, which equals the distance between the max geoocord\
+            and the min divided by 200: \
+            mean_distance_between_buses = sum((net['bus_geodata'].max() \
+                                               - net['bus_geodata'].min()) / 200)
+    :type junction_size: float, default 1.0
+    :param ext_grid_size: Relative size of ext_grids to plot. See bus sizes for details. Note: \
+            ext_grids are plottet as rectangles
+    :type ext_grid_size: float, default 1.0
+    :param plot_sinks: Flag to decide whether sink symbols should be drawn.
+    :type plot_sinks: bool, default False
+    :param plot_sources: Flag to decide whether source symbols should be drawn.
+    :type plot_sources: bool, default False
+    :param sink_size: Relative size of sinks to plot.
+    :type sink_size: float, default 1.0
+    :param source_size: Relative size of sources to plot.
+    :type source_size: float, default 1.0
+    :param valve_size: Relative size of valves to plot.
+    :type valve_size: float, default 1.0
+    :param heat_exchanger_size:
+    :type heat_exchanger_size:
+    :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
+            scaled with respect to grid mean distances
+    :type scale_size: bool, default True
+    :param junction_color: Junction Color. See also matplotlib or seaborn documentation on how to\
+            choose colors.
+    :type junction_color: str, tuple, default "r"
+    :param pipe_color: Pipe Color.
+    :type pipe_color: str, tuple, default "silver"
+    :param ext_grid_color: External Grid Color.
+    :type ext_grid_color: str, tuple, default "orange"
+    :param library: library name to create generic coordinates (case of missing geodata). Choose\
+            "igraph" to use igraph package or "networkx" to use networkx package. **NOTE**: \
+            Currently the networkx implementation is not working!
+    :type library: str, default "igraph"
+    :param as_dict: flag whether to return dictionary for network components or just a list
+    :type as_dict: bool, default True
+    :return: collections - list of simple collections for the given network
+    """
+    # don't hide lines if switches are plotted
+
+    # create geocoord if none are available
+    if len(net.bus_geodata) == 0 and len(net.line_geodata) == 0:
+        logger.warning("No or insufficient geodata available --> Creating artificial coordinates." +
+                       " This may take some time")
+        create_generic_coordinates(net, library=library)
+
+    if scale_size:
+        # if scale_size -> calc size from distance between min and max geocoord
+        sizes = get_collection_sizes_pps(net, bus_size, ext_grid_size, load_size, sgen_size, trafo_size)
+        bus_size = sizes["bus"]
+        ext_grid_size = sizes["ext_grid"]
+        sgen_size = sizes["sgen"]
+        load_size = sizes["load"]
+        trafo_size= sizes["trafo"]
+
+    # create bus collections to plot
+    if respect_in_service:
+        bus_coll = create_bus_collection(net, net.bus[net.bus.in_service].index,
+                                                   size=bus_size,
+                                                   color=bus_color, zorder=10)
+    else:
+        bus_coll = create_bus_collection(net, net.bus.index,
+                                                   size=bus_size,
+                                                   color=bus_color, zorder=10)
+
+    # if bus geodata is available, but no line geodata
+    use_bus_geodata = len(net.line_geodata) == 0
+
+    if respect_in_service:
+        plot_lines = net.line[net.line.in_service].index
+    else:
+        plot_lines = net.line.index
+
+    # create line collections
+    line_coll = create_line_collection(net, plot_lines, color=line_color, linewidths=line_width,
+                                       use_bus_geodata=use_bus_geodata)
+    line_coll2 = create_line_collection(net, [4], color="blue")
+    collections = {"bus": bus_coll, "line": line_coll, "line2": line_coll2}
+
+    # create ext_grid collections
+    if respect_in_service:
+        eg_bus_with_geo_coordinates = set(net.ext_grid[net.ext_grid.in_service].bus.values) \
+                                            & set(net.bus_geodata.index)
+    else:
+        eg_bus_with_geo_coordinates = set(net.ext_grid.bus.values) \
+                                            & set(net.bus_geodata.index)
+    if len(eg_bus_with_geo_coordinates) > 0:
+        eg_coll = create_bus_collection(
+            net, eg_bus_with_geo_coordinates, patch_type="rect", size=ext_grid_size,
+            color=ext_grid_color, zorder=11)
+        collections["ext_grid"] = eg_coll
+
+    if 'sgen' in net and plot_sgens and len(net.sgen) > 0:
+        if respect_in_service:
+            sgen_colls = create_sgen_collection(net, sgens=net.sgen[net.sgen.in_service].index,
+                                                    size=sgen_size, patch_edgecolor=sgen_color, line_color=sgen_color,
+                                                    linewidths=line_width)
+        else:
+            sgen_colls = create_sgen_collection(net, size=sgen_size, patch_edgecolor='silver', line_color='silver',
+                                                    linewidths=line_width)
+        collections["sgen"] = sgen_colls
+
+    if 'load' in net and plot_loads and len(net.load) > 0:
+        if respect_in_service:
+            load_colls = create_load_collection(net, loads=net.load[net.load.in_service].index,
+                                                size=load_size, patch_edgecolor=load_color, line_color=load_color,
+                                                linewidths=line_width)
+        else:
+            load_colls = create_load_collection(net, size=load_size, patch_edgecolor='silver', line_color='silver',
+                                                linewidths=line_width)
+        collections["load"] = load_colls
+
+        if 'trafo' in net and plot_trafos and len(net.trafo) > 0:
+            if respect_in_service:
+                trafo_colls = create_trafo_collection(net, trafos=net.trafo[net.trafo.in_service].index,
+                                                    size=trafo_size,
+                                                    linewidths=line_width, color=trafo_color)
+            else:
+                trafo_colls = create_trafo_collection(net, size=trafo_size, patch_edgecolor='silver', line_color='silver',
+                                                    linewidths=line_width)
+            collections["trafo"] = trafo_colls
+
+
+
+
+
+
+
+
+
+
 
     if as_dict:
         return collections
