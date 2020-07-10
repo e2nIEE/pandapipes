@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 import pandapower.control as control
 import pandas as pd
+import pandapipes
 from pandapipes import networks as nw
 from pandapipes.timeseries.run_time_series import run_timeseries_ppipe, \
     get_default_output_writer_ppipe
@@ -47,9 +48,10 @@ def _save_profiles_csv(net):
 
 def _data_source():
     """
+    Read out existing time series (csv files) for sinks and sources.
 
-    :return:
-    :rtype:
+    :return: Time series values from csv files for sink and source
+    :rtype: DataFrame
     """
     profiles_sink = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
                                              'test_time_series_sink_profiles.csv'), index_col=0)
@@ -60,13 +62,14 @@ def _data_source():
     return ds_sink, ds_source
 
 
-def _preparte_grid(net):
+def _prepare_grid(net):
     """
+    Writing the DataSources of sinks and sources to the net with ConstControl.
 
-    :param net:
-    :type net:
-    :return:
-    :rtype:
+    :param net: Previously created or loaded pandapipes network
+    :type net: pandapipesNet
+    :return: Prepared network for time series simulation
+    :rtype: pandapipesNet
     """
 
     ds_sink, ds_source = _data_source()
@@ -134,15 +137,16 @@ def _compare_results(ow):
 
 def _output_writer(net, time_steps, path=None):
     """
+    Creating an output writer.
 
-    :param net:
-    :type net:
-    :param time_steps:
-    :type time_steps:
-    :param path:
-    :type path:
-    :return:
-    :rtype:
+    :param net: Prepared pandapipes net
+    :type net: pandapipesNet
+    :param time_steps: Time steps to calculate as a list or range
+    :type time_steps: list, range
+    :param path: Path to a folder where the output is written to.
+    :type path: string, default None
+    :return: Output writer
+    :rtype: pandapower.timeseries.output_writer.OutputWriter
     """
     log_variables = [
         ('res_junction', 'p_bar'), ('res_pipe', 'v_mean_m_per_s'),
@@ -160,7 +164,7 @@ def test_time_series():
     :rtype:
     """
     net = nw.gas_versatility()
-    net = _preparte_grid(net)
+    net = _prepare_grid(net)
     time_steps = range(25)
     ow = _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
     run_timeseries_ppipe(net, time_steps, output_writer=ow)
@@ -174,7 +178,7 @@ def test_time_series_default_ow():
     :rtype:
     """
     net = nw.gas_versatility()
-    net = _preparte_grid(net)
+    net = _prepare_grid(net)
     time_steps = range(25)
     ow = get_default_output_writer_ppipe(net, time_steps)
     run_timeseries_ppipe(net, time_steps, output_writer=ow)
