@@ -13,14 +13,15 @@ def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_dive
 
     :param net: The pandapipes network
     :type net: pandapipesNet
-    :param ctrl_variables: used control variables. If None, default control variables are used.
-    :type ctrl_variables: ?, default None
-    :param max_iter: maximal amount of iterations
+    :param ctrl_variables: Used control variables. If None, default control variables are used.
+    :type ctrl_variables: dict, default None
+    :param max_iter: Maximal amount of iterations
     :type max_iter: int, default 30
     :param continue_on_lf_divergence: ?
     :type continue_on_lf_divergence: bool, default False
-    :param kwargs: additional key word arguments
-    :return: No Output.
+    :param kwargs: Additional keyword arguments
+    :type kwargs: dict
+    :return: No output
     """
     if ctrl_variables is None:
         ctrl_variables = ctrl_variables_ppipe_default(net)
@@ -37,7 +38,7 @@ def ctrl_variables_ppipe_default(net):
     :param net: The pandapipes network
     :type net: pandapipesNet
     :return: ctrl_variables
-    :rtype: ?
+    :rtype: dict
     """
     ctrl_variables = dict()
     ctrl_variables["level"], ctrl_variables["controller_order"] = get_controller_order(net)
@@ -50,12 +51,13 @@ def ctrl_variables_ppipe_default(net):
 
 def check_for_initial_pipeflow(controllers):
     """
-    Function checking if any of the controllers need an initial pipe flow
+    Function checking if any of the controllers need an initial pipe flow.
     If net has no controllers, an initial pipe flow is done by default.
-    :param controllers:
-    :type controllers:
-    :return:
-    :rtype:
+
+    :param controllers: Controllers in the network
+    :type controllers: list
+    :return: True, if controllers need an initial pipe flow else False.
+    :rtype: bool
     """
     if not len(controllers[0]):
         return True
