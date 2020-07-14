@@ -80,9 +80,9 @@ def _prepare_grid(net):
                                         element_index=net.source.index.values,
                                         data_source=ds_source,
                                         profile_name=net.source.index.values.astype(str))
-    del const_sink.initial_powerflow
+   # del const_sink.initial_powerflow
     const_sink.initial_pipeflow = False
-    del const_source.initial_powerflow
+  #  del const_source.initial_powerflow
     const_source.initial_pipeflow = False
     return net
 
