@@ -2,11 +2,11 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapower.control import *
+from pandapower.control import run_control as run_control_pandapower, prepare_run_ctrl as prepare_run_control_pandapower
 import pandapipes as ppipe
+from pandapipes.pipeflow import PipeflowNotConverged
 
-
-def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence=False,
+def run_control(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence=False,
                       **kwargs):
     """
     Function to run a control of the pandapipes network.
@@ -24,14 +24,14 @@ def run_control_ppipe(net, ctrl_variables=None, max_iter=30, continue_on_lf_dive
     :return: No output
     """
     if ctrl_variables is None:
-        ctrl_variables = ctrl_variables_ppipe_default(net)
-    else:
-        ctrl_variables["initial_powerflow"] = ctrl_variables["initial_pipeflow"]
-    run_control(net, ctrl_variables=ctrl_variables, max_iter=max_iter,
-                continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
+        ctrl_variables = prepare_run_ctrl(net, None)
 
 
-def ctrl_variables_ppipe_default(net):
+    run_control_pandapower(net, ctrl_variables=ctrl_variables, max_iter=max_iter,
+                           continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
+
+
+def prepare_run_ctrl(net, ctrl_variables):
     """
     Function that defines default control variables.
 
@@ -40,30 +40,13 @@ def ctrl_variables_ppipe_default(net):
     :return: ctrl_variables
     :rtype: dict
     """
-    ctrl_variables = dict()
-    ctrl_variables["level"], ctrl_variables["controller_order"] = get_controller_order(net)
-    ctrl_variables["run"] = ppipe.pipeflow
-    ctrl_variables["initial_pipeflow"] = check_for_initial_pipeflow(
-        ctrl_variables["controller_order"])
-    ctrl_variables["initial_powerflow"] = ctrl_variables["initial_pipeflow"]
+    if ctrl_variables is None:
+        ctrl_variables  = prepare_run_control_pandapower(net, None)
+        ctrl_variables["run"] = ppipe.pipeflow
+
+    ctrl_variables["errors"] = (PipeflowNotConverged)
+
     return ctrl_variables
 
 
-def check_for_initial_pipeflow(controllers):
-    """
-    Function checking if any of the controllers need an initial pipe flow.
-    If net has no controllers, an initial pipe flow is done by default.
 
-    :param controllers: Controllers in the network
-    :type controllers: list
-    :return: True, if controllers need an initial pipe flow else False.
-    :rtype: bool
-    """
-    if not len(controllers[0]):
-        return True
-
-    for order in controllers:
-        for ctrl in order:
-            if ctrl.initial_pipeflow:
-                return True
-    return False
