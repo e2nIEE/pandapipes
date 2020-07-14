@@ -44,7 +44,6 @@ def water_combined_mixed(method="colebrook"):
     """
 
     :param method: Which results should be loaded: prandtl-colebrook or swamee-jain
-
     :type method: str, default "colebrook"
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
