@@ -63,7 +63,7 @@ def pf_not_converged(time_step, ts_variables):
         raise PipeflowNotConverged
 
 
-def init_time_series(net, time_steps, output_writer=None, continue_on_divergence=False,
+def init_time_series(net, time_steps, continue_on_divergence=False,
                      verbose=True, **kwargs):
     """
     Initializes the time series calculation. Creates the dict ts_variables, which includes
@@ -74,9 +74,6 @@ def init_time_series(net, time_steps, output_writer=None, continue_on_divergence
     :param time_steps: Time steps to calculate as list or tuple (start, stop). If None, all time
                        steps from provided data source are simulated.
     :type time_steps: list or tuple
-    :param output_writer: A predefined output writer. If None, a default one is created with
-                          get_default_output_writer().
-    :type output_writer: pandapower.timeseries.output_writer.OutputWriter, default None
     :param continue_on_divergence: If True, time series calculation continues in case of errors.
     :type continue_on_divergence: bool, default False
     :param verbose: Prints progress bar or logger debug messages
@@ -97,8 +94,7 @@ def init_time_series(net, time_steps, output_writer=None, continue_on_divergence
     return ts_variables
 
 
-def run_timeseries(net, time_steps=None, output_writer=None, continue_on_divergence=False,
-                   verbose=True, **kwargs):
+def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=True, **kwargs):
     """
     Time Series main function
 
@@ -112,9 +108,6 @@ def run_timeseries(net, time_steps=None, output_writer=None, continue_on_diverge
     :param time_steps: Time steps to calculate as list or tuple(start, stop). If None, all time steps
                        from provided data source are simulated.
     :type time_steps: list or tuple, default None
-    :param output_writer: A predefined output writer. If None, a default one is created with
-                          get_default_output_writer().
-    :type output_writer: pandapower.timeseries.output_writer.OutputWriter, default None
     :param continue_on_divergence: If True, time series calculation continues in case of errors.
     :type continue_on_divergence: bool, default False
     :param verbose: Prints progress bar or if *logger.level == Debug*, it prints debug messages
@@ -123,8 +116,7 @@ def run_timeseries(net, time_steps=None, output_writer=None, continue_on_diverge
     :type kwargs: dict
     :return: No output
     """
-    ts_variables = init_time_series(net, time_steps, output_writer,
-                                    continue_on_divergence, verbose, **kwargs)
+    ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
 
     control_diagnostic(net)
     run_loop(net, ts_variables, **kwargs)
