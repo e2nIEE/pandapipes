@@ -12,24 +12,24 @@ from scipy.interpolate import interp1d
 
 def test_mixture_viscosity_lgas():
     test_mix_viscos = pd.read_csv(os.path.join(pp_dir, 'properties', 'lgas', 'viscosity.txt'),
-                                  header=None, sep=' ').values[:, 1]
+                                  header=None, sep=' ', comment='#').values[:, 1]
 
     viscos_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'viscosity.txt'),
-                             header=None, sep=' ').values
+                             header=None, sep=' ', comment='#').values
     viscos_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'viscosity.txt'),
-                            header=None, sep=' ', skiprows=4).values
-    viscos_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'viscosity.txt'),
-                             header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
+    viscos_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'viscosity.txt'),
+                             header=None, sep=' ', comment='#').values
     viscos_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'viscosity.txt'),
-                             header=None, sep=' ').values
+                             header=None, sep=' ', comment='#').values
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     values_to_take = [263, 273, 283, 293, 303, 313, 323, 333]
     viscos_ch4 = interp1d(viscos_ch4[:, 0], viscos_ch4[:, 1])
     viscos_ch4 = viscos_ch4((values_to_take))
@@ -55,24 +55,24 @@ def test_mixture_viscosity_lgas():
 
 def test_mixture_viscosity_hgas():
     test_mix_viscos = pd.read_csv(os.path.join(pp_dir, 'properties', 'hgas', 'viscosity.txt'),
-                                  header=None, sep=' ').values[:, 1]
+                                  header=None, sep=' ', comment='#').values[:, 1]
 
     viscos_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'viscosity.txt'),
-                             header=None, sep=' ').values
+                             header=None, sep=' ', comment='#').values
     viscos_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'viscosity.txt'),
-                            header=None, sep=' ', skiprows=4).values
-    viscos_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'viscosity.txt'),
-                             header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
+    viscos_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'viscosity.txt'),
+                             header=None, sep=' ', comment='#').values
     viscos_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'viscosity.txt'),
-                             header=None, sep=' ').values
+                             header=None, sep=' ', comment='#').values
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     values_to_take = [263, 273, 283, 293, 303, 313, 323, 333]
     viscos_ch4 = interp1d(viscos_ch4[:, 0], viscos_ch4[:, 1])
     viscos_ch4 = viscos_ch4((values_to_take))
@@ -96,21 +96,21 @@ def test_mixture_density_lgas():
                                    header=None, sep=' ').values[:, 1]
 
     dens_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'density.txt'),
-                           header=None, sep=' ').values
+                           header=None, sep=' ', comment='#').values
     dens_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'density.txt'),
-                            header=None, sep=' ', skiprows=4).values
-    dens_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'density.txt'),
-                           header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
+    dens_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'density.txt'),
+                           header=None, sep=' ', comment='#').values
     dens_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'density.txt'),
-                            header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     values_to_take = [263, 273, 283, 293, 303, 313, 323, 333]
     dens_ch4 = interp1d(dens_ch4[:, 0], dens_ch4[:, 1])
     dens_ch4 = dens_ch4((values_to_take))
@@ -139,24 +139,24 @@ def test_mixture_density_lgas():
 
 def test_mixture_density_hgas():
     test_mix_density = pd.read_csv(os.path.join(pp_dir, 'properties', 'hgas', 'density.txt'),
-                                   header=None, sep=' ').values[:, 1]
+                                   header=None, sep=' ', comment='#').values[:, 1]
 
     dens_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'density.txt'),
-                           header=None, sep=' ').values
+                           header=None, sep=' ', comment='#').values
     dens_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'density.txt'),
-                            header=None, sep=' ', skiprows=4).values
-    dens_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'density.txt'),
-                           header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
+    dens_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'density.txt'),
+                           header=None, sep=' ', comment='#').values
     dens_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'density.txt'),
-                            header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     values_to_take = [263, 273, 283, 293, 303, 313, 323, 333]
     dens_ch4 = interp1d(dens_ch4[:, 0], dens_ch4[:, 1])
     dens_ch4 = dens_ch4((values_to_take))
@@ -180,24 +180,24 @@ def test_mixture_density_hgas():
 
 def test_mixture_heat_capacity_lgas():
     test_mix_capacity = pd.read_csv(os.path.join(pp_dir, 'properties', 'lgas', 'heat_capacity.txt'),
-                                    header=None, sep=' ').values[:, 1]
+                                    header=None, sep=' ', comment='#').values[:, 1]
 
     cap_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'heat_capacity.txt'),
-                          header=None, sep=' ').values
+                          header=None, sep=' ', comment='#').values
     cap_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'heat_capacity.txt'),
-                            header=None, sep=' ', skiprows=4).values
-    cap_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'heat_capacity.txt'),
-                          header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
+    cap_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'heat_capacity.txt'),
+                          header=None, sep=' ', comment='#').values
     cap_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'heat_capacity.txt'),
-                           header=None, sep=' ').values
+                           header=None, sep=' ', comment='#').values
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     values_to_take = [263, 273, 283, 293, 303, 313, 323, 333]
     cap_ch4 = interp1d(cap_ch4[:, 0], cap_ch4[:, 1])
     cap_ch4 = cap_ch4((values_to_take))
@@ -224,24 +224,24 @@ def test_mixture_heat_capacity_lgas():
 
 def test_mixture_heat_capacity_hgas():
     test_mix_capacity = pd.read_csv(os.path.join(pp_dir, 'properties', 'hgas', 'heat_capacity.txt'),
-                                    header=None, sep=' ').values[:, 1]
+                                    header=None, sep=' ', comment='#').values[:, 1]
 
     cap_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'heat_capacity.txt'),
-                          header=None, sep=' ').values
+                          header=None, sep=' ', comment='#').values
     cap_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'heat_capacity.txt'),
-                            header=None, sep=' ', skiprows=4).values
-    cap_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'heat_capacity.txt'),
-                          header=None, sep=' ').values
+                            header=None, sep=' ', comment='#').values
+    cap_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'heat_capacity.txt'),
+                          header=None, sep=' ', comment='#').values
     cap_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'heat_capacity.txt'),
-                           header=None, sep=' ').values
+                           header=None, sep=' ', comment='#').values
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     values_to_take = [263, 273, 283, 293, 303, 313, 323, 333]
     cap_ch4 = interp1d(cap_ch4[:, 0], cap_ch4[:, 1])
     cap_ch4 = cap_ch4((values_to_take))
@@ -263,16 +263,16 @@ def test_mixture_heat_capacity_hgas():
 
 def test_mixture_molar_mass_lgas():
     test_mix_molar = pd.read_csv(os.path.join(pp_dir, 'properties', 'lgas', 'molar_mass.txt'),
-                                 header=None, sep=' ').values
+                                 header=None, sep=' ', comment='#').values
 
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     components_molar_mass = np.concatenate([molar_ch4, molar_n2, molar_co2, molar_c2h6])
     components_molar_proportions = np.array([.85, .103, .013, .034])
     mix_molar = calculate_mixture_molar_mass(
@@ -290,16 +290,16 @@ def test_mixture_molar_mass_lgas():
 
 def test_mixture_molar_mass_hgas():
     test_mix_molar = pd.read_csv(os.path.join(pp_dir, 'properties', 'hgas', 'molar_mass.txt'),
-                                 header=None, sep=' ').values
+                                 header=None, sep=' ', comment='#').values
 
     molar_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                            header=None, sep=' ', comment='#').values[0]
     molar_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'molar_mass.txt'),
-                           header=None, sep=' ', skiprows=1).values[0]
-    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxid', 'molar_mass.txt'),
-                            header=None, sep=' ').values[0]
+                           header=None, sep=' ', comment='#').values[0]
+    molar_co2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'carbondioxide', 'molar_mass.txt'),
+                            header=None, sep=' ', comment='#').values[0]
     molar_c2h6 = pd.read_csv(os.path.join(pp_dir, 'properties', 'ethane', 'molar_mass.txt'),
-                             header=None, sep=' ').values[0]
+                             header=None, sep=' ', comment='#').values[0]
     components_molar_mass = np.concatenate([molar_ch4, molar_n2, molar_co2, molar_c2h6])
     components_molar_proportions = np.array([.964, .005, .005, .026])
     mix_molar = calculate_mixture_molar_mass(
@@ -310,6 +310,6 @@ def test_mixture_molar_mass_hgas():
 
 def save_results(results, path):
     temp = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'viscosity.txt'),
-                       header=None, sep=' ')
+                       header=None, sep=' ', comment='#')
     results = pd.DataFrame(results, index=temp[0].astype(int))
     results.to_csv(path, header=None, sep=' ')
