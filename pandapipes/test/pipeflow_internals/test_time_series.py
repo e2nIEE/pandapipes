@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 path = os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results')
 
-def _preparte_grid(net):
+def _prepare_grid(net):
     """
     Writing the DataSources of sinks and sources to the net with ConstControl.
 
@@ -156,7 +156,7 @@ def test_time_series():
     :rtype:
     """
     net = nw.gas_versatility()
-    _preparte_grid(net)
+    _prepare_grid(net)
     time_steps = range(25)
     _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
     run_timeseries(net, time_steps)
@@ -171,7 +171,7 @@ def test_time_series_default_ow():
     :rtype:
     """
     net = nw.gas_versatility()
-    _preparte_grid(net)
+    _prepare_grid(net)
     time_steps = range(25)
     init_default_outputwriter(net, time_steps)
     run_timeseries(net, time_steps)
