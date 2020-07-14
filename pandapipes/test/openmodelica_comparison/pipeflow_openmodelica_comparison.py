@@ -39,8 +39,8 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
     pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
                 mode=mode, only_update_hydraulic_matrix=only_update_hydraulic_matrix)
 
-    print(net.res_junction)
-    print(net.res_pipe)
+    logger.debug(net.res_junction)
+    logger.debug(net.res_pipe)
 
     p_om = net.junction.p_om
     p_valid = pd.notnull(p_om)

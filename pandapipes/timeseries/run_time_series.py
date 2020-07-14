@@ -25,10 +25,10 @@ def init_default_outputwriter(net, time_steps, **kwargs):
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param timesteps: timesteps to calculate as list
+    :param timesteps: Time steps to calculate as list
     :type timesteps: list
-    :return: output_writer - The default output_writer
-    :rtype: ?
+    :return: ow - The default output writer
+    :rtype: pandapower.timeseries.output_writer.OutputWriter
     """
     output_writer = kwargs.get("output_writer", None)
     if output_writer is not None:
@@ -50,15 +50,13 @@ def init_default_outputwriter(net, time_steps, **kwargs):
 
 def pf_not_converged(time_step, ts_variables):
     """
-    Todo: Fill out parameters.
 
-    :param time_step: time_step to be calculated
+    :param time_step: Time step to be calculated
     :type time_step: int
-    :param ts_variables: contains settings for controller and time series simulation. \n
-                                  See init_time_series()
+    :param ts_variables: Contains settings for controller and time series simulation. \n
+                         See init_time_series()
     :type ts_variables: dict
-    :return:
-    :rtype:
+    :return: No output
     """
     logger.error('PipeflowNotConverged at time step %s' % time_step)
     if not ts_variables["continue_on_divergence"]:
@@ -68,26 +66,25 @@ def pf_not_converged(time_step, ts_variables):
 def init_time_series(net, time_steps, output_writer=None, continue_on_divergence=False,
                      verbose=True, **kwargs):
     """
-    Inits the time series calculation.
-    Creates the dict ts_variables, which includes necessary variables for the time series / control
-    function.
+    Initializes the time series calculation. Creates the dict ts_variables, which includes
+    necessary variables for the time series / control function.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_steps: time_steps to calculate as list or tuple (start, stop) if None, all time
-                        steps from provided data source are simulated
+    :param time_steps: Time steps to calculate as list or tuple (start, stop). If None, all time
+                       steps from provided data source are simulated.
     :type time_steps: list or tuple
-    :param output_writer: A predefined output writer. If None the a default one is created with
-                            get_default_output_writer()
-    :type output_writer: ?, default None
-    :param continue_on_divergence: If True time series calculation continues in case of errors.
+    :param output_writer: A predefined output writer. If None, a default one is created with
+                          get_default_output_writer().
+    :type output_writer: pandapower.timeseries.output_writer.OutputWriter, default None
+    :param continue_on_divergence: If True, time series calculation continues in case of errors.
     :type continue_on_divergence: bool, default False
-    :param verbose: prints progess bar or logger debug messages
+    :param verbose: Prints progress bar or logger debug messages
     :type verbose: bool, default True
-    :param kwargs:
-    :type kwargs:
-    :return:
-    :rtype:
+    :param kwargs: Keyword arguments for run_control and runpp
+    :type kwargs: dict
+    :return: ts_variables, kwargs
+    :rtype: dict, dict
     """
 
     run = kwargs.get("run", ppipes.pipeflow)
@@ -104,24 +101,27 @@ def run_timeseries(net, time_steps=None, output_writer=None, continue_on_diverge
                    verbose=True, **kwargs):
     """
     Time Series main function
-    Runs multiple PANDAPOWER AC power flows based on time series in controllers
-    Optionally other functions than the pp power flow can be called by setting the run function in
-    kwargs.
-    **NOTE: refers to pandapower power flow.
+
+    Execution of pipe flow calculations for a time series using controllers.
+    Optionally other functions than pipeflow can be called by setting the run function in kwargs.
+
+    .. note:: Refers to pandapower power flow.
+
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_steps: time_steps to calculate as list or tuple(start, stop) if None, all time steps
-                        from provided data source are simulated
+    :param time_steps: Time steps to calculate as list or tuple(start, stop). If None, all time steps
+                       from provided data source are simulated.
     :type time_steps: list or tuple, default None
-    :param output_writer: A predefined output writer. If None the a default one is created with
-                            get_default_output_writer()
-    :type output_writer: ?, default None
-    :param continue_on_divergence: If True time series calculation continues in case of errors.
+    :param output_writer: A predefined output writer. If None, a default one is created with
+                          get_default_output_writer().
+    :type output_writer: pandapower.timeseries.output_writer.OutputWriter, default None
+    :param continue_on_divergence: If True, time series calculation continues in case of errors.
     :type continue_on_divergence: bool, default False
-    :param verbose: prints progress bar or if logger.level == Debug it prints debug  messages
+    :param verbose: Prints progress bar or if *logger.level == Debug*, it prints debug messages
     :type verbose: bool, default True
     :param kwargs: Keyword arguments for run_control and runpp
-    :return: No output.
+    :type kwargs: dict
+    :return: No output
     """
     ts_variables = init_time_series(net, time_steps, output_writer,
                                     continue_on_divergence, verbose, **kwargs)

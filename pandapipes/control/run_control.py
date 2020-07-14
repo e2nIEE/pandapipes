@@ -13,14 +13,15 @@ def run_control(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence
 
     :param net: The pandapipes network
     :type net: pandapipesNet
-    :param ctrl_variables: used control variables. If None, default control variables are used.
-    :type ctrl_variables: ?, default None
-    :param max_iter: maximal amount of iterations
+    :param ctrl_variables: Used control variables. If None, default control variables are used.
+    :type ctrl_variables: dict, default None
+    :param max_iter: Maximal amount of iterations
     :type max_iter: int, default 30
     :param continue_on_lf_divergence: ?
     :type continue_on_lf_divergence: bool, default False
-    :param kwargs: additional key word arguments
-    :return: No Output.
+    :param kwargs: Additional keyword arguments
+    :type kwargs: dict
+    :return: No output
     """
     if ctrl_variables is None:
         ctrl_variables = prepare_run_ctrl(net, None)
@@ -37,7 +38,7 @@ def prepare_run_ctrl(net, ctrl_variables):
     :param net: The pandapipes network
     :type net: pandapipesNet
     :return: ctrl_variables
-    :rtype: ?
+    :rtype: dict
     """
     if ctrl_variables is None:
         ctrl_variables  = prepare_run_control_pandapower(net, None)
