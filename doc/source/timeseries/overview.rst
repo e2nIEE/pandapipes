@@ -4,7 +4,7 @@
 Time Series Module Overview
 ***************************
 
-In the following an overview of the rough sequence of function calls for the
+In the following an overview of the sequence of function calls for the
 time steps of the loop is shown. In this loop the pipeflow function is called
 iteratively for each time step. The results are stored in an OutputWriter.
 During this process, run_control.py by pandapower is accessed and the pipeflow

@@ -13,7 +13,11 @@ With the command
 	print(net.controller)
 
 a list of the controllers contained in :code:`net` can be displayed.
-To perform a control of the pandapipes network, the following function must be called:
+
+To perform a simulation of the pandapipes network using controllers, the function :code:`run_control_ppipe` must be called.
+Internally, this function calls the control loop implemented in pandapower.
+
+
 
 .. code::
 
