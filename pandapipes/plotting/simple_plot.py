@@ -45,7 +45,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True,
     :type pipe_width: float, default 5.0
     :param junction_size: Relative size of junctions to plot. The value junction_size is multiplied\
             with mean_distance_between_buses, which equals the distance between the max geoocord\
-            and the min divided by 200: \n
+            and the min divided by 200
     :type junction_size: float, default 1.0
     :param ext_grid_size: Relative size of ext_grids to plot. See bus sizes for details. Note: \
             ext_grids are plottet as rectangles
