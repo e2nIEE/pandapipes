@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
     vinterp
@@ -17,7 +18,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
-from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
 from numpy import dtype
 
 try:
@@ -235,8 +236,11 @@ class Pipe(BranchWInternalsComponent):
                 idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
                 np.ones_like(idx_active))
 
-            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from[0]
-            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to[-1]
+            v_gas_from_ordered = select_from_pit(from_nodes,from_junction_nodes, v_gas_from)
+            v_gas_to_ordered = select_from_pit(to_nodes,to_junction_nodes, v_gas_to)
+
+            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
+            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
             res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
             res_table["normfactor_from"].values[placement_table] = nf_from_sum / internal_pipes
             res_table["normfactor_to"].values[placement_table] = nf_to_sum / internal_pipes
