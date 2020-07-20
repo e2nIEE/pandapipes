@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
     vinterp
@@ -17,7 +18,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
-from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
 from numpy import dtype
 
 try:
@@ -235,8 +236,11 @@ class Pipe(BranchWInternalsComponent):
                 idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
                 np.ones_like(idx_active))
 
-            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_sum / internal_pipes
-            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_sum / internal_pipes
+            v_gas_from_ordered = select_from_pit(from_nodes,from_junction_nodes, v_gas_from)
+            v_gas_to_ordered = select_from_pit(to_nodes,to_junction_nodes, v_gas_to)
+
+            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
+            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
             res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
             res_table["normfactor_from"].values[placement_table] = nf_from_sum / internal_pipes
             res_table["normfactor_to"].values[placement_table] = nf_to_sum / internal_pipes
@@ -259,11 +263,12 @@ class Pipe(BranchWInternalsComponent):
     @classmethod
     def get_internal_results(cls, net, pipe):
         """
+        Retrieve velocity (at to/from node; mean), pressure and temperature of the internal sections of pipes. The pipes have to have at least 2 internal sections.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pipe:
-        :type pipe:
+        :param pipe: indices of pipes to evaluate
+        :type pipe: np.array
         :return: pipe_results
         :rtype:
         """
@@ -274,7 +279,10 @@ class Pipe(BranchWInternalsComponent):
         pipe_results = dict()
         pipe_results["PINIT"] = np.zeros((len(p_node_idx), 2), dtype=np.float64)
         pipe_results["TINIT"] = np.zeros((len(p_node_idx), 2), dtype=np.float64)
-        pipe_results["VINIT"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
+        pipe_results["VINIT_FROM"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
+        pipe_results["VINIT_TO"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
+        pipe_results["VINIT_MEAN"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
+
 
         if np.all(internal_sections[pipe] >= 2):
             fluid = get_fluid(net)
@@ -292,8 +300,7 @@ class Pipe(BranchWInternalsComponent):
 
             selected_indices_p_final = np.logical_or.reduce(selected_indices_p[:])
             selected_indices_v_final = np.logical_or.reduce(selected_indices_v[:])
-            # a = np.where(int_p_lookup[:,0] ==  True, False)
-            # b = np.where(int_v_lookup[:, 0] == v_pipe_idx, True, False)
+
             p_nodes = int_p_lookup[:, 1][selected_indices_p_final]
             v_nodes = int_v_lookup[:, 1][selected_indices_v_final]
 
@@ -310,21 +317,41 @@ class Pipe(BranchWInternalsComponent):
                 to_nodes = pipe_pit[v_nodes, TO_NODE].astype(np.int32)
                 p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
                 p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
-                #p_mean = np.where(p_from == p_to, p_from,
-                #                  2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
+                p_mean = np.where(p_from == p_to, p_from,
+                                  2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
-                normfactor = numerator * fluid.get_property("compressibility", p_to) \
-                             / (p_to * NORMAL_TEMPERATURE)
+                normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
+                             / (p_mean * NORMAL_TEMPERATURE)
+                normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
+                                  / (p_from * NORMAL_TEMPERATURE)
+                normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
+                                / (p_to * NORMAL_TEMPERATURE)
 
-                v_pipe_data = v_pipe_data * normfactor
+                v_pipe_data_mean = v_pipe_data * normfactor_mean
+                v_pipe_data_from = v_pipe_data * normfactor_from
+                v_pipe_data_to = v_pipe_data * normfactor_to
+
+                pipe_results["VINIT_FROM"][:, 0] = v_pipe_idx
+                pipe_results["VINIT_FROM"][:, 1] = v_pipe_data_from
+                pipe_results["VINIT_TO"][:, 0] = v_pipe_idx
+                pipe_results["VINIT_TO"][:, 1] = v_pipe_data_to
+                pipe_results["VINIT_MEAN"][:, 0] = v_pipe_idx
+                pipe_results["VINIT_MEAN"][:, 1] = v_pipe_data_mean
+            else:
+                pipe_results["VINIT_FROM"][:, 0] = v_pipe_idx
+                pipe_results["VINIT_FROM"][:, 1] = v_pipe_data
+                pipe_results["VINIT_TO"][:, 0] = v_pipe_idx
+                pipe_results["VINIT_TO"][:, 1] = v_pipe_data
+                pipe_results["VINIT_MEAN"][:, 0] = v_pipe_idx
+                pipe_results["VINIT_MEAN"][:, 1] = v_pipe_data
+
 
 
             pipe_results["PINIT"][:, 0] = p_node_idx
             pipe_results["PINIT"][:, 1] = p_node_data
             pipe_results["TINIT"][:, 0] = p_node_idx
             pipe_results["TINIT"][:, 1] = t_node_data
-            pipe_results["VINIT"][:, 0] = v_pipe_idx
-            pipe_results["VINIT"][:, 1] = v_pipe_data
+
         else:
             logger.warning("For at least one pipe no internal data is available.")
 
@@ -395,10 +422,10 @@ class Pipe(BranchWInternalsComponent):
         :return: No Output.
         """
         pipe_p_data_idx = np.where(pipe_results["PINIT"][:, 0] == pipe)
-        pipe_v_data_idx = np.where(pipe_results["VINIT"][:, 0] == pipe)
+        pipe_v_data_idx = np.where(pipe_results["VINIT_MEAN"][:, 0] == pipe)
         pipe_p_data = pipe_results["PINIT"][pipe_p_data_idx, 1]
         pipe_t_data = pipe_results["TINIT"][pipe_p_data_idx, 1]
-        pipe_v_data = pipe_results["VINIT"][pipe_v_data_idx, 1]
+        pipe_v_data = pipe_results["VINIT_MEAN"][pipe_v_data_idx, 1]
         node_pit = net["_pit"]["node"]
 
         junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]

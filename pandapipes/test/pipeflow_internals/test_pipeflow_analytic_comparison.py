@@ -43,9 +43,9 @@ def test_gas_internal_nodes():
     v_an = v_an.drop([0])
 
     pipe_p_data_idx = np.where(pipe_results["PINIT"][:, 0] == 0)
-    pipe_v_data_idx = np.where(pipe_results["VINIT"][:, 0] == 0)
+    pipe_v_data_idx = np.where(pipe_results["VINIT_MEAN"][:, 0] == 0)
     pipe_p_data = pipe_results["PINIT"][pipe_p_data_idx, 1]
-    pipe_v_data = pipe_results["VINIT"][pipe_v_data_idx, 1]
+    pipe_v_data = pipe_results["VINIT_MEAN"][pipe_v_data_idx, 1]
 
     node_pit = net["_pit"]["node"]
 
