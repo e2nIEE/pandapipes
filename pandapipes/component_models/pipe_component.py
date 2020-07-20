@@ -263,11 +263,12 @@ class Pipe(BranchWInternalsComponent):
     @classmethod
     def get_internal_results(cls, net, pipe):
         """
+        Retrieve velocity (at to/from node; mean), pressure and temperature of the internal sections of pipes. The pipes have to have at least 2 internal sections.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pipe:
-        :type pipe:
+        :param pipe: indices of pipes to evaluate
+        :type pipe: np.array
         :return: pipe_results
         :rtype:
         """
