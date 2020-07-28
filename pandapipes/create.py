@@ -14,6 +14,8 @@ from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_
 from pandapipes.std_types.std_type_toolbox import regression_function
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
+from pandapipes.component_models.reservoir_component import Reservoir
+from pandapipes.constants import GRAVITATION_CONSTANT, WATER_DENSITY, P_CONVERSION
 
 try:
     import pplog as logging
@@ -300,6 +302,55 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
 
     # and preserve dtypes
     _preserve_dtypes(net.ext_grid, dtypes)
+    return index
+
+
+def create_reservoir(net, junction, h_m, t_k=293, name=None, in_service=True, index=None):
+    """
+
+    :param net: The net that the reservoir should be connected to
+    :type net: pandapipesNet
+    :param junction: The junction to which the reservoir grid is connected
+    :type junction: int
+    :param h_m: The height of the reservoir
+    :type h_m: float
+    :param t_k: The fixed temperature of the water in the reservoir
+    :type t_k: float, default 293
+    :param name: A name tg for this reservoir
+    :type name: str, default None
+    :param in_service: True for in service, false for out of service
+    :type in_service: bool, default True
+    :param index: Force a specified ID if it is available. If None, the index is set one higher than the \
+            highest already existing index is selected.
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    :Example: create_reservoir(net, junction1, h_m=3, name="Grid reservoir")
+
+    """
+    add_new_component(net, Reservoir)
+
+    if junction not in net["junction"].index.values:
+        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
+
+    if index is not None and index in net["reservoir"].index:
+        raise UserWarning("An external grid with with index %s already exists" % index)
+
+    if index is None:
+        index = get_free_id(net["reservoir"])
+
+    dtypes = net.reservoir.dtypes
+
+    p_bar = WATER_DENSITY * h_m * GRAVITATION_CONSTANT * P_CONVERSION
+
+    # external grid with fixed pressure --> the node acts as a slack node for the mass flow.
+    type = "p"
+
+    net.reservoir.loc[index, ["name", "junction", "h_m", "p_bar", "t_k", "in_service", "type"]] = \
+        [name, junction, h_m, p_bar, t_k, bool(in_service), type]
+
+    # and preserve dtypes
+    _preserve_dtypes(net.reservoir, dtypes)
     return index
 
 
