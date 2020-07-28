@@ -15,7 +15,7 @@ from pandapipes.std_types.std_type_toolbox import regression_function
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
 from pandapipes.component_models.reservoir_component import Reservoir
-from pandapipes.constants import GRAVITATION_CONSTANT, WATER_DENSITY, P_CONVERSION
+from pandapipes.constants import GRAVITATION_CONSTANT, P_CONVERSION
 
 try:
     import pplog as logging
@@ -341,7 +341,9 @@ def create_reservoir(net, junction, h_m, t_k=293, name=None, in_service=True, in
 
     dtypes = net.reservoir.dtypes
 
-    p_bar = WATER_DENSITY * h_m * GRAVITATION_CONSTANT * P_CONVERSION
+    density = net.fluid.get_density(t_k).item()
+
+    p_bar = density * h_m * GRAVITATION_CONSTANT * P_CONVERSION
 
     # external grid with fixed pressure --> the node acts as a slack node for the mass flow.
     type = "p"

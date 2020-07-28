@@ -8,7 +8,6 @@ NORMAL_TEMPERATURE = 273.15  # normal temperature (= 0°C) in K
 NORMAL_PRESSURE = 1.01325  # pressure under normal conditions (at sea level) in bar
 MOLAR_MASS_AIR = 0.02896  # molar mass of air in m³/mol
 R_UNIVERSAL = 8.314  # universal gas constant (molar) in J/(mol * K)
-WATER_DENSITY = 997  # kg/m³
 
 # specific constants
 HEIGHT_EXPONENT = 5.255  # exponent for height correction (typical value of international equation)
