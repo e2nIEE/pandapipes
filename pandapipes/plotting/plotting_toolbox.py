@@ -41,3 +41,4 @@ def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.
         "pump": pump_size * mean_distance_between_junctions * 8
     }
     return sizes
+
