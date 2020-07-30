@@ -56,6 +56,9 @@ def regression_function(p_values, v_values, degree):
     :return:
     :rtype:
     """
+    if not int(degree) == degree:
+        raise UserWarning("The polynomial degree has to be an integer, but %s was given. "
+                          "It will be rounded down now." % str(degree))
     z = np.polyfit(v_values, p_values, degree)
     reg_par = z
     return reg_par
