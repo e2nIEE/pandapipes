@@ -11,7 +11,7 @@ import pandapower as pp
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network as create_fluid_network
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.io_utils import with_signature, JSONSerializableClass, \
+from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
 try:
