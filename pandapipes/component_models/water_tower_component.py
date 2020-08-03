@@ -84,7 +84,7 @@ class WaterTower(NodeElementComponent):
         node_pit = net["_pit"]["node"]
 
         junction = cls.get_connected_junction(net)
-        index_juncts = np.array(junction.values[junction])
+        index_juncts =junction.values
         junct_uni = np.array(list(set(index_juncts)))
         index_nodes = get_lookup(net, "node", "index")[node_name][junct_uni]
         eg_from_branches = np.isin(branch_pit[:, FROM_NODE], index_nodes)
