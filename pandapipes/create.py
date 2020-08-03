@@ -4,18 +4,17 @@
 
 import numpy as np
 import pandas as pd
+from pandapower.auxiliary import get_free_id, _preserve_dtypes
+
+from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, WaterTower
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
 from pandapipes.properties import call_lib, add_fluid_to_net
-from pandapower.auxiliary import get_free_id, _preserve_dtypes
 from pandapipes.properties.fluids import Fluid
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
-from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
-from pandapipes.component_models.reservoir_component import Reservoir
-from pandapipes.constants import GRAVITATION_CONSTANT, P_CONVERSION
 
 try:
     import pplog as logging
@@ -305,54 +304,53 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     return index
 
 
-def create_reservoir(net, junction, h_m, t_k=293, name=None, in_service=True, index=None):
+def create_water_tower(net, junction, height_m, t_k=293.15, name=None, in_service=True, index=None,
+                       type='water_tower', **kwargs):
     """
 
-    :param net: The net that the reservoir should be connected to
+    :param net: The net that the water tower should be connected to
     :type net: pandapipesNet
-    :param junction: The junction to which the reservoir grid is connected
+    :param junction: The junction to which the water tower is connected to
     :type junction: int
-    :param h_m: The height of the reservoir
+    :param h_m: The height of the water tower
     :type h_m: float
-    :param t_k: The fixed temperature of the water in the reservoir
-    :type t_k: float, default 293
-    :param name: A name tg for this reservoir
+    :param t_k: The fixed temperature of the water in the water tower
+    :type t_k: float, default 293.15
+    :param name: A name tag for this water tower
     :type name: str, default None
-    :param in_service: True for in service, false for out of service
+    :param in_service: True for in service, False for out of service
     :type in_service: bool, default True
     :param index: Force a specified ID if it is available. If None, the index is set one higher than the \
             highest already existing index is selected.
     :return: index - The unique ID of the created element
     :rtype: int
 
-    :Example: create_reservoir(net, junction1, h_m=3, name="Grid reservoir")
+    :Example: create_water_tower(net, junction1, h_m=3, name="Grid reservoir")
 
     """
-    add_new_component(net, Reservoir)
+    add_new_component(net, WaterTower)
 
     if junction not in net["junction"].index.values:
         raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
-    if index is not None and index in net["reservoir"].index:
-        raise UserWarning("An external grid with with index %s already exists" % index)
+    if index is not None and index in net["water_tower"].index:
+        raise UserWarning("An water tower with index %s already exists" % index)
 
     if index is None:
-        index = get_free_id(net["reservoir"])
+        index = get_free_id(net["water_tower"])
 
-    dtypes = net.reservoir.dtypes
+    # store dtypes
+    dtypes = net.water_tower.dtypes
 
-    density = net.fluid.get_density(t_k).item()
-
-    p_bar = density * h_m * GRAVITATION_CONSTANT * P_CONVERSION
-
-    # external grid with fixed pressure --> the node acts as a slack node for the mass flow.
-    type = "p"
-
-    net.reservoir.loc[index, ["name", "junction", "h_m", "p_bar", "t_k", "in_service", "type"]] = \
-        [name, junction, h_m, p_bar, t_k, bool(in_service), type]
+    cols = ["name", "junction", "height_m", "t_k", "in_service", "type"]
+    vals = [name, junction, height_m, t_k, bool(in_service), type]
+    all_values = {col: val for col, val in zip(cols, vals)}
+    all_values.update(**kwargs)
+    for col, val in all_values.items():
+        net.water_tower.at[index, col] = val
 
     # and preserve dtypes
-    _preserve_dtypes(net.reservoir, dtypes)
+    _preserve_dtypes(net.water_tower, dtypes)
     return index
 
 
@@ -876,8 +874,8 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
     for b in [from_junction, to_junction]:
         if b not in net["junction"].index.values:
             raise UserWarning(
-                    "CirculationPumpPressure %s tries to attach to non-existing junction %s"
-                    % (name, b))
+                "CirculationPumpPressure %s tries to attach to non-existing junction %s"
+                % (name, b))
 
     if index is None:
         index = get_free_id(net["circ_pump_pressure"])
