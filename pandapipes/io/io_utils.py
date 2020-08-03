@@ -8,12 +8,11 @@ from functools import partial
 from inspect import isclass
 
 import pandapower as pp
-from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, from_serializable_registry, from_serializable, PPJSONDecoder
-
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network as create_fluid_network
 from pandapipes.pandapipes_net import pandapipesNet
+from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
+    isinstance_partial as ppow_isinstance, from_serializable_registry, PPJSONDecoder
 
 try:
     import pplog as logging
@@ -66,45 +65,19 @@ def ppipes_hook(d, net=None):
 def ppipes_hook_serialization(obj, d, net):
     class_name = d.pop('_class')
     module_name = d.pop('_module')
-    fs = from_serializable_registry_ppipe(obj, d, net, ppipes_hook)
+    fs = FromSerializableRegistryPpipe(obj, d, net, ppipes_hook)
     fs.class_name = class_name
     fs.module_name = module_name
     return fs.from_serializable()
 
 
-class from_serializable_registry_ppipe(from_serializable_registry):
-    from_serializable = from_serializable()
+class FromSerializableRegistryPpipe(from_serializable_registry):
+    from_serializable = from_serializable_registry.from_serializable
     class_name = ''
     module_name = ''
 
     def __init__(self, obj, d, net, ppipes_hook):
         super().__init__(obj, d, net, ppipes_hook)
-
-    @from_serializable.register(class_name='Series', module_name='pandas.core.series')
-    def Series(self):
-        return super().Series()
-
-    @from_serializable.register(class_name='DataFrame', module_name='pandas.core.frame')
-    def DataFrame(self):
-        return super().DataFrame()
-
-    @from_serializable.register(module_name="networkx")
-    def networkx(self):
-        return super().networkx()
-
-    @from_serializable.register(class_name='function')
-    def function(self):
-        return super().function()
-
-    if GEOPANDAS_INSTALLED:
-        @from_serializable.register(class_name='GeoDataFrame')
-        def GeoDataFrame(self):
-            return super().GeoDataFrame()
-
-    if SHAPELY_INSTALLED:
-        @from_serializable.register(module_name='shapely')
-        def shapely(self):
-            return super().shapely()
 
     @from_serializable.register(class_name='pandapowerNet', module_name='pandapower.auxiliary')
     def pandapowerNet(self):
@@ -139,7 +112,8 @@ class from_serializable_registry_ppipe(from_serializable_registry):
         class_ = getattr(module, self.class_name)
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
-                self.obj = json.loads(self.obj, cls=PPJSONDecoder, object_hook=partial(ppipes_hook, net=self.net)) # backwards compatibility
+                self.obj = json.loads(self.obj, cls=PPJSONDecoder,
+                                      object_hook=partial(ppipes_hook, net=self.net))  # backwards compatibility
             return class_.from_dict(self.obj, self.net)
         if isclass(class_) and issubclass(class_, Component):
             return class_
