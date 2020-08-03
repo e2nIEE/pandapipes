@@ -11,8 +11,8 @@ import pandapower as pp
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network as create_fluid_network
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, from_serializable_registry, PPJSONDecoder
+from pandapower.io_utils import with_signature, JSONSerializableClass, \
+    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
 try:
     import pplog as logging
@@ -71,8 +71,8 @@ def ppipes_hook_serialization(obj, d, net):
     return fs.from_serializable()
 
 
-class FromSerializableRegistryPpipe(from_serializable_registry):
-    from_serializable = from_serializable_registry.from_serializable
+class FromSerializableRegistryPpipe(FromSerializableRegistry):
+    from_serializable = FromSerializableRegistry.from_serializable
     class_name = ''
     module_name = ''
 
