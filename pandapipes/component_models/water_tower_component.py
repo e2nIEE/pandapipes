@@ -48,8 +48,7 @@ class WaterTower(NodeElementComponent):
         density = net.fluid.get_density(water_towers.t_k.values)
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         junction = cls.get_connected_junction(net)
-        index_wt = junction_idx_lookups[junction]
-        press = density * (water_towers.height_m.values - node_pit[index_wt, HEIGHT]) * \
+        press = density * water_towers.height_m.values * \
                 GRAVITATION_CONSTANT / P_CONVERSION * water_towers.in_service.values
         juncts_p, press_sum, number = _sum_by_group(junction.values, press,
                                                     np.ones_like(press, dtype=np.int32))
