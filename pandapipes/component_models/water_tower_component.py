@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 
 class WaterTower(NodeElementComponent):
     """
-
+    The water tower is similiar to an external grid. Based on the water column height the relative pressure
+    is determined. This pressure is fixed, i.e. the capacity of the water tower is infinitem and its level is constant.
     """
 
     @classmethod

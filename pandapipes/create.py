@@ -312,7 +312,7 @@ def create_water_tower(net, junction, height_m, t_k=293.15, name=None, in_servic
     :type net: pandapipesNet
     :param junction: The junction to which the water tower is connected to
     :type junction: int
-    :param h_m: The height of the water tower
+    :param h_m: The height of the water column relative to its surrounding
     :type h_m: float
     :param t_k: The fixed temperature of the water in the water tower
     :type t_k: float, default 293.15

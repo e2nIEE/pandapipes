@@ -11,7 +11,7 @@ import pandapipes as pp
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
-def test_reservoir():
+def test_water_tower():
     """
 
         :rtype:
