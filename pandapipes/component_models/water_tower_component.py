@@ -8,7 +8,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models import NodeElementComponent
 from pandapipes.constants import GRAVITATION_CONSTANT, P_CONVERSION
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
-from pandapipes.idx_node import PINIT, LOAD, NODE_TYPE, P, EXT_GRID_OCCURENCE
+from pandapipes.idx_node import PINIT, LOAD, NODE_TYPE, P, EXT_GRID_OCCURENCE, HEIGHT
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
 
@@ -46,10 +46,11 @@ class WaterTower(NodeElementComponent):
         """
         water_towers = net[cls.table_name()]
         density = net.fluid.get_density(water_towers.t_k.values)
-        press = density * water_towers.height_m.values * GRAVITATION_CONSTANT / P_CONVERSION * \
-                water_towers.in_service.values
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         junction = cls.get_connected_junction(net)
+        index_wt = junction_idx_lookups[junction]
+        press = density * (water_towers.height_m.values - node_pit[index_wt, HEIGHT]) * \
+                GRAVITATION_CONSTANT / P_CONVERSION * water_towers.in_service.values
         juncts_p, press_sum, number = _sum_by_group(junction.values, press,
                                                     np.ones_like(press, dtype=np.int32))
         index_p = junction_idx_lookups[juncts_p]
@@ -84,7 +85,7 @@ class WaterTower(NodeElementComponent):
         node_pit = net["_pit"]["node"]
 
         junction = cls.get_connected_junction(net)
-        index_juncts =junction.values
+        index_juncts = junction.values
         junct_uni = np.array(list(set(index_juncts)))
         index_nodes = get_lookup(net, "node", "index")[node_name][junct_uni]
         eg_from_branches = np.isin(branch_pit[:, FROM_NODE], index_nodes)
