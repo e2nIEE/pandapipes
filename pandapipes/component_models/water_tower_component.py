@@ -8,7 +8,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models import NodeElementComponent
 from pandapipes.constants import GRAVITATION_CONSTANT, P_CONVERSION
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
-from pandapipes.idx_node import PINIT, LOAD, NODE_TYPE, P, EXT_GRID_OCCURENCE, HEIGHT
+from pandapipes.idx_node import PINIT, LOAD, NODE_TYPE, P, EXT_GRID_OCCURENCE
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
 
