@@ -55,7 +55,6 @@ def ppipes_hook(d, net=None):
                 del obj['_init']
             return obj  # backwards compatibility
         else:
-            # obj = {"_init": d, "_state": dict()}  # backwards compatibility
             obj = {key: val for key, val in d.items() if key not in ['_module', '_class']}
         return ppipes_hook_serialization(obj, d, net=net)
     else:
