@@ -11,6 +11,7 @@ import pandapower as pp
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network as create_fluid_network
 from pandapipes.pandapipes_net import pandapipesNet
+from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
@@ -41,33 +42,6 @@ def isinstance_partial(obj, cls):
     if isinstance(obj, pandapipesNet):
         return False
     return ppow_isinstance(obj, cls)
-
-
-def ppipes_hook(d, net=None):
-    if '_module' in d and '_class' in d:
-        if "_object" in d:
-            obj = d.pop('_object')
-        elif "_state" in d:
-            obj = d['_state']
-            if d['has_net']:
-                obj['net'] = 'net'
-            if '_init' in obj:
-                del obj['_init']
-            return obj  # backwards compatibility
-        else:
-            obj = {key: val for key, val in d.items() if key not in ['_module', '_class']}
-        return ppipes_hook_serialization(obj, d, net=net)
-    else:
-        return d
-
-
-def ppipes_hook_serialization(obj, d, net):
-    class_name = d.pop('_class')
-    module_name = d.pop('_module')
-    fs = FromSerializableRegistryPpipe(obj, d, net, ppipes_hook)
-    fs.class_name = class_name
-    fs.module_name = module_name
-    return fs.from_serializable()
 
 
 class FromSerializableRegistryPpipe(FromSerializableRegistry):
@@ -112,7 +86,9 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
-                                      object_hook=partial(ppipes_hook, net=self.net))  # backwards compatibility
+                                      object_hook=partial(pp_hook, net=self.net,
+                                                          registry_class=FromSerializableRegistryPpipe))
+                                                          # backwards compatibility
             return class_.from_dict(self.obj, self.net)
         if isclass(class_) and issubclass(class_, Component):
             return class_

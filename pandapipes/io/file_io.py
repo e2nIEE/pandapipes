@@ -18,7 +18,8 @@ except ImportError:
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
-from pandapipes.io.io_utils import ppipes_hook, isinstance_partial
+from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
+from pandapower.io_utils import pp_hook
 from pandapipes.create import create_empty_network
 from functools import partial
 
@@ -139,5 +140,6 @@ def from_json_string(json_string):
 
     """
     net = create_empty_network()
-    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(ppipes_hook, net=net))
+    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook, net=net,
+                                                                         registry_class=FromSerializableRegistryPpipe))
     return net
