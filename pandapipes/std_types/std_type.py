@@ -6,8 +6,8 @@ import os
 
 import numpy as np
 from pandapipes import pp_dir
-from pandapower.io_utils import JSONSerializableClass
 from pandapipes.std_types.std_type_toolbox import get_data, get_p_v_values, regression_function
+from pandapower.io_utils import JSONSerializableClass
 
 try:
     import pplog as logging
@@ -74,6 +74,11 @@ class PumpStdType(StdType):
         :rtype: PumpStdType
         """
         p_values, v_values, degree = get_p_v_values(path)
+        reg_par = regression_function(p_values, v_values, degree)
+        return cls(name, reg_par)
+
+    @classmethod
+    def from_list(cls, name, p_values, v_values, degree):
         reg_par = regression_function(p_values, v_values, degree)
         return cls(name, reg_par)
 
