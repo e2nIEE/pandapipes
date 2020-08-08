@@ -197,6 +197,7 @@ class BranchComponent(Component):
         mass_flow_dv = rho * branch_component_pit[:, AREA]
         branch_component_pit[:, JAC_DERIV_DV_NODE] = mass_flow_dv
         branch_component_pit[:, LOAD_VEC_NODES] = mass_flow_dv * v_init
+        return branch_component_pit
 
     @classmethod
     def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):

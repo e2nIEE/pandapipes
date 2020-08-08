@@ -13,7 +13,7 @@ from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
 
 try:
     import pplog as logging
@@ -914,6 +914,73 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     return index
 
+
+def create_pressure_control(net, from_junction, to_junction,
+                            controlled_junction, controlled_p_bar,
+                            name=None, index=None, in_service=True,
+                            type="pressure_control", **kwargs):
+    """
+    Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].
+
+    :param net: The net within this pump should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the pump will be connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the pump will be connected with
+    :type to_junction: int
+    :param p_bar: Pressure set point
+    :type p_bar: float
+    :param mdot_kg_per_s: Constant mass flow, which is transported through the pump
+    :type mdot_kg_per_s: float
+    :param t_k: Temperature set point
+    :type t_k: float
+    :param name: Name of the pump
+    :type name: str
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param type: The pump type denotes the values that are fixed: \n
+            - "p": The pressure is fixed.
+            - "t": The temperature is fixed and will not be solved. Please note that pandapipes cannot check for inconsistencies in the formulation of heat transfer equations yet.
+            - "pt": The pump shows both "p" and "t" behavior.
+    :type type: str, default "pt"
+    :param kwargs: Additional keyword arguments will be added as further columns to the net["circ_pump_mass"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    :Example:
+        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_kg_per_s=2, t_k=350, type="p")
+
+    """
+
+    add_new_component(net, PressureControlComponent)
+
+    for b in [from_junction, to_junction]:
+        if b not in net["junction"].index.values:
+            raise UserWarning("PressureControlComponent %s tries to attach to non-existing junction %s"
+                              % (name, b))
+
+    if index is None:
+        index = get_free_id(net["press_control"])
+    if index in net["press_control"].index:
+        raise UserWarning("A PressureControlComponent with the id %s already exists" % id)
+
+    # store dtypes
+    dtypes = net.press_control.dtypes
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "controlled_junction": controlled_junction, "controlled_p_bar": controlled_p_bar,
+         "in_service": bool(in_service), "type": type}
+    v.update(kwargs)
+    # and preserve dtypes
+    for col, val in v.items():
+        net.press_control.at[index, col] = val
+    _preserve_dtypes(net.press_control, dtypes)
+
+    return index
 
 def create_fluid_from_lib(net, name, overwrite=True):
     """
