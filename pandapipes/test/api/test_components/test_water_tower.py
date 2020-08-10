@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+from pandapipes.create_toolbox import transform_water_tower_into_ext_grid
 
 import numpy as np
 import pandas as pd
@@ -21,7 +22,7 @@ def test_water_tower():
     junction1 = pp.create_junction(net, pn_bar=1.0, tfluid_k=293.15, name="Connection to Water Tower")
     junction2 = pp.create_junction(net, pn_bar=1.0, tfluid_k=293.15, name="Junction 2")
 
-    pp.create_water_tower(net, junction1, height_m=30, name="Water Tower")
+    transform_water_tower_into_ext_grid(net, junction1, height_m=30)
 
     pp.create_pipe_from_parameters(net, from_junction=junction1, to_junction=junction2, length_km=10, diameter_m=0.075,
                                    name="Pipe 1")
@@ -30,8 +31,7 @@ def test_water_tower():
 
     pp.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                 mode="hydraulics", transient=False, nonlinear_method="automatic",
-                tol_p=1e-4,
-                tol_v=1e-4)
+                tol_p=1e-4, tol_v=1e-4)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_water_tower.csv"), sep=';')
 

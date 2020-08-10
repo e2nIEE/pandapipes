@@ -7,7 +7,7 @@ import pandas as pd
 from pandapower.auxiliary import get_free_id, _preserve_dtypes
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, WaterTower
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
 from pandapipes.properties import call_lib, add_fluid_to_net
@@ -301,56 +301,6 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
 
     # and preserve dtypes
     _preserve_dtypes(net.ext_grid, dtypes)
-    return index
-
-
-def create_water_tower(net, junction, height_m, t_k=293.15, name=None, in_service=True, index=None,
-                       type='water_tower', **kwargs):
-    """
-
-    :param net: The net that the water tower should be connected to
-    :type net: pandapipesNet
-    :param junction: The junction to which the water tower is connected to
-    :type junction: int
-    :param h_m: The height of the water column relative to its surrounding
-    :type h_m: float
-    :param t_k: The fixed temperature of the water in the water tower
-    :type t_k: float, default 293.15
-    :param name: A name tag for this water tower
-    :type name: str, default None
-    :param in_service: True for in service, False for out of service
-    :type in_service: bool, default True
-    :param index: Force a specified ID if it is available. If None, the index is set one higher than the \
-            highest already existing index is selected.
-    :return: index - The unique ID of the created element
-    :rtype: int
-
-    :Example: create_water_tower(net, junction1, h_m=3, name="Grid reservoir")
-
-    """
-    add_new_component(net, WaterTower)
-
-    if junction not in net["junction"].index.values:
-        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
-
-    if index is not None and index in net["water_tower"].index:
-        raise UserWarning("An water tower with index %s already exists" % index)
-
-    if index is None:
-        index = get_free_id(net["water_tower"])
-
-    # store dtypes
-    dtypes = net.water_tower.dtypes
-
-    cols = ["name", "junction", "height_m", "t_k", "in_service", "type"]
-    vals = [name, junction, height_m, t_k, bool(in_service), type]
-    all_values = {col: val for col, val in zip(cols, vals)}
-    all_values.update(**kwargs)
-    for col, val in all_values.items():
-        net.water_tower.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.water_tower, dtypes)
     return index
 
 

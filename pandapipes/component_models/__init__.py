@@ -12,4 +12,3 @@ from pandapipes.component_models.heat_exchanger_component import *
 from pandapipes.component_models.pump_component import *
 from pandapipes.component_models.circulation_pump_mass_component import *
 from pandapipes.component_models.circulation_pump_pressure_component import *
-from pandapipes.component_models.water_tower_component import *
