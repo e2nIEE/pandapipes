@@ -168,7 +168,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     if scale_size:
         # if scale_size -> calc size from distance between min and max geocoord
         sizes = get_collection_sizes(net, junction_size, ext_grid_size, sink_size, source_size,
-                                     valve_size, pump_size, heat_exchanger_size)
+                                     valve_size, pump_size, heat_exchanger_size, pressure_control_size)
         junction_size = sizes["junction"]
         ext_grid_size = sizes["ext_grid"]
         source_size = sizes["source"]
@@ -176,6 +176,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         valve_size = sizes["valve"]
         pump_size = sizes["pump"]
         heat_exchanger_size = sizes["heat_exchanger"]
+        pressure_control_size = sizes["pressure_control"]
 
     # create junction collections to plot
     if respect_in_service:
