@@ -3,16 +3,15 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-import matplotlib.pyplot as plt
-
-from pandapipes.plotting.plotting_toolbox import get_collection_sizes
-from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
-     create_valve_collection, create_source_collection, create_pressure_control_collection, \
-     create_heat_exchanger_collection, create_sink_collection, create_pump_collection
-from pandapipes.plotting.generic_geodata import create_generic_coordinates
-from pandapower.plotting import draw_collections
 from itertools import chain
 
+import matplotlib.pyplot as plt
+from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
+    create_valve_collection, create_source_collection, create_pressure_control_collection, \
+    create_heat_exchanger_collection, create_sink_collection, create_pump_collection
+from pandapipes.plotting.generic_geodata import create_generic_coordinates
+from pandapipes.plotting.plotting_toolbox import get_collection_sizes
+from pandapower.plotting import draw_collections
 
 try:
     import pplog as logging
@@ -25,9 +24,11 @@ logger = logging.getLogger(__name__)
 def simple_plot(net, respect_valves=False, respect_in_service=True,
                 pipe_width=2.0, junction_size=1.0, ext_grid_size=1.0,
                 plot_sinks=False, plot_sources=False, sink_size=1.0, source_size=1.0,
-                valve_size=1.0, pump_size=1.0, heat_exchanger_size=1.0, scale_size=True,
+                valve_size=1.0, pump_size=1.0, heat_exchanger_size=1.0,
+                pressure_control_size=1.0, scale_size=True,
                 junction_color="r", pipe_color='silver', ext_grid_color='orange',
                 valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
+                pressure_control_color='silver',
                 library="igraph", show_plot=True, ax=None, **kwargs):  # pragma: no cover
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
@@ -85,8 +86,9 @@ def simple_plot(net, respect_valves=False, respect_in_service=True,
     collections = create_simple_collections(net, respect_valves, respect_in_service, pipe_width, junction_size,
                                             ext_grid_size, plot_sinks, plot_sources, sink_size,
                                             source_size, valve_size, pump_size, heat_exchanger_size,
-                                            scale_size, junction_color, pipe_color, ext_grid_color,
-                                            valve_color, pump_color, heat_exchanger_color,
+                                            pressure_control_size, scale_size,
+                                            junction_color, pipe_color, ext_grid_color,
+                                            valve_color, pump_color, heat_exchanger_color, pressure_control_color,
                                             library, as_dict=False, **kwargs)
     ax = draw_collections(collections, ax=ax)
 
@@ -99,9 +101,9 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                               pipe_width=5.0, junction_size=1.0,
                               ext_grid_size=1.0, plot_sinks=False, plot_sources=False,
                               sink_size=1.0, source_size=1.0, valve_size=1.0, pump_size=1.0,
-                              heat_exchanger_size=1.0, scale_size=True, junction_color="r",
+                              heat_exchanger_size=1.0, pressure_control_size=1.0, scale_size=True, junction_color="r",
                               pipe_color='silver', ext_grid_color='orange', valve_color='silver',
-                              pump_color='silver', heat_exchanger_color='silver',
+                              pump_color='silver', heat_exchanger_color='silver', pressure_control_color='silver',
                               library="igraph", as_dict=True, **kwargs):
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
@@ -217,7 +219,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                                                     size=source_size, patch_edgecolor='silver', line_color='silver',
                                                     linewidths=pipe_width)
         else:
-            source_colls = create_source_collection(net, size=source_size, patch_edgecolor='silver', line_color='silver',
+            source_colls = create_source_collection(net, size=source_size, patch_edgecolor='silver',
+                                                    line_color='silver',
                                                     linewidths=pipe_width)
         collections["source"] = source_colls
 
@@ -249,8 +252,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     if 'circ_pump_mass' in net:
         if respect_in_service:
             circ_pump_colls = create_pump_collection(net, pumps=net.circ_pump_mass[net.circ_pump_mass.in_service].index,
-                                                table_name='circ_pump_mass',
-                                                size=pump_size, linewidths=pipe_width, color=pump_color)
+                                                     table_name='circ_pump_mass',
+                                                     size=pump_size, linewidths=pipe_width, color=pump_color)
         else:
             circ_pump_colls = create_pump_collection(net, table_name='circ_pump_mass',
                                                      size=pump_size, linewidths=pipe_width, color=pump_color)
@@ -259,7 +262,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     if 'circ_pump_pressure' in net:
         if respect_in_service:
             circ_pump_colls = create_pump_collection(net, pumps=net.circ_pump_pressure[
-                                                     net.circ_pump_pressure.in_service].index,
+                net.circ_pump_pressure.in_service].index,
                                                      table_name='circ_pump_pressure',
                                                      size=pump_size, linewidths=pipe_width, color=pump_color)
             collections["circ_pump_pressure"] = circ_pump_colls
@@ -281,11 +284,11 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     if 'press_control' in net:
         if respect_in_service:
             pc = create_pressure_control_collection(net, pcs=net.press_control[net.press_control.in_service].index,
-                                                   size=heat_exchanger_size, linewidths=pipe_width,
-                                                   color=heat_exchanger_color)
+                                                    size=pressure_control_size, linewidths=pipe_width,
+                                                    color=pressure_control_color)
         else:
-            pc = create_pressure_control_collection(net, size=heat_exchanger_size, linewidths=pipe_width,
-                                                   color=heat_exchanger_color)
+            pc = create_pressure_control_collection(net, size=pressure_control_size, linewidths=pipe_width,
+                                                    color=pressure_control_color)
         collections["press_control"] = pc
 
     if 'additional_collections' in kwargs:
