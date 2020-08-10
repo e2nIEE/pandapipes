@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from pandapipes.plotting.plotting_toolbox import get_collection_sizes
 from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
-     create_valve_collection, create_source_collection, \
+     create_valve_collection, create_source_collection, create_pressure_control_collection, \
      create_heat_exchanger_collection, create_sink_collection, create_pump_collection
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
 from pandapower.plotting import draw_collections
@@ -277,6 +277,16 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
             hxc = create_heat_exchanger_collection(net, size=heat_exchanger_size, linewidths=pipe_width,
                                                    color=heat_exchanger_color)
         collections["heat_exchanger"] = hxc
+
+    if 'press_control' in net:
+        if respect_in_service:
+            pc = create_pressure_control_collection(net, pcs=net.press_control[net.press_control.in_service].index,
+                                                   size=heat_exchanger_size, linewidths=pipe_width,
+                                                   color=heat_exchanger_color)
+        else:
+            pc = create_pressure_control_collection(net, size=heat_exchanger_size, linewidths=pipe_width,
+                                                   color=heat_exchanger_color)
+        collections["press_control"] = pc
 
     if 'additional_collections' in kwargs:
         collections["additional"] = list()

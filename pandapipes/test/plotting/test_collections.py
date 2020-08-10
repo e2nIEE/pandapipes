@@ -24,6 +24,7 @@ def test_collection_lengths():
     j6 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(6, 0))
     j7 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(8, 0))
     j8 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(10, 0))
+    j9 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(12, 0))
 
     pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=293.15)
     pandapipes.create_sink(net, j5, mdot_kg_per_s=0.5)
@@ -43,6 +44,7 @@ def test_collection_lengths():
                                            geodata=[(4, -2), (6, -2), (6, 0)])
     pandapipes.create_heat_exchanger(net, j6, j7, d, qext_w=20000)
     pandapipes.create_pump_from_parameters(net, j7, j8, 'P1')
+    pandapipes.create_pressure_control(net, j8, j9, j9, 10.)
 
     pipe_coll_direct = plot.create_pipe_collection(net, use_junction_geodata=True)
     pipe_coll_real = plot.create_pipe_collection(net)
@@ -69,6 +71,11 @@ def test_collection_lengths():
     hex_coll_patches, hex_coll_lines = plot.create_heat_exchanger_collection(net)
     assert len(hex_coll_patches.get_paths()) == 2 * len(net.heat_exchanger)
     assert len(hex_coll_lines.get_paths()) == 2 * len(net.heat_exchanger)
+
+    pc_coll_patches, pc_coll_lines = plot.create_pressure_control_collection(net)
+    assert len(pc_coll_patches.get_paths()) == len(net.press_control)
+    assert len(pc_coll_lines.get_paths()) == 4 * len(net.press_control)
+
 
 
 def test_collections2(net_plotting):
@@ -102,6 +109,10 @@ def test_collections2(net_plotting):
     pump_coll_patches, pump_coll_lines = plot.create_pump_collection(net)
     assert len(pump_coll_patches.get_paths()) == len(net.pump)
     assert len(pump_coll_lines.get_paths()) == 4 * len(net.pump)
+
+    pc_coll_patches, pc_coll_lines = plot.create_pressure_control_collection(net)
+    assert len(pc_coll_patches.get_paths()) == len(net.press_control)
+    assert len(pc_coll_lines.get_paths()) == 4 * len(net.press_control)
 
     sink_colls = plot.create_sink_collection(net)
     assert len(sink_colls) == 2
@@ -141,6 +152,8 @@ def test_collections2(net_plotting):
     assert hx2 is None
     pu2 = plot.create_pump_collection(net, [])
     assert pu2 is None
+    pc2 = plot.create_pressure_control_collection(net, [])
+    assert pc2 is None
 
 
 if __name__ == '__main__':

@@ -100,7 +100,17 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         placement_table, pc_pit, res_table = super().extract_results(net, options, node_name)
-        res_table['deltap_bar'].values[placement_table] = pc_pit[:, PL]
+
+        node_pit = net["_active_pit"]["node"]
+        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
+        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
+        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
+            net[cls.table_name()]["from_junction"].values[placement_table]]]
+        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
+            net[cls.table_name()]["to_junction"].values[placement_table]]]
+
+        res_table['deltap_bar'].values[placement_table] = node_pit[to_junction_nodes , PINIT] - \
+                                                          node_pit[from_junction_nodes, PINIT]
 
     @classmethod
     def get_component_input(cls):
