@@ -35,7 +35,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     len_n = len(node_pit)
     branch_matrix_indices = np.arange(len_b) + len_n
     fn_col, tn_col, ntyp_col, slack_type, pc_type, num_der = (FROM_NODE, TO_NODE, NODE_TYPE, P, PC, 3) \
-        if not heat_mode else (FROM_NODE_T, TO_NODE_T, NODE_TYPE_T, T, 2)
+        if not heat_mode else (FROM_NODE_T, TO_NODE_T, NODE_TYPE_T, T, PC, 2)
     pc_nodes = np.where(node_pit[:, ntyp_col] == pc_type)[0]
     fn = branch_pit[:, fn_col].astype(np.int32)
     tn = branch_pit[:, tn_col].astype(np.int32)
