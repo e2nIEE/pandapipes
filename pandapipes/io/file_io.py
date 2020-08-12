@@ -16,9 +16,12 @@ except ImportError:
     GEOPANDAS_INSTALLED = False
 
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.io_utils import PPJSONEncoder, PPJSONDecoder, to_dict_with_coord_transform, \
-    get_raw_data_from_pickle, transform_net_with_df_and_geo
-from pandapipes.io.io_utils import ppipes_hook, isinstance_partial
+from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
+    get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
+from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
+from pandapower.io_utils import pp_hook
+from pandapipes.create import create_empty_network
+from functools import partial
 
 
 def to_pickle(net, filename):
@@ -111,13 +114,13 @@ def from_json(filename):
 
     """
     if hasattr(filename, 'read'):
-        net = json.load(filename, cls=PPJSONDecoder, object_hook=ppipes_hook)
+        json_string = filename.read()
     elif not os.path.isfile(filename):
         raise UserWarning("File {} does not exist!!".format(filename))
     else:
         with open(filename) as fp:
-            net = json.load(fp, cls=PPJSONDecoder, object_hook=ppipes_hook)
-    return net
+            json_string = fp.read()
+    return from_json_string(json_string)
 
 
 def from_json_string(json_string):
@@ -136,5 +139,7 @@ def from_json_string(json_string):
         >>> net = pandapipes.from_json_string(json_str)
 
     """
-    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=ppipes_hook)
+    net = create_empty_network()
+    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook, net=net,
+                                                                         registry_class=FromSerializableRegistryPpipe))
     return net

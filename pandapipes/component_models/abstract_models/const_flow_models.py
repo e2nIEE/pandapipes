@@ -81,7 +81,7 @@ class ConstFlow(NodeElementComponent):
 
     @classmethod
     def get_result_table(cls, net):
-        """
+        """Get results.
 
         :param net: The pandapipes network
         :type net: pandapipesNet

@@ -17,6 +17,7 @@ from scipy.sparse.linalg import spsolve
 from pandapipes.component_models import Junction
 from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
     BranchComponent, BranchWInternalsComponent
+from pandapower.auxiliary import ppException
 
 try:
     import pplog as logging
@@ -355,3 +356,10 @@ def set_damping_factor(net, niter, error):
         set_net_option(net, "alpha", current_alpha * 10 if current_alpha <= 0.1 else 1.0)
 
     return error_x0_increased, error_x1_increased
+
+
+class PipeflowNotConverged(ppException):
+    """
+    Exception being raised in case pipeflow did not converge.
+    """
+    pass

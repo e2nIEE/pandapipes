@@ -118,18 +118,18 @@ def test_inservice_gas(create_test_net):
 
     pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse")
 
-    assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service]))
-    assert np.all(np.isnan(net.res_valve.loc[~net.valve.opened]))
-    assert np.all(np.isnan(net.res_junction.loc[~net.junction.in_service]))
+    assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service, :].values))
+    assert np.all(np.isnan(net.res_valve.loc[~net.valve.opened, :].values))
+    assert np.all(np.isnan(net.res_junction.loc[~net.junction.in_service, :].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
                 | ~net.sink.in_service.values
-    assert np.all(np.isnan(net.res_sink.loc[oos_sinks]))
+    assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not np.any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
     assert not np.any(np.isnan(net.res_valve.v_mean_m_per_s.loc[net.valve.opened].values))
     assert not np.any(np.isnan(net.res_junction.p_bar.loc[net.junction.in_service].values))
-    assert not np.any(np.isnan(net.res_sink.loc[~oos_sinks]))
+    assert not np.any(np.isnan(net.res_sink.loc[~oos_sinks, :].values))
 
     assert np.allclose(net.res_ext_grid.mdot_kg_per_s.sum(), -net.res_sink.mdot_kg_per_s.sum(),
                        rtol=1e-10, atol=0)
@@ -149,18 +149,18 @@ def test_inservice_water(create_test_net):
 
     pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse")
 
-    assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service]))
-    assert np.all(np.isnan(net.res_valve.loc[~net.valve.opened]))
-    assert np.all(np.isnan(net.res_junction.loc[~net.junction.in_service]))
+    assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service, :].values))
+    assert np.all(np.isnan(net.res_valve.loc[~net.valve.opened, :].values))
+    assert np.all(np.isnan(net.res_junction.loc[~net.junction.in_service, :].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
                 | ~net.sink.in_service.values
-    assert np.all(np.isnan(net.res_sink.loc[oos_sinks]))
+    assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
     assert not any(np.isnan(net.res_valve.v_mean_m_per_s.loc[net.valve.opened].values))
     assert not any(np.isnan(net.res_junction.p_bar.loc[net.junction.in_service].values))
-    assert not np.any(np.isnan(net.res_sink.loc[~oos_sinks]))
+    assert not np.any(np.isnan(net.res_sink.loc[~oos_sinks, :].values))
 
     assert np.allclose(net.res_ext_grid.mdot_kg_per_s.sum(), -net.res_sink.mdot_kg_per_s.sum(),
                        rtol=1e-10, atol=0)
@@ -183,13 +183,14 @@ def test_connectivity_hydraulic(create_test_net):
 
     pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse")
 
-    assert np.all(np.isnan(net.res_junction.loc[[2, 5, 6], :]))
-    assert np.all(np.isnan(net.res_pipe.loc[[1, 2, 3], :]))
-    assert not np.any(np.isnan(net.res_junction.loc[[0, 1, 3, 4], :]))
+    assert np.all(np.isnan(net.res_junction.loc[[2, 5, 6], :].values))
+    assert np.all(np.isnan(net.res_pipe.loc[[1, 2, 3], :].values))
+    assert not np.any(np.isnan(net.res_junction.loc[[0, 1, 3, 4], :].values))
     assert not np.any(np.isnan(net.res_pipe.loc[[0, 4],
-                                                ["v_mean_m_per_s", "p_from_bar", "p_to_bar"]]))
-    assert not np.any(np.isnan(net.res_sink.loc[[0, 2], "mdot_kg_per_s"]))
-    assert np.all(np.isnan(net.res_sink.loc[[1, 3, 4], "mdot_kg_per_s"]))
+                                                ["v_mean_m_per_s", "p_from_bar",
+                                                 "p_to_bar"]].values))
+    assert not np.any(np.isnan(net.res_sink.loc[[0, 2], "mdot_kg_per_s"].values))
+    assert np.all(np.isnan(net.res_sink.loc[[1, 3, 4], "mdot_kg_per_s"].values))
 
     assert np.allclose(net.res_ext_grid.mdot_kg_per_s.sum(), -net.res_sink.mdot_kg_per_s.sum(),
                        rtol=1e-10, atol=0)

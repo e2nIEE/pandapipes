@@ -688,9 +688,9 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     return index
 
 
-def create_pump_from_parameters(net, from_junction, to_junction, pump_name, pressure_list=None,
-                                flowrate_list=None, regression_degree=None,
-                                regression_parameters=None, name=None, index=None, in_service=True,
+def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name, pressure_list=None,
+                                flowrate_list=None, reg_polynomial_degree=None,
+                                poly_coefficents=None, name=None, index=None, in_service=True,
                                 type="pump", **kwargs):
     """
     Adds one pump in table net["pump"].
@@ -701,9 +701,9 @@ def create_pump_from_parameters(net, from_junction, to_junction, pump_name, pres
     :type from_junction: int
     :param to_junction: ID of the junction on the other side which the pump will be connected with
     :type to_junction: int
-    :param pump_name: Set a name for your pump. You will find your definied pump under std_type in\
-            your net. The name will be given under std_type in net.pump.
-    :type pump_name: string
+    :param new_std_type_name: Set a name for your pump. You will find your definied pump under
+            std_type in your net. The name will be given under std_type in net.pump.
+    :type new_std_type_name: string
     :param pressure_list: This list contains measured pressure supporting points required \
             to define and determine the dependencies of the pump between pressure and volume flow. \
             The pressure must be given in [bar]. Needs to be defined only if no pump of standard \
@@ -714,16 +714,18 @@ def create_pump_from_parameters(net, from_junction, to_junction, pump_name, pres
             defined only if no pump of standard type is selected. ATTENTION: The flowrate values \
             are given in :math:`[\\frac{m^3}{h}]`.
     :type flowrate_list: list, default None
-    :param regression_degree: The regression degree must be defined if pressure and flowrate list \
-            are given. It describes the degree of the regression function polynomial describing \
-            the behaviour of the pump.
-    :type regression_degree: int, default None
-    :param regression_parameters: Alternatviely to taking measurement values \
-            also the already calculated regression parameters can be given. It describes the \
-            dependency between pressure and flowrate. ATTENTION: The determined parameteres must \
-            be retrieved by setting flowrate given in :math:`[\\frac{m^3}{h}]` and pressure given \
-            in bar in context.
-    :type regression_parameters: list, default None
+    :param reg_polynomial_degree: The degree of the polynomial fit must be defined if pressure \
+            and flowrate list are given. The fit describes the behaviour of the pump (delta P / \
+            volumen flow curve).
+    :type reg_polynomial_degree: int, default None
+    :param poly_coefficents: Alternatviely to taking measurement values and degree of polynomial
+            fit, previously calculated regression parameters can also be given directly. It
+            describes the dependency between pressure and flowrate.\
+            ATTENTION: The determined parameteres must be retrieved by setting flowrate given \
+            in :math:`[\\frac{m^3}{h}]` and pressure given in bar in context. The first entry in \
+            the list (c[0]) is for the polynom of highest degree (c[0]*x**n), the last one for
+            c*x**0.
+    :type poly_coefficents: list, default None
     :param name: A name tag for this pump
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -741,8 +743,8 @@ def create_pump_from_parameters(net, from_junction, to_junction, pump_name, pres
 
     EXAMPLE:
         >>> create_pump_from_parameters(net, 0, 1, 'pump1', pressure_list=[0,1,2,3], \
-                                        flowrate_list=[0,1,2,3], regression_degree=1)
-        >>> create_pump_from_parameters(net, 0, 1, 'pump2', regression_parameters=[1,0])
+                                        flowrate_list=[0,1,2,3], reg_polynomial_degree=1)
+        >>> create_pump_from_parameters(net, 0, 1, 'pump2', poly_coefficents=[1,0])
 
     """
     add_new_component(net, Pump)
@@ -759,16 +761,16 @@ def create_pump_from_parameters(net, from_junction, to_junction, pump_name, pres
     # store dtypes
     dtypes = net.pump.dtypes
 
-    if pressure_list is not None and flowrate_list is not None and regression_degree is not None:
-        reg_par = regression_function(pressure_list, flowrate_list, regression_degree)
-        pump = PumpStdType(pump_name, reg_par)
-        add_pump_std_type(net, pump_name, pump)
-    elif regression_parameters is not None:
-        pump = PumpStdType(pump_name, regression_parameters)
-        add_pump_std_type(net, pump_name, pump)
+    if pressure_list is not None and flowrate_list is not None and reg_polynomial_degree is not None:
+        reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
+        pump = PumpStdType(new_std_type_name, reg_par)
+        add_pump_std_type(net, new_std_type_name, pump)
+    elif poly_coefficents is not None:
+        pump = PumpStdType(new_std_type_name, poly_coefficents)
+        add_pump_std_type(net, new_std_type_name, pump)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": pump_name, "in_service": bool(in_service), "type": type}
+         "std_type": new_std_type_name, "in_service": bool(in_service), "type": type}
     v.update(kwargs)
     # and preserve dtypes
     for col, val in v.items():

@@ -129,10 +129,11 @@ pipe sections.
 Friction models
 ^^^^^^^^^^^^^^^
 
-Two friction models are used to calculate the velocity dependent friction factor:
+Three friction models are used to calculate the velocity dependent friction factor:
 
 - Nikuradse
 - Prandtl-Colebrook
+- Swamee-Jain
 
 Nikuradse is chosen by default. In this case, the friction factor is calculated by:
 
@@ -157,8 +158,18 @@ If Prandtl-Colebrook is selected, the friction factor is calculated iteratively 
    \end{align*}
 
 Equations for pressure losses due to friction were taken from :cite:`Eberhard1990` and
-:cite:`Cerbe.2008`.
+:cite:`Cerbe2008`.
 
+The equation according to Swamee-Jain :cite:`Swamee1976` is an approximation of the calculation method according
+to Prandtl-Colebrook. It is an explicit formula for the friction factor of the transition
+zone of turbulent flows in pipes and is defined as follows:
+
+.. math::
+   :nowrap:
+
+   \begin{align*}
+    \lambda &= \frac{0.25}{(\log(\frac{k}{3.7 \cdot d} + \frac{5.74}{Re^{0.9}}))^2}\\
+   \end{align*}
 
 
 Heat transfer mode
