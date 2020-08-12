@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[0.1.3] -
+-------------------------------
+- [ADDED] added the pipeflow option "reuse_internal_data" which allows to reuse the system matrix from one pipeflow to the next in combination with "only_update_hydraulic_matrix" - useful for timeseries calculations
+
 [0.1.2] - 2020-06-05
 -------------------------------
 - [ADDED] allow pipeflow for empty net (with no results)
