@@ -23,3 +23,13 @@ This is used to read the data from a DataSource and write it to a network.
 .. _ConstControl:
 .. autoclass:: pandapower.control.controller.const_control.ConstControl
     :members:
+
+Leakage Controller
+==================
+
+With the help of the Leakage Controller it is possible to define
+leaks with a given outlet area on valves, pipes or heat exchangers.
+
+.. _LeakageController:
+.. autoclass:: pandapipes.control.controller.leakage_controller.LeakageController
+    :members:

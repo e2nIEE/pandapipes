@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class LeakageController(Controller):
     """
-    Leakage Controller
+    Controller to consider a leak at pipes, valves or heat exchangers.
 
     :param net: The net in which the controller resides
     :type net: pandapipesNet
@@ -30,9 +30,16 @@ class LeakageController(Controller):
     :type in_service: bool, default True
     :param recycle: Re-use of internal-data
     :type recycle: bool, default True
-    :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and with
-    the same matching parameters (e.g. at same element) should be dropped
+    :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and with the same matching parameters (e.g. at same element) should be dropped
     :type drop_same_existing_ctrl: bool, default False
+    :param kwargs: Parameters for pipeflow
+    :type kwargs: dict
+
+    :Example:
+        >>> kwargs = {'stop_condition': 'tol', 'iter': 100, 'tol_p': 1e-7, 'tol_v': 1e-7, 'friction_model': 'colebrook',
+        >>>           'mode': 'hydraulics', 'only_update_hydraulic_matrix': False}
+        >>> LeakageController(net, element='pipe', element_index=0, output_area_m2=1, **kwargs)
+        >>> run_control(net)
 
     """
 
@@ -78,7 +85,8 @@ class LeakageController(Controller):
 
     def initialize_control(self):
         """
-
+        First calculation of a pipeflow without leakage. \n
+        Then define the initial values and create the sinks representing the leaks.
         """
         pp.pipeflow(self.net, self.kwargs)
 
@@ -92,7 +100,7 @@ class LeakageController(Controller):
 
     def init_values(self, index):
         """
-
+        Initialize the flow velocity and density for the individual control steps.
         """
         self.v_m_per_s.append(self.net["res_"+self.element].loc[index, "v_mean_m_per_s"])
 
@@ -102,7 +110,8 @@ class LeakageController(Controller):
 
     def is_converged(self):
         """
-        Convergence Condition: Difference between mass flows smaller than 1e-5 = 0.00001
+        Convergence Condition: Difference between mass flows smaller than 1e-5 = 0.00001 \n
+        Delete the sinks that represented the leaks.
         """
         if not self.mass_flow_kg_per_s:
             return False
@@ -118,7 +127,7 @@ class LeakageController(Controller):
 
     def control_step(self):
         """
-
+        Calculate the new mass flow for each leak using the density, flow velocity and outlet area.
         """
         pp.pipeflow(self.net, self.kwargs)
         self.mass_flow_kg_per_s = []
