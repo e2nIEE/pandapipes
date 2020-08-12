@@ -41,7 +41,12 @@ def prepare_run_ctrl(net, ctrl_variables):
     :rtype: dict
     """
     if ctrl_variables is None:
-        ctrl_variables  = prepare_run_control_pandapower(net, None)
+        # ctrl_variables = prepare_run_control_pandapower(net, None)
+        # does not work like this with LeakageController
+        controller_order, initial_powerflow, run = prepare_run_control_pandapower(net, None)
+
+        ctrl_variables = {"controller_order": controller_order, "initial_powerflow": initial_powerflow, "run": run}
+
         ctrl_variables["run"] = ppipe.pipeflow
 
     ctrl_variables["errors"] = (PipeflowNotConverged)
