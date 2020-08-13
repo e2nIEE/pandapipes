@@ -91,4 +91,4 @@ def test_one_heat_exchanger_one_leakage():
 
 
 if __name__ == "__main__":
-    pytest.main([r'pandapipes/test/pipflow_internals/test_leakage_controller.py'])
+    pytest.main([r'pandapipes/test/pipeflow_internals/test_leakage_controller.py'])
