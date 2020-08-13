@@ -4,16 +4,17 @@
 
 import numpy as np
 import pandas as pd
+from pandapower.auxiliary import get_free_id, _preserve_dtypes
+
+from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
 from pandapipes.properties import call_lib, add_fluid_to_net
-from pandapower.auxiliary import get_free_id, _preserve_dtypes
 from pandapipes.properties.fluids import Fluid
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
-from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
 
 try:
     import pplog as logging
@@ -825,8 +826,8 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
     for b in [from_junction, to_junction]:
         if b not in net["junction"].index.values:
             raise UserWarning(
-                    "CirculationPumpPressure %s tries to attach to non-existing junction %s"
-                    % (name, b))
+                "CirculationPumpPressure %s tries to attach to non-existing junction %s"
+                % (name, b))
 
     if index is None:
         index = get_free_id(net["circ_pump_pressure"])
