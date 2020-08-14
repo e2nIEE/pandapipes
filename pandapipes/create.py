@@ -380,7 +380,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the pipe will be connected to
     :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the pipe will be connected to
+    :param to_junction: ID of the junction on the other side to which the pipe will be connected to
     :type to_junction: int
     :param std_type: Name of standard type
     :type std_type: str
@@ -477,21 +477,25 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the pipe will be connected with
     :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the pipe will be connected with
+    :param to_junction: ID of the junction on the other side to which the pipe will be connected to
     :type to_junction: int
     :param length_km: Length of the pipe in [km]
     :type length_km: float
-    :param diameter_m: The pipe diameter im [m]
+    :param diameter_m: The pipe diameter in [m]
     :type diameter_m: float
     :param k_mm: Pipe roughness in [mm]
     :type k_mm: float, default 1
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float, default 0
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
+    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :type alpha_w_per_m2k: float, default 0
+    :param qext_w: external heat feed-in to the pipe in [W]
+    :type qext_w: float, default 0
+    :param text_k: Ambient temperature of pipe in [K]
+    :type text_k: float, default 293
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -505,10 +509,6 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :type in_service: bool, default True
     :param type: An identifier for special types of pipes (e.g. below or above ground)
     :type type: str, default "pipe"
-    :param qext_w: external heat feed-in to the pipe in [W]
-    :type qext_w: float, default 0
-    :param text_k: Ambient temperature of pipe in [K]
-    :type text_k: float, default 293
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["pipe"] table
     :return: index - The unique ID of the created element
