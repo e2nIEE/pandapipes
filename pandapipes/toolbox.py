@@ -10,6 +10,7 @@ from pandapipes.component_models.abstract_models.node_element_models import Node
 from pandapipes.pandapipes_net import pandapipesNet, logger
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
+from pandapipes.create import create_junction
 
 try:
     import pplog as logging
@@ -398,6 +399,58 @@ def drop_pipes(net, pipes):
         net["res_pipe"].drop(res_pipes, inplace=True)
     logger.info("dropped %d pipes" % len(pipes))
 
+
+def insert_gap_at_junction(net, junction_idx, behind=True, offset_x=0, offset_y=0):
+    """
+    Splits a junctions and inserts a by inserting a second junction at the same position.
+
+    Purpose: prepare to insert a branch component at the given junction later
+    At the same position as the given junction ('old junction'), a new junction is added to the grid
+    - if given, with a little offset in the coordinates. All attributes are copied.
+    From a pipe-perspective, the new junction can be inserted before or behind the old
+    junction. If 'behind=True', the from_node is changed to the new junction for branch elements
+    that had the old junction set as from_node. Respectively, if 'behind=False', the to_junction is
+    replaced.
+    Node elements remain with the old junction.
+
+    :param net: pandapipes net that contains the junction that should be splitted
+    :type net: pandapipesNet
+    :param junction_idx: index of the junction at which the element should be inserted
+    :type junction_idx: int
+    :param behind: if True, the from_junction of the connected branch elements is replaced by\
+            the new junction; if False, the to_junction
+    :type behind: Boolean
+    :param offset_x: offset for x-coordinate of the new junction
+    :type offset_x: float
+    :param offset_y: offset for y-coordinate of the new junction
+    :type offset_y: float
+    :return: id of newly created junction
+    :rtype: int
+    """
+
+    oj = net.junction.loc[junction_idx]   # old junction
+    if net.junction_geodata:
+        x, y = net.junction_geodata.loc[junction_idx]
+        x += offset_x
+        y += offset_y
+    else:
+        x = y = None
+    nj = create_junction(net, oj.pn_bar, oj.tfluid_k, oj.height_m, oj.name+"_aux_split",
+                         geodata=(x, y))
+
+    # adjust connected branch elements:
+    if behind:
+        change_junction = "from_junction"
+    else:
+        change_junction = "to_junction"
+
+    branch_comp = [comp.table_name() for comp in net.component_list
+                   if issubclass(comp, BranchComponent)]
+
+    for bc in branch_comp:
+        net[bc][change_junction].loc[net[bc][change_junction] == oj] = nj
+
+    return nj
 
 # TODO: change to pumps??
 # def drop_trafos(net, trafos, table="trafo"):
