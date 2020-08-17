@@ -429,13 +429,13 @@ def insert_gap_at_junction(net, junction_idx, behind=True, offset_x=0, offset_y=
     """
 
     oj = net.junction.loc[junction_idx]   # old junction
-    if net.junction_geodata:
+    if net.junction_geodata is not None:
         x, y = net.junction_geodata.loc[junction_idx]
         x += offset_x
         y += offset_y
     else:
         x = y = None
-    nj = create_junction(net, oj.pn_bar, oj.tfluid_k, oj.height_m, oj.name+"_aux_split",
+    nj = create_junction(net, oj.pn_bar, oj.tfluid_k, oj.height_m, str(oj.name)+"_aux_split",
                          geodata=(x, y))
 
     # adjust connected branch elements:
@@ -448,7 +448,7 @@ def insert_gap_at_junction(net, junction_idx, behind=True, offset_x=0, offset_y=
                    if issubclass(comp, BranchComponent)]
 
     for bc in branch_comp:
-        net[bc][change_junction].loc[net[bc][change_junction] == oj] = nj
+        net[bc][change_junction].loc[net[bc][change_junction] == oj.name] = nj
 
     return nj
 
