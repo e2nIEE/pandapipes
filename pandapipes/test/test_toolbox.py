@@ -201,6 +201,39 @@ def test_create_continuous_index(create_net_changed_indices):
     for comp in previous_junctions.keys():
         assert np.all(net[comp].index == np.arange(len(net[comp])))
 
+def test_insert_gap_at_junction():
+    # behind -> change from_junction
+    net = nw.gas_strand_2pipes()
+    nj = pandapipes.insert_gap_at_junction(net, 1, behind=True)
+
+    assert net.pipe.loc[1, "from_junction"] == nj
+    assert net.pipe.loc[0, "to_junction"] == 1
+
+    # not behind = before -> change to_junction
+    net = nw.gas_strand_2pipes()
+    nj = pandapipes.insert_gap_at_junction(net, 1, behind=False)
+
+    assert net.pipe.loc[1, "from_junction"] == 1
+    assert net.pipe.loc[0, "to_junction"] == nj
+
+    # change other branch elements as well but not node elements
+    net = nw.gas_meshed_pumps()
+    sink_junctions = net.sink.junction.values
+    nj = pandapipes.insert_gap_at_junction(net, 1, behind=True)
+
+    assert np.all(net.sink.junction == sink_junctions)
+    assert net.pump.loc[1, "from_junction"] == nj
+
+    # offset coordinates for new junction but do not touch old junction
+    net = nw.gas_meshed_delta()
+    x_1 = net.junction_geodata.loc[1, 'x']
+    y_1 = net.junction_geodata.loc[1, 'y']
+    nj = pandapipes.insert_gap_at_junction(net, 1, offset_x=3, offset_y=-5)
+    assert net.junction_geodata.loc[nj, 'x'] == x_1 + 3
+    assert net.junction_geodata.loc[nj, 'y'] == y_1 - 5
+    assert net.junction_geodata.loc[1, 'x'] == x_1
+    assert net.junction_geodata.loc[1, 'y'] == y_1
+
 
 if __name__ == '__main__':
     n = pytest.main(["test_toolbox.py"])
