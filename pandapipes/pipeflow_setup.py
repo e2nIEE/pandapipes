@@ -25,6 +25,7 @@ default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1
                    "nonlinear_method": "constant", "p_scale": 1, "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
                    "only_update_hydraulic_matrix": False,
+                   "reuse_internal_data": False,
                    "quit_on_inconsistency_connectivity": False}
 
 
@@ -286,6 +287,8 @@ def init_options(net, local_parameters):
     params.update(local_parameters["kwargs"])
     net["_options"].update(params)
     net["_options"]["fluid"] = get_fluid(net).name
+    if not net["_options"]["only_update_hydraulic_matrix"]:
+        net["_options"]["reuse_internal_data"] = False
 
 
 def create_internal_results(net):

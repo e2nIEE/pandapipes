@@ -1,0 +1,11 @@
+# source: Hydrogen Analysis Resource Center /
+#        NIST Reference Fluid Thermodynamic and Transport Properties Database (REFPROP): Version 8.0
+#        http://www.nist.gov/srd/nist23.htm
+# calulated as der_comp = (K(100 bar, temperature)-1)/100 bar
+# temperature in Kelvin, derivative of compressibility factor Z in 1/bar
+# 273.15 0.000637
+# 298.15 0.000601
+# 323.15 0.000567
+# 293.15 0.0006082 (linear interpolation)
+# we have to provide a single value: (values at 293.15 K, 1 bar)
+0.0006082

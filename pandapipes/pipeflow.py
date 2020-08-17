@@ -114,7 +114,8 @@ def hydraulics(net):
     # ---------------------------------------------------------------------------------------------
     niter = 0
     create_internal_results(net)
-    net["_internal_data"] = dict()
+    if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
+        net["_internal_data"] = dict()
 
     # This branch is used to stop the solver after a specified error tolerance is reached
     error_v, error_p, residual_norm = [], [], None
@@ -172,7 +173,8 @@ def hydraulics(net):
         logger.info("tol_v: %s" % get_net_option(net, "tol_v"))
         net['converged'] = True
 
-    net.pop("_internal_data", None)
+    if not get_net_option(net, "reuse_internal_data"):
+        net.pop("_internal_data", None)
     set_user_pf_options(net, hyd_flag=True)
 
     return niter

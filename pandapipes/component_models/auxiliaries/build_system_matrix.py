@@ -29,7 +29,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     """
     update_option = get_net_option(net, "only_update_hydraulic_matrix")
     update_only = update_option and "hydraulic_data_sorting" in net["_internal_data"] \
-                  and "hydraulic_matrix" in net["_internal_data"]
+        and "hydraulic_matrix" in net["_internal_data"]
 
     len_b = len(branch_pit)
     len_n = len(node_pit)
