@@ -125,7 +125,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
                 ("controlled_junction", "u4"),
-                ("controlled_pressure", "u4"),
+                ("controlled_p_bar", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
