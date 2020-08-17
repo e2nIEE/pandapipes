@@ -55,12 +55,11 @@ def vrange(starts, lengths):
     >>> print vrange(starts, lengths)
     """
     # Repeat start position index length times and concatenate
-    cat_start = np.repeat(starts, lengths)
+    starting_array = np.repeat(starts, lengths)
     # Create group counter that resets for each start/length
-    cat_counter = np.arange(lengths.sum()) - np.repeat(lengths.cumsum() - lengths, lengths)
+    length_ranges = np.arange(lengths.sum()) - np.repeat(lengths.cumsum() - lengths, lengths)
     # Add group counter to group specific starts
-    cat_range = cat_start + cat_counter
-    return cat_range
+    return starting_array + length_ranges
 
 
 def init_results_element(net, element, output, all_float):

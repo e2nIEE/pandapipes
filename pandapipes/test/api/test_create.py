@@ -229,25 +229,25 @@ def test_create_pump_from_parameters(create_empty_net):
     pandapipes.create_junction(net, 1, 293, index=8, geodata=(0, 1))
     pandapipes.create_junction(net, 1, 293, index=9, geodata=(2, 2))
     pandapipes.create_pump_from_parameters(net, 8, 9, "pump1", pressure_list=[0, 1, 2, 3],
-                                           flowrate_list=[0, 1, 2, 3], regression_degree=1, index=2)
+                                           flowrate_list=[0, 1, 2, 3], reg_polynomial_degree=1, index=2)
 
     try:
         pandapipes.create_pump_from_parameters(net, 8, 9, "pump1", pressure_list=[0, 1, 2, 3],
-                                               flowrate_list=[0, 1, 2, 3], regression_degree=1,
+                                               flowrate_list=[0, 1, 2, 3], reg_polynomial_degree=1,
                                                index=2)
         assert False, "Shouldn't make pump, index exists!"
     except UserWarning:
         assert True
     try:
         pandapipes.create_pump_from_parameters(net, 8, 10, "pump1", pressure_list=[0, 1, 2, 3],
-                                               flowrate_list=[0, 1, 2, 3], regression_degree=1,
+                                               flowrate_list=[0, 1, 2, 3], reg_polynomial_degree=1,
                                                index=2)
         assert False, "Shouldn't make pump, non-existent to_junction!"
     except UserWarning:
         assert True
     try:
         pandapipes.create_pump_from_parameters(net, 8, 9, "pump1", pressure_list=[0, 1, 2, 3],
-                                               flowrate_list=[0, 1, 2, 3], regression_degree=1,
+                                               flowrate_list=[0, 1, 2, 3], reg_polynomial_degree=1,
                                                geodata=[(0, 1), (1, 1), (2, 2)])
         assert False, "Shouldn't make pump, geodata not possible!"
     except ValueError:
