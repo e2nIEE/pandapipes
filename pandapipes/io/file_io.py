@@ -97,7 +97,7 @@ def from_pickle(filename):
     return net
 
 
-def from_json(filename):
+def from_json(filename, convert=False):
     """
     Load a pandapipes network from a JSON file or string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -120,10 +120,10 @@ def from_json(filename):
     else:
         with open(filename) as fp:
             json_string = fp.read()
-    return from_json_string(json_string)
+    return from_json_string(json_string, convert=convert)
 
 
-def from_json_string(json_string):
+def from_json_string(json_string, convert=False):
     """
     Load a pandapipes network from a JSON string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -142,4 +142,7 @@ def from_json_string(json_string):
     net = create_empty_network()
     net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook, net=net,
                                                                          registry_class=FromSerializableRegistryPpipe))
+
+    if convert:
+        convert_format(net)
     return net
