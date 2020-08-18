@@ -404,16 +404,17 @@ def insert_gap_at_junction(net, junction_idx, behind=True, offset_x=0, offset_y=
     """
     Splits a junctions and inserts a by inserting a second junction at the same position.
 
-    Purpose: prepare to insert a branch component at the given junction later
+    Purpose: split a junction to insert a branch component at the given junction later.
     At the same position as the given junction ('old junction'), a new junction is added to the grid
-    - if given, with a little offset in the coordinates. All attributes are copied.
+    - if given, with a little offset in the coordinates. All attributes are copied, expect for
+    Index.
     From a pipe-perspective, the new junction can be inserted before or behind the old
-    junction. If 'behind=True', the from_node is changed to the new junction for branch elements
+    junction. If 'behind=True', the from_node is changed to the new junction ID for branch elements
     that had the old junction set as from_node. Respectively, if 'behind=False', the to_junction is
     replaced.
     Node elements remain with the old junction.
 
-    :param net: pandapipes net that contains the junction that should be splitted
+    :param net: pandapipes net that contains the junction that should be split
     :type net: pandapipesNet
     :param junction_idx: index of the junction at which the element should be inserted
     :type junction_idx: int
@@ -436,7 +437,7 @@ def insert_gap_at_junction(net, junction_idx, behind=True, offset_x=0, offset_y=
     else:
         x = y = None
     nj = create_junction(net, oj.pn_bar, oj.tfluid_k, oj.height_m, str(oj.name)+"_aux_split",
-                         geodata=(x, y))
+                         type=oj.type, geodata=(x, y))
 
     # adjust connected branch elements:
     if behind:
