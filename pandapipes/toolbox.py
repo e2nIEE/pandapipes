@@ -430,14 +430,13 @@ def insert_gap_at_junction(net, junction_idx, behind=True, offset_x=0, offset_y=
     """
 
     oj = net.junction.loc[junction_idx]   # old junction
-    if net.junction_geodata is not None:
+    if 'junction_geodata' in dir(net) and (len(net.junction_geodata) > 0):
         x, y = net.junction_geodata.loc[junction_idx]
-        x += offset_x
-        y += offset_y
+        coord = (x + offset_x,  y + offset_y)
     else:
-        x = y = None
+        coord = None
     nj = create_junction(net, oj.pn_bar, oj.tfluid_k, oj.height_m, str(oj.name)+"_aux_split",
-                         type=oj.type, geodata=(x, y))
+                         type=oj.type, geodata=coord)
 
     # adjust connected branch elements:
     if behind:

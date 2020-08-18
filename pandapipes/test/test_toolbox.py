@@ -234,6 +234,11 @@ def test_insert_gap_at_junction():
     assert net.junction_geodata.loc[1, 'x'] == x_1
     assert net.junction_geodata.loc[1, 'y'] == y_1
 
+    # insert without coordinates
+    net = nw.gas_strand_2pipes()
+    del net.junction_geodata
+    nj = pandapipes.insert_gap_at_junction(net, 1, behind=True)
+    assert 'junction_geodata' not in dir(net)
 
 if __name__ == '__main__':
     n = pytest.main(["test_toolbox.py"])
