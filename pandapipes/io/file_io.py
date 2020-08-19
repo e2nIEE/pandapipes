@@ -22,6 +22,7 @@ from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryP
 from pandapower.io_utils import pp_hook
 from pandapipes.create import create_empty_network
 from functools import partial
+from pandapipes.io.convert_format import convert_format
 
 
 def to_pickle(net, filename):
