@@ -2,11 +2,13 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import pandapipes as pp
 import os
+
 import pandapower.control as control
 import pandas as pd
 from pandapower.timeseries import DFData
+
+import pandapipes as pp
 from pandapipes import pp_dir
 
 try:
@@ -133,7 +135,7 @@ def release_control_test_network():
 
     pp.pipeflow(net)
 
-    pp.to_json(net, os.path.join(path, 'example_%s.json' %pp.__version__))
+    pp.to_json(net, os.path.join(path, 'example_%s.json' % pp.__version__))
 
     return net
 

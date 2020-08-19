@@ -4,7 +4,9 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 
 from packaging import version
+
 from pandapipes import __version__
+
 
 def convert_format(net):
     """
@@ -23,11 +25,10 @@ def _rename_columns(net):
     if "controller" in net:
         if ("controller" in net.controller) and ("object" in net.controller):
             if net['controller'].at[0, 'object'] is None:
-                net['controller'].drop('object', inplace=True, axis = 1)
+                net['controller'].drop('object', inplace=True, axis=1)
             else:
                 net['controller'].drop('controller', inplace=True, axis=1)
         net["controller"].rename(columns={"controller": "object"}, inplace=True)
-
 
 
 def _update_initial_run(net):
