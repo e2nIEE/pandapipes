@@ -97,7 +97,7 @@ def from_pickle(filename):
     return net
 
 
-def from_json(filename, convert=False):
+def from_json(filename, convert=True):
     """
     Load a pandapipes network from a JSON file or string.
     The index of the returned network is not necessarily in the same order as the original network.
