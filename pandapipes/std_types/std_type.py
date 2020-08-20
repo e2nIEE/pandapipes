@@ -53,8 +53,8 @@ class PumpStdType(StdType):
         """
         Calculate the pressure lift based on a polynomial from a regression.
 
-        It is ensured that the pressure lift is always >= 0. The absolute value of the volume
-        flow is considered, a respective pump layout is assumed.
+        It is ensured that the pressure lift is always >= 0. For reverse flows, bypassing is
+        assumed.
 
         :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s]. Abs() will be applied.
         :type vdot_m3_per_s: float
@@ -63,11 +63,12 @@ class PumpStdType(StdType):
         :rtype: float
         """
         n = np.arange(len(self.reg_par), 0, -1)
-        # assuming that the topology ensures always a positive volume flow;
+        # no reverse flow - for vdot < 0, assume bypassing
+        if vdot_m3_per_s < 0:
+            return 0
+        # no negative pressure lift - bypassing always allowed:
         # /1 to ensure float format:
-        vdot_m3_per_s = abs(vdot_m3_per_s/1)
-        # no negative pressure lift! (bypassing always allowed):
-        p = max(0, sum(self.reg_par * (vdot_m3_per_s * 3600) ** (n - 1)))
+        p = max(0, sum(self.reg_par * (vdot_m3_per_s/1 * 3600) ** (n - 1)))
         return p
 
     @classmethod
