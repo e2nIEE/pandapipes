@@ -76,15 +76,7 @@ class Pump(BranchWZeroLengthComponent):
         numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
         v_mps = pump_pit[:, VINIT]
         if fluid.is_gas:
-            # mask = p_from != p_to
-            # p_mean = np.empty_like(p_to)
-            # p_mean[~mask] = p_from[~mask]
-            # p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
-            #                / (p_from[mask] ** 2 - p_to[mask] ** 2)
-            # normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-            #                   / (p_mean * NORMAL_TEMPERATURE)
-            # v_mean = v_mps * normfactor_mean
-
+            # consider volume flow at inlet
             normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
                               / (p_from * NORMAL_TEMPERATURE)
             v_mean = v_mps * normfactor_from
@@ -94,7 +86,6 @@ class Pump(BranchWZeroLengthComponent):
         fcts = itemgetter(*std_types)(net['std_type']['pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
         pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
-        # pl[pl < 0] = 0  # no negative pressure lift, bypassing always allowed
         pump_pit[:, PL] = pl
 
     @classmethod
