@@ -7,6 +7,13 @@ from packaging import version
 
 from pandapipes import __version__
 
+try:
+    import pplog as logging
+except ImportError:
+    import logging
+
+logger = logging.getLogger(__name__)
+
 
 def convert_format(net):
     """
@@ -35,6 +42,9 @@ def _update_initial_run(net):
     if "controller" in net:
         for ctrl in net.controller.object.values:
             if hasattr(ctrl, 'initial_pipeflow'):
+                logger.warning(
+                    "initial_pipeflow is deprecated, but it is still an attribute in your controllers. "
+                    "It will be removed in the future. Please use initial_run instead!")
                 ctrl.initial_run = ctrl.initial_pipeflow
 
 
