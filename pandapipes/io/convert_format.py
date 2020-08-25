@@ -23,7 +23,6 @@ def convert_format(net):
         return net
     _rename_columns(net)
     _update_initial_run(net)
-    reset_results(net)
     net.version = __version__
     return net
 
@@ -46,9 +45,3 @@ def _update_initial_run(net):
                     "initial_pipeflow is deprecated, but it is still an attribute in your controllers. "
                     "It will be removed in the future. Please use initial_run instead!")
                 ctrl.initial_run = ctrl.initial_pipeflow
-
-
-def reset_results(net):
-    for key in list(net.keys()):
-        if 'res_' in key:
-            net.pop(key)
