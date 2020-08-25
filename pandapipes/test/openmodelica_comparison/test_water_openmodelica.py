@@ -36,20 +36,16 @@ def test_case_combined_mixed_sj(log_results=False):
 
 
 # versatility
-@pytest.mark.xfail(reason="The pump is the wrong way around. Pressure lift is towards source. "
-                          "Failing because of recent change that bypasses reverse flows in pumps.")
 def test_case_combined_versatility_pc(log_results=False):
     net = nw.water_combined_versatility()
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results)
-    assert np.all(p_diff < 0.06)  # only in one place the comparison for 0.01 is not correct
+    assert np.all(p_diff < 0.04)  # only in one place the comparison for 0.01 is not correct
     assert np.all(v_diff_abs < 0.05)
 
-@pytest.mark.xfail(reason="The pump is the wrong way around. Pressure lift is towards source. "
-                          "Failing because of recent change that bypasses reverse flows in pumps.")
 def test_case_combined_versatility_sj(log_results=False):
     net = nw.water_combined_versatility(method="swamee-jain")
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results)
-    assert np.all(p_diff < 0.06)  # only in one place the comparison for 0.01 is not correct
+    assert np.all(p_diff < 0.04)  # only in one place the comparison for 0.01 is not correct
     assert np.all(v_diff_abs < 0.05)
 
 # ---------- TEST AREA: meshed networks ----------
