@@ -41,7 +41,7 @@ class NonReturnValveController(Controller):
 
     def __init__(self, net, element_index, profile_name=None,
                  scale_factor=1.0, in_service=True, recycle=True, order=0, level=0,
-                 drop_same_existing_ctrl=False, set_q_from_cosphi=False, matching_params=None, initial_pipeflow=False,
+                 drop_same_existing_ctrl=False, matching_params=None, initial_run=False,
                  **kwargs):
 
         if matching_params is None:
@@ -50,7 +50,7 @@ class NonReturnValveController(Controller):
         # just calling init of the parent
         super().__init__(net, in_service=in_service, recycle=recycle, order=order, level=level,
                          drop_same_existing_ctrl=drop_same_existing_ctrl,
-                         matching_params=matching_params, initial_powerflow=initial_pipeflow,
+                         matching_params=matching_params, initial_run=initial_run,
                          **kwargs)
 
         self.matching_params = {"element_index": element_index}
@@ -61,58 +61,49 @@ class NonReturnValveController(Controller):
         self.values = None
         self.profile_name = profile_name
         self.scale_factor = scale_factor
-        self.initial_pipeflow = initial_pipeflow
+        self.initial_run = initial_run
         self.kwargs = kwargs
         self.v_m_per_s = []  # current flow velocities at valves
         self.opened = []  # remember original user-defined values of opened
 
-        if set_q_from_cosphi:
-            logger.error("Parameter set_q_from_cosphi deprecated!")
-            raise ValueError
-
     def initialize_control(self):
         """
-        First calculation of a pipeflow. \n
-        Saving the user-defined values, determine valves with negative flow velocities,
-        set opened to False for these.
+        Saving the user-defined values and adapt types.
         """
-        pp.pipeflow(self.net, self.kwargs)
-
         self.opened = self.net.valve.loc[self.element_index, "opened"]
-
-        j = 0
-        for i in self.element_index:
-            self.v_m_per_s.append(self.net.res_valve.loc[i, "v_mean_m_per_s"])
-
-            if self.net.valve.loc[i, "opened"] and self.v_m_per_s[j] < 0:
-                # use the element indices, where opened = True, otherwise NaN would be in self.v_m_per_s
-                self.net.valve.loc[i, "opened"] = False
-            j += 1
+        self.net.valve.loc[self.element_index, "type"] = "non-return valve"
 
     def is_converged(self):
         """
-        Convergence Condition: If all flow velocities at the non-return valves are >= 0 or opened equal False. \n
-        Resetting the variable opened to user defaults.
+        Convergence Condition: If all flow velocities at the non-return valves are >= 0 or opened equal False.
         """
+        if numpy.array(self.v_m_per_s).size == 0:
+            return False
 
-        for i in range(len(self.element_index)):
-            if self.net.valve.loc[self.element_index[i], "opened"] and self.v_m_per_s[i] < 0:
-                return False
+        if numpy.array(self.net.valve.loc[self.element_index, "opened"]).any() and \
+                numpy.array(self.v_m_per_s).any() < 0:
+            return False
 
-        self.net.valve.loc[self.element_index, "opened"] = self.opened
         return True
 
     def control_step(self):
         """
-        Check whether negative flow velocities are still present at non-return valves.
+        Check whether negative flow velocities are present at non-return valves,
+        set opened to False for these.
         """
         pp.pipeflow(self.net, self.kwargs)
 
-        j = 0
-        for i in self.element_index:
-            self.v_m_per_s.append(self.net.res_valve.loc[i, "v_mean_m_per_s"])
+        self.v_m_per_s = numpy.array(self.net.res_valve.loc[self.element_index, "v_mean_m_per_s"])
 
-            if self.net.valve.loc[i, "opened"] and self.v_m_per_s[j] < 0:
-                # use the element indices, where opened = True, otherwise NaN would be in self.v_m_per_s
-                self.net.valve.loc[i, "opened"] = False
-            j += 1
+        ind_opened = numpy.where(self.net.valve.loc[self.element_index, "opened"])
+        # use the element indices, where opened = True, otherwise NaN would be in self.v_m_per_s
+
+        ind_negative_v = numpy.where(self.v_m_per_s[ind_opened[0]] < 0)
+
+        self.net.valve.loc[numpy.array(self.element_index)[ind_negative_v[0]], "opened"] = False
+
+    def finalize_control(self):
+        """
+        Resetting the variable opened to user defaults.
+        """
+        self.net.valve.loc[self.element_index, "opened"] = self.opened
