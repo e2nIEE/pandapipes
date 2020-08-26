@@ -90,5 +90,74 @@ def test_one_heat_exchanger_one_leakage():
     run_control(net)
 
 
+def test_one_junction_one_leakage():
+    net = pandapipes.create_empty_network("net", fluid="water", add_stdtypes=True)
+
+    j0 = pandapipes.create_junction(net, pn_bar=1.5, tfluid_k=293.15)
+    j1 = pandapipes.create_junction(net, pn_bar=1.5, tfluid_k=293.15)
+
+    pandapipes.create_ext_grid(net, j0, p_bar=1.5, t_k=293.15, type="pt")
+
+    pandapipes.create_sink(net, j1, mdot_kg_per_s=2)
+
+    pandapipes.create_pipe_from_parameters(net, j0, j1, diameter_m=0.8, k_mm=0.1, length_km=3)
+
+    kwargs = {'stop_condition': 'tol', 'iter': 100, 'tol_p': 1e-7, 'tol_v': 1e-7, 'friction_model': 'colebrook',
+              'mode': 'hydraulics', 'only_update_hydraulic_matrix': False}
+
+    LeakageController(net, element='junction', element_index=1, output_area_m2=3, **kwargs)
+
+    run_control(net)
+
+
+def test_three_junctions_three_leakages():
+    net = pandapipes.create_empty_network("net", fluid="water", add_stdtypes=True)
+
+    j0 = pandapipes.create_junction(net, pn_bar=2, tfluid_k=293.15)
+    j1 = pandapipes.create_junction(net, pn_bar=2, tfluid_k=293.15)
+    j2 = pandapipes.create_junction(net, pn_bar=2, tfluid_k=293.15)
+    j3 = pandapipes.create_junction(net, pn_bar=2, tfluid_k=293.15)
+
+    pandapipes.create_ext_grid(net, j0, p_bar=2, t_k=293.15, type="pt")
+
+    pandapipes.create_sink(net, j2, mdot_kg_per_s=2)
+    pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
+
+    pandapipes.create_pipe_from_parameters(net, j1, j0, diameter_m=0.7, k_mm=0.1, length_km=0.5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, diameter_m=0.8, k_mm=0.1, length_km=1)
+
+    pandapipes.create_valve(net, j3, j2, diameter_m=0.1, opened=True)
+
+    kwargs = {'stop_condition': 'tol', 'iter': 100, 'tol_p': 1e-7, 'tol_v': 1e-7, 'friction_model': 'colebrook',
+              'mode': 'hydraulics', 'only_update_hydraulic_matrix': False}
+
+    LeakageController(net, element='junction', element_index=[1, 2, 3], output_area_m2=[1, 3, 0.5], **kwargs)
+
+    run_control(net)
+
+
+def test_two_junction_leakage_one_heat_exchanger():
+    net = pandapipes.create_empty_network("net", fluid="water", add_stdtypes=True)
+
+    j0 = pandapipes.create_junction(net, pn_bar=2, tfluid_k=293.15)
+    j1 = pandapipes.create_junction(net, pn_bar=2, tfluid_k=293.15)
+    j2 = pandapipes.create_junction(net, pn_bar=2, tfluid_k=293.15)
+
+    pandapipes.create_ext_grid(net, j0, p_bar=4, t_k=293.15, type="pt")
+
+    pandapipes.create_sink(net, j2, mdot_kg_per_s=2)
+
+    pandapipes.create_pipe_from_parameters(net, j1, j0, diameter_m=0.75, k_mm=0.1, length_km=1)
+
+    pandapipes.create_heat_exchanger(net, j2, j1, diameter_m=0.08, qext_w=20000)
+
+    kwargs = {'stop_condition': 'tol', 'iter': 100, 'tol_p': 1e-7, 'tol_v': 1e-7, 'friction_model': 'colebrook',
+              'mode': 'all', 'only_update_hydraulic_matrix': False}
+
+    LeakageController(net, element='junction', element_index=[0, 2], output_area_m2=[3, 1], **kwargs)
+
+    run_control(net)
+
+
 if __name__ == "__main__":
     pytest.main([r'pandapipes/test/pipeflow_internals/test_leakage_controller.py'])

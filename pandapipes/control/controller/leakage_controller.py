@@ -5,6 +5,7 @@
 import pandapipes as pp
 import numpy
 from pandapower.control.basic_controller import Controller
+from pandapipes.component_models import Pipe, Valve, HeatExchanger
 
 try:
     import pplog as logging
@@ -16,11 +17,11 @@ logger = logging.getLogger(__name__)
 
 class LeakageController(Controller):
     """
-    Controller to consider a leak at pipes, valves or heat exchangers.
+    Controller to consider a leak with an outlet area at pipes, valves, heat exchangers or junctions.
 
     :param net: The net in which the controller resides
     :type net: pandapipesNet
-    :param element: Element (first only "pipe", "valve", "heat_exchanger")
+    :param element: Element (first only "pipe", "valve", "heat_exchanger", "junction")
     :type element: string
     :param element_index: IDs of controlled elements
     :type element_index: int[]
@@ -48,8 +49,8 @@ class LeakageController(Controller):
                  drop_same_existing_ctrl=False, matching_params=None, initial_run=True,
                  **kwargs):
 
-        if element not in ["pipe", "valve", "heat_exchanger"]:
-            raise Exception("Only 'pipe', 'valve' or 'heat_exchanger' is allowed as element.")
+        if element not in ["pipe", "valve", "heat_exchanger", "junction"]:
+            raise Exception("Only 'pipe', 'valve', 'heat_exchanger' or 'junction' is allowed as element.")
 
         if matching_params is None:
             matching_params = {"element": element, "element_index": element_index}
@@ -74,30 +75,75 @@ class LeakageController(Controller):
         self.initial_run = initial_run
         self.kwargs = kwargs
         self.rho_kg_per_m3 = numpy.array([])  # densities for the calculation of leakage mass flows
-        self.v_m_per_s = numpy.array([])  # current flow velocities at pipes
+        self.v_m_per_s = numpy.full(len(self.element_index), numpy.nan, float)  # current flow velocities at pipes
         self.mass_flow_kg_per_s_init = []  # initial/ previous leakage mass flows
         self.mass_flow_kg_per_s = []  # current leakage mass flows
         self.leakage_index = []  # index of the sinks for leakages
+        self.branches = []  # branch components in current net
 
     def initialize_control(self):
         """
         Define the initial values and create the sinks representing the leaks.
         """
         for i in range(len(self.element_index)):
-            index = pp.create_sink(self.net, self.net[self.element].loc[self.element_index[i], "to_junction"],
-                                   mdot_kg_per_s=0, name="leakage" + str(i))
+            if self.element == "junction":
+                index = pp.create_sink(self.net, self.element_index[i],
+                                       mdot_kg_per_s=0, name="leakage" + str(i))
+            else:
+                index = pp.create_sink(self.net, self.net[self.element].loc[self.element_index[i], "to_junction"],
+                                       mdot_kg_per_s=0, name="leakage" + str(i))
             self.leakage_index.append(index)
             self.mass_flow_kg_per_s_init.append(0)
+
+        if self.element == "junction":
+            # determine branch components in the network, necessary for further calculations
+            branches = {Pipe: "pipe", Valve: "valve", HeatExchanger: "heat_exchanger"}
+
+            for key in branches:
+                if (numpy.array(self.net.component_list) == key).any():
+                    self.branches.append(branches[key])
 
     def init_values(self):
         """
         Initialize the flow velocity and density for the individual control steps.
         """
-        self.v_m_per_s = numpy.array(self.net["res_" + self.element].loc[self.element_index, "v_mean_m_per_s"])
+        if self.element == "junction":
+            # identify the branches connected to a junction leakage to obtain the flow velocity
+            for i in range(len(self.element_index)):
+                for branch in self.branches:
+                    ind = numpy.where(numpy.array(self.net[branch]["to_junction"]) == self.element_index[i])
 
-        temp_1 = self.net.res_junction.loc[self.net[self.element].loc[self.element_index, "from_junction"], "t_k"]
-        temp_2 = self.net.res_junction.loc[self.net[self.element].loc[self.element_index, "to_junction"], "t_k"]
-        self.rho_kg_per_m3 = (self.net.fluid.get_density(temp_1) + self.net.fluid.get_density(temp_2)) / 2
+                    if ind[0].size != 0:
+                        if ind[0].size == 1:
+                            index = ind[0]
+                        else:
+                            index = ind[0][0]
+                        self.v_m_per_s[i] = abs(self.net["res_" + branch].loc[index, "v_mean_m_per_s"])
+                        break
+
+                    ind = numpy.where(numpy.array(self.net[branch]["from_junction"]) == self.element_index[i])
+
+                    if ind[0].size != 0:
+                        if ind[0].size == 1:
+                            index = ind[0]
+                        else:
+                            index = ind[0][0]
+                        self.v_m_per_s[i] = abs(self.net["res_" + branch].loc[index, "v_mean_m_per_s"])
+                        break
+
+            if (self.v_m_per_s == numpy.nan).any():
+                raise Exception("One or more junctions are only connected to a pump. Leakage calculation "
+                                "not yet possible here.")
+
+            temp = self.net.res_junction.loc[self.element_index, "t_k"]
+            self.rho_kg_per_m3 = self.net.fluid.get_density(temp)
+
+        else:
+            self.v_m_per_s = numpy.array(self.net["res_" + self.element].loc[self.element_index, "v_mean_m_per_s"])
+
+            temp_1 = self.net.res_junction.loc[self.net[self.element].loc[self.element_index, "from_junction"], "t_k"]
+            temp_2 = self.net.res_junction.loc[self.net[self.element].loc[self.element_index, "to_junction"], "t_k"]
+            self.rho_kg_per_m3 = (self.net.fluid.get_density(temp_1) + self.net.fluid.get_density(temp_2)) / 2
 
     def is_converged(self):
         """
@@ -117,7 +163,7 @@ class LeakageController(Controller):
         """
         pp.pipeflow(self.net, self.kwargs)
         self.mass_flow_kg_per_s = []
-        self.v_m_per_s = numpy.array([])
+        self.v_m_per_s = numpy.full(len(self.element_index), numpy.nan, float)
         self.rho_kg_per_m3 = numpy.array([])
 
         self.init_values()
