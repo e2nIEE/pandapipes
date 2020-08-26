@@ -65,6 +65,8 @@ class PumpStdType(StdType):
         n = np.arange(len(self.reg_par), 0, -1)
         # no reverse flow - for vdot < 0, assume bypassing
         if vdot_m3_per_s < 0:
+            logger.debug("Reverse flow observed in a %s pump. "
+                         "Bypassing without pressure change is assumed" % str(self.name))
             return 0
         # no negative pressure lift - bypassing always allowed:
         # /1 to ensure float format:

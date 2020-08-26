@@ -115,7 +115,6 @@ def test_pump_from_std_type():
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4,
                         tol_v=1e-4)
-    assert net.res_junction.loc[j2, "p_bar"] < net.res_junction.loc[j3, "p_bar"]
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_pump.csv"), sep=';')
 
