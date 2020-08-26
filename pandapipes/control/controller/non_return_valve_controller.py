@@ -71,6 +71,7 @@ class NonReturnValveController(Controller):
         Saving the user-defined values and adapt types.
         """
         self.opened = self.net.valve.loc[self.element_index, "opened"]
+        self.net.valve.loc[self.element_index, "opened"] = True
         self.net.valve.loc[self.element_index, "type"] = "non-return valve"
 
     def is_converged(self):
