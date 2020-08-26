@@ -501,7 +501,10 @@ def add_fluid_to_net(net, fluid, overwrite=True):
         fluid_msg = "an existing fluid" if not hasattr(net["fluid"], "name") \
             else "the fluid %s" % net["fluid"].name
         logger.warning("The fluid %s would replace %s and thus cannot be created. Try to set "
-                       "overwrite to False" % (fluid.name, fluid_msg))
+                       "overwrite to True" % (fluid.name, fluid_msg))
         return
+
+    if isinstance(fluid, str):
+        fluid = call_lib(fluid)
 
     net["fluid"] = fluid
