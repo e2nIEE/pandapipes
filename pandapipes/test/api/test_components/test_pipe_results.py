@@ -7,6 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 from pandapipes.test.pipeflow_internals import internals_data_path
+from pandapipes.properties.fluids import _add_fluid_to_net
 
 
 def test_pipe_velocity_results():
@@ -32,7 +33,7 @@ def test_pipe_velocity_results():
     pandapipes.create_ext_grid(net, 0, p_bar=51 - 1.01325, t_k=285.15, type="pt")
     pandapipes.create_sink(net, 2, mdot_kg_per_s=0.82752 * 45000 / 3600 / 3)
     pandapipes.create_sink(net, 3, mdot_kg_per_s=0.82752 * 45000 / 3600 / 2)
-    pandapipes.add_fluid_to_net(net, pandapipes.create_constant_fluid(
+    _add_fluid_to_net(net, pandapipes.create_constant_fluid(
         name="natural_gas", fluid_type="gas", viscosity=11.93e-6, heat_capacity=2185,
         compressibility=1, der_compressibility=0, density=0.82752
     ))
@@ -55,7 +56,7 @@ def test_pipe_velocity_results():
     pandapipes.create_ext_grid(net, 0, p_bar=51 - 1.01325, t_k=285.15, type="pt")
     pandapipes.create_sink(net, 2, mdot_kg_per_s=0.82752 * 45000 / 3600 / 3)
     pandapipes.create_sink(net, 3, mdot_kg_per_s=0.82752 * 45000 / 3600 / 2)
-    pandapipes.add_fluid_to_net(net, pandapipes.create_constant_fluid(
+    _add_fluid_to_net(net, pandapipes.create_constant_fluid(
         name="natural_gas", fluid_type="gas", viscosity=11.93e-6, heat_capacity=2185,
         compressibility=1, der_compressibility=0, density=0.82752
     ))
