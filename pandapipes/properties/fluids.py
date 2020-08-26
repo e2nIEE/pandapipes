@@ -484,7 +484,7 @@ def get_fluid(net):
     return fluid
 
 
-def add_fluid_to_net(net, fluid, overwrite=True):
+def _add_fluid_to_net(net, fluid, overwrite=True):
     """
     Adds a fluid to a net. If overwrite is False, a warning is printed and the fluid is not set.
 
@@ -501,7 +501,12 @@ def add_fluid_to_net(net, fluid, overwrite=True):
         fluid_msg = "an existing fluid" if not hasattr(net["fluid"], "name") \
             else "the fluid %s" % net["fluid"].name
         logger.warning("The fluid %s would replace %s and thus cannot be created. Try to set "
-                       "overwrite to False" % (fluid.name, fluid_msg))
+                       "overwrite to True" % (fluid.name, fluid_msg))
         return
 
+    if isinstance(fluid, str):
+        logger.warning("Instead of a pandapipes.Fluid, a string ('%s') was passed to the fluid "
+                       "argument. Internally, it will be passed to call_lib(fluid) to get the "
+                       "respective pandapipes.Fluid." %fluid)
+        fluid = call_lib(fluid)
     net["fluid"] = fluid
