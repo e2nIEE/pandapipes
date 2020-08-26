@@ -484,7 +484,7 @@ def get_fluid(net):
     return fluid
 
 
-def add_fluid_to_net(net, fluid, overwrite=True):
+def _add_fluid_to_net(net, fluid, overwrite=True):
     """
     Adds a fluid to a net. If overwrite is False, a warning is printed and the fluid is not set.
 
@@ -505,6 +505,8 @@ def add_fluid_to_net(net, fluid, overwrite=True):
         return
 
     if isinstance(fluid, str):
+        logger.warning("Instead of a pandapipes.Fluid, a string ('%s') was passed to the fluid "
+                       "argument. Internally, it will be passed to call_lib(fluid) to get the "
+                       "respective pandapipes.Fluid." %fluid)
         fluid = call_lib(fluid)
-
     net["fluid"] = fluid

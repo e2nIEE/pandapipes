@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
-from pandapipes.properties import call_lib, add_fluid_to_net
+from pandapipes.properties import call_lib
+from pandapipes.properties.fluids import _add_fluid_to_net
 from pandapower.auxiliary import get_free_id, _preserve_dtypes
 from pandapipes.properties.fluids import Fluid
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
@@ -936,4 +937,4 @@ def create_fluid_from_lib(net, name, overwrite=True):
         >>> pp.create_fluid_from_lib(net, name="water")
 
     """
-    add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
+    _add_fluid_to_net(net, call_lib(name), overwrite=overwrite)

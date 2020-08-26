@@ -4,6 +4,7 @@
 
 import pytest
 import pandapipes
+from pandapipes.properties.fluids import _add_fluid_to_net
 
 
 def test_add_fluid():
@@ -16,21 +17,21 @@ def test_add_fluid():
     except UserWarning:
         pass
 
-    pandapipes.add_fluid_to_net(net, fluid_old)
+    _add_fluid_to_net(net, fluid_old)
     fluid_new = pandapipes.create_constant_fluid("arbitrary_gas2", "gas", density=2,
                                                  compressibility=2)
-    pandapipes.add_fluid_to_net(net, fluid_new, overwrite=False)
+    _add_fluid_to_net(net, fluid_new, overwrite=False)
     assert pandapipes.get_fluid(net) == fluid_old
 
-    pandapipes.add_fluid_to_net(net, fluid_new)
+    _add_fluid_to_net(net, fluid_new)
     assert pandapipes.get_fluid(net) == fluid_new
 
     net["fluid"] = "Hello"
 
-    pandapipes.add_fluid_to_net(net, fluid_new, overwrite=False)
+    _add_fluid_to_net(net, fluid_new, overwrite=False)
     assert pandapipes.get_fluid(net) == "Hello"
 
-    pandapipes.add_fluid_to_net(net, fluid_new)
+    _add_fluid_to_net(net, fluid_new)
     assert pandapipes.get_fluid(net) == fluid_new
 
 
