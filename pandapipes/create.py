@@ -922,7 +922,7 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently existing fluids in the library are: "hgas", "lgas", "water", "air".
+    Currently existing fluids in the library are: "hgas", "lgas", "hydrogen", "water", "air".
 
     :param net: The net for which this fluid should be created
     :type net: pandapipesNet
