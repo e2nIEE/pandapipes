@@ -126,3 +126,59 @@ def test_pump_from_std_type():
 
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)
+
+def test_pump_bypass_on_reverse_flow():
+    """
+    reverse flow = no pressure lift
+        :return:
+        :rtype:
+        """
+    net = pandapipes.create_empty_network("net", add_stdtypes=True)
+
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+
+    pandapipes.create_pipe(net, j1, j2, std_type='125_PE_80_SDR_11', k_mm=1., length_km=10)
+    pandapipes.create_pipe(net, j3, j4, std_type='125_PE_80_SDR_11', k_mm=1., length_km=12)
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_pump(net, j2, j3, std_type='P1')
+    pandapipes.create_source(net, j4, 0.02333)
+
+    pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
+
+    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+                        mode="hydraulics", transient=False, nonlinear_method="automatic",
+                        tol_p=1e-4, tol_v=1e-4)
+
+    assert net.res_pump.deltap_bar.isin([0]).all()
+    assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
+
+def test_pump_bypass_high_vdot():
+    """
+    High flow: pressure lift not <0, always >=0
+        :return:
+        :rtype:
+        """
+    net = pandapipes.create_empty_network("net", add_stdtypes=True)
+
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+
+    pandapipes.create_pipe(net, j1, j2, std_type='2000_ST<16', k_mm=0.1, length_km=0.1)
+    pandapipes.create_pipe(net, j3, j4, std_type='2000_ST<16', k_mm=0.1, length_km=0.1)
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_pump(net, j2, j3, std_type='P1')
+    pandapipes.create_sink(net, j4, 1000000)
+
+    pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
+
+    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+                        mode="hydraulics", transient=False, nonlinear_method="automatic",
+                        tol_p=1e-4, tol_v=1e-4)
+
+    assert net.res_pump.deltap_bar.isin([0]).all()
+    assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
