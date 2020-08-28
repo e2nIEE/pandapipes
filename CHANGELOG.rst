@@ -10,16 +10,19 @@ the next in combination with "only_update_hydraulic_matrix" - useful for timeser
 - [ADDED] test networks (water) for Swamee-Jain friction model
 - [ADDED] further explanation in the documentation, e.g. on heating networks and time series / controller
 - [ADDED] heating network and time series tutorials
+- [ADDED] enable net loading built in different pandapipes versions
 - [CHANGED] property files for bi-atomic gases
 - [CHANGED] make ppipe_hook serializable and inherit from pp_hook by using decorators
 - [CHANGED] changed column "controller" in controller table to "object"
+- [CHANGED] changes in run_control/run_time_series for better pandapower code reusability like using
+initial_run variable instead of initial_pipeflow
 - [CHANGED] names of parameters for regression function in pump
 - [CHANGED] pressure lift for pumps is now always >= 0
 - [CHANGED] on reverse flow, the pressure lift for pumps is 0
 - [CHANGED] add_fluid_to_net is now a private function (usually the wrapper create_fluid_from_lib should be used)
-- [CHANGED] moving sum_by_group and sum_by_group_sorted from internal_toolbox to toolbox
 - [FIXED] direction of pump in the water test network 'versatility' for OpenModelica
 - [FIXED] accurate calculation of v in get_internal_results for pipes
+- [FIXED] enable loading of nets containing controller
 
 [0.1.2] - 2020-06-05
 -------------------------------
