@@ -7,12 +7,8 @@ import copy
 
 import pandas as pd
 from pandapipes.component_models import ExtGrid, Pipe, Sink, Source, Junction
-from pandapower.plotting.generic_geodata import coords_from_igraph, \
-                                                _prepare_geodata_table, \
-                                                _get_element_mask_from_nodes,\
-                                                _igraph_meshed
+from pandapower.plotting.generic_geodata import coords_from_igraph
 
-import numpy as np
 try:
     import igraph
 
@@ -28,7 +24,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def build_igraph_from_ppipes(net, junctions=None):
+def build_igraph_from_ppipes(net):
     """
     This function uses the igraph library to create an igraph graph for a given pandapipes network.
     Pipes and valves are respected.
@@ -36,8 +32,6 @@ def build_igraph_from_ppipes(net, junctions=None):
 
     :param net: The pandapipes network
     :type net: pandapipesNet
-    :param junctions: subset of junctions that should be part of the graph
-    :type junctions: list
     :return: The returned values are:
         - g - The igraph graph
         - meshed - a flag that states whether the graph is meshed
@@ -48,47 +42,39 @@ def build_igraph_from_ppipes(net, junctions=None):
     """
 
     try:
-        import igraph as ig
+        import igraph
     except (DeprecationWarning, ImportError):
-        raise ImportError("Please install python-igraph with "
-                          "`pip install python-igraph` or "
-                          "`conda install python-igraph` "
-                          "or from https://www.lfd.uci.edu/~gohlke/pythonlibs")
-    g = ig.Graph(directed=True)
-    junction_index = net.junction.index if junctions is None else np.array(junctions)
-    nr_junctions = len(junction_index)
-    g.add_vertices(nr_junctions)
-    g.vs["label"] = list(junction_index)
-    pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
+        raise ImportError("Please install python-igraph")
+    g = igraph.Graph(directed=True)
+    g.add_vertices(net.junction.shape[0])
+    g.vs["label"] = net.junction.index.tolist()
+    pp_junction_mapping = dict(list(zip(net.junction.index,
+                                        list(range(net.junction.index.shape[0])))))
 
-    mask = _get_element_mask_from_nodes(net, "pipe", ["from_junction", "to_junction"], junctions)
-    for junction in net.pipe[mask].itertuples():
-        g.add_edge(pp_junction_mapping[junction.from_junction],
-                   pp_junction_mapping[junction.to_junction],
-                   weight=junction.length_km)
+    for lix in net.pipe.index:
+        fb, tb = net.pipe.at[lix, "from_junction"], net.pipe.at[lix, "to_junction"]
+        g.add_edge(pp_junction_mapping[fb], pp_junction_mapping[tb],
+                   weight=net.pipe.at[lix, "length_km"])
 
     for comp in net['component_list']:
         if comp in [Source, Sink, ExtGrid, Pipe, Junction]:
             continue
-        mask = _get_element_mask_from_nodes(net, comp.table_name(),
-                                            ["from_junction", "to_junction"], 
-                                            junctions)
-        for comp_data in net[comp.table_name()][mask].itertuples():
-            g.add_edge(pp_junction_mapping[comp_data.from_junction],
-                       pp_junction_mapping[comp_data.to_junction],
-                       weight=0.001)
+        else:
+            for comp_data in net[comp.table_name()].itertuples():
+                g.add_edge(pp_junction_mapping[comp_data.from_junction],
+                           pp_junction_mapping[comp_data.to_junction], weight=0.001)
 
+    meshed = False
+    for i in range(1, net.junction.shape[0]):
+        if len(g.get_all_shortest_paths(0, i, mode="ALL")) > 1:
+            meshed = True
+            break
 
-    meshed = _igraph_meshed(g)
-        
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values]
     return g, meshed, roots  # g, (not g.is_dag())
 
 
-def create_generic_coordinates(net, mg=None, library="igraph",
-                               geodata_table="junction_geodata",
-                               junctions=None,
-                               overwrite=False):
+def create_generic_coordinates(net, mg=None, library="igraph"):
     """
     This function will add arbitrary geo-coordinates for all junctions based on an analysis of
     branches and rings. It will remove out of service junctions/pipes from the net. The coordinates
@@ -109,13 +95,22 @@ def create_generic_coordinates(net, mg=None, library="igraph",
         The networkx implementation is currently not working, as a proper networkx graph creation\
         is not yet implemented in pandapipes. **Coming soon!**
     """
-    _prepare_geodata_table(net, geodata_table, overwrite)
+    if "junction_geodata" in net and net.junction_geodata.shape[0]:
+        logger.warning("Please delete all geodata. This function cannot be used with pre-existing "
+                       "geodata.")
+        return
+    if "junction_geodata" not in net or net.junction_geodata is None:
+        net.junction_geodata = pd.DataFrame(columns=["x", "y"])
+
+    gnet = copy.deepcopy(net)
+    gnet.junction = gnet.junction[gnet.junction.in_service]
+    gnet.pipe = gnet.pipe[gnet.pipe.in_service]
 
     if library == "igraph":
         if not IGRAPH_INSTALLED:
             raise UserWarning("The library igraph is selected for plotting, but not installed "
                               "correctly.")
-        graph, meshed, roots = build_igraph_from_ppipes(net)
+        graph, meshed, roots = build_igraph_from_ppipes(gnet)
         coords = coords_from_igraph(graph, roots, meshed)
     elif library == "networkx":
         logger.warning("The networkx implementation is not working currently!")
@@ -128,8 +123,7 @@ def create_generic_coordinates(net, mg=None, library="igraph",
     else:
         raise ValueError("Unknown library %s - chose 'igraph' or 'networkx'" % library)
 
-    if len(coords):
-        net[geodata_table].x = coords[1]
-        net[geodata_table].y = coords[0]
-        net[geodata_table].index = net.junction.index if junctions is None else junctions
+    net.junction_geodata.x = coords[1]
+    net.junction_geodata.y = coords[0]
+    net.junction_geodata.index = gnet.junction.index
     return net
