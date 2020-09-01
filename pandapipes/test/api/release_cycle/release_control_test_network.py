@@ -115,9 +115,9 @@ def release_control_test_network():
                              loss_coefficient=0,
                              name="Heat Exchanger 1", index=None, in_service=True, type="heat_exchanger")
     # time series
-    profiles_sink = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
+    profiles_sink = pd.read_csv(os.path.join(pp_dir, 'test', 'api', 'release_cycle',
                                              'release_control_test_sink_profiles.csv'), index_col=0)
-    profiles_source = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
+    profiles_source = pd.read_csv(os.path.join(pp_dir, 'test', 'api', 'release_cycle',
                                                'release_control_test_source_profiles.csv'), index_col=0)
     ds_sink = DFData(profiles_sink)
     ds_source = DFData(profiles_source)

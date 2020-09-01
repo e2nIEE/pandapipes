@@ -3,8 +3,7 @@ Change Log
 
 [0.2.0] - 28.08.2020
 -------------------------------
-- [ADDED] added the pipeflow option "reuse_internal_data" which allows to reuse the system matrix from one pipeflow to
-the next in combination with "only_update_hydraulic_matrix" - useful for timeseries calculations
+- [ADDED] added the pipeflow option "reuse_internal_data" which allows to reuse the system matrix from one pipeflow to the next in combination with "only_update_hydraulic_matrix" - useful for timeseries calculations
 - [ADDED] hydrogen properties
 - [ADDED] Swamee-Jain friction model
 - [ADDED] test networks (water) for Swamee-Jain friction model
@@ -14,8 +13,7 @@ the next in combination with "only_update_hydraulic_matrix" - useful for timeser
 - [CHANGED] property files for bi-atomic gases
 - [CHANGED] make ppipe_hook serializable and inherit from pp_hook by using decorators
 - [CHANGED] changed column "controller" in controller table to "object"
-- [CHANGED] changes in run_control/run_time_series for better pandapower code reusability like using
-initial_run variable instead of initial_pipeflow
+- [CHANGED] changes in run_control/run_time_series for better pandapower code reusability like using initial_run variable instead of initial_pipeflow
 - [CHANGED] names of parameters for regression function in pump
 - [CHANGED] pressure lift for pumps is now always >= 0
 - [CHANGED] on reverse flow, the pressure lift for pumps is 0
