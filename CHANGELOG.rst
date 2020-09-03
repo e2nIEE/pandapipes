@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[0.2.0] - 28.08.2020
+[0.2.0] - 03.09.2020
 -------------------------------
 - [ADDED] added the pipeflow option "reuse_internal_data" which allows to reuse the system matrix from one pipeflow to the next in combination with "only_update_hydraulic_matrix" - useful for timeseries calculations
 - [ADDED] hydrogen properties
@@ -10,6 +10,9 @@ Change Log
 - [ADDED] further explanation in the documentation, e.g. on heating networks and time series / controller
 - [ADDED] heating network and time series tutorials
 - [ADDED] enable net loading built in different pandapipes versions
+- [ADDED] carry over new artificial coordinate functions from pandapower
+- [ADDED] functionality to create_networkx graph for pandapipes networks
+- [ADDED] tests for connected components searches in pandapipes networks
 - [CHANGED] property files for bi-atomic gases
 - [CHANGED] make ppipe_hook serializable and inherit from pp_hook by using decorators
 - [CHANGED] changed column "controller" in controller table to "object"
