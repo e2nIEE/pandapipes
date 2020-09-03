@@ -4,6 +4,7 @@
 
 import pandapipes
 import os
+import pytest
 import numpy as np
 import pandas as pd
 from pandapipes.test.pipeflow_internals import internals_data_path
@@ -172,13 +173,17 @@ def test_pump_bypass_high_vdot():
     pandapipes.create_pipe(net, j3, j4, std_type='2000_ST<16', k_mm=0.1, length_km=0.1)
     pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
     pandapipes.create_pump(net, j2, j3, std_type='P1')
-    pandapipes.create_sink(net, j4, 1000000)
+    pandapipes.create_sink(net, j4, 1000)
 
     pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    pandapipes.pipeflow(net, stop_condition="tol", iter=30, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_v=1e-4)
 
     assert net.res_pump.deltap_bar.isin([0]).all()
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
+
+
+if __name__ == '__main__':
+    n = pytest.main(["test_pump.py"])
