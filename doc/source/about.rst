@@ -10,5 +10,6 @@ About pandapipes
     about/symbols
     about/references
     about/authors
+    about/changelog
     about/license
     about/known_issues

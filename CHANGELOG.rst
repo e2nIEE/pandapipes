@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[0.2.0] - 03.09.2020
+[0.2.0] - 2020-09-03
 -------------------------------
 - [ADDED] added the pipeflow option "reuse_internal_data" which allows to reuse the system matrix from one pipeflow to the next in combination with "only_update_hydraulic_matrix" - useful for timeseries calculations
 - [ADDED] hydrogen properties
