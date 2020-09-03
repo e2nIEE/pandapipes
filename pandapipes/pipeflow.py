@@ -17,6 +17,7 @@ from scipy.sparse.linalg import spsolve
 from pandapipes.component_models import Junction
 from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
     BranchComponent, BranchWInternalsComponent
+from pandapower.auxiliary import ppException
 
 try:
     import pplog as logging
@@ -113,7 +114,8 @@ def hydraulics(net):
     # ---------------------------------------------------------------------------------------------
     niter = 0
     create_internal_results(net)
-    net["_internal_data"] = dict()
+    if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
+        net["_internal_data"] = dict()
 
     # This branch is used to stop the solver after a specified error tolerance is reached
     error_v, error_p, residual_norm = [], [], None
@@ -171,7 +173,8 @@ def hydraulics(net):
         logger.info("tol_v: %s" % get_net_option(net, "tol_v"))
         net['converged'] = True
 
-    net.pop("_internal_data", None)
+    if not get_net_option(net, "reuse_internal_data"):
+        net.pop("_internal_data", None)
     set_user_pf_options(net, hyd_flag=True)
 
     return niter
@@ -353,3 +356,10 @@ def set_damping_factor(net, niter, error):
         set_net_option(net, "alpha", current_alpha * 10 if current_alpha <= 0.1 else 1.0)
 
     return error_x0_increased, error_x1_increased
+
+
+class PipeflowNotConverged(ppException):
+    """
+    Exception being raised in case pipeflow did not converge.
+    """
+    pass

@@ -14,12 +14,11 @@ pandapipes
 
 pandapipes is an easy to use network calculation program aimed at automation of analysis of district heating
 and gas systems. It utilizes the data analysis library pandas and is also closely related to
-the power systems calculation program pandapower.
+the power systems calculation tool pandapower.
 
-pandapipes and pandapower can be used in combination to analyze multi energy networks. An environment able to couple both
-tools is pandapower Pro.
+pandapipes and pandapower can be used in combination to analyze multi-energy networks.
 
-More information about pandapipes will be available soon here: `www.pandapipes.org <https://www.pandapipes.org>`_.
+More information about pandapipes can be found here: `www.pandapipes.org <https://www.pandapipes.org>`_.
 Please also visit `www.pandapower.org <https://www.pandapower.org>`_.
 
 This is the contents section of the pandapipes documentation.
@@ -34,6 +33,8 @@ This is the contents section of the pandapipes documentation.
    fluid_properties
    std_types
    pipeflow
+   controller
+   timeseries
    networks
    save_load
    plotting

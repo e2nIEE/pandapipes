@@ -12,7 +12,7 @@ from pandapipes.plotting.collections import create_junction_collection, create_p
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
 from pandapower.plotting import draw_collections
 from itertools import chain
-import numpy as np
+
 
 try:
     import pplog as logging
@@ -45,8 +45,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True,
     :type pipe_width: float, default 5.0
     :param junction_size: Relative size of junctions to plot. The value junction_size is multiplied\
             with mean_distance_between_buses, which equals the distance between the max geoocord\
-            and the min divided by 200: \n
-            >>> mean_distance_between_buses = sum((net['bus_geodata'].max() - net['bus_geodata'].min()) / 200)
+            and the min divided by 200
     :type junction_size: float, default 1.0
     :param ext_grid_size: Relative size of ext_grids to plot. See bus sizes for details. Note: \
             ext_grids are plottet as rectangles
