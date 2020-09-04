@@ -4,22 +4,18 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-
+from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
     vinterp
 from pandapipes.component_models.junction_component import Junction
-
-from pandapipes.idx_node import ELEMENT_IDX, PINIT, HEIGHT, TINIT as TINIT_NODE, \
-    RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
+from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, \
     VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, PL, TL
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-
-from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
+from pandapipes.idx_node import ELEMENT_IDX, PINIT, HEIGHT, TINIT as TINIT_NODE, \
+    RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
-from numpy import dtype
+from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
 
 try:
     import pplog as logging
@@ -95,6 +91,8 @@ class Pipe(BranchWInternalsComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions = \
@@ -120,8 +118,10 @@ class Pipe(BranchWInternalsComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
+        :param pipe_pit:
+        :type pipe_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         pipe_pit, internal_pipe_number = \
@@ -182,6 +182,8 @@ class Pipe(BranchWInternalsComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
 
@@ -217,27 +219,27 @@ class Pipe(BranchWInternalsComponent):
             p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
             numerator = NORMAL_PRESSURE * pipe_pit[:, TINIT]
             normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                              / (p_from * NORMAL_TEMPERATURE)
+                / (p_from * NORMAL_TEMPERATURE)
             normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                            / (p_to * NORMAL_TEMPERATURE)
+                / (p_to * NORMAL_TEMPERATURE)
             v_gas_from = v_mps * normfactor_from
             v_gas_to = v_mps * normfactor_to
             mask = ~np.isclose(p_from, p_to)
             p_mean = np.empty_like(p_to)
             p_mean[~mask] = p_from[~mask]
             p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
-                           / (p_from[mask] ** 2 - p_to[mask] ** 2)
+                / (p_from[mask] ** 2 - p_to[mask] ** 2)
             normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                              / (p_mean * NORMAL_TEMPERATURE)
+                / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
 
             idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
-            internal_pipes = _sum_by_group(
-                idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
-                np.ones_like(idx_active))
+                internal_pipes = _sum_by_group(idx_active, v_gas_from, v_gas_to, v_gas_mean,
+                                               normfactor_from, normfactor_to,
+                                               np.ones_like(idx_active))
 
-            v_gas_from_ordered = select_from_pit(from_nodes,from_junction_nodes, v_gas_from)
-            v_gas_to_ordered = select_from_pit(to_nodes,to_junction_nodes, v_gas_to)
+            v_gas_from_ordered = select_from_pit(from_nodes, from_junction_nodes, v_gas_from)
+            v_gas_to_ordered = select_from_pit(to_nodes, to_junction_nodes, v_gas_to)
 
             res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
             res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
@@ -263,7 +265,8 @@ class Pipe(BranchWInternalsComponent):
     @classmethod
     def get_internal_results(cls, net, pipe):
         """
-        Retrieve velocity (at to/from node; mean), pressure and temperature of the internal sections of pipes. The pipes have to have at least 2 internal sections.
+        Retrieve velocity (at to/from node; mean), pressure and temperature of the internal sections
+        of pipes. The pipes have to have at least 2 internal sections.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -282,7 +285,6 @@ class Pipe(BranchWInternalsComponent):
         pipe_results["VINIT_FROM"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
         pipe_results["VINIT_TO"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
         pipe_results["VINIT_MEAN"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
-
 
         if np.all(internal_sections[pipe] >= 2):
             fluid = get_fluid(net)
@@ -321,11 +323,11 @@ class Pipe(BranchWInternalsComponent):
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
                 normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                             / (p_mean * NORMAL_TEMPERATURE)
+                    / (p_mean * NORMAL_TEMPERATURE)
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                                  / (p_from * NORMAL_TEMPERATURE)
+                    / (p_from * NORMAL_TEMPERATURE)
                 normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                                / (p_to * NORMAL_TEMPERATURE)
+                    / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean
                 v_pipe_data_from = v_pipe_data * normfactor_from
@@ -344,8 +346,6 @@ class Pipe(BranchWInternalsComponent):
                 pipe_results["VINIT_TO"][:, 1] = v_pipe_data
                 pipe_results["VINIT_MEAN"][:, 0] = v_pipe_idx
                 pipe_results["VINIT_MEAN"][:, 1] = v_pipe_data
-
-
 
             pipe_results["PINIT"][:, 0] = p_node_idx
             pipe_results["PINIT"][:, 1] = p_node_data

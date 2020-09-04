@@ -11,11 +11,6 @@ from pandapipes.pipeflow_setup import add_table_lookup
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
-
-try:
     import pplog as logging
 except ImportError:
     import logging
@@ -61,10 +56,10 @@ class BranchWOInternalsComponent(BranchComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param valve_pit:
-        :type valve_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param branch_wo_internals_pit:
+        :type branch_wo_internals_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         branch_wo_internals_pit, node_pit, from_nodes, to_nodes \

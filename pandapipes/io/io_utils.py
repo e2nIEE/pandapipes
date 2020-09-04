@@ -22,21 +22,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-try:
-    import fiona
-    import geopandas
-
-    GEOPANDAS_INSTALLED = True
-except ImportError:
-    GEOPANDAS_INSTALLED = False
-
-try:
-    import shapely.geometry
-
-    SHAPELY_INSTALLED = True
-except (ImportError, OSError):
-    SHAPELY_INSTALLED = False
-
 
 def isinstance_partial(obj, cls):
     if isinstance(obj, pandapipesNet):

@@ -3,16 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-import copy
-
-import pandas as pd
+import numpy as np
 from pandapipes.component_models import ExtGrid, Pipe, Sink, Source, Junction
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
-                                                _prepare_geodata_table, \
-                                                _get_element_mask_from_nodes,\
-                                                _igraph_meshed
+    _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
-import numpy as np
 try:
     import igraph
 
@@ -70,25 +65,20 @@ def build_igraph_from_ppipes(net, junctions=None):
     for comp in net['component_list']:
         if comp in [Source, Sink, ExtGrid, Pipe, Junction]:
             continue
-        mask = _get_element_mask_from_nodes(net, comp.table_name(),
-                                            ["from_junction", "to_junction"], 
-                                            junctions)
+        mask = _get_element_mask_from_nodes(
+            net, comp.table_name(), ["from_junction", "to_junction"], junctions)
         for comp_data in net[comp.table_name()][mask].itertuples():
             g.add_edge(pp_junction_mapping[comp_data.from_junction],
                        pp_junction_mapping[comp_data.to_junction],
                        weight=0.001)
 
-
     meshed = _igraph_meshed(g)
-        
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values]
     return g, meshed, roots  # g, (not g.is_dag())
 
 
-def create_generic_coordinates(net, mg=None, library="igraph",
-                               geodata_table="junction_geodata",
-                               junctions=None,
-                               overwrite=False):
+def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="junction_geodata",
+                               junctions=None, overwrite=False):
     """
     This function will add arbitrary geo-coordinates for all junctions based on an analysis of
     branches and rings. It will remove out of service junctions/pipes from the net. The coordinates
