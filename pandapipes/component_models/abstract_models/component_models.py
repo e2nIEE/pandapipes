@@ -18,12 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class Component:
-    """
-
-    """
 
     @classmethod
-    def table_name(self):
+    def table_name(cls):
         raise NotImplementedError()
 
     @classmethod

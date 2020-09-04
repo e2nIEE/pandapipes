@@ -4,8 +4,8 @@
 
 import numpy as np
 import pandas as pd
-from pandapipes.constants import NORMAL_PRESSURE, R_UNIVERSAL, \
-    MOLAR_MASS_AIR, GRAVITATION_CONSTANT, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, HEIGHT_EXPONENT
+from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
+    HEIGHT_EXPONENT
 
 
 def p_correction_height_air(height):

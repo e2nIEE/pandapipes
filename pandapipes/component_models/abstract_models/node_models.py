@@ -2,11 +2,6 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
-
 from pandapipes.component_models.abstract_models.component_models import Component
 
 try:
@@ -54,6 +49,8 @@ class NodeComponent(Component):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         raise NotImplementedError

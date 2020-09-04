@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.pandapipes_net import pandapipesNet, logger
+from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
 

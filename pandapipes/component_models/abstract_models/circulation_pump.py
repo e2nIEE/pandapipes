@@ -30,9 +30,11 @@ class CirculationPump(ExtGrid):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
-        res_table, circ_pump, index_nodes_from, node_pit, branch_pit = \
+        res_table, circ_pump, index_nodes_from, node_pit, _ = \
             super().extract_results(net, options, node_name)
 
         index_juncts_to = circ_pump.to_junction.values

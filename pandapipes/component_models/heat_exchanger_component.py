@@ -3,18 +3,14 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-
+from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
-
-from pandapipes.idx_node import ELEMENT_IDX, PINIT, TINIT as TINIT_NODE, PAMB
+from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, LOAD_VEC_NODES, PL, TL, ALPHA, \
     TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC, RE, LAMBDA
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-
+from pandapipes.idx_node import ELEMENT_IDX, PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
-
-from numpy import dtype
 
 try:
     import pplog as logging
@@ -47,8 +43,8 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :type net: pandapipesNet
         :param heat_exchanger_pit:
         :type heat_exchanger_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         heat_exchanger_pit = super().create_pit_branch_entries(net, heat_exchanger_pit, node_name)
@@ -69,6 +65,8 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         placement_table, heat_exchanger_pit, res_table = \
