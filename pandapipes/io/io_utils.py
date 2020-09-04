@@ -6,7 +6,7 @@ import importlib
 from inspect import isclass
 
 from pandapipes.component_models.abstract_models import Component
-from pandapipes.create import create_empty_network as create_fluid_network, create_empty_network
+from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import get_obj_idx_addr_iterator, get_weakref_idx_addr_iterator, \
     address_string
@@ -48,17 +48,25 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     module_name = ''
 
     def __init__(self, obj, d, obj_hook, memo_pp, addresses_to_fill, weakrefs_to_fill):
-        super().__init__(obj, d, obj_hook, memo_pp, addresses_to_fill, weakrefs_to_fill)
+        """
+        Class containing all registered function for deserialization.
 
-    # @from_serializable.register(class_name='pandapowerNet', module_name='pandapower.auxiliary')
-    # def pandapowerNet(self):
-    #     if isinstance(self.obj, str):  # backwards compatibility
-    #         from pandapower import from_json_string
-    #         return from_json_string(self.obj)
-    #     else:
-    #         net = pp.create_empty_network()
-    #         net.update(self.obj)
-    #         return net
+        :param obj: object to be deserialized (usually string)
+        :type obj: str
+        :param d: dictionary with additional information
+        :type d: dict
+        :param obj_hook: the object hook to be handed to underlying decoders
+        :type obj_hook: function
+        :param memo_pp: object memory dict to be filled with the object if necessary
+        :type memo_pp: dict
+        :param addresses_to_fill: dict mapping addresses to setter functions where to insert the\
+                                  objects restored for these addresses (saved in memo_pp)
+        :type addresses_to_fill: defaultdict
+        :param weakrefs_to_fill: dict mapping addresses to setter functions where to insert the\
+                                 weakrefs of objects restored for these addresses (saved in memo_pp)
+        :type weakrefs_to_fill: defaultdict
+        """
+        super().__init__(obj, d, obj_hook, memo_pp, addresses_to_fill, weakrefs_to_fill)
 
     @from_serializable.register(class_name="method")
     def method(self):
