@@ -19,15 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class BranchWOInternalsComponent(BranchComponent):
-    """
-
-    """
 
     @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
                               current_start):
-        """
-        Function which creates branch lookups.
+        """Function which creates branch lookups.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -51,8 +47,7 @@ class BranchWOInternalsComponent(BranchComponent):
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_wo_internals_pit, node_name):
-        """
-        Function which creates pit branch entries with a specific table.
+        """Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet

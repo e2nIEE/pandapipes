@@ -11,9 +11,6 @@ from pandapipes.pipeflow_setup import get_lookup
 
 
 class ConstFlow(NodeElementComponent):
-    """
-
-    """
 
     @classmethod
     def sign(cls):
@@ -21,8 +18,7 @@ class ConstFlow(NodeElementComponent):
 
     @classmethod
     def create_pit_node_entries(cls, net, node_pit, node_name):
-        """
-        Function which creates pit node entries.
+        """Function which creates pit node entries.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -43,8 +39,7 @@ class ConstFlow(NodeElementComponent):
 
     @classmethod
     def extract_results(cls, net, options, node_name):
-        """
-        Function that extracts certain results.
+        """Function that extracts certain results.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -75,13 +70,12 @@ class ConstFlow(NodeElementComponent):
         :return:
         :rtype:
         """
-        input = [("name", dtype(object)),
-                 ("junction", "u4"),
-                 ("mdot_kg_per_s", "f8"),
-                 ("scaling", "f8"),
-                 ("in_service", "bool"),
-                 ("type", dtype(object))]
-        return input
+        return [("name", dtype(object)),
+                ("junction", "u4"),
+                ("mdot_kg_per_s", "f8"),
+                ("scaling", "f8"),
+                ("in_service", "bool"),
+                ("type", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):

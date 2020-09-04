@@ -446,7 +446,7 @@ class Pipe(BranchWInternalsComponent):
 
         x_pt = np.linspace(0, net.pipe["length_km"], len(p_values))
         x_v = np.linspace(0, net.pipe["length_km"], len(v_values))
-        f, axes = plt.subplots(3, 1, sharex="all")
+        _, axes = plt.subplots(3, 1, sharex="all")
         axes[0].plot(x_pt, p_values)
         axes[0].set_title("Pressure [bar]")
         axes[1].plot(x_v, v_values)

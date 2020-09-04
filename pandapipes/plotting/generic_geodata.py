@@ -9,13 +9,6 @@ from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
 try:
-    import igraph
-
-    IGRAPH_INSTALLED = True
-except ImportError:
-    IGRAPH_INSTALLED = False
-
-try:
     import pplog as logging
 except ImportError:
     import logging
