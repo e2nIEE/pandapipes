@@ -210,7 +210,10 @@ def reindex_elements(net, element, new_indices, old_indices=None):
     old_indices = old_indices if old_indices is not None else net[element].index
     if not len(new_indices) or not net[element].shape[0]:
         return
-    assert len(new_indices) == len(old_indices)
+    if len(new_indices) != len(old_indices):
+        raise UserWarning("The length of new indices to replace existing ones for %s does not "
+                          "match: %d (new) vs. %d (old)."
+                          % (element, len(new_indices), len(old_indices)))
     lookup = dict(zip(old_indices, new_indices))
 
     if element == "junction":
