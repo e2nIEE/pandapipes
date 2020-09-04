@@ -33,7 +33,8 @@ class HeatExchanger(BranchWZeroLengthComponent):
 
     @classmethod
     def create_pit_branch_entries(cls, net, heat_exchanger_pit, node_name):
-        """Function which creates pit branch entries with a specific table.
+        """
+        Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet

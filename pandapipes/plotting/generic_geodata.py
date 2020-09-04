@@ -95,9 +95,6 @@ def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="ju
     _prepare_geodata_table(net, geodata_table, overwrite)
 
     if library == "igraph":
-        if not IGRAPH_INSTALLED:
-            raise UserWarning("The library igraph is selected for plotting, but not installed "
-                              "correctly.")
         graph, meshed, roots = build_igraph_from_ppipes(net)
         coords = coords_from_igraph(graph, roots, meshed)
     elif library == "networkx":

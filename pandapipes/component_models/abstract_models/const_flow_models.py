@@ -18,7 +18,8 @@ class ConstFlow(NodeElementComponent):
 
     @classmethod
     def create_pit_node_entries(cls, net, node_pit, node_name):
-        """Function which creates pit node entries.
+        """
+        Function which creates pit node entries.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -39,7 +40,8 @@ class ConstFlow(NodeElementComponent):
 
     @classmethod
     def extract_results(cls, net, options, node_name):
-        """Function that extracts certain results.
+        """
+        Function that extracts certain results.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
