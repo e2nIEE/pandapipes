@@ -3,17 +3,15 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import importlib
-import json
-from functools import partial
 from inspect import isclass
 
-import pandapower as pp
 from pandapipes.component_models.abstract_models import Component
-from pandapipes.create import create_empty_network as create_fluid_network
+from pandapipes.create import create_empty_network as create_fluid_network, create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.io_utils import pp_hook
-from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
+from pandapower.io_utils import get_obj_idx_addr_iterator, get_weakref_idx_addr_iterator, \
+    address_string
+from pandapower.io_utils import with_signature, to_serializable, \
+    isinstance_partial as ppow_isinstance, FromSerializableRegistry
 
 try:
     import pplog as logging
@@ -49,18 +47,18 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     class_name = ''
     module_name = ''
 
-    def __init__(self, obj, d, net, ppipes_hook):
-        super().__init__(obj, d, net, ppipes_hook)
+    def __init__(self, obj, d, obj_hook, memo_pp, addresses_to_fill, weakrefs_to_fill):
+        super().__init__(obj, d, obj_hook, memo_pp, addresses_to_fill, weakrefs_to_fill)
 
-    @from_serializable.register(class_name='pandapowerNet', module_name='pandapower.auxiliary')
-    def pandapowerNet(self):
-        if isinstance(self.obj, str):  # backwards compatibility
-            from pandapower import from_json_string
-            return from_json_string(self.obj)
-        else:
-            net = pp.create_empty_network()
-            net.update(self.obj)
-            return net
+    # @from_serializable.register(class_name='pandapowerNet', module_name='pandapower.auxiliary')
+    # def pandapowerNet(self):
+    #     if isinstance(self.obj, str):  # backwards compatibility
+    #         from pandapower import from_json_string
+    #         return from_json_string(self.obj)
+    #     else:
+    #         net = pp.create_empty_network()
+    #         net.update(self.obj)
+    #         return net
 
     @from_serializable.register(class_name="method")
     def method(self):
@@ -71,41 +69,39 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         return func
 
     @from_serializable.register(class_name='pandapipesNet', module_name='pandapipes.pandapipes_net')
-    def pandapipesNet(self):
+    def pandapipes_net(self):
         if isinstance(self.obj, str):  # backwards compatibility
             from pandapipes import from_json_string
-            return from_json_string(self.obj)
+            net = from_json_string(self.obj)
         else:
-            self.net.update(self.obj)
-            return self.net
+            net = create_empty_network()
+            net.update(self.obj)
+        self.underlying_objects = get_obj_idx_addr_iterator(net.items())
+        self.weakrefs = get_weakref_idx_addr_iterator(net.items())
+        return net
 
     @from_serializable.register()
     def rest(self):
         module = importlib.import_module(self.module_name)
         class_ = getattr(module, self.class_name)
-        if isclass(class_) and issubclass(class_, JSONSerializableClass):
-            if isinstance(self.obj, str):
-                self.obj = json.loads(self.obj, cls=PPJSONDecoder,
-                                      object_hook=partial(pp_hook, net=self.net,
-                                                          registry_class=FromSerializableRegistryPpipe))
-                                                          # backwards compatibility
-            return class_.from_dict(self.obj, self.net)
         if isclass(class_) and issubclass(class_, Component):
             return class_
-        else:
-            # for non-pp objects, e.g. tuple
-            return class_(self.obj, **self.d)
+        return super(FromSerializableRegistryPpipe, self).extract_object(class_)
 
 
 @to_serializable.register(pandapipesNet)
-def json_net(obj):
+def json_pandapipes_net(obj, memo=None):
+    if memo is not None:
+        if obj in memo:
+            return address_string(obj)
+        memo.append(obj)
     net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
-    d = with_signature(obj, net_dict)
+    d = with_signature(obj, net_dict,with_address=True)
     return d
 
 
 @to_serializable.register(type)
-def json_component(class_):
+def json_component(class_, memo=None):
     if issubclass(class_, Component):
         d = with_signature(class_(), str(class_().__dict__))
         return d

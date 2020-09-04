@@ -19,9 +19,6 @@ from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
 from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
-from pandapower.io_utils import pp_hook
-from pandapipes.create import create_empty_network
-from functools import partial
 from pandapipes.io.convert_format import convert_format
 
 
@@ -140,9 +137,7 @@ def from_json_string(json_string, convert=False):
         >>> net = pandapipes.from_json_string(json_str)
 
     """
-    net = create_empty_network()
-    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook, net=net,
-                                                                         registry_class=FromSerializableRegistryPpipe))
+    net = json.loads(json_string, cls=PPJSONDecoder, registry_class=FromSerializableRegistryPpipe)
 
     if convert:
         convert_format(net)

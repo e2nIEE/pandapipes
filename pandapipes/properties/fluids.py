@@ -3,8 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 from pandapipes import pp_dir
 from pandapower.io_utils import JSONSerializableClass
 from scipy.interpolate import interp1d
@@ -241,7 +242,7 @@ class FluidPropertyInterExtra(FluidProperty):
         return d
 
     @classmethod
-    def from_dict(cls, d, net):
+    def from_dict(cls, d):
         obj = JSONSerializableClass.__new__(cls)
         d2 = {cls.prop_getter_entries[k]: v for k, v in d.items()
               if k in cls.prop_getter_entries.keys()}
