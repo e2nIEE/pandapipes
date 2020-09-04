@@ -9,13 +9,6 @@ from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
 try:
-    import igraph
-
-    IGRAPH_INSTALLED = True
-except ImportError:
-    IGRAPH_INSTALLED = False
-
-try:
     import pplog as logging
 except ImportError:
     import logging
@@ -102,9 +95,6 @@ def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="ju
     _prepare_geodata_table(net, geodata_table, overwrite)
 
     if library == "igraph":
-        if not IGRAPH_INSTALLED:
-            raise UserWarning("The library igraph is selected for plotting, but not installed "
-                              "correctly.")
         graph, meshed, roots = build_igraph_from_ppipes(net)
         coords = coords_from_igraph(graph, roots, meshed)
     elif library == "networkx":

@@ -22,9 +22,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class HeatExchanger(BranchWZeroLengthComponent):
-    """
-
-    """
 
     @classmethod
     def table_name(cls):
@@ -101,24 +98,24 @@ class HeatExchanger(BranchWZeroLengthComponent):
             p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
             numerator = NORMAL_PRESSURE * heat_exchanger_pit[:, TINIT]
             normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                              / (p_from * NORMAL_TEMPERATURE)
+                / (p_from * NORMAL_TEMPERATURE)
             normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                            / (p_to * NORMAL_TEMPERATURE)
+                / (p_to * NORMAL_TEMPERATURE)
             v_gas_from = v_mps * normfactor_from
             v_gas_to = v_mps * normfactor_to
             mask = p_from != p_to
             p_mean = np.empty_like(p_to)
             p_mean[~mask] = p_from[~mask]
             p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
-                           / (p_from[mask] ** 2 - p_to[mask] ** 2)
+                / (p_from[mask] ** 2 - p_to[mask] ** 2)
             normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                              / (p_mean * NORMAL_TEMPERATURE)
+                / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
 
             idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
-            internal_pipes = _sum_by_group(
-                idx_active, v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to,
-                np.ones_like(idx_active))
+                internal_pipes = _sum_by_group(idx_active, v_gas_from, v_gas_to, v_gas_mean,
+                                               normfactor_from, normfactor_to,
+                                               np.ones_like(idx_active))
 
             res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_sum / internal_pipes
             res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_sum / internal_pipes

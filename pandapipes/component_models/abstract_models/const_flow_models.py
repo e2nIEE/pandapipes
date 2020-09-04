@@ -11,9 +11,6 @@ from pandapipes.pipeflow_setup import get_lookup
 
 
 class ConstFlow(NodeElementComponent):
-    """
-
-    """
 
     @classmethod
     def sign(cls):
@@ -75,13 +72,12 @@ class ConstFlow(NodeElementComponent):
         :return:
         :rtype:
         """
-        input = [("name", dtype(object)),
-                 ("junction", "u4"),
-                 ("mdot_kg_per_s", "f8"),
-                 ("scaling", "f8"),
-                 ("in_service", "bool"),
-                 ("type", dtype(object))]
-        return input
+        return [("name", dtype(object)),
+                ("junction", "u4"),
+                ("mdot_kg_per_s", "f8"),
+                ("scaling", "f8"),
+                ("in_service", "bool"),
+                ("type", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):
