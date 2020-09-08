@@ -27,8 +27,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
     @classmethod
     def create_pit_node_entries(cls, net, node_pit, node_name):
         pcs = net[cls.table_name()]
-        juncts = pcs['controlled_junction'].values
-        press = pcs['controlled_p_bar'].values
+        juncts = pcs['controlled_junction'].values[pcs.in_service]
+        press = pcs['controlled_p_bar'].values[pcs.in_service]
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         index_pc = junction_idx_lookups[juncts]
         node_pit[index_pc, NODE_TYPE] = PC
