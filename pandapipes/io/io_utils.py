@@ -14,6 +14,7 @@ from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
+from copy import deepcopy
 
 try:
     import pplog as logging
@@ -30,7 +31,7 @@ def isinstance_partial(obj, cls):
 
 
 class FromSerializableRegistryPpipe(FromSerializableRegistry):
-    from_serializable = FromSerializableRegistry.from_serializable
+    from_serializable = deepcopy(FromSerializableRegistry.from_serializable)
     class_name = ''
     module_name = ''
 
