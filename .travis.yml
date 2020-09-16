@@ -20,7 +20,7 @@ install:
   - if [ "$TRAVIS_BRANCH" = "master" ]; then
          git clone --single-branch --branch master https://github.com/e2nIEE/pandapower.git --depth 1 /tmp/pandapower;
     else
-         git clone --single-branch --branch develop https://github.com/e2nIEE/pandapower.git --depth 1 /tmp/pandapower;
+         git clone --single-branch --branch clean_control_2.0 https://github.com/SimonRubenDrauz/pandapower.git --depth 1 /tmp/pandapower;
     fi
   - pip install /tmp/pandapower
   - conda install matplotlib --yes
