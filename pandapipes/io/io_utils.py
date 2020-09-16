@@ -7,10 +7,8 @@ import json
 from functools import partial
 from inspect import isclass
 
-import pandapower as pp
-import pandapipes as ppipes
 from pandapipes.component_models.abstract_models import Component
-from pandapipes.create import create_empty_network as create_fluid_network
+from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
@@ -36,8 +34,8 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     class_name = ''
     module_name = ''
 
-    def __init__(self, obj, d, net, ppipes_hook):
-        super().__init__(obj, d, net, ppipes_hook)
+    def __init__(self, obj, d, ppipes_hook):
+        super().__init__(obj, d, ppipes_hook)
 
     @from_serializable.register(class_name="method")
     def method(self):
@@ -53,7 +51,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             from pandapipes import from_json_string
             return from_json_string(self.obj)
         else:
-            net = ppipes.create_empty_network()
+            net = create_empty_network()
             net.update(self.obj)
             return net
 
