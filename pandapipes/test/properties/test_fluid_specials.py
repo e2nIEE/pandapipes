@@ -45,7 +45,8 @@ def test_property_adaptation():
 
     pandapipes.create_constant_property(net, "density", 1, overwrite=True, warn_on_duplicates=False)
     density_new = pandapipes.create_constant_property(net, "density", 1, overwrite=False)
-    assert pandapipes.get_fluid(net).all_properties["density"] == density_new
+    assert pandapipes.get_fluid(net).all_properties["density"].equals(density_new)
+    assert pandapipes.get_fluid(net).all_properties["density"] != density_new
 
 
 def test_fluid_exceptions():
