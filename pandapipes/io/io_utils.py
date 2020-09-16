@@ -8,6 +8,7 @@ from functools import partial
 from inspect import isclass
 
 import pandapower as pp
+import pandapipes as ppipes
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network as create_fluid_network
 from pandapipes.pandapipes_net import pandapipesNet
@@ -38,16 +39,6 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     def __init__(self, obj, d, net, ppipes_hook):
         super().__init__(obj, d, net, ppipes_hook)
 
-    @from_serializable.register(class_name='pandapowerNet', module_name='pandapower.auxiliary')
-    def pandapowerNet(self):
-        if isinstance(self.obj, str):  # backwards compatibility
-            from pandapower import from_json_string
-            return from_json_string(self.obj)
-        else:
-            net = pp.create_empty_network()
-            net.update(self.obj)
-            return net
-
     @from_serializable.register(class_name="method")
     def method(self):
         module = importlib.import_module(self.module_name)
@@ -62,8 +53,9 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             from pandapipes import from_json_string
             return from_json_string(self.obj)
         else:
-            self.net.update(self.obj)
-            return self.net
+            net = ppipes.create_empty_network()
+            net.update(self.obj)
+            return net
 
     @from_serializable.register()
     def rest(self):
@@ -72,10 +64,12 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
-                                      object_hook=partial(pp_hook, net=self.net,
+                                      object_hook=partial(pp_hook,
                                                           registry_class=FromSerializableRegistryPpipe))
                                                           # backwards compatibility
-            return class_.from_dict(self.obj, self.net)
+            if "net" in self.obj:
+                del self.obj["net"]
+            return class_.from_dict(self.obj)
         if isclass(class_) and issubclass(class_, Component):
             return class_
         else:
