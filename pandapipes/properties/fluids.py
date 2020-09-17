@@ -241,7 +241,7 @@ class FluidPropertyInterExtra(FluidProperty):
         return d
 
     @classmethod
-    def from_dict(cls, d, net):
+    def from_dict(cls, d):
         obj = JSONSerializableClass.__new__(cls)
         d2 = {cls.prop_getter_entries[k]: v for k, v in d.items()
               if k in cls.prop_getter_entries.keys()}

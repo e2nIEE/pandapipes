@@ -135,8 +135,7 @@ def from_json_string(json_string, convert=False):
         >>> net = pandapipes.from_json_string(json_str)
 
     """
-    net = create_empty_network()
-    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook, net=net,
+    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook,
                                                                          registry_class=FromSerializableRegistryPpipe))
 
     if convert:
