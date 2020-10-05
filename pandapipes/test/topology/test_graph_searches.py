@@ -6,6 +6,7 @@ import pytest
 import pandapipes.networks as nw 
 import pandapipes.topology as top
 
+
 def test_connected_components():
     net = nw.gas_meshed_two_valves()
     mg = top.create_nxgraph(net)
@@ -13,6 +14,12 @@ def test_connected_components():
     mg = top.create_nxgraph(net, include_valves=False)
     assert len(list(top.connected_components(mg))) == 2
     mg = top.create_nxgraph(net, include_pipes=False)
+    assert len(list(top.connected_components(mg))) == 7
+    mg = top.create_nxgraph(net, include_pipes=False, neglect_in_service=["valve"])
     assert len(list(top.connected_components(mg))) == 6
     mg = top.create_nxgraph(net, include_pipes=False, include_valves=False)
     assert len(list(top.connected_components(mg))) == 8
+
+
+if __name__ == '__main__':
+    pytest.main(["test_graph_searches.py"])

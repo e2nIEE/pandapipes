@@ -23,6 +23,34 @@ class BranchWInternalsComponent(BranchComponent):
     """
 
     @classmethod
+    def from_to_node_cols(cls):
+        return NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
+        return NotImplementedError
+
+    @classmethod
+    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+        return NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        return NotImplementedError
+
+    @classmethod
+    def table_name(cls):
+        return NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        return NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        return NotImplementedError
+
+    @classmethod
     def internal_node_name(cls):
         return NotImplementedError
 

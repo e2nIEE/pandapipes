@@ -20,6 +20,22 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
     """
 
     @classmethod
+    def from_to_node_cols(cls):
+        return NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
+        return NotImplementedError
+
+    @classmethod
+    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+        return NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        return NotImplementedError
+
+    @classmethod
     def create_pit_branch_entries(cls, net, branch_wzerolength_pit, node_name):
         """
         Function which creates pit branch entries with a specific table.

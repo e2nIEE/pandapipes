@@ -6,6 +6,7 @@ import pytest
 import pandapipes.networks as nw 
 import pandapipes.topology as top
 
+
 def test_include_branches():
     net = nw.gas_versatility()
     
@@ -19,8 +20,18 @@ def test_include_branches():
 
     mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=False)
     assert len(mg.nodes()) == len(net.junction)
-    assert len(mg.edges()) == len(net.pipe) + len(net.valve) 
+    assert len(mg.edges()) == len(net.pipe)
+
+    mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=False,
+                            neglect_in_service=["valve"])
+    assert len(mg.nodes()) == len(net.junction)
+    assert len(mg.edges()) == len(net.pipe) + len(net.valve)
     
-    mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=True)
+    mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=True,
+                            neglect_in_service=["valve"])
     assert len(mg.nodes()) == len(net.junction)
     assert len(mg.edges()) == len(net.pipe) + len(net.valve) + len(net.pump)
+
+
+if __name__ == '__main__':
+    pytest.main(["test_nxgraph.py"])

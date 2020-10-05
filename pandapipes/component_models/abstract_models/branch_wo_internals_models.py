@@ -21,6 +21,22 @@ logger = logging.getLogger(__name__)
 class BranchWOInternalsComponent(BranchComponent):
 
     @classmethod
+    def from_to_node_cols(cls):
+        return NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
+        return NotImplementedError
+
+    @classmethod
+    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+        return NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        return NotImplementedError
+
+    @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
                               current_start):
         """
