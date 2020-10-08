@@ -66,7 +66,7 @@ The pressure loss for incompressible media is calculated according to the follow
    :nowrap:
 
    \begin{align*}
-    p_\text{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \lambda(v) \cdot l v^2}{ 2 d} - \zeta \frac{\rho v^2}{2}  \\
+    p_\text{loss} &= \rho \cdot g \cdot \Delta h - \frac{\rho \cdot \lambda(v) \cdot l \cdot v^2}{ 2 \cdot d} - \zeta \cdot \frac{\rho \cdot v^2}{2}  \\
    \end{align*}
 
 
@@ -79,7 +79,7 @@ For compressible media, the density is expressed with respect to a reference sta
    :nowrap:
 
    \begin{align*}
-    \rho &= \frac{\rho_N p T_N}{T p_N} \\
+    \rho &= \frac{\rho_N \cdot p \cdot T_N}{T \cdot p_N} \\
    \end{align*}
 
 
@@ -90,7 +90,7 @@ relation, also the pipe velocity can be expressed using reference values:
    :nowrap:
 
    \begin{align*}
-    v &= \frac{T p_N}{p T_N}v_N \\
+    v &= \frac{T \cdot p_N}{p \cdot T_N} \cdot v_N \\
    \end{align*}
 
 Inserting the equations from above in the differential equation for describing the pressure drop
@@ -102,7 +102,7 @@ pressure drop for compressible media:
    :nowrap:
 
    \begin{align*}
-    \text{d}p_\text{loss} &= -\lambda(v) \frac{\rho_N v_N^2}{2 d}\cdot \frac{p_N}{p} \cdot \frac{T}{T_N} \cdot K \text{d}l  \\
+    \text{d}p_\text{loss} &= -\lambda(v) \cdot \frac{\rho_N \cdot v_N^2}{2 \cdot d}\cdot \frac{p_N}{p} \cdot \frac{T}{T_N} \cdot K \cdot \text{d}l  \\
    \end{align*}
 
 The equation for pressure drop also introduces a variable K. This is the compressibility factor, which is used to
@@ -115,10 +115,10 @@ known. During post processing, the reference velocities are recalculated accordi
    :nowrap:
 
    \begin{align*}
-    v &= \frac{T p_N}{p T_N}v_N \\
+    v &= \frac{T \cdot p_N}{p \cdot T_N} \cdot v_N \\
    \end{align*}
 
-The equations from above were implemented following :cite:`Eberhard1990`
+The equations from above were implemented following :cite:`Eberhard1990`.
 
 Because the velocity of a compressible fluid changes along the pipe axis, it is possible to split a pipe into
 several sections, increasing the internal resolution. The parameter *sections* is used to increase the amount of internal
@@ -129,10 +129,11 @@ pipe sections.
 Friction models
 ^^^^^^^^^^^^^^^
 
-Two friction models are used to calculate the velocity dependent friction factor:
+Three friction models are used to calculate the velocity dependent friction factor:
 
 - Nikuradse
 - Prandtl-Colebrook
+- Swamee-Jain
 
 Nikuradse is chosen by default. In this case, the friction factor is calculated by:
 
@@ -157,8 +158,18 @@ If Prandtl-Colebrook is selected, the friction factor is calculated iteratively 
    \end{align*}
 
 Equations for pressure losses due to friction were taken from :cite:`Eberhard1990` and
-:cite:`Cerbe.2008`.
+:cite:`Cerbe2008`.
 
+The equation according to Swamee-Jain :cite:`Swamee1976` is an approximation of the calculation method according
+to Prandtl-Colebrook. It is an explicit formula for the friction factor of the transition
+zone of turbulent flows in pipes and is defined as follows:
+
+.. math::
+   :nowrap:
+
+   \begin{align*}
+    \lambda &= \frac{0.25}{(\log(\frac{k}{3.7 \cdot d} + \frac{5.74}{Re^{0.9}}))^2}\\
+   \end{align*}
 
 
 Heat transfer mode

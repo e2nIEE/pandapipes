@@ -3,14 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.component_models.abstract_models import CirculationPump
-from pandapipes.idx_node import PINIT, NODE_TYPE, P, LOAD, EXT_GRID_OCCURENCE, TINIT, NODE_TYPE_T, \
-    EXT_GRID_OCCURENCE_T, T
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
-from pandapipes.pipeflow_setup import get_lookup, get_fluid
 from numpy import dtype
-
-from pandapipes.toolbox import _sum_by_group
+from pandapipes.component_models.abstract_models import CirculationPump
+from pandapipes.idx_node import LOAD
+from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.pipeflow_setup import get_lookup
 
 try:
     import pplog as logging
@@ -35,9 +32,11 @@ class CirculationPumpMass(CirculationPump):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
-        circ_pump, press = super().create_pit_node_entries(net, node_pit, node_name)
+        circ_pump, _ = super().create_pit_node_entries(net, node_pit, node_name)
 
         mf = np.nan_to_num(circ_pump.mdot_kg_per_s.values)
         mass_flow_loads = mf * circ_pump.in_service.values

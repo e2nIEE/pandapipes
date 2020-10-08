@@ -1,5 +1,5 @@
 ################
-About Pandapipes
+About pandapipes
 ################
 
 
@@ -10,5 +10,6 @@ About Pandapipes
     about/symbols
     about/references
     about/authors
+    about/changelog
     about/license
     about/known_issues

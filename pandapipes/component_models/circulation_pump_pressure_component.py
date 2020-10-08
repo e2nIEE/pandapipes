@@ -3,12 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+from numpy import dtype
 from pandapipes.component_models.abstract_models import CirculationPump
 from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
+from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
-from numpy import dtype
-
-from pandapipes.toolbox import _sum_by_group
 
 try:
     import pplog as logging
@@ -33,6 +32,8 @@ class CirculationPumpPressure(CirculationPump):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         circ_pump, press = super().create_pit_node_entries(net, node_pit, node_name)

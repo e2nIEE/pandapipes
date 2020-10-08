@@ -8,28 +8,28 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DV, JAC_DERIV_DP
     JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T
 from pandapipes.idx_node import LOAD, TINIT
 from pandapipes.idx_node import P, NODE_TYPE, T, NODE_TYPE_T
-from pandapipes.toolbox import _sum_by_group, _sum_by_group_sorted
+from pandapipes.internals_toolbox import _sum_by_group_sorted, _sum_by_group
 from scipy.sparse import csr_matrix
 from pandapipes.pipeflow_setup import get_net_option
 
 
 def build_system_matrix(net, branch_pit, node_pit, heat_mode):
-    """
+    """Builds the system matrix.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
-    :param branch_pit:
-    :type branch_pit:
-    :param node_pit:
-    :type node_pit:
-    :param heat_mode:
-    :type heat_mode:
+    :param branch_pit: pandapipes internal table for branching components such as pipes or valves
+    :type branch_pit: numpy.ndarray
+    :param node_pit:  pandapipes internal table for node components
+    :type node_pit: numpy.ndarray
+    :param heat_mode: Is it a heat network calculation: True or False
+    :type heat_mode: bool
     :return: system_matrix, load_vector
-    :rtype:
+    :rtype: system_matrix - scipy.sparse.csr.csr_matrix, load_vector - numpy.ndarray
     """
     update_option = get_net_option(net, "only_update_hydraulic_matrix")
     update_only = update_option and "hydraulic_data_sorting" in net["_internal_data"] \
-                  and "hydraulic_matrix" in net["_internal_data"]
+        and "hydraulic_matrix" in net["_internal_data"]
 
     len_b = len(branch_pit)
     len_n = len(node_pit)

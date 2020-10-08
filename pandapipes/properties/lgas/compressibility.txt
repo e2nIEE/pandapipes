@@ -1,0 +1,2 @@
+# slope in 1/bar, offset for linear property
+-0.0022 1

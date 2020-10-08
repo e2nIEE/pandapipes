@@ -5,6 +5,9 @@
 
 import numpy as np
 from numpy import linalg
+from pandapipes.component_models import Junction
+from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
+    BranchComponent, BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
@@ -13,10 +16,8 @@ from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_o
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     extract_results_active_pit, set_user_pf_options
+from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
-from pandapipes.component_models import Junction
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
-    BranchComponent, BranchWInternalsComponent
 
 try:
     import pplog as logging
@@ -42,19 +43,19 @@ def set_logger_level_pipeflow(level):
 
 def pipeflow(net, sol_vec=None, **kwargs):
     """
-    The main method used to start the solver to calculate the veatity, pressure and temperature\
+    The main method used to start the solver to calculate the velocity, pressure and temperature\
     distribution for a given net. Different options can be entered for \\**kwargs, which control\
-    the solver behaviour (see function init constants for more information).
+    the solver behaviour (see function :func:`init_options` for more information).
 
     :param net: The pandapipes net for which to perform the pipeflow
     :type net: pandapipesNet
-    :param sol_vec:
-    :type sol_vec:
+    :param sol_vec: Initializes the start values for the heating network calculation
+    :type sol_vec: numpy.ndarray, default None
     :param kwargs: A list of options controlling the solver behaviour
     :return: No output
 
-    EXAMPLE:
-        pipeflow(net, mode="hydraulic")
+    :Example:
+        >>> pipeflow(net, mode="hydraulic")
 
     """
     local_params = dict(locals())
@@ -69,6 +70,10 @@ def pipeflow(net, sol_vec=None, **kwargs):
     node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
                                           NodeComponent, NodeElementComponent,
                                           BranchComponent, BranchWInternalsComponent)
+    if (len(node_pit) == 0) & (len(branch_pit) == 0):
+        logger.warning("There are no node and branch entries defined. This might mean that your net"
+                       " is empty")
+        return
     calculation_mode = get_net_option(net, "mode")
 
     if get_net_option(net, "check_connectivity"):
@@ -81,20 +86,20 @@ def pipeflow(net, sol_vec=None, **kwargs):
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
     if calculation_mode == "hydraulics":
-        niter = hydraulics(net)
+        hydraulics(net)
     elif calculation_mode == "heat":
         if net.user_pf_options["hyd_flag"]:
             node_pit = net["_active_pit"]["node"]
             node_pit[:, PINIT] = sol_vec[:len(node_pit)]
             branch_pit = net["_active_pit"]["branch"]
             branch_pit[:, VINIT] = sol_vec[len(node_pit):]
-            niter = heat_transfer(net)
+            heat_transfer(net)
         else:
             logger.warning("Converged flag not set. Make sure that hydraulic calculation results "
                            "are available.")
     elif calculation_mode == "all":
-        niter = hydraulics(net)
-        niter = heat_transfer(net)
+        hydraulics(net)
+        heat_transfer(net)
     else:
         logger.warning("No proper calculation mode chosen.")
 
@@ -103,14 +108,15 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
 
 def hydraulics(net):
-    max_iter, nonlinear_method, tol_p, tol_v, tol_t, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_T", "tol_res")
+    max_iter, nonlinear_method, tol_p, tol_v, tol_res = get_net_options(
+        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
     niter = 0
     create_internal_results(net)
-    net["_internal_data"] = dict()
+    if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
+        net["_internal_data"] = dict()
 
     # This branch is used to stop the solver after a specified error tolerance is reached
     error_v, error_p, residual_norm = [], [], None
@@ -168,15 +174,16 @@ def hydraulics(net):
         logger.info("tol_v: %s" % get_net_option(net, "tol_v"))
         net['converged'] = True
 
-    net.pop("_internal_data", None)
+    if not get_net_option(net, "reuse_internal_data"):
+        net.pop("_internal_data", None)
     set_user_pf_options(net, hyd_flag=True)
 
     return niter
 
 
 def heat_transfer(net):
-    max_iter, nonlinear_method, tol_p, tol_v, tol_t, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_T", "tol_res")
+    max_iter, nonlinear_method, tol_t, tol_res = get_net_options(
+        net, "iter", "nonlinear_method", "tol_T", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
@@ -350,3 +357,10 @@ def set_damping_factor(net, niter, error):
         set_net_option(net, "alpha", current_alpha * 10 if current_alpha <= 0.1 else 1.0)
 
     return error_x0_increased, error_x1_increased
+
+
+class PipeflowNotConverged(ppException):
+    """
+    Exception being raised in case pipeflow did not converge.
+    """
+    pass

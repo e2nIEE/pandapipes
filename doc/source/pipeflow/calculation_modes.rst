@@ -1,7 +1,7 @@
 .. _calculation_modes:
 
 *****************
-Calculation modes
+Calculation Modes
 *****************
 
 When running a pipeflow, you can choose between different calculation modes. This page explains the
@@ -12,7 +12,7 @@ examined network:
 
 One suitable for incompressible and one suitable for compressible media, respectively. A user does
 not have to define the calculation mode manually. Instead, the fluid used for the calculation
-contains a parameter specifiying if the fluid behaves compressible or incompressible. pandapipes
+contains a parameter specifying if the fluid behaves compressible or incompressible. pandapipes
 automatically chooses the appropriate calculation mode based on this fluid parameter.
 
 In addition, there is one mode available which calculates the temperature distribution in the
@@ -111,8 +111,8 @@ temperature value for the calculation. Calculated temperatures will usually diff
 input.
 
 To calculate heat losses along pipelines it is necessary to specifiy the temperature of the
-surroundings. The temperature needed for loss calculation is stored in the parameter "text_k" which
-can be specified for :ref:´pipe components<pipe_component>`.
+surroundings. The temperature needed for loss calculation is stored in the parameter text_k which
+can be specified for :ref:`pipe components<pipe_component>`.
 
 Summary of temperature values
 ===================================================================

@@ -7,11 +7,6 @@ from pandapipes.component_models.abstract_models.branch_wo_internals_models impo
 from pandapipes.idx_branch import LENGTH, K
 
 try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
-
-try:
     import pplog as logging
 except ImportError:
     import logging
@@ -31,10 +26,10 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param valve_pit:
-        :type valve_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param branch_wzerolength_pit:
+        :type branch_wzerolength_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         branch_wizerolength_pit = \
