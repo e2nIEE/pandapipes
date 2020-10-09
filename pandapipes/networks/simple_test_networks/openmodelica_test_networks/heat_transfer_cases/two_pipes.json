@@ -9,14 +9,14 @@
     },
     "converged": false,
     "name": "net",
-    "version": "0.1",
+    "version": "0.2.0",
     "controller": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"controller\",\"in_service\",\"order\",\"level\",\"recycle\"],\"index\":[],\"data\":[]}",
+      "_object": "{\"columns\":[\"object\",\"in_service\",\"order\",\"level\",\"recycle\"],\"index\":[],\"data\":[]}",
       "orient": "split",
       "dtype": {
-        "controller": "object",
+        "object": "object",
         "in_service": "bool",
         "order": "float64",
         "level": "object",
