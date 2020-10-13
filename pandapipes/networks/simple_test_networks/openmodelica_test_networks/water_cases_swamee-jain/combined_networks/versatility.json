@@ -9,7 +9,7 @@
     },
     "converged": true,
     "name": "net",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "controller": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
