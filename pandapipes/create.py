@@ -129,6 +129,76 @@ def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in
     return index
 
 
+def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None, index=None,
+                     in_service=True, type="junction", geodata=None, **kwargs):
+    """
+    Adds several junctions in table net["junction"] at once. Junctions are the nodes of the network
+    that all other elements connect to.
+
+    :param net: The pandapipes network in which the element is created
+    :type net: pandapipesNet
+    :param pn_bar: The nominal pressure in [bar]. Used as an initial value for pressure calculation.
+    :type pn_bar: float
+    :param nr_junctions: Number of junctions to be created.
+    :type nr_junctions: int
+    :param tfluid_k: The fluid temperature in [K]. Used as parameter for gas calculations and as\
+            initial value for temperature calculations.
+    :type tfluid_k: float
+    :param height_m: Height of nodes above sea level in [m]
+    :type height_m: float, default 0
+    :param name: The name for this junction
+    :type name: string, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: boolean, default True
+    :param type: not used yet - Designed for type differentiation on pandas lookups (e.g. household\
+            connection vs. crossing)
+    :type type: string, default "junction"
+    :param geodata: Coordinates used for plotting
+    :type geodata: (x,y)-tuple, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["junction"] table
+    :return: index - The unique ID of the created element
+
+    :Example:
+        >>> create_junctions(net, 200, pn_bar=5, tfluid_k=320, height_m=np.arange(200))
+    """
+    if index is not None:
+        existing_indices = net.junction.index[np.isin(net.junction.index, index)]
+        if len(existing_indices) > 0:
+            raise UserWarning("Junctions with indices %s already exist." % existing_indices)
+    else:
+        bid = get_free_id(net["junction"])
+        index = np.arange(bid, bid + nr_junctions, 1)
+
+    # store dtypes
+    # dtypes = net.junction.dtypes
+
+    dd = pd.DataFrame(index=index, columns=net.junction.columns)
+    dd["pn_bar"] = pn_bar
+    dd["type"] = type
+    dd["tfluid_k"] = tfluid_k
+    dd["height_m"] = height_m
+    dd["in_service"] = in_service
+    dd["name"] = name
+    # and preserve dtypes
+    # _preserve_dtypes(net.junction, dtypes)
+
+    if geodata is not None:
+        # works with a 2-tuple or a matching array
+        net.junction_geodata = net.junction_geodata.append(pd.DataFrame(
+            np.zeros((len(index), len(net.junction_geodata.columns)), dtype=int), index=index,
+            columns=net.junction_geodata.columns))
+        net.junction_geodata.loc[index, :] = np.nan
+        net.junction_geodata.loc[index, ["x", "y"]] = geodata
+
+    dd = dd.assign(**kwargs)
+    net["junction"] = net["junction"].append(dd)
+    return index
+
+
 def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
                 type='sink', **kwargs):
     """
@@ -184,6 +254,47 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
     # and preserve dtypes
     _preserve_dtypes(net.sink, dtypes)
 
+    return index
+
+
+def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
+                 type='sink', **kwargs):
+    """
+    Adds several sinks in table net["sink"]. Arguments can be passed as one for all sinks or as \
+    list containing values for each created sink.
+
+    :param net: The net for which this sink should be created
+    :type net: pandapipesNet
+    :param junctions: The index of the junctions to which the sinks are connected
+    :type junctions: int
+    :param mdot_kg_per_s: The required mass flow
+    :type mdot_kg_per_s: float, default None
+    :param scaling: An optional scaling factor to be set customly
+    :type scaling: float, default 1
+    :param name: A name tag for the sinks
+    :type name: str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: int, default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: bool, default True
+    :param type: Type variable to classify the sinks
+    :type type: str, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["sink"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: int
+
+    :Example:
+        >>> new_sink_ids = create_sinks(net, junctions=[1, 5, 10], mdot_kg_per_s=[0.1, 0.05, 0.2])
+    """
+    check_node_elements(net, junctions)
+    index = get_multiple_index_with_check(net, "sink", index, len(junctions))
+
+    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
+               "in_service": in_service, "name": name, "type": type}
+    entries.update(kwargs)
+    add_entries_to_table(net, "sink", index, entries)
     return index
 
 
@@ -245,6 +356,47 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
+def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
+                   type='source', **kwargs):
+    """
+    Adds several sources in table net["source"]. Arguments can be passed as one for all sources or \
+    as list containing values for each created source.
+
+    :param net: The net for which this source should be created
+    :type net: pandapipesNet
+    :param junctions: The index of the junctions to which the sources are connected
+    :type junctions: int
+    :param mdot_kg_per_s: The required mass flow
+    :type mdot_kg_per_s: float, default None
+    :param scaling: An optional scaling factor to be set customly
+    :type scaling: float, default 1
+    :param name: A name tag for the sources
+    :type name: str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: int, default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: bool, default True
+    :param type: Type variable to classify the sources
+    :type type: str, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["source"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: int
+
+    :Example:
+        >>> new_source_ids = create_sources(net, junctions=[1, 5, 10], mdot_kg_per_s=[0.1, 0.05, 0.2])
+    """
+    check_node_elements(net, junctions)
+    index = get_multiple_index_with_check(net, "source", index, len(junctions))
+
+    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
+               "in_service": in_service, "name": name, "type": type}
+    entries.update(kwargs)
+    add_entries_to_table(net, "source", index, entries)
+    return index
+
+
 def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt"):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
@@ -285,7 +437,7 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
         logger.warning("no proper type was chosen.")
 
     if junction not in net["junction"].index.values:
-        raise UserWarning("Cannot attach to bus %s, bus does not exist" % junction)
+        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
     if index is not None and index in net["ext_grid"].index:
         raise UserWarning("An external grid with with index %s already exists" % index)
@@ -938,3 +1090,36 @@ def create_fluid_from_lib(net, name, overwrite=True):
 
     """
     _add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
+
+
+def get_multiple_index_with_check(net, table, index, number):
+    if index is None:
+        bid = get_free_id(net[table])
+        return np.arange(bid, bid + number, 1)
+    if np.any(np.isin(index, net[table].index.values)):
+        raise UserWarning("%s with the ids %s already exists"
+                          % (table.capitalize(),
+                             net[table].index.values[np.isin(net[table].index.values, index)]))
+    return index
+
+
+def check_node_elements(net, junctions):
+    if np.any(~np.isin(junctions, net["junction"].index.values)):
+        junction_not_exist = set(junctions) - set(net["junction"].index.values)
+        raise UserWarning("Cannot attach to junctions %s, they does not exist" % junction_not_exist)
+
+
+def add_entries_to_table(net, table, index, entries, preserve_dtypes=True):
+    dtypes = None
+    if preserve_dtypes:
+        # store dtypes
+        dtypes = net[table].dtypes
+
+    dd = pd.DataFrame(index=index, columns=net[table].columns)
+
+    dd = dd.assign(**entries)
+    net[table] = net[table].append(dd)
+
+    # and preserve dtypes
+    if preserve_dtypes:
+        _preserve_dtypes(net[table], dtypes)
