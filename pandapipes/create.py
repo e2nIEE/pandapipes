@@ -437,7 +437,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     if index in net["pipe"].index:
         raise UserWarning("A pipe with index %s already exists" % index)
 
-    check_std_type(net, std_type, "pipe", "create_pipe")
+    _check_std_type(net, std_type, "pipe", "create_pipe")
     pipe_parameter = load_std_type(net, std_type, "pipe")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "length_km": length_km, "diameter_m":
@@ -666,7 +666,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     # store dtypes
     dtypes = net.pump.dtypes
 
-    check_std_type(net, std_type, "pump", "create_pump")
+    _check_std_type(net, std_type, "pump", "create_pump")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "in_service": bool(in_service), "type": type}
     v.update(kwargs)
@@ -948,11 +948,11 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, names=None
     """
     add_new_component(net, Junction)
 
-    index = get_multiple_index_with_check(net, "junction", index, nr_junctions)
+    index = _get_multiple_index_with_check(net, "junction", index, nr_junctions)
     entries = {"pn_bar": pn_bar,  "type": types, "tfluid_k": tfluid_k, "height_m": height_m,
                "in_service": in_service, "name": names}
     entries.update(kwargs)
-    add_entries_to_table(net, "junction", index, entries)
+    _add_entries_to_table(net, "junction", index, entries)
 
     if geodata is not None:
         # works with a 2-tuple or a matching array
@@ -998,13 +998,13 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., names=None, index=No
     """
     add_new_component(net, Sink)
 
-    check_node_elements(net, junctions)
-    index = get_multiple_index_with_check(net, "sink", index, len(junctions))
+    _check_node_elements(net, junctions)
+    index = _get_multiple_index_with_check(net, "sink", index, len(junctions))
 
     entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
                "in_service": in_service, "name": names, "type": types}
     entries.update(kwargs)
-    add_entries_to_table(net, "sink", index, entries)
+    _add_entries_to_table(net, "sink", index, entries)
 
     return index
 
@@ -1042,13 +1042,13 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., names=None, index=
     """
     add_new_component(net, Source)
 
-    check_node_elements(net, junctions)
-    index = get_multiple_index_with_check(net, "source", index, len(junctions))
+    _check_node_elements(net, junctions)
+    index = _get_multiple_index_with_check(net, "source", index, len(junctions))
 
     entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
                "in_service": in_service, "name": names, "type": types}
     entries.update(kwargs)
-    add_entries_to_table(net, "source", index, entries)
+    _add_entries_to_table(net, "source", index, entries)
 
     return index
 
@@ -1112,9 +1112,9 @@ def create_pipes(net, from_junctions, to_junctions, std_type, lengths_km, k_mm=1
     add_new_component(net, Pipe)
 
     nr_pipes = len(from_junctions)
-    index = get_multiple_index_with_check(net, "pipe", index, nr_pipes)
-    check_branches(net, from_junctions, to_junctions, "pipe")
-    check_std_type(net, std_type, "pipe", "create_pipes")
+    index = _get_multiple_index_with_check(net, "pipe", index, nr_pipes)
+    _check_branches(net, from_junctions, to_junctions, "pipe")
+    _check_std_type(net, std_type, "pipe", "create_pipes")
 
     pipe_parameters = load_std_type(net, std_type, "pipe")
     entries = {"name": names, "from_junction": from_junctions, "to_junction": to_junctions,
@@ -1124,10 +1124,10 @@ def create_pipes(net, from_junctions, to_junctions, std_type, lengths_km, k_mm=1
                "sections": sections, "in_service": in_service, "type": types, "qext_w": qext_w,
                "text_k": text_k}
     entries.update(kwargs)
-    add_entries_to_table(net, "pipe", index, entries)
+    _add_entries_to_table(net, "pipe", index, entries)
 
     if geodata is not None:
-        add_multiple_branch_geodata(net, "pipe", geodata, index)
+        _add_multiple_branch_geodata(net, "pipe", geodata, index)
     return index
 
 
@@ -1191,8 +1191,8 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, lengths_km, 
     """
     add_new_component(net, Pipe)
 
-    index = get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
-    check_branches(net, from_junctions, to_junctions, "pipe")
+    index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "pipe")
 
     entries = {"name": names, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": None, "length_km": lengths_km, "diameter_m": diameters_m, "k_mm": k_mm,
@@ -1200,10 +1200,10 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, lengths_km, 
                "sections": sections, "in_service": in_service, "type": types, "qext_w": qext_w,
                "text_k": text_k}
     entries.update(kwargs)
-    add_entries_to_table(net, "pipe", index, entries)
+    _add_entries_to_table(net, "pipe", index, entries)
 
     if geodata is not None:
-        add_multiple_branch_geodata(net, "pipe", geodata, index)
+        _add_multiple_branch_geodata(net, "pipe", geodata, index)
     return index
 
 
@@ -1245,14 +1245,14 @@ def create_valves(net, from_junctions, to_junctions, diameters_m, opened=True, l
     """
     add_new_component(net, Valve)
 
-    index = get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
-    check_branches(net, from_junctions, to_junctions, "pipe")
+    index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "pipe")
 
     entries = {"name": names, "from_junction": from_junctions, "to_junction": to_junctions,
                "diameter_m": diameters_m, "opened": opened, "loss_coefficient": loss_coefficients,
                "type": types}
     entries.update(kwargs)
-    add_entries_to_table(net, "valve", index, entries)
+    _add_entries_to_table(net, "valve", index, entries)
 
     return index
 
@@ -1277,7 +1277,7 @@ def create_fluid_from_lib(net, name, overwrite=True):
     _add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
 
 
-def get_multiple_index_with_check(net, table, index, number):
+def _get_multiple_index_with_check(net, table, index, number):
     if index is None:
         bid = get_free_id(net[table])
         return np.arange(bid, bid + number, 1)
@@ -1288,13 +1288,13 @@ def get_multiple_index_with_check(net, table, index, number):
     return index
 
 
-def check_node_elements(net, junctions):
+def _check_node_elements(net, junctions):
     if np.any(~np.isin(junctions, net["junction"].index.values)):
         junction_not_exist = set(junctions) - set(net["junction"].index.values)
         raise UserWarning("Cannot attach to junctions %s, they does not exist" % junction_not_exist)
 
 
-def check_branches(net, from_junctions, to_junctions, table):
+def _check_branches(net, from_junctions, to_junctions, table):
     all_junctions = np.array(list(from_junctions) + list(to_junctions))
     if not(np.all(np.isin(all_junctions, net.junction.index))) > 0:
         junction_not_exist = set(all_junctions) - set(net.junction.index)
@@ -1302,7 +1302,7 @@ def check_branches(net, from_junctions, to_junctions, table):
                           % (table.capitalize(), junction_not_exist))
 
 
-def check_std_type(net, std_type, table, function_name):
+def _check_std_type(net, std_type, table, function_name):
     if 'std_type' not in net:
         raise UserWarning('%s is defined as std_type in %s but there are no std_types '
                           'defined in your net. You need to define a std_type first or set '
@@ -1312,7 +1312,7 @@ def check_std_type(net, std_type, table, function_name):
                           'one' % (std_type, table))
 
 
-def add_entries_to_table(net, table, index, entries, preserve_dtypes=True):
+def _add_entries_to_table(net, table, index, entries, preserve_dtypes=True):
     dtypes = None
     if preserve_dtypes:
         # store dtypes
@@ -1333,7 +1333,7 @@ def add_entries_to_table(net, table, index, entries, preserve_dtypes=True):
         _preserve_dtypes(net[table], dtypes)
 
 
-def add_multiple_branch_geodata(net, table, geodata, index):
+def _add_multiple_branch_geodata(net, table, geodata, index):
     geo_table = "%s_geodata" % table
     dtypes = net[geo_table].dtypes
     df = pd.DataFrame(index=index, columns=net[geo_table].columns)
