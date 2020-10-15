@@ -287,9 +287,9 @@ def test_create_pipes_from_parameters(create_empty_net):
     assert net.pipe.at[p[1], "text_k"] == 274
     assert net.pipe.at[p[0], "qext_w"] == 0.01
     assert net.pipe.at[p[1], "qext_w"] == 0.02
-    
 
-def test_create_pipes_raise_except(create_empty_net):
+
+def test_create_pipes_from_parameters_raise_except(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
@@ -308,6 +308,127 @@ def test_create_pipes_raise_except(create_empty_net):
     with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
         pandapipes.create_pipes_from_parameters(
             net, [j1, j1], [j2, j3], lengths_km=5, diameters_m=0.8, in_service=False,
+            geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
+            alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+
+
+def test_create_pipes(create_empty_net):
+    # standard
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    pandapipes.create_pipes(net, [j1, j1], [j2, j2], "80_GGG", 2, sections=[1, 4])
+    assert len(net.pipe) == 2
+    assert len(net.pipe_geodata) == 0
+    assert sum(net.pipe.sections) == 5
+    assert np.all(net.pipe.std_type == ["80_GGG"] * 2)
+    assert len(set(net.pipe.length_km)) == 1
+
+    # with geodata
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    p = pandapipes.create_pipes(net, [j1, j1], [j2, j2], "80_GGG", [1.5, 3],
+                                geodata=[[(1, 1), (2, 2), (3, 3)], [(1, 1), (1, 2)]])
+
+    assert len(net.pipe) == 2
+    assert len(net.pipe_geodata) == 2
+    assert net.pipe_geodata.at[p[0], "coords"] == [(1, 1), (2, 2), (3, 3)]
+    assert net.pipe_geodata.at[p[1], "coords"] == [(1, 1), (1, 2)]
+
+    # setting params as single value
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    p = pandapipes.create_pipes(
+        net, [j1, j1], [j2, j2], std_type="80_GGG", lengths_km=5, in_service=False,
+        geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
+        alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01)
+
+    assert len(net.pipe) == 2
+    assert len(net.pipe_geodata) == 2
+    assert net.pipe.length_km.at[p[0]] == 5
+    assert net.pipe.length_km.at[p[1]] == 5
+    assert net.pipe.at[p[0], "in_service"] == False  # is actually <class 'numpy.bool_'>
+    assert net.pipe.at[p[1], "in_service"] == False  # is actually <class 'numpy.bool_'>
+    assert net.pipe_geodata.at[p[0], "coords"] == [(10, 10), (20, 20)]
+    assert net.pipe_geodata.at[p[1], "coords"] == [(10, 10), (20, 20)]
+    assert net.pipe.at[p[0], "name"] == "test"
+    assert net.pipe.at[p[1], "name"] == "test"
+    assert net.pipe.at[p[0], "std_type"] == "80_GGG"
+    assert net.pipe.at[p[1], "std_type"] == "80_GGG"
+    assert net.pipe.at[p[0], "k_mm"] == 0.01
+    assert net.pipe.at[p[1], "k_mm"] == 0.01
+    assert net.pipe.at[p[0], "loss_coefficient"] == 0.3
+    assert net.pipe.at[p[1], "loss_coefficient"] == 0.3
+    assert net.pipe.at[p[0], "diameter_m"] == 0.086
+    assert net.pipe.at[p[1], "diameter_m"] == 0.086
+    assert net.pipe.at[p[0], "sections"] == 2
+    assert net.pipe.at[p[1], "sections"] == 2
+    assert net.pipe.at[p[0], "alpha_w_per_m2k"] == 0.1
+    assert net.pipe.at[p[1], "alpha_w_per_m2k"] == 0.1
+    assert net.pipe.at[p[0], "text_k"] == 273
+    assert net.pipe.at[p[1], "text_k"] == 273
+    assert net.pipe.at[p[0], "qext_w"] == 0.01
+    assert net.pipe.at[p[1], "qext_w"] == 0.01
+
+    # setting params as array
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    p = pandapipes.create_pipes(
+        net, [j1, j1], [j2, j2], std_type="80_GGG", lengths_km=[1, 5], in_service=[True, False],
+        geodata=[[(10, 10), (20, 20)], [(100, 10), (200, 20)]], names=["p1", "p2"],
+        k_mm=[0.01, 0.02], loss_coefficients=[0.3, 0.5], sections=[1, 2],
+        alpha_w_per_m2k=[0.1, 0.2], text_k=[273, 274], qext_w=[0.01, 0.02])
+
+    assert len(net.pipe) == 2
+    assert len(net.pipe_geodata) == 2
+    assert net.pipe.at[p[0], "length_km"] == 1
+    assert net.pipe.at[p[1], "length_km"] == 5
+    assert net.pipe.at[p[0], "in_service"] == True  # is actually <class 'numpy.bool_'>
+    assert net.pipe.at[p[1], "in_service"] == False  # is actually <class 'numpy.bool_'>
+    assert net.pipe_geodata.at[p[0], "coords"] == [(10, 10), (20, 20)]
+    assert net.pipe_geodata.at[p[1], "coords"] == [(100, 10), (200, 20)]
+    assert net.pipe.at[p[0], "name"] == "p1"
+    assert net.pipe.at[p[1], "name"] == "p2"
+    assert net.pipe.at[p[0], "std_type"] == "80_GGG"
+    assert net.pipe.at[p[1], "std_type"] == "80_GGG"
+    assert net.pipe.at[p[0], "diameter_m"] == 0.086
+    assert net.pipe.at[p[1], "diameter_m"] == 0.086
+    assert net.pipe.at[p[0], "k_mm"] == 0.01
+    assert net.pipe.at[p[1], "k_mm"] == 0.02
+    assert net.pipe.at[p[0], "loss_coefficient"] == 0.3
+    assert net.pipe.at[p[1], "loss_coefficient"] == 0.5
+    assert net.pipe.at[p[0], "alpha_w_per_m2k"] == 0.1
+    assert net.pipe.at[p[1], "alpha_w_per_m2k"] == 0.2
+    assert net.pipe.at[p[0], "sections"] == 1
+    assert net.pipe.at[p[1], "sections"] == 2
+    assert net.pipe.at[p[0], "text_k"] == 273
+    assert net.pipe.at[p[1], "text_k"] == 274
+    assert net.pipe.at[p[0], "qext_w"] == 0.01
+    assert net.pipe.at[p[1], "qext_w"] == 0.02
+
+
+def test_create_pipes_raise_except(create_empty_net):
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    j3 = pandapipes.create_junction(net, 3, 273)
+
+    with pytest.raises(UserWarning, match=r"trying to attach to non existing junctions"):
+        pandapipes.create_pipes(
+            net, [1, 3], [4, 5], std_type="80_GGG", lengths_km=5, in_service=False,
+            geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
+            alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01)
+
+    pandapipes.create_pipes(
+        net, [j1, j1], [j2, j3], std_type="80_GGG", lengths_km=5, in_service=False,
+        geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
+        alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+    with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
+        pandapipes.create_pipes(
+            net, [j1, j1], [j2, j3], std_type="80_GGG", lengths_km=5, in_service=False,
             geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
             alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
 
