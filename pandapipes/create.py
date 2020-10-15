@@ -909,7 +909,7 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     return index
 
 
-def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, names=None, index=None,
+def create_junctions(net, nr_junctions, pn_bar, tfluid_k, heights_m=0, names=None, index=None,
                      in_service=True, types="junction", geodata=None, **kwargs):
     """
     Adds several junctions in table net["junction"] at once. Junctions are the nodes of the network
@@ -924,8 +924,8 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, names=None
     :param tfluid_k: The fluid temperature in [K]. Used as parameter for gas calculations and as\
             initial value for temperature calculations.
     :type tfluid_k: Iterable or float
-    :param height_m: Height of nodes above sea level in [m]
-    :type height_m: Iterable or float, default 0
+    :param heights_m: Heights of nodes above sea level in [m]
+    :type heights_m: Iterable or float, default 0
     :param names: The names for these junctions
     :type names: Iterable or string, default None
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
@@ -949,7 +949,7 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, names=None
     add_new_component(net, Junction)
 
     index = _get_multiple_index_with_check(net, "junction", index, nr_junctions)
-    entries = {"pn_bar": pn_bar,  "type": types, "tfluid_k": tfluid_k, "height_m": height_m,
+    entries = {"pn_bar": pn_bar,  "type": types, "tfluid_k": tfluid_k, "height_m": heights_m,
                "in_service": in_service, "name": names}
     entries.update(kwargs)
     _add_entries_to_table(net, "junction", index, entries)
@@ -1296,7 +1296,7 @@ def _check_node_elements(net, junctions):
 
 def _check_branches(net, from_junctions, to_junctions, table):
     all_junctions = np.array(list(from_junctions) + list(to_junctions))
-    if not(np.all(np.isin(all_junctions, net.junction.index))) > 0:
+    if np.any(~np.isin(all_junctions, net.junction.index.values)):
         junction_not_exist = set(all_junctions) - set(net.junction.index)
         raise UserWarning("%s trying to attach to non existing junctions %s"
                           % (table.capitalize(), junction_not_exist))
