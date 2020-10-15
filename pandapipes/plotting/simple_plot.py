@@ -29,7 +29,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True,
                 junction_color="r", pipe_color='silver', ext_grid_color='orange',
                 valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
                 pressure_control_color='silver',
-                library="igraph", show_plot=True, ax=None, **kwargs):  # pragma: no cover
+                library="igraph", show_plot=True, ax=None, **kwargs):
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
     geodata is generated. For advanced plotting see
@@ -61,6 +61,8 @@ def simple_plot(net, respect_valves=False, respect_in_service=True,
     :type source_size: float, default 1.0
     :param valve_size: Relative size of valves to plot.
     :type valve_size: float, default 1.0
+    :param pump_size: Relative size of pumps to plot.
+    :type pump_size: float, default 1.0
     :param heat_exchanger_size: Relative size of heat_exchanger to plot.
     :type heat_exchanger_size: float, default 1.0
     :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
@@ -73,6 +75,12 @@ def simple_plot(net, respect_valves=False, respect_in_service=True,
     :type pipe_color: str, tuple, default "silver"
     :param ext_grid_color: External grid color
     :type ext_grid_color: str, tuple, default "orange"
+    :param valve_color: Valve Color.
+    :type valve_color: str, tuple, default "silver"
+    :param pump_color: Pump Color.
+    :type pump_color: str, tuple, default "silver"
+    :param heat_exchanger_color: Heat Exchanger Color.
+    :type heat_exchanger_color: str, tuple, default "silver"
     :param library: Library name to create generic coordinates (case of missing geodata). Choose\
             "igraph" to use igraph package or "networkx" to use networkx package.
     :type library: str, default "igraph"
@@ -137,6 +145,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :type source_size: float, default 1.0
     :param valve_size: Relative size of valves to plot.
     :type valve_size: float, default 1.0
+    :param pump_size: Relative size of pumps to plot.
+    :type pump_size: float, default 1.0
     :param heat_exchanger_size:
     :type heat_exchanger_size:
     :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
@@ -149,6 +159,12 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :type pipe_color: str, tuple, default "silver"
     :param ext_grid_color: External Grid Color.
     :type ext_grid_color: str, tuple, default "orange"
+    :param valve_color: Valve Color.
+    :type valve_color: str, tuple, default "silver"
+    :param pump_color: Pump Color.
+    :type pump_color: str, tuple, default "silver"
+    :param heat_exchanger_color: Heat Exchanger Color.
+    :type heat_exchanger_color: str, tuple, default "silver"
     :param library: library name to create generic coordinates (case of missing geodata). Choose\
             "igraph" to use igraph package or "networkx" to use networkx package. **NOTE**: \
             Currently the networkx implementation is not working!
@@ -203,8 +219,9 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
 
     # create ext_grid collections
     if respect_in_service:
-        eg_junctions_with_geo_coordinates = set(net.ext_grid[net.ext_grid.in_service].junction.values) \
-                                            & set(net.junction_geodata.index)
+        eg_junctions_with_geo_coordinates = \
+            set(net.ext_grid[net.ext_grid.in_service].junction.values) \
+            & set(net.junction_geodata.index)
     else:
         eg_junctions_with_geo_coordinates = set(net.ext_grid.junction.values) \
                                             & set(net.junction_geodata.index)
@@ -216,23 +233,24 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
 
     if 'source' in net and plot_sources and len(net.source) > 0:
         if respect_in_service:
-            source_colls = create_source_collection(net, sources=net.source[net.source.in_service].index,
-                                                    size=source_size, patch_edgecolor='silver', line_color='silver',
-                                                    linewidths=pipe_width)
+            source_colls = create_source_collection(
+                net, sources=net.source[net.source.in_service].index, size=source_size,
+                patch_edgecolor='silver', line_color='silver', linewidths=pipe_width)
         else:
-            source_colls = create_source_collection(net, size=source_size, patch_edgecolor='silver',
-                                                    line_color='silver',
-                                                    linewidths=pipe_width)
+            source_colls = create_source_collection(
+                net, size=source_size, patch_edgecolor='silver', line_color='silver',
+                linewidths=pipe_width)
         collections["source"] = source_colls
 
     if 'sink' in net and plot_sinks and len(net.sink) > 0:
         if respect_in_service:
-            sink_colls = create_sink_collection(net, sinks=net.sink[net.sink.in_service].index,
-                                                size=sink_size, patch_edgecolor='silver', line_color='silver',
-                                                linewidths=pipe_width)
+            sink_colls = create_sink_collection(
+                net, sinks=net.sink[net.sink.in_service].index, size=sink_size,
+                patch_edgecolor='silver', line_color='silver', linewidths=pipe_width)
         else:
-            sink_colls = create_sink_collection(net, size=sink_size, patch_edgecolor='silver', line_color='silver',
-                                                linewidths=pipe_width)
+            sink_colls = create_sink_collection(
+                net, size=sink_size, patch_edgecolor='silver', line_color='silver',
+                linewidths=pipe_width)
         collections["sink"] = sink_colls
 
     if 'valve' in net:
@@ -252,34 +270,37 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
 
     if 'circ_pump_mass' in net:
         if respect_in_service:
-            circ_pump_colls = create_pump_collection(net, pumps=net.circ_pump_mass[net.circ_pump_mass.in_service].index,
-                                                     table_name='circ_pump_mass',
-                                                     size=pump_size, linewidths=pipe_width, color=pump_color)
+            circ_pump_colls = create_pump_collection(
+                net, pumps=net.circ_pump_mass[net.circ_pump_mass.in_service].index,
+                table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
+                color=pump_color)
         else:
-            circ_pump_colls = create_pump_collection(net, table_name='circ_pump_mass',
-                                                     size=pump_size, linewidths=pipe_width, color=pump_color)
+            circ_pump_colls = create_pump_collection(
+                net, table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
+                color=pump_color)
         collections["circ_pump_mass"] = circ_pump_colls
 
     if 'circ_pump_pressure' in net:
         if respect_in_service:
-            circ_pump_colls = create_pump_collection(net, pumps=net.circ_pump_pressure[
-                net.circ_pump_pressure.in_service].index,
-                                                     table_name='circ_pump_pressure',
-                                                     size=pump_size, linewidths=pipe_width, color=pump_color)
+            circ_pump_colls = create_pump_collection(
+                net, pumps=net.circ_pump_pressure[net.circ_pump_pressure.in_service].index,
+                table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
+                color=pump_color)
             collections["circ_pump_pressure"] = circ_pump_colls
         else:
-            circ_pump_colls = create_pump_collection(net, table_name='circ_pump_pressure',
-                                                     size=pump_size, linewidths=pipe_width, color=pump_color)
+            circ_pump_colls = create_pump_collection(
+                net, table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
+                color=pump_color)
             collections["circ_pump_pressure"] = circ_pump_colls
 
     if 'heat_exchanger' in net:
         if respect_in_service:
-            hxc = create_heat_exchanger_collection(net, hex=net.heat_exchanger[net.heat_exchanger.in_service].index,
-                                                   size=heat_exchanger_size, linewidths=pipe_width,
-                                                   color=heat_exchanger_color)
+            hxc = create_heat_exchanger_collection(
+                net, heat_ex=net.heat_exchanger[net.heat_exchanger.in_service].index,
+                size=heat_exchanger_size, linewidths=pipe_width, color=heat_exchanger_color)
         else:
-            hxc = create_heat_exchanger_collection(net, size=heat_exchanger_size, linewidths=pipe_width,
-                                                   color=heat_exchanger_color)
+            hxc = create_heat_exchanger_collection(
+                net, size=heat_exchanger_size, linewidths=pipe_width, color=heat_exchanger_color)
         collections["heat_exchanger"] = hxc
 
     if 'press_control' in net:

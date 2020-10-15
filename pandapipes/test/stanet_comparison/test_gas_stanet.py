@@ -229,7 +229,7 @@ def test_case_strand_pump(log_results=False):
     """
     net = nw.gas_strand_pump()
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results)
-    assert np.all(p_diff < 0.002)
+    assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.03)
 
 

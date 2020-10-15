@@ -44,6 +44,8 @@ class ExtGrid(NodeElementComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         ext_grids = net[cls.table_name()]
@@ -82,6 +84,8 @@ class ExtGrid(NodeElementComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         ext_grids = net[cls.table_name()]

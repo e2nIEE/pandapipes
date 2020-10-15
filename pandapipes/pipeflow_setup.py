@@ -170,8 +170,8 @@ def set_user_pf_options(net, reset=False, **kwargs):
     This function sets the "user_pf_options" dictionary for net. These options overrule
     net._internal_options once they are added to net. These options are used in configuration of
     load flow calculation.
-    At the same time, user-defined arguments for pandapower.runpp() always have a higher priority.
-    To remove user_pf_options, set "overwrite = True" and provide no additional arguments.
+    At the same time, user-defined arguments for `pandapipes.pipeflow()` always have a higher
+    priority. To remove user_pf_options, set "reset = True" and provide no additional arguments.
 
     :param net: pandapipes network for which to create user options
     :type net: pandapipesNet

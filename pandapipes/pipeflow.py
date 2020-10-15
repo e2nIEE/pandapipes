@@ -5,6 +5,9 @@
 
 import numpy as np
 from numpy import linalg
+from pandapipes.component_models import Junction
+from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
+    BranchComponent, BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
@@ -18,6 +21,7 @@ from pandapipes.component_models import Junction, PressureControlComponent
 from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
     BranchComponent, BranchWInternalsComponent
 from pandapower.auxiliary import ppException
+from scipy.sparse.linalg import spsolve
 
 try:
     import pplog as logging
@@ -69,9 +73,11 @@ def pipeflow(net, sol_vec=None, **kwargs):
     create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
     node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
                                           NodeComponent, NodeElementComponent,
-                                          BranchComponent, BranchWInternalsComponent, PressureControlComponent)
-    if ((len(node_pit) == 0) & (len(branch_pit) == 0)):
-        logger.warning("There are no node and branch entries defined. It might be that your net is empty")
+                                          BranchComponent, BranchWInternalsComponent,
+                                          PressureControlComponent)
+    if (len(node_pit) == 0) & (len(branch_pit) == 0):
+        logger.warning("There are no node and branch entries defined. This might mean that your net"
+                       " is empty")
         return
     calculation_mode = get_net_option(net, "mode")
 
@@ -85,20 +91,20 @@ def pipeflow(net, sol_vec=None, **kwargs):
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
     if calculation_mode == "hydraulics":
-        niter = hydraulics(net)
+        hydraulics(net)
     elif calculation_mode == "heat":
         if net.user_pf_options["hyd_flag"]:
             node_pit = net["_active_pit"]["node"]
             node_pit[:, PINIT] = sol_vec[:len(node_pit)]
             branch_pit = net["_active_pit"]["branch"]
             branch_pit[:, VINIT] = sol_vec[len(node_pit):]
-            niter = heat_transfer(net)
+            heat_transfer(net)
         else:
             logger.warning("Converged flag not set. Make sure that hydraulic calculation results "
                            "are available.")
     elif calculation_mode == "all":
-        niter = hydraulics(net)
-        niter = heat_transfer(net)
+        hydraulics(net)
+        heat_transfer(net)
     else:
         logger.warning("No proper calculation mode chosen.")
 
@@ -107,8 +113,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
 
 def hydraulics(net):
-    max_iter, nonlinear_method, tol_p, tol_v, tol_t, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_T", "tol_res")
+    max_iter, nonlinear_method, tol_p, tol_v, tol_res = get_net_options(
+        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
@@ -181,8 +187,8 @@ def hydraulics(net):
 
 
 def heat_transfer(net):
-    max_iter, nonlinear_method, tol_p, tol_v, tol_t, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_T", "tol_res")
+    max_iter, nonlinear_method, tol_t, tol_res = get_net_options(
+        net, "iter", "nonlinear_method", "tol_T", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------

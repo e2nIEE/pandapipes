@@ -5,11 +5,6 @@
 from pandapipes.component_models.auxiliaries.component_toolbox import init_results_element
 
 try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
-
-try:
     import pplog as logging
 except ImportError:
     import logging
@@ -18,12 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class Component:
-    """
-
-    """
 
     @classmethod
-    def table_name(self):
+    def table_name(cls):
         raise NotImplementedError()
 
     @classmethod
@@ -35,6 +27,8 @@ class Component:
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         output, all_float = cls.get_result_table(net)

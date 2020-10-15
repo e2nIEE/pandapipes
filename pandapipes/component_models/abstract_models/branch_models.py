@@ -3,29 +3,20 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-
 from pandapipes.component_models.abstract_models import Component
-
-from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
+from pandapipes.component_models.auxiliaries.derivative_toolbox import calc_der_lambda, calc_lambda
+from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
+    P_CONVERSION
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, RHO, ETA, \
     VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, branch_cols, \
     T_OUT, CP, VINIT_T, FROM_NODE_T, PL, TL, \
     JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, \
     JAC_DERIV_DV_NODE, \
     LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
-from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
-    P_CONVERSION
-
+from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
+from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_table_number, get_lookup
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.internals_toolbox import _sum_by_group
-
-from pandapipes.component_models.auxiliaries.derivative_toolbox import calc_der_lambda, calc_lambda
-
-try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
 
 try:
     import pplog as logging
@@ -36,12 +27,9 @@ logger = logging.getLogger(__name__)
 
 
 class BranchComponent(Component):
-    """
-
-    """
 
     @classmethod
-    def active_identifier(self):
+    def active_identifier(cls):
         raise NotImplementedError()
 
     @classmethod
@@ -75,6 +63,8 @@ class BranchComponent(Component):
         :type net: pandapipesNet
         :param branch_pit:
         :type branch_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
 
@@ -284,8 +274,7 @@ class BranchComponent(Component):
         placement_table = np.argsort(net[cls.table_name()].index.values)
         idx_pit = net["_pit"]["branch"][f:t, ELEMENT_IDX]
         pipe_considered = get_lookup(net, "branch", "active")[f:t]
-        idx_sort, active_pipes, internal_pipes = _sum_by_group(
-            idx_pit, pipe_considered.astype(np.int32), np.ones_like(idx_pit, dtype=np.int32))
+        idx_sort, active_pipes = _sum_by_group(idx_pit, pipe_considered.astype(np.int32))
         active_pipes = active_pipes > 0.99
         placement_table = placement_table[active_pipes]
         branch_pit = net["_active_pit"]["branch"][fa:ta, :]

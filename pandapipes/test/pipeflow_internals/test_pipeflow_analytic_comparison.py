@@ -12,7 +12,7 @@ from pandapipes.component_models import Pipe, Junction
 from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.test.pipeflow_internals import internals_data_path
-
+from pandapipes.properties.fluids import _add_fluid_to_net
 
 def test_gas_internal_nodes():
     """
@@ -27,7 +27,7 @@ def test_gas_internal_nodes():
     pandapipes.create_pipe_from_parameters(net, 0, 1, 12.0, d, k_mm=.5, sections=12)
     pandapipes.create_ext_grid(net, 0, p_bar=51 - 1.01325, t_k=285.15, type="pt")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=0.82752 * 45000 / 3600)
-    pandapipes.add_fluid_to_net(net, pandapipes.create_constant_fluid(
+    _add_fluid_to_net(net, pandapipes.create_constant_fluid(
         name="natural_gas", fluid_type="gas", viscosity=11.93e-6, heat_capacity=2185,
         compressibility=1, der_compressibility=0, density=0.82752
     ))

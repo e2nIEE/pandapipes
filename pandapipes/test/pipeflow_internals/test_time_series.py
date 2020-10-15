@@ -3,15 +3,16 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+import tempfile
+
 import numpy as np
-import pytest
 import pandapower.control as control
 import pandas as pd
+import pytest
 from pandapipes import networks as nw
-from pandapower.timeseries import DFData
-from pandapower.timeseries import OutputWriter
-from pandapipes.timeseries import run_timeseries, init_default_outputwriter
 from pandapipes import pp_dir
+from pandapipes.timeseries import run_timeseries, init_default_outputwriter
+from pandapower.timeseries import OutputWriter, DFData
 
 try:
     import pplog as logging
@@ -21,6 +22,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 path = os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results')
+
 
 def _prepare_grid(net):
     """
@@ -36,10 +38,9 @@ def _prepare_grid(net):
     control.ConstControl(net, element='sink', variable='mdot_kg_per_s',
                                       element_index=net.sink.index.values, data_source=ds_sink,
                                       profile_name=net.sink.index.values.astype(str))
-    control.ConstControl(net, element='source', variable='mdot_kg_per_s',
-                                        element_index=net.source.index.values,
-                                        data_source=ds_source,
-                                        profile_name=net.source.index.values.astype(str))
+    control.ConstControl(
+        net, element='source', variable='mdot_kg_per_s', element_index=net.source.index.values,
+        data_source=ds_source, profile_name=net.source.index.values.astype(str))
 
 
 def _save_profiles_csv(net):
@@ -127,7 +128,7 @@ def _compare_results(ow):
     assert (np.all(check))
 
 
-def _output_writer(net, time_steps, path=None):
+def _output_writer(net, time_steps, ow_path=None):
     """
     Creating an output writer.
 
@@ -135,8 +136,8 @@ def _output_writer(net, time_steps, path=None):
     :type net: pandapipesNet
     :param time_steps: Time steps to calculate as a list or range
     :type time_steps: list, range
-    :param path: Path to a folder where the output is written to.
-    :type path: string, default None
+    :param ow_path: Path to a folder where the output is written to.
+    :type ow_path: string, default None
     :return: Output writer
     :rtype: pandapower.timeseries.output_writer.OutputWriter
     """
@@ -145,7 +146,7 @@ def _output_writer(net, time_steps, path=None):
         ('res_pipe', 'reynolds'), ('res_pipe', 'lambda'),
         ('res_sink', 'mdot_kg_per_s'), ('res_source', 'mdot_kg_per_s'),
         ('res_ext_grid', 'mdot_kg_per_s')]
-    ow = OutputWriter(net, time_steps, output_path=path, log_variables=log_variables)
+    ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables)
     return ow
 
 
@@ -158,7 +159,8 @@ def test_time_series():
     net = nw.gas_versatility()
     _prepare_grid(net)
     time_steps = range(25)
-    _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
+    # _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
+    _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
     run_timeseries(net, time_steps)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)

@@ -51,15 +51,26 @@ class PumpStdType(StdType):
 
     def get_pressure(self, vdot_m3_per_s):
         """
+        Calculate the pressure lift based on a polynomial from a regression.
 
-        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s]
+        It is ensured that the pressure lift is always >= 0. For reverse flows, bypassing is
+        assumed.
+
+        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s]. Abs() will be applied.
         :type vdot_m3_per_s: float
         :return: This function returns the corresponding pressure to the given volume flow rate \
                 in [bar]
         :rtype: float
         """
         n = np.arange(len(self.reg_par), 0, -1)
-        p = sum(self.reg_par * (vdot_m3_per_s * 3600) ** (n - 1))
+        # no reverse flow - for vdot < 0, assume bypassing
+        if vdot_m3_per_s < 0:
+            logger.debug("Reverse flow observed in a %s pump. "
+                         "Bypassing without pressure change is assumed" % str(self.name))
+            return 0
+        # no negative pressure lift - bypassing always allowed:
+        # /1 to ensure float format:
+        p = max(0, sum(self.reg_par * (vdot_m3_per_s/1 * 3600) ** (n - 1)))
         return p
 
     @classmethod

@@ -3,14 +3,14 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.pipeflow_setup import get_fluid, get_lookup, get_net_option
+from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
-from pandapipes.idx_node import ELEMENT_IDX, PINIT, TINIT as TINIT_NODE, PAMB
+from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, D, TINIT, AREA, VINIT, \
     LOAD_VEC_NODES, LOSS_COEFFICIENT as LC, PL, TL, RE, LAMBDA
+from pandapipes.idx_node import ELEMENT_IDX, PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.internals_toolbox import _sum_by_group
-from numpy import dtype
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
+from pandapipes.pipeflow_setup import get_fluid, get_lookup, get_net_option
 
 
 class Valve(BranchWZeroLengthComponent):
@@ -35,8 +35,8 @@ class Valve(BranchWZeroLengthComponent):
         :type net: pandapipesNet
         :param valve_pit:
         :type valve_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         valve_pit = super().create_pit_branch_entries(net, valve_pit, node_name)
@@ -83,6 +83,8 @@ class Valve(BranchWZeroLengthComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         placement_table, valve_pit, res_table = super().extract_results(net, options, node_name)
@@ -117,18 +119,18 @@ class Valve(BranchWZeroLengthComponent):
             p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
             numerator = NORMAL_PRESSURE * valve_pit[:, TINIT]
             normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                              / (p_from * NORMAL_TEMPERATURE)
+                / (p_from * NORMAL_TEMPERATURE)
             normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                            / (p_to * NORMAL_TEMPERATURE)
+                / (p_to * NORMAL_TEMPERATURE)
             v_gas_from = v_mps * normfactor_from
             v_gas_to = v_mps * normfactor_to
             mask = p_from != p_to
             p_mean = np.empty_like(p_to)
             p_mean[~mask] = p_from[~mask]
             p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
-                           / (p_from[mask] ** 2 - p_to[mask] ** 2)
+                / (p_from[mask] ** 2 - p_to[mask] ** 2)
             normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                              / (p_mean * NORMAL_TEMPERATURE)
+                / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
 
             idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum = \
