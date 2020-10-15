@@ -1282,7 +1282,7 @@ def _get_multiple_index_with_check(net, table, index, number):
         bid = get_free_id(net[table])
         return np.arange(bid, bid + number, 1)
     if np.any(np.isin(index, net[table].index.values)):
-        raise UserWarning("%s with the ids %s already exists"
+        raise UserWarning("%ss with the ids %s already exist."
                           % (table.capitalize(),
                              net[table].index.values[np.isin(net[table].index.values, index)]))
     return index
@@ -1291,7 +1291,7 @@ def _get_multiple_index_with_check(net, table, index, number):
 def _check_node_elements(net, junctions):
     if np.any(~np.isin(junctions, net["junction"].index.values)):
         junction_not_exist = set(junctions) - set(net["junction"].index.values)
-        raise UserWarning("Cannot attach to junctions %s, they does not exist" % junction_not_exist)
+        raise UserWarning("Cannot attach to junctions %s, they do not exist" % junction_not_exist)
 
 
 def _check_branches(net, from_junctions, to_junctions, table):
@@ -1346,9 +1346,9 @@ def _add_multiple_branch_geodata(net, table, geodata, index):
         df["coords"] = geodata
 
     if version.parse(pd.__version__) >= version.parse("0.23"):
-        net.line_geodata = net[geo_table].append(df, sort=False)
+        net[geo_table] = net[geo_table].append(df, sort=False)
     else:
         # prior to pandas 0.23 there was no explicit parameter (instead it was standard behavior)
-        net.line_geodata = net[geo_table].append(df)
+        net[geo_table] = net[geo_table].append(df)
 
     _preserve_dtypes(net[geo_table], dtypes)
