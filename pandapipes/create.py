@@ -912,8 +912,9 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 def create_junctions(net, nr_junctions, pn_bar, tfluid_k, heights_m=0, names=None, index=None,
                      in_service=True, types="junction", geodata=None, **kwargs):
     """
-    Adds several junctions in table net["junction"] at once. Junctions are the nodes of the network
-    that all other elements connect to.
+    Convenience function for creating many junctions at once. Parameter 'nr_junctions' specifies \
+    the number of junctions created. Other parameters may be either arrays of length 'nr_junctions' \
+    or single values.
 
     :param net: The pandapipes network in which the element is created
     :type net: pandapipesNet
@@ -968,8 +969,9 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, heights_m=0, names=Non
 def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., names=None, index=None, in_service=True,
                  types='sink', **kwargs):
     """
-    Adds several sinks in table net["sink"]. Arguments can be passed as one for all sinks or as \
-    list containing values for each created sink.
+    Convenience function for creating many sinks at once. Parameter 'junctions' must be an array \
+    of the desired length. Other parameters may be either arrays of the same length or single \
+    values.
 
     :param net: The net for which this sink should be created
     :type net: pandapipesNet
@@ -1012,8 +1014,9 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., names=None, index=No
 def create_sources(net, junctions, mdot_kg_per_s, scaling=1., names=None, index=None,
                    in_service=True, types='source', **kwargs):
     """
-    Adds several sources in table net["source"]. Arguments can be passed as one for all sources or \
-    as list containing values for each created source.
+    Convenience function for creating many sources at once. Parameter 'junctions' must be an array \
+    of the desired length. Other parameters may be either arrays of the same length or single \
+    values.
 
     :param net: The net for which this source should be created
     :type net: pandapipesNet
@@ -1059,7 +1062,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, lengths_km, k_mm=1
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
-    same length or single or values. In any case the line parameters are defined through a single \
+    same length or single values. In any case the line parameters are defined through a single \
     standard type, so all pipes have the same standard type.
 
     :param net: The net for which this pipe should be created
@@ -1138,8 +1141,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, lengths_km, 
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
-    same length or single or values. In any case the line parameters are defined through a single \
-    standard type, so all pipes have the same standard type.
+    same length or single values.
 
     :param net: The net for which this pipe should be created
     :type net: pandapipesNet
@@ -1210,7 +1212,9 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, lengths_km, 
 def create_valves(net, from_junctions, to_junctions, diameters_m, opened=True, loss_coefficients=0,
                   names=None, index=None, types='valve', **kwargs):
     """
-    Creates a valve element in net["valve"] from valve parameters.
+     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
+    same length or single values.
 
     :param net: The net for which this valve should be created
     :type net: pandapipesNet
