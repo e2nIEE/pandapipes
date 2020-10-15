@@ -5,16 +5,16 @@
 import numpy as np
 import pandas as pd
 from packaging import version
+from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
-from pandapipes.properties import call_lib, _add_fluid_to_net
-from pandapower.auxiliary import get_free_id, _preserve_dtypes
+from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
-from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
+from pandapower.auxiliary import get_free_id, _preserve_dtypes
 
 try:
     import pplog as logging
