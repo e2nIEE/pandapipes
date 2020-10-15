@@ -16,6 +16,10 @@ from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_o
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     extract_results_active_pit, set_user_pf_options
+from scipy.sparse.linalg import spsolve
+from pandapipes.component_models import Junction, PressureControlComponent
+from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
+    BranchComponent, BranchWInternalsComponent
 from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
@@ -69,7 +73,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
     create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
     node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
                                           NodeComponent, NodeElementComponent,
-                                          BranchComponent, BranchWInternalsComponent)
+                                          BranchComponent, BranchWInternalsComponent,
+                                          PressureControlComponent)
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
         logger.warning("There are no node and branch entries defined. This might mean that your net"
                        " is empty")

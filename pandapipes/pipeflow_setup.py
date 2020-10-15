@@ -9,7 +9,7 @@ import numpy as np
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, branch_cols, \
     ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, \
-    ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
+    ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, PC
 from pandapipes.properties.fluids import get_fluid
 from scipy.sparse import coo_matrix, csgraph
 
@@ -319,7 +319,7 @@ def write_internal_results(net, **kwargs):
 
 
 def initialize_pit(net, node_name, NodeComponent, NodeElementComponent, BranchComponent,
-                   BranchWInternalsComponent):
+                   BranchWInternalsComponent, PressureControlComponent):
     """
     Initializes and fills the internal structure which is called pit (pandapipes internal tables).
     The structure is a dictionary which should contain one array for all nodes and one array for all
@@ -336,7 +336,8 @@ def initialize_pit(net, node_name, NodeComponent, NodeElementComponent, BranchCo
     for comp in net['component_list']:
         if issubclass(comp, NodeComponent) | \
                 issubclass(comp, BranchWInternalsComponent) | \
-                issubclass(comp, NodeElementComponent):
+                issubclass(comp, NodeElementComponent) | \
+                (comp==PressureControlComponent):
             comp.create_pit_node_entries(net, pit["node"], node_name)
         if issubclass(comp, BranchComponent):
             comp.create_pit_branch_entries(net, pit["branch"], node_name)
@@ -464,7 +465,7 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
     active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    hyd_slacks = np.where(node_pit[:, NODE_TYPE] == P & node_pit[:, ACTIVE_ND].astype(np.bool))[0]
+    hyd_slacks = np.where((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC)  & node_pit[:, ACTIVE_ND].astype(np.bool))[0]
 
     nodes_connected, branches_connected = perform_connectivity_search(
         net, node_pit, hyd_slacks, from_nodes, to_nodes, active_node_lookup, active_branch_lookup,

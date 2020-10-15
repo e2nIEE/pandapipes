@@ -33,6 +33,9 @@ def create_base_net(oos, additional_pumps=True):
                                            geodata=(9, 4))
     junction9 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 9",
                                            geodata=(9, 0))
+    junction10 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 9",
+                                           geodata=(12, 0))
+
 
     pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
                                name="Grid Connection")
@@ -64,6 +67,8 @@ def create_base_net(oos, additional_pumps=True):
     pandapipes.create_sink(net, junction=junction4, mdot_kg_per_s=0.545, name="Sink 1")
     pandapipes.create_source(net, junction=junction3, mdot_kg_per_s=0.234)
     pandapipes.create_pump_from_parameters(net, junction4, junction7, 'P1')
+    pandapipes.create_pressure_control(net, junction9, junction10, junction10, 5.)
+
 
     if additional_pumps:
         pandapipes.create_circ_pump_const_mass_flow(net, junction9, junction5, 1.05, 1)
@@ -102,7 +107,7 @@ def net_out_of_service_plotting():
 def create_net_changed_indices():
     net = create_base_net(False, False)
 
-    new_junction_indices = [55, 38, 84, 65, 83, 82, 28, 49, 99]
+    new_junction_indices = [55, 38, 84, 65, 83, 82, 28, 49, 99, 105]
     new_pipe_indices = [30, 88, 72, 99,  0, 98, 70]
     new_valve_indices = [19]
     new_pump_indices = [93]
@@ -110,6 +115,7 @@ def create_net_changed_indices():
     new_sink_indices = [32]
     new_source_indices = [9]
     new_eg_indices = [20]
+    new_pc_indices = [15]
     junction_lookup = dict(zip(net["junction"].index.values, new_junction_indices))
 
     net.junction.index = new_junction_indices
@@ -125,6 +131,9 @@ def create_net_changed_indices():
     net.heat_exchanger.to_junction.replace(junction_lookup, inplace=True)
     net.pump.from_junction.replace(junction_lookup, inplace=True)
     net.pump.to_junction.replace(junction_lookup, inplace=True)
+    net.press_control.from_junction.replace(junction_lookup, inplace=True)
+    net.press_control.to_junction.replace(junction_lookup, inplace=True)
+    net.press_control.controlled_junction.replace(junction_lookup, inplace=True)
 
     net.pipe.index = new_pipe_indices
     net.pipe_geodata.index = new_pipe_indices
@@ -134,6 +143,7 @@ def create_net_changed_indices():
     net.sink.index = new_sink_indices
     net.source.index = new_source_indices
     net.ext_grid.index = new_eg_indices
+    net.press_control.index = new_pc_indices
 
     return net
 

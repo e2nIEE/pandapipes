@@ -5,17 +5,16 @@
 import numpy as np
 import pandas as pd
 from packaging import version
+from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
 from pandapipes.properties import call_lib
-from pandapipes.properties.fluids import _add_fluid_to_net
-from pandapower.auxiliary import get_free_id, _preserve_dtypes
 from pandapipes.properties.fluids import Fluid
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
-from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
+from pandapower.auxiliary import get_free_id, _preserve_dtypes
 
 try:
     import pplog as logging
@@ -908,6 +907,68 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     return index
 
+
+def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar,
+                            name=None, index=None, in_service=True, type="pressure_control",
+                            **kwargs):
+    """
+    Adds one pressure control with a constant mass flow in table net["press_control"].
+
+    :param net: The net within this pump should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the pump will be connected with
+    :type from_junction: int
+    :param controlled_junction: ID of the junction at which the pressure is controlled
+    :type controlled_junction: int
+    :param to_junction: ID of the junction on the other side which the pump will be connected with
+    :type to_junction: int
+    :param controlled_p_bar: Pressure set point
+    :type controlled_p_bar: float
+    :param name: Name of the pressure control element
+    :type name: str
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param type: Currently not used - possibility to specify a certain type of pressure control
+    :type type: str, default "pressure_control"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["press_control"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    :Example:
+        >>> create_pressure_control(net, 0, 1, 1, controlled_p_bar=5)
+
+    """
+
+    add_new_component(net, PressureControlComponent)
+
+    for b in [from_junction, to_junction]:
+        if b not in net["junction"].index.values:
+            raise UserWarning("PressureControlComponent %s tries to attach to non-existing junction %s"
+                              % (name, b))
+
+    if index is None:
+        index = get_free_id(net["press_control"])
+    if index in net["press_control"].index:
+        raise UserWarning("A PressureControlComponent with the id %s already exists" % id)
+
+    # store dtypes
+    dtypes = net.press_control.dtypes
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "controlled_junction": controlled_junction, "controlled_p_bar": controlled_p_bar,
+         "in_service": bool(in_service), "type": type}
+    v.update(kwargs)
+    # and preserve dtypes
+    for col, val in v.items():
+        net.press_control.at[index, col] = val
+    _preserve_dtypes(net.press_control, dtypes)
+
+    return index
 
 def create_junctions(net, nr_junctions, pn_bar, tfluid_k, heights_m=0, names=None, index=None,
                      in_service=True, types="junction", geodata=None, **kwargs):
