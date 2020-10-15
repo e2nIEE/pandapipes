@@ -1245,8 +1245,8 @@ def create_valves(net, from_junctions, to_junctions, diameters_m, opened=True, l
     """
     add_new_component(net, Valve)
 
-    index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
-    _check_branches(net, from_junctions, to_junctions, "pipe")
+    index = _get_multiple_index_with_check(net, "valve", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "valve")
 
     entries = {"name": names, "from_junction": from_junctions, "to_junction": to_junctions,
                "diameter_m": diameters_m, "opened": opened, "loss_coefficient": loss_coefficients,

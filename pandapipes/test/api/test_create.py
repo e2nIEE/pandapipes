@@ -241,6 +241,8 @@ def test_create_pipes_from_parameters(create_empty_net):
     assert net.pipe.at[p[1], "k_mm"] == 0.01
     assert net.pipe.at[p[0], "loss_coefficient"] == 0.3
     assert net.pipe.at[p[1], "loss_coefficient"] == 0.3
+    assert net.pipe.at[p[0], "diameter_m"] == 0.8
+    assert net.pipe.at[p[1], "diameter_m"] == 0.8
     assert net.pipe.at[p[0], "sections"] == 2
     assert net.pipe.at[p[1], "sections"] == 2
     assert net.pipe.at[p[0], "alpha_w_per_m2k"] == 0.1
@@ -285,6 +287,111 @@ def test_create_pipes_from_parameters(create_empty_net):
     assert net.pipe.at[p[1], "text_k"] == 274
     assert net.pipe.at[p[0], "qext_w"] == 0.01
     assert net.pipe.at[p[1], "qext_w"] == 0.02
+    
+
+def test_create_pipes_raise_except(create_empty_net):
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    j3 = pandapipes.create_junction(net, 3, 273)
+
+    with pytest.raises(UserWarning, match=r"trying to attach to non existing junctions"):
+        pandapipes.create_pipes_from_parameters(
+            net, [1, 3], [4, 5], lengths_km=5, diameters_m=0.8, in_service=False,
+            geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
+            alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01)
+
+    pandapipes.create_pipes_from_parameters(
+        net, [j1, j1], [j2, j3], lengths_km=5, diameters_m=0.8, in_service=False,
+        geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
+        alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+    with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
+        pandapipes.create_pipes_from_parameters(
+            net, [j1, j1], [j2, j3], lengths_km=5, diameters_m=0.8, in_service=False,
+            geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficients=0.3, sections=2,
+            alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+
+
+def test_create_valves(create_empty_net):
+    # standard
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    pandapipes.create_valves(net, [j1, j1], [j2, j2], 0.2)
+    assert len(net.valve) == 2
+    assert len(set(net.valve.diameter_m)) == 1
+    assert np.all(net.valve.diameter_m == [0.2, 0.2])
+
+    # setting params as single value
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    v = pandapipes.create_valves(
+        net, [j1, j1], [j2, j2], diameters_m=0.8, opened=False, name="test", new_col=0.01,
+        loss_coefficients=0.3, types="v")
+
+    assert len(net.valve) == 2
+    assert net.valve.at[v[0], "opened"] == False  # is actually <class 'numpy.bool_'>
+    assert net.valve.at[v[1], "opened"] == False  # is actually <class 'numpy.bool_'>
+    assert net.valve.at[v[0], "name"] == "test"
+    assert net.valve.at[v[1], "name"] == "test"
+    assert net.valve.at[v[0], "type"] == "v"
+    assert net.valve.at[v[1], "type"] == "v"
+    assert net.valve.at[v[0], "new_col"] == 0.01
+    assert net.valve.at[v[1], "new_col"] == 0.01
+    assert net.valve.at[v[0], "loss_coefficient"] == 0.3
+    assert net.valve.at[v[1], "loss_coefficient"] == 0.3
+
+    # setting params as array
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    v = pandapipes.create_valves(
+        net, [j1, j1], [j2, j2], diameters_m=[0.8, 0.7], opened=[True, False], names=["v1", "v2"],
+        types=["va1", "va2"], loss_coefficients=[0.3, 0.5], new_col=[0.01, 1.9])
+
+    assert len(net.valve) == 2
+    assert net.valve.at[v[0], "opened"] == True  # is actually <class 'numpy.bool_'>
+    assert net.valve.at[v[1], "opened"] == False  # is actually <class 'numpy.bool_'>
+    assert net.valve.at[v[0], "name"] == "v1"
+    assert net.valve.at[v[1], "name"] == "v2"
+    assert net.valve.at[v[0], "type"] == "va1"
+    assert net.valve.at[v[1], "type"] == "va2"
+    assert net.valve.at[v[0], "diameter_m"] == 0.8
+    assert net.valve.at[v[1], "diameter_m"] == 0.7
+    assert net.valve.at[v[0], "new_col"] == 0.01
+    assert net.valve.at[v[1], "new_col"] == 1.9
+    assert net.valve.at[v[0], "loss_coefficient"] == 0.3
+    assert net.valve.at[v[1], "loss_coefficient"] == 0.5
+
+    # setting index explicitly
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    v = pandapipes.create_valves(
+        net, [j1, j1], [j2, j2], diameters_m=[0.8, 0.7], opened=[True, False], names=["v1", "v2"],
+        types=["va1", "va2"], loss_coefficients=[0.3, 0.5], new_col=[0.01, 1.9], index=[1, 5])
+
+    assert len(net.valve) == 2
+    assert np.all(v == [1, 5])
+    assert np.all(net.valve.index == [1, 5])
+
+
+def test_create_valves_raise_except(create_empty_net):
+    net = copy.deepcopy(create_empty_net)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    j3 = pandapipes.create_junction(net, 3, 273)
+
+    with pytest.raises(UserWarning, match=r"trying to attach to non existing junctions"):
+        pandapipes.create_valves(net, [1, 3], [4, 5], diameters_m=0.8, opened=False, names="test",
+                                 loss_coefficients=0.3)
+
+    pandapipes.create_valves(net, [j1, j1], [j2, j3], diameters_m=0.8, opened=False, names="test",
+                             loss_coefficients=0.3, index=[0, 1])
+    with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
+        pandapipes.create_valves(net, [j1, j1], [j2, j3], diameters_m=0.8, opened=False,
+                                 names="test", loss_coefficients=0.3, index=[0, 1])
 
 
 def test_create_sinks(create_empty_net):
@@ -314,9 +421,9 @@ def test_create_sinks(create_empty_net):
 def test_create_sinks_raise_except(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     # standard
-    b1 = pandapipes.create_junction(net, 3, 273)
-    b2 = pandapipes.create_junction(net, 3, 273)
-    b3 = pandapipes.create_junction(net, 3, 273)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    j3 = pandapipes.create_junction(net, 3, 273)
 
     with pytest.raises(UserWarning, match=r"Cannot attach to junctions \{3, 4, 5\}, they do not "
                                           r"exist"):
@@ -324,11 +431,11 @@ def test_create_sinks_raise_except(create_empty_net):
                                 scaling=[1., 1., 0.5], names=["sink%d" % s for s in range(3)],
                                 new_col=[1, 3, 5])
 
-    sg = pandapipes.create_sinks(net, junctions=[b1, b2, b3], mdot_kg_per_s=[0, 0.1, 0.2],
+    sg = pandapipes.create_sinks(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                  scaling=[1., 1., 0.5], names=["sink%d" % s for s in range(3)],
                                  new_col=[1, 3, 5])
     with pytest.raises(UserWarning, match=r"Sinks with the ids \[0 1 2\] already exist."):
-        pandapipes.create_sinks(net, junctions=[b1, b2, b3], mdot_kg_per_s=[0, 0.1, 0.2],
+        pandapipes.create_sinks(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                 scaling=[1., 1., 0.5], names=["sink%d" % s for s in range(3)],
                                 new_col=[1, 3, 5], index=sg)
 
@@ -360,9 +467,9 @@ def test_create_sources(create_empty_net):
 def test_create_sources_raise_except(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     # standard
-    b1 = pandapipes.create_junction(net, 3, 273)
-    b2 = pandapipes.create_junction(net, 3, 273)
-    b3 = pandapipes.create_junction(net, 3, 273)
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    j3 = pandapipes.create_junction(net, 3, 273)
 
     with pytest.raises(UserWarning, match=r"Cannot attach to junctions \{3, 4, 5\}, they do not "
                                           r"exist"):
@@ -370,11 +477,11 @@ def test_create_sources_raise_except(create_empty_net):
                                   scaling=[1., 1., 0.5], names=["source%d" % s for s in range(3)],
                                   new_col=[1, 3, 5])
 
-    sg = pandapipes.create_sources(net, junctions=[b1, b2, b3], mdot_kg_per_s=[0, 0.1, 0.2],
+    sg = pandapipes.create_sources(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                    scaling=[1., 1., 0.5], names=["source%d" % s for s in range(3)],
                                    new_col=[1, 3, 5])
     with pytest.raises(UserWarning, match=r"Sources with the ids \[0 1 2\] already exist."):
-        pandapipes.create_sources(net, junctions=[b1, b2, b3], mdot_kg_per_s=[0, 0.1, 0.2],
+        pandapipes.create_sources(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                   scaling=[1., 1., 0.5], names=["source%d" % s for s in range(3)],
                                   new_col=[1, 3, 5], index=sg)
 
