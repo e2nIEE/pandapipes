@@ -35,6 +35,9 @@ copyright = '2020 by Fraunhofer Institute for Energy Economics and Energy System
 extensions = ['sphinx_rtd_theme',  'sphinx.ext.intersphinx', 'sphinx.ext.mathjax', 'sphinx.ext.autodoc', 'numpydoc',
               'sphinx.ext.autosummary', 'sphinxcontrib.bibtex']
 
+# specify versions:
+needs_extensions = {'readthedocs-sphinx-ext': '1.0.4'} 
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
