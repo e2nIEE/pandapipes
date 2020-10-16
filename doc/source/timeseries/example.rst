@@ -72,13 +72,15 @@ For this network, the structure of the csv files for the sinks and sources must 
 	:align: center
 
 The corresponding csv file is afterwards read out and the resulting DataFrames are
-then written into the network with the help of the controller `ConstControl <https://pandapower.readthedocs.io/en/v2.2.2/control/controller.html#constcontrol>`_.
+then written into the network with the help of the controller
+`ConstControl <https://pandapower.readthedocs.io/en/latest/control/controller.html#constcontrol>`_.
 Now a variable ``time_steps`` can be defined, which contains integer steps
 from 0 to T, in the example T is equal to 6. The prepared network and ``time_steps``
-are needed to create an `OutputWriter <https://pandapower.readthedocs.io/en/v2.2.2/timeseries/output_writer.html>`_ ``ow``.
+are needed to create an
+`OutputWriter <https://pandapower.readthedocs.io/en/latest/timeseries/output_writer.html>`_ ``ow``.
 This later contains the results of the time series simulation.
 Finally, the main function for starting the simulation can be called.
-``run_timeseries_ppipe(net, time_steps, output_writer=ow)`` contains the
+``run_timeseries(net, time_steps, output_writer=ow)`` contains the
 time loop in which the ``run_control`` function of pandapower is nested,
 see :ref:`overview`.
 
@@ -92,7 +94,7 @@ In the following the code for the previous descriptions is listed:
     import pandapipes
     from pandapower.timeseries import DFData
     from pandapower.timeseries import OutputWriter
-    from pandapipes.timeseries import run_timeseries_ppipe
+    from pandapipes.timeseries import run_timeseries
     from pandapipes import pp_dir
 
     # prepare grid
@@ -127,7 +129,7 @@ In the following the code for the previous descriptions is listed:
     ow = OutputWriter(net, time_steps, output_path=None, log_variables=log_variables)
 
     # run
-    run_timeseries_ppipe(net, time_steps, output_writer=ow)
+    run_timeseries(net, time_steps, output_writer=ow)
 
 Furthermore, the results of the simulation are accessible
 via the ``OutputWriter ow`` and can be displayed with the ``print`` command:
