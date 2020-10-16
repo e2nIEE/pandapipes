@@ -33,8 +33,7 @@ def test_pressure_control_from_measurement_parameteres():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_p=1e-4, tol_v=1e-4)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_pressure_control.csv"), sep=';')
 
