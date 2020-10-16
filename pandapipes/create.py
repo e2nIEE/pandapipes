@@ -10,7 +10,7 @@ from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtG
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
 from pandapipes.properties import call_lib
-from pandapipes.properties.fluids import Fluid
+from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
@@ -102,24 +102,10 @@ def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in
     """
     add_new_component(net, Junction)
 
-    if index and index in net["junction"].index:
-        raise UserWarning("A junction with index %s already exists" % index)
+    index = _get_index_with_check(net, "junction", index)
 
-    if index is None:
-        index = get_free_id(net["junction"])
-
-    # store dtypes
-    dtypes = net.junction.dtypes
-    cols = ["name", "pn_bar", "tfluid_k", "height_m", "in_service", "type"]
-    vals = [name, pn_bar, tfluid_k, height_m, bool(in_service), type]
-
-    all_values = {col: val for col, val in zip(cols, vals)}
-    all_values.update(kwargs)
-    for col, val in all_values.items():
-        net.junction.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.junction, dtypes)
+    _set_entries(net, "junction", index, name=name, pn_bar=pn_bar, tfluid_k=tfluid_k,
+                 height_m=height_m, in_service=in_service, type=type, **kwargs)
 
     if geodata is not None:
         if len(geodata) != 2:
@@ -165,24 +151,10 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
     if junction not in net["junction"].index.values:
         raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
-    if index is None:
-        index = get_free_id(net["sink"])
+    index = _get_index_with_check(net, "sink", index)
 
-    if index in net["sink"].index:
-        raise UserWarning("A sink with the id %s already exists" % index)
-
-    # store dtypes
-    dtypes = net.sink.dtypes
-
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, bool(in_service), type]
-    all_values = {col: val for col, val in zip(cols, vals)}
-    all_values.update(kwargs)
-    for col, val in all_values.items():
-        net.sink.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.sink, dtypes)
+    _set_entries(net, "sink", index, name=name, junction=junction, mdot_kg_per_s=mdot_kg_per_s,
+                 scaling=scaling, in_service=bool(in_service), type=type, **kwargs)
 
     return index
 
@@ -223,29 +195,16 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     if junction not in net["junction"].index.values:
         raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
-    if index is None:
-        index = get_free_id(net["source"])
+    index = _get_index_with_check(net, "source", index)
 
-    if index in net["source"].index:
-        raise UserWarning("A source with the id %s already exists" % index)
-
-    # store dtypes
-    dtypes = net.source.dtypes
-
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, bool(in_service), type]
-    all_values = {col: val for col, val in zip(cols, vals)}
-    all_values.update(kwargs)
-    for col, val in all_values.items():
-        net.source.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.source, dtypes)
+    _set_entries(net, "source", index, name=name, junction=junction, mdot_kg_per_s=mdot_kg_per_s,
+                 scaling=scaling, in_service=bool(in_service), type=type, **kwargs)
 
     return index
 
 
-def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt"):
+def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt",
+                    **kwargs):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
     that it is connected to into a node with fixed value for either pressure, temperature or both
@@ -266,12 +225,16 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     :type in_service: bool, default True
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
+    :type index: int, default None
     :param type: The external grid type denotes the values that are fixed at the respective node:\n
             - "p": The pressure is fixed, the node acts as a slack node for the mass flow.
-            - "t": The temperature is fixed and will not be solved for, but is assumed as the node's mix temperature. Please note that pandapipes cannot check for inconsistencies in the formulation of heat transfer equations yet. \n
+            - "t": The temperature is fixed and will not be solved for, but is assumed as the \
+                    node's mix temperature. Please note that pandapipes cannot check for \
+                    inconsistencies in the formulation of heat transfer equations yet. \n
             - "pt": The external grid shows both "p" and "t" behavior.
     :type type: str, default "pt"
-    :type index: int, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+                    net["ext_grid"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
@@ -281,26 +244,17 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     """
     add_new_component(net, ExtGrid)
 
-    if not type in ["p", "t", "pt"]:
+    if type not in ["p", "t", "pt"]:
         logger.warning("no proper type was chosen.")
 
     if junction not in net["junction"].index.values:
         raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
-    if index is not None and index in net["ext_grid"].index:
-        raise UserWarning("An external grid with with index %s already exists" % index)
+    index = _get_index_with_check(net, "ext_grid", index)
 
-    if index is None:
-        index = get_free_id(net["ext_grid"])
+    _set_entries(net, "ext_grid", index, name=name, junction=junction, p_bar=p_bar, t_k=t_k,
+                 in_service=bool(in_service), type=type, **kwargs)
 
-    # store dtypes
-    dtypes = net.ext_grid.dtypes
-
-    net.ext_grid.loc[index, ["name", "junction", "p_bar", "t_k", "in_service", "type"]] = \
-        [name, junction, p_bar, t_k, bool(in_service), type]
-
-    # and preserve dtypes
-    _preserve_dtypes(net.ext_grid, dtypes)
     return index
 
 
@@ -338,35 +292,20 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :rtype: int
 
     :Example:
-        >>> create_heat_exchanger(net, from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=2000)
+        >>> create_heat_exchanger(net, from_junction=0, to_junction=1, diameter_m=40e-3,\
+                                  qext_w=2000)
     """
     add_new_component(net, HeatExchanger)
 
+    index = _get_index_with_check(net, "heat_exchanger", index)
+
     # check if junction exist to attach the heat exchanger to
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("Heat exchanger %s tries to attach to non-existing junction %s"
-                              % (name, b))
+    _check_branch_element(net, "Heat exchanger", index, from_junction, to_junction)
 
-    if index is None:
-        index = get_free_id(net["heat_exchanger"])
-
-    if index in net["heat_exchanger"].index:
-        raise UserWarning("A heat exchanger with index %s already exists" % index)
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
-         "in_service": bool(in_service), "type": type}
-    v.update(kwargs)
-
-    # store dtypes
-    dtypes = net.heat_exchanger.dtypes
-
-    for col, val in v.items():
-        net.heat_exchanger.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.heat_exchanger, dtypes)
+    _set_entries(net, "heat_exchanger", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, diameter_m=diameter_m, qext_w=qext_w,
+                 loss_coefficient=loss_coefficient, in_service=bool(in_service), type=type,
+                 **kwargs)
 
     return index
 
@@ -424,36 +363,20 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     """
     add_new_component(net, Pipe)
 
+    index = _get_index_with_check(net, "pipe", index)
+
     # check if junction exist to attach the pipe to
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("Pipe %s tries to attach to non-existing junction %s"
-                              % (name, b))
-
-    if index is None:
-        index = get_free_id(net["pipe"])
-
-    if index in net["pipe"].index:
-        raise UserWarning("A pipe with index %s already exists" % index)
+    _check_branch_element(net, "Pipe", index, from_junction, to_junction)
 
     _check_std_type(net, std_type, "pipe", "create_pipe")
     pipe_parameter = load_std_type(net, std_type, "pipe")
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": std_type, "length_km": length_km, "diameter_m":
-             pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
-         "sections": sections, "in_service": bool(in_service), "type": type, "qext_w": qext_w,
-         "text_k": text_k}
-    v.update(kwargs)
 
-    # store dtypes
-    dtypes = net.pipe.dtypes
-
-    for col, val in v.items():
-        net.pipe.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.pipe, dtypes)
+    _set_entries(net, "pipe", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, std_type=std_type, length_km=length_km,
+                 diameter_m=pipe_parameter["inner_diameter_mm"] / 1000, k_mm=k_mm,
+                 loss_coefficient=loss_coefficient, alpha_w_per_m2k=alpha_w_per_m2k,
+                 sections=sections, in_service=bool(in_service), type=type, qext_w=qext_w,
+                 text_k=text_k, **kwargs)
 
     if geodata is not None:
         net["pipe_geodata"].at[index, "coords"] = geodata
@@ -510,42 +433,27 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net,from_junction=0,to_junction=1,length_km=1,diameter_m=40e-3)
+        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1,\
+                                        diameter_m=40e-3)
 
     """
     add_new_component(net, Pipe)
 
+    index = _get_index_with_check(net, "pipe", index)
+
     # check if junction exist to attach the pipe to
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("Pipe %s tries to attach to non-existing junction %s"
-                              % (name, b))
+    _check_branch_element(net, "Pipe", index, from_junction, to_junction)
 
-    if index is None:
-        index = get_free_id(net["pipe"])
-
-    if index in net["pipe"].index:
-        raise UserWarning("A pipe with index %s already exists" % index)
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
-         "sections": sections, "in_service": bool(in_service),
-         "type": type, "qext_w": qext_w, "text_k": text_k}
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only'
                           'create a pipe setting specific, individual parameters. If you want to '
                           'create a pipe from net.std_type please use create_pipe')
-    v.update(kwargs)
 
-    # store dtypes
-    dtypes = net.pipe.dtypes
-
-    for col, val in v.items():
-        net.pipe.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.pipe, dtypes)
+    _set_entries(net, "pipe", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, std_type=None, length_km=length_km,
+                 diameter_m=diameter_m, k_mm=k_mm, loss_coefficient=loss_coefficient,
+                 alpha_w_per_m2k=alpha_w_per_m2k, sections=sections, in_service=bool(in_service),
+                 type=type, qext_w=qext_w, text_k=text_k, **kwargs)
 
     if geodata is not None:
         net["pipe_geodata"].at[index, "coords"] = geodata
@@ -589,30 +497,14 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
     """
     add_new_component(net, Valve)
 
-    # check if junction exist to attach the pipe to
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("Valve %s tries to attach to non-existing junction %s"
-                              % (name, b))
+    index = _get_index_with_check(net, "valve", index)
 
-    if index is None:
-        index = get_free_id(net["valve"])
+    # check if junction exist to attach the valve to
+    _check_branch_element(net, "Valve", index, from_junction, to_junction)
 
-    if index in net["valve"].index:
-        raise UserWarning("A valve with index %s already exists" % index)
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m,
-         "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
-    v.update(kwargs)
-    # store dtypes
-    dtypes = net.valve.dtypes
-
-    for col, val in v.items():
-        net.valve.at[index, col] = val
-
-    # and preserve dtypes
-    _preserve_dtypes(net.valve, dtypes)
+    _set_entries(net, "valve", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, diameter_m=diameter_m, opened=bool(opened),
+                 loss_coefficient=loss_coefficient, type=type, **kwargs)
 
     return index
 
@@ -653,26 +545,17 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     """
     add_new_component(net, Pump)
 
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("Pump %s tries to attach to non-existing junction %s" % (name, b))
+    index = _get_index_with_check(net, "pump", index)
 
-    if index is None:
-        index = get_free_id(net["pump"])
-    if index in net["pump"].index:
-        raise UserWarning("A pump with the id %s already exists" % id)
+    # check if junctions exist to attach the pump to
+    _check_branch_element(net, "Pump", index, from_junction, to_junction)
 
-    # store dtypes
-    dtypes = net.pump.dtypes
-
+    # check if standard type exists
     _check_std_type(net, std_type, "pump", "create_pump")
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": std_type, "in_service": bool(in_service), "type": type}
-    v.update(kwargs)
-    # and preserve dtypes
-    for col, val in v.items():
-        net.pump.at[index, col] = val
-    _preserve_dtypes(net.pump, dtypes)
+
+    _set_entries(net, "pump", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, std_type=std_type, in_service=bool(in_service), type=type,
+                 **kwargs)
 
     return index
 
@@ -738,19 +621,12 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     """
     add_new_component(net, Pump)
 
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("Pump %s tries to attach to non-existing junction %s" % (name, b))
+    index = _get_index_with_check(net, "pump", index)
 
-    if index is None:
-        index = get_free_id(net["pump"])
-    if index in net["pump"].index:
-        raise UserWarning("A pump with the id %s already exists" % id)
+    # check if junctions exist to attach the pump to
+    _check_branch_element(net, "Pump", index, from_junction, to_junction)
 
-    # store dtypes
-    dtypes = net.pump.dtypes
-
-    if pressure_list is not None and flowrate_list is not None and reg_polynomial_degree is not None:
+    if not any(var is None for var in [pressure_list, flowrate_list, reg_polynomial_degree]):
         reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
         pump = PumpStdType(new_std_type_name, reg_par)
         add_pump_std_type(net, new_std_type_name, pump)
@@ -758,13 +634,9 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
         pump = PumpStdType(new_std_type_name, poly_coefficents)
         add_pump_std_type(net, new_std_type_name, pump)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": new_std_type_name, "in_service": bool(in_service), "type": type}
-    v.update(kwargs)
-    # and preserve dtypes
-    for col, val in v.items():
-        net.pump.at[index, col] = val
-    _preserve_dtypes(net.pump, dtypes)
+    _set_entries(net, "pump", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, std_type=new_std_type_name, in_service=bool(in_service),
+                 type=type, **kwargs)
 
     return index
 
@@ -813,28 +685,14 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     add_new_component(net, CirculationPumpPressure)
 
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning(
-                    "CirculationPumpPressure %s tries to attach to non-existing junction %s"
-                    % (name, b))
+    index = _get_index_with_check(net, "circ_pump_pressure", index)
 
-    if index is None:
-        index = get_free_id(net["circ_pump_pressure"])
-    if index in net["circ_pump_pressure"].index:
-        raise UserWarning("A CirculationPumpPressure with the id %s already exists" % id)
+    # check if junctions exist to attach the pump to
+    _check_branch_element(net, "CirculationPumpPressure", index, from_junction, to_junction)
 
-    # store dtypes
-    dtypes = net.circ_pump_pressure.dtypes
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "p_bar": p_bar, "t_k": t_k, "plift_bar": plift_bar,
-         "in_service": bool(in_service), "type": type}
-    v.update(kwargs)
-    # and preserve dtypes
-    for col, val in v.items():
-        net.circ_pump_pressure.at[index, col] = val
-    _preserve_dtypes(net.circ_pump_pressure, dtypes)
+    _set_entries(net, "circ_pump_pressure", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, p_bar=p_bar, t_k=t_k, plift_bar=plift_bar,
+                 in_service=bool(in_service), type=type, **kwargs)
 
     return index
 
@@ -883,27 +741,14 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     add_new_component(net, CirculationPumpMass)
 
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("CirculationPumpMass %s tries to attach to non-existing junction %s"
-                              % (name, b))
+    index = _get_index_with_check(net, "circ_pump_mass", index)
 
-    if index is None:
-        index = get_free_id(net["circ_pump_mass"])
-    if index in net["circ_pump_mass"].index:
-        raise UserWarning("A CirculationPumpMass with the id %s already exists" % id)
+    # check if junctions exist to attach the pump to
+    _check_branch_element(net, "CirculationPumpMass", index, from_junction, to_junction)
 
-    # store dtypes
-    dtypes = net.circ_pump_mass.dtypes
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "p_bar": p_bar, "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s,
-         "in_service": bool(in_service), "type": type}
-    v.update(kwargs)
-    # and preserve dtypes
-    for col, val in v.items():
-        net.circ_pump_mass.at[index, col] = val
-    _preserve_dtypes(net.circ_pump_mass, dtypes)
+    _set_entries(net, "circ_pump_mass", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, p_bar=p_bar, t_k=t_k, mdot_kg_per_s=mdot_kg_per_s,
+                 in_service=bool(in_service), type=type, **kwargs)
 
     return index
 
@@ -916,11 +761,13 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
 
     :param net: The net within this pump should be created
     :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the pump will be connected with
+    :param from_junction: ID of the junction on one side which the pressure control will be \
+            connected with
     :type from_junction: int
     :param controlled_junction: ID of the junction at which the pressure is controlled
     :type controlled_junction: int
-    :param to_junction: ID of the junction on the other side which the pump will be connected with
+    :param to_junction: ID of the junction on the other side which the pressure control will be \
+            connected with
     :type to_junction: int
     :param controlled_p_bar: Pressure set point
     :type controlled_p_bar: float
@@ -943,38 +790,26 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
         >>> create_pressure_control(net, 0, 1, 1, controlled_p_bar=5)
 
     """
-
     add_new_component(net, PressureControlComponent)
 
-    for b in [from_junction, to_junction]:
-        if b not in net["junction"].index.values:
-            raise UserWarning("PressureControlComponent %s tries to attach to non-existing junction %s"
-                              % (name, b))
+    index = _get_index_with_check(net, "press_control", index)
 
-    if index is None:
-        index = get_free_id(net["press_control"])
-    if index in net["press_control"].index:
-        raise UserWarning("A PressureControlComponent with the id %s already exists" % id)
+    # check if junctions exist to attach the pump to
+    _check_branch_element(net, "PressureControl", index, from_junction, to_junction)
 
-    # store dtypes
-    dtypes = net.press_control.dtypes
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "controlled_junction": controlled_junction, "controlled_p_bar": controlled_p_bar,
-         "in_service": bool(in_service), "type": type}
-    v.update(kwargs)
-    # and preserve dtypes
-    for col, val in v.items():
-        net.press_control.at[index, col] = val
-    _preserve_dtypes(net.press_control, dtypes)
+    _set_entries(net, "press_control", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, controlled_junction=controlled_junction,
+                 controlled_p_bar=controlled_p_bar, in_service=bool(in_service), type=type,
+                 **kwargs)
 
     return index
+
 
 def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None, index=None,
                      in_service=True, type="junction", geodata=None, **kwargs):
     """
     Convenience function for creating many junctions at once. Parameter 'nr_junctions' specifies \
-    the number of junctions created. Other parameters may be either arrays of length 'nr_junctions' \
+    the number of junctions created. Other parameters may be either arrays of length 'nr_junctions'\
     or single values.
 
     :param net: The pandapipes network in which the element is created
@@ -1102,7 +937,8 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     :rtype: array(int)
 
     :Example:
-        >>> new_source_ids = create_sources(net, junctions=[1, 5, 10], mdot_kg_per_s=[0.1, 0.05, 0.2])
+        >>> new_source_ids = create_sources(net, junctions=[1, 5, 10],\
+                                            mdot_kg_per_s=[0.1, 0.05, 0.2])
     """
     add_new_component(net, Source)
 
@@ -1273,7 +1109,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
 def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, loss_coefficient=0,
                   name=None, index=None, type='valve', **kwargs):
     """
-     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+     Convenience function for creating many valves at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values.
 
@@ -1322,6 +1158,59 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
     return index
 
 
+def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions,
+                             controlled_p_bar, name=None, index=None, in_service=True,
+                             type="pressure_control", **kwargs):
+    """
+    Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
+    and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
+    same length or single values.
+
+    :param net: The net within this pump should be created
+    :type net: pandapipesNet
+    :param from_junctions: IDs of the junctions on one side which the pressure controls will be\
+            connected to
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side to which the pressure controls will\
+            be connected to
+    :type to_junctions: Iterable(int)
+    :param controlled_junctions: IDs of the junctions at which the pressure is controlled
+    :type controlled_junctions: Iterable or int
+    :param controlled_p_bar: Pressure set points
+    :type controlled_p_bar: Iterable or float
+    :param name: Name of the pressure control elements
+    :type name: Iterable or str
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: Iterable or bool, default True
+    :param type: Currently not used - possibility to specify a certain type of pressure control
+    :type type: Iterable or str, default "pressure_control"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["press_control"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> create_pressure_controls(net, [0, 2], [1, 4], [1, 3], controlled_p_bar=[5, 4.9])
+
+    """
+    add_new_component(net, PressureControlComponent)
+
+    index = _get_multiple_index_with_check(net, "press_control", index, len(from_junctions))
+
+    _check_branches(net, from_junctions, to_junctions, "press_control")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
+               "in_service": in_service, "type": type}
+    entries.update(kwargs)
+    _add_entries_to_table(net, "press_control", index, entries)
+
+    return index
+
+
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
@@ -1340,6 +1229,34 @@ def create_fluid_from_lib(net, name, overwrite=True):
 
     """
     _add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
+
+
+def _get_index_with_check(net, table, index):
+    if index is None:
+        index = get_free_id(net[table])
+    if index in net[table].index:
+        raise UserWarning("A %s with the id %s already exists" % (table, index))
+    return index
+
+
+def _check_branch_element(net, component_name, index, from_node, to_node, node_name="junction"):
+    for b in [from_node, to_node]:
+        if b not in net[node_name].index.values:
+            raise UserWarning("%s %d tries to attach to non-existing %s %s"
+                              % (component_name, index, node_name, b))
+
+
+def _set_entries(net, table, index, preserve_dtypes=True, **entries):
+    dtypes = None
+    if preserve_dtypes:
+        dtypes = net[table].dtypes
+
+    for col, val in entries.items():
+        net[table].at[index, col] = val
+
+    # and preserve dtypes
+    if preserve_dtypes:
+        _preserve_dtypes(net[table], dtypes)
 
 
 def _get_multiple_index_with_check(net, table, index, number):
