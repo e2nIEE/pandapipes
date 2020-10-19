@@ -6,7 +6,7 @@
 P = 1  # Reference node, pressure is fixed
 L = 2  # All other nodes
 T = 10  # Reference node with fixed temperature, otherwise 0
-PC = 20  # Controlled junction with fixed pressure p
+PC = 20  # Controlled node with fixed pressure p
 NONE = 3  # None
 
 # define the indices

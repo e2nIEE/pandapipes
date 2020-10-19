@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 def create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=True,
-                   nogojunctions=None, notravjunctions=None, multi=True,
-                   include_out_of_service=False):
+                   include_press_controls=False, nogojunctions=None, notravjunctions=None,
+                   multi=True, include_out_of_service=False):
 
     if multi:
         mg = nx.MultiGraph()
@@ -54,6 +54,14 @@ def create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=T
             indices[:, F_JUNCTION] = pump.from_junction.values
             indices[:, T_JUNCTION] = pump.to_junction.values
             add_edges(mg, indices, parameter, in_service, net, "pump")
+
+    if hasattr(net, "press_control"):
+        pc = get_edge_table(net, "press_control", include_press_controls)
+        if pc is not None:
+            indices, parameter, in_service = init_par(pc)
+            indices[:, F_JUNCTION] = pc.from_junction.values
+            indices[:, T_JUNCTION] = pc.to_junction.values
+            add_edges(mg, indices, parameter, in_service, net, "press_control")
 
     # add all junctions that were not added when creating branches
     if len(mg.nodes()) < len(net.junction.index):

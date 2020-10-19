@@ -1240,10 +1240,10 @@ def _get_index_with_check(net, table, index):
 
 
 def _check_branch_element(net, component_name, index, from_node, to_node, node_name="junction"):
-    for b in [from_node, to_node]:
-        if b not in net[node_name].index.values:
-            raise UserWarning("%s %d tries to attach to non-existing %s %s"
-                              % (component_name, index, node_name, b))
+    missing_nodes = {from_node, to_node} - set(net[node_name].index.values)
+    if missing_nodes:
+        raise UserWarning("%s %d tries to attach to non-existing %s(s) %s"
+                          % (component_name, index, node_name, missing_nodes))
 
 
 def _set_entries(net, table, index, preserve_dtypes=True, **entries):

@@ -40,10 +40,10 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pump_pit:
-        :type pump_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param pc_pit:
+        :type pc_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         pc_pit = super().create_pit_branch_entries(net, pc_pit, node_name)
@@ -53,7 +53,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
 
     @classmethod
     def calculate_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        press_pit = super().calculate_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups, options)
+        press_pit = super().calculate_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups,
+                                                            options)
         press_pit[:, JAC_DERIV_DP] = 0
         press_pit[:, JAC_DERIV_DP1] = 0
         press_pit[:, JAC_DERIV_DV] = 0
@@ -64,8 +65,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pump_pit:
-        :type pump_pit:
+        :param pc_pit:
+        :type pc_pit:
         :param node_pit:
         :type node_pit:
         :return: power stroke
@@ -79,8 +80,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
 
         :param net:
         :type net:
-        :param pump_pit:
-        :type pump_pit:
+        :param pc_pit:
+        :type pc_pit:
         :param node_pit:
         :type node_pit:
         :return:
@@ -97,6 +98,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         placement_table, pc_pit, res_table = super().extract_results(net, options, node_name)
@@ -109,8 +112,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
             net[cls.table_name()]["to_junction"].values[placement_table]]]
 
-        res_table['deltap_bar'].values[placement_table] = node_pit[to_junction_nodes , PINIT] - \
-                                                          node_pit[from_junction_nodes, PINIT]
+        res_table['deltap_bar'].values[placement_table] = node_pit[to_junction_nodes, PINIT] - \
+            node_pit[from_junction_nodes, PINIT]
 
     @classmethod
     def get_component_input(cls):

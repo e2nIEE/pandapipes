@@ -34,16 +34,17 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     len_b = len(branch_pit)
     len_n = len(node_pit)
     branch_matrix_indices = np.arange(len_b) + len_n
-    fn_col, tn_col, ntyp_col, slack_type, pc_type, num_der = (FROM_NODE, TO_NODE, NODE_TYPE, P, PC, 3) \
+    fn_col, tn_col, ntyp_col, slack_type, pc_type, num_der = \
+        (FROM_NODE, TO_NODE, NODE_TYPE, P, PC, 3) \
         if not heat_mode else (FROM_NODE_T, TO_NODE_T, NODE_TYPE_T, T, PC, 2)
     pc_nodes = np.where(node_pit[:, ntyp_col] == pc_type)[0]
     fn = branch_pit[:, fn_col].astype(np.int32)
     tn = branch_pit[:, tn_col].astype(np.int32)
     not_slack_fn_branch_mask = node_pit[fn, ntyp_col] != slack_type
     not_slack_tn_branch_mask = node_pit[tn, ntyp_col] != slack_type
-    pc_nodes_branch_mask = branch_pit[:, BRANCH_TYPE] == pc_type
+    pc_branch_mask = branch_pit[:, BRANCH_TYPE] == pc_type
     slack_nodes = np.where(node_pit[:, ntyp_col] == slack_type)[0]
-    pc_matrix_indices = branch_matrix_indices[pc_nodes_branch_mask]
+    pc_matrix_indices = branch_matrix_indices[pc_branch_mask]
 
     if not heat_mode:
         len_fn_not_slack = np.sum(not_slack_fn_branch_mask)
