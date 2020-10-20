@@ -26,10 +26,10 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param valve_pit:
-        :type valve_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param branch_wzerolength_pit:
+        :type branch_wzerolength_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         branch_wizerolength_pit = \

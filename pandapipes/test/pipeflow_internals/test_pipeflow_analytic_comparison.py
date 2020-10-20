@@ -12,7 +12,7 @@ from pandapipes.component_models import Pipe, Junction
 from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.test.pipeflow_internals import internals_data_path
-
+from pandapipes.properties.fluids import _add_fluid_to_net
 
 def test_gas_internal_nodes():
     """
@@ -27,7 +27,7 @@ def test_gas_internal_nodes():
     pandapipes.create_pipe_from_parameters(net, 0, 1, 12.0, d, k_mm=.5, sections=12)
     pandapipes.create_ext_grid(net, 0, p_bar=51 - 1.01325, t_k=285.15, type="pt")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=0.82752 * 45000 / 3600)
-    pandapipes.add_fluid_to_net(net, pandapipes.create_constant_fluid(
+    _add_fluid_to_net(net, pandapipes.create_constant_fluid(
         name="natural_gas", fluid_type="gas", viscosity=11.93e-6, heat_capacity=2185,
         compressibility=1, der_compressibility=0, density=0.82752
     ))
@@ -43,9 +43,9 @@ def test_gas_internal_nodes():
     v_an = v_an.drop([0])
 
     pipe_p_data_idx = np.where(pipe_results["PINIT"][:, 0] == 0)
-    pipe_v_data_idx = np.where(pipe_results["VINIT"][:, 0] == 0)
+    pipe_v_data_idx = np.where(pipe_results["VINIT_MEAN"][:, 0] == 0)
     pipe_p_data = pipe_results["PINIT"][pipe_p_data_idx, 1]
-    pipe_v_data = pipe_results["VINIT"][pipe_v_data_idx, 1]
+    pipe_v_data = pipe_results["VINIT_MEAN"][pipe_v_data_idx, 1]
 
     node_pit = net["_pit"]["node"]
 
@@ -65,6 +65,9 @@ def test_gas_internal_nodes():
 
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.4)
+
+
+
 
 
 def test_temperature_internal_nodes_single_pipe():

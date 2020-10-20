@@ -1,0 +1,7 @@
+;0;1;---;sinkN-1;sinkN
+0;mass_flow_0_0;mass_flow_0_1;---;mass_flow_0_N-1;mass_flow_0_N
+1;mass_flow_1_0;mass_flow_1_1;---;mass_flow_1_N-1;mass_flow_1_N
+2;mass_flow_2_0;mass_flow_2_1;---;mass_flow_2_N-1;mass_flow_2_N
+---;---;---;---;---;---
+T-1;mass_flow_T-1_0;mass_flow_T-1_1;---;mass_flow_T-1_N-1;mass_flow_T-1_N-1
+T;mass_flow_T_0;mass_flow_T_1;---;mass_flow_T_N-1;mass_flow_T_N

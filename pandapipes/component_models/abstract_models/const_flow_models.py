@@ -3,17 +3,14 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+from numpy import dtype
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
-from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.internals_toolbox import _sum_by_group
-from numpy import dtype
+from pandapipes.pipeflow_setup import get_lookup
 
 
 class ConstFlow(NodeElementComponent):
-    """
-
-    """
 
     @classmethod
     def sign(cls):
@@ -28,6 +25,8 @@ class ConstFlow(NodeElementComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         loads = net[cls.table_name()]
@@ -48,6 +47,8 @@ class ConstFlow(NodeElementComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         res_table = super().extract_results(net, options, node_name)
@@ -71,17 +72,16 @@ class ConstFlow(NodeElementComponent):
         :return:
         :rtype:
         """
-        input = [("name", dtype(object)),
-                 ("junction", "u4"),
-                 ("mdot_kg_per_s", "f8"),
-                 ("scaling", "f8"),
-                 ("in_service", "bool"),
-                 ("type", dtype(object))]
-        return input
+        return [("name", dtype(object)),
+                ("junction", "u4"),
+                ("mdot_kg_per_s", "f8"),
+                ("scaling", "f8"),
+                ("in_service", "bool"),
+                ("type", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):
-        """
+        """Get results.
 
         :param net: The pandapipes network
         :type net: pandapipesNet

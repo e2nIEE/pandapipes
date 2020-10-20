@@ -8,7 +8,13 @@ Create Function
 .. _create_source:
 
 
+For creating a single source:
+
 .. autofunction:: pandapipes.create_source
+
+For creating multiple sources at once:
+
+.. autofunction:: pandapipes.create_sources
 
 
 Component Table Data

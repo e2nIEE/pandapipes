@@ -1,1 +1,2 @@
-14.007
+# molar mass N2 in kg/kmol
+28.0134
