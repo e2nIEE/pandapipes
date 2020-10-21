@@ -4,11 +4,14 @@
 
 import numpy as np
 from numpy import dtype
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid, \
+    TINIT_NODE
 from pandapipes.idx_branch import D, AREA, PL, TL, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE
+    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, FROM_NODE, TO_NODE, VINIT, \
+    LOAD_VEC_NODES, ELEMENT_IDX, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.pipeflow_setup import get_lookup, get_net_option
 
 
 class PressureControlComponent(BranchWZeroLengthComponent):
@@ -27,8 +30,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
     @classmethod
     def create_pit_node_entries(cls, net, node_pit, node_name):
         pcs = net[cls.table_name()]
-        juncts = pcs['controlled_junction'].values[pcs.in_service]
-        press = pcs['controlled_p_bar'].values[pcs.in_service]
+        controlled = pcs.in_service & pcs.control_active
+        juncts = pcs['controlled_junction'].values[controlled]
+        press = pcs['controlled_p_bar'].values[controlled]
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         index_pc = junction_idx_lookups[juncts]
         node_pit[index_pc, NODE_TYPE] = PC
@@ -49,15 +53,17 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         pc_pit = super().create_pit_branch_entries(net, pc_pit, node_name)
         pc_pit[:, D] = 0.1
         pc_pit[:, AREA] = pc_pit[:, D] ** 2 * np.pi / 4
-        pc_pit[:, BRANCH_TYPE] = PC
+        pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC
+        pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
 
     @classmethod
     def calculate_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         press_pit = super().calculate_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups,
                                                             options)
-        press_pit[:, JAC_DERIV_DP] = 0
-        press_pit[:, JAC_DERIV_DP1] = 0
-        press_pit[:, JAC_DERIV_DV] = 0
+        pc_branch = press_pit[:, BRANCH_TYPE] == PC
+        press_pit[pc_branch, JAC_DERIV_DP] = 0
+        press_pit[pc_branch, JAC_DERIV_DP1] = 0
+        press_pit[pc_branch, JAC_DERIV_DV] = 0
 
     @classmethod
     def calculate_pressure_lift(cls, net, pc_pit, node_pit):
@@ -115,6 +121,21 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         res_table['deltap_bar'].values[placement_table] = node_pit[to_junction_nodes, PINIT] - \
             node_pit[from_junction_nodes, PINIT]
 
+        from_nodes = pc_pit[:, FROM_NODE].astype(np.int32)
+        to_nodes = pc_pit[:, TO_NODE].astype(np.int32)
+
+        t0 = node_pit[from_nodes, TINIT_NODE]
+        t1 = node_pit[to_nodes, TINIT_NODE]
+        mf = pc_pit[:, LOAD_VEC_NODES]
+        vf = pc_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
+
+        idx_active = pc_pit[:, ELEMENT_IDX]
+        idx_sort, mf_sum, vf_sum, internal_pipes = \
+            _sum_by_group(idx_active, mf, vf, np.ones_like(idx_active))
+        res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
+        res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
+        res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
+
     @classmethod
     def get_component_input(cls):
         """
@@ -129,6 +150,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
                 ("to_junction", "u4"),
                 ("controlled_junction", "u4"),
                 ("controlled_p_bar", "f8"),
+                ("control_active", "bool"),
+                ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
@@ -144,4 +167,4 @@ class PressureControlComponent(BranchWZeroLengthComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        return ['deltap_bar'], True
+        return ["deltap_bar", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"], True

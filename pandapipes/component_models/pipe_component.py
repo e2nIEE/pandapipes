@@ -207,7 +207,7 @@ class Pipe(BranchWInternalsComponent):
         t0 = node_pit[from_nodes, TINIT_NODE]
         t1 = node_pit[to_nodes, TINIT_NODE]
         mf = pipe_pit[:, LOAD_VEC_NODES]
-        vf = pipe_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
+        vf = pipe_pit[:, LOAD_VEC_NODES] / fluid.get_density((t0 + t1) / 2)
 
         idx_active = pipe_pit[:, ELEMENT_IDX]
         idx_sort, v_sum, mf_sum, vf_sum, internal_pipes = \

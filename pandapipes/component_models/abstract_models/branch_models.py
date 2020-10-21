@@ -86,8 +86,8 @@ class BranchComponent(Component):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_component_pit:
-        :type branch_component_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :param idx_lookups:

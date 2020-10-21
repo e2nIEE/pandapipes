@@ -754,8 +754,8 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
 
 def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar,
-                            name=None, index=None, in_service=True, type="pressure_control",
-                            **kwargs):
+                            control_active=True, loss_coefficient=0., name=None, index=None,
+                            in_service=True, type="pressure_control", **kwargs):
     """
     Adds one pressure control with a constant mass flow in table net["press_control"].
 
@@ -771,6 +771,12 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     :type to_junction: int
     :param controlled_p_bar: Pressure set point
     :type controlled_p_bar: float
+    :param control_active: Variable to state whether the pressure control is active (otherwise \
+        behaviour similar to open valve)
+    :type control_active: bool, default True
+    :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
+        (used only if control is not active).
+    :type loss_coefficient: float, default 0
     :param name: Name of the pressure control element
     :type name: str
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -799,6 +805,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
 
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction,
                  to_junction=to_junction, controlled_junction=controlled_junction,
+                 control_active=bool(control_active), loss_coefficient=loss_coefficient,
                  controlled_p_bar=controlled_p_bar, in_service=bool(in_service), type=type,
                  **kwargs)
 
@@ -1159,8 +1166,8 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
 
 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions,
-                             controlled_p_bar, name=None, index=None, in_service=True,
-                             type="pressure_control", **kwargs):
+                             controlled_p_bar, control_active=True, loss_coefficient=0., name=None,
+                             index=None, in_service=True, type="pressure_control", **kwargs):
     """
     Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1178,6 +1185,12 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     :type controlled_junctions: Iterable or int
     :param controlled_p_bar: Pressure set points
     :type controlled_p_bar: Iterable or float
+    :param control_active: Variable to state whether the pressure control is active (otherwise \
+        behaviour similar to open valve)
+    :type control_active: bool, default True
+    :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
+        (used only if control is not active).
+    :type loss_coefficient: float, default 0
     :param name: Name of the pressure control elements
     :type name: Iterable or str
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
@@ -1204,6 +1217,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
+               "control_active": control_active, "loss_coefficient": loss_coefficient,
                "in_service": in_service, "type": type}
     entries.update(kwargs)
     _add_entries_to_table(net, "press_control", index, entries)
