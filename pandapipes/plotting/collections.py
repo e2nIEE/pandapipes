@@ -158,7 +158,7 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
     if cmap is not None:
         if z is None:
             z = net.res_pipe.v_mean_m_per_s.loc[pipes_with_geo]
-        add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim)
+        add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim=clim)
 
     return lc
 
