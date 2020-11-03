@@ -4,6 +4,7 @@
 
 import numpy as np
 import pandas as pd
+from packaging import version
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
 from pandapipes.properties import call_lib
@@ -285,7 +286,7 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
         logger.warning("no proper type was chosen.")
 
     if junction not in net["junction"].index.values:
-        raise UserWarning("Cannot attach to bus %s, bus does not exist" % junction)
+        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
     if index is not None and index in net["ext_grid"].index:
         raise UserWarning("An external grid with with index %s already exists" % index)
@@ -436,13 +437,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     if index in net["pipe"].index:
         raise UserWarning("A pipe with index %s already exists" % index)
 
-    if 'std_type' not in net:
-        raise UserWarning('%s is defined as std_type in create_pipe_from_std_type but there are no'
-                          ' std_types defined in your net. You need to define a std_type first or '
-                          'set add_stdtypes=True in create_empty_network.' % std_type)
-    if std_type not in net['std_type']['pipe']:
-        raise UserWarning('%s is not given in std_type. Either change std_type or define new '
-                          'one' % std_type)
+    _check_std_type(net, std_type, "pipe", "create_pipe")
     pipe_parameter = load_std_type(net, std_type, "pipe")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "length_km": length_km, "diameter_m":
@@ -671,13 +666,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     # store dtypes
     dtypes = net.pump.dtypes
 
-    if 'std_type' not in net:
-        raise UserWarning('%s is defined as std_type in create_pump but there are no std_types'
-                          ' defined in your net. You need to define a std_type first.'
-                          % std_type)
-    if std_type not in net['std_type']['pump']:
-        raise UserWarning('%s is not given in std_type. Either change std_type or define new '
-                          'one' % std_type)
+    _check_std_type(net, std_type, "pump", "create_pump")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "in_service": bool(in_service), "type": type}
     v.update(kwargs)
@@ -689,8 +678,8 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     return index
 
 
-def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name, pressure_list=None,
-                                flowrate_list=None, reg_polynomial_degree=None,
+def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name,
+                                pressure_list=None, flowrate_list=None, reg_polynomial_degree=None,
                                 poly_coefficents=None, name=None, index=None, in_service=True,
                                 type="pump", **kwargs):
     """
@@ -920,6 +909,358 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     return index
 
 
+def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None, index=None,
+                     in_service=True, type="junction", geodata=None, **kwargs):
+    """
+    Convenience function for creating many junctions at once. Parameter 'nr_junctions' specifies \
+    the number of junctions created. Other parameters may be either arrays of length 'nr_junctions' \
+    or single values.
+
+    :param net: The pandapipes network in which the element is created
+    :type net: pandapipesNet
+    :param nr_junctions: Number of junctions to be created.
+    :type nr_junctions: int
+    :param pn_bar: The nominal pressure in [bar]. Used as an initial value for pressure calculation.
+    :type pn_bar: Iterable or float
+    :param tfluid_k: The fluid temperature in [K]. Used as parameter for gas calculations and as\
+            initial value for temperature calculations.
+    :type tfluid_k: Iterable or float
+    :param height_m: Heights of nodes above sea level in [m]
+    :type height_m: Iterable or float, default 0
+    :param name: The names for these junctions
+    :type name: Iterable or string, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: Iterable or boolean, default True
+    :param type: not used yet - Designed for type differentiation on pandas lookups (e.g. \
+            household connection vs. crossing)
+    :type type: Iterable or string, default "junction"
+    :param geodata: Coordinates used for plotting
+    :type geodata: Iterable of (x,y)-tuples, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["junction"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> create_junctions(net, 200, pn_bar=5, tfluid_k=320, height_m=np.arange(200))
+    """
+    add_new_component(net, Junction)
+
+    index = _get_multiple_index_with_check(net, "junction", index, nr_junctions)
+    entries = {"pn_bar": pn_bar,  "type": type, "tfluid_k": tfluid_k, "height_m": height_m,
+               "in_service": in_service, "name": name}
+    entries.update(kwargs)
+    _add_entries_to_table(net, "junction", index, entries)
+
+    if geodata is not None:
+        # works with a 2-tuple or a matching array
+        net.junction_geodata = net.junction_geodata.append(pd.DataFrame(
+            np.zeros((len(index), len(net.junction_geodata.columns)), dtype=int), index=index,
+            columns=net.junction_geodata.columns))
+        net.junction_geodata.loc[index, :] = np.nan
+        net.junction_geodata.loc[index, ["x", "y"]] = geodata
+
+    return index
+
+
+def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
+                 type='sink', **kwargs):
+    """
+    Convenience function for creating many sinks at once. Parameter 'junctions' must be an array \
+    of the desired length. Other parameters may be either arrays of the same length or single \
+    values.
+
+    :param net: The net for which this sink should be created
+    :type net: pandapipesNet
+    :param junctions: The index of the junctions to which the sinks are connected
+    :type junctions: Iterable(int)
+    :param mdot_kg_per_s: The required mass flow
+    :type mdot_kg_per_s: Iterable or float, default None
+    :param scaling: An optional scaling factor to be set customly
+    :type scaling: Iterable or float, default 1
+    :param name: Name tags for the sinks
+    :type name: Iterable or str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: Iterable or bool, default True
+    :param type: Type variables to classify the sinks
+    :type type: Iterable or str, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["sink"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> new_sink_ids = create_sinks(net, junctions=[1, 5, 10], mdot_kg_per_s=[0.1, 0.05, 0.2])
+    """
+    add_new_component(net, Sink)
+
+    _check_node_elements(net, junctions)
+    index = _get_multiple_index_with_check(net, "sink", index, len(junctions))
+
+    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
+               "in_service": in_service, "name": name, "type": type}
+    entries.update(kwargs)
+    _add_entries_to_table(net, "sink", index, entries)
+
+    return index
+
+
+def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None,
+                   in_service=True, type='source', **kwargs):
+    """
+    Convenience function for creating many sources at once. Parameter 'junctions' must be an array \
+    of the desired length. Other parameters may be either arrays of the same length or single \
+    values.
+
+    :param net: The net for which this source should be created
+    :type net: pandapipesNet
+    :param junctions: The index of the junctions to which the sources are connected
+    :type junctions: Iterabl(int)
+    :param mdot_kg_per_s: The required mass flow
+    :type mdot_kg_per_s: Iterable or float, default None
+    :param scaling: An optional scaling factor to be set customly
+    :type scaling: Iterable or float, default 1
+    :param name: Name tags for the sources
+    :type name: Iterable or str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: Iterable or bool, default True
+    :param type: Type variable to classify the sources
+    :type type: Iterable or str, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["source"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> new_source_ids = create_sources(net, junctions=[1, 5, 10], mdot_kg_per_s=[0.1, 0.05, 0.2])
+    """
+    add_new_component(net, Source)
+
+    _check_node_elements(net, junctions)
+    index = _get_multiple_index_with_check(net, "source", index, len(junctions))
+
+    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
+               "in_service": in_service, "name": name, "type": type}
+    entries.update(kwargs)
+    _add_entries_to_table(net, "source", index, entries)
+
+    return index
+
+
+def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=1,
+                 loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0.,
+                 name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
+    """
+    Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
+    same length or single values. In any case the line parameters are defined through a single \
+    standard type, so all pipes have the same standard type.
+
+    :param net: The net for which this pipe should be created
+    :type net: pandapipesNet
+    :param from_junctions: IDs of the junctions on one side which the pipes will be connected to
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side to which the pipes will be \
+            connected to
+    :type to_junctions: Iterable(int)
+    :param std_type: Name of standard type
+    :type std_type: str
+    :param length_km: Lengths of the pipes in [km]
+    :type length_km: Iterable or float
+    :param k_mm: Pipe roughness in [mm]
+    :type k_mm: Iterable or float, default 1
+    :param loss_coefficient: Additional pressure loss coefficients, introduced by e.g. bends
+    :type loss_coefficient: Iterable or float, default 0
+    :param sections: The number of internal pipe sections. Important for gas and temperature\
+            calculations, where variables are dependent on pipe length.
+    :type sections: Iterable or int, default 1
+    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param text_k: Ambient temperatures of pipes in [K]
+    :type text_k: Iterable or float, default 293
+    :param qext_w: External heat feed-in to the pipes in [W]
+    :type qext_w: Iterable or float, default 0
+    :param name: Name tags for these pipes
+    :type name: Iterable or str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param geodata: The coordinates of the pipes. The first row should be the coordinates of\
+            junction a and the last should be the coordinates of junction b. The points in the\
+            middle represent the bending points of the pipe.
+    :type geodata: array, shape=(no_pipes,2L) or (,2L), default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: Iterable or bool, default True
+    :param type: Identifiers for special types of pipes (e.g. below or above ground)
+    :type type: Iterable or str, default "pipe"
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["pipe"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> pipe_indices = create_pipes(net, from_junctions=[0, 2, 6], to_junctions=[1, 3, 7], \
+                                        std_type='315_PE_80_SDR_17', length_km=[0.2, 1, 0.3])
+
+    """
+    add_new_component(net, Pipe)
+
+    nr_pipes = len(from_junctions)
+    index = _get_multiple_index_with_check(net, "pipe", index, nr_pipes)
+    _check_branches(net, from_junctions, to_junctions, "pipe")
+    _check_std_type(net, std_type, "pipe", "create_pipes")
+
+    pipe_parameters = load_std_type(net, std_type, "pipe")
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "std_type": std_type, "length_km": length_km,
+               "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
+               "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
+               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
+               "text_k": text_k}
+    entries.update(kwargs)
+    _add_entries_to_table(net, "pipe", index, entries)
+
+    if geodata is not None:
+        _add_multiple_branch_geodata(net, "pipe", geodata, index)
+    return index
+
+
+def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=1,
+                                 loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
+                                 qext_w=0., name=None, index=None, geodata=None, in_service=True,
+                                 type="pipe", **kwargs):
+    """
+    Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
+    same length or single values.
+
+    :param net: The net for which this pipe should be created
+    :type net: pandapipesNet
+    :param from_junctions: IDs of the junctions on one side which the pipes will be connected to
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side to which the pipes will be \
+            connected to
+    :type to_junctions: Iterable(int)
+    :param length_km: Lengths of the pipes in [km]
+    :type length_km: Iterable or float
+    :param diameter_m: The pipe diameters in [m]
+    :type diameter_m: Iterable or float
+    :param k_mm: Pipe roughness in [mm]
+    :type k_mm: Iterable or float, default 1
+    :param loss_coefficient: Additional pressure loss coefficients, introduced by e.g. bends
+    :type loss_coefficient: Iterable or float, default 0
+    :param sections: The number of internal pipe sections. Important for gas and temperature\
+            calculations, where variables are dependent on pipe length.
+    :type sections: Iterable or int, default 1
+    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param text_k: Ambient temperatures of pipes in [K]
+    :type text_k: Iterable or float, default 293
+    :param qext_w: External heat feed-in to the pipes in [W]
+    :type qext_w: Iterable or float, default 0
+    :param name: Name tags for these pipes
+    :type name: Iterable or str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param geodata: The coordinates of the pipes. The first row should be the coordinates of\
+            junction a and the last should be the coordinates of junction b. The points in the\
+            middle represent the bending points of the pipe.
+    :type geodata: array, shape=(no_pipes,2L) or (,2L), default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: Iterable or bool, default True
+    :param type: Identifiers for special types of pipes (e.g. below or above ground)
+    :type type: Iterable or str, default "pipe"
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["pipe"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> pipe_indices = create_pipes_from_parameters(\
+                net, from_junctions=[0, 2, 6], to_junctions=[1, 3, 7], length_km=[0.2, 1, 0.3],\
+                diameter_m=40e-3)
+
+    """
+    add_new_component(net, Pipe)
+
+    index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "pipe")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+               "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
+               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
+               "text_k": text_k}
+    entries.update(kwargs)
+    _add_entries_to_table(net, "pipe", index, entries)
+
+    if geodata is not None:
+        _add_multiple_branch_geodata(net, "pipe", geodata, index)
+    return index
+
+
+def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, loss_coefficient=0,
+                  name=None, index=None, type='valve', **kwargs):
+    """
+     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
+    same length or single values.
+
+    :param net: The net for which this valve should be created
+    :type net: pandapipesNet
+    :param from_junctions: IDs of the junctions on one side which the valves will be connected to
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side to which the valves will be \
+            connected to
+    :type to_junctions: Iterable(int)
+    :param diameter_m: The valve diameters in [m]
+    :type diameter_m: Iterable or float
+    :param opened: Flag to show if the valves are opened and allow for fluid flow or if they are\
+            closed to block the fluid flow.
+    :type opened: Iterable or bool, default True
+    :param loss_coefficient: The pressure loss coefficients introduced by the valve shapes
+    :type loss_coefficient: Iterable or float, default 0
+    :param name: Name tags for the valves
+    :type name: Iterable or str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param type: Identifiers for special types of valves (e.g. below or above ground)
+    :type type: Iterable or str, default "valve"
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["valve"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> create_valves(net, from_junctions=[0, 1, 4], to_junctions=[1, 5, 6], \
+                opened=[True, False, True], diameter_m=4e-3, name=["valve_%d" for d in range(3)])
+
+    """
+    add_new_component(net, Valve)
+
+    index = _get_multiple_index_with_check(net, "valve", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "valve")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "diameter_m": diameter_m, "opened": opened, "loss_coefficient": loss_coefficient,
+               "type": type}
+    entries.update(kwargs)
+    _add_entries_to_table(net, "valve", index, entries)
+
+    return index
+
+
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
@@ -934,7 +1275,84 @@ def create_fluid_from_lib(net, name, overwrite=True):
     :return: No output
 
     :Example:
-        >>> pp.create_fluid_from_lib(net, name="water")
+        >>> create_fluid_from_lib(net, name="water")
 
     """
     _add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
+
+
+def _get_multiple_index_with_check(net, table, index, number):
+    if index is None:
+        bid = get_free_id(net[table])
+        return np.arange(bid, bid + number, 1)
+    if np.any(np.isin(index, net[table].index.values)):
+        raise UserWarning("%ss with the ids %s already exist."
+                          % (table.capitalize(),
+                             net[table].index.values[np.isin(net[table].index.values, index)]))
+    return index
+
+
+def _check_node_elements(net, junctions):
+    if np.any(~np.isin(junctions, net["junction"].index.values)):
+        junction_not_exist = set(junctions) - set(net["junction"].index.values)
+        raise UserWarning("Cannot attach to junctions %s, they do not exist" % junction_not_exist)
+
+
+def _check_branches(net, from_junctions, to_junctions, table):
+    all_junctions = np.array(list(from_junctions) + list(to_junctions))
+    if np.any(~np.isin(all_junctions, net.junction.index.values)):
+        junction_not_exist = set(all_junctions) - set(net.junction.index)
+        raise UserWarning("%s trying to attach to non existing junctions %s"
+                          % (table.capitalize(), junction_not_exist))
+
+
+def _check_std_type(net, std_type, table, function_name):
+    if 'std_type' not in net:
+        raise UserWarning('%s is defined as std_type in %s but there are no std_types '
+                          'defined in your net. You need to define a std_type first or set '
+                          'add_stdtypes=True in create_empty_network.' % (std_type, function_name))
+    if std_type not in net['std_type'][table]:
+        raise UserWarning('%s is not given in std_type (%s). Either change std_type or define new '
+                          'one' % (std_type, table))
+
+
+def _add_entries_to_table(net, table, index, entries, preserve_dtypes=True):
+    dtypes = None
+    if preserve_dtypes:
+        # store dtypes
+        dtypes = net[table].dtypes
+
+    dd = pd.DataFrame(index=index, columns=net[table].columns)
+    dd = dd.assign(**entries)
+
+    # extend the table by the frame we just created
+    if version.parse(pd.__version__) >= version.parse("0.23"):
+        net[table] = net[table].append(dd, sort=False)
+    else:
+        # prior to pandas 0.23 there was no explicit parameter (instead it was standard behavior)
+        net[table] = net[table].append(dd)
+
+    # and preserve dtypes
+    if preserve_dtypes:
+        _preserve_dtypes(net[table], dtypes)
+
+
+def _add_multiple_branch_geodata(net, table, geodata, index):
+    geo_table = "%s_geodata" % table
+    dtypes = net[geo_table].dtypes
+    df = pd.DataFrame(index=index, columns=net[geo_table].columns)
+    # works with single or multiple lists of coordinates
+    if len(geodata[0]) == 2 and not hasattr(geodata[0][0], "__iter__"):
+        # geodata is a single list of coordinates
+        df["coords"] = [geodata] * len(index)
+    else:
+        # geodata is multiple lists of coordinates
+        df["coords"] = geodata
+
+    if version.parse(pd.__version__) >= version.parse("0.23"):
+        net[geo_table] = net[geo_table].append(df, sort=False)
+    else:
+        # prior to pandas 0.23 there was no explicit parameter (instead it was standard behavior)
+        net[geo_table] = net[geo_table].append(df)
+
+    _preserve_dtypes(net[geo_table], dtypes)

@@ -7,7 +7,13 @@ Valve
 Create Function
 ===============
 
+For creating a single valve:
+
 .. autofunction:: pandapipes.create_valve
+
+For creating multiple valves at once:
+
+.. autofunction:: pandapipes.create_valves
 
 Component Table Data
 ====================

@@ -20,7 +20,7 @@ Component Table Data
 .. tabularcolumns:: |p{0.10\linewidth}|p{0.10\linewidth}|p{0.25\linewidth}|p{0.40\linewidth}|
 
 .. csv-table::
-   :file: circ_pump_pressure.csv
+   :file: circ_pump_pressure_par.csv
    :delim: ;
    :widths: 10, 10, 25, 40
 
