@@ -13,7 +13,7 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
-gas_stanet_path = os.path.join(pp_dir, "networks", "simple_test_networks", "stanet_test_networks",
+gas_stanet_path = os.path.join(pp_dir, "networks", "network_files", "stanet_test_networks",
                                "gas_cases")
 
 
