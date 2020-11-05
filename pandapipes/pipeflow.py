@@ -133,7 +133,7 @@ def hydraulics(net):
         dp_init = np.abs(p_init - p_init_old)
 
         residual_norm = (linalg.norm(epsilon) / (len(epsilon)))
-        error_v.append(linalg.norm(dv_init) / (len(dv_init)))
+        error_v.append(linalg.norm(dv_init) / (len(dv_init)) if len(dv_init) else 0)
         error_p.append(linalg.norm(dp_init / (len(dp_init))))
 
         # Control of damping factor
