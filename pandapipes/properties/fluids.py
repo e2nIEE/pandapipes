@@ -444,7 +444,7 @@ def call_lib(fluid):
             os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
 
     liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen"]
+    gases = ["air", "lgas", "hgas", "hydrogen", "methane"]
 
     if fluid == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
