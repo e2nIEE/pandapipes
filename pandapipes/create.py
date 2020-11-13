@@ -1264,7 +1264,8 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently existing fluids in the library are: "hgas", "lgas", "hydrogen", "water", "air".
+    Currently existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water",
+    "air".
 
     :param net: The net for which this fluid should be created
     :type net: pandapipesNet
