@@ -163,8 +163,7 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
     """
     add_new_component(net, Sink)
 
-    if junction not in net["junction"].index.values:
-        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
+    _check_node_element(net, junction)
 
     if index is None:
         index = get_free_id(net["sink"])
@@ -221,8 +220,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     """
     add_new_component(net, Source)
 
-    if junction not in net["junction"].index.values:
-        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
+    _check_node_element(net, junction)
 
     if index is None:
         index = get_free_id(net["source"])
@@ -285,8 +283,7 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     if not type in ["p", "t", "pt"]:
         logger.warning("no proper type was chosen.")
 
-    if junction not in net["junction"].index.values:
-        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
+    _check_node_element(net, junction)
 
     if index is not None and index in net["ext_grid"].index:
         raise UserWarning("An external grid with with index %s already exists" % index)
@@ -1000,7 +997,7 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=Non
     """
     add_new_component(net, Sink)
 
-    _check_node_elements(net, junctions)
+    _check_multiple_node_elements(net, junctions)
     index = _get_multiple_index_with_check(net, "sink", index, len(junctions))
 
     entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
@@ -1045,7 +1042,7 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     """
     add_new_component(net, Source)
 
-    _check_node_elements(net, junctions)
+    _check_multiple_node_elements(net, junctions)
     index = _get_multiple_index_with_check(net, "source", index, len(junctions))
 
     entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
@@ -1292,10 +1289,15 @@ def _get_multiple_index_with_check(net, table, index, number):
     return index
 
 
-def _check_node_elements(net, junctions):
+def _check_multiple_node_elements(net, junctions):
     if np.any(~np.isin(junctions, net["junction"].index.values)):
         junction_not_exist = set(junctions) - set(net["junction"].index.values)
         raise UserWarning("Cannot attach to junctions %s, they do not exist" % junction_not_exist)
+
+
+def _check_node_element(net, junction):
+    if junction not in net["junction"].index.values:
+        raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
 
 def _check_branches(net, from_junctions, to_junctions, table):
