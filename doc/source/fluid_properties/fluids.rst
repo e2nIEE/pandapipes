@@ -5,7 +5,7 @@ Fluid Properties in pandapipes
 The pipelines in the pandapipes network are run with a certain fluid. This can be
 chosen individually for the net from the fluid library or by own creation. The fluids
 are defined by certain properties. In the fluid library currently high and low calorific natural
-gas (hgas and lgas), hydrogen, water and air are implemented with default properties.
+gas (hgas and lgas), hydrogen, methane, water and air are implemented with default properties.
 
 
 The Fluid Class
