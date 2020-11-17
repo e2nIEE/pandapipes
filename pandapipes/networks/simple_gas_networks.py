@@ -4,7 +4,7 @@
 
 import os
 from pandapipes.io.file_io import from_json
-from pandapipes import pp_dir
+from pandapipes import pp_dir, drop_junctions
 from pandapipes.networks.nw_aux import log_result_upon_loading
 
 try:
@@ -231,3 +231,38 @@ def gas_2eg_hnet(method="nikuradse"):
     log_result_upon_loading(logger, method=method, converter="stanet")
     net_name = "H_net_N.json" if method.lower() in ["nikuradse", "n"] else "H_net_PC.json"
     return from_json(os.path.join(gas_stanet_path, "two_pressure_junctions", net_name))
+
+
+# -------------- Schutterwald network --------------
+def schutterwald(include_houses=True, max_length_house_conn_m=None):
+    """
+    Load natural gas distribution network for a town in the MV Oberrhein region (cf. pandapower).
+
+    The default pressure is set to 1 bar. Geodata is provided.
+    Around 1500 houses are connected with theoretical house connection pipes. It is recommended
+    to set a reasonable maximum length for the house connection pipes, e.g. 50 m.
+
+    The corresponding publication in which the net has been provided in the supplementary
+    material and more information on building ages etc. is given can be found here:
+    Kisse, J.M.; Braun, M.; Letzgus, S.; Kneiske, T.M. "A GIS-Based Planning Approach for Urban
+    Power and Natural Gas Distribution Grids with Different Heat Pump Scenarios".
+    Energies 2020, 13, 4052 https://doi.org/10.3390/en13164052
+
+    :param include_houses: Include 1506 houses as sinks. If False, all sinks and respective
+                           junctions and connection pipes are dropped.
+    :type include_houses: bool, default 'True'
+    :param max_length_house_conn_m: Limit the maximum linear distance between houses and
+                                    distribution grid. If None, linear connections for all houses
+                                    are assumed.
+    :type max_length_house_conn_m: float, default 'None'
+    :return: gas distribution net
+    :rtype: pandapipesNet
+    """
+    net = from_json(os.path.join('network_files', 'gas_net_schutterwald_1bar.json'))
+    if not include_houses:
+        drop_junctions(net, net.sink.junction.values)
+
+    if max_length_house_conn_m is not None:
+        net.pipe.in_service.loc[(net.pipe.type=="house_connection") &
+                                (net.pipe.length_km > max_length_house_conn_m / 1000)] = False
+    return net
