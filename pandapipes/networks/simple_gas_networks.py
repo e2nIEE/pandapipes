@@ -252,13 +252,15 @@ def schutterwald(include_houses=True, max_length_house_conn_m=None):
                            junctions and connection pipes are dropped.
     :type include_houses: bool, default 'True'
     :param max_length_house_conn_m: Limit the maximum linear distance between houses and
-                                    distribution grid. If None, linear connections for all houses
-                                    are assumed.
+                                    distribution grid. All house connection pipes that are longer
+                                    than the given limit are set out of service.
+                                    If None, linear connections for all houses are assumed.
     :type max_length_house_conn_m: float, default 'None'
     :return: gas distribution net
     :rtype: pandapipesNet
     """
-    net = from_json(os.path.join('network_files', 'gas_net_schutterwald_1bar.json'))
+    net = from_json(os.path.join(pp_dir, 'networks', 'network_files',
+                                 'gas_net_schutterwald_1bar.json'))
     if not include_houses:
         drop_junctions(net, net.sink.junction.values)
 
