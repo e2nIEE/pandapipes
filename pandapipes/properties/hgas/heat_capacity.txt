@@ -1,3 +1,4 @@
+# temperature in Kelvin, isobaric heat capacity in J/(kg K)
 263 2111.7430409177705
 273 2129.19525821288
 283 2148.5756908384515
