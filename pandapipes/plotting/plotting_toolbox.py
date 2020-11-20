@@ -41,3 +41,41 @@ def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.
         "pump": pump_size * mean_distance_between_junctions * 8
     }
     return sizes
+
+
+def get_collection_sizes_pps(net, bus_size=1.0, ext_grid_size=1.0, load_size=1.0, sgen_size=1.0):
+    """
+    Calculates the size for most collection types according to the distance between min and max
+    geocoord so that the collections fit the plot nicely
+
+    .. note: This is implemented because if you would choose a fixed values (e.g.\
+        junction_size = 0.2), the size could be to small for large networks and vice versa
+
+    :param net: pandapower network for which to create plot
+    :type net: pandapowerNet
+    :param junction_size: relative junction size
+    :type junction_size: float, default 1.
+    :param ext_grid_size: relative external grid size
+    :type ext_grid_size: float, default 1.
+    :param sink_size: relative sink size
+    :type sink_size: float, default 1.
+    :param source_size: relative source size
+    :type source_size: float, default 1.
+    :param valve_size: relative valve size
+    :type valve_size: float, default 2.
+    :param heat_exchanger_size: relative heat exchanger size
+    :type heat_exchanger_size: float, default 1.
+    :return: sizes (dict) - dictionary containing all scaled sizes
+    """
+    mean_distance_between_bus = sum((net['bus_geodata'].max() - net[
+        'bus_geodata'].min()).dropna() / 200)
+
+    sizes = {
+        "bus": bus_size * mean_distance_between_bus,
+        "ext_grid": ext_grid_size *  mean_distance_between_bus * 2,
+        "load": load_size *  mean_distance_between_bus * 2,
+        "sgen": sgen_size *  mean_distance_between_bus * 2,
+
+    }
+    return sizes
+

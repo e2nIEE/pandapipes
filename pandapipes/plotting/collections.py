@@ -3,13 +3,14 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+import copy
 from pandapower.plotting.collections import _create_node_collection, \
     _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
 from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches,\
-    pump_patches
-from pandapower.plotting.plotting_toolbox import get_index_array
+    pump_patches, house_patches, hp_patches
+from pandapower.plotting.plotting_toolbox import get_index_array, coords_from_node_geodata_hp
 
 try:
     import pplog as logging
@@ -274,6 +275,145 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
         picker=picker, hatch="XXX", **kwargs)
     return ext_grid_pc, ext_grid_lc
 
+def create_hp_collection(power_net, dh_net, controller, cp=None, size=5., junction_geodata=None, color='k',
+                            infofunc=None, picker=False, **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes junction-junction heat_exchangers.
+    Heat_exchangers are plotted in the center between two junctions with a "helper" line
+    (dashed and thin) being drawn  between the junctions as well.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param size: patch size
+    :type size: float, default 2.
+    :param helper_line_style: Line style of the "helper" line being plotted between two junctions
+                                connected by a junction-junction heat_exchanger
+    :type helper_line_style: str, default ":"
+    :param helper_line_size: Line width of the "helper" line being plotted between two junctions
+                                connected by a junction-junction heat_exchanger
+    :type helper_line_size: float, default 1.
+    :param helper_line_color: Line color of the "helper" line being plotted between two junctions
+                                connected by a junction-junction valve
+    :type helper_line_color: str, default "gray"
+    :param orientation: orientation of heat_exchanger collection. pi is directed downwards,
+                    increasing values lead to clockwise direction changes.
+    :type orientation: float, default np.pi/2
+    :param kwargs: Key word arguments are passed to the patch function
+    :return: heat_exchanger, helper_lines
+    :rtype: tuple of patch collections
+    """
+
+    power_indices = controller[1].element_index_power
+    fluid_indices = controller[1].element_index_fluid
+
+    hex = get_index_array(fluid_indices, dh_net.circ_pump_mass.index)
+    hex_table = dh_net.circ_pump_mass.loc[hex]
+    hex_table.to_frame()
+
+    load_buses = get_index_array(power_indices, power_net.sgen.index)
+    loads = power_net.load.bus.loc[load_buses]
+
+    node_coords = power_net.bus_geodata.loc[loads, ["x", "y"]].values
+
+    coords, hex_with_geo = coords_from_node_geodata_hp(
+        hex, hex_table.from_junction, hex_table.to_junction,
+        junction_geodata if junction_geodata is not None else dh_net["junction_geodata"], "heat_exchanger",
+        "Junction")
+
+    for i in range(len(coords)):
+        coords[i].append(node_coords)
+
+    if len(hex_with_geo) == 0:
+        return None
+
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(hex_with_geo))], 2)) \
+        if infofunc is not None else []
+
+    lc, pc = _create_complex_branch_collection(coords, hp_patches, size, infos,
+                                               picker=picker, linewidths=linewidths,
+                                               patch_facecolor=color, line_color=color,
+                                               **kwargs)
+
+    return lc, pc
+
+def create_house_collection(power_net, dh_net, controller, cp=None, size=5., junction_geodata=None, color='k',
+                            infofunc=None, picker=False, **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes junction-junction heat_exchangers.
+    Heat_exchangers are plotted in the center between two junctions with a "helper" line
+    (dashed and thin) being drawn  between the junctions as well.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param size: patch size
+    :type size: float, default 2.
+    :param helper_line_style: Line style of the "helper" line being plotted between two junctions
+                                connected by a junction-junction heat_exchanger
+    :type helper_line_style: str, default ":"
+    :param helper_line_size: Line width of the "helper" line being plotted between two junctions
+                                connected by a junction-junction heat_exchanger
+    :type helper_line_size: float, default 1.
+    :param helper_line_color: Line color of the "helper" line being plotted between two junctions
+                                connected by a junction-junction valve
+    :type helper_line_color: str, default "gray"
+    :param orientation: orientation of heat_exchanger collection. pi is directed downwards,
+                    increasing values lead to clockwise direction changes.
+    :type orientation: float, default np.pi/2
+    :param kwargs: Key word arguments are passed to the patch function
+    :return: heat_exchanger, helper_lines
+    :rtype: tuple of patch collections
+    """
+
+    power_indices = controller[0].element_index_power
+    fluid_indices = controller[0].element_index_fluid
+
+    hex = get_index_array(fluid_indices, dh_net.heat_exchanger.index)
+    hex_table = dh_net.heat_exchanger.loc[hex]
+
+    sgens_buses = get_index_array(power_indices, power_net.sgen.index)
+    sgens_org = power_net.sgen.bus.loc[sgens_buses].values
+    sgens = copy.deepcopy(sgens_org)
+    sgens[0:3] = sgens_org[-3:]
+    sgens[3]= sgens_org[-4]
+    sgens[4] = sgens_org[-5]
+    sgens[5] = sgens_org[-6]
+    sgens[6] = sgens_org[-7]
+    sgens[7] = sgens_org[-8]
+    sgens[8] = sgens_org[-9]
+    sgens[9] = sgens_org[-10]
+    sgens[10] = sgens_org[-11]
+    sgens[11] = sgens_org[-12]
+
+    node_coords = power_net.bus_geodata.loc[sgens, ["x", "y"]].values
+
+    coords, hex_with_geo = coords_from_node_geodata(
+        hex, hex_table.from_junction.values, hex_table.to_junction.values,
+        junction_geodata if junction_geodata is not None else dh_net["junction_geodata"], "heat_exchanger",
+        "Junction")
+
+    for i in range(len(coords)):
+        coords[i].append(node_coords[i])
+
+    if len(hex_with_geo) == 0:
+        return None
+
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(hex_with_geo))], 2)) \
+        if infofunc is not None else []
+
+    lc, pc = _create_complex_branch_collection(coords, house_patches, size, infos,
+                                               picker=picker, linewidths=linewidths,
+                                               patch_facecolor=color, line_color=color,
+                                               **kwargs)
+
+    return lc, pc
 
 def create_heat_exchanger_collection(net, hex=None, size=5., junction_geodata=None, color='k',
                             infofunc=None, picker=False, **kwargs):
