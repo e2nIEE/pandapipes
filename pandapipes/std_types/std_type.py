@@ -54,7 +54,7 @@ class PumpStdType(StdType):
 
     def update_pump(self, pressure_list, flowrate_list, reg_polynomial_degree):
         reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
-        self.res_par = reg_par
+        self.reg_par = reg_par
         self._pressure_list = pressure_list
         self._flowrate_list = flowrate_list
         self._reg_polynomial_degree = reg_polynomial_degree
