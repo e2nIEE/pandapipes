@@ -2,8 +2,7 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from control.run_control_multinet import prepare_run_ctrl
-from control.run_control_multinet import run_control
+from pandapipes.control.run_control_multinet import prepare_run_ctrl, run_control
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.run_time_series import get_recycle_settings, init_time_steps, init_output_writer, \
     output_writer_routine, print_progress_bar, cleanup, \
