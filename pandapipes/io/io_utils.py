@@ -4,16 +4,19 @@
 
 import importlib
 import json
+from copy import deepcopy
 from functools import partial
 from inspect import isclass
+
+from pandapipes_pro.create_multinet import MultiNet
+from pandapipes_pro.create_multinet import create_empty_multinet
+from pandapower.io_utils import pp_hook
+from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
+    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.io_utils import pp_hook
-from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
-from copy import deepcopy
 
 try:
     import pplog as logging
@@ -64,7 +67,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
                                       object_hook=partial(pp_hook,
                                                           registry_class=FromSerializableRegistryPpipe))
-                                                          # backwards compatibility
+                # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]
             return class_.from_dict(self.obj)
@@ -73,6 +76,16 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         else:
             # for non-pp objects, e.g. tuple
             return class_(self.obj, **self.d)
+
+    @from_serializable.register(class_name='MultiNet')
+    def MultiNet(self):
+        if isinstance(self.obj, str):  # backwards compatibility
+            from pandapipes_pro.file_io import from_json_string
+            return from_json_string(self.obj)
+        else:
+            net = create_empty_multinet()
+            net.update(self.obj)
+            return net
 
 
 @to_serializable.register(pandapipesNet)
@@ -90,6 +103,13 @@ def json_component(class_):
     else:
         raise (UserWarning('with_signature needs to be defined for '
                            'class %s in @to_serializable.register(type)!' % class_))
+
+
+@to_serializable.register(MultiNet)
+def json_net(obj):
+    net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
+    d = with_signature(obj, net_dict)
+    return d
 
 
 if __name__ == '__main__':
