@@ -6,13 +6,17 @@ import numpy as np
 import pandapipes as ppipes
 import pandapower as pp
 import pandas as pd
-import pplog
 from pandapipes.control.run_control import prepare_run_ctrl as prepare_run_ctrl_ppipes
 from pandapower.control.run_control import prepare_run_ctrl as prepare_run_ctrl_pp, \
     net_initialization, get_recycle, control_initialization, control_finalization, \
     _evaluate_net as _evaluate_net, control_implementation, get_controller_order, NetCalculationNotConverged
 
-logger = pplog.getLogger(__name__)
+try:
+    import pplog as logging
+except ImportError:
+    import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _evaluate_multinet(multinet, levelorder, ctrl_variables, **kwargs):
