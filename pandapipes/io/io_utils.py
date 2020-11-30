@@ -8,7 +8,7 @@ from copy import deepcopy
 from functools import partial
 from inspect import isclass
 
-from pandapipes.create_multinet import MultiNet, create_empty_multinet
+from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
