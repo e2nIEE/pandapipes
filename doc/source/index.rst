@@ -36,6 +36,7 @@ This is the contents section of the pandapipes documentation.
    controller
    timeseries
    networks
+   multi_energy_nets
    save_load
    plotting
 
