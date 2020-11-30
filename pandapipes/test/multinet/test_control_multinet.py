@@ -8,11 +8,11 @@ import numpy as np
 import pandapipes
 import pandapower
 import pytest
-from pandapipes.control.controller.multinet_control import P2GControlMultiEnergy, G2PControlMultiEnergy, \
+from pandapipes.multinet.control.controller.multinet_control import P2GControlMultiEnergy, G2PControlMultiEnergy, \
     GasToGasConversion, coupled_p2g_const_control
-from pandapipes.control.run_control_multinet import run_control
+from pandapipes.multinet.control.run_control_multinet import run_control
 from pandapipes import networks as g_nw
-from pandapipes.create_multinet import create_empty_multinet, add_nets_to_multinet
+from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
 from pandapower import networks as e_nw
 from pandapower.control.controller.const_control import ConstControl
 
