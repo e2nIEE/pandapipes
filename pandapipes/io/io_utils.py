@@ -8,8 +8,7 @@ from copy import deepcopy
 from functools import partial
 from inspect import isclass
 
-from pandapipes_pro.create_multinet import MultiNet
-from pandapipes_pro.create_multinet import create_empty_multinet
+from pandapipes.create_multinet import MultiNet, create_empty_multinet
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
@@ -80,7 +79,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     @from_serializable.register(class_name='MultiNet')
     def MultiNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from pandapipes_pro.file_io import from_json_string
+            from pandapipes import from_json_string
             return from_json_string(self.obj)
         else:
             net = create_empty_multinet()

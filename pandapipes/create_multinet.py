@@ -4,7 +4,7 @@
 
 import numpy as np
 import pandas as pd
-from pandapipes_pro.multinet import MultiNet, get_default_multinet_structure
+from pandapipes.multinet import MultiNet, get_default_multinet_structure
 
 try:
     import pplog as logging

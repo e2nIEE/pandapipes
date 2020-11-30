@@ -12,8 +12,7 @@ from control.controller.multi_energy_control import P2GControlMultiEnergy, G2PCo
     GasToGasConversion, coupled_p2g_const_control
 from control.run_control_multinet import run_control
 from pandapipes import networks as g_nw
-from pandapipes_pro.create_multinet import create_empty_multinet, add_nets_to_multinet
-from pandapipes_pro.toolbox import mw_to_kg_per_s
+from pandapipes.create_multinet import create_empty_multinet, add_nets_to_multinet
 from pandapower import networks as e_nw
 from pandapower.control.controller.const_control import ConstControl
 
