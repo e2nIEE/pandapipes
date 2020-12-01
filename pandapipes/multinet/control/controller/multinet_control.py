@@ -36,20 +36,20 @@ class P2GControlMultiEnergy(Controller):
     :param name_gas_net: Key name to find the gas net in multinet['nets']
     :type name_gas_net: str
     :param in_service: Whether this controller should write mass flow values to the net or not
-    :type in_service: Boolean
+    :type in_service: bool
     :param order: within the same level, controllers with lower order are called before controllers
                   with numerical higher order
-    :type order: int or float
+    :type order: real
     :param level: level to which the controller belongs. Low level is called before higher level.
                   Respective run function for the nets are called at least onece per level.
-    :type level: int or float
+    :type level: real
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
-    :type drop_same_existing_ctrl: Boolean
+    :type drop_same_existing_ctrl: bool
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
-    :type initial_run: Boolean
+    :type initial_run: bool
     :param kwargs: optional additional controller arguments that were implemented by users
     :type kwargs: any
     """
@@ -109,7 +109,7 @@ class G2PControlMultiEnergy(Controller):
     This controller couples a gas network (from pandapipes) and a power network (from
     pandapower) that are stored in a multinet. Requires one or multiple 'sink' elements in the gas
     net and corresponding 'sgen'/'gen' elements in the power net.
-    If 'calc_gas_from_power' is False (default), it reads the gas mass flow values
+    If 'calc_gas_from_power' is False (default), it reads the gas mass consumption values
     of given 'sink' elements, applies the efficiency factor and unit conversions and writes the
     resulting power output to 'sgen' (default) or 'gen' elements in the power net.
     If 'calc_gas_from_power' is True, it reads the power output of
@@ -139,7 +139,7 @@ class G2PControlMultiEnergy(Controller):
     :param element_type_power: type of the corresponding power generation units, either 'sgen' or 'gen'
     :type element_type_power: str
     :param in_service: Whether this controller is in_service or not
-    :type in_service: Boolean
+    :type in_service: bool
     :param order: within the same level, controllers with lower order are called before controllers
                   with numerical higher order
     :type order: int or float
@@ -149,14 +149,14 @@ class G2PControlMultiEnergy(Controller):
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
-    :type drop_same_existing_ctrl: Boolean
+    :type drop_same_existing_ctrl: bool
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
-    :type initial_run: Boolean
+    :type initial_run: bool
     :param calc_gas_from_power: (default: False) If False, the power output will be calculated on the
-                                basis of the sink's gas mass flow. If True, the gas mass flow
+                                basis of the sink's gas consumption. If True, the gas consumption
                                 will be calculated on the basis of the generator's power output.
-    :type calc_gas_from_power: Boolean
+    :type calc_gas_from_power: bool
     :param kwargs: optional additional controller arguments that were implemented by users
     :type kwargs: any
     """
@@ -244,8 +244,9 @@ class GasToGasConversion(Controller):
     and couples two pandapipes-gas networks that are stored together in a multinet.
     Requires one or multiple corresponding sinks and sources in the 'gas_net_from' and
     'gas_net_to', respectively.
-    It reads the mass flow values for given 'sink' elements in one gas net, applies the efficiency
-    factor and writes the resulting gas mass flow to 'source' elements in the other gas net.
+    It reads the gas consumption values for given 'sink' elements in one gas net, applies the
+    efficiency factor and writes the resulting gas mass flow to 'source' elements in the other
+    gas net.
     It is stored in the controller-DataFrame of the multinet (multinet.controller)
     It is run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
@@ -268,7 +269,7 @@ class GasToGasConversion(Controller):
                             multinet['nets']
     :type name_gas_net_to: str
     :param in_service: Whether this controller is in_service or not
-    :type in_service: Boolean
+    :type in_service: bool
     :param order: within the same level, controllers with lower order are called before controllers
                   with numerical higher order
     :type order: int or float
@@ -278,10 +279,10 @@ class GasToGasConversion(Controller):
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
-    :type drop_same_existing_ctrl: Boolean
+    :type drop_same_existing_ctrl: bool
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
-    :type initial_run: Boolean
+    :type initial_run: bool
     :param kwargs: optional additional controller arguments that were implemented by users
     :type kwargs: any
     """
@@ -342,7 +343,7 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
                               drop_same_existing_ctrl=False, set_q_from_cosphi=False,
                               matching_params=None, initial_run=False, **kwargs):
     """
-    Creates a ConstController that updates load values and a P2G Controller that calculates mass corresponding mass flows.
+    Creates a ConstController (load values) and a P2G Controller (corresponding gas mass flows).
 
     The ConstController updates load values of a given electric load in accordance to the profile
     given in the datasource.
@@ -373,33 +374,33 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
     :param profile_name: The profile names of the elements in the data source
     :type profile_name: str
     :param data_source: The data source that provides profile data
-    :type data_source: obj
+    :type data_source: object
     :param scale_factor: Scaling factor for time series input values
     :type scale_factor: real
     :param in_service: Indicates if the controller is currently in_service
-    :type in_service: Boolean
+    :type in_service: bool
     :param order: within the same level, controllers with lower order are called before controllers
                   with numerical higher order. Default: (0, 1) -> ConstController updates values
                   before P2G controller calculates mass flow
     :type order: tuple of integers
-    :param level: level to which the controller belongs. Low level is called before higher level.
+    :param level: level to which the controllers belong. Low level is called before higher level.
                   Respective run function for the nets are called at least onece per level.
     :type level: int or float
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
-    :type drop_same_existing_ctrl: Boolean
+    :type drop_same_existing_ctrl: bool
     :param set_q_from_cosphi: #TODO- delete? (Deprecated)
     :type set_q_from_cosphi:
     :param matching_params: #TODO ??
     :type matching_params:
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
-    :type initial_run: Boolean
+    :type initial_run: bool
     :param kwargs: optional additional controller arguments that were implemented by users
     :type kwargs:
     :return: (ID of the ConstController, ID of P2G controller)
-    :rtype: numeric
+    :rtype:
     """
     net_power = multinet['nets'][name_power_net]
 
@@ -424,6 +425,66 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
                               profile_name=None, data_source=None, scale_factor=1.0,
                               in_service=True, order=(0, 1), level=0, drop_same_existing_ctrl=False,
                               matching_params=None, initial_run=False, **kwargs):
+    """
+    Creates a ConstController (gas consumption) and a G2P Controller (corresponding power output).
+
+    The ConstController updates gas consumption values of a given sink element in accordance to
+    the profile given in the datasource.
+    The G2PControlMultiEnergy-controller couples a gas network (from pandapipes) and a gas
+    network (from pandapower). It reads the gas consumption values that were updated by the
+    ConstController, applies the efficiency factor and unit conversions and writes the resulting
+    power output to 'sgen' or 'gen' elements in the power net.
+    The ConstController is stored in the gas net inside the multinet.
+    The G2PControlMultiEnergy is stored in the controller-DataFrame of the multinet itself
+     (multinet.controller)
+    Both controllers are run by run_control_multinet.run_control() or within
+    run_time_series_multinet.run_timeseries().
+
+    :param multinet: pandapipes-Mulitnet that includes the power and gas network with load and
+                     source elements
+    :type multinet: attrdict (pandapipes.MultiNet)
+    :param element_index_power: Index of one or more sgen/gen elements in the power net to which
+                                the power generation values from the data source will be written
+    :type element_index_power: int or iterable of integers
+    :param element_index_gas: Index of one or more sink elements in the gas net to which the
+                              corresponding calculated mass flow will be written
+    :param g2p_efficiency: constant efficiency factor (default: based on HHV)
+    :type g2p_efficiency: float
+    :param name_power_net: Key name to find the power net in multinet['nets']
+    :type name_power_net: str
+    :param name_gas_net: Key name to find the gas net in multinet['nets']
+    :type name_gas_net: str
+    :param element_type_power: type of the corresponding power generation units, either 'sgen' or 'gen'
+    :type element_type_power: str
+    :param profile_name: The profile names of the elements in the data source
+    :type profile_name: str
+    :param data_source: The data source that provides profile data
+    :type data_source: object
+    :param scale_factor: Scaling factor for time series input values
+    :type scale_factor: real
+    :param in_service: Indicates if the controllers are currently in_service
+    :type in_service: bool
+    :param order: within the same level, controllers with lower order are called before controllers
+                  with numerical higher order. Default: (0, 1) -> ConstController updates values
+                  before G2P controller calculates power output
+    :type order: tuple of integers
+    :param level: level to which the controllers belong. Low level is called before higher level.
+                  Respective run function for the nets are called at least onece per level.
+    :type level: real
+    :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
+                                    with the same matching parameters (e.g. at same element) should
+                                    be dropped
+    :type drop_same_existing_ctrl: bool
+    :param matching_params:  #TODO ??
+    :type matching_params:
+    :param initial_run: Whether a power and pipe flow should be run before the control step is
+                        applied or not
+    :type initial_run: bool
+    :param kwargs: optional additional controller arguments that were implemented by users
+    :type kwargs:
+    :return: (ID of the ConstController, ID of G2P controller)
+    :rtype:
+    """
     net_gas = multinet['nets'][name_gas_net]
 
     const = ConstControl(
@@ -437,5 +498,5 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
                                 name_power_net, name_gas_net, element_type_power,
                                 in_service, order[1], level,
                                 drop_same_existing_ctrl=drop_same_existing_ctrl,
-                                initial_run=initial_run, **kwargs)
+                                initial_run=initial_run, calc_gas_from_power=False, **kwargs)
     return const, g2p

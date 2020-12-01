@@ -6,8 +6,8 @@ Multi Energy Networks
 
 
 With pandapipes and pandapower, it is possible to calculate gas and power networks that are
-coupled by conversion units like power-to-gas (e.g., electrolysis units) or gas-to-power units (e
-.g., gas turbines or fuel cells).
+coupled by conversion units like power-to-gas (e.g., electrolysis units) or gas-to-power units
+(e.g., gas turbines or fuel cells).
 And here some great explanation....
 
 

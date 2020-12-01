@@ -37,16 +37,17 @@ def create_empty_multinet(name=""):
 
 def add_net_to_multinet(multinet, net, net_name='power', overwrite=False):
     """
+    Add a pandapipes or pandapower net to the multinet structure.
 
-    :param multinet:
-    :type multinet:
-    :param net:
+    :param multinet: multinet to which a pandapipes/pandapower will be added
+    :type multinet: pandapipes.MultiNet
+    :param net: pandapipes or pandapower net that will be added to the multinet
     :type net: pandapowerNet or pandapipesNet
-    :param net_name: unique name for the kind of net, e.g. 'power', 'gas', or 'power_net1'
-    :type net_name:
+    :param net_name: unique name for the added net, e.g. 'power', 'gas', or 'power_net1'
+    :type net_name: str
     :param overwrite: whether a net should be overwritten if it has the same net_name
     :type overwrite: bool
-    :return: net reference is added inplace to the multinet
+    :return: net reference is added inplace to the multinet (in multinet['nets'])
     :rtype: None
     """
     if net_name in multinet['nets'] and not overwrite:
@@ -57,5 +58,6 @@ def add_net_to_multinet(multinet, net, net_name='power', overwrite=False):
 
 
 def add_nets_to_multinet(multinet, overwrite=False, **networks):
+    """Add multiple nets to a multinet. networks has be one or more tuples (str(net_name), net)."""
     for name, net in networks.items():
         add_net_to_multinet(multinet, net, name, overwrite)

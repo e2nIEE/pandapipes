@@ -20,6 +20,14 @@ logger = logging.getLogger(__name__)
 
 
 class MultiNet(ADict):
+    """
+    A MultiNet is a frame for different pandapipes & pandapower nets and coupling controllers.
+
+    Usually, a multinet is a multi energy net which one net per energy carrier. 
+    The coupled simulation can be run with pp.multinet.control.run_control_multinet.run_control()
+    The nets are stored with a unique key in a dictionary in multinet['nets'].
+    Controllers that connect to nets are stored in multinet['controller'].
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if isinstance(args[0], self.__class__):
@@ -55,9 +63,10 @@ class MultiNet(ADict):
 
 def get_default_multinet_structure():
     """
+    Return the default structure of an empty multinet with categories and data types.
 
-    :return:
-    :rtype:
+    :return: default structure of an empty multinet
+    :rtype: dict
     """
     default_multinet_structure = {
         # structure data
