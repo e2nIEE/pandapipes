@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 class BranchWOInternalsComponent(BranchComponent):
 
     @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
                               current_start):
         """

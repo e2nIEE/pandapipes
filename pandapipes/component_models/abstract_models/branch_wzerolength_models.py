@@ -20,6 +20,10 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
     """
 
     @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_pit_branch_entries(cls, net, branch_wzerolength_pit, node_name):
         """
         Function which creates pit branch entries with a specific table.
