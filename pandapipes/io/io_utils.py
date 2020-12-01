@@ -51,7 +51,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             from pandapipes import from_json_string
             return from_json_string(self.obj)
         else:
-            net = create_empty_network()
+            net = pandapipesNet.__new__(pandapipesNet)
             net.update(self.obj)
             return net
 
