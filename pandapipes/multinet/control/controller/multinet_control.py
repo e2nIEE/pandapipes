@@ -60,8 +60,7 @@ class P2GControlMultiEnergy(Controller):
         super().__init__(multinet, in_service, order, level,
                          drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
                          **kwargs)
-        assert len(element_index_power) == len(element_index_gas), \
-            'Indices of power loads and gas sources must have the same length'
+
         self.elm_idx_power = element_index_power
         self.elm_idx_gas = element_index_gas
         self.name_net_power = name_power_net
@@ -167,10 +166,10 @@ class G2PControlMultiEnergy(Controller):
                  in_service=True, order=0,
                  level=0, drop_same_existing_ctrl=False, initial_run=True,
                  calc_gas_from_power=False, **kwargs):
-
         super().__init__(multinet, in_service, order, level,
                          drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
                          **kwargs)
+
         self.elm_idx_power = element_index_power
         self.elm_idx_gas = element_index_gas
         self.elm_type_power = element_type_power
