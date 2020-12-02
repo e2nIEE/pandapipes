@@ -4,6 +4,8 @@
 Controller to couple different networks
 ***************************************
 
+Controllers that connect to nets are stored in multinet['controller'].
+
 Basic Controller
 ================
 
