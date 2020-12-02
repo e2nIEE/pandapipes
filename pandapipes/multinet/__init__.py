@@ -6,3 +6,4 @@ from pandapipes.multinet.control.controller import *
 from pandapipes.multinet.control.run_control_multinet import run_control
 from pandapipes.multinet.timeseries.run_time_series_multinet import run_timeseries
 from pandapipes.multinet.create_multinet import *
+from pandapipes.multinet.multinet import *
