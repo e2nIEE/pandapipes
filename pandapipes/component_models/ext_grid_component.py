@@ -100,26 +100,25 @@ class ExtGrid(NodeElementComponent):
 
         p_grids = np.isin(ext_grids.type.values, ["p", "pt"])
         junction = cls.get_connected_junction(net)
-        index_juncts = np.array(junction.values[p_grids])
-        junct_uni, inverse_juncts, counts = np.unique(index_juncts, return_counts=True,
-                                                      return_inverse=True)
-        index_nodes = get_lookup(net, "node", "index")[node_name][junct_uni]
-        eg_from_branches = np.isin(branch_pit[:, FROM_NODE], index_nodes)
-        eg_to_branches = np.isin(branch_pit[:, TO_NODE], index_nodes)
+        eg_nodes = get_lookup(net, "node", "index")[node_name][np.array(junction.values[p_grids])]
+        node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True,
+                                                    return_inverse=True)
+        eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)
+        eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
         from_nodes = branch_pit[eg_from_branches, FROM_NODE]
         to_nodes = branch_pit[eg_to_branches, TO_NODE]
         mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES]
         mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES]
-        loads = node_pit[index_nodes, LOAD]
-        all_index_nodes = np.concatenate([from_nodes, to_nodes, index_nodes])
+        loads = node_pit[node_uni, LOAD]
+        all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
         all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
         nodes, sum_mass_flows = _sum_by_group(all_index_nodes, all_mass_flows)
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)
         res_table["mdot_kg_per_s"].values[p_grids] = \
-            cls.sign() * (sum_mass_flows / counts)[inverse_juncts]
-        return res_table, ext_grids, index_nodes, node_pit, branch_pit
+            cls.sign() * (sum_mass_flows / counts)[inverse_nodes]
+        return res_table, ext_grids, node_uni, node_pit, branch_pit
 
     @classmethod
     def get_connected_junction(cls, net):
