@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class MultiNet(ADict):
     """
-    A MultiNet is a frame for different pandapipes & pandapower nets and coupling controllers.
+    A 'MultiNet' is a frame for different pandapipes & pandapower nets and coupling controllers.
 
     Usually, a multinet is a multi energy net which one net per energy carrier. 
     The coupled simulation can be run with pp.multinet.control.run_control_multinet.run_control()

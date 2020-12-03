@@ -13,7 +13,7 @@ class P2GControlMultiEnergy(Controller):
 
     This controller couples a power network (from pandapower) and a gas network (from
     pandapipes) that are stored in a multinet. Requires one or multiple 'load' elements in the
-    power net and corresponding 'source' elements in the gas net. It reads the power load
+    power net and as many corresponding 'source' elements in the gas net. It reads the power load
     values for given 'load' elements, applies the efficiency factor and unit conversions and
     writes the resulting gas mass flow to 'source' elements in the gas net.
     It is stored in the controller-DataFrame of the multinet (multinet.controller).
@@ -24,10 +24,14 @@ class P2GControlMultiEnergy(Controller):
                      source elements
     :type multinet: attrdict (pandapipes.MultiNet)
     :param element_index_power: Index of one or more load elements in the power net from which
-                                the power consumption will be read
+                                the power consumption will be read. For each load element,
+                                a corresponding source element has to be provided in
+                                element_index_gas.
     :type element_index_power: int or iterable of integers
     :param element_index_gas: Index of one or more source elements in the gas net to which the
-                              calculated mass flow will be written
+                              calculated mass flow will be written. For each source element,
+                              a corresponing el. load element has to be provided in
+                              element_index_power.
     :type element_index_gas: int or iterable of integers
     :param efficiency: constant efficiency factor (default: based on HHV)
     :type efficiency: float
@@ -108,7 +112,7 @@ class G2PControlMultiEnergy(Controller):
 
     This controller couples a gas network (from pandapipes) and a power network (from
     pandapower) that are stored in a multinet. Requires one or multiple 'sink' elements in the gas
-    net and corresponding 'sgen'/'gen' elements in the power net.
+    net and as many corresponding 'sgen'/'gen' elements in the power net.
     If 'calc_gas_from_power' is False (default), it reads the gas mass consumption values
     of given 'sink' elements, applies the efficiency factor and unit conversions and writes the
     resulting power output to 'sgen' (default) or 'gen' elements in the power net.
@@ -125,10 +129,14 @@ class G2PControlMultiEnergy(Controller):
     :type multinet: attrdict (pandapipes.MultiNet)
     :param element_index_power: Index of one or more elements in the power net from which
                                 the power generation will be read from or written to (either
-                                'sgen' or 'gen' elements, as defined by element_type_power)
+                                'sgen' or 'gen' elements, as defined by element_type_power).
+                                For each entry, a corresponding gas sink element has to be
+                                provided in element_index_gas.
     :type element_index_power: int or iterable of integers
     :param element_index_gas: Index of one or more sink elements in the gas net from which the
-                              G2P units' gas consumption (mass flow) is read from or written to
+                              G2P units' gas consumption (mass flow) is read from or written to.
+                              For each sink element, a corresponding sgen/gen element has to be
+                              provided in element_index_power.
     :type element_index_gas: int or iterable of integers
     :param efficiency: constant efficiency factor (default: based on HHV)
     :type efficiency: float
@@ -242,8 +250,8 @@ class GasToGasConversion(Controller):
 
     This controller represents a gas conversion unit (e.g. methanization or steam methane reformer)
     and couples two pandapipes-gas networks that are stored together in a multinet.
-    Requires one or multiple corresponding sinks and sources in the 'gas_net_from' and
-    'gas_net_to', respectively.
+    Requires one or multiple sinks in one net ('gas_net_from') and as many corresponding sources
+    in the other net ('gas_net_to').
     It reads the gas consumption values for given 'sink' elements in one gas net, applies the
     efficiency factor and writes the resulting gas mass flow to 'source' elements in the other
     gas net.
