@@ -4,7 +4,7 @@ Multinet
 
 A MultiNet is a frame (ADict) for different pandapipes & pandapower nets and coupling controllers.
 
-Usually, a multinet is a multi energy net which one net per energy carrier.
+Usually, a multinet is a multi energy net with one net per energy carrier.
 
 Create Function
 ===============
