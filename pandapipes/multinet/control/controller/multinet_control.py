@@ -16,7 +16,7 @@ class P2GControlMultiEnergy(Controller):
     power net and corresponding 'source' elements in the gas net. It reads the power load
     values for given 'load' elements, applies the efficiency factor and unit conversions and
     writes the resulting gas mass flow to 'source' elements in the gas net.
-    It is stored in the controller-DataFrame of the multinet (multinet.controller)
+    It is stored in the controller-DataFrame of the multinet (multinet.controller).
     It is run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
 
@@ -116,7 +116,7 @@ class G2PControlMultiEnergy(Controller):
     given 'sgen' (default) or 'gen' elements, calculates the corresponding gas consumption by
     appling the efficiency factor and unit conversions, and writes the resulting gas consumption
     mass flow to the given 'sink' elements in the gas net.
-    It is stored in the controller-DataFrame of the multinet (multinet.controller)
+    It is stored in the controller-DataFrame of the multinet (multinet.controller).
     It is run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
 
@@ -247,7 +247,7 @@ class GasToGasConversion(Controller):
     It reads the gas consumption values for given 'sink' elements in one gas net, applies the
     efficiency factor and writes the resulting gas mass flow to 'source' elements in the other
     gas net.
-    It is stored in the controller-DataFrame of the multinet (multinet.controller)
+    It is stored in the controller-DataFrame of the multinet (multinet.controller).
     It is run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
 
@@ -353,7 +353,7 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
     gas mass flow to 'source' elements in the gas net.
     The ConstController is stored in the power net inside the multinet.
     The P2GControlMultiEnergy is stored in the controller-DataFrame of the multinet
-     (multinet.controller)
+    (multinet.controller).
     Both controllers are run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
 
@@ -436,7 +436,7 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
     power output to 'sgen' or 'gen' elements in the power net.
     The ConstController is stored in the gas net inside the multinet.
     The G2PControlMultiEnergy is stored in the controller-DataFrame of the multinet itself
-     (multinet.controller)
+    (multinet.controller).
     Both controllers are run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
 

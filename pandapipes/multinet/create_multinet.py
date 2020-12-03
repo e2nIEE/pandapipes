@@ -25,8 +25,7 @@ def create_empty_multinet(name=""):
     :rtype: MultiNet
 
     :Example:
-        >>> net1 = create_empty_multinet("my_first_multinet")
-        >>> net2 = create_empty_multinet()
+        >>> mn = create_empty_multinet("my_first_multinet")
 
     """
     multinet = MultiNet(get_default_multinet_structure())
