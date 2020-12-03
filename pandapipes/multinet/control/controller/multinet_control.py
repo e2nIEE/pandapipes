@@ -35,13 +35,13 @@ class P2GControlMultiEnergy(Controller):
     :type name_power_net: str
     :param name_gas_net: Key name to find the gas net in multinet['nets']
     :type name_gas_net: str
-    :param in_service: Whether this controller should write mass flow values to the net or not
+    :param in_service: Indicates if the controllers are currently in_service
     :type in_service: bool
     :param order: within the same level, controllers with lower order are called before controllers
                   with numerical higher order
     :type order: real
     :param level: level to which the controller belongs. Low level is called before higher level.
-                  Respective run function for the nets are called at least onece per level.
+                  Respective run function for the nets are called at least once per level.
     :type level: real
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
@@ -138,13 +138,13 @@ class G2PControlMultiEnergy(Controller):
     :type name_gas_net: str
     :param element_type_power: type of the corresponding power generation units, either 'sgen' or 'gen'
     :type element_type_power: str
-    :param in_service: Whether this controller is in_service or not
+    :param in_service: Indicates if the controllers are currently in_service
     :type in_service: bool
     :param order: within the same level, controllers with lower order are called before controllers
                   with numerical higher order
     :type order: int or float
     :param level: level to which the controller belongs. Low level is called before higher level.
-                  Respective run function for the nets are called at least onece per level.
+                  Respective run function for the nets are called at least once per level.
     :type level: int or float
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
@@ -268,13 +268,13 @@ class GasToGasConversion(Controller):
     :param name_gas_net_to: Key name to find the gas net in which gas is fed into in
                             multinet['nets']
     :type name_gas_net_to: str
-    :param in_service: Whether this controller is in_service or not
+    :param in_service: Indicates if the controllers are currently in_service
     :type in_service: bool
     :param order: within the same level, controllers with lower order are called before controllers
                   with numerical higher order
     :type order: int or float
     :param level: level to which the controller belongs. Low level is called before higher level.
-                  Respective run function for the nets are called at least onece per level.
+                  Respective run function for the nets are called at least once per level.
     :type level: int or float
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
@@ -384,7 +384,7 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
                   before P2G controller calculates mass flow
     :type order: tuple of integers
     :param level: level to which the controllers belong. Low level is called before higher level.
-                  Respective run function for the nets are called at least onece per level.
+                  Respective run function for the nets are called at least once per level.
     :type level: int or float
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
@@ -430,7 +430,7 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
 
     The ConstController updates gas consumption values of a given sink element in accordance to
     the profile given in the datasource.
-    The G2PControlMultiEnergy-controller couples a gas network (from pandapipes) and a gas
+    The G2PControlMultiEnergy-controller couples a gas network (from pandapipes) and a power
     network (from pandapower). It reads the gas consumption values that were updated by the
     ConstController, applies the efficiency factor and unit conversions and writes the resulting
     power output to 'sgen' or 'gen' elements in the power net.
@@ -469,7 +469,7 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
                   before G2P controller calculates power output
     :type order: tuple of integers
     :param level: level to which the controllers belong. Low level is called before higher level.
-                  Respective run function for the nets are called at least onece per level.
+                  Respective run function for the nets are called at least once per level.
     :type level: real
     :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
                                     with the same matching parameters (e.g. at same element) should
