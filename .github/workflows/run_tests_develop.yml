@@ -2,7 +2,7 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: pandapipes_dev
-
+# pandapipes-develop branch is designed to work with pandapower-develop branch
 on:
   push:
     branches: [ develop ]
@@ -28,7 +28,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pytest python-igraph
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # pandapipes-develop branch is designed to work with pandapower-develop branch
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           pip install .
       - name: List all installed packages
@@ -56,7 +55,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # pandapipes-develop branch is designed to work with pandapower-develop branch
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           pip install .
       - name: List all installed packages
