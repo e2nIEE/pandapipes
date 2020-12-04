@@ -17,3 +17,4 @@ from pandapipes.pipeflow import *
 from pandapipes.toolbox import *
 from pandapipes.pipeflow_setup import *
 from pandapipes.std_types import *
+import pandapipes.plotting
