@@ -97,7 +97,7 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     else:
         mg = nx.Graph()
 
-    branch_params = {K: v for k, v in kwargs.items() if any(
+    branch_params = {k: v for k, v in kwargs.items() if any(
         k.startswith(par) for par in ["include", "respect_status", "weighting"])}
     loc = locals()
     branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc))
