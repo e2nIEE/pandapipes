@@ -23,6 +23,18 @@ class BranchWInternalsComponent(BranchComponent):
     """
 
     @classmethod
+    def active_identifier(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
     def from_to_node_cols(cls):
         raise NotImplementedError
 
