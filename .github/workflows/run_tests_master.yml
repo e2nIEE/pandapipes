@@ -3,7 +3,7 @@
 
 # pandapipes-master branch has to work with pandapower-master branch
 
-name: pandapipes_master
+name: ppipes_master
 
 on:
   push:

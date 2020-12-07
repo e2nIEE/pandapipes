@@ -3,7 +3,7 @@
 
 # pandapipes-develop branch is designed to work with pandapower-develop branch
 
-name: pandapipes_dev
+name: ppipes_dev
 
 on:
   push:
