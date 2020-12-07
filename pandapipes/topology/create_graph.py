@@ -42,9 +42,13 @@ def create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=T
     if hasattr(net, "valve"):
         valve = get_edge_table(net, "valve", include_valves)
         if valve is not None:
-            indices, parameter, in_service = init_par(valve)
+            if "in_service" in valve.columns:
+                indices, parameter, _ = init_par(valve)
+            else:
+                indices, parameter = init_par(valve)
             indices[:, F_JUNCTION] = valve.from_junction.values
             indices[:, T_JUNCTION] = valve.to_junction.values
+            in_service = valve.opened.values
             add_edges(mg, indices, parameter, in_service, net, "valve")
 
     if hasattr(net, "pump"):
