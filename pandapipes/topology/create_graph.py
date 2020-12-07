@@ -4,8 +4,9 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 
 import networkx as nx
-
-from pandapower.topology.create_graph import get_edge_table, add_edges, init_par
+import numpy as np
+from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+from pandapower.topology.create_graph import add_edges, get_edge_table
 
 try:
     import pplog as logging
@@ -21,43 +22,38 @@ WEIGHT = 0
 logger = logging.getLogger(__name__)
 
 
-def create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=True,
+def get_col_value(net, table_name, column_name):
+    return net[table_name][column_name].values
+
+
+def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
+                   weighting_pipes=(get_col_value, ("pipe", "length_km")), include_valves=True,
+                   respect_status_valves=True, weighting_valves=None, include_pumps=True,
+                   respect_status_pumps=True, weighting_pumps=None, respect_status_junctions=True,
                    nogojunctions=None, notravjunctions=None, multi=True,
-                   include_out_of_service=False):
+                   respect_status_branches_all=None, **kwargs):
 
     if multi:
         mg = nx.MultiGraph()
     else:
         mg = nx.Graph()
 
-    if hasattr(net, "pipe"):
-        pipe = get_edge_table(net, "pipe", include_pipes)
-        if pipe is not None:
-            indices, parameter, in_service = init_par(pipe)
-            indices[:, F_JUNCTION] = pipe.from_junction.values
-            indices[:, T_JUNCTION] = pipe.to_junction.values
-            parameter[:, WEIGHT] = pipe.length_km.values
-            add_edges(mg, indices, parameter, in_service, net, "pipe")
-
-    if hasattr(net, "valve"):
-        valve = get_edge_table(net, "valve", include_valves)
-        if valve is not None:
-            if "in_service" in valve.columns:
-                indices, parameter, _ = init_par(valve)
-            else:
-                indices, parameter = init_par(valve)
-            indices[:, F_JUNCTION] = valve.from_junction.values
-            indices[:, T_JUNCTION] = valve.to_junction.values
-            in_service = valve.opened.values
-            add_edges(mg, indices, parameter, in_service, net, "valve")
-
-    if hasattr(net, "pump"):
-        pump = get_edge_table(net, "pump", include_pumps)
-        if pump is not None:
-            indices, parameter, in_service = init_par(pump)
-            indices[:, F_JUNCTION] = pump.from_junction.values
-            indices[:, T_JUNCTION] = pump.to_junction.values
-            add_edges(mg, indices, parameter, in_service, net, "pump")
+    branch_params = {K: v for k, v in kwargs.items() if any(
+        k.startswith(par) for par in ["include", "respect_status", "weighting"])}
+    loc = locals()
+    branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc))
+                          for par in ["include", "respect_status", "weighting"]
+                          for bc in ["pipes", "valves", "pumps"]})
+    for comp in net.component_list:
+        if not issubclass(comp, BranchComponent):
+            continue
+        table_name = comp.table_name()
+        include_comp = branch_params.get("include_%ss" % table_name, True)
+        respect_status = branch_params.get("respect_status_%ss" % table_name, True) \
+            if respect_status_branches_all not in [True, False] else respect_status_branches_all
+        # some formulation to add weight
+        weight_getter = branch_params.get("weighting_%ss" % table_name, None)
+        add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter)
 
     # add all junctions that were not added when creating branches
     if len(mg.nodes()) < len(net.junction.index):
@@ -79,8 +75,36 @@ def create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=T
                     del mg._adj[b][i]  # networkx versions 2.0
 
     # remove out of service junctions
-    if not include_out_of_service:
+    if respect_status_junctions:
         for b in net.junction.index[~net.junction.in_service.values]:
             mg.remove_node(b)
 
     return mg
+
+
+def add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter):
+    tab = get_edge_table(net, table_name, include_comp)
+
+    if tab is not None:
+        in_service_name = comp.active_identifier()
+        from_col, to_col = comp.from_to_node_cols()
+        indices, parameter, in_service = init_par(tab, respect_status, in_service_name)
+        indices[:, F_JUNCTION] = tab[from_col].values
+        indices[:, T_JUNCTION] = tab[to_col].values
+        if weight_getter is not None:
+            parameter[:, WEIGHT] = weight_getter[0](net, *weight_getter[1])
+        add_edges(mg, indices, parameter, in_service, net, table_name)
+
+
+def init_par(tab, respect_status=True, in_service_col="in_service"):
+    n = tab.shape[0]
+    indices = np.zeros((n, 3), dtype=np.int)
+    indices[:, INDEX] = tab.index
+    parameters = np.zeros((n, 1), dtype=np.float)
+
+    if not respect_status:
+        return indices, parameters, np.ones(n, dtype=np.bool)
+    elif in_service_col in tab:
+        return indices, parameters, tab[in_service_col].values.copy()
+    else:
+        return indices, parameters
