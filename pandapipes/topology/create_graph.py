@@ -32,6 +32,65 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                    respect_status_pumps=True, weighting_pumps=None, respect_status_junctions=True,
                    nogojunctions=None, notravjunctions=None, multi=True,
                    respect_status_branches_all=None, **kwargs):
+    """
+    Converts a pandapipes network into a NetworkX graph, which is a is a simplified representation
+    of a network's topology, reduced to nodes and edges. Junctions are being represented by nodes,
+    edges represent physical connections between junctions (typically pipes or pumps).
+
+    :param net: The pandapipes network to be converted
+    :type net: pandapipesNet
+    :param include_pipes: Flag whether pipes should be included in the graph, OR: list of pipes to\
+        be included explicitly.
+    :type include_pipes: bool, iterable, default True
+    :param respect_status_pipes: Flag whether the "in_service" column shall be considered and out\
+        of service pipes neglected.
+    :type respect_status_pipes: bool, default True
+    :param weighting_pipes: Function that defines how the weighting of the pipes is defined. \
+        Parameter of shape (function, (list of arguments)). If None, weight is set to 0.
+    :type weighting_pipes: list, tuple, default (:func:`get_col_value`, ("pipe", "length_km"))
+    :param include_valves: Flag whether valves should be included in the graph, OR: list of valves\
+        to be included explicitly.
+    :type include_valves: bool, iterable, default True
+    :param respect_status_valves: Flag whether the "opened" column shall be considered and out\
+        of service valves neglected.
+    :type respect_status_valves: bool, default True
+    :param weighting_valves: Function that defines how the weighting of the valves is defined. \
+        Parameter of shape (function, (list of arguments)). If None, weight is set to 0.
+    :type weighting_valves: list, tuple, default None
+    :param include_pumps: Flag whether pumps should be included in the graph, OR: list of pumps to\
+        be included explicitly.
+    :type include_pumps: bool, iterable, default True
+    :param respect_status_pumps: Flag whether the "in_service" column shall be considered and out\
+        of service pumps neglected.
+    :type respect_status_pumps: bool, default True
+    :param weighting_pumps: Function that defines how the weighting of the pumps is defined. \
+        Parameter of shape (function, (list of arguments)). If None, weight is set to 0.
+    :type weighting_pumps: list, tuple, default None
+    :param respect_status_junctions: Flag whether the "in_service" column shall be considered and\
+        out of service junctions neglected.
+    :type respect_status_junctions: bool, default True
+    :param nogojunctions: nogojunctions are not being considered in the graph
+    :type nogojunctions: iterable, default None
+    :param notravjunctions: edges connected to these junctions are not being considered in the graph
+    :type notravjunctions: iterable, default None
+    :param multi: True: The function generates a NetworkX MultiGraph, which allows multiple parallel\
+        edges between nodes
+        False: NetworkX Graph (no multiple parallel edges)
+    :type multi: bool, default True
+    :param respect_status_branches_all: Flag for overriding the status consideration for all branch\
+        elements (pipes, valves, pumps etc.). If None, will not be considered.
+    :type respect_status_branches_all: bool, default None
+    :param kwargs: Additional keyword arguments, especially useful to address inclusion of branch\
+        components that are not in the default components (pipes, valves, pumps). It is always \
+        possible to add "include_xy", "respect_status_xy" or "weighting_xy" arguments for additional\
+        components
+    :return: mg - the required NetworkX graph
+
+    ..note: By default, all branch components are represented as edges in the graph. I.e. tables of\
+            every branch component will be included if not stated otherwise. The status\
+            (in_service) will always be considered, unless stated explicitly. The weighting by \
+            default is 0, but can be changed with the help of a function, as it is done with pipes.
+    """
 
     if multi:
         mg = nx.MultiGraph()
