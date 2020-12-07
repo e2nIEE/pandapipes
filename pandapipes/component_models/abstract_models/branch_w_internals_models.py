@@ -35,6 +35,10 @@ class BranchWInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
     def internal_node_name(cls):
         return NotImplementedError
 
