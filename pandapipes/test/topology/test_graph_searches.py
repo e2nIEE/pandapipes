@@ -13,6 +13,8 @@ def test_connected_components():
     mg = top.create_nxgraph(net, include_valves=False)
     assert len(list(top.connected_components(mg))) == 2
     mg = top.create_nxgraph(net, include_pipes=False)
+    assert len(list(top.connected_components(mg))) == 7
+    mg = top.create_nxgraph(net, include_pipes=False, respect_status_valves=False)
     assert len(list(top.connected_components(mg))) == 6
     mg = top.create_nxgraph(net, include_pipes=False, include_valves=False)
     assert len(list(top.connected_components(mg))) == 8
