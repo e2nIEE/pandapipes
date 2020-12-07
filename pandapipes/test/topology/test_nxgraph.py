@@ -15,12 +15,13 @@ def test_include_branches():
 
     mg = top.create_nxgraph(net, include_pipes=True, include_valves=False, include_pumps=False)
     assert len(mg.nodes()) == len(net.junction)
-    assert len(mg.edges()) == len(net.pipe)
+    assert len(mg.edges()) == sum(net.pipe.in_service)
 
     mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=False)
     assert len(mg.nodes()) == len(net.junction)
-    assert len(mg.edges()) == len(net.pipe) + sum(net.valve.opened)
+    assert len(mg.edges()) == sum(net.pipe.in_service) + sum(net.valve.opened)
     
     mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=True)
     assert len(mg.nodes()) == len(net.junction)
-    assert len(mg.edges()) == len(net.pipe) + sum(net.valve.opened) + len(net.pump)
+    assert len(mg.edges()) == sum(net.pipe.in_service) + sum(net.valve.opened) \
+           + sum(net.pump.in_service)
