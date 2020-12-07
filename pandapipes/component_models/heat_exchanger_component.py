@@ -24,6 +24,10 @@ logger.setLevel(logging.DEBUG)
 class HeatExchanger(BranchWZeroLengthComponent):
 
     @classmethod
+    def from_to_node_cols(cls):
+        return "from_junction", "to_junction"
+
+    @classmethod
     def table_name(cls):
         return "heat_exchanger"
 

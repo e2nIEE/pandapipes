@@ -36,6 +36,10 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         raise NotImplementedError
 
     @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
     def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
         raise NotImplementedError
 
