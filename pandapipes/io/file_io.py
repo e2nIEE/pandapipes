@@ -5,23 +5,15 @@
 import json
 import os
 import pickle
+from functools import partial
 
-try:
-    from fiona.crs import from_epsg
-    from geopandas import GeoDataFrame, GeoSeries
-    from shapely.geometry import Point, LineString
-
-    GEOPANDAS_INSTALLED = True
-except ImportError:
-    GEOPANDAS_INSTALLED = False
-
+from pandapipes.create import create_empty_network
+from pandapipes.io.convert_format import convert_format
+from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
-from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
 from pandapower.io_utils import pp_hook
-from pandapipes.create import create_empty_network
-from functools import partial
 
 
 def to_pickle(net, filename):
@@ -97,7 +89,7 @@ def from_pickle(filename):
     return net
 
 
-def from_json(filename):
+def from_json(filename, convert=True):
     """
     Load a pandapipes network from a JSON file or string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -105,6 +97,8 @@ def from_json(filename):
 
     :param filename: The absolute or relative path to the input file or file-like object
     :type filename: str, file-object
+    :param convert: whether or not to convert the format from earlier versions
+    :type convert: bool
     :return: net - The pandapipes network that was saved as JSON
     :rtype: pandapipesNet
 
@@ -120,10 +114,10 @@ def from_json(filename):
     else:
         with open(filename) as fp:
             json_string = fp.read()
-    return from_json_string(json_string)
+    return from_json_string(json_string, convert=convert)
 
 
-def from_json_string(json_string):
+def from_json_string(json_string, convert=False):
     """
     Load a pandapipes network from a JSON string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -131,6 +125,8 @@ def from_json_string(json_string):
 
     :param json_string: The JSON string representation of the network
     :type json_string: str
+    :param convert: whether or not to convert the format from earlier versions
+    :type convert: bool
     :return: net - The pandapipes network that was contained in the JSON string
     :rtype: pandapipesNet
 
@@ -139,7 +135,9 @@ def from_json_string(json_string):
         >>> net = pandapipes.from_json_string(json_str)
 
     """
-    net = create_empty_network()
-    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook, net=net,
+    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook,
                                                                          registry_class=FromSerializableRegistryPpipe))
+
+    if convert:
+        convert_format(net)
     return net

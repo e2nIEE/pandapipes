@@ -3,19 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-
+from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
 from pandapipes.idx_node import TINIT as TINIT_NODE, L, node_cols
-
 from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
-
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-
-try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
 
 try:
     import pplog as logging
@@ -29,6 +21,22 @@ class BranchWInternalsComponent(BranchComponent):
     """
 
     """
+
+    @classmethod
+    def active_identifier(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
 
     @classmethod
     def internal_node_name(cls):

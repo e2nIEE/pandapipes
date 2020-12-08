@@ -1,3 +1,4 @@
+# temperature in Kelvin, nominal density in kg/Nm^3 at 1 bar
 263 0.7614762591064257
 273 0.733332277439119
 283 0.7072104923835694

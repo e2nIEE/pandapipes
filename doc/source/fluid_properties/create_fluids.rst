@@ -11,12 +11,17 @@ Fluid from Library
 
 In the fluid library some default fluids are already implemented. Currently it is
 possible to work with the default fluids high and low calorific natural
-gas (hgas and lgas), water and air.
+gas (hgas and lgas), hydrogen, methane,  water and air. The values are loaded from txt-files in
+the 'pandapipes/properties/[fluid name]' folder.
 One of these default fluids can be created and added to an
 existing network by calling the following function.
 
 .. autofunction:: pandapipes.create_fluid_from_lib
 
+
+For fuel gases, the higher and lower heating value are loaded from the library as well. These
+heating values are not required for the pipe flow calculation but are helpful to calculate
+energy conversion, e.g. in coupled networks.
 
 If only the fluid shall be retrieved without adding it to a specific network, the
 following function can be used.

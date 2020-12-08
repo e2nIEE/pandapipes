@@ -7,8 +7,13 @@ Create Function
 
 .. _create_sink:
 
+For creating a single sink:
 
 .. autofunction:: pandapipes.create_sink
+
+For creating multiple sinks at once:
+
+.. autofunction:: pandapipes.create_sinks
 
 
 Component Table Data

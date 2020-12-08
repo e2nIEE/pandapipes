@@ -241,7 +241,7 @@ class FluidPropertyInterExtra(FluidProperty):
         return d
 
     @classmethod
-    def from_dict(cls, d, net):
+    def from_dict(cls, d):
         obj = JSONSerializableClass.__new__(cls)
         d2 = {cls.prop_getter_entries[k]: v for k, v in d.items()
               if k in cls.prop_getter_entries.keys()}
@@ -444,7 +444,7 @@ def call_lib(fluid):
             os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
 
     liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen"]
+    gases = ["air", "lgas", "hgas", "hydrogen", "methane"]
 
     if fluid == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
@@ -453,6 +453,8 @@ def call_lib(fluid):
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
                              "implemented yet." % fluid)
 
+    phase = "liquid" if fluid in liquids else "gas"
+
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
     heat_capacity = interextra_property("heat_capacity")
@@ -460,11 +462,17 @@ def call_lib(fluid):
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
 
-    phase = "liquid" if fluid in liquids else "gas"
-    return Fluid(fluid, phase, density=density, viscosity=viscosity, heat_capacity=heat_capacity,
-                 molar_mass=molar_mass,
-                 compressibility=compr, der_compressibility=der_compr)
+    if (phase == 'gas') & (fluid != 'air'):
+        lhv = constant_property("lower_heating_value")
+        hhv = constant_property("higher_heating_value")
 
+        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass,
+                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
+    else:
+        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
+                     der_compressibility=der_compr)
 
 def get_fluid(net):
     """
@@ -484,7 +492,7 @@ def get_fluid(net):
     return fluid
 
 
-def add_fluid_to_net(net, fluid, overwrite=True):
+def _add_fluid_to_net(net, fluid, overwrite=True):
     """
     Adds a fluid to a net. If overwrite is False, a warning is printed and the fluid is not set.
 
@@ -501,7 +509,12 @@ def add_fluid_to_net(net, fluid, overwrite=True):
         fluid_msg = "an existing fluid" if not hasattr(net["fluid"], "name") \
             else "the fluid %s" % net["fluid"].name
         logger.warning("The fluid %s would replace %s and thus cannot be created. Try to set "
-                       "overwrite to False" % (fluid.name, fluid_msg))
+                       "overwrite to True" % (fluid.name, fluid_msg))
         return
 
+    if isinstance(fluid, str):
+        logger.warning("Instead of a pandapipes.Fluid, a string ('%s') was passed to the fluid "
+                       "argument. Internally, it will be passed to call_lib(fluid) to get the "
+                       "respective pandapipes.Fluid." %fluid)
+        fluid = call_lib(fluid)
     net["fluid"] = fluid

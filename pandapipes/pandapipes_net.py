@@ -2,12 +2,12 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import json
 import copy
+
 import pandas as pd
 from numpy import dtype
 from pandapipes import __version__
-from pandapower.auxiliary import ADict, _preserve_dtypes
+from pandapower.auxiliary import ADict
 
 try:
     import pplog as logging

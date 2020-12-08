@@ -2,7 +2,7 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-__version__ = '0.1.2'
+__version__ = '0.2.0'
 
 import pandas as pd
 import os
@@ -17,3 +17,4 @@ from pandapipes.pipeflow import *
 from pandapipes.toolbox import *
 from pandapipes.pipeflow_setup import *
 from pandapipes.std_types import *
+import pandapipes.plotting
