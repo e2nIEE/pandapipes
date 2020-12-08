@@ -7,8 +7,13 @@ Create Function
 
 .. _create_junction:
 
+For creating a single junction:
 
 .. autofunction:: pandapipes.create_junction
+
+For creating multiple junctions at once:
+
+.. autofunction:: pandapipes.create_junctions
 
 Component Table Data
 ====================

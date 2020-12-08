@@ -9,8 +9,21 @@ Create Function
 
 .. _create_pipe:
 
+For creating a single pipe:
+
+.. autofunction:: pandapipes.create_pipe_from_parameters
+
+If using a standard type:
 
 .. autofunction:: pandapipes.create_pipe
+
+For creating multiple pipes at once:
+
+.. autofunction:: pandapipes.create_pipes_from_parameters
+
+If using a standard type:
+
+.. autofunction:: pandapipes.create_pipes
 
 
 Component Table Data
