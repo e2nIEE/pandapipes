@@ -3,15 +3,13 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from warnings import warn
+
 import numpy as np
 from numpy import dtype
-
-from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air
 from pandapipes.component_models.abstract_models import NodeComponent
-
+from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air
 from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
     ACTIVE as ACTIVE_ND
-
 from pandapipes.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
 from pandapipes.properties.fluids import get_fluid
@@ -71,6 +69,8 @@ class Junction(NodeComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         ft_lookup = get_lookup(net, "node", "from_to")
@@ -98,6 +98,8 @@ class Junction(NodeComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         res_table = super().extract_results(net, options, node_name)

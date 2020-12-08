@@ -44,7 +44,7 @@ def prepare_run_ctrl(net, ctrl_variables):
         ctrl_variables = prepare_run_control_pandapower(net, None)
         ctrl_variables["run"] = ppipe.pipeflow
 
-    ctrl_variables["errors"] = (PipeflowNotConverged)
+    ctrl_variables["errors"] = (PipeflowNotConverged,) # has to be a tuple
 
     return ctrl_variables
 
