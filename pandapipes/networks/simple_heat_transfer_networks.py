@@ -12,7 +12,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-heat_tranfer_modelica_path = os.path.join(pp_dir, "networks", "simple_test_networks",
+heat_tranfer_modelica_path = os.path.join(pp_dir, "networks", "network_files",
                                    "openmodelica_test_networks", "heat_transfer_cases")
 
 def heat_transfer_delta():

@@ -41,6 +41,10 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
     def active_identifier(cls):
         raise NotImplementedError()
 
