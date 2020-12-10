@@ -453,7 +453,7 @@ def call_lib(fluid_name):
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
                              "implemented yet." % fluid_name)
 
-    phase = "liquid" if fluid in liquids else "gas"
+    phase = "liquid" if fluid_name in liquids else "gas"
 
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
