@@ -128,7 +128,7 @@ def hydraulics(net):
 
     # This loop is left as soon as the solver converged
     while not get_net_option(net, "converged") and niter <= max_iter:
-        logger.info("niter %d" % niter)
+        logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
         v_init, p_init, v_init_old, p_init_old, epsilon = solve_hydraulics(net)
@@ -138,7 +138,7 @@ def hydraulics(net):
         dp_init = np.abs(p_init - p_init_old)
 
         residual_norm = (linalg.norm(epsilon) / (len(epsilon)))
-        error_v.append(linalg.norm(dv_init) / (len(dv_init)))
+        error_v.append(linalg.norm(dv_init) / (len(dv_init)) if len(dv_init) else 0)
         error_p.append(linalg.norm(dp_init / (len(dp_init))))
 
         # Control of damping factor
@@ -166,17 +166,18 @@ def hydraulics(net):
     write_internal_results(net, iterations=niter, error_p=error_p[niter - 1],
                            error_v=error_v[niter - 1], residual_norm=residual_norm)
 
-    logger.info("---------------------------------------------------------------------------------")
+    logger.debug(
+        "---------------------------------------------------------------------------------")
     if get_net_option(net, "converged") is False:
         logger.warning("Maximum number of iterations reached but hydraulics solver did not "
                        "converge.")
-        logger.info("Norm of residual: %s" % residual_norm)
+        logger.debug("Norm of residual: %s" % residual_norm)
     else:
-        logger.info("Calculation completed. Preparing results...")
-        logger.info("Converged after %d iterations." % niter)
-        logger.info("Norm of residual: %s" % residual_norm)
-        logger.info("tol_p: %s" % get_net_option(net, "tol_p"))
-        logger.info("tol_v: %s" % get_net_option(net, "tol_v"))
+        logger.debug("Calculation completed. Preparing results...")
+        logger.debug("Converged after %d iterations." % niter)
+        logger.debug("Norm of residual: %s" % residual_norm)
+        logger.debug("tol_p: %s" % get_net_option(net, "tol_p"))
+        logger.debug("tol_v: %s" % get_net_option(net, "tol_v"))
         net['converged'] = True
 
     if not get_net_option(net, "reuse_internal_data"):
@@ -204,7 +205,7 @@ def heat_transfer(net):
 
     # This loop is left as soon as the solver converged
     while not get_net_option(net, "converged") and niter <= max_iter:
-        logger.info("niter %d" % niter)
+        logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
         t_out, t_out_old, t_init, t_init_old, epsilon = solve_temperature(net)
@@ -245,16 +246,17 @@ def heat_transfer(net):
 
     write_internal_results(net, iterations_T=niter, error_T=error_t[niter - 1],
                            residual_norm_T=residual_norm)
-    logger.info("---------------------------------------------------------------------------------")
+    logger.debug(
+        "---------------------------------------------------------------------------------")
     if get_net_option(net, "converged") is False:
         logger.warning("Maximum number of iterations reached but heat transfer solver did not "
                        "converge.")
-        logger.info("Norm of residual: %s" % residual_norm)
+        logger.debug("Norm of residual: %s" % residual_norm)
     else:
-        logger.info("Calculation completed. Preparing results...")
-        logger.info("Converged after %d iterations." % niter)
-        logger.info("Norm of residual: %s" % residual_norm)
-        logger.info("tol_T: %s" % get_net_option(net, "tol_T"))
+        logger.debug("Calculation completed. Preparing results...")
+        logger.debug("Converged after %d iterations." % niter)
+        logger.debug("Norm of residual: %s" % residual_norm)
+        logger.debug("tol_T: %s" % get_net_option(net, "tol_T"))
 
         net['converged'] = True
 

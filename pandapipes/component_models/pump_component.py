@@ -23,6 +23,10 @@ class Pump(BranchWZeroLengthComponent):
     """
 
     @classmethod
+    def from_to_node_cols(cls):
+        return "from_junction", "to_junction"
+
+    @classmethod
     def table_name(cls):
         return "pump"
 

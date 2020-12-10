@@ -29,6 +29,22 @@ logger = logging.getLogger(__name__)
 class BranchComponent(Component):
 
     @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
     def active_identifier(cls):
         raise NotImplementedError()
 

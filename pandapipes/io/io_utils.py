@@ -90,11 +90,3 @@ def json_component(class_):
     else:
         raise (UserWarning('with_signature needs to be defined for '
                            'class %s in @to_serializable.register(type)!' % class_))
-
-
-if __name__ == '__main__':
-    ntw = create_fluid_network()
-    import pandapipes as pp
-
-    pp.to_json(ntw, 'test.json')
-    ntw = pp.from_json('test.json')

@@ -444,7 +444,7 @@ def call_lib(fluid_name):
             os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen"]
+    gases = ["air", "lgas", "hgas", "hydrogen", "methane"]
 
     if fluid_name == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
@@ -453,6 +453,8 @@ def call_lib(fluid_name):
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
                              "implemented yet." % fluid_name)
 
+    phase = "liquid" if fluid in liquids else "gas"
+
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
     heat_capacity = interextra_property("heat_capacity")
@@ -460,11 +462,17 @@ def call_lib(fluid_name):
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
 
-    phase = "liquid" if fluid_name in liquids else "gas"
-    return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
-                 heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
-                 der_compressibility=der_compr)
+    if (phase == 'gas') & (fluid != 'air'):
+        lhv = constant_property("lower_heating_value")
+        hhv = constant_property("higher_heating_value")
 
+        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass,
+                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
+    else:
+        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
+                     der_compressibility=der_compr)
 
 def get_fluid(net):
     """

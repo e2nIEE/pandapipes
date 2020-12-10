@@ -1,3 +1,4 @@
+# temperature in Kelvin, dynamic viscosity in kg/(m s)
 263 10.0397e-6
 273 10.3945e-6
 283 10.6945e-6

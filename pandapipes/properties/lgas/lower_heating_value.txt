@@ -1,0 +1,2 @@
+# lower heating value in kWh/kg (at nominal conditions)
+10.63812
