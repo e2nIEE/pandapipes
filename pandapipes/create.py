@@ -792,7 +792,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     index = _get_index_with_check(net, "press_control", index)
 
     # check if junctions exist to attach the pump to
-    _check_branch_element(net, "PressureControl", index, from_junction, to_junction)
+    check_branch(net, "PressureControl", index, from_junction, to_junction)
 
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction,
                  to_junction=to_junction, controlled_junction=controlled_junction,

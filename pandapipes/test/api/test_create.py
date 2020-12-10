@@ -678,7 +678,7 @@ def test_create_pressure_controls_raise_except(create_empty_net):
 
     pandapipes.create_pressure_controls(net, [j1, j1], [j2, j3], [j1, j3], controlled_p_bar=3,
                                         in_service=False, name="test", index=[0, 1])
-    with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
+    with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
         pandapipes.create_pressure_controls(net, [j1, j1], [j2, j3], [j1, j3], controlled_p_bar=3,
                                             in_service=False, name="test", index=[0, 1])
 

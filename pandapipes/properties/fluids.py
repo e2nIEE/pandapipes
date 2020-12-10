@@ -462,15 +462,15 @@ def call_lib(fluid_name):
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
 
-    if (phase == 'gas') & (fluid != 'air'):
+    if (phase == 'gas') & (fluid_name != 'air'):
         lhv = constant_property("lower_heating_value")
         hhv = constant_property("higher_heating_value")
 
-        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass,
                      compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
     else:
-        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
                      der_compressibility=der_compr)
 
