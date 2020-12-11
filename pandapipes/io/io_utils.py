@@ -104,6 +104,7 @@ def json_component(class_):
                            'class %s in @to_serializable.register(type)!' % class_))
 
 
+
 @to_serializable.register(MultiNet)
 def json_net(obj):
     net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
@@ -117,3 +118,5 @@ if __name__ == '__main__':
 
     pp.to_json(ntw, 'test.json')
     ntw = pp.from_json('test.json')
+
+
