@@ -13,6 +13,10 @@ from pandapipes.pipeflow_setup import get_lookup
 class ConstFlow(NodeElementComponent):
 
     @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
     def sign(cls):
         raise NotImplementedError()
 
