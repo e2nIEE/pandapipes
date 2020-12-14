@@ -16,6 +16,9 @@ from pandapower.io_utils import with_signature, to_serializable, JSONSerializabl
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
+from pandapower.io_utils import pp_hook
+from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
+    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
 try:
     import pplog as logging
@@ -109,11 +112,3 @@ def json_net(obj):
     net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
     d = with_signature(obj, net_dict)
     return d
-
-
-if __name__ == '__main__':
-    ntw = create_fluid_network()
-    import pandapipes as pp
-
-    pp.to_json(ntw, 'test.json')
-    ntw = pp.from_json('test.json')
