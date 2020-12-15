@@ -4,21 +4,17 @@
 
 import importlib
 import json
-from copy import deepcopy
 from functools import partial
 from inspect import isclass
 
 from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
-from pandapower.io_utils import pp_hook
-from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
-
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
+from copy import deepcopy
 
 try:
     import pplog as logging
@@ -69,7 +65,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
                                       object_hook=partial(pp_hook,
                                                           registry_class=FromSerializableRegistryPpipe))
-                # backwards compatibility
+                                                          # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]
             return class_.from_dict(self.obj)
