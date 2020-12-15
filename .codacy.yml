@@ -4,6 +4,6 @@ exclude_paths:
   - '**/__init__.py'
   - 'doc/**'
   - 'tutorials/**'
-  - 'pandapipes/networks/simple_test_networks/**'
+  - 'pandapipes/networks/network_files/**'
   - '**.yml'
   - '**.rst'
