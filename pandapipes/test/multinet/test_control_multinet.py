@@ -67,11 +67,11 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     assert mn.nets["gas"] == net_gas
 
     # check P2G result
-    assert net_gas.source.loc[p2g_id_gas, "mdot_kg_per_s"] == \
-           net_gas.res_source.loc[p2g_id_gas, "mdot_kg_per_s"]
-    assert np.isclose(net_gas.source.loc[p2g_id_gas, "mdot_kg_per_s"],
+    assert net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"] == \
+           net_gas.res_source.at[p2g_id_gas, "mdot_kg_per_s"]
+    assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
                       (p_p2g_el/(net_gas.fluid.get_property('hhv')* 3.6)) * eta)
-    assert net_power.load.loc[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
+    assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
 
 def test_g2p_single(get_gas_example, get_power_example_simple):
@@ -103,11 +103,11 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     assert mn.nets["gas"] == net_gas
 
     # check G2P result
-    assert net_power.sgen.loc[g2p_id_el, "p_mw"] == \
-           net_power.res_sgen.loc[g2p_id_el, "p_mw"]
-    assert np.isclose(net_power.sgen.loc[g2p_id_el, "p_mw"],
+    assert net_power.sgen.at[g2p_id_el, "p_mw"] == \
+           net_power.res_sgen.at[g2p_id_el, "p_mw"]
+    assert np.isclose(net_power.sgen.at[g2p_id_el, "p_mw"],
                       (gas_cons_kg_per_s * fluid["cal_value"] * 3600 / 1000) * eta)  # 10.5264
-    assert net_gas.sink.loc[
+    assert net_gas.sink.at[
                g2p_id_gas, "mdot_kg_per_s"] == gas_cons_kg_per_s  # has to be still the same
 
 
@@ -144,10 +144,10 @@ def test_g2g_single(get_gas_example):
     assert mn.nets["hydrogen_net"] == net_gas2
 
     # check G2G result
-    assert net_gas1.sink.loc[g2g_id_cons, "mdot_kg_per_s"] == \
-           net_gas1.res_sink.loc[g2g_id_cons, "mdot_kg_per_s"]
-    assert net_gas1.sink.loc[g2g_id_cons, "mdot_kg_per_s"] == gas1_cons_kg_per_s
-    assert np.isclose(net_gas2.source.loc[g2g_id_prod, "mdot_kg_per_s"],
+    assert net_gas1.sink.at[g2g_id_cons, "mdot_kg_per_s"] == \
+           net_gas1.res_sink.at[g2g_id_cons, "mdot_kg_per_s"]
+    assert net_gas1.sink.at[g2g_id_cons, "mdot_kg_per_s"] == gas1_cons_kg_per_s
+    assert np.isclose(net_gas2.source.at[g2g_id_prod, "mdot_kg_per_s"],
                       (gas1_cons_kg_per_s * fluid1["cal_value"] / fluid2["cal_value"]) * eta)
 
 
@@ -283,13 +283,15 @@ def test_const_p2g_control(get_gas_example, get_power_example_simple):
     net_gas = get_gas_example
     net_power = get_power_example_simple
 
-    pandapipes.create_source(net_gas, 5, 0.003)
-    pandapipes.create_sink(net_gas, 3, 0.003)
-    pandapipes.create_sink(net_gas, 4, 0.003)
+    flow_gas = 0.003
+    pandapipes.create_source(net_gas, 5, flow_gas)
+    pandapipes.create_sink(net_gas, 3, flow_gas)
+    pandapipes.create_sink(net_gas, 4, flow_gas)
 
-    pandapower.create_load(net_power, 6, 0.004)
-    pandapower.create_load(net_power, 5, 0.004)
-    pandapower.create_sgen(net_power, 4, 0.004)
+    power_load = 0.004
+    pandapower.create_load(net_power, 6, power_load)
+    pandapower.create_load(net_power, 5, power_load)
+    pandapower.create_sgen(net_power, 4, power_load)
 
     mn = create_empty_multinet('coupled net')
 
@@ -302,9 +304,10 @@ def test_const_p2g_control(get_gas_example, get_power_example_simple):
 
     run_control(mn)
 
-    assert np.all(net_power.res_load.p_mw.values == [0.004, 0.004])
-    assert np.all(net_gas.res_sink.values == [0.003, 0.003])
-    assert net_gas.source.mdot_kg_per_s.values == 0.004 * p2g.conversion_factor_mw_to_kgps() * p2g.efficiency
+    assert np.all(net_power.res_load.p_mw.values == power_load)
+    assert np.all(net_gas.res_sink.values == flow_gas)
+    assert net_gas.source.mdot_kg_per_s.values == power_load * p2g.conversion_factor_mw_to_kgps()\
+           * p2g.efficiency
 
 
 if __name__ == '__main__':
