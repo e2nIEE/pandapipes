@@ -62,7 +62,7 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
     # print settings
     ts_variables["verbose"] = verbose
 
-    if logger.level is not 10 and verbose:
+    if logger.level != 10 and verbose:
         # simple progress bar
         print_progress_bar(0, len(time_steps), prefix='Progress:', suffix='Complete', length=50)
 
