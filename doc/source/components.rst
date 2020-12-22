@@ -5,8 +5,20 @@ Datastructure and Components
 ############################
 
 
-A pandapipes network consists of an element table for each type of element in the network.
-Each element table consists of a column for each parameter and a row for each element.
+In a pandapipes network, the elements are listed in tables (pandas-DataFrames). For each
+type of elements in the network (e.g., sink, source, junction, pipe...) there exists one table.
+Each element of these tables consists of one row for each element of the respective kind and one
+column for each parameter.
+
+All element tables are organized in a pandapipesNet-object. Like a pandapowerNet,
+pandapipesNet-objects are of the data type 'ADict'. Thus, similar to dictionaries, values are stored
+with a unique key (e.g., 'pipe': pd.DataFrame containing the pipe-table). In addition to the
+dictionary syntax, the values are settable and gettable via attributes as well, so one can use e.g.
+`net.pipe` instead of `net['pipe']` to get the pipe-DataFrame. Also, pandapipesNet-objects have a
+`__repr__` method that prints a human-readable text summary of the network, including the number
+and types of included elements and the fluid. Further explanation, also on additional data that
+is stored in the pandapipesNet, can be found in the `pandapipes-paper <https://doi.org/10.3390/su12239899>`_
+:cite:`Lohmeier2020`.
 
 pandapipes provides thermo-hydraulic models for 9 elements, for each of which you can find
 detailed information about the definition and interpretation of the parameters in the
