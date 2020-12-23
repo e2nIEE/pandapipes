@@ -243,7 +243,7 @@ def schutterwald(include_houses=True, max_length_house_conn_m=None):
     to set a reasonable maximum length for the house connection pipes, e.g. 50 m.
 
     The corresponding publication in which the net has been provided in the supplementary
-    material and more information on building ages etc. is given can be found here:
+    material and more information on building ages etc. can be found here:
     Kisse, J.M.; Braun, M.; Letzgus, S.; Kneiske, T.M. "A GIS-Based Planning Approach for Urban
     Power and Natural Gas Distribution Grids with Different Heat Pump Scenarios".
     Energies 2020, 13, 4052 https://doi.org/10.3390/en13164052
