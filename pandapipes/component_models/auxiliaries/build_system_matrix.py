@@ -152,8 +152,6 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
             system_matrix = csr_matrix((system_data, (system_rows, system_cols)),
                                        shape=(len_n + len_b, len_n + len_b))
 
-
-
         else:
             data_order = np.lexsort([system_cols, system_rows])
             system_data = system_data[data_order]

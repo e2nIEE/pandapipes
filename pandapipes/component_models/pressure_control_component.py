@@ -28,6 +28,10 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         return "in_service"
 
     @classmethod
+    def from_to_node_cols(cls):
+        return "from_junction", "to_junction"
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit, node_name):
         pcs = net[cls.table_name()]
         controlled = pcs.in_service & pcs.control_active
