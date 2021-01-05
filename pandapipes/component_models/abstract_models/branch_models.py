@@ -29,6 +29,22 @@ logger = logging.getLogger(__name__)
 class BranchComponent(Component):
 
     @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
     def active_identifier(cls):
         raise NotImplementedError()
 
@@ -86,8 +102,8 @@ class BranchComponent(Component):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_component_pit:
-        :type branch_component_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :param idx_lookups:

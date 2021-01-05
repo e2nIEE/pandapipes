@@ -421,37 +421,39 @@ def create_constant_fluid(name=None, fluid_type=None, **kwargs):
     return Fluid(name=name, fluid_type=fluid_type, **properties)
 
 
-def call_lib(fluid):
+def call_lib(fluid_name):
     """
     Creates a fluid with default fluid properties.
 
-    :param fluid: Fluid which should be used
-    :type fluid: str
+    :param fluid_name: Fluid which should be used
+    :type fluid_name: str
     :return: Fluid - Chosen fluid with default fluid properties
     :rtype: Fluid
     """
 
     def interextra_property(prop):
         return FluidPropertyInterExtra.from_path(
-            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+            os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     def constant_property(prop):
         return FluidPropertyConstant.from_path(
-            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+            os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     def linear_property(prop):
         return FluidPropertyLinear.from_path(
-            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+            os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen"]
+    gases = ["air", "lgas", "hgas", "hydrogen", "methane"]
 
-    if fluid == "natural_gas":
+    if fluid_name == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
                      "(high- or low calorific natural gas)")
-    if fluid not in liquids and fluid not in gases:
+    if fluid_name not in liquids and fluid_name not in gases:
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
-                             "implemented yet." % fluid)
+                             "implemented yet." % fluid_name)
+
+    phase = "liquid" if fluid_name in liquids else "gas"
 
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
@@ -460,11 +462,17 @@ def call_lib(fluid):
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
 
-    phase = "liquid" if fluid in liquids else "gas"
-    return Fluid(fluid, phase, density=density, viscosity=viscosity, heat_capacity=heat_capacity,
-                 molar_mass=molar_mass,
-                 compressibility=compr, der_compressibility=der_compr)
+    if (phase == 'gas') & (fluid_name != 'air'):
+        lhv = constant_property("lower_heating_value")
+        hhv = constant_property("higher_heating_value")
 
+        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass,
+                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
+    else:
+        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
+                     der_compressibility=der_compr)
 
 def get_fluid(net):
     """

@@ -48,6 +48,17 @@ class PumpStdType(StdType):
         """
         super(PumpStdType, self).__init__(name, 'pump')
         self.reg_par = reg_par
+        self._pressure_list = None
+        self._flowrate_list = None
+        self._reg_polynomial_degree = 2
+
+    def update_pump(self, pressure_list, flowrate_list, reg_polynomial_degree):
+        reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
+        self.reg_par = reg_par
+        self._pressure_list = pressure_list
+        self._flowrate_list = flowrate_list
+        self._reg_polynomial_degree = reg_polynomial_degree
+
 
     def get_pressure(self, vdot_m3_per_s):
         """
@@ -86,12 +97,20 @@ class PumpStdType(StdType):
         """
         p_values, v_values, degree = get_p_v_values(path)
         reg_par = regression_function(p_values, v_values, degree)
-        return cls(name, reg_par)
+        Pump = cls(name, reg_par)
+        Pump._pressure_list = p_values
+        Pump._flowrate_list = v_values
+        Pump._reg_polynomial_degree = degree
+        return Pump
 
     @classmethod
     def from_list(cls, name, p_values, v_values, degree):
         reg_par = regression_function(p_values, v_values, degree)
-        return cls(name, reg_par)
+        Pump = cls(name, reg_par)
+        Pump._pressure_list = p_values
+        Pump._flowrate_list = v_values
+        Pump._reg_polynomial_degree = degree
+        return Pump
 
 
 def add_basic_std_types(net):
@@ -171,15 +190,15 @@ def add_std_type(net, std_type_category, component_name, component_object, overw
     :return:
     :rtype:
     """
-    if not 'std_type' in net:
+    if 'std_type' not in net:
         net.update({'std_type': {std_type_category: {component_name: component_object}}})
-    elif not std_type_category in net.std_type:
+    elif std_type_category not in net.std_type:
         std_types = net.std_type
         std_types.update({std_type_category: {component_name: component_object}})
         net.std_type = std_types
     elif not overwrite and component_name in net['std_type'][std_type_category]:
         raise (ValueError(
-            '%s is already in net.std_type["%s"]. Set overwrite = True if you want to change values!'
+            '%s is already in net.std_type["%s"]. Set overwrite=True if you want to change values!'
             % (component_name, std_type_category)))
     else:
         std_types = net.std_type[std_type_category]
