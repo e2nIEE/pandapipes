@@ -8,7 +8,7 @@ from pandapipes.timeseries.run_time_series import init_default_outputwriter as i
 from pandapower import pandapowerNet
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.run_time_series import get_recycle_settings, init_time_steps, output_writer_routine, \
-    print_progress_bar, cleanup, run_loop, init_default_outputwriter as init_default_ow_pp
+    print_progress_bar, cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
 
 try:
     import pplog
@@ -68,18 +68,19 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
 
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]
-        recycle_options = None
-        if hasattr(run, "__name__") and run.__name__ == "runpp":
-            # use faster runpp options if possible
-            recycle_options = get_recycle_settings(net, **kwargs)
-        ts_variables[net_name]['run'] = run['net_name'] if run is not None else ts_variables[net_name]['run']
-        ts_variables[net_name]['recycle_options'] = recycle_options
         if isinstance(net, pandapowerNet):
             init_default_ow_pp(net, time_steps, **kwargs)
         elif isinstance(net, pandapipesNet):
             init_default_ow_pps(net, time_steps, **kwargs)
         else:
             raise ValueError('the given nets are neither pandapipes nor pandapower nets')
+        recycle_options = None
+        if hasattr(run, "__name__") and run.__name__ == "runpp":
+            # use faster runpp options if possible
+            recycle_options = get_recycle_settings(net, **kwargs)
+        ts_variables[net_name]['run'] = run['net_name'] if run is not None else ts_variables[net_name]['run']
+        ts_variables[net_name]['recycle_options'] = recycle_options
+        init_output_writer(net, time_steps)
 
     # time steps to be calculated (list or range)
     ts_variables["time_steps"] = time_steps
