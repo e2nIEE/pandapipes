@@ -2,18 +2,15 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-from numpy import dtype
 from operator import itemgetter
 
+import numpy as np
+from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
-
-from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TO_NODE, TINIT, PL
-
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-
+from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
+    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
+from pandapipes.idx_node import PINIT, PAMB
 from pandapipes.pipeflow_setup import get_net_option, get_fluid
 
 
@@ -74,7 +71,7 @@ class Pump(BranchWZeroLengthComponent):
         std_types = np.array(list(net.std_type['pump'].keys()))[idx]
         p_scale = get_net_option(net, "p_scale")
         from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
-        #to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
+        # to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale

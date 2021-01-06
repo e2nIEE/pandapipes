@@ -8,6 +8,7 @@ from pandapower.control.basic_controller import Controller
 
 
 class P2GControlMultiEnergy(Controller):
+
     """
     A controller to be used in a multinet. Converts power consumption to gas production.
 
@@ -19,48 +20,49 @@ class P2GControlMultiEnergy(Controller):
     It is stored in the controller-DataFrame of the multinet (multinet.controller).
     It is run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
-
-    :param multinet: pandapipes-Mulitnet that includes the power and gas network with load and
-                     source elements
-    :type multinet: attrdict (pandapipes.MultiNet)
-    :param element_index_power: Index of one or more load elements in the power net from which
-                                the power consumption will be read. For each load element,
-                                a corresponding source element has to be provided in
-                                element_index_gas.
-    :type element_index_power: int or iterable of integers
-    :param element_index_gas: Index of one or more source elements in the gas net to which the
-                              calculated mass flow will be written. For each source element,
-                              a corresponing el. load element has to be provided in
-                              element_index_power.
-    :type element_index_gas: int or iterable of integers
-    :param efficiency: constant efficiency factor (default: based on HHV)
-    :type efficiency: float
-    :param name_power_net: Key name to find the power net in multinet['nets']
-    :type name_power_net: str
-    :param name_gas_net: Key name to find the gas net in multinet['nets']
-    :type name_gas_net: str
-    :param in_service: Indicates if the controllers are currently in_service
-    :type in_service: bool
-    :param order: within the same level, controllers with lower order are called before controllers
-                  with numerical higher order
-    :type order: real
-    :param level: level to which the controller belongs. Low level is called before higher level.
-                  Respective run function for the nets are called at least once per level.
-    :type level: real
-    :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
-                                    with the same matching parameters (e.g. at same element) should
-                                    be dropped
-    :type drop_same_existing_ctrl: bool
-    :param initial_run: Whether a power and pipe flow should be run before the control step is
-                        applied or not
-    :type initial_run: bool
-    :param kwargs: optional additional controller arguments that were implemented by users
-    :type kwargs: any
     """
     def __init__(self, multinet, element_index_power, element_index_gas, efficiency,
                  name_power_net='power', name_gas_net='gas',
                  in_service=True, order=0, level=0,
                  drop_same_existing_ctrl=False, initial_run=True, **kwargs):
+        """
+        :param multinet: pandapipes-Mulitnet that includes the power and gas network with load and
+                         source elements
+        :type multinet: attrdict (pandapipes.MultiNet)
+        :param element_index_power: Index of one or more load elements in the power net from which
+                                    the power consumption will be read. For each load element,
+                                    a corresponding source element has to be provided in
+                                    element_index_gas.
+        :type element_index_power: int or iterable of integers
+        :param element_index_gas: Index of one or more source elements in the gas net to which the
+                                  calculated mass flow will be written. For each source element,
+                                  a corresponing el. load element has to be provided in
+                                  element_index_power.
+        :type element_index_gas: int or iterable of integers
+        :param efficiency: constant efficiency factor (default: based on HHV)
+        :type efficiency: float
+        :param name_power_net: Key name to find the power net in multinet['nets']
+        :type name_power_net: str
+        :param name_gas_net: Key name to find the gas net in multinet['nets']
+        :type name_gas_net: str
+        :param in_service: Indicates if the controllers are currently in_service
+        :type in_service: bool
+        :param order: within the same level, controllers with lower order are called before controllers
+                      with numerical higher order
+        :type order: real
+        :param level: level to which the controller belongs. Low level is called before higher level.
+                      Respective run function for the nets are called at least once per level.
+        :type level: real
+        :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
+                                        with the same matching parameters (e.g. at same element) should
+                                        be dropped
+        :type drop_same_existing_ctrl: bool
+        :param initial_run: Whether a power and pipe flow should be run before the control step is
+                            applied or not
+        :type initial_run: bool
+        :param kwargs: optional additional controller arguments that were implemented by users
+        :type kwargs: any
+        """
         super().__init__(multinet, in_service, order, level,
                          drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
                          **kwargs)
@@ -107,6 +109,7 @@ class P2GControlMultiEnergy(Controller):
 
 
 class G2PControlMultiEnergy(Controller):
+
     """
     A controller to be used in a multinet. Connects power generation and gas consumption.
 
@@ -123,50 +126,6 @@ class G2PControlMultiEnergy(Controller):
     It is stored in the controller-DataFrame of the multinet (multinet.controller).
     It is run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
-
-    :param multinet: pandapipes-Mulitnet that includes the power and gas network with sgen/gen and
-                     sink elements
-    :type multinet: attrdict (pandapipes.MultiNet)
-    :param element_index_power: Index of one or more elements in the power net from which
-                                the power generation will be read from or written to (either
-                                'sgen' or 'gen' elements, as defined by element_type_power).
-                                For each entry, a corresponding gas sink element has to be
-                                provided in element_index_gas.
-    :type element_index_power: int or iterable of integers
-    :param element_index_gas: Index of one or more sink elements in the gas net from which the
-                              G2P units' gas consumption (mass flow) is read from or written to.
-                              For each sink element, a corresponding sgen/gen element has to be
-                              provided in element_index_power.
-    :type element_index_gas: int or iterable of integers
-    :param efficiency: constant efficiency factor (default: based on HHV)
-    :type efficiency: float
-    :param name_power_net: Key name to find the power net in multinet['nets']
-    :type name_power_net: str
-    :param name_gas_net: Key name to find the gas net in multinet['nets']
-    :type name_gas_net: str
-    :param element_type_power: type of the corresponding power generation units, either 'sgen' or 'gen'
-    :type element_type_power: str
-    :param in_service: Indicates if the controllers are currently in_service
-    :type in_service: bool
-    :param order: within the same level, controllers with lower order are called before controllers
-                  with numerical higher order
-    :type order: int or float
-    :param level: level to which the controller belongs. Low level is called before higher level.
-                  Respective run function for the nets are called at least once per level.
-    :type level: int or float
-    :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
-                                    with the same matching parameters (e.g. at same element) should
-                                    be dropped
-    :type drop_same_existing_ctrl: bool
-    :param initial_run: Whether a power and pipe flow should be run before the control step is
-                        applied or not
-    :type initial_run: bool
-    :param calc_gas_from_power: (default: False) If False, the power output will be calculated on the
-                                basis of the sink's gas consumption. If True, the gas consumption
-                                will be calculated on the basis of the generator's power output.
-    :type calc_gas_from_power: bool
-    :param kwargs: optional additional controller arguments that were implemented by users
-    :type kwargs: any
     """
 
     def __init__(self, multinet, element_index_power, element_index_gas, efficiency,
@@ -174,6 +133,51 @@ class G2PControlMultiEnergy(Controller):
                  in_service=True, order=0,
                  level=0, drop_same_existing_ctrl=False, initial_run=True,
                  calc_gas_from_power=False, **kwargs):
+        """
+        :param multinet: pandapipes-Mulitnet that includes the power and gas network with sgen/gen and
+                         sink elements
+        :type multinet: attrdict (pandapipes.MultiNet)
+        :param element_index_power: Index of one or more elements in the power net from which
+                                    the power generation will be read from or written to (either
+                                    'sgen' or 'gen' elements, as defined by element_type_power).
+                                    For each entry, a corresponding gas sink element has to be
+                                    provided in element_index_gas.
+        :type element_index_power: int or iterable of integers
+        :param element_index_gas: Index of one or more sink elements in the gas net from which the
+                                  G2P units' gas consumption (mass flow) is read from or written to.
+                                  For each sink element, a corresponding sgen/gen element has to be
+                                  provided in element_index_power.
+        :type element_index_gas: int or iterable of integers
+        :param efficiency: constant efficiency factor (default: based on HHV)
+        :type efficiency: float
+        :param name_power_net: Key name to find the power net in multinet['nets']
+        :type name_power_net: str
+        :param name_gas_net: Key name to find the gas net in multinet['nets']
+        :type name_gas_net: str
+        :param element_type_power: type of the corresponding power generation units, either 'sgen' or 'gen'
+        :type element_type_power: str
+        :param in_service: Indicates if the controllers are currently in_service
+        :type in_service: bool
+        :param order: within the same level, controllers with lower order are called before controllers
+                      with numerical higher order
+        :type order: int or float
+        :param level: level to which the controller belongs. Low level is called before higher level.
+                      Respective run function for the nets are called at least once per level.
+        :type level: int or float
+        :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
+                                        with the same matching parameters (e.g. at same element) should
+                                        be dropped
+        :type drop_same_existing_ctrl: bool
+        :param initial_run: Whether a power and pipe flow should be run before the control step is
+                            applied or not
+        :type initial_run: bool
+        :param calc_gas_from_power: (default: False) If False, the power output will be calculated on the
+                                    basis of the sink's gas consumption. If True, the gas consumption
+                                    will be calculated on the basis of the generator's power output.
+        :type calc_gas_from_power: bool
+        :param kwargs: optional additional controller arguments that were implemented by users
+        :type kwargs: any
+        """
         super().__init__(multinet, in_service, order, level,
                          drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
                          **kwargs)
@@ -245,6 +249,7 @@ class G2PControlMultiEnergy(Controller):
 
 
 class GasToGasConversion(Controller):
+
     """
     A controller to be used in a multinet with two gas nets that have different gases.
 
@@ -258,46 +263,47 @@ class GasToGasConversion(Controller):
     It is stored in the controller-DataFrame of the multinet (multinet.controller).
     It is run by run_control_multinet.run_control() or within
     run_time_series_multinet.run_timeseries().
-
-    :param multinet: pandapipes-Mulitnet that includes the gas networks that will be coupled with
-                     sink and source elements
-    :type multinet: attrdict (pandapipes.MultiNet)
-    :param element_index_from: Index of one or more sink elements in the name_gas_net_from from
-                               which the gas consumption will be read
-    :type element_index_from: int or iterable of integers
-    :param element_index_to: Index of one or more source elements in the name_gas_net_to to which the
-                             calculated mass flow will be written
-    :type element_index_to: int or iterable of integers
-    :param efficiency: constant efficiency factor (default: based on HHV)
-    :type efficiency: float
-    :param name_gas_net_from: Key name to find the gas net from which gas is consumed in
-                              multinet['nets']
-    :type name_gas_net_from: str
-    :param name_gas_net_to: Key name to find the gas net in which gas is fed into in
-                            multinet['nets']
-    :type name_gas_net_to: str
-    :param in_service: Indicates if the controllers are currently in_service
-    :type in_service: bool
-    :param order: within the same level, controllers with lower order are called before controllers
-                  with numerical higher order
-    :type order: int or float
-    :param level: level to which the controller belongs. Low level is called before higher level.
-                  Respective run function for the nets are called at least once per level.
-    :type level: int or float
-    :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
-                                    with the same matching parameters (e.g. at same element) should
-                                    be dropped
-    :type drop_same_existing_ctrl: bool
-    :param initial_run: Whether a power and pipe flow should be run before the control step is
-                        applied or not
-    :type initial_run: bool
-    :param kwargs: optional additional controller arguments that were implemented by users
-    :type kwargs: any
     """
 
     def __init__(self, multinet, element_index_from, element_index_to, efficiency,
                  name_gas_net_from='gas1', name_gas_net_to='gas2', in_service=True, order=0,
                  level=0, drop_same_existing_ctrl=False, initial_run=True, **kwargs):
+        """
+        :param multinet: pandapipes-Mulitnet that includes the gas networks that will be coupled with
+                         sink and source elements
+        :type multinet: attrdict (pandapipes.MultiNet)
+        :param element_index_from: Index of one or more sink elements in the name_gas_net_from from
+                                   which the gas consumption will be read
+        :type element_index_from: int or iterable of integers
+        :param element_index_to: Index of one or more source elements in the name_gas_net_to to which the
+                                 calculated mass flow will be written
+        :type element_index_to: int or iterable of integers
+        :param efficiency: constant efficiency factor (default: based on HHV)
+        :type efficiency: float
+        :param name_gas_net_from: Key name to find the gas net from which gas is consumed in
+                                  multinet['nets']
+        :type name_gas_net_from: str
+        :param name_gas_net_to: Key name to find the gas net in which gas is fed into in
+                                multinet['nets']
+        :type name_gas_net_to: str
+        :param in_service: Indicates if the controllers are currently in_service
+        :type in_service: bool
+        :param order: within the same level, controllers with lower order are called before controllers
+                      with numerical higher order
+        :type order: int or float
+        :param level: level to which the controller belongs. Low level is called before higher level.
+                      Respective run function for the nets are called at least once per level.
+        :type level: int or float
+        :param drop_same_existing_ctrl: Indicates if already existing controllers of the same type and
+                                        with the same matching parameters (e.g. at same element) should
+                                        be dropped
+        :type drop_same_existing_ctrl: bool
+        :param initial_run: Whether a power and pipe flow should be run before the control step is
+                            applied or not
+        :type initial_run: bool
+        :param kwargs: optional additional controller arguments that were implemented by users
+        :type kwargs: any
+        """
         super().__init__(multinet, in_service, order, level,
                          drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
                          **kwargs)
@@ -340,7 +346,7 @@ class GasToGasConversion(Controller):
         return self.applied
 
     def conversion_factor_gas1_to_gas2(self):
-        """ideal conversion with energy conservation"""
+        """Ideal conversion with energy conservation."""
         return self.gas1_calorific_value / self.gas2_calorific_value
 
 
