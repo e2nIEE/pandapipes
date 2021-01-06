@@ -39,6 +39,13 @@ class MultiNet(ADict):
         return copy.deepcopy(self)
 
     def __repr__(self):  # pragma: no cover
+        """
+        defines the representation of the multinet in the console
+
+        :return: representation
+        :rtype: str
+        """
+
         r = "This multi net includes following nets:"
         for cat in self.nets:
             if isinstance(self['nets'][cat], pandapowerNet):

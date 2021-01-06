@@ -110,8 +110,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                               heat_exchanger_color='silver', library="igraph", as_dict=True,
                               **kwargs):
     """
-    Plots a pandapipes network as simple as possible. If no geodata is available, artificial
-    geodata is generated. For advanced plotting see the tutorial
+    Plots a pandapipes network as simple as possible.
+    If no geodata is available, artificial geodata is generated. For advanced plotting see the tutorial
 
     :param net: The pandapipes format network.
     :type net: pandapipesNet

@@ -38,6 +38,7 @@ class Pump(BranchWZeroLengthComponent):
     def create_pit_branch_entries(cls, net, pump_pit, node_name):
         """
         Function which creates pit branch entries with a specific table.
+
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param pump_pit:
@@ -73,7 +74,7 @@ class Pump(BranchWZeroLengthComponent):
         std_types = np.array(list(net.std_type['pump'].keys()))[idx]
         p_scale = get_net_option(net, "p_scale")
         from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
+        #to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
@@ -118,7 +119,7 @@ class Pump(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        placement_table, pump_pit, res_table = super().extract_results(net, options, node_name)
+        placement_table, pump_pit, res_table = super().prepare_result_tables(net, options, node_name)
         res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
 
     @classmethod
