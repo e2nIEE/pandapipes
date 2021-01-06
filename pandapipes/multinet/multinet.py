@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 class MultiNet(ADict):
-    
     """
     A 'MultiNet' is a frame for different pandapipes & pandapower nets and coupling controllers.
 

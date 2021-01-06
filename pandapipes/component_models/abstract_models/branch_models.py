@@ -345,7 +345,7 @@ class BranchComponent(Component):
                               / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
 
-            _, _, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
+            _, _, _, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
             internal_pipes = _sum_by_group(idx_active, v_gas_from, v_gas_to, v_gas_mean,
                                            normfactor_from, normfactor_to,
                                            np.ones_like(idx_active))
@@ -369,7 +369,7 @@ class BranchComponent(Component):
         res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
         res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
         idx_pit = branch_pit[:, ELEMENT_IDX]
-        idx_sort, lambda_sum, reynolds_sum, = \
+        _, lambda_sum, reynolds_sum, = \
             _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
         res_table["lambda"].values[placement_table] = lambda_sum / internal_pipes
         res_table["reynolds"].values[placement_table] = reynolds_sum / internal_pipes

@@ -22,7 +22,7 @@ def _sum_by_group_sorted(indices, *values):
     indices = indices[index]
 
     val = list(values)
-    for i in range(len(val)):
+    for i, _ in enumerate(val):
         # sum up values, chose only those with unique indices and then subtract the previous sums
         # --> this way for each index the sum of all values belonging to this index is returned
         np.cumsum(val[i], out=val[i])

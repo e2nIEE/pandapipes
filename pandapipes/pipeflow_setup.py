@@ -626,7 +626,7 @@ def reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected):
                       for table, ft in ft_lookup.items() if ft is not None}
         from_to_active_lookup = copy.deepcopy(ft_lookup)
         count = 0
-        for table, (f_old, t_old, len_new) in sorted(aux_lookup.items(), key=lambda x: x[1][0]):
+        for table, (f_old, _, len_new) in sorted(aux_lookup.items(), key=lambda x: x[1][0]):
             from_to_active_lookup[table] = (count, count + len_new)
             count += len_new
         net["_lookups"]["%s_from_to_active" % el] = from_to_active_lookup

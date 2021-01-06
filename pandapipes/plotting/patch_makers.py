@@ -65,7 +65,8 @@ def heat_exchanger_patches(coords, size, **kwargs):
 
 
 def source_patches(node_coords, size, angles, **kwargs):
-    """Creation function of patches for sources.
+    """
+    Creation function of patches for sources.
 
     :param node_coords: coordinates of the nodes that the sources belong to.
     :type node_coords: iterable
