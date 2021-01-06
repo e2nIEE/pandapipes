@@ -14,7 +14,8 @@ from pandapipes.pipeflow_setup import get_net_option
 
 
 def build_system_matrix(net, branch_pit, node_pit, heat_mode):
-    """Builds the system matrix.
+    """
+    Builds the system matrix.
 
     :param net: The pandapipes network
     :type net: pandapipesNet

@@ -343,7 +343,7 @@ class FluidPropertyLinear(FluidProperty):
             >>> comp_fact = get_fluid(net).get_property("compressibility", p_bar)
 
         """
-        if type(arg) == pd.Series:
+        if isinstance(arg, pd.Series):
             return self.offset + self.slope * arg.values
         else:
             return self.offset + self.slope * np.array(arg)

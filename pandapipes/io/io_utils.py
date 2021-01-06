@@ -35,6 +35,15 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     module_name = ''
 
     def __init__(self, obj, d, ppipes_hook):
+        """
+
+        :param obj: object the data is written to
+        :type obj: object
+        :param d: data to be re-serialized
+        :type d: any kind
+        :param ppipes_hook: a way how to handle non-default data
+        :type ppipes_hook: funct
+        """
         super().__init__(obj, d, ppipes_hook)
 
     @from_serializable.register(class_name="method")
