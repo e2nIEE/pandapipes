@@ -6,9 +6,10 @@ import copy
 
 import pandas as pd
 from numpy import dtype
-from pandapipes import __version__
-from pandapower.auxiliary import ADict
 from pandapower import pandapowerNet
+from pandapower.auxiliary import ADict
+
+from pandapipes import __version__
 from pandapipes import pandapipesNet
 
 try:
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class MultiNet(ADict):
+    
     """
     A 'MultiNet' is a frame for different pandapipes & pandapower nets and coupling controllers.
 
@@ -28,7 +30,15 @@ class MultiNet(ADict):
     The nets are stored with a unique key in a dictionary in multinet['nets'].
     Controllers that connect to nets are stored in multinet['controller'].
     """
+
     def __init__(self, *args, **kwargs):
+        """
+
+        :param args: item of the ADict
+        :type args: variable
+        :param kwargs: item of the ADict with corresponding name
+        :type kwargs: dict
+        """
         super().__init__(*args, **kwargs)
         if isinstance(args[0], self.__class__):
             net = args[0]
