@@ -436,7 +436,8 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
 
 def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, g2p_efficiency=0.6,
                               name_power_net='power', name_gas_net='gas', element_type_power="sgen",
-                              profile_name=None, data_source=None, scale_factor=1.0,
+                              profile_name=None, data_source=None, scale_factor=1.0, power_led=False,
+                              set_q_from_cosphi=False,
                               in_service=True, order=(0, 1), level=0, drop_same_existing_ctrl=False,
                               matching_params=None, initial_run=False, **kwargs):
     """
@@ -499,18 +500,28 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
     :return: (ID of the ConstController, ID of G2P controller)
     :rtype:
     """
-    net_gas = multinet['nets'][name_gas_net]
+    if power_led:
+        net_power = multinet['nets'][name_power_net]
 
-    const = ConstControl(
-        net_gas, element='sink', variable='mdot_kg_per_s', element_index=element_index_gas,
-        profile_name=profile_name, data_source=data_source,
-        scale_factor=scale_factor,
-        in_service=in_service, order=order[0], level=level,
-        drop_same_existing_ctrl=drop_same_existing_ctrl, matching_params=matching_params,
-        initial_run=initial_run, **kwargs)
+        const = ConstControl(
+            net_power, element='sgen', variable='p_mw', element_index=element_index_power,
+            profile_name=profile_name, data_source=data_source, scale_factor=scale_factor,
+            in_service=in_service, order=order[0], level=level,
+            drop_same_existing_ctrl=drop_same_existing_ctrl,
+            set_q_from_cosphi=set_q_from_cosphi, matching_params=matching_params,
+            initial_run=initial_run, **kwargs)
+    else:
+        net_gas = multinet['nets'][name_gas_net]
+        const = ConstControl(
+            net_gas, element='sink', variable='mdot_kg_per_s', element_index=element_index_gas,
+            profile_name=profile_name, data_source=data_source,
+            scale_factor=scale_factor,
+            in_service=in_service, order=order[0], level=level,
+            drop_same_existing_ctrl=drop_same_existing_ctrl, matching_params=matching_params,
+            initial_run=initial_run, **kwargs)
     g2p = G2PControlMultiEnergy(multinet, element_index_power, element_index_gas, g2p_efficiency,
                                 name_power_net, name_gas_net, element_type_power,
                                 in_service, order[1], level,
                                 drop_same_existing_ctrl=drop_same_existing_ctrl,
-                                initial_run=initial_run, calc_gas_from_power=False, **kwargs)
+                                initial_run=initial_run, calc_gas_from_power=power_led, **kwargs)
     return const, g2p
