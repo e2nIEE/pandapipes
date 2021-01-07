@@ -121,7 +121,7 @@ def run_control(multinet, ctrl_variables=None, max_iter=30, **kwargs):
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
     :type multinet: pandapipes.Multinet
-    :param ctrl_variables: contains all relevant information and boundaries required for a successful control run. To
+    :param ctrl_variables: contains all relevant information and boundaries required for a successful control run. To \
     define ctrl_variables yourself, following entries for each net are required:
         - level (list): gives a list of levels to be investigated
         - controller_order (list): nested list of tuples given the correct order of the different controllers
