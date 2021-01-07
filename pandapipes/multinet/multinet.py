@@ -25,7 +25,8 @@ class MultiNet(ADict):
     A 'MultiNet' is a frame for different pandapipes & pandapower nets and coupling controllers.
 
     Usually, a multinet is a multi energy net which one net per energy carrier. 
-    The coupled simulation can be run with pp.multinet.control.run_control_multinet.run_control()
+    The coupled simulation can be run with
+    pandapipes.multinet.control.run_control_multinet.run_control()
     The nets are stored with a unique key in a dictionary in multinet['nets'].
     Controllers that connect to nets are stored in multinet['controller'].
     """
