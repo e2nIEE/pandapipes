@@ -3,22 +3,17 @@ Change Log
 
 [0.3.0] - 2021-01-07
 -------------------------------
-[ADDED] added the pipeflow option "reuse_internal_data" which allows to reuse the system matrix from one pipeflow to the next in combination with "only_update_hydraulic_matrix" - useful for timeseries calculations
-[ADDED] hydrogen properties
-[ADDED] Swamee-Jain friction model
-[ADDED] test networks (water) for Swamee-Jain friction model
-[ADDED] further explanation in the documentation, e.g. on heating networks and time series / controller
-[ADDED] heating network and time series tutorials
+[ADDED] added bulk create functions for junctions, sinks, sources, pipes (from std_type and parameters) and valves (clean control)
+[ADDED] Automated Testing for Python 3.8 (Travis CI)
+[ADDED] LHV and HHV properties for fuel gases
 [ADDED] multinet functionality to couple a pandapower and pandapipes network
-[CHANGED] property files for bi-atomic gases
-[CHANGED] make ppipe_hook serializable and inherit from pp_hook by using decorators
-[CHANGED] changed column "controller" in controller table to "object"
-[CHANGED] names of parameters for regression function in pump
-[CHANGED] pressure lift for pumps is now always >= 0
-[CHANGED] on reverse flow, the pressure lift for pumps is 0
-[CHANGED] add_fluid_to_net is now a private function (usually the wrapper create_fluid_from_lib should be used)
-[FIXED] direction of pump in the water test network 'versatility' for OpenModelica
-[FIXED] accurate calculation of v in get_internal_results for pipes
+[ADDED] example gas distribution grid with houses and geodata
+[CHANGED] bypassing for pumps, pressure lift = 0 for negative and very high volume flows
+[CHANGED] pressure lift in pumps now based on p_from (inlet-volume flow)
+[CHANGED] logger level for pipeflow messages is now "debug" instead of "info"
+[CHANGED] usage of generic functions in the create module which are mostly based on pandapower
+[FIXED] all tests pass with pandas > 1.x
+[FIXED] bug fix for ext_grid result extraction in case of unordered connected junctions
 
 [0.2.0] - 2020-09-03
 -------------------------------
