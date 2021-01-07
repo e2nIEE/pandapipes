@@ -27,6 +27,22 @@ conversions, and write the results to another net.
     >>> p2g_id_gas = ppipes.create_source(net_gas, junction=1, mdot_kg_per_s=0)
     >>> p2g_ctrl = P2GControlMultiEnergy(multinet, p2g_id_el, p2g_id_gas, efficiency=0.7)
 
+Run a simulation with coupling controllers
+==========================================
+
+Usually, for single networks, the user starts a pipeflow-calculation with
+`pandapipes.pipeflow(net)`. If there are controllers in the net, the
+`pandapipes.control.run_control(net)` function has to be used. However, due to the different
+run-functions in coupled networks (pipe flow and power flow), a special run_control function has
+to be used that is imported from the `pandapipes.multinet` module.
+
+.. autofunction:: pandapipes.multinet.control.run_control_multinet.run_control
+
+
+:Example:
+    >>> from  pandapipes.multinet.control.run_control_multinet import run_control
+    >>> run_control(multinet)
+
 Coupling controller for time series simulation
 ==============================================
 
