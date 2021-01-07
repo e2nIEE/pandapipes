@@ -64,8 +64,8 @@ def add_nets_to_multinet(multinet, overwrite=False, **networks):
     :type multinet: pandapipes.MultiNet
     :param overwrite: whether a net should be overwritten if it has the same net_name
     :type overwrite: bool
-    :param networks: a dictionary of different pandapipes/pandapower nets. The dictonary key corresponds to the \
-    name under which the net is saved in multinet.nets
+    :param networks: a dictionary with different pandapipes/pandapower nets as values. The keys
+                     will be set in multinet.nets as net names for the different networks.
     :type networks: dict
     :return: net is added to multinet
     :rtype: None
