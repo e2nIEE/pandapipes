@@ -56,7 +56,8 @@ Getting started:
 
 
 pandapipes is a development of the Department for Distribution System Operation at the Fraunhofer
-Institute for Energy Economics and Energy System Technology (IEE), Kassel.
+Institute for Energy Economics and Energy System Technology (IEE), Kassel, and the research group
+Energy Management and Power System Operation, University of Kassel.
 
 
 .. image:: https://www.uni-kassel.de/eecs/fileadmin/datas/fb16/Fachgebiete/energiemanagement/iee.png
