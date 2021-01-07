@@ -47,6 +47,13 @@ class Fluid(JSONSerializableClass):
                                "cause problems when trying to ask for values." % prop_name)
 
     def __repr__(self):
+        """
+        Definition of fluid representation in the console.
+
+        :return: representation of fluid in the console
+        :rtype: str
+        """
+
         r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
         for key in self.all_properties.keys():
             r += "\n   - %s (%s)" %(key, self.all_properties[key].__class__.__name__[13:])
@@ -170,6 +177,9 @@ class FluidProperty(JSONSerializableClass):
     """
 
     def __init__(self):
+        """
+
+        """
         super().__init__()
 
     def get_property(self, *args):
@@ -333,7 +343,7 @@ class FluidPropertyLinear(FluidProperty):
             >>> comp_fact = get_fluid(net).get_property("compressibility", p_bar)
 
         """
-        if type(arg) == pd.Series:
+        if isinstance(arg, pd.Series):
             return self.offset + self.slope * arg.values
         else:
             return self.offset + self.slope * np.array(arg)
@@ -503,7 +513,8 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
     :param overwrite: If True, an existing fluid will just be overwritten, otherwise a warning is\
         printed out and the fluid is not reset.
     :type overwrite: bool, default True
-    :return: Not output.
+    :return: No output.
+    :type: None
     """
     if "fluid" in net and net["fluid"] is not None and not overwrite:
         fluid_msg = "an existing fluid" if not hasattr(net["fluid"], "name") \

@@ -47,11 +47,11 @@ class Component:
 
     @classmethod
     def get_result_table(cls, net):
-        """Get result table.
+        """
+        Get result table.
 
-        Parameters:
-        :param net:
-        :type net:
+        :param net: a pandapipes net
+        :type net: pandapipes.pandapipesNet
         :return:
         :rtype:
         """

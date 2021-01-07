@@ -14,8 +14,8 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
     JAC_DERIV_DV_NODE, \
     LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_table_number, get_lookup
+from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
+from pandapipes.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -49,8 +49,7 @@ class BranchComponent(Component):
         raise NotImplementedError()
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
-                              current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
         """
         Function which creates branch lookups.
 
@@ -151,7 +150,8 @@ class BranchComponent(Component):
         if not gas_mode:
             branch_component_pit[:, JAC_DERIV_DV] = \
                 rho / (P_CONVERSION * 2) * (length / d * (der_lambda_pipe * v_init2 + 2 *
-                lambda_pipe * np.abs(v_init)) + 2 * loss_coef * np.abs(v_init))
+                                                          lambda_pipe * np.abs(v_init)) + 2 * loss_coef * np.abs(
+                    v_init))
 
             branch_component_pit[:, LOAD_VEC_BRANCHES] = \
                 - (-p_init_i_abs + p_init_i1_abs - pl
@@ -178,7 +178,7 @@ class BranchComponent(Component):
 
             branch_component_pit[:, LOAD_VEC_BRANCHES] = \
                 -(-p_init_i_abs + p_init_i1_abs - pl + const_lambda * v_init2 * (
-                            lambda_pipe * length / d + loss_coef)
+                        lambda_pipe * length / d + loss_coef)
                   * (p_init_i_abs + p_init_i1_abs) ** (-1)
                   - const_height * (p_init_i_abs + p_init_i1_abs) * g_const * height_difference)
 
@@ -250,13 +250,13 @@ class BranchComponent(Component):
                                                                    AREA] * t_init_i1
 
     @classmethod
-    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+    def calculate_pressure_lift(cls, net, branch_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param pipe_pit:
-        :type pipe_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :return:
@@ -265,13 +265,13 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param pipe_pit:
-        :type pipe_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :return:
@@ -279,9 +279,10 @@ class BranchComponent(Component):
         """
         raise NotImplementedError
 
+
     @classmethod
-    def extract_results(cls, net, options, node_name):
-        results = super().extract_results(net, options, node_name)
+    def prepare_result_tables(cls, net, options, node_name):
+        res_table = super().extract_results(net, options, node_name)
 
         f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "branch", "from_to_active")[cls.table_name()]
@@ -289,9 +290,86 @@ class BranchComponent(Component):
         placement_table = np.argsort(net[cls.table_name()].index.values)
         idx_pit = net["_pit"]["branch"][f:t, ELEMENT_IDX]
         pipe_considered = get_lookup(net, "branch", "active")[f:t]
-        idx_sort, active_pipes = _sum_by_group(idx_pit, pipe_considered.astype(np.int32))
+        _, active_pipes = _sum_by_group(idx_pit, pipe_considered.astype(np.int32))
         active_pipes = active_pipes > 0.99
         placement_table = placement_table[active_pipes]
         branch_pit = net["_active_pit"]["branch"][fa:ta, :]
+        return placement_table, branch_pit, res_table
 
-        return placement_table, branch_pit, results
+
+    @classmethod
+    def extract_results(cls, net, options, node_name):
+        placement_table, branch_pit, res_table = cls.prepare_result_tables(net, options, node_name)
+
+        node_pit = net["_active_pit"]["node"]
+        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
+        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
+        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
+            net[cls.table_name()]["from_junction"].values[placement_table]]]
+        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
+            net[cls.table_name()]["to_junction"].values[placement_table]]]
+
+        from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+        p_scale = get_net_option(net, "p_scale")
+        fluid = get_fluid(net)
+
+        v_mps = branch_pit[:, VINIT]
+
+        t0 = node_pit[from_nodes, TINIT_NODE]
+        t1 = node_pit[to_nodes, TINIT_NODE]
+        mf = branch_pit[:, LOAD_VEC_NODES]
+        vf = branch_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
+
+        idx_active = branch_pit[:, ELEMENT_IDX]
+        _, v_sum, mf_sum, vf_sum, internal_pipes = \
+            _sum_by_group(idx_active, v_mps, mf, vf, np.ones_like(idx_active))
+
+        if fluid.is_gas:
+            # derived from the ideal gas law
+            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
+            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
+            numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
+            normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
+                              / (p_from * NORMAL_TEMPERATURE)
+            normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
+                            / (p_to * NORMAL_TEMPERATURE)
+            v_gas_from = v_mps * normfactor_from
+            v_gas_to = v_mps * normfactor_to
+            mask = ~np.isclose(p_from, p_to)
+            p_mean = np.empty_like(p_to)
+            p_mean[~mask] = p_from[~mask]
+            p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
+                           / (p_from[mask] ** 2 - p_to[mask] ** 2)
+            normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
+                              / (p_mean * NORMAL_TEMPERATURE)
+            v_gas_mean = v_mps * normfactor_mean
+
+            _, _, _, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
+            internal_pipes = _sum_by_group(idx_active, v_gas_from, v_gas_to, v_gas_mean,
+                                           normfactor_from, normfactor_to,
+                                           np.ones_like(idx_active))
+
+            v_gas_from_ordered = select_from_pit(from_nodes, from_junction_nodes, v_gas_from)
+            v_gas_to_ordered = select_from_pit(to_nodes, to_junction_nodes, v_gas_to)
+
+            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
+            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
+            res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
+            res_table["normfactor_from"].values[placement_table] = nf_from_sum / internal_pipes
+            res_table["normfactor_to"].values[placement_table] = nf_to_sum / internal_pipes
+        else:
+            res_table["v_mean_m_per_s"].values[placement_table] = v_sum / internal_pipes
+
+        res_table["p_from_bar"].values[placement_table] = node_pit[from_junction_nodes, PINIT]
+        res_table["p_to_bar"].values[placement_table] = node_pit[to_junction_nodes, PINIT]
+        res_table["t_from_k"].values[placement_table] = node_pit[from_junction_nodes, TINIT_NODE]
+        res_table["t_to_k"].values[placement_table] = node_pit[to_junction_nodes, TINIT_NODE]
+        res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
+        res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
+        res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
+        idx_pit = branch_pit[:, ELEMENT_IDX]
+        _, lambda_sum, reynolds_sum, = \
+            _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
+        res_table["lambda"].values[placement_table] = lambda_sum / internal_pipes
+        res_table["reynolds"].values[placement_table] = reynolds_sum / internal_pipes
