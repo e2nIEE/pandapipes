@@ -3,17 +3,17 @@ Change Log
 
 [0.3.0] - 2021-01-07
 -------------------------------
-[ADDED] added bulk create functions for junctions, sinks, sources, pipes (from std_type and parameters) and valves (clean control)
-[ADDED] Automated Testing for Python 3.8 (Travis CI)
-[ADDED] LHV and HHV properties for fuel gases
-[ADDED] multinet functionality to couple a pandapower and pandapipes network
-[ADDED] example gas distribution grid with houses and geodata
-[CHANGED] bypassing for pumps, pressure lift = 0 for negative and very high volume flows
-[CHANGED] pressure lift in pumps now based on p_from (inlet-volume flow)
-[CHANGED] logger level for pipeflow messages is now "debug" instead of "info"
-[CHANGED] usage of generic functions in the create module which are mostly based on pandapower
-[FIXED] all tests pass with pandas > 1.x
-[FIXED] bug fix for ext_grid result extraction in case of unordered connected junctions
+- [ADDED] added bulk create functions for junctions, sinks, sources, pipes (from std_type and parameters) and valves (clean control)
+- [ADDED] Automated Testing for Python 3.8 (Travis CI)
+- [ADDED] LHV and HHV properties for fuel gases
+- [ADDED] multinet functionality to couple a pandapower and pandapipes network
+- [ADDED] example gas distribution grid with houses and geodata
+- [CHANGED] bypassing for pumps, pressure lift = 0 for negative and very high volume flows
+- [CHANGED] pressure lift in pumps now based on p_from (inlet-volume flow)
+- [CHANGED] logger level for pipeflow messages is now "debug" instead of "info"
+- [CHANGED] usage of generic functions in the create module which are mostly based on pandapower
+- [FIXED] all tests pass with pandas > 1.x
+- [FIXED] bug fix for ext_grid result extraction in case of unordered connected junctions
 
 [0.2.0] - 2020-09-03
 -------------------------------
