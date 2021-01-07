@@ -356,8 +356,7 @@ class GasToGasConversion(Controller):
 def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, p2g_efficiency,
                               name_power_net='power', name_gas_net='gas', profile_name=None,
                               data_source=None, scale_factor=1.0, in_service=True,
-                              order=(0, 1), level=0,
-                              drop_same_existing_ctrl=False, set_q_from_cosphi=False,
+                              order=(0, 1), level=0, drop_same_existing_ctrl=False,
                               matching_params=None, initial_run=False, **kwargs):
     """
     Creates a ConstController (load values) and a P2G Controller (corresponding gas mass flows).
@@ -407,10 +406,8 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
     :type drop_same_existing_ctrl: bool
-    :param set_q_from_cosphi: #TODO- delete? (Deprecated)
-    :type set_q_from_cosphi:
-    :param matching_params: #TODO ??
-    :type matching_params:
+    :param matching_params: is required to check if same controller already exists (dropping or logging)
+    :type matching_params: dict
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
     :type initial_run: bool
@@ -425,8 +422,7 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
         net_power, element='load', variable='p_mw', element_index=element_index_power,
         profile_name=profile_name, data_source=data_source, scale_factor=scale_factor,
         in_service=in_service, order=order[0], level=level,
-        drop_same_existing_ctrl=drop_same_existing_ctrl,
-        set_q_from_cosphi=set_q_from_cosphi, matching_params=matching_params,
+        drop_same_existing_ctrl=drop_same_existing_ctrl, matching_params=matching_params,
         initial_run=initial_run, **kwargs)
 
     p2g = P2GControlMultiEnergy(multinet, element_index_power, element_index_gas, p2g_efficiency,
@@ -440,7 +436,6 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
 def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, g2p_efficiency=0.6,
                               name_power_net='power', name_gas_net='gas', element_type_power="sgen",
                               profile_name=None, data_source=None, scale_factor=1.0, power_led=False,
-                              set_q_from_cosphi=False,
                               in_service=True, order=(0, 1), level=0, drop_same_existing_ctrl=False,
                               matching_params=None, initial_run=False, **kwargs):
     """
@@ -493,8 +488,8 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
     :type drop_same_existing_ctrl: bool
-    :param matching_params:  #TODO ??
-    :type matching_params:
+    :param matching_params: is required to check if same controller already exists (dropping or logging)
+    :type matching_params: dict
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
     :type initial_run: bool
@@ -510,16 +505,14 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
             net_power, element='sgen', variable='p_mw', element_index=element_index_power,
             profile_name=profile_name, data_source=data_source, scale_factor=scale_factor,
             in_service=in_service, order=order[0], level=level,
-            drop_same_existing_ctrl=drop_same_existing_ctrl,
-            set_q_from_cosphi=set_q_from_cosphi, matching_params=matching_params,
+            drop_same_existing_ctrl=drop_same_existing_ctrl, matching_params=matching_params,
             initial_run=initial_run, **kwargs)
     else:
         net_gas = multinet['nets'][name_gas_net]
         const = ConstControl(
             net_gas, element='sink', variable='mdot_kg_per_s', element_index=element_index_gas,
             profile_name=profile_name, data_source=data_source,
-            scale_factor=scale_factor,
-            in_service=in_service, order=order[0], level=level,
+            scale_factor=scale_factor, in_service=in_service, order=order[0], level=level,
             drop_same_existing_ctrl=drop_same_existing_ctrl, matching_params=matching_params,
             initial_run=initial_run, **kwargs)
     g2p = G2PControlMultiEnergy(multinet, element_index_power, element_index_gas, g2p_efficiency,
