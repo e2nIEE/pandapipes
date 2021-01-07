@@ -94,5 +94,6 @@ def get_default_multinet_structure():
                        ('in_service', "bool"),
                        ('order', "float64"),
                        ('level', dtype(object)),
+                       ('initial_run', "bool"),
                        ("recycle", "bool")]}
     return default_multinet_structure
