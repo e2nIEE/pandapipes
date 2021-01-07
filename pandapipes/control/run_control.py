@@ -6,8 +6,7 @@ from pandapower.control import run_control as run_control_pandapower, prepare_ru
 import pandapipes as ppipe
 from pandapipes.pipeflow import PipeflowNotConverged
 
-def run_control(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence=False,
-                      **kwargs):
+def run_control(net, ctrl_variables=None, max_iter=30, **kwargs):
     """
     Function to run a control of the pandapipes network.
 
@@ -17,8 +16,6 @@ def run_control(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence
     :type ctrl_variables: dict, default None
     :param max_iter: Maximal amount of iterations
     :type max_iter: int, default 30
-    :param continue_on_lf_divergence: ?
-    :type continue_on_lf_divergence: bool, default False
     :param kwargs: Additional keyword arguments
     :type kwargs: dict
     :return: No output
@@ -26,9 +23,7 @@ def run_control(net, ctrl_variables=None, max_iter=30, continue_on_lf_divergence
     if ctrl_variables is None:
         ctrl_variables = prepare_run_ctrl(net, None)
 
-
-    run_control_pandapower(net, ctrl_variables=ctrl_variables, max_iter=max_iter,
-                           continue_on_lf_divergence=continue_on_lf_divergence, **kwargs)
+    run_control_pandapower(net, ctrl_variables=ctrl_variables, max_iter=max_iter, **kwargs)
 
 
 def prepare_run_ctrl(net, ctrl_variables):
