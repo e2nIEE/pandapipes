@@ -11,8 +11,8 @@ from pandapipes.pipeflow_setup import get_fluid
 
 class Valve(BranchWZeroLengthComponent):
     """
-    Valves are branch elements that can separate two junctions. They have a length of 0, but can
-    introduce a lumped pressure loss.
+    Valves are branch elements that can separate two junctions.
+    They have a length of 0, but can introduce a lumped pressure loss.
     """
 
     @classmethod
