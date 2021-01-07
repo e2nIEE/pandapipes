@@ -75,7 +75,6 @@ class P2GControlMultiEnergy(Controller):
         self.mdot_kg_per_s = None
         self.fluid = get_fluid(multinet['nets'][name_gas_net])
         self.fluid_calorific_value = self.fluid.get_property('hhv')
-        self.initial_run = initial_run
         self.applied = False
 
     def initialize_control(self, multinet):
@@ -191,7 +190,6 @@ class G2PControlMultiEnergy(Controller):
         self.mdot_kg_per_s = None
         self.fluid = get_fluid(multinet['nets'][name_gas_net])
         self.fluid_calorific_value = self.fluid.get_property('hhv')
-        self.initial_run = initial_run
         self.el_power_led = calc_gas_from_power
         self.applied = False
 
@@ -315,7 +313,6 @@ class GasToGasConversion(Controller):
         self.efficiency = efficiency
         self.gas1_calorific_value = get_fluid(multinet['nets'][name_gas_net_from]).get_property('hhv')
         self.gas2_calorific_value = get_fluid(multinet['nets'][name_gas_net_to]).get_property('hhv')
-        self.initial_run = initial_run
         self.applied = False
 
     def initialize_control(self, multinet):
