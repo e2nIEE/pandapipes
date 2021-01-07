@@ -3,17 +3,27 @@ Change Log
 
 [0.3.0] - 2021-01-07
 -------------------------------
-- [ADDED] added bulk create functions for junctions, sinks, sources, pipes (from std_type and parameters) and valves (clean control)
-- [ADDED] Automated Testing for Python 3.8 (Travis CI)
+- [ADDED] added bulk create functions for junctions, sinks, sources, pipes (from std_type and parameters) and valves (clean control)
+- [ADDED] automated Testing for Python 3.8
+- [ADDED] github action tests added
 - [ADDED] LHV and HHV properties for fuel gases
 - [ADDED] multinet functionality to couple a pandapower and pandapipes network
 - [ADDED] example gas distribution grid with houses and geodata
+- [ADDED] compressibility values for hydrogen
+- [ADDED] create graph added to topology
 - [CHANGED] bypassing for pumps, pressure lift = 0 for negative and very high volume flows
-- [CHANGED] pressure lift in pumps now based on p_from (inlet-volume flow)
+- [CHANGED] pressure lift in pumps now based on p_from (inlet-volume flow)
 - [CHANGED] logger level for pipeflow messages is now "debug" instead of "info"
 - [CHANGED] usage of generic functions in the create module which are mostly based on pandapower
+- [CHANGED] renaming component_models.py into base_component.py
+- [CHANGED] removing extract_results from pipe, heat_exchanger and valve up to the abstract file branch_models.py
+- [CHANGED] adding initial_run to net.controller and removing initial_run and recycle from all controllers
+- [CHANGED] updating run_control and run_timeseries in order to minimize duplicated code between pandapower and pandapipes
+- [CHANGED] update of generic geodata creation in plotting
+- [CHANGED] addding initial pressure and volume values as well as its chosen regression polynomial degree to each pump
 - [FIXED] all tests pass with pandas > 1.x
 - [FIXED] bug fix for ext_grid result extraction in case of unordered connected junctions
+- [FIXED] problem of not converging pipeflow solved if there are no branches
 
 [0.2.0] - 2020-09-03
 -------------------------------
