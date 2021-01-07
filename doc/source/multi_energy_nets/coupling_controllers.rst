@@ -35,9 +35,9 @@ consumption units in different grids. They are not able to read external input d
 .csv files with profile data. Thus, for time series calculation, a ConstController is attached
 to the input side of the coupled elements. The ConstController reads profile data from a
 datasource and writes it to a dedicated element in the net (the input side of the coupled
-elements). Afterwards, the P2G or G2P is called to calculate the corresponding output values to the
-other net. With the following functions, matching pairs of ConstControllers and P2G/G2P
-controllers can be created conveniently.
+elements). Afterwards, the P2G or G2P controller is called to calculate the corresponding output
+values to the other net. With the following functions, matching pairs of ConstControllers and
+P2G/G2P controllers can be created conveniently.
 
 .. note:: The `order` tuple (0, 1) is important to ensure that the profile values are updated before
           the output is calculated, based on the updated values.

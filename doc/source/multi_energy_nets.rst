@@ -1,8 +1,8 @@
 .. _me_networks:
 
-########
+#####################
 Multi Energy Networks
-########
+#####################
 
 
 With pandapipes and pandapower, it is possible to calculate gas and power networks that are
