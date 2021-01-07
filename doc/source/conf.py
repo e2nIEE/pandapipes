@@ -23,7 +23,8 @@ master_doc = 'index'
 # -- Project information -----------------------------------------------------
 
 project = 'pandapipes'
-copyright = '2020 by Fraunhofer Institute for Energy Economics and Energy System Technology (IEE), Kassel. '
+copyright = '2020-2021 by Fraunhofer Institute for Energy Economics \
+             and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.'
 
 
 
