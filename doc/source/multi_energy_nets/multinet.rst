@@ -2,7 +2,7 @@
 Multinet
 ********
 
-A MultiNet serves a 'container' for different pandapipes & pandapower nets and coupling controllers.
+A MultiNet serves as 'container' for different pandapipes & pandapower nets and coupling controllers.
 More precisely, it is an dictionary with attribute properties (ADict).
 
 Usually, a multinet is a multi energy net with one net per energy carrier.
