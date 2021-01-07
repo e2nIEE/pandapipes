@@ -257,6 +257,8 @@ def prepare_run_ctrl(multinet, ctrl_variables):
         ctrl_variables[net_name]['errors'] = ctrl_variables_net['errors']
         ctrl_variables[net_name]['initial_run'] = ctrl_variables[net_name]['initial_run'] if \
             ctrl_variables[net_name]['initial_run'] is not None else ctrl_variables_net['initial_run']
+        ctrl_variables[net_name]['only_v_results'], ctrl_variables[net_name]['recycle'] = \
+            get_recycle(ctrl_variables_net)
 
     ctrl_variables['errors'] = (NetCalculationNotConverged,)
 
