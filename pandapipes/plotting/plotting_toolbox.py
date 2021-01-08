@@ -1,7 +1,6 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
 
 def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.0, source_size=1.0,
                          valve_size=2.0, pump_size=1.0, heat_exchanger_size=1.0, pressure_control_size=1.0):

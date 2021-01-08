@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import matplotlib.pyplot as plt
@@ -10,11 +10,10 @@ from pandapipes.component_models.auxiliaries.component_toolbox import p_correcti
     vinterp
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, \
-    VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, PL, TL
-from pandapipes.idx_node import ELEMENT_IDX, PINIT, HEIGHT, TINIT as TINIT_NODE, \
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
+    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, PL, TL
+from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
-from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
 
 try:
@@ -178,95 +177,6 @@ class Pipe(BranchWInternalsComponent):
         pipe_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
-        """
-        Function that extracts certain results.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param options:
-        :type options:
-        :param node_name:
-        :type node_name:
-        :return: No Output.
-        """
-
-        placement_table, pipe_pit, res_table = super().extract_results(net, options, node_name)
-
-        node_pit = net["_active_pit"]["node"]
-        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
-        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
-        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["from_junction"].values[placement_table]]]
-        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["to_junction"].values[placement_table]]]
-
-        from_nodes = pipe_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = pipe_pit[:, TO_NODE].astype(np.int32)
-        p_scale = get_net_option(net, "p_scale")
-        fluid = get_fluid(net)
-
-        v_mps = pipe_pit[:, VINIT]
-
-        t0 = node_pit[from_nodes, TINIT_NODE]
-        t1 = node_pit[to_nodes, TINIT_NODE]
-        mf = pipe_pit[:, LOAD_VEC_NODES]
-        vf = pipe_pit[:, LOAD_VEC_NODES] / fluid.get_density((t0 + t1) / 2)
-
-        idx_active = pipe_pit[:, ELEMENT_IDX]
-        idx_sort, v_sum, mf_sum, vf_sum, internal_pipes = \
-            _sum_by_group(idx_active, v_mps, mf, vf, np.ones_like(idx_active))
-
-        if fluid.is_gas:
-            # derived from the ideal gas law
-            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
-            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
-            numerator = NORMAL_PRESSURE * pipe_pit[:, TINIT]
-            normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                / (p_from * NORMAL_TEMPERATURE)
-            normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                / (p_to * NORMAL_TEMPERATURE)
-            v_gas_from = v_mps * normfactor_from
-            v_gas_to = v_mps * normfactor_to
-            mask = ~np.isclose(p_from, p_to)
-            p_mean = np.empty_like(p_to)
-            p_mean[~mask] = p_from[~mask]
-            p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
-                / (p_from[mask] ** 2 - p_to[mask] ** 2)
-            normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                / (p_mean * NORMAL_TEMPERATURE)
-            v_gas_mean = v_mps * normfactor_mean
-
-            idx_sort, v_gas_from_sum, v_gas_to_sum, v_gas_mean_sum, nf_from_sum, nf_to_sum, \
-                internal_pipes = _sum_by_group(idx_active, v_gas_from, v_gas_to, v_gas_mean,
-                                               normfactor_from, normfactor_to,
-                                               np.ones_like(idx_active))
-
-            v_gas_from_ordered = select_from_pit(from_nodes, from_junction_nodes, v_gas_from)
-            v_gas_to_ordered = select_from_pit(to_nodes, to_junction_nodes, v_gas_to)
-
-            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
-            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
-            res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
-            res_table["normfactor_from"].values[placement_table] = nf_from_sum / internal_pipes
-            res_table["normfactor_to"].values[placement_table] = nf_to_sum / internal_pipes
-        else:
-            res_table["v_mean_m_per_s"].values[placement_table] = v_sum / internal_pipes
-
-        res_table["p_from_bar"].values[placement_table] = node_pit[from_junction_nodes, PINIT]
-        res_table["p_to_bar"].values[placement_table] = node_pit[to_junction_nodes, PINIT]
-        res_table["t_from_k"].values[placement_table] = node_pit[from_junction_nodes, TINIT_NODE]
-        res_table["t_to_k"].values[placement_table] = node_pit[to_junction_nodes, TINIT_NODE]
-        res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
-        res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
-        res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
-        idx_pit = pipe_pit[:, ELEMENT_IDX]
-        idx_sort, lambda_sum, reynolds_sum, = \
-            _sum_by_group(idx_pit, pipe_pit[:, LAMBDA], pipe_pit[:, RE])
-        res_table["lambda"].values[placement_table] = lambda_sum / internal_pipes
-        res_table["reynolds"].values[placement_table] = reynolds_sum / internal_pipes
-
-    @classmethod
     def get_internal_results(cls, net, pipe):
         """
         Retrieve velocity (at to/from node; mean), pressure and temperature of the internal sections
@@ -327,11 +237,11 @@ class Pipe(BranchWInternalsComponent):
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
                 normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                    / (p_mean * NORMAL_TEMPERATURE)
+                                  / (p_mean * NORMAL_TEMPERATURE)
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                    / (p_from * NORMAL_TEMPERATURE)
+                                  / (p_from * NORMAL_TEMPERATURE)
                 normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                    / (p_to * NORMAL_TEMPERATURE)
+                                  / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean
                 v_pipe_data_from = v_pipe_data * normfactor_from

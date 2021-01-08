@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from setuptools import find_packages
@@ -41,7 +41,9 @@ setup(
     long_description=long_description,
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.4.0", "matplotlib"],
+    install_requires=[
+        "pandapower @ git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower",
+        "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "python-igraph"],
                     "test": ["pytest", "pytest-xdist"]},

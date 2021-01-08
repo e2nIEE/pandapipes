@@ -1,9 +1,11 @@
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 import numpy as np
 
-
 def _sum_by_group_sorted(indices, *values):
-    """
-    Auxiliary function to sum up values by some given indices (both as numpy arrays). Expects the
+    """Auxiliary function to sum up values by some given indices (both as numpy arrays). Expects the
     indices and values to already be sorted.
 
     :param indices:
@@ -13,7 +15,6 @@ def _sum_by_group_sorted(indices, *values):
     :return:
     :rtype:
     """
-
     # Index defines whether a specific index has already appeared in the index array before.
     index = np.ones(len(indices), 'bool')
     index[:-1] = indices[1:] != indices[:-1]
@@ -22,7 +23,7 @@ def _sum_by_group_sorted(indices, *values):
     indices = indices[index]
 
     val = list(values)
-    for i in range(len(val)):
+    for i, _ in enumerate(val):
         # sum up values, chose only those with unique indices and then subtract the previous sums
         # --> this way for each index the sum of all values belonging to this index is returned
         np.cumsum(val[i], out=val[i])
@@ -47,7 +48,7 @@ def _sum_by_group(indices, *values):
     order = np.argsort(indices)
     indices = indices[order]
     val = list(values)
-    for i in range(len(val)):
+    for i, _ in enumerate(val):
         val[i] = val[i][order]
 
     return _sum_by_group_sorted(indices, *val)

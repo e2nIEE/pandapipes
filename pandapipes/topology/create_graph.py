@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2016-2020 by University of Kassel and Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import networkx as nx
 import numpy as np
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapower.topology.create_graph import add_edges, get_edge_table
+
+from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 
 try:
     import pplog as logging
@@ -91,7 +91,6 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
             (in_service) will always be considered, unless stated explicitly. The weighting by \
             default is 0, but can be changed with the help of a function, as it is done with pipes.
     """
-
     if multi:
         mg = nx.MultiGraph()
     else:

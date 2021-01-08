@@ -1,7 +1,6 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
 
 import numpy as np
 from pandapipes.component_models import ExtGrid, Pipe, Sink, Source, Junction
@@ -66,7 +65,7 @@ def build_igraph_from_ppipes(net, junctions=None):
                        weight=0.001)
 
     meshed = _igraph_meshed(g)
-    roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values]
+    roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]
     return g, meshed, roots  # g, (not g.is_dag())
 
 
@@ -95,7 +94,7 @@ def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="ju
     _prepare_geodata_table(net, geodata_table, overwrite)
 
     if library == "igraph":
-        graph, meshed, roots = build_igraph_from_ppipes(net)
+        graph, meshed, roots = build_igraph_from_ppipes(net, junctions=junctions)
         coords = coords_from_igraph(graph, roots, meshed)
     elif library == "networkx":
         logger.warning("The networkx implementation is not working currently!")
