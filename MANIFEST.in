@@ -1,4 +1,4 @@
-include LICENSE AUTHORS README.rst CHANGELOG.rst .travis.yml
+include LICENSE AUTHORS README.rst CHANGELOG.rst .travis.yml .github/**/*.yml
 global-include *.json
 global-include *.csv
 global-include *.txt
