@@ -33,7 +33,7 @@ long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.2.0',
+    version='0.3.0',
     author='Dennis Cronbach, Daniel Lohmeier, Simon Ruben Drauz',
     author_email='dennis.cronbach@iee.fraunhofer.de, daniel.lohmeier@iee.fraunhofer.de, '
                  'simon.ruben.drauz@iee.fraunhofer.de',
