@@ -10,9 +10,9 @@ License
 pandapipes is published under the following 3-clause BSD license: ::
 
 
-    Copyright (c) 2020 by Fraunhofer Institute for Energy Economics and
+    Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics and
     Energy System Technology (IEE) Kassel and individual contributors
-   (see AUTHORS file for details). All rights reserved.
+    (see AUTHORS file for details). All rights reserved.
 
     Redistribution and use in source and binary forms, with or without modification, are permitted 
     provided that the following conditions are met:
