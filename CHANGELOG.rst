@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[0.3.0] - 2021-01-07
+[0.3.0] - 2021-01-08
 -------------------------------
 - [ADDED] added bulk create functions for junctions, sinks, sources, pipes (from std_type and parameters) and valves (clean control)
 - [ADDED] automated Testing for Python 3.8
