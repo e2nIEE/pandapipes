@@ -39,11 +39,10 @@ setup(
                  'simon.ruben.drauz@iee.fraunhofer.de, jolando.kisse@uni-kassel.de',
     description='A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids',
     long_description=long_description,
+	long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=[
-        "pandapower @ git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower",
-        "matplotlib"],
+    install_requires=["pandapower>=2.5.0", "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "python-igraph"],
                     "test": ["pytest", "pytest-xdist"]},
