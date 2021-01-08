@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
@@ -11,11 +11,6 @@ from pandapipes.pipeflow_setup import add_table_lookup
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
-
-try:
     import pplog as logging
 except ImportError:
     import logging
@@ -24,13 +19,37 @@ logger = logging.getLogger(__name__)
 
 
 class BranchWOInternalsComponent(BranchComponent):
-    """
-
-    """
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
-                              current_start):
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
         """
         Function which creates branch lookups.
 
@@ -61,10 +80,10 @@ class BranchWOInternalsComponent(BranchComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param valve_pit:
-        :type valve_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param branch_wo_internals_pit:
+        :type branch_wo_internals_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         branch_wo_internals_pit, node_pit, from_nodes, to_nodes \

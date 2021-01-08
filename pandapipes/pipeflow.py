@@ -1,10 +1,12 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
 
 import numpy as np
 from numpy import linalg
+from pandapipes.component_models import Junction
+from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
+    BranchComponent, BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
@@ -13,11 +15,8 @@ from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_o
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     extract_results_active_pit, set_user_pf_options
-from scipy.sparse.linalg import spsolve
-from pandapipes.component_models import Junction
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
-    BranchComponent, BranchWInternalsComponent
 from pandapower.auxiliary import ppException
+from scipy.sparse.linalg import spsolve
 
 try:
     import pplog as logging
@@ -70,8 +69,9 @@ def pipeflow(net, sol_vec=None, **kwargs):
     node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
                                           NodeComponent, NodeElementComponent,
                                           BranchComponent, BranchWInternalsComponent)
-    if ((len(node_pit) == 0) & (len(branch_pit) == 0)):
-        logger.warning("There are no node and branch entries defined. It might be that your net is empty")
+    if (len(node_pit) == 0) & (len(branch_pit) == 0):
+        logger.warning("There are no node and branch entries defined. This might mean that your net"
+                       " is empty")
         return
     calculation_mode = get_net_option(net, "mode")
 
@@ -85,20 +85,20 @@ def pipeflow(net, sol_vec=None, **kwargs):
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
     if calculation_mode == "hydraulics":
-        niter = hydraulics(net)
+        hydraulics(net)
     elif calculation_mode == "heat":
         if net.user_pf_options["hyd_flag"]:
             node_pit = net["_active_pit"]["node"]
             node_pit[:, PINIT] = sol_vec[:len(node_pit)]
             branch_pit = net["_active_pit"]["branch"]
             branch_pit[:, VINIT] = sol_vec[len(node_pit):]
-            niter = heat_transfer(net)
+            heat_transfer(net)
         else:
             logger.warning("Converged flag not set. Make sure that hydraulic calculation results "
                            "are available.")
     elif calculation_mode == "all":
-        niter = hydraulics(net)
-        niter = heat_transfer(net)
+        hydraulics(net)
+        heat_transfer(net)
     else:
         logger.warning("No proper calculation mode chosen.")
 
@@ -107,8 +107,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
 
 def hydraulics(net):
-    max_iter, nonlinear_method, tol_p, tol_v, tol_t, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_T", "tol_res")
+    max_iter, nonlinear_method, tol_p, tol_v, tol_res = get_net_options(
+        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
@@ -122,7 +122,7 @@ def hydraulics(net):
 
     # This loop is left as soon as the solver converged
     while not get_net_option(net, "converged") and niter <= max_iter:
-        logger.info("niter %d" % niter)
+        logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
         v_init, p_init, v_init_old, p_init_old, epsilon = solve_hydraulics(net)
@@ -132,7 +132,7 @@ def hydraulics(net):
         dp_init = np.abs(p_init - p_init_old)
 
         residual_norm = (linalg.norm(epsilon) / (len(epsilon)))
-        error_v.append(linalg.norm(dv_init) / (len(dv_init)))
+        error_v.append(linalg.norm(dv_init) / (len(dv_init)) if len(dv_init) else 0)
         error_p.append(linalg.norm(dp_init / (len(dp_init))))
 
         # Control of damping factor
@@ -160,17 +160,18 @@ def hydraulics(net):
     write_internal_results(net, iterations=niter, error_p=error_p[niter - 1],
                            error_v=error_v[niter - 1], residual_norm=residual_norm)
 
-    logger.info("---------------------------------------------------------------------------------")
+    logger.debug(
+        "---------------------------------------------------------------------------------")
     if get_net_option(net, "converged") is False:
         logger.warning("Maximum number of iterations reached but hydraulics solver did not "
                        "converge.")
-        logger.info("Norm of residual: %s" % residual_norm)
+        logger.debug("Norm of residual: %s" % residual_norm)
     else:
-        logger.info("Calculation completed. Preparing results...")
-        logger.info("Converged after %d iterations." % niter)
-        logger.info("Norm of residual: %s" % residual_norm)
-        logger.info("tol_p: %s" % get_net_option(net, "tol_p"))
-        logger.info("tol_v: %s" % get_net_option(net, "tol_v"))
+        logger.debug("Calculation completed. Preparing results...")
+        logger.debug("Converged after %d iterations." % niter)
+        logger.debug("Norm of residual: %s" % residual_norm)
+        logger.debug("tol_p: %s" % get_net_option(net, "tol_p"))
+        logger.debug("tol_v: %s" % get_net_option(net, "tol_v"))
         net['converged'] = True
 
     if not get_net_option(net, "reuse_internal_data"):
@@ -181,8 +182,8 @@ def hydraulics(net):
 
 
 def heat_transfer(net):
-    max_iter, nonlinear_method, tol_p, tol_v, tol_t, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_T", "tol_res")
+    max_iter, nonlinear_method, tol_t, tol_res = get_net_options(
+        net, "iter", "nonlinear_method", "tol_T", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
@@ -198,7 +199,7 @@ def heat_transfer(net):
 
     # This loop is left as soon as the solver converged
     while not get_net_option(net, "converged") and niter <= max_iter:
-        logger.info("niter %d" % niter)
+        logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
         t_out, t_out_old, t_init, t_init_old, epsilon = solve_temperature(net)
@@ -239,16 +240,17 @@ def heat_transfer(net):
 
     write_internal_results(net, iterations_T=niter, error_T=error_t[niter - 1],
                            residual_norm_T=residual_norm)
-    logger.info("---------------------------------------------------------------------------------")
+    logger.debug(
+        "---------------------------------------------------------------------------------")
     if get_net_option(net, "converged") is False:
         logger.warning("Maximum number of iterations reached but heat transfer solver did not "
                        "converge.")
-        logger.info("Norm of residual: %s" % residual_norm)
+        logger.debug("Norm of residual: %s" % residual_norm)
     else:
-        logger.info("Calculation completed. Preparing results...")
-        logger.info("Converged after %d iterations." % niter)
-        logger.info("Norm of residual: %s" % residual_norm)
-        logger.info("tol_T: %s" % get_net_option(net, "tol_T"))
+        logger.debug("Calculation completed. Preparing results...")
+        logger.debug("Converged after %d iterations." % niter)
+        logger.debug("Norm of residual: %s" % residual_norm)
+        logger.debug("tol_T: %s" % get_net_option(net, "tol_T"))
 
         net['converged'] = True
 

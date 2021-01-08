@@ -1,24 +1,11 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-
-import copy
-
-import pandas as pd
+import numpy as np
 from pandapipes.component_models import ExtGrid, Pipe, Sink, Source, Junction
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
-                                                _prepare_geodata_table, \
-                                                _get_element_mask_from_nodes,\
-                                                _igraph_meshed
-
-import numpy as np
-try:
-    import igraph
-
-    IGRAPH_INSTALLED = True
-except ImportError:
-    IGRAPH_INSTALLED = False
+    _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
 try:
     import pplog as logging
@@ -70,25 +57,20 @@ def build_igraph_from_ppipes(net, junctions=None):
     for comp in net['component_list']:
         if comp in [Source, Sink, ExtGrid, Pipe, Junction]:
             continue
-        mask = _get_element_mask_from_nodes(net, comp.table_name(),
-                                            ["from_junction", "to_junction"], 
-                                            junctions)
+        mask = _get_element_mask_from_nodes(
+            net, comp.table_name(), ["from_junction", "to_junction"], junctions)
         for comp_data in net[comp.table_name()][mask].itertuples():
             g.add_edge(pp_junction_mapping[comp_data.from_junction],
                        pp_junction_mapping[comp_data.to_junction],
                        weight=0.001)
 
-
     meshed = _igraph_meshed(g)
-        
-    roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values]
+    roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]
     return g, meshed, roots  # g, (not g.is_dag())
 
 
-def create_generic_coordinates(net, mg=None, library="igraph",
-                               geodata_table="junction_geodata",
-                               junctions=None,
-                               overwrite=False):
+def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="junction_geodata",
+                               junctions=None, overwrite=False):
     """
     This function will add arbitrary geo-coordinates for all junctions based on an analysis of
     branches and rings. It will remove out of service junctions/pipes from the net. The coordinates
@@ -112,10 +94,7 @@ def create_generic_coordinates(net, mg=None, library="igraph",
     _prepare_geodata_table(net, geodata_table, overwrite)
 
     if library == "igraph":
-        if not IGRAPH_INSTALLED:
-            raise UserWarning("The library igraph is selected for plotting, but not installed "
-                              "correctly.")
-        graph, meshed, roots = build_igraph_from_ppipes(net)
+        graph, meshed, roots = build_igraph_from_ppipes(net, junctions=junctions)
         coords = coords_from_igraph(graph, roots, meshed)
     elif library == "networkx":
         logger.warning("The networkx implementation is not working currently!")

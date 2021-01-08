@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2016-2020 by University of Kassel and Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from packaging import version
 
@@ -22,7 +21,7 @@ def convert_format(net):
     if isinstance(net.version, str) and version.parse(net.version) >= version.parse(__version__):
         return net
     _rename_columns(net)
-    _update_initial_run(net)
+    _add_missing_columns(net)
     net.version = __version__
     return net
 
@@ -37,11 +36,11 @@ def _rename_columns(net):
         net["controller"].rename(columns={"controller": "object"}, inplace=True)
 
 
-def _update_initial_run(net):
-    if "controller" in net:
-        for ctrl in net.controller.object.values:
-            if hasattr(ctrl, 'initial_pipeflow'):
-                logger.warning(
-                    "initial_pipeflow is deprecated, but it is still an attribute in your controllers. "
-                    "It will be removed in the future. Please use initial_run instead!")
-                ctrl.initial_run = ctrl.initial_pipeflow
+def _add_missing_columns(net):
+    if "initial_run" not in net.controller:
+        net.controller.insert(4, 'initial_run', False)
+        for _, ctrl in net.controller.iterrows():
+            if hasattr(ctrl['object'], 'initial_run'):
+                net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
+            else:
+                net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow

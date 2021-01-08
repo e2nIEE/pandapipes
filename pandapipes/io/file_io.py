@@ -1,28 +1,19 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import json
 import os
 import pickle
+from functools import partial
 
-try:
-    from fiona.crs import from_epsg
-    from geopandas import GeoDataFrame, GeoSeries
-    from shapely.geometry import Point, LineString
-
-    GEOPANDAS_INSTALLED = True
-except ImportError:
-    GEOPANDAS_INSTALLED = False
-
-from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
-from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
 from pandapower.io_utils import pp_hook
-from pandapipes.create import create_empty_network
-from functools import partial
+
 from pandapipes.io.convert_format import convert_format
+from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
+from pandapipes.pandapipes_net import pandapipesNet
 
 
 def to_pickle(net, filename):
@@ -106,6 +97,8 @@ def from_json(filename, convert=True):
 
     :param filename: The absolute or relative path to the input file or file-like object
     :type filename: str, file-object
+    :param convert: whether or not to convert the format from earlier versions
+    :type convert: bool
     :return: net - The pandapipes network that was saved as JSON
     :rtype: pandapipesNet
 
@@ -132,6 +125,8 @@ def from_json_string(json_string, convert=False):
 
     :param json_string: The JSON string representation of the network
     :type json_string: str
+    :param convert: whether or not to convert the format from earlier versions
+    :type convert: bool
     :return: net - The pandapipes network that was contained in the JSON string
     :rtype: pandapipesNet
 
@@ -140,8 +135,7 @@ def from_json_string(json_string, convert=False):
         >>> net = pandapipes.from_json_string(json_str)
 
     """
-    net = create_empty_network()
-    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook, net=net,
+    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook,
                                                                          registry_class=FromSerializableRegistryPpipe))
 
     if convert:

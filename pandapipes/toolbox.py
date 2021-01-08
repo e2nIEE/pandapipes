@@ -1,13 +1,14 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.pandapipes_net import pandapipesNet, logger
+from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
 
@@ -210,7 +211,10 @@ def reindex_elements(net, element, new_indices, old_indices=None):
     old_indices = old_indices if old_indices is not None else net[element].index
     if not len(new_indices) or not net[element].shape[0]:
         return
-    assert len(new_indices) == len(old_indices)
+    if len(new_indices) != len(old_indices):
+        raise UserWarning("The length of new indices to replace existing ones for %s does not "
+                          "match: %d (new) vs. %d (old)."
+                          % (element, len(new_indices), len(old_indices)))
     lookup = dict(zip(old_indices, new_indices))
 
     if element == "junction":

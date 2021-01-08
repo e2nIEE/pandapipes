@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
@@ -158,7 +158,7 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
     if cmap is not None:
         if z is None:
             z = net.res_pipe.v_mean_m_per_s.loc[pipes_with_geo]
-        add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim)
+        add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim=clim)
 
     return lc
 
@@ -273,7 +273,7 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
     return ext_grid_pc, ext_grid_lc
 
 
-def create_heat_exchanger_collection(net, hex=None, size=5., junction_geodata=None, color='k',
+def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodata=None, color='k',
                                      infofunc=None, picker=False, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction heat_exchangers.
@@ -300,11 +300,11 @@ def create_heat_exchanger_collection(net, hex=None, size=5., junction_geodata=No
     :return: heat_exchanger, helper_lines
     :rtype: tuple of patch collections
     """
-    hex = get_index_array(hex, net.heat_exchanger.index)
-    hex_table = net.heat_exchanger.loc[hex]
+    heat_ex = get_index_array(heat_ex, net.heat_exchanger.index)
+    hex_table = net.heat_exchanger.loc[heat_ex]
 
     coords, hex_with_geo = coords_from_node_geodata(
-        hex, hex_table.from_junction.values, hex_table.to_junction.values,
+        heat_ex, hex_table.from_junction.values, hex_table.to_junction.values,
         junction_geodata if junction_geodata is not None else net["junction_geodata"],
         "heat_exchanger", "Junction")
 

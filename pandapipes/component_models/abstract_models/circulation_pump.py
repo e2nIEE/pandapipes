@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
@@ -30,9 +30,11 @@ class CirculationPump(ExtGrid):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
-        res_table, circ_pump, index_nodes_from, node_pit, branch_pit = \
+        res_table, circ_pump, index_nodes_from, node_pit, _ = \
             super().extract_results(net, options, node_name)
 
         index_juncts_to = circ_pump.to_junction.values

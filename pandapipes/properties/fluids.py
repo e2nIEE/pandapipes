@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
@@ -47,6 +47,13 @@ class Fluid(JSONSerializableClass):
                                "cause problems when trying to ask for values." % prop_name)
 
     def __repr__(self):
+        """
+        Definition of fluid representation in the console.
+
+        :return: representation of fluid in the console
+        :rtype: str
+        """
+
         r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
         for key in self.all_properties.keys():
             r += "\n   - %s (%s)" %(key, self.all_properties[key].__class__.__name__[13:])
@@ -170,6 +177,9 @@ class FluidProperty(JSONSerializableClass):
     """
 
     def __init__(self):
+        """
+
+        """
         super().__init__()
 
     def get_property(self, *args):
@@ -241,7 +251,7 @@ class FluidPropertyInterExtra(FluidProperty):
         return d
 
     @classmethod
-    def from_dict(cls, d, net):
+    def from_dict(cls, d):
         obj = JSONSerializableClass.__new__(cls)
         d2 = {cls.prop_getter_entries[k]: v for k, v in d.items()
               if k in cls.prop_getter_entries.keys()}
@@ -333,7 +343,7 @@ class FluidPropertyLinear(FluidProperty):
             >>> comp_fact = get_fluid(net).get_property("compressibility", p_bar)
 
         """
-        if type(arg) == pd.Series:
+        if isinstance(arg, pd.Series):
             return self.offset + self.slope * arg.values
         else:
             return self.offset + self.slope * np.array(arg)
@@ -444,7 +454,7 @@ def call_lib(fluid):
             os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
 
     liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen"]
+    gases = ["air", "lgas", "hgas", "hydrogen", "methane"]
 
     if fluid == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
@@ -453,6 +463,8 @@ def call_lib(fluid):
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
                              "implemented yet." % fluid)
 
+    phase = "liquid" if fluid in liquids else "gas"
+
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
     heat_capacity = interextra_property("heat_capacity")
@@ -460,11 +472,17 @@ def call_lib(fluid):
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
 
-    phase = "liquid" if fluid in liquids else "gas"
-    return Fluid(fluid, phase, density=density, viscosity=viscosity, heat_capacity=heat_capacity,
-                 molar_mass=molar_mass,
-                 compressibility=compr, der_compressibility=der_compr)
+    if (phase == 'gas') & (fluid != 'air'):
+        lhv = constant_property("lower_heating_value")
+        hhv = constant_property("higher_heating_value")
 
+        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass,
+                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
+    else:
+        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+                     heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
+                     der_compressibility=der_compr)
 
 def get_fluid(net):
     """
@@ -495,7 +513,8 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
     :param overwrite: If True, an existing fluid will just be overwritten, otherwise a warning is\
         printed out and the fluid is not reset.
     :type overwrite: bool, default True
-    :return: Not output.
+    :return: No output.
+    :type: None
     """
     if "fluid" in net and net["fluid"] is not None and not overwrite:
         fluid_msg = "an existing fluid" if not hasattr(net["fluid"], "name") \

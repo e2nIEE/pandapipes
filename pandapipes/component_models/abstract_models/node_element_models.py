@@ -1,12 +1,8 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-try:
-    from numba import jit
-except ImportError:
-    from pandapower.pf.no_numba import jit
-from pandapipes.component_models.abstract_models.component_models import Component
+from pandapipes.component_models.abstract_models.base_component import Component
 
 try:
     import pplog as logging
@@ -30,6 +26,8 @@ class NodeElementComponent(Component):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         raise NotImplementedError

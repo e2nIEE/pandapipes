@@ -1,11 +1,11 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 import pandas as pd
-from pandapipes.constants import NORMAL_PRESSURE, R_UNIVERSAL, \
-    MOLAR_MASS_AIR, GRAVITATION_CONSTANT, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, HEIGHT_EXPONENT
+from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
+    HEIGHT_EXPONENT
 
 
 def p_correction_height_air(height):

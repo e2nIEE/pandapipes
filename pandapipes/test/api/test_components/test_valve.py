@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import pandapipes
@@ -50,19 +50,19 @@ def test_valve():
                         tol_v=1e-4)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_valve.csv"), sep=';')
-    data['p'].dropna(inplace=True)
-    data['v'].dropna(inplace=True)
+    data_p = data['p'].dropna(inplace=False)
+    data_v = data['v'].dropna(inplace=False)
 
     res_junction = net.res_junction.p_bar.values
     res_pipe = net.res_pipe.v_mean_m_per_s.values
     zeros = res_pipe == 0
-    test_zeros = data['v'].values == 0
+    test_zeros = data_v.values == 0
     check_zeros = zeros == test_zeros
 
     assert np.all(check_zeros)
 
-    p_diff = np.abs(1 - res_junction / data['p'][data['p'] != 0].values)
-    v_diff = np.abs(1 - res_pipe[res_pipe != 0] / data['v'][data['v'] != 0].values)
+    p_diff = np.abs(1 - res_junction / data_p[data_p != 0].values)
+    v_diff = np.abs(1 - res_pipe[res_pipe != 0] / data_v[data_v != 0].values)
 
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)

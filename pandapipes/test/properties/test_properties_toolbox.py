@@ -1,6 +1,7 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 import pandas as pd
 import numpy as np
 import os
@@ -13,7 +14,6 @@ from scipy.interpolate import interp1d
 def test_mixture_viscosity_lgas():
     test_mix_viscos = pd.read_csv(os.path.join(pp_dir, 'properties', 'lgas', 'viscosity.txt'),
                                   header=None, sep=' ', comment='#').values[:, 1]
-
     viscos_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'viscosity.txt'),
                              header=None, sep=' ', comment='#').values
     viscos_n2 = pd.read_csv(os.path.join(pp_dir, 'properties', 'nitrogen', 'viscosity.txt'),
@@ -93,7 +93,7 @@ def test_mixture_viscosity_hgas():
 
 def test_mixture_density_lgas():
     test_mix_density = pd.read_csv(os.path.join(pp_dir, 'properties', 'lgas', 'density.txt'),
-                                   header=None, sep=' ').values[:, 1]
+                                   header=None, sep=' ', comment='#').values[:, 1]
 
     dens_ch4 = pd.read_csv(os.path.join(pp_dir, 'properties', 'methane', 'density.txt'),
                            header=None, sep=' ', comment='#').values

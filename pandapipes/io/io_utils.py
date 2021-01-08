@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import importlib
@@ -7,13 +7,14 @@ import json
 from functools import partial
 from inspect import isclass
 
-import pandapower as pp
+from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.component_models.abstract_models import Component
-from pandapipes.create import create_empty_network as create_fluid_network
+from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
+from copy import deepcopy
 
 try:
     import pplog as logging
@@ -21,21 +22,6 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
-
-try:
-    import fiona
-    import geopandas
-
-    GEOPANDAS_INSTALLED = True
-except ImportError:
-    GEOPANDAS_INSTALLED = False
-
-try:
-    import shapely.geometry
-
-    SHAPELY_INSTALLED = True
-except (ImportError, OSError):
-    SHAPELY_INSTALLED = False
 
 
 def isinstance_partial(obj, cls):
@@ -45,22 +31,21 @@ def isinstance_partial(obj, cls):
 
 
 class FromSerializableRegistryPpipe(FromSerializableRegistry):
-    from_serializable = FromSerializableRegistry.from_serializable
+    from_serializable = deepcopy(FromSerializableRegistry.from_serializable)
     class_name = ''
     module_name = ''
 
-    def __init__(self, obj, d, net, ppipes_hook):
-        super().__init__(obj, d, net, ppipes_hook)
+    def __init__(self, obj, d, ppipes_hook):
+        """
 
-    @from_serializable.register(class_name='pandapowerNet', module_name='pandapower.auxiliary')
-    def pandapowerNet(self):
-        if isinstance(self.obj, str):  # backwards compatibility
-            from pandapower import from_json_string
-            return from_json_string(self.obj)
-        else:
-            net = pp.create_empty_network()
-            net.update(self.obj)
-            return net
+        :param obj: object the data is written to
+        :type obj: object
+        :param d: data to be re-serialized
+        :type d: any kind
+        :param ppipes_hook: a way how to handle non-default data
+        :type ppipes_hook: funct
+        """
+        super().__init__(obj, d, ppipes_hook)
 
     @from_serializable.register(class_name="method")
     def method(self):
@@ -76,8 +61,9 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             from pandapipes import from_json_string
             return from_json_string(self.obj)
         else:
-            self.net.update(self.obj)
-            return self.net
+            net = create_empty_network()
+            net.update(self.obj)
+            return net
 
     @from_serializable.register()
     def rest(self):
@@ -86,15 +72,27 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
-                                      object_hook=partial(pp_hook, net=self.net,
+                                      object_hook=partial(pp_hook,
                                                           registry_class=FromSerializableRegistryPpipe))
                                                           # backwards compatibility
-            return class_.from_dict(self.obj, self.net)
+            if "net" in self.obj:
+                del self.obj["net"]
+            return class_.from_dict(self.obj)
         if isclass(class_) and issubclass(class_, Component):
             return class_
         else:
             # for non-pp objects, e.g. tuple
             return class_(self.obj, **self.d)
+
+    @from_serializable.register(class_name='MultiNet')
+    def MultiNet(self):
+        if isinstance(self.obj, str):  # backwards compatibility
+            from pandapipes import from_json_string
+            return from_json_string(self.obj)
+        else:
+            net = create_empty_multinet()
+            net.update(self.obj)
+            return net
 
 
 @to_serializable.register(pandapipesNet)
@@ -114,9 +112,8 @@ def json_component(class_):
                            'class %s in @to_serializable.register(type)!' % class_))
 
 
-if __name__ == '__main__':
-    ntw = create_fluid_network()
-    import pandapipes as pp
-
-    pp.to_json(ntw, 'test.json')
-    ntw = pp.from_json('test.json')
+@to_serializable.register(MultiNet)
+def json_net(obj):
+    net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
+    d = with_signature(obj, net_dict)
+    return d
