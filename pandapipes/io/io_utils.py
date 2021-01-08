@@ -7,6 +7,7 @@ import json
 from functools import partial
 from inspect import isclass
 
+from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
@@ -83,6 +84,16 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             # for non-pp objects, e.g. tuple
             return class_(self.obj, **self.d)
 
+    @from_serializable.register(class_name='MultiNet')
+    def MultiNet(self):
+        if isinstance(self.obj, str):  # backwards compatibility
+            from pandapipes import from_json_string
+            return from_json_string(self.obj)
+        else:
+            net = create_empty_multinet()
+            net.update(self.obj)
+            return net
+
 
 @to_serializable.register(pandapipesNet)
 def json_net(obj):
@@ -99,3 +110,10 @@ def json_component(class_):
     else:
         raise (UserWarning('with_signature needs to be defined for '
                            'class %s in @to_serializable.register(type)!' % class_))
+
+
+@to_serializable.register(MultiNet)
+def json_net(obj):
+    net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
+    d = with_signature(obj, net_dict)
+    return d

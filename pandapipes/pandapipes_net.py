@@ -75,6 +75,7 @@ def get_default_pandapipes_structure():
                        ('in_service', "bool"),
                        ('order', "float64"),
                        ('level', dtype(object)),
+                       ('initial_run', "bool"),
                        ("recycle", "bool")],
         "component_list": []}
     return default_pandapipes_structure
