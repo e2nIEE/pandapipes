@@ -185,7 +185,7 @@ def reindex_junctions(net, junction_lookup):
     if hasattr(net, "res_junction"):
         net.res_junction.index = get_indices(net.res_junction.index, junction_lookup)
 
-    for element, value in element_junction_tuples():
+    for element, value in element_junction_tuples(net=net):
         if element in net.keys():
             net[element][value] = get_indices(net[element][value], junction_lookup)
     net["junction_geodata"].set_index(get_indices(net["junction_geodata"].index, junction_lookup),
@@ -400,7 +400,7 @@ def drop_pipes(net, pipes):
     if "res_pipe" in net.keys():
         res_pipes = net.res_pipe.index.intersection(pipes)
         net["res_pipe"].drop(res_pipes, inplace=True)
-    logger.info("dropped %d pipes" % len(pipes))
+    logger.info("dropped %d pipes" % len(list(pipes)))
 
 
 # TODO: change to pumps??
