@@ -96,6 +96,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
+    special_elements_junctions = [("press_control", "controlled_junction")]
     node_elements = []
     if net is not None and include_node_elements:
         node_elements = [comp.table_name() for comp in net.component_list
@@ -108,7 +109,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
                            if issubclass(comp, BranchComponent)]
     elif include_branch_elements:
         branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                           "heat_exchanger"]
+                           "heat_exchanger", "press_control"]
     ejts = set()
     if include_node_elements:
         for elm in node_elements:
@@ -124,6 +125,8 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
             elements_without_res = ["valve"]
         ejts.update(
             [("res_" + ejt[0], ejt[1]) for ejt in ejts if ejt[0] not in elements_without_res])
+    ejts.update((el, jn) for el, jn in special_elements_junctions if el in node_elements
+                or el in branch_elements)
     return ejts
 
 
