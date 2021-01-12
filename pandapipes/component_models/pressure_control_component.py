@@ -112,7 +112,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :type node_name:
         :return: No Output.
         """
-        placement_table, pc_pit, res_table = super().extract_results(net, options, node_name)
+        placement_table, pc_pit, res_table = cls.prepare_result_tables(net, options, node_name)
 
         node_pit = net["_active_pit"]["node"]
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
