@@ -164,7 +164,7 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
 
 
 def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False,
-                           orientation=(np.pi*5/6), **kwargs):
+                           orientation=(np.pi*5/6), cmap=None, norm=None, z=None, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes sinks.
 
@@ -182,6 +182,13 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
     :param orientation: Orientation of sink collection. pi is directed downwards, increasing values\
         lead to clockwise direction changes.
     :type orientation: float, default np.pi*(5/6)
+    :param cmap: colormap for the sink colors
+    :type cmap: matplotlib norm object, default None
+    :param norm: matplotlib norm object to normalize the values of z
+    :type norm: matplotlib norm object, default None
+    :param z: Array of sink result magnitudes for colormap. Used in case of given cmap. If None,\
+        net.res_sink.mdot_kg_per_s is used.
+    :type z: array, default None
     :param kwargs: Keyword arguments are passed to the patch function
     :return: sink_pc - patch collection, sink_lc - line collection
     """
@@ -191,14 +198,24 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
     infos = [infofunc(i) for i in range(len(sinks))] if infofunc is not None else []
     node_coords = net.junction_geodata.loc[
         net.sink.loc[sinks, "junction"].values, ['x', 'y']].values
+
+    colors = kwargs.pop("color", "k")
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+    if cmap is not None:
+        if z is None:
+            z = net.res_sink.mdot_kg_per_s
+        colors = [cmap(norm(z.at[idx])) for idx in sinks]
+
     sink_pc, sink_lc = _create_node_element_collection(
         node_coords, load_patches, size=size, infos=infos, orientation=orientation,
-        picker=picker, **kwargs)
+        picker=picker, patch_edgecolor=colors, line_color=colors, linewidths=linewidths, **kwargs)
     return sink_pc, sink_lc
 
 
 def create_source_collection(net, sources=None, size=1., infofunc=None, picker=False,
-                             orientation=(np.pi*7/6), **kwargs):
+                             orientation=(np.pi*7/6), cmap=None, norm=None, z=None, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes sources.
 
@@ -216,6 +233,13 @@ def create_source_collection(net, sources=None, size=1., infofunc=None, picker=F
     :param orientation: Orientation of source collection. pi is directed downwards, increasing\
         values lead to clockwise direction changes.
     :type orientation: float, default np.pi*(7/6)
+    :param cmap: colormap for the source colors
+    :type cmap: matplotlib norm object, default None
+    :param norm: matplotlib norm object to normalize the values of z
+    :type norm: matplotlib norm object, default None
+    :param z: Array of source result magnitudes for colormap. Used in case of given cmap. If None,\
+        net.res_source.mdot_kg_per_s is used.
+    :type z: array, default None
     :param kwargs: Keyword arguments are passed to the patch function
     :return: source_pc - patch collection, source_lc - line collection
     """
@@ -225,9 +249,20 @@ def create_source_collection(net, sources=None, size=1., infofunc=None, picker=F
     infos = [infofunc(i) for i in range(len(sources))] if infofunc is not None else []
     node_coords = net.junction_geodata.loc[net.source.loc[sources, "junction"].values,
                                            ["x", "y"]].values
+
+    colors = kwargs.pop("color", "k")
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+    if cmap is not None:
+        if z is None:
+            z = net.res_source.mdot_kg_per_s
+        colors = [cmap(norm(z.at[idx])) for idx in sources]
+
     source_pc, source_lc = _create_node_element_collection(
         node_coords, source_patches, size=size, infos=infos, orientation=orientation,
-        picker=picker, repeat_infos=(1, 3), **kwargs)
+        picker=picker, patch_edgecolor=colors, line_color=colors, linewidths=linewidths,
+        repeat_infos=(1, 3), **kwargs)
     return source_pc, source_lc
 
 
@@ -266,10 +301,16 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
             raise ValueError("Length mismatch between chosen ext_grids and ext_grid_junctions.")
     infos = [infofunc(ext_grid_idx) for ext_grid_idx in ext_grids] if infofunc is not None else []
 
+    colors = kwargs.pop("color", "k")
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+
     node_coords = net.junction_geodata.loc[ext_grid_junctions, ["x", "y"]].values
     ext_grid_pc, ext_grid_lc = _create_node_element_collection(
         node_coords, ext_grid_patches, size=size, infos=infos, orientation=orientation,
-        picker=picker, hatch="XXX", **kwargs)
+        picker=picker, hatch="XXX", patch_edgecolor=colors, line_color=colors,
+        linewidths=linewidths, **kwargs)
     return ext_grid_pc, ext_grid_lc
 
 
