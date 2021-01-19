@@ -193,7 +193,7 @@ def get_controller_order_multinet(multinet):
         return get_controller_order(net_list, controller_list)
 
 
-def prepare_run_ctrl(multinet, ctrl_variables):
+def prepare_run_ctrl(multinet, ctrl_variables, **kwargs):
     """
     Prepares run control functions. Internal variables needed:
         - level (list): gives a list of levels to be investigated
@@ -225,6 +225,7 @@ def prepare_run_ctrl(multinet, ctrl_variables):
             for net_name in net_names:
                 if net_name not in ctrl_variables.keys():
                     ctrl_variables[net_name] = {'run': None, 'initial_run': None, 'errors': ()}
+                ctrl_var = ctrl_variables[net_name]
                 net = multinet['nets'][net_name]
                 if isinstance(net, ppipes.pandapipesNet):
                     ctrl_variables_net = prepare_run_ctrl_ppipes(net, None)
@@ -239,6 +240,11 @@ def prepare_run_ctrl(multinet, ctrl_variables):
                     ctrl_variables[net_name]['initial_run'] is not None else ctrl_variables_net['initial_run']
                 ctrl_variables[net_name]['only_v_results'], ctrl_variables[net_name]['recycle'] = \
                     get_recycle(ctrl_variables_net)
+
+                if ('continue_on_divergence') in kwargs and (ctrl_var is None):
+                    div = kwargs.pop('continue_on_divergence')
+                    ctrl_variables['continue_on_divergence'] = div
+
                 excl_net += [net_name]
 
     for net_name in multinet['nets'].keys():
@@ -246,6 +252,7 @@ def prepare_run_ctrl(multinet, ctrl_variables):
             continue
         if net_name not in ctrl_variables.keys():
             ctrl_variables[net_name] = {'run': None, 'initial_run': False, 'errors': ()}
+        ctrl_var = ctrl_variables[net_name]
         net = multinet['nets'][net_name]
         if isinstance(net, ppipes.pandapipesNet):
             ctrl_variables_net = prepare_run_ctrl_ppipes(net, None)
@@ -259,6 +266,16 @@ def prepare_run_ctrl(multinet, ctrl_variables):
             ctrl_variables[net_name]['initial_run'] is not None else ctrl_variables_net['initial_run']
         ctrl_variables[net_name]['only_v_results'], ctrl_variables[net_name]['recycle'] = \
             get_recycle(ctrl_variables_net)
+
+        if ('continue_on_divergence') in kwargs and (ctrl_var is None):
+            div = kwargs.pop('continue_on_divergence')
+            ctrl_variables['continue_on_divergence'] = div
+
+    if ('check_each_level') in kwargs:
+        check = kwargs.pop('check_each_level')
+        ctrl_variables['check_each_level'] = check
+    else:
+        ctrl_variables['check_each_level'] = True
 
     ctrl_variables['errors'] = (NetCalculationNotConverged,)
 
