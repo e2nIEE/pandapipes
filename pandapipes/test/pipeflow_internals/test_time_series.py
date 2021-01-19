@@ -85,46 +85,31 @@ def _compare_results(ow):
         pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_ext_grid',
         'mdot_kg_per_s.csv'), sep=';', index_col=0)
     res_ext_grid = ow.np_results["res_ext_grid.mdot_kg_per_s"]
-    res_ext_grid = res_ext_grid[~np.isclose(res_ext_grid, 0)]
-    test_res_ext_grid = test_res_ext_grid.values[~np.isclose(test_res_ext_grid.values, 0)]
-    diff = 1 - res_ext_grid.round(9)/test_res_ext_grid.round(9)
-    check = diff < 0.0001
+    check = res_ext_grid.round(9) == test_res_ext_grid.values.round(9)
     assert (np.all(check))
     test_res_junction = pd.read_csv(os.path.join(
         pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_junction',
         'p_bar.csv'), sep=';', index_col=0)
     res_junction = ow.np_results["res_junction.p_bar"]
-    res_junction = res_junction[~np.isclose(res_junction, 0)]
-    test_res_junction = test_res_junction.values[~np.isclose(test_res_junction.values, 0)]
-    diff = 1 - res_junction.round(9)/test_res_junction.round(9)
-    check = diff < 0.0001
+    check = res_junction.round(9) == test_res_junction.values.round(9)
     assert (np.all(check))
     test_res_pipe = pd.read_csv(os.path.join(
         pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_pipe',
         'v_mean_m_per_s.csv'), sep=';', index_col=0)
     res_pipe = ow.np_results["res_pipe.v_mean_m_per_s"]
-    res_pipe = res_pipe[~np.isclose(res_pipe, 0)]
-    test_res_pipe = test_res_pipe.values[~np.isclose(test_res_pipe.values, 0)]
-    diff = 1 - res_pipe.round(9)/test_res_pipe.round(9)
-    check = diff < 0.0001
+    check = res_pipe.round(9) == test_res_pipe.values.round(9)
     assert (np.all(check))
     test_res_sink = pd.read_csv(os.path.join(
         pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_sink',
         'mdot_kg_per_s.csv'), sep=';', index_col=0)
     res_sink = ow.np_results["res_sink.mdot_kg_per_s"]
-    res_sink = res_sink[~np.isclose(res_sink, 0)]
-    test_res_sink = test_res_sink.values[~np.isclose(test_res_sink.values, 0)]
-    diff = 1 - res_sink.round(9)/test_res_sink.round(9)
-    check = diff < 0.0001
+    check = res_sink.round(9) == test_res_sink.values.round(9)
     assert (np.all(check))
     test_res_source = pd.read_csv(os.path.join(
         pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results',
         'res_source', 'mdot_kg_per_s.csv'), sep=';', index_col=0)
     res_source = ow.np_results["res_source.mdot_kg_per_s"]
-    res_source = res_source[~np.isclose(res_source, 0)]
-    test_res_source = test_res_source.values[~np.isclose(test_res_source.values, 0)]
-    diff = 1 - res_source.round(9)/test_res_source.round(9)
-    check = diff < 0.0001
+    check = res_source.round(9) == test_res_source.values.round(9)
     assert (np.all(check))
 
 
