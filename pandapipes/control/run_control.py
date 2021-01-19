@@ -35,18 +35,9 @@ def prepare_run_ctrl(net, ctrl_variables, **kwargs):
     :return: ctrl_variables
     :rtype: dict
     """
-    ctrl_var = ctrl_variables
-
     if ctrl_variables is None:
-        ctrl_variables  = prepare_run_control_pandapower(net, None)
+        ctrl_variables  = prepare_run_control_pandapower(net, None, **kwargs)
         ctrl_variables["run"] = ppipe.pipeflow
-
-    if ('continue_on_divergence') in kwargs and (ctrl_var is None):
-        div = kwargs.pop('continue_on_divergence')
-        ctrl_variables['continue_on_divergence'] = div
-    if ('check_each_level') in kwargs and (ctrl_var is None):
-        check = kwargs.pop('check_each_level')
-        ctrl_variables['check_each_level'] = check
 
     ctrl_variables["errors"] = (PipeflowNotConverged,) # has to be a tuple
 
