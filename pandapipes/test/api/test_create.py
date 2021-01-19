@@ -1,6 +1,7 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 import copy
 
 import pytest
@@ -305,7 +306,7 @@ def test_create_pipes_from_parameters_raise_except(create_empty_net):
         net, [j1, j1], [j2, j3], length_km=5, diameter_m=0.8, in_service=False,
         geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
         alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
-    with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
+    with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
         pandapipes.create_pipes_from_parameters(
             net, [j1, j1], [j2, j3], length_km=5, diameter_m=0.8, in_service=False,
             geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
@@ -426,7 +427,7 @@ def test_create_pipes_raise_except(create_empty_net):
         net, [j1, j1], [j2, j3], std_type="80_GGG", length_km=5, in_service=False,
         geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
         alpha_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
-    with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
+    with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
         pandapipes.create_pipes(
             net, [j1, j1], [j2, j3], std_type="80_GGG", length_km=5, in_service=False,
             geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
@@ -510,7 +511,7 @@ def test_create_valves_raise_except(create_empty_net):
 
     pandapipes.create_valves(net, [j1, j1], [j2, j3], diameter_m=0.8, opened=False, name="test",
                              loss_coefficient=0.3, index=[0, 1])
-    with pytest.raises(UserWarning, match=r"with the ids \[0 1\] already exist"):
+    with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
         pandapipes.create_valves(net, [j1, j1], [j2, j3], diameter_m=0.8, opened=False,
                                  name="test", loss_coefficient=0.3, index=[0, 1])
 
@@ -555,7 +556,7 @@ def test_create_sinks_raise_except(create_empty_net):
     sg = pandapipes.create_sinks(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                  scaling=[1., 1., 0.5], name=["sink%d" % s for s in range(3)],
                                  new_col=[1, 3, 5])
-    with pytest.raises(UserWarning, match=r"Sinks with the ids \[0 1 2\] already exist."):
+    with pytest.raises(UserWarning, match=r"Sinks with indexes \[0 1 2\] already exist."):
         pandapipes.create_sinks(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                 scaling=[1., 1., 0.5], name=["sink%d" % s for s in range(3)],
                                 new_col=[1, 3, 5], index=sg)
@@ -601,7 +602,7 @@ def test_create_sources_raise_except(create_empty_net):
     sg = pandapipes.create_sources(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                    scaling=[1., 1., 0.5], name=["source%d" % s for s in range(3)],
                                    new_col=[1, 3, 5])
-    with pytest.raises(UserWarning, match=r"Sources with the ids \[0 1 2\] already exist."):
+    with pytest.raises(UserWarning, match=r"Sources with indexes \[0 1 2\] already exist."):
         pandapipes.create_sources(net, junctions=[j1, j2, j3], mdot_kg_per_s=[0, 0.1, 0.2],
                                   scaling=[1., 1., 0.5], name=["source%d" % s for s in range(3)],
                                   new_col=[1, 3, 5], index=sg)

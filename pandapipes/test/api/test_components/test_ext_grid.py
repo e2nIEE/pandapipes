@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
@@ -9,6 +9,39 @@ import pandapipes
 import pandas as pd
 import pytest
 from pandapipes.test.pipeflow_internals import internals_data_path
+
+
+def test_ext_grid_sorting():
+    net = pandapipes.create_empty_network(fluid="hgas")
+    j1 = pandapipes.create_junction(net, 1, 293.15, index=1)
+    j2 = pandapipes.create_junction(net, 1, 293.15, index=2)
+    j3 = pandapipes.create_junction(net, 1, 293.15, index=4)
+    j4 = pandapipes.create_junction(net, 1, 293.15, index=5)
+    j5 = pandapipes.create_junction(net, 1, 293.15, index=6)
+    j6 = pandapipes.create_junction(net, 1, 293.15, index=7)
+
+    pandapipes.create_ext_grid(net, j2, 1, 285.15, type="pt")
+    pandapipes.create_ext_grid(net, j3, 1, 285.15, type="pt")
+    pandapipes.create_ext_grid(net, j5, 1, 285.15, type="t")
+    pandapipes.create_ext_grid(net, j1, 1, 285.15, type="pt")
+    pandapipes.create_ext_grid(net, j1, 1, 285.15, type="pt")
+
+    pandapipes.create_pipe_from_parameters(net, j1, j4, 0.1, 0.1)
+    pandapipes.create_pipe_from_parameters(net, j2, j5, 0.1, 0.1)
+    pandapipes.create_pipe_from_parameters(net, j3, j6, 0.1, 0.1)
+
+    pandapipes.create_sink(net, j4, mdot_kg_per_s=0.1)
+    pandapipes.create_sink(net, j5, mdot_kg_per_s=0.1)
+    pandapipes.create_sink(net, j6, mdot_kg_per_s=0.1)
+    pandapipes.create_sink(net, j2, mdot_kg_per_s=0.02)
+
+    pandapipes.pipeflow(net)
+
+    assert np.isclose(net.res_ext_grid.at[0, "mdot_kg_per_s"], -0.12, atol=1e-12, rtol=1e-12)
+    assert np.isclose(net.res_ext_grid.at[1, "mdot_kg_per_s"], -0.1, atol=1e-12, rtol=1e-12)
+    assert np.isnan(net.res_ext_grid.at[2, "mdot_kg_per_s"])
+    assert np.isclose(net.res_ext_grid.at[3, "mdot_kg_per_s"], -0.05, atol=1e-12, rtol=1e-12)
+    assert np.isclose(net.res_ext_grid.at[4, "mdot_kg_per_s"], -0.05, atol=1e-12, rtol=1e-12)
 
 
 def test_p_type():
@@ -357,3 +390,7 @@ def test_t_type_tee_2zu_2ab3():
     temp_diff = np.abs(1 - temp / temp2)
 
     assert np.all(temp_diff < 0.01)
+
+
+if __name__ == '__main__':
+    pytest.main([r'pandapipes/test/api/test_components/test_ext_grid.py'])

@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
@@ -18,6 +18,34 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
     """
 
     """
+
+    @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_wzerolength_pit, node_name):

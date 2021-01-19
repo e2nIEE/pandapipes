@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import json
@@ -7,13 +7,13 @@ import os
 import pickle
 from functools import partial
 
-from pandapipes.create import create_empty_network
-from pandapipes.io.convert_format import convert_format
-from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
-from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
 from pandapower.io_utils import pp_hook
+
+from pandapipes.io.convert_format import convert_format
+from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
+from pandapipes.pandapipes_net import pandapipesNet
 
 
 def to_pickle(net, filename):

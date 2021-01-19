@@ -1,17 +1,18 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import copy
 import inspect
+
 import numpy as np
+from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, branch_cols, \
     ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, \
     ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
 from pandapipes.properties.fluids import get_fluid
-from scipy.sparse import coo_matrix, csgraph
 
 try:
     import pplog as logging
@@ -464,7 +465,7 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
     active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    hyd_slacks = np.where(node_pit[:, NODE_TYPE] == P & node_pit[:, ACTIVE_ND].astype(np.bool))[0]
+    hyd_slacks = np.where(node_pit[:, NODE_TYPE] == P & active_node_lookup)[0]
 
     nodes_connected, branches_connected = perform_connectivity_search(
         net, node_pit, hyd_slacks, from_nodes, to_nodes, active_node_lookup, active_branch_lookup,
@@ -602,11 +603,6 @@ def reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected):
         net["_lookups"]["branch_index_active"] = copy.deepcopy(get_lookup(net, "branch", "index"))
     else:
         active_pit["branch"] = np.copy(branch_pit[branches_connected, :])
-        if reduced_node_lookup is not None:
-            active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
-                branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
-            active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
-                branch_pit[branches_connected, TO_NODE].astype(np.int32)]
         branch_idx_lookup = get_lookup(net, "branch", "index")
         if len(branch_idx_lookup):
             reduced_branch_lookup = np.cumsum(branches_connected) - 1
@@ -616,6 +612,11 @@ def reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected):
         else:
             net["_lookups"]["branch_index_active"] = dict()
         els["branch"] = branches_connected
+    if reduced_node_lookup is not None:
+        active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
+            branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
+        active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
+            branch_pit[branches_connected, TO_NODE].astype(np.int32)]
     net["_active_pit"] = active_pit
     net["_lookups"]["node_active"] = nodes_connected
     net["_lookups"]["branch_active"] = branches_connected
@@ -626,7 +627,7 @@ def reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected):
                       for table, ft in ft_lookup.items() if ft is not None}
         from_to_active_lookup = copy.deepcopy(ft_lookup)
         count = 0
-        for table, (f_old, t_old, len_new) in sorted(aux_lookup.items(), key=lambda x: x[1][0]):
+        for table, (_, _, len_new) in sorted(aux_lookup.items(), key=lambda x: x[1][0]):
             from_to_active_lookup[table] = (count, count + len_new)
             count += len_new
         net["_lookups"]["%s_from_to_active" % el] = from_to_active_lookup
