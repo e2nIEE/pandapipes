@@ -64,7 +64,7 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
     time_steps = init_time_steps(multinet, time_steps, **kwargs)
     run = kwargs.get('run', None)
 
-    ts_variables = prepare_run_ctrl(multinet, None)
+    ts_variables = prepare_run_ctrl(multinet, None, **kwargs)
 
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]

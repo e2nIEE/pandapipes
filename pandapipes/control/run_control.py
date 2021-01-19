@@ -21,12 +21,12 @@ def run_control(net, ctrl_variables=None, max_iter=30, **kwargs):
     :return: No output
     """
     if ctrl_variables is None:
-        ctrl_variables = prepare_run_ctrl(net, None)
+        ctrl_variables = prepare_run_ctrl(net, None, **kwargs)
 
     run_control_pandapower(net, ctrl_variables=ctrl_variables, max_iter=max_iter, **kwargs)
 
 
-def prepare_run_ctrl(net, ctrl_variables):
+def prepare_run_ctrl(net, ctrl_variables, **kwargs):
     """
     Function that defines default control variables.
 
@@ -36,7 +36,7 @@ def prepare_run_ctrl(net, ctrl_variables):
     :rtype: dict
     """
     if ctrl_variables is None:
-        ctrl_variables  = prepare_run_control_pandapower(net, None)
+        ctrl_variables  = prepare_run_control_pandapower(net, None, **kwargs)
         ctrl_variables["run"] = ppipe.pipeflow
 
     ctrl_variables["errors"] = (PipeflowNotConverged,) # has to be a tuple
