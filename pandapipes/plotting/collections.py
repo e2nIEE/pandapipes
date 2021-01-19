@@ -34,7 +34,8 @@ def create_junction_collection(net, junctions=None, size=5, patch_type="circle",
     :param size: Patch size
     :type size: int, default 5
     :param patch_type: Patch type, can be \n
-        - "circle" or "ellipse" for an ellipse (cirlces are just ellipses with the same width + height)
+        - "circle" or "ellipse" for an ellipse (cirlces are just ellipses with the same width +\
+            height)
         - "rect" or "rectangle" for a rectangle
         - "poly<n>" for a polygon with n edges
     :type patch_type: str, default "circle"
@@ -100,7 +101,7 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
     :type pipes: list, default None
     :param pipe_geodata: Coordinates to use for plotting. If None, net["pipe_geodata"] is used.
     :type pipe_geodata: pandas.DataFrame, default None
-    :param junction_geodata: Coordinates to use for plotting in case of use_junction_geodata = True.\
+    :param junction_geodata: Coordinates to use for plotting in case of use_junction_geodata=True.\
         If None, net["junction_geodata"] is used.
     :type junction_geodata: pandas.DataFrame, default None
     :param use_junction_geodata: Defines whether junction or pipe geodata are used.
@@ -207,10 +208,13 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
         if z is None:
             z = net.res_sink.mdot_kg_per_s
         colors = [cmap(norm(z.at[idx])) for idx in sinks]
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
 
     sink_pc, sink_lc = _create_node_element_collection(
         node_coords, load_patches, size=size, infos=infos, orientation=orientation,
-        picker=picker, patch_edgecolor=colors, line_color=colors, linewidths=linewidths, **kwargs)
+        picker=picker, patch_edgecolor=patch_edgecolor, line_color=line_color,
+        linewidths=linewidths, **kwargs)
     return sink_pc, sink_lc
 
 
@@ -258,11 +262,13 @@ def create_source_collection(net, sources=None, size=1., infofunc=None, picker=F
         if z is None:
             z = net.res_source.mdot_kg_per_s
         colors = [cmap(norm(z.at[idx])) for idx in sources]
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
 
     source_pc, source_lc = _create_node_element_collection(
         node_coords, source_patches, size=size, infos=infos, orientation=orientation,
-        picker=picker, patch_edgecolor=colors, line_color=colors, linewidths=linewidths,
-        repeat_infos=(1, 3), **kwargs)
+        picker=picker, patch_edgecolor=patch_edgecolor, line_color=line_color,
+        linewidths=linewidths, repeat_infos=(1, 3), **kwargs)
     return source_pc, source_lc
 
 
@@ -305,16 +311,18 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
     linewidths = kwargs.pop("linewidths", 2.)
     linewidths = kwargs.pop("linewidth", linewidths)
     linewidths = kwargs.pop("lw", linewidths)
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
 
     node_coords = net.junction_geodata.loc[ext_grid_junctions, ["x", "y"]].values
     ext_grid_pc, ext_grid_lc = _create_node_element_collection(
         node_coords, ext_grid_patches, size=size, infos=infos, orientation=orientation,
-        picker=picker, hatch="XXX", patch_edgecolor=colors, line_color=colors,
+        picker=picker, hatch="XXX", patch_edgecolor=patch_edgecolor, line_color=line_color,
         linewidths=linewidths, **kwargs)
     return ext_grid_pc, ext_grid_lc
 
 
-def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodata=None, color='k',
+def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodata=None,
                                      infofunc=None, picker=False, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction heat_exchangers.
@@ -352,24 +360,25 @@ def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodat
     if len(hex_with_geo) == 0:
         return None
 
+    colors = kwargs.pop("color", "k")
     linewidths = kwargs.pop("linewidths", 2.)
     linewidths = kwargs.pop("linewidth", linewidths)
     linewidths = kwargs.pop("lw", linewidths)
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
 
     infos = list(np.repeat([infofunc(i) for i in range(len(hex_with_geo))], 2)) \
         if infofunc is not None else []
 
-    lc, pc = _create_complex_branch_collection(coords, heat_exchanger_patches, size, infos,
-                                               picker=picker, linewidths=linewidths,
-                                               patch_facecolor=color, line_color=color,
-                                               **kwargs)
+    lc, pc = _create_complex_branch_collection(
+        coords, heat_exchanger_patches, size, infos, picker=picker, linewidths=linewidths,
+        patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
     return lc, pc
 
 
-def create_valve_collection(net, valves=None, size=5., junction_geodata=None, color='k',
-                            infofunc=None, picker=False, fill_closed=True,
-                            respect_valves=False, **kwargs):
+def create_valve_collection(net, valves=None, size=5., junction_geodata=None, infofunc=None,
+                            picker=False, fill_closed=True, respect_valves=False, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
     plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
@@ -384,8 +393,6 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, co
     :type size: float, default 5.
     :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
     :type junction_geodata: pandas.DataFrame, default None
-    :param colors: Color or list of colors for every valve
-    :type colors: iterable, float, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
     :param picker: Picker argument passed to the patch collection
@@ -410,25 +417,27 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, co
     if len(valves_with_geo) == 0:
         return None
 
+    colors = kwargs.pop("color", "k")
     linewidths = kwargs.pop("linewidths", 2.)
     linewidths = kwargs.pop("linewidth", linewidths)
     linewidths = kwargs.pop("lw", linewidths)
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
 
     infos = list(np.repeat([infofunc(i) for i in range(len(valves_with_geo))], 2)) \
         if infofunc is not None else []
     filled = valve_table["opened"].values
     if fill_closed:
         filled = ~filled
-    lc, pc = _create_complex_branch_collection(coords, valve_patches, size, infos,
-                                               picker=picker, linewidths=linewidths, filled=filled,
-                                               patch_facecolor=color, line_color=color,
-                                               **kwargs)
+    lc, pc = _create_complex_branch_collection(
+        coords, valve_patches, size, infos, picker=picker, linewidths=linewidths, filled=filled,
+        patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
     return lc, pc
 
 
 def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None,
-                           color='k', infofunc=None, picker=False, **kwargs):
+                           infofunc=None, picker=False, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
     plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
@@ -436,22 +445,19 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
 
     :param net: The pandapipes network
     :type net: pandapipesNet
-    :param valves: The valves for which the collections are created. If None, all valves which have\
+    :param pumps: The pumps for which the collections are created. If None, all pumps which have\
         entries in the respective junction geodata will be plotted.
-    :type valves: list, default None
+    :type pumps: list, default None
+    :param table_name: Name of the pump table from which to get the data.
+    :type table_name: str, default 'pump'
     :param size: Patch size
     :type size: float, default 5.
     :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
     :type junction_geodata: pandas.DataFrame, default None
-    :param colors: Color or list of colors for every valve
-    :type colors: iterable, float, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
     :param picker: Picker argument passed to the patch collection
     :type picker: bool, default False
-    :param fill_closed: If True, valves with parameter opened == False will be filled and those\
-        with opened == True will have a white facecolor. Vice versa if False.
-    :type fill_closed: bool, default True
     :param kwargs: Keyword arguments are passed to the patch function
     :return: lc - line collection, pc - patch collection
 
@@ -467,15 +473,17 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     if len(pumps_with_geo) == 0:
         return None
 
+    colors = kwargs.pop("color", "k")
     linewidths = kwargs.pop("linewidths", 2.)
     linewidths = kwargs.pop("linewidth", linewidths)
     linewidths = kwargs.pop("lw", linewidths)
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
 
     infos = list(np.repeat([infofunc(i) for i in range(len(pumps_with_geo))], 2)) \
         if infofunc is not None else []
-    lc, pc = _create_complex_branch_collection(coords, pump_patches, size, infos,
-                                               picker=picker, linewidths=linewidths,
-                                               patch_edgecolor=color, line_color=color,
-                                               **kwargs)
+    lc, pc = _create_complex_branch_collection(
+        coords, pump_patches, size, infos, picker=picker, linewidths=linewidths,
+        patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
     return lc, pc
