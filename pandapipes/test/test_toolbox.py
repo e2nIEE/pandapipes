@@ -1,6 +1,7 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 import copy
 
 import numpy as np
@@ -114,17 +115,12 @@ def create_net_changed_indices():
 
     net.junction.index = new_junction_indices
     net.junction_geodata.index = new_junction_indices
-    net.sink.junction.replace(junction_lookup, inplace=True)
-    net.source.junction.replace(junction_lookup, inplace=True)
-    net.ext_grid.junction.replace(junction_lookup, inplace=True)
-    net.pipe.from_junction.replace(junction_lookup, inplace=True)
-    net.pipe.to_junction.replace(junction_lookup, inplace=True)
-    net.valve.from_junction.replace(junction_lookup, inplace=True)
-    net.valve.to_junction.replace(junction_lookup, inplace=True)
-    net.heat_exchanger.from_junction.replace(junction_lookup, inplace=True)
-    net.heat_exchanger.to_junction.replace(junction_lookup, inplace=True)
-    net.pump.from_junction.replace(junction_lookup, inplace=True)
-    net.pump.to_junction.replace(junction_lookup, inplace=True)
+    for n_el in ["sink", "source", "ext_grid"]:
+        net[n_el].junction = np.array([junction_lookup[k] for k in net[n_el].junction], dtype="int")
+    for br_el in ["pipe", "valve", "heat_exchanger", "pump"]:
+        for junc_typ in ["from_junction", "to_junction"]:
+            net[br_el][junc_typ] = np.array([junction_lookup[k] for k in net[br_el][junc_typ]],
+                                            dtype="int")
 
     net.pipe.index = new_pipe_indices
     net.pipe_geodata.index = new_pipe_indices
@@ -195,7 +191,9 @@ def test_create_continuous_index(create_net_changed_indices):
     assert np.all(net.junction.index == new_junction_index)
     for comp, junc_dict in previous_junctions.items():
         for col, junctions in junc_dict.items():
-            assert np.all(net[comp][col] == junctions.replace(junction_lookup))
+            assert np.all(
+                net[comp][col] == pd.Series(np.array([junction_lookup[k] for k in junctions.values],
+                                                     dtype="int"), index=junctions.index))
 
     pandapipes.create_continuous_elements_index(net)
     for comp in previous_junctions.keys():

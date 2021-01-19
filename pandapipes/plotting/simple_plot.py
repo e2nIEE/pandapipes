@@ -1,7 +1,6 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
 
 import matplotlib.pyplot as plt
 
@@ -12,7 +11,6 @@ from pandapipes.plotting.collections import create_junction_collection, create_p
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
 from pandapower.plotting import draw_collections
 from itertools import chain
-
 
 try:
     import pplog as logging
@@ -110,8 +108,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                               heat_exchanger_color='silver', library="igraph", as_dict=True,
                               **kwargs):
     """
-    Plots a pandapipes network as simple as possible. If no geodata is available, artificial
-    geodata is generated. For advanced plotting see the tutorial
+    Plots a pandapipes network as simple as possible.
+    If no geodata is available, artificial geodata is generated. For advanced plotting see the tutorial
 
     :param net: The pandapipes format network.
     :type net: pandapipesNet

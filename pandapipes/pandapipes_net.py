@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import copy
@@ -75,6 +75,7 @@ def get_default_pandapipes_structure():
                        ('in_service', "bool"),
                        ('order', "float64"),
                        ('level', dtype(object)),
+                       ('initial_run', "bool"),
                        ("recycle", "bool")],
         "component_list": []}
     return default_pandapipes_structure

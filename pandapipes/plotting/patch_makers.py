@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
@@ -65,7 +65,8 @@ def heat_exchanger_patches(coords, size, **kwargs):
 
 
 def source_patches(node_coords, size, angles, **kwargs):
-    """Creation function of patches for sources.
+    """
+    Creation function of patches for sources.
 
     :param node_coords: coordinates of the nodes that the sources belong to.
     :type node_coords: iterable

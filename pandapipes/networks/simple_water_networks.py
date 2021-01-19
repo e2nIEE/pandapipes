@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
@@ -13,12 +13,12 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
-water_stanet_path = os.path.join(pp_dir, "networks", "simple_test_networks", "stanet_test_networks",
+water_stanet_path = os.path.join(pp_dir, "networks", "network_files", "stanet_test_networks",
                                  "water_cases")
-water_modelica_colebrook_path = os.path.join(pp_dir, "networks", "simple_test_networks",
+water_modelica_colebrook_path = os.path.join(pp_dir, "networks", "network_files",
                                    "openmodelica_test_networks", "water_cases_colebrook")
 
-water_modelica_swamee_path = os.path.join(pp_dir, "networks", "simple_test_networks",
+water_modelica_swamee_path = os.path.join(pp_dir, "networks", "network_files",
                                    "openmodelica_test_networks", "water_cases_swamee-jain")
 
 

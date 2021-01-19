@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
@@ -158,7 +158,7 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
     if cmap is not None:
         if z is None:
             z = net.res_pipe.v_mean_m_per_s.loc[pipes_with_geo]
-        add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim)
+        add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim=clim)
 
     return lc
 

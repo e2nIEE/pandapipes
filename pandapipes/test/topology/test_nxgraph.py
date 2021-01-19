@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import pytest
@@ -15,12 +15,13 @@ def test_include_branches():
 
     mg = top.create_nxgraph(net, include_pipes=True, include_valves=False, include_pumps=False)
     assert len(mg.nodes()) == len(net.junction)
-    assert len(mg.edges()) == len(net.pipe)
+    assert len(mg.edges()) == sum(net.pipe.in_service)
 
     mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=False)
     assert len(mg.nodes()) == len(net.junction)
-    assert len(mg.edges()) == len(net.pipe) + len(net.valve) 
+    assert len(mg.edges()) == sum(net.pipe.in_service) + sum(net.valve.opened)
     
     mg = top.create_nxgraph(net, include_pipes=True, include_valves=True, include_pumps=True)
     assert len(mg.nodes()) == len(net.junction)
-    assert len(mg.edges()) == len(net.pipe) + len(net.valve) + len(net.pump)
+    assert len(mg.edges()) == sum(net.pipe.in_service) + sum(net.valve.opened) \
+           + sum(net.pump.in_service)

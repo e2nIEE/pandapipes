@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import tempfile
@@ -8,7 +8,8 @@ import pandapipes as ppipes
 from pandapipes.pipeflow import PipeflowNotConverged
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.output_writer import OutputWriter
-from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup, run_loop
+from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup,\
+    run_loop
 
 try:
     import pplog as logging
@@ -25,8 +26,8 @@ def init_default_outputwriter(net, time_steps, **kwargs):
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param timesteps: Time steps to calculate as list
-    :type timesteps: list
+    :param time_steps: Time steps to calculate as list
+    :type time_steps: list
     :return: ow - The default output writer
     :rtype: pandapower.timeseries.output_writer.OutputWriter
     """
@@ -63,8 +64,7 @@ def pf_not_converged(time_step, ts_variables):
         raise PipeflowNotConverged
 
 
-def init_time_series(net, time_steps, continue_on_divergence=False,
-                     verbose=True, **kwargs):
+def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True, **kwargs):
     """
     Initializes the time series calculation. Creates the dict ts_variables, which includes
     necessary variables for the time series / control function.
@@ -87,9 +87,10 @@ def init_time_series(net, time_steps, continue_on_divergence=False,
     run = kwargs.get("run", ppipes.pipeflow)
     init_default_outputwriter(net, time_steps, **kwargs)
 
-    ts_variables = init_time_series_pp(net, time_steps, continue_on_divergence, verbose, run=run, **kwargs)
+    ts_variables = init_time_series_pp(net, time_steps, continue_on_divergence, verbose, run=run,
+                                       **kwargs)
 
-    ts_variables["errors"] = (PipeflowNotConverged)
+    ts_variables["errors"] = tuple([PipeflowNotConverged])
 
     return ts_variables
 
@@ -105,8 +106,8 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
-    :param time_steps: Time steps to calculate as list or tuple(start, stop). If None, all time steps
-                       from provided data source are simulated.
+    :param time_steps: Time steps to calculate as list or tuple (start, stop). If None, all time \
+            steps from provided data source are simulated.
     :type time_steps: list or tuple, default None
     :param continue_on_divergence: If True, time series calculation continues in case of errors.
     :type continue_on_divergence: bool, default False

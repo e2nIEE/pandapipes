@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
@@ -48,6 +48,17 @@ class PumpStdType(StdType):
         """
         super(PumpStdType, self).__init__(name, 'pump')
         self.reg_par = reg_par
+        self._pressure_list = None
+        self._flowrate_list = None
+        self._reg_polynomial_degree = 2
+
+    def update_pump(self, pressure_list, flowrate_list, reg_polynomial_degree):
+        reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
+        self.reg_par = reg_par
+        self._pressure_list = pressure_list
+        self._flowrate_list = flowrate_list
+        self._reg_polynomial_degree = reg_polynomial_degree
+
 
     def get_pressure(self, vdot_m3_per_s):
         """
@@ -86,12 +97,20 @@ class PumpStdType(StdType):
         """
         p_values, v_values, degree = get_p_v_values(path)
         reg_par = regression_function(p_values, v_values, degree)
-        return cls(name, reg_par)
+        Pump = cls(name, reg_par)
+        Pump._pressure_list = p_values
+        Pump._flowrate_list = v_values
+        Pump._reg_polynomial_degree = degree
+        return Pump
 
     @classmethod
     def from_list(cls, name, p_values, v_values, degree):
         reg_par = regression_function(p_values, v_values, degree)
-        return cls(name, reg_par)
+        Pump = cls(name, reg_par)
+        Pump._pressure_list = p_values
+        Pump._flowrate_list = v_values
+        Pump._reg_polynomial_degree = degree
+        return Pump
 
 
 def add_basic_std_types(net):

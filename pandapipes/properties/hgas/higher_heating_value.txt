@@ -1,0 +1,2 @@
+# higher heating value in kWh/kg (at nominal conditions)
+14.62197
