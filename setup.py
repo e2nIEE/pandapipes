@@ -24,7 +24,7 @@ classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3']
 
-with open('.travis.yml', 'rb') as f:
+with open('.github/workflows/run_tests_master.yml', 'rb') as f:
     lines = f.read().decode('utf-8')
     for version in re.findall('python: 3.[0-9]', lines):
         classifiers.append('Programming Language :: Python :: 3.%s' % version[-1])
