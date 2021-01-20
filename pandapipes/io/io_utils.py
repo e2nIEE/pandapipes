@@ -1,5 +1,5 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import importlib
@@ -7,6 +7,7 @@ import json
 from functools import partial
 from inspect import isclass
 
+from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
@@ -35,6 +36,15 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     module_name = ''
 
     def __init__(self, obj, d, ppipes_hook):
+        """
+
+        :param obj: object the data is written to
+        :type obj: object
+        :param d: data to be re-serialized
+        :type d: any kind
+        :param ppipes_hook: a way how to handle non-default data
+        :type ppipes_hook: funct
+        """
         super().__init__(obj, d, ppipes_hook)
 
     @from_serializable.register(class_name="method")
@@ -74,6 +84,16 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             # for non-pp objects, e.g. tuple
             return class_(self.obj, **self.d)
 
+    @from_serializable.register(class_name='MultiNet')
+    def MultiNet(self):
+        if isinstance(self.obj, str):  # backwards compatibility
+            from pandapipes import from_json_string
+            return from_json_string(self.obj)
+        else:
+            net = create_empty_multinet()
+            net.update(self.obj)
+            return net
+
 
 @to_serializable.register(pandapipesNet)
 def json_net(obj):
@@ -90,3 +110,10 @@ def json_component(class_):
     else:
         raise (UserWarning('with_signature needs to be defined for '
                            'class %s in @to_serializable.register(type)!' % class_))
+
+
+@to_serializable.register(MultiNet)
+def json_net(obj):
+    net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
+    d = with_signature(obj, net_dict)
+    return d

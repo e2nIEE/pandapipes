@@ -1,6 +1,7 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 from collections.abc import Iterable
 
 import numpy as np
@@ -95,6 +96,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
+    special_elements_junctions = [("press_control", "controlled_junction")]
     node_elements = []
     if net is not None and include_node_elements:
         node_elements = [comp.table_name() for comp in net.component_list
@@ -107,7 +109,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
                            if issubclass(comp, BranchComponent)]
     elif include_branch_elements:
         branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                           "heat_exchanger"]
+                           "heat_exchanger", "press_control"]
     ejts = set()
     if include_node_elements:
         for elm in node_elements:
@@ -123,6 +125,8 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
             elements_without_res = ["valve"]
         ejts.update(
             [("res_" + ejt[0], ejt[1]) for ejt in ejts if ejt[0] not in elements_without_res])
+    ejts.update((el, jn) for el, jn in special_elements_junctions if el in node_elements
+                or el in branch_elements)
     return ejts
 
 
@@ -184,7 +188,7 @@ def reindex_junctions(net, junction_lookup):
     if hasattr(net, "res_junction"):
         net.res_junction.index = get_indices(net.res_junction.index, junction_lookup)
 
-    for element, value in element_junction_tuples():
+    for element, value in element_junction_tuples(net=net):
         if element in net.keys():
             net[element][value] = get_indices(net[element][value], junction_lookup)
     net["junction_geodata"].set_index(get_indices(net["junction_geodata"].index, junction_lookup),
@@ -399,7 +403,7 @@ def drop_pipes(net, pipes):
     if "res_pipe" in net.keys():
         res_pipes = net.res_pipe.index.intersection(pipes)
         net["res_pipe"].drop(res_pipes, inplace=True)
-    logger.info("dropped %d pipes" % len(pipes))
+    logger.info("dropped %d pipes" % len(list(pipes)))
 
 
 # TODO: change to pumps??

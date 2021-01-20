@@ -1,13 +1,14 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import copy
 
-import pandapipes
-import pytest
-from pandapipes.pipeflow import logger as pf_logger
 import numpy as np
+import pytest
+
+import pandapipes
+from pandapipes.pipeflow import logger as pf_logger
 from pandapipes.pipeflow_setup import get_lookup
 
 try:
@@ -202,6 +203,41 @@ def test_connectivity_hydraulic(create_test_net):
                                             False, True]))
     assert np.all(active_branches == np.array([True, False, False, False, False, False, True,
                                                True, True, False]))
+
+
+def test_connectivity_hydraulic2(create_test_net):
+    net = copy.deepcopy(create_test_net)
+
+    net.junction.in_service = True
+    net.pipe.in_service = True
+    net.valve.opened = True
+
+    pandapipes.create_fluid_from_lib(net, "water")
+
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse")
+
+    pandapipes.create_junction(net, 1., 293.15)
+    pandapipes.create_junction(net, 1., 293.15)
+    j = pandapipes.create_junction(net, 1., 293.15)
+    pandapipes.create_junction(net, 1, 293.15)
+    pandapipes.create_junction(net, 1, 293.15)
+
+    pandapipes.create_pipe_from_parameters(net, 0, j, 0.1, 0.1)
+
+    pandapipes.create_sink(net, j, 0.1)
+
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse")
+
+    active_branches = get_lookup(net, "branch", "active")
+    active_nodes = get_lookup(net, "node", "active")
+
+    assert np.all(active_nodes == np.array([True, True, True, True, True, True, True, False,
+                                            False, True, False, False, True, True, True]))
+    assert np.all(active_branches)
+
+    assert not np.all(np.isnan(net.res_junction.loc[[0, 1, 2, 3, 4, 5, 9], :].values))
+    assert not np.all(np.isnan(net.res_pipe.values))
+    assert np.any(np.isnan(net.res_junction.loc[[7, 8, 10, 11], :].values))
 
 
 def test_connectivity_heat1(complex_heat_connectivity_grid):
