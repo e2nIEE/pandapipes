@@ -16,4 +16,4 @@ can be accessed. This means that control strategies can also be applied for time
     timeseries/overview
     timeseries/example
     timeseries/functions
-    timeseries/tutorials_ts
+

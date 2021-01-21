@@ -341,14 +341,13 @@ class Pipe(BranchWInternalsComponent):
         pipe_t_data = pipe_results["TINIT"][pipe_p_data_idx, 1]
         pipe_v_data = pipe_results["VINIT_MEAN"][pipe_v_data_idx, 1]
         node_pit = net["_pit"]["node"]
-
-        junction_idx_lookup = get_lookup(net, "node", "index")['junction']
-        from_junction_nodes = junction_idx_lookup[net["pipe"]["from_junction"].values]
-        to_junction_nodes = junction_idx_lookup[net["pipe"]["to_junction"].values]
+        junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
+        from_junction_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
+        to_junction_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
         p_values = np.zeros(len(pipe_p_data[0]) + 2)
         p_values[0] = node_pit[from_junction_nodes[pipe], PINIT]
         p_values[1:-1] = pipe_p_data[:]
-        p_values[-1] = node_pit[int(to_junction_nodes[pipe]), PINIT]
+        p_values[-1] = node_pit[to_junction_nodes[pipe], PINIT]
 
         t_values = np.zeros(len(pipe_t_data[0]) + 2)
         t_values[0] = node_pit[from_junction_nodes[pipe], TINIT_NODE]
