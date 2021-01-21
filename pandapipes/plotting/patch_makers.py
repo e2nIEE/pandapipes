@@ -15,8 +15,8 @@ def get_filled_list(filled, number_entries, name_entries="valves"):
 
 def valve_patches(coords, size, **kwargs):
     polys, lines = list(), list()
-    facecolor = kwargs.pop('patch_facecolor')
-    colors = get_color_list(facecolor, len(coords))
+    edgecolor = kwargs.pop('patch_edgecolor')
+    colors = get_color_list(edgecolor, len(coords))
     lw = kwargs.get("linewidths", 2.)
     filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=np.bool))
     filled = get_filled_list(filled, len(coords))
