@@ -76,3 +76,9 @@ def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None,
     junction = junctions.pop()
     mg.add_edges_from([(junction, y, {"weight": 0}) for y in junctions])
     return pd.Series(nx.single_source_dijkstra_path_length(mg, junction))
+
+if __name__ == '__main__':
+    import pandapipes.networks as nw
+   
+    net = nw.gas_meshed_delta()
+    dist = calc_minimum_distance_to_junctions(net, net.ext_grid.junction.values)
