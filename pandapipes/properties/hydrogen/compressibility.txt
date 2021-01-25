@@ -5,5 +5,5 @@
 # 273.15 1.0006
 # 298.15 1.0006
 # 323.15 1.0006
-# we have to provide 2 values, slope and offset: (values at 293.15 K, 1 bar)
-0.0006082 1
+# we have to provide 2 values, slope and offset: (values at 273.15 K, 1 bar)
+0.0006 1
