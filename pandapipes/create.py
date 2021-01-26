@@ -7,7 +7,7 @@ import pandas as pd
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
-from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid
 from pandapipes.properties.fluids import _add_fluid_to_net
@@ -47,11 +47,8 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
         >>> net2 = create_empty_network()
 
     """
-    net = pandapipesNet(get_default_pandapipes_structure())
-    add_new_component(net, Junction, True)
-    add_new_component(net, Pipe, True)
-    add_new_component(net, ExtGrid, True)
-    net['controller'] = pd.DataFrame(np.zeros(0, dtype=net['controller']), index=[])
+    net = pandapipesNet(get_basic_net_entries())
+    add_default_components(net, True)
     net['name'] = name
     if add_stdtypes:
         add_basic_std_types(net)
