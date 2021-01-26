@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2016-2020 by University of Kassel and Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
 import pandapipes.topology as top
@@ -9,8 +8,8 @@ import pandas as pd
 
 def pressure_profile_to_junction_geodata(net):
     """
-        Calculates pressure profile for a pandapipes network.
-        
+    Calculates pressure profile for a pandapipes network.
+
      INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
 
@@ -22,7 +21,7 @@ def pressure_profile_to_junction_geodata(net):
         import pandapipes.plotting as plotting
         import pandapipes as pp
     
-        net = nw.schutterwald()    
+        net = nw.schutterwald()
         pp.pipeflow(net)
         bgd = plotting.pressure_profile_to_junction_geodata(net)
 
@@ -42,6 +41,6 @@ if __name__ == '__main__':
     import pandapipes.networks as nw
     import pandapipes as pp
 
-    net = nw.schutterwald()    
+    net = nw.schutterwald()
     pp.pipeflow(net)
     bgd = pressure_profile_to_junction_geodata(net)
