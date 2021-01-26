@@ -1,18 +1,16 @@
-# -*- coding: utf-8 -*-
-
-# Copyright (c) 2016-2020 by University of Kassel and Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel. All rights reserved.
-
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import networkx as nx
 import pandas as pd
 from pandapipes.topology.create_graph import create_nxgraph
 
 
-def calc_distance_to_junction(net, junction, notravjunctions=None, 
+def calc_distance_to_junction(net, junction, notravjunctions=None,
                               nogojunctions= None, weight="weight"):
     """
-        Calculates the shortest distance between a source junction and all junctions connected to it.
+    Calculates the shortest distance between a source junction and all junctions connected to it.
 
      INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
@@ -37,15 +35,15 @@ def calc_distance_to_junction(net, junction, notravjunctions=None,
          dist = top.calc_distance_to_junction(net, 5)
 
     """
-    g = create_nxgraph(net, nogojunctions=nogojunctions, 
+    g = create_nxgraph(net, nogojunctions=nogojunctions,
                        notravjunctions=notravjunctions)
     dist = nx.single_source_dijkstra_path_length(g, junction, weight=weight)
     return pd.Series(dist)
 
-def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None, 
+def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None,
                               nogojunctions=None, weight="weight"):
     """
-        Calculates the shortest distance between multiple source junctions and all junctions connected to it.
+    Calculates the shortest distance between multiple source junctions and all junctions connected to it.
 
      INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
@@ -70,7 +68,7 @@ def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None,
          dist = top.calc_distance_to_junction(net, 5)
 
     """
-    mg = create_nxgraph(net, notravjunctions=notravjunctions, 
+    mg = create_nxgraph(net, notravjunctions=notravjunctions,
                         nogojunctions=nogojunctions, weight=weight)
     junctions = set(junctions)
     junction = junctions.pop()
@@ -79,6 +77,5 @@ def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None,
 
 if __name__ == '__main__':
     import pandapipes.networks as nw
-   
     net = nw.gas_meshed_delta()
     dist = calc_minimum_distance_to_junctions(net, net.ext_grid.junction.values)
