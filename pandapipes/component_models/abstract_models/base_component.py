@@ -56,3 +56,11 @@ class Component:
         :rtype:
         """
         raise NotImplementedError
+
+    @classmethod
+    def adaption_before_derivatives(cls, net, branch_pit, node_pit):
+        pass
+
+    @classmethod
+    def adaption_after_derivatives(cls, net, brach_pit, node_pit):
+        pass

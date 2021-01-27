@@ -4,9 +4,11 @@
 
 import numpy as np
 from numpy import linalg
-from pandapipes.component_models import Junction
+from pandapipes.component_models import Junction, PressureControlComponent
 from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
     BranchComponent, BranchWInternalsComponent
+from pandapipes.component_models.abstract_models.branch_models import \
+    calculate_derivatives_hydraulic
 from pandapipes.component_models.auxiliaries import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
@@ -272,10 +274,11 @@ def solve_hydraulics(net):
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
 
-    branch_lookups = get_lookup(net, "branch", "from_to_active")
     for comp in net['component_list']:
-        if issubclass(comp, BranchComponent):
-            comp.calculate_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, options)
+        comp.adaption_before_derivatives(net, branch_pit, node_pit)
+    calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
+    for comp in net['component_list']:
+        comp.adaption_after_derivatives(net, branch_pit, node_pit)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
     v_init_old = branch_pit[:, VINIT].copy()
