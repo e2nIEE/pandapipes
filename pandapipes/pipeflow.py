@@ -4,7 +4,7 @@
 
 import numpy as np
 from numpy import linalg
-from pandapipes.component_models import Junction, PressureControlComponent
+from pandapipes.component_models import Junction
 from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
     BranchComponent, BranchWInternalsComponent
 from pandapipes.component_models.abstract_models.branch_models import \
