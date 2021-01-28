@@ -5,7 +5,7 @@
 import numpy as np
 import pandas as pd
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, StorageFluid
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
 from pandapipes.properties import call_lib
@@ -62,7 +62,7 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
         elif isinstance(fluid, str):
             create_fluid_from_lib(net, fluid)
         else:
-            logger.warning("The fluid %s cannot be added to the net Only fluids of type Fluid or "
+            logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
                            "strings can be used." % fluid)
     return net
 
@@ -205,6 +205,63 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
 
     return index
 
+
+def create_storage_fluid(net, junction, mdot_kg_per_s, currently_stored_kg=None, min_kg=0.,
+                         max_kg=np.inf, scaling=1., name=None, index=None, in_service=True,
+                         type='storage_fluid', **kwargs):
+    """
+    Adds one storage entry in table net["storage_fluid"]. Not suitable for thermal storage tanks.
+
+    :param net: The net for which this storage unit should be created
+    :type net: pandapipesNet
+    :param junction: The index of the junction to which the storage is connected
+    :type junction: int
+    :param mdot_kg_per_s: The quasi-stationary mass flow. (if fluid flows into storage: >0,
+                          if fluid flows from storage to net: <0)
+    :type mdot_kg_per_s: float, default None
+    :param currently_stored_kg: Amount of fluid that is currently stored. (To be used with
+                                controllers)
+    :type currently_stored_kg: float
+    :param min_kg: Minimum amount of fluid that has to remain in the storage unit. (To be used
+                   with controllers)
+    :type min_kg: float
+    :param max_kg: Maximum amount of fluid that can be stored in the storage unit. (To be used
+                   with controllers)
+    :type max_kg: float, default np.inf
+    :param scaling: An optional scaling factor to be set customly
+    :type scaling: float, default 1
+    :param name: A name tag for this storage
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: bool, default True
+    :param type: Type variable to classify the storage
+    :type type: str, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["storage_fluid"] table
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    :Example:
+        >>> create_storage_fluid(net,junction=2,mdot_kg_per_s=0.1)
+
+    """
+
+    add_new_component(net, StorageFluid)
+
+    _check_junction_element(net, junction)
+
+    index = _get_index_with_check(net, "storage_fluid", index)
+
+    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "currently_stored_kg", "min_kg", "max_kg",
+            "in_service", "type"]
+    vals = [name, junction, mdot_kg_per_s, scaling, currently_stored_kg, min_kg, max_kg,
+            bool(in_service), type]
+    _set_entries(net, "storage_fluid", index, **dict(zip(cols, vals)), **kwargs)
+
+    return index
 
 def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt"):
     """
