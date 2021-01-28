@@ -11,11 +11,8 @@ def test_add_fluid():
     net = pandapipes.create_empty_network()
     fluid_old = pandapipes.call_lib("air")
 
-    try:
+    with pytest.raises(AttributeError, match="no fluid"):
         pandapipes.get_fluid(net)
-        assert False, "should'nt get here"
-    except AttributeError:
-        pass
 
     _add_fluid_to_net(net, fluid_old)
     fluid_new = pandapipes.create_constant_fluid("arbitrary_gas2", "gas", density=2,
