@@ -56,7 +56,7 @@ class Fluid(JSONSerializableClass):
 
         r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
         for key in self.all_properties.keys():
-            r += "\n   - %s (%s)" %(key, self.all_properties[key].__class__.__name__[13:])
+            r += "\n   - %s (%s)" % (key, self.all_properties[key].__class__.__name__[13:])
         return r
 
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
@@ -74,7 +74,8 @@ class Fluid(JSONSerializableClass):
         :type warn_on_duplicates: bool
 
         :Example:
-            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061), overwrite=True, warn_on_duplicates=False)
+            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061),
+                                   overwrite=True, warn_on_duplicates=False)
 
         """
         if property_name in self.all_properties:
@@ -185,8 +186,8 @@ class FluidProperty(JSONSerializableClass):
     def get_property(self, *args):
         """
 
-        :param arg:
-        :type arg:
+        :param args:
+        :type args:
         :return:
         :rtype:
         """
@@ -219,7 +220,8 @@ class FluidPropertyInterExtra(FluidProperty):
     def get_property(self, arg):
         """
 
-        :param arg: Name of the property and one or more values (x-values) for which the y-values of the property are to be displayed
+        :param arg: Name of the property and one or more values (x-values) for which the y-values \
+            of the property are to be displayed
         :type arg: str, float or array
         :return: y-value/s
         :rtype: float, array
@@ -279,8 +281,8 @@ class FluidPropertyConstant(FluidProperty):
     def get_property(self, *args):
         """
 
-        :param arg: Name of the property
-        :type arg: str
+        :param args: Name of the property
+        :type args: str
         :return: Value of the property
         :rtype: float
 
@@ -336,7 +338,8 @@ class FluidPropertyLinear(FluidProperty):
     def get_property(self, arg):
         """
 
-        :param arg: Name of the property and one or more values (x-values) for which the function of the property should be calculated
+        :param arg: Name of the property and one or more values (x-values) for which the function \
+            of the property should be calculated
         :type arg: str, float or array
         :return: y-value or function values
         :rtype: float, array
@@ -358,8 +361,6 @@ class FluidPropertyLinear(FluidProperty):
 
         :param path:
         :type path:
-        :param method:
-        :type method:
         :return:
         :rtype:
         """
@@ -486,6 +487,7 @@ def call_lib(fluid):
                      heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
                      der_compressibility=der_compr)
 
+
 def get_fluid(net):
     """
     This function shows which fluid is used in the net.
@@ -496,7 +498,7 @@ def get_fluid(net):
     :rtype: Fluid
     """
     if "fluid" not in net or net["fluid"] is None:
-        raise UserWarning("There is no fluid defined for the given net!")
+        raise AttributeError("There is no fluid defined for the given net!")
     fluid = net["fluid"]
     if not isinstance(fluid, Fluid):
         logger.warning("The fluid in this net is not of the pandapipes Fluid type. This could lead"
@@ -528,6 +530,6 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
     if isinstance(fluid, str):
         logger.warning("Instead of a pandapipes.Fluid, a string ('%s') was passed to the fluid "
                        "argument. Internally, it will be passed to call_lib(fluid) to get the "
-                       "respective pandapipes.Fluid." %fluid)
+                       "respective pandapipes.Fluid." % fluid)
         fluid = call_lib(fluid)
     net["fluid"] = fluid

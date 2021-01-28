@@ -14,7 +14,7 @@ def test_add_fluid():
     try:
         pandapipes.get_fluid(net)
         assert False, "should'nt get here"
-    except UserWarning:
+    except AttributeError:
         pass
 
     _add_fluid_to_net(net, fluid_old)
