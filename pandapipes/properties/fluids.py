@@ -266,7 +266,7 @@ class FluidPropertyConstant(FluidProperty):
     Creates Property with a constant value.
     """
 
-    def __init__(self, value):
+    def __init__(self, value, warn_dependent_variables=False):
         """
 
         :param value:
@@ -274,6 +274,7 @@ class FluidPropertyConstant(FluidProperty):
         """
         super(FluidPropertyConstant, self).__init__()
         self.value = value
+        self.warn_dependent_variables = warn_dependent_variables
 
     def get_property(self, *args):
         """
@@ -287,14 +288,15 @@ class FluidPropertyConstant(FluidProperty):
             >>> heat_capacity = get_fluid(net).get_property("heat_capacity")
         """
         if len(args) > 1:
-            raise(UserWarning('Please define either none or an array-like argument'))
+            raise UserWarning('Please define either none or an array-like argument')
         elif len(args) == 1:
-            logger.warning('One constant property has several input variables even though it is '
-                           'independent of these')
+            if self.warn_dependent_variables:
+                logger.warning('Constant property received several input variables, although it is'
+                               'independent of these')
             output = np.array([self.value]) * np.ones(len(args[0]))
         else:
             output = np.array([self.value])
-        return  output
+        return output
 
     @classmethod
     def from_path(cls, path):
