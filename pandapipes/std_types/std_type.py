@@ -34,6 +34,14 @@ class StdType(JSONSerializableClass):
         self.name = name
         self.component = component
 
+    @classmethod
+    def from_dict(cls, d):
+        obj = super().from_dict(d)
+        if hasattr(obj, "type") and not hasattr(obj, "component"):
+            setattr(obj, "component", getattr(obj, "type"))
+            delattr(obj, "type")
+        return obj
+
 
 class PumpStdType(StdType):
 
