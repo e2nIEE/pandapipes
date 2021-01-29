@@ -188,17 +188,15 @@ def calc_lambda_nikuradse_incomp(v, d, k, eta, rho):
 
 
 @njit
-def colebrook_nb(re, d, k, lambda_nikuradse, dummy):
-    lambda_cb = np.empty_like(lambda_nikuradse)
-    for i in range(lambda_nikuradse.shape[0]):
-        lambda_cb[i] = lambda_nikuradse[i]
+def colebrook_nb(re, d, k, lambda_nikuradse, dummy, max_iter):
+    lambda_cb = lambda_nikuradse.copy()
     lambda_cb_old = np.empty_like(lambda_nikuradse)
     converged = False
     niter = 0
     factor = np.log(10) * 2.51
 
     # Inner Newton-loop for calculation of lambda
-    while not converged:
+    while not converged and niter < max_iter:
         for i in range(lambda_cb.shape[0]):
             sqt = np.sqrt(lambda_cb[i])
             add_val = np.divide(k[i], (3.71 * d[i]))
@@ -222,4 +220,4 @@ def colebrook_nb(re, d, k, lambda_nikuradse, dummy):
 
         niter += 1
 
-    return lambda_cb
+    return converged, lambda_cb
