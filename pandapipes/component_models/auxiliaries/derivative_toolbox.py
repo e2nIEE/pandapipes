@@ -45,6 +45,7 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
         lambda_nikuradse = 1 / (-2 * np.log10(k / (3.71 * d))) ** 2
 
     if friction_model == "colebrook":
+        # TODO: move this import to top level if possible
         from pandapipes.pipeflow import PipeflowNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
         converged, lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy, max_iter)
