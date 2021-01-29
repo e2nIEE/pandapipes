@@ -142,7 +142,8 @@ class BranchComponent(Component):
 
         height_difference = node_pit[from_nodes, HEIGHT] - node_pit[to_nodes, HEIGHT]
         dummy = (length != 0).astype(np.float64)
-        lambda_pipe, re = calc_lambda(v_init, eta, rho, d, k, gas_mode, friction_model, dummy)
+        lambda_pipe, re = calc_lambda(v_init, eta, rho, d, k, gas_mode, friction_model, dummy,
+                                      options)
         der_lambda_pipe = calc_der_lambda(v_init, eta, rho, d, k, friction_model, lambda_pipe)
         branch_component_pit[:, RE] = re
         branch_component_pit[:, LAMBDA] = lambda_pipe

@@ -5,6 +5,7 @@
 from packaging import version
 
 from pandapipes import __version__
+from pandapipes.properties.fluids import get_fluid, FluidPropertyConstant
 
 try:
     import pplog as logging
