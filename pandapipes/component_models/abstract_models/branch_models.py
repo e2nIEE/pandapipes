@@ -437,12 +437,10 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 
 @njit
 def calc_medium_pressure(p_init_i_abs, p_init_i1_abs):
-    p_m = np.empty_like(p_init_i_abs)
+    p_m = p_init_i_abs.copy()
     val = 2 / 3
     for i in range(p_init_i_abs.shape[0]):
-        if p_init_i_abs[i] == p_init_i1_abs[i]:
-            p_m[i] = p_init_i_abs[i]
-        else:
+        if p_init_i_abs[i] != p_init_i1_abs[i]:
             p_m[i] = np.divide(val * (p_init_i_abs[i] ** 3 - p_init_i1_abs[i] ** 3),
                                p_init_i_abs[i] ** 2 - p_init_i1_abs[i] ** 2)
     return p_m
