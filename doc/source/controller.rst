@@ -20,4 +20,4 @@ time series simulation.
 
     controller/run
     controller/controller_classes
-    controller/tutorials
+
