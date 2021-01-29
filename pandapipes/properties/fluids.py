@@ -56,7 +56,7 @@ class Fluid(JSONSerializableClass):
 
         r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
         for key in self.all_properties.keys():
-            r += "\n   - %s (%s)" %(key, self.all_properties[key].__class__.__name__[13:])
+            r += "\n   - %s (%s)" % (key, self.all_properties[key].__class__.__name__[13:])
         return r
 
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
@@ -74,7 +74,8 @@ class Fluid(JSONSerializableClass):
         :type warn_on_duplicates: bool
 
         :Example:
-            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061), overwrite=True, warn_on_duplicates=False)
+            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061),
+                                   overwrite=True, warn_on_duplicates=False)
 
         """
         if property_name in self.all_properties:
@@ -185,8 +186,8 @@ class FluidProperty(JSONSerializableClass):
     def get_at_value(self, *args):
         """
 
-        :param arg:
-        :type arg:
+        :param args:
+        :type args:
         :return:
         :rtype:
         """
@@ -219,7 +220,8 @@ class FluidPropertyInterExtra(FluidProperty):
     def get_at_value(self, arg):
         """
 
-        :param arg: Name of the property and one or more values (x-values) for which the y-values of the property are to be displayed
+        :param arg: Name of the property and one or more values (x-values) for which the y-values \
+            of the property are to be displayed
         :type arg: str, float or array
         :return: y-value/s
         :rtype: float, array
@@ -266,7 +268,7 @@ class FluidPropertyConstant(FluidProperty):
     Creates Property with a constant value.
     """
 
-    def __init__(self, value):
+    def __init__(self, value, warn_dependent_variables=False):
         """
 
         :param value:
@@ -274,12 +276,13 @@ class FluidPropertyConstant(FluidProperty):
         """
         super(FluidPropertyConstant, self).__init__()
         self.value = value
+        self.warn_dependent_variables = warn_dependent_variables
 
     def get_at_value(self, *args):
         """
 
-        :param arg: Name of the property
-        :type arg: str
+        :param args: Name of the property
+        :type args: str
         :return: Value of the property
         :rtype: float
 
@@ -287,14 +290,15 @@ class FluidPropertyConstant(FluidProperty):
             >>> heat_capacity = get_fluid(net).all_properties["heat_capacity"].get_at_value(293.15)
         """
         if len(args) > 1:
-            raise(UserWarning('Please define either none or an array-like argument'))
+            raise UserWarning('Please define either none or an array-like argument')
         elif len(args) == 1:
-            logger.warning('One constant property has several input variables even though it is '
-                           'independent of these')
+            if self.warn_dependent_variables:
+                logger.warning('Constant property received several input variables, although it is'
+                               'independent of these')
             output = np.array([self.value]) * np.ones(len(args[0]))
         else:
             output = np.array([self.value])
-        return  output
+        return output
 
     @classmethod
     def from_path(cls, path):
@@ -311,6 +315,13 @@ class FluidPropertyConstant(FluidProperty):
         """
         value = np.loadtxt(path).item()
         return cls(value)
+
+    @classmethod
+    def from_dict(cls, d):
+        obj = super().from_dict(d)
+        if "warn_dependent_variables" not in obj.__dict__.keys():
+            obj.__dict__["warn_dependent_variables"] = False
+        return obj
 
 
 class FluidPropertyLinear(FluidProperty):
@@ -334,7 +345,8 @@ class FluidPropertyLinear(FluidProperty):
     def get_at_value(self, arg):
         """
 
-        :param arg: Name of the property and one or more values (x-values) for which the function of the property should be calculated
+        :param arg: Name of the property and one or more values (x-values) for which the function \
+            of the property should be calculated
         :type arg: str, float or array
         :return: y-value or function values
         :rtype: float, array
@@ -356,8 +368,6 @@ class FluidPropertyLinear(FluidProperty):
 
         :param path:
         :type path:
-        :param method:
-        :type method:
         :return:
         :rtype:
         """
@@ -484,6 +494,7 @@ def call_lib(fluid):
                      heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
                      der_compressibility=der_compr)
 
+
 def get_fluid(net):
     """
     This function shows which fluid is used in the net.
@@ -494,7 +505,7 @@ def get_fluid(net):
     :rtype: Fluid
     """
     if "fluid" not in net or net["fluid"] is None:
-        raise UserWarning("There is no fluid defined for the given net!")
+        raise AttributeError("There is no fluid defined for the given net!")
     fluid = net["fluid"]
     if not isinstance(fluid, Fluid):
         logger.warning("The fluid in this net is not of the pandapipes Fluid type. This could lead"
@@ -526,6 +537,6 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
     if isinstance(fluid, str):
         logger.warning("Instead of a pandapipes.Fluid, a string ('%s') was passed to the fluid "
                        "argument. Internally, it will be passed to call_lib(fluid) to get the "
-                       "respective pandapipes.Fluid." %fluid)
+                       "respective pandapipes.Fluid." % fluid)
         fluid = call_lib(fluid)
     net["fluid"] = fluid
