@@ -19,7 +19,6 @@ def convert_format(net):
     """
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
-    adapt_fluid(net)
     if isinstance(net.version, str) and version.parse(net.version) >= version.parse(__version__):
         return net
     _rename_columns(net)
@@ -46,14 +45,3 @@ def _add_missing_columns(net):
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
             else:
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow
-
-
-def adapt_fluid(net):
-    try:
-        fluid = get_fluid(net)
-        for prop in fluid.all_properties.values():
-            if isinstance(prop, FluidPropertyConstant) and not \
-                    hasattr(prop, "warn_dependent_variables"):
-                setattr(prop, "warn_dependent_variables", False)
-    except AttributeError:
-        return

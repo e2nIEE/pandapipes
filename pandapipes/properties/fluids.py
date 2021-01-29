@@ -316,6 +316,13 @@ class FluidPropertyConstant(FluidProperty):
         value = np.loadtxt(path).item()
         return cls(value)
 
+    @classmethod
+    def from_dict(cls, d):
+        obj = super().from_dict(d)
+        if "warn_dependent_variables" not in obj.__dict__.keys():
+            obj.__dict__["warn_dependent_variables"] = False
+        return obj
+
 
 class FluidPropertyLinear(FluidProperty):
     """
