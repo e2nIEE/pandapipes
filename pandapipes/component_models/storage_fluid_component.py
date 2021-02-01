@@ -30,7 +30,6 @@ class StorageFluid(ConstFlow):
                 ("junction", "u4"),
                 ("mdot_kg_per_s", "f8"),
                 ("scaling", "f8"),
-                ("currently_stored_kg", "f8"),
                 ("min_kg", "f8"),
                 ("max_kg", "f8"),
                 ("in_service", "bool"),

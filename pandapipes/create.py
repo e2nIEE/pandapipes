@@ -206,9 +206,8 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_storage_fluid(net, junction, mdot_kg_per_s, currently_stored_kg=None, min_kg=0.,
-                         max_kg=np.inf, scaling=1., name=None, index=None, in_service=True,
-                         type='storage_fluid', **kwargs):
+def create_storage_fluid(net, junction, mdot_kg_per_s, min_kg=0., max_kg=np.inf, scaling=1.,
+                         name=None, index=None, in_service=True, type='storage_fluid', **kwargs):
     """
     Adds one storage entry in table net["storage_fluid"]. Not suitable for thermal storage tanks.
 
@@ -219,9 +218,6 @@ def create_storage_fluid(net, junction, mdot_kg_per_s, currently_stored_kg=None,
     :param mdot_kg_per_s: The quasi-stationary mass flow. (if fluid flows into storage: >0,
                           if fluid flows from storage to net: <0)
     :type mdot_kg_per_s: float, default None
-    :param currently_stored_kg: Amount of fluid that is currently stored. (To be used with
-                                controllers)
-    :type currently_stored_kg: float
     :param min_kg: Minimum amount of fluid that has to remain in the storage unit. (To be used
                    with controllers)
     :type min_kg: float
@@ -255,9 +251,9 @@ def create_storage_fluid(net, junction, mdot_kg_per_s, currently_stored_kg=None,
 
     index = _get_index_with_check(net, "storage_fluid", index)
 
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "currently_stored_kg", "min_kg", "max_kg",
+    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "min_kg", "max_kg",
             "in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, currently_stored_kg, min_kg, max_kg,
+    vals = [name, junction, mdot_kg_per_s, scaling, min_kg, max_kg,
             bool(in_service), type]
     _set_entries(net, "storage_fluid", index, **dict(zip(cols, vals)), **kwargs)
 

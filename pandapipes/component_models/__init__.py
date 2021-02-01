@@ -12,4 +12,4 @@ from pandapipes.component_models.heat_exchanger_component import *
 from pandapipes.component_models.pump_component import *
 from pandapipes.component_models.circulation_pump_mass_component import *
 from pandapipes.component_models.circulation_pump_pressure_component import *
-from pandapipes.component_models.storage_gas_component import *
+from pandapipes.component_models.storage_fluid_component import *
