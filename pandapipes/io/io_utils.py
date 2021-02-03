@@ -10,7 +10,7 @@ from inspect import isclass
 from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.create import create_empty_network
-from pandapipes.pandapipes_net import pandapipesNet
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
@@ -61,7 +61,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             from pandapipes import from_json_string
             return from_json_string(self.obj)
         else:
-            net = create_empty_network()
+            net = pandapipesNet(get_basic_net_entries())
             net.update(self.obj)
             return net
 

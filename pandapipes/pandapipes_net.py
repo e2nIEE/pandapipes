@@ -4,9 +4,12 @@
 
 import copy
 
+import numpy as np
 import pandas as pd
 from numpy import dtype
 from pandapipes import __version__
+from pandapipes.component_models import Junction, Pipe, ExtGrid
+from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapower.auxiliary import ADict
 
 try:
@@ -58,24 +61,27 @@ class pandapipesNet(ADict):
         return r
 
 
-def get_default_pandapipes_structure():
-    """
-
-    :return:
-    :rtype:
-    """
-    default_pandapipes_structure = {
-        # structure data
-        # f8, u4 etc. are probably referencing numba or numpy data types
+def get_basic_net_entries():
+    return {
         "fluid": None,
         "converged": False,
         "name": "",
         "version": __version__,
-        "controller": [('object', dtype(object)),
+        "component_list": []}
+
+
+def get_basic_components():
+    return Junction, Pipe, ExtGrid
+
+
+def add_default_components(net, overwrite=False):
+    for comp in get_basic_components():
+        add_new_component(net, comp, overwrite)
+    if "controller" not in net or overwrite:
+        ctrl_dtypes = [('object', dtype(object)),
                        ('in_service', "bool"),
                        ('order', "float64"),
                        ('level', dtype(object)),
                        ('initial_run', "bool"),
-                       ("recycle", "bool")],
-        "component_list": []}
-    return default_pandapipes_structure
+                       ("recycle", "bool")]
+        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=pd.Int64Index([]))
