@@ -38,7 +38,7 @@ def test_pipe_velocity_results():
         compressibility=1, der_compressibility=0, density=0.82752
     ))
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
+                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_v=1e-5)
 
     v_1_sec_from = net.res_pipe.v_from_m_per_s
     v_1_sec_to = net.res_pipe.v_from_m_per_s
@@ -61,17 +61,14 @@ def test_pipe_velocity_results():
         compressibility=1, der_compressibility=0, density=0.82752
     ))
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
+                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_v=1e-5)
 
     v_n_sec_from = net.res_pipe.v_from_m_per_s
     v_n_sec_to = net.res_pipe.v_from_m_per_s
 
-
-
     diff_from = v_1_sec_from - v_n_sec_from
     diff_to = v_1_sec_to - v_n_sec_to
 
-
-    assert np.all(np.abs(diff_from) < 1e-9)
-    assert np.all(np.abs(diff_to) < 1e-9)
+    assert np.all(np.abs(diff_from) < 1e-7)
+    assert np.all(np.abs(diff_to) < 1e-7)
 

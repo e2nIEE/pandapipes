@@ -5,6 +5,11 @@
 from numpy import linalg
 import numpy as np
 
+try:
+    from numba import jit
+except ImportError:
+    from pandapower.pf.no_numba import jit
+
 
 def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
     """
@@ -33,22 +38,16 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
     :return:
     :rtype:
     """
-    v_corr = np.where(np.abs(v) < 1e-6, 1e-6 * np.sign(v), v)
-    lambda_laminar = np.zeros_like(v)
-
-    re = np.abs(rho * v_corr * d / eta)
-    lambda_laminar[v != 0] = 64 / re[v != 0]
-
     if gas_mode:
-        lambda_nikuradse = 1 / (2 * np.log10(d / k) + 1.14) ** 2
+        re, lambda_laminar, lambda_nikuradse = calc_lambda_nikuradse_comp(v, d, k, eta, rho)
     else:
-        lambda_nikuradse = 1 / (-2 * np.log10(k / (3.71 * d))) ** 2
+        re, lambda_laminar, lambda_nikuradse = calc_lambda_nikuradse_incomp(v, d, k, eta, rho)
 
     if friction_model == "colebrook":
         # TODO: move this import to top level if possible
         from pandapipes.pipeflow import PipeflowNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
-        converged, lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy, max_iter)
+        converged, lambda_colebrook = colebrook_nb(re, d, k, lambda_nikuradse, dummy, max_iter)
         if not converged:
             raise PipeflowNotConverged(
                 "The Colebrook-White algorithm did not converge. There might be model "
@@ -90,8 +89,6 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
 
     v_corr = np.where(v == 0, 0.00001, v)
 
-    lambda_laminar_der = -(64 * eta) / (rho * v_corr ** 2 * d)
-
     if friction_model == "colebrook":
         b_term = 2.51 * eta / (rho * d * np.sqrt(lambda_pipe) * v_corr) + k / (3.71 * d)
 
@@ -110,6 +107,7 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
                                  * (np.abs(eta))**0.9/(((np.abs((rho*d)))**0.9) * (np.abs(v_corr))**1.9)
         return lambda_swamee_jain_der
     else:
+        lambda_laminar_der = -(64 * eta) / (rho * v_corr ** 2 * d)
         return lambda_laminar_der
 
 
@@ -152,6 +150,76 @@ def colebrook(re, d, k, lambda_nikuradse, dummy, max_iter):
         error_lambda.append(linalg.norm(dx) / (len(dx)))
 
         if error_lambda[niter] <= 1e-4:
+            converged = True
+
+        niter += 1
+
+    return converged, lambda_cb
+
+
+@jit(nopython=True)
+def calc_lambda_nikuradse_comp(v, d, k, eta, rho):
+    lambda_nikuradse = np.empty_like(v)
+    lambda_laminar = np.zeros_like(v)
+    re = np.empty_like(v)
+    v_abs = np.abs(v)
+    for i in range(v.shape[0]):
+        if v_abs[i] < 1e-6:
+            re[i] = np.divide(rho[i] * 1e-6 * d[i], eta[i])
+        else:
+            re[i] = np.divide(rho[i] * v_abs[i] * d[i], eta[i])
+        if v[i] != 0:
+            lambda_laminar[i] = 64 / re[i]
+        lambda_nikuradse[i] = np.divide(1, (2 * np.log10(d[i] / k[i]) + 1.14) ** 2)
+    return re, lambda_laminar, lambda_nikuradse
+
+
+@jit(nopython=True)
+def calc_lambda_nikuradse_incomp(v, d, k, eta, rho):
+    lambda_nikuradse = np.empty_like(v)
+    lambda_laminar = np.zeros_like(v)
+    re = np.empty_like(v)
+    v_abs = np.abs(v)
+    for i in range(v.shape[0]):
+        if v_abs[i] < 1e-6:
+            re[i] = np.divide(rho[i] * 1e-6 * d[i], eta[i])
+        else:
+            re[i] = np.divide(rho[i] * v_abs[i] * d[i], eta[i])
+        if v[i] != 0:
+            lambda_laminar[i] = 64 / re[i]
+        lambda_nikuradse[i] = np.divide(1, (-2 * np.log10(k[i] / (3.71 * d[i]))) ** 2)
+    return re, lambda_laminar, lambda_nikuradse
+
+
+@jit(nopython=True)
+def colebrook_nb(re, d, k, lambda_nikuradse, dummy, max_iter):
+    lambda_cb = lambda_nikuradse.copy()
+    lambda_cb_old = np.empty_like(lambda_nikuradse)
+    converged = False
+    niter = 0
+    factor = np.log(10) * 2.51
+
+    # Inner Newton-loop for calculation of lambda
+    while not converged and niter < max_iter:
+        for i in range(lambda_cb.shape[0]):
+            sqt = np.sqrt(lambda_cb[i])
+            add_val = np.divide(k[i], (3.71 * d[i]))
+            sqt_div = np.divide(1, sqt)
+            re_div = np.divide(1, re[i])
+            sqt_div3 = sqt_div ** 3
+
+            f = sqt_div + 2 * np.log10(2.51 * re_div * sqt_div + add_val)
+            df_dlambda_cb = - 0.5 * sqt_div3 - 2.51 * re_div * sqt_div3 * np.divide(
+                re[i] * sqt + add_val, factor)
+            x = - f / df_dlambda_cb
+
+            lambda_cb_old[i] = lambda_cb[i]
+            lambda_cb[i] += x
+
+        dx = np.abs(lambda_cb - lambda_cb_old) * dummy
+        error_lambda = linalg.norm(dx) / dx.shape[0]
+
+        if error_lambda <= 1e-4:
             converged = True
 
         niter += 1
