@@ -5,7 +5,7 @@
 from packaging import version
 
 from pandapipes import __version__
-from pandapipes.properties.fluids import get_fluid, FluidPropertyConstant
+from pandapipes.pandapipes_net import add_default_components
 
 try:
     import pplog as logging
@@ -19,6 +19,7 @@ def convert_format(net):
     """
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
+    add_default_components(net, overwrite=False)
     if isinstance(net.version, str) and version.parse(net.version) >= version.parse(__version__):
         return net
     _rename_columns(net)
