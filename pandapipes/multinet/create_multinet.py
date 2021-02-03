@@ -58,16 +58,17 @@ def add_net_to_multinet(multinet, net, net_name='power', overwrite=False):
 
 def add_nets_to_multinet(multinet, overwrite=False, **networks):
     """
-    Add multiple nets to a multinet. 'networks' has to be a dictionary.
+    Add multiple nets to a multinet. 'networks' is one or more keyword arguments with nets.
 
     :param multinet: multinet to which several pandapipes/pandapower nets are added
     :type multinet: pandapipes.MultiNet
     :param overwrite: whether a net should be overwritten if it has the same net_name
     :type overwrite: bool
-    :param networks: a dictionary with different pandapipes/pandapower nets as values. The keys
-                     will be set in multinet.nets as net names for the different networks.
-    :type networks: dict
-    :return: net is added to multinet
+    :param networks: one or more keyword arguments with pandapipes/pandapower nets as values. 
+                     The keyword of each net will be set in multinet.nets as the name for the
+                     network in the respective argument.
+    :type networks: kwarg (name=net)
+    :return: nets are added to multinet
     :rtype: None
     """
     for name, net in networks.items():
