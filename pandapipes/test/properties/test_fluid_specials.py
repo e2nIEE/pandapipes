@@ -50,24 +50,15 @@ def test_fluid_exceptions():
     net = pandapipes.create_empty_network(fluid="hgas")
     fluid = pandapipes.get_fluid(net)
 
-    try:
+    with pytest.raises(UserWarning, match="property xyz was not defined for the fluid"):
         fluid.get_property("xyz", 100)
-        assert False, "Shouldn't find property xyz!"
-    except UserWarning:
-        pass
 
     prop = pandapipes.FluidProperty()
-    try:
-        prop.get_property(100)
-        assert False, "Shouldn't have property defined!"
-    except NotImplementedError:
-        pass
+    with pytest.raises(NotImplementedError, match="Please implement a proper fluid property!"):
+        prop.get_at_value(100)
 
-    try:
+    with pytest.raises(AttributeError, match="Fluid 'natural_gas' not found in the fluid library."):
         pandapipes.call_lib("natural_gas")
-        assert False, "Shouldn't have fluid natural_gas defined in lib!"
-    except AttributeError:
-        pass
 
 
 if __name__ == '__main__':
