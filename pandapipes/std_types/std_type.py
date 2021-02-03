@@ -22,17 +22,25 @@ class StdType(JSONSerializableClass):
 
     """
 
-    def __init__(self, name, type):
+    def __init__(self, name, component):
         """
 
         :param name: name of the standard type object
         :type name: str
-        :param type: the specific standard type
-        :type type: str
+        :param component: the specific standard type
+        :type component: str
         """
         super(StdType, self).__init__()
         self.name = name
-        self.type = type
+        self.component = component
+
+    @classmethod
+    def from_dict(cls, d):
+        obj = super().from_dict(d)
+        if hasattr(obj, "type") and not hasattr(obj, "component"):
+            setattr(obj, "component", getattr(obj, "type"))
+            delattr(obj, "type")
+        return obj
 
 
 class PumpStdType(StdType):

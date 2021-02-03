@@ -101,7 +101,7 @@ class Fluid(JSONSerializableClass):
         if property_name not in self.all_properties:
             raise UserWarning("The property %s was not defined for the fluid %s"
                               % (property_name, self.name))
-        return self.all_properties[property_name].get_property(*at_values)
+        return self.all_properties[property_name].get_at_value(*at_values)
 
     def get_density(self, temperature):
         """
@@ -183,7 +183,7 @@ class FluidProperty(JSONSerializableClass):
         """
         super().__init__()
 
-    def get_property(self, *args):
+    def get_at_value(self, *args):
         """
 
         :param args:
@@ -217,7 +217,7 @@ class FluidPropertyInterExtra(FluidProperty):
         else:
             self.prop_getter = interp1d(x_values, y_values)
 
-    def get_property(self, arg):
+    def get_at_value(self, arg):
         """
 
         :param arg: Name of the property and one or more values (x-values) for which the y-values \
@@ -278,7 +278,7 @@ class FluidPropertyConstant(FluidProperty):
         self.value = value
         self.warn_dependent_variables = warn_dependent_variables
 
-    def get_property(self, *args):
+    def get_at_value(self, *args):
         """
 
         :param args: Name of the property
@@ -287,7 +287,7 @@ class FluidPropertyConstant(FluidProperty):
         :rtype: float
 
         :Example:
-            >>> heat_capacity = get_fluid(net).get_property("heat_capacity")
+            >>> heat_capacity = get_fluid(net).all_properties["heat_capacity"].get_at_value(293.15)
         """
         if len(args) > 1:
             raise UserWarning('Please define either none or an array-like argument')
@@ -342,7 +342,7 @@ class FluidPropertyLinear(FluidProperty):
         self.slope = slope
         self.offset = offset
 
-    def get_property(self, arg):
+    def get_at_value(self, arg):
         """
 
         :param arg: Name of the property and one or more values (x-values) for which the function \
@@ -352,7 +352,7 @@ class FluidPropertyLinear(FluidProperty):
         :rtype: float, array
 
         :Example:
-            >>> comp_fact = get_fluid(net).get_property("compressibility", p_bar)
+            >>> comp_fact = get_fluid(net).all_properties["compressibility"].get_at_value(p_bar)
 
         """
         if isinstance(arg, pd.Series):
