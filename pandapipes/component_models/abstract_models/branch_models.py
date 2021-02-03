@@ -17,7 +17,11 @@ from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
 from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
 from pandapipes.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
-from numba import njit
+
+try:
+    from numba import jit
+except ImportError:
+    from pandapower.pf.no_numba import jit
 
 try:
     import pplog as logging
@@ -103,8 +107,8 @@ class BranchComponent(Component):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_component_pit:
-        :type branch_component_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :param idx_lookups:
@@ -403,9 +407,9 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     friction_model = options["friction_model"]
 
     dummy = (branch_pit[:, LENGTH] != 0).astype(np.float64)
-    lambda_, re = calc_lambda(branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO],
-                              branch_pit[:, D], branch_pit[:, K], gas_mode, friction_model, dummy,
-                              options)
+    lambda_, re = calc_lambda(
+        branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO], branch_pit[:, D],
+        branch_pit[:, K], gas_mode, friction_model, dummy, options)
     der_lambda = calc_der_lambda(branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO],
                                  branch_pit[:, D], branch_pit[:, K], friction_model, lambda_)
     branch_pit[:, RE] = re
@@ -421,11 +425,13 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
             branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference)
     else:
-        p_m = calc_medium_pressure(p_init_i_abs, p_init_i1_abs)
-        comp_fact = get_fluid(net).get_property("compressibility", p_m)
+        p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
+        comp_fact = get_fluid(net).get_compressibility(p_m)
+        der_comp = get_fluid(net).get_der_compressibility() * der_p_m
+        der_comp1 = get_fluid(net).get_der_compressibility() * der_p_m1
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_comp(
             branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
-            comp_fact)
+            comp_fact, der_comp, der_comp1)
 
     # return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
@@ -437,18 +443,26 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DV_NODE] = df_dv_nodes
 
 
-@njit
-def calc_medium_pressure(p_init_i_abs, p_init_i1_abs):
+@jit(nopython=True, cache=False)
+def calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs):
     p_m = p_init_i_abs.copy()
+    der_p_m = np.ones_like(p_init_i_abs)
+    der_p_m1 = np.ones_like(p_init_i_abs) * (-1)
     val = 2 / 3
     for i in range(p_init_i_abs.shape[0]):
         if p_init_i_abs[i] != p_init_i1_abs[i]:
-            p_m[i] = np.divide(val * (p_init_i_abs[i] ** 3 - p_init_i1_abs[i] ** 3),
-                               p_init_i_abs[i] ** 2 - p_init_i1_abs[i] ** 2)
-    return p_m
+            diff_p_sq = p_init_i_abs[i] ** 2 - p_init_i1_abs[i] ** 2
+            diff_p_sq_div = np.divide(1, diff_p_sq)
+            diff_p_cub = p_init_i_abs[i] ** 3 - p_init_i1_abs[i] ** 3
+            p_m[i] = val * diff_p_cub * diff_p_sq_div
+            der_p_m[i] = (3 * p_init_i_abs[i] ** 2 * diff_p_sq - 2 * p_init_i_abs[i] * diff_p_cub) \
+                * diff_p_sq_div ** 2 * val
+            der_p_m1[i] = (-3 * p_init_i1_abs[i] ** 2 * diff_p_sq
+                           + 2 * p_init_i1_abs[i] * diff_p_cub) * diff_p_sq_div ** 2 * val
+    return p_m, der_p_m, der_p_m1
 
 
-@njit
+@jit(nopython=True, cache=False)
 def derivatives_hydraulic_incomp(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
                                  height_difference):
     le = der_lambda.shape[0]
@@ -476,9 +490,9 @@ def derivatives_hydraulic_incomp(branch_pit, der_lambda, p_init_i_abs, p_init_i1
     return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
 
-@njit
+@jit(nopython=True, cache=False)
 def derivatives_hydraulic_comp(branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
-                               height_difference, comp_fact):
+                               height_difference, comp_fact, der_comp, der_comp1):
     le = lambda_.shape[0]
     load_vec = np.zeros_like(lambda_)
     df_dv = np.zeros_like(lambda_)
@@ -497,8 +511,8 @@ def derivatives_hydraulic_comp(branch_pit, lambda_, der_lambda, p_init_i_abs, p_
         p_sum = p_init_i_abs[i] + p_init_i1_abs[i]
         p_sum_div = np.divide(1, p_sum)
 
-        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][RHO] * comp_fact[i]
-                                 * branch_pit[i][TINIT], NORMAL_TEMPERATURE * P_CONVERSION)
+        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][RHO] * branch_pit[i][TINIT],
+                                 NORMAL_TEMPERATURE * P_CONVERSION)
         const_height = np.divide(
             branch_pit[i][RHO] * NORMAL_TEMPERATURE * GRAVITATION_CONSTANT * height_difference[i],
             2 * NORMAL_PRESSURE * branch_pit[i][TINIT] * P_CONVERSION)
@@ -506,15 +520,15 @@ def derivatives_hydraulic_comp(branch_pit, lambda_, der_lambda, p_init_i_abs, p_
                                   branch_pit[i][D]) + branch_pit[i][LC]
 
         load_vec[i] = p_diff + branch_pit[i][PL] + const_height * p_sum \
-            - const_lambda * v_init2 * friction_term * p_sum_div
+            - const_lambda * comp_fact[i] * v_init2 * friction_term * p_sum_div
 
-        p_deriv = - const_lambda * v_init2 * friction_term * p_sum_div ** 2 - const_height
-        df_dp[i] = -1. + p_deriv
-        df_dp1[i] = 1. + p_deriv
+        p_deriv = const_lambda * v_init2 * friction_term * p_sum_div
+        df_dp[i] = -1. - p_deriv * (der_comp[i] - comp_fact[i] * p_sum_div) + const_height
+        df_dp1[i] = 1. - p_deriv * (der_comp1[i] - comp_fact[i] * p_sum_div) + const_height
 
-        df_dv[i] = np.divide(2 * const_lambda, p_sum) * v_init_abs * friction_term\
-            + np.divide(const_lambda * der_lambda[i] * branch_pit[i][LENGTH] * v_init2,
-                        p_sum * branch_pit[i][D])
+        df_dv[i] = np.divide(2 * const_lambda * comp_fact[i], p_sum) * v_init_abs * friction_term\
+            + np.divide(const_lambda * comp_fact[i] * der_lambda[i] * branch_pit[i][LENGTH]
+                        * v_init2, p_sum * branch_pit[i][D])
         mass_flow_dv = branch_pit[i][RHO] * branch_pit[i][AREA]
         df_dv_nodes[i] = mass_flow_dv
         load_vec_nodes[i] = mass_flow_dv * branch_pit[i][VINIT]

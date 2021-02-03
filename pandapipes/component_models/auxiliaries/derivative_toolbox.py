@@ -4,7 +4,11 @@
 
 from numpy import linalg
 import numpy as np
-from numba import njit
+
+try:
+    from numba import jit
+except ImportError:
+    from pandapower.pf.no_numba import jit
 
 
 def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
@@ -153,7 +157,7 @@ def colebrook(re, d, k, lambda_nikuradse, dummy, max_iter):
     return converged, lambda_cb
 
 
-@njit
+@jit(nopython=True)
 def calc_lambda_nikuradse_comp(v, d, k, eta, rho):
     lambda_nikuradse = np.empty_like(v)
     lambda_laminar = np.zeros_like(v)
@@ -170,7 +174,7 @@ def calc_lambda_nikuradse_comp(v, d, k, eta, rho):
     return re, lambda_laminar, lambda_nikuradse
 
 
-@njit
+@jit(nopython=True)
 def calc_lambda_nikuradse_incomp(v, d, k, eta, rho):
     lambda_nikuradse = np.empty_like(v)
     lambda_laminar = np.zeros_like(v)
@@ -187,7 +191,7 @@ def calc_lambda_nikuradse_incomp(v, d, k, eta, rho):
     return re, lambda_laminar, lambda_nikuradse
 
 
-@njit
+@jit(nopython=True)
 def colebrook_nb(re, d, k, lambda_nikuradse, dummy, max_iter):
     lambda_cb = lambda_nikuradse.copy()
     lambda_cb_old = np.empty_like(lambda_nikuradse)
