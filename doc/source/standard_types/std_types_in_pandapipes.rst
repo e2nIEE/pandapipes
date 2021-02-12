@@ -25,15 +25,23 @@ within one component category. At the moment there is:
 Pipe Standard Type
 ==================
 
-A concrete pipe standard type has following properties:
+A pipe standard type has following properties:
 
 .. tabularcolumns:: |p{0.15\linewidth}|p{0.10\linewidth}|p{0.25\linewidth}|p{0.40\linewidth}|
 .. csv-table::
-   :file: pipe_std_type.csv
+   :file: pipe_std_type_parameters.csv
    :delim: ;
    :widths: 15, 10, 25, 40
 
 All pipe standard types currently realized can be found in Pipe.csv in pandapipes.std_types.library.
+
+At the moment, the following types are included in the pipe standard type library:
+
+.. csv-table::
+   :file: pipe_std_types.csv
+   :delim: ;
+   :widths: 40, 10, 10, 10, 10, 20
+   :header-rows: 1
 
 
 Model Based Standard Types

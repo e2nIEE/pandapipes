@@ -16,7 +16,7 @@ def create_empty_net():
 
 def test_create_network():
     net = pandapipes.create_empty_network(fluid=3)
-    with pytest.raises(UserWarning):
+    with pytest.raises(AttributeError):
         pandapipes.get_fluid(net)
 
 

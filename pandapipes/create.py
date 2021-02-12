@@ -10,7 +10,7 @@ from packaging import version
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
-from pandapipes.pandapipes_net import pandapipesNet, get_default_pandapipes_structure
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
@@ -49,11 +49,8 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
         >>> net2 = create_empty_network()
 
     """
-    net = pandapipesNet(get_default_pandapipes_structure())
-    add_new_component(net, Junction, True)
-    add_new_component(net, Pipe, True)
-    add_new_component(net, ExtGrid, True)
-    net['controller'] = pd.DataFrame(np.zeros(0, dtype=net['controller']), index=[])
+    net = pandapipesNet(get_basic_net_entries())
+    add_default_components(net, True)
     net['name'] = name
     if add_stdtypes:
         add_basic_std_types(net)
@@ -277,7 +274,8 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :type to_junction: int
     :param diameter_m: The heat exchanger inner diameter in [m]
     :type diameter_m: float
-    :param qext_w: External heat feed-in through the heat exchanger in [W]
+    :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
+            negative, heat is being fed into the network from a heat source.
     :type qext_w: float, default 0.0
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float

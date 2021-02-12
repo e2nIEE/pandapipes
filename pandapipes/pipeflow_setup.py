@@ -25,7 +25,7 @@ default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1
                    "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "p_scale": 1, "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
-                   "only_update_hydraulic_matrix": False,
+                   "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
                    "reuse_internal_data": False,
                    "quit_on_inconsistency_connectivity": False}
 
