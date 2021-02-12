@@ -4,6 +4,8 @@
 
 import numpy as np
 from numpy import dtype
+from pandapipes.constants import R_UNIVERSAL
+
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid, \
     TINIT_NODE
 from pandapipes.idx_branch import D, AREA, PL, TL, \
@@ -122,8 +124,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
             net[cls.table_name()]["to_junction"].values[placement_table]]]
 
-        res_table['deltap_bar'].values[placement_table] = node_pit[to_junction_nodes, PINIT] - \
-            node_pit[from_junction_nodes, PINIT]
+        p_to = node_pit[to_junction_nodes, PINIT]
+        p_from = node_pit[from_junction_nodes, PINIT]
+        res_table['deltap_bar'].values[placement_table] = p_to - p_from
 
         from_nodes = pc_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = pc_pit[:, TO_NODE].astype(np.int32)
@@ -139,6 +142,17 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
         res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
         res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
+
+        if net.fluid.is_gas:
+            compr = net.fluid.get_compressibility(t0)
+            molar_mass = net.fluid.get_molar_mass()  # [g/mol]
+            R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
+            # 'kappa' heat capacity ratio:
+            k = 1.4  # TODO: implement proper calculation of kappa
+            w_real_isentr = (k / (k - 1)) * compr * R_spec * t0 * \
+                            (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
+            res_table['id_isentropic_compr_w'].values[placement_table] = \
+                w_real_isentr * abs(mf_sum / internal_pipes)
 
     @classmethod
     def get_component_input(cls):
@@ -171,4 +185,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        return ["deltap_bar", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"], True
+        result_columns = ["deltap_bar", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                          "vdot_norm_m3_per_s"]
+        if net.fluid.is_gas:
+            result_columns += ['id_isentropic_compr_w']
+
+        return result_columns, True
