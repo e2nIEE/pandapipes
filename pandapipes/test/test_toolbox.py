@@ -123,7 +123,7 @@ def create_net_changed_indices():
     net.junction_geodata.index = new_junction_indices
     for n_el in ["sink", "source", "ext_grid"]:
         net[n_el].junction = np.array([junction_lookup[k] for k in net[n_el].junction], dtype="int")
-    for br_el in ["pipe", "valve", "heat_exchanger", "pump", "pressure_control"]:
+    for br_el in ["pipe", "valve", "heat_exchanger", "pump", "press_control"]:
         for junc_typ in ["from_junction", "to_junction"]:
             net[br_el][junc_typ] = np.array([junction_lookup[k] for k in net[br_el][junc_typ]],
                                             dtype="int")
