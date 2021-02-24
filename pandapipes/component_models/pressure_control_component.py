@@ -143,17 +143,6 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
         res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
 
-        if net.fluid.is_gas:
-            compr = net.fluid.get_compressibility(t0)
-            molar_mass = net.fluid.get_molar_mass()  # [g/mol]
-            R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
-            # 'kappa' heat capacity ratio:
-            k = 1.4  # TODO: implement proper calculation of kappa
-            w_real_isentr = (k / (k - 1)) * compr * R_spec * t0 * \
-                            (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-            res_table['id_isentropic_compr_w'].values[placement_table] = \
-                w_real_isentr * abs(mf_sum / internal_pipes)
-
     @classmethod
     def get_component_input(cls):
         """
@@ -187,7 +176,4 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         """
         result_columns = ["deltap_bar", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                           "vdot_norm_m3_per_s"]
-        if net.fluid.is_gas:
-            result_columns += ['id_isentropic_compr_w']
-
         return result_columns, True

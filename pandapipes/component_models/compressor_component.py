@@ -126,6 +126,7 @@ class Compressor(Pump):
     #     res_table['deltap_bar'].values[placement_table] = compressor_pit[:, PL]
 
 
+
     @classmethod
     def get_component_input(cls):
         """
@@ -142,18 +143,3 @@ class Compressor(Pump):
                 ("boost_ratio", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
-
-    #  --- keep as in Pump class ---
-    # @classmethod
-    # def get_result_table(cls, net):
-    #     """
-    #
-    #     Gets the result table.
-    #
-    #     :param net: The pandapipes network
-    #     :type net: pandapipesNet
-    #     :return: (columns, all_float) - the column names and whether they are all float type. Only
-    #             if False, returns columns as tuples also specifying the dtypes
-    #     :rtype: (list, bool)
-    #     """
-    #     return ["deltap_bar"], True
