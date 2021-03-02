@@ -66,8 +66,10 @@ def pf_not_converged(time_step, ts_variables):
 
 def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True, **kwargs):
     """
-    Initializes the time series calculation. Creates the dict ts_variables, which includes
-    necessary variables for the time series / control function.
+    Initializes the time series calculation.
+
+    Creates the dict ts_variables, which includes necessary variables for the time series /
+    control function.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet

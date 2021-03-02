@@ -22,22 +22,23 @@ logger = logging.getLogger(__name__)
 
 def nets_equal(net1, net2, check_only_results=False, exclude_elms=None, **kwargs):
     """
-    Compares the DataFrames of two networks. The networks are considered equal if they share the
-    same keys and values, except of the 'et' (elapsed time) entry which differs depending on
-    runtime conditions and entries stating with '_'.
+    Compares the DataFrames of two networks.
 
-    :param net1:
+    The networks are considered equal if they share the same keys and values, except of the 'et'
+    (elapsed time) entry which differs depending on runtime conditions and entries stating with '_'.
+
+    :param net1: first net for comparison
     :type net1: pandapipesNet
-    :param net2:
-    :type net2:pandapipesNet
+    :param net2: second net for comparison
+    :type net2: pandapipesNet
     :param check_only_results:
     :type check_only_results: bool, default False
-    :param exclude_elms:
-    :type exclude_elms: ?, default None
-    :param kwargs:
+    :param exclude_elms: element types that should be skipped in the comparison
+    :type exclude_elms: list of strings, default None
+    :param kwargs: key word arguments
     :type kwargs:
-    :return:
-    :rtype:
+    :return: True, if nets are equal
+    :rtype: Bool
     """
 
     eq = isinstance(net1, pandapipesNet) and isinstance(net2, pandapipesNet)
@@ -85,7 +86,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     Provides the tuples of elements and corresponding columns for junctions they are connected to
 
     :param include_node_elements: whether tuples for junction elements e.g. sink, source, are \
-            included
+           included
     :type include_node_elements: bool
     :param include_branch_elements: whether branch elements e.g. pipe, pumps, ... are included
     :type include_branch_elements: bool
@@ -96,6 +97,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
+
     node_elements = []
     if net is not None and include_node_elements:
         node_elements = [comp.table_name() for comp in net.component_list
@@ -147,6 +149,7 @@ def pp_elements(junction=True, include_node_elements=True, include_branch_elemen
     :return: pp_elms - set of table names for the desired element types
     :rtype: set
     """
+
     pp_elms = {"junction"} if junction else set()
     pp_elms |= set([el[0] for el in element_junction_tuples(
         include_node_elements, include_branch_elements, include_res_elements, net)])
@@ -166,6 +169,7 @@ def reindex_junctions(net, junction_lookup):
     :return: junction_lookup - the finally reindexed junction lookup (with corrections if necessary)
     :rtype: dict
     """
+
     not_fitting_junction_lookup_keys = set(junction_lookup.keys()) - set(net.junction.index)
     if len(not_fitting_junction_lookup_keys):
         logger.error("These junction indices are unknown to net. Thus, they cannot be reindexed: " +
@@ -208,6 +212,7 @@ def reindex_elements(net, element, new_indices, old_indices=None):
     :type old_indices: iterable, default None
     :return: No output.
     """
+
     old_indices = old_indices if old_indices is not None else net[element].index
     if not len(new_indices) or not net[element].shape[0]:
         return
@@ -245,7 +250,7 @@ def create_continuous_junction_index(net, start=0, store_old_index=False):
     :type start: int, default 0
     :param store_old_index: if True, stores the old index in net.junction["old_index"]
     :type store_old_index: bool, default False
-    :return: bus_lookup - mapping of old to new index
+    :return: junction_lookup - mapping of old to new index
     :rtype: dict
     """
     net.junction.sort_index(inplace=True)
@@ -275,7 +280,7 @@ def create_continuous_elements_index(net, start=0, add_df_to_reindex=None):
     add_df_to_reindex = set() if add_df_to_reindex is None else set(add_df_to_reindex)
     elements = pp_elements(include_res_elements=True, net=net)
 
-    # create continuous bus index
+    # create continuous junction index
     create_continuous_junction_index(net, start=start)
     elements -= {"junction", "junction_geodata", "res_junction"}
 
