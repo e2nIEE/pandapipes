@@ -42,7 +42,7 @@ setup(
 	long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.5.0", "matplotlib"],
+    install_requires=["pandapower>=2.6.0", "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "python-igraph"],
                     "test": ["pytest", "pytest-xdist"]},

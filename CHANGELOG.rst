@@ -4,10 +4,10 @@ Change Log
 [0.4.0] - 2021-03-09
 -------------------------------
 - [ADDED] Six new tutorials.
-- [ADDED] Adding flag in multinet if controller conversion should be checked in each level or just in the last level.
-- [ADDED] Enabling to change collection colors more specifically.
+- [ADDED] Adding flag in run_control if controller convergence should be checked in each level or just at the end.
+- [ADDED] Adding variables to change collection colors more specifically.
 - [ADDED] Added flag in fluid for constant fluid properties if warning is displayed or not in case of several input variables.
-- [ADDED] Added function in graph_searches.py to determine junction distances
+- [ADDED] Added function in graph_searches.py to determine junction distances.
 - [CHANGED] Deleted one tutorial for heating networks. Another one was updated.
 - [CHANGED] Deleted tutorial sections from the documentation. These should be available only via the corresponding homepage.
 - [CHANGED] compressibility and der_compr for hydrogen is now for 273.15 K (instead of 293.15 K before).
