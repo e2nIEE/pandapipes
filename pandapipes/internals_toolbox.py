@@ -4,6 +4,7 @@
 
 import numpy as np
 
+
 def _sum_by_group_sorted(indices, *values):
     """Auxiliary function to sum up values by some given indices (both as numpy arrays). Expects the
     indices and values to already be sorted.
@@ -56,20 +57,23 @@ def _sum_by_group(indices, *values):
 
 def select_from_pit(table_index_array, input_array, data):
     """
-        Auxiliary function to retrieve values from a table like a pit. Each data entry corresponds to a
-        table_index_array entry. Example: velocities are indexed by the corresponding from_nodes stored in the
-        pipe pit.
+        Auxiliary function to retrieve values from a table like a pit. Each data entry corresponds
+        to a table_index_array entry. Example: velocities are indexed by the corresponding
+        from_nodes stored in the pipe pit.
 
-        The function inputs another array which consists of some table_index_array entries the user wants to retrieve.
-        The function is used in pandapipes results evaluation. The input array is the list of from_junction entries,
-        corresponding only to the junction elements, not containing additional pipe nodes. The table_index_array
-        is the complete list of from_nodes consisting of junction element entries and additional pipe section nodes.
-        Data corresponds to the gas velocities.
+        The function inputs another array which consists of some table_index_array entries the user
+        wants to retrieve. The function is used in pandapipes results evaluation. The input array is
+        the list of from_junction entries, corresponding only to the junction elements, not
+        containing additional pipe nodes. The table_index_array is the complete list of from_nodes
+        consisting of junction element entries and additional pipe section nodes. Data corresponds
+        to the gas velocities.
 
-        :param indices:
-        :type indices:
-        :param values:
-        :type values:
+        :param table_index_array:
+        :type table_index_array:
+        :param input_array:
+        :type input_array:
+        :param data:
+        :type data:
         :return:
         :rtype:
         """

@@ -81,8 +81,7 @@ def _relevant_nets(multinet, levelorder):
 
 def net_initialization_multinet(multinet, ctrl_variables, **kwargs):
     """
-    This function initilizes each net, i.e. if one controller affecting a net requires an initial_run a loadflow/
-    pipeflow is conducted, otherwise not.
+    If one controller affecting a net requires an initial_run, a loadflow/pipeflow is conducted.
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
     :type multinet: pandapipes.Multinet
@@ -106,7 +105,8 @@ def net_initialization_multinet(multinet, ctrl_variables, **kwargs):
 
 def run_control(multinet, ctrl_variables=None, max_iter=30, **kwargs):
     """
-    Main function to call a multnet with controllers
+    Main function to call a multnet with controllers.
+
     Function is running control loops for the controllers specified in net.controller
     Runs controller until each one converged or max_iter is hit.
 
@@ -114,21 +114,23 @@ def run_control(multinet, ctrl_variables=None, max_iter=30, **kwargs):
     2. Calculate an inital run (if it is enabled, i.e. setting the initial_run veriable to True)
     3. Repeats the following steps in ascending order of controller_order until total convergence of all
        controllers for each level:
-        a) Evaluate individual convergence for all controllers in the level
-        b) Call control_step() for all controllers in the level on diverged controllers
-        c) Fire run function (or optionally another function like runopf or whatever you defined)
+       a) Evaluate individual convergence for all controllers in the level
+       b) Call control_step() for all controllers in the level on diverged controllers
+       c) Fire run function (or optionally another function like runopf or whatever you defined)
     4. Call finalize_control() on each controller
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
     :type multinet: pandapipes.Multinet
     :param ctrl_variables: contains all relevant information and boundaries required for a successful control run. To \
-        define ctrl_variables yourself, following entries for each net are required:\n
-        - level (list): gives a list of levels to be investigated \n
-        - controller_order (list): nested list of tuples given the correct order of the different controllers \
-        within one level\
-        - run (funct, e.g. pandapower.runpp, pandapipes.pipeflow): function to be used to conduct a loadflow/pipeflow \n
-        - initial_run (boolean): Is a initial_run for a net required or not\n
-        - continue_on_divergence (boolean): What to do if loadflow/pipeflow is not converging, fires control_repair
+           define ctrl_variables yourself, following entries for each net are required:\n
+           - level (list): gives a list of levels to be investigated \n
+           - controller_order (list): nested list of tuples given the correct order of the
+             different controllers within one level\
+           - run (funct, e.g. pandapower.runpp, pandapipes.pipeflow): function to be used to
+             conduct a loadflow/pipeflow \n
+           - initial_run (boolean): Is a initial_run for a net required or not\n
+           - continue_on_divergence (boolean): What to do if loadflow/pipeflow is not converging,
+         fires control_repair
     :type ctrl_variables: dict, default: None
     :param max_iter: number of iterations for each controller to converge
     :type max_iter: int, default: 30
@@ -156,8 +158,9 @@ def run_control(multinet, ctrl_variables=None, max_iter=30, **kwargs):
 
 def get_controller_order_multinet(multinet):
     """
-    Defining the controller order per level
-    Takes the order and level columns from net.controller
+    Defining the controller order per level.
+
+    Takes the order and level columns from net.controller.
     If levels are specified, the levels and orders are executed in ascending order.
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
@@ -193,9 +196,11 @@ def get_controller_order_multinet(multinet):
         return get_controller_order(net_list, controller_list)
 
 
-def prepare_run_ctrl(multinet, ctrl_variables):
+def prepare_run_ctrl(multinet, ctrl_variables, **kwargs):
     """
-    Prepares run control functions. Internal variables needed:
+    Prepares run control functions.
+
+    Internal variables needed:
         - level (list): gives a list of levels to be investigated
         - controller_order (list): nested list of tuples given the correct order of the different controllers
         within one level
@@ -224,12 +229,13 @@ def prepare_run_ctrl(multinet, ctrl_variables):
             net_names = c.object.get_all_net_names()
             for net_name in net_names:
                 if net_name not in ctrl_variables.keys():
-                    ctrl_variables[net_name] = {'run': None, 'initial_run': None, 'errors': ()}
+                    ctrl_variables[net_name] = {'run': None, 'initial_run': None,
+                                                'continue_on_divergence': None, 'errors': ()}
                 net = multinet['nets'][net_name]
                 if isinstance(net, ppipes.pandapipesNet):
-                    ctrl_variables_net = prepare_run_ctrl_ppipes(net, None)
+                    ctrl_variables_net = prepare_run_ctrl_ppipes(net, None, **kwargs)
                 elif isinstance(net, pp.pandapowerNet):
-                    ctrl_variables_net = prepare_run_ctrl_pp(net, None)
+                    ctrl_variables_net = prepare_run_ctrl_pp(net, None, **kwargs)
                 else:
                     raise ValueError('the given nets are neither pandapipes nor pandapower nets')
 
@@ -239,18 +245,23 @@ def prepare_run_ctrl(multinet, ctrl_variables):
                     ctrl_variables[net_name]['initial_run'] is not None else ctrl_variables_net['initial_run']
                 ctrl_variables[net_name]['only_v_results'], ctrl_variables[net_name]['recycle'] = \
                     get_recycle(ctrl_variables_net)
+                ctrl_variables[net_name]['continue_on_divergence'] = \
+                    ctrl_variables[net_name]['continue_on_divergence'] if \
+                    ctrl_variables[net_name]['continue_on_divergence'] is not None else \
+                    ctrl_variables_net['continue_on_divergence']
                 excl_net += [net_name]
 
     for net_name in multinet['nets'].keys():
         if net_name in excl_net:
             continue
         if net_name not in ctrl_variables.keys():
-            ctrl_variables[net_name] = {'run': None, 'initial_run': False, 'errors': ()}
+            ctrl_variables[net_name] = {'run': None, 'initial_run': False,
+                                        'continue_on_divergence': None, 'errors': ()}
         net = multinet['nets'][net_name]
         if isinstance(net, ppipes.pandapipesNet):
-            ctrl_variables_net = prepare_run_ctrl_ppipes(net, None)
+            ctrl_variables_net = prepare_run_ctrl_ppipes(net, None, **kwargs)
         elif isinstance(net, pp.pandapowerNet):
-            ctrl_variables_net = prepare_run_ctrl_pp(net, None)
+            ctrl_variables_net = prepare_run_ctrl_pp(net, None, **kwargs)
         else:
             raise ValueError('the given nets are neither pandapipes nor pandapower nets')
         ctrl_variables[net_name]['run'] = ctrl_variables_net['run']
@@ -259,6 +270,16 @@ def prepare_run_ctrl(multinet, ctrl_variables):
             ctrl_variables[net_name]['initial_run'] is not None else ctrl_variables_net['initial_run']
         ctrl_variables[net_name]['only_v_results'], ctrl_variables[net_name]['recycle'] = \
             get_recycle(ctrl_variables_net)
+        ctrl_variables[net_name]['continue_on_divergence'] = \
+            ctrl_variables[net_name]['continue_on_divergence'] if \
+            ctrl_variables[net_name]['continue_on_divergence'] is not None else \
+            ctrl_variables_net['continue_on_divergence']
+
+    if ('check_each_level') in kwargs:
+        check = kwargs.pop('check_each_level')
+        ctrl_variables['check_each_level'] = check
+    else:
+        ctrl_variables['check_each_level'] = True
 
     ctrl_variables['errors'] = (NetCalculationNotConverged,)
 
