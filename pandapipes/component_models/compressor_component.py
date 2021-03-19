@@ -9,7 +9,7 @@ from numpy import dtype
 from pandapipes.component_models.pump_component import Pump
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
+    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL, BOOST_RATIO
 from pandapipes.idx_node import PINIT, PAMB
 from pandapipes.pipeflow_setup import get_net_option, get_fluid
 
@@ -37,7 +37,6 @@ class Compressor(Pump):
         :return: No Output.
         """
         compressor_pit = super(Pump, cls).create_pit_branch_entries(net, compressor_pit, node_name)
-        # TODO: get boost ratio
 
         # std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
         # std_type, pos = np.where(net[cls.table_name()]['std_type'].values
@@ -46,6 +45,7 @@ class Compressor(Pump):
         compressor_pit[:, D] = 0.1
         compressor_pit[:, AREA] = compressor_pit[:, D] ** 2 * np.pi / 4
         compressor_pit[:, LC] = 0
+        compressor_pit[:, BOOST_RATIO] = net.compressor.boost_ratio.values
 
     @classmethod
     def calculate_pressure_lift(cls, net, compressor_pit, node_pit):
