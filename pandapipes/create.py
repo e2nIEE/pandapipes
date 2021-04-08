@@ -1208,8 +1208,8 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     return index
 
 
-def create_compressor_br(net, from_junction, to_junction, boost_ratio, name=None, index=None,
-                         in_service=True, type="booster", **kwargs):
+def create_compressor(net, from_junction, to_junction, boost_ratio, name=None, index=None,
+                         in_service=True, **kwargs):
     """
     Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost ratio)
 
@@ -1219,10 +1219,6 @@ def create_compressor_br(net, from_junction, to_junction, boost_ratio, name=None
     :type from_junction: int
     :param to_junction: ID of the junction on the other side which the compressor will be connected with
     :type to_junction: int
-    # :param boost_ratio: There are currently three different std_types. This std_types are P1, P2, P3.\
-    #         Each of them describes a specific pump behaviour setting volume flow and pressure in\
-    #         context.
-    :type boost_ratio: float
     :param name: A name tag for this compressor
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -1239,7 +1235,7 @@ def create_compressor_br(net, from_junction, to_junction, boost_ratio, name=None
     :rtype: int
 
     EXAMPLE:
-        >>> create_compressor_br(net, 0, 1, boost_ratio=1.4)
+        >>> create_compressor_br(net, 0, 1, boost_ratio=1.3)
 
     """
     add_new_component(net, Compressor)
