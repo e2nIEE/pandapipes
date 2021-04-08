@@ -147,8 +147,8 @@ class Pump(BranchWZeroLengthComponent):
         res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
 
         if net.fluid.is_gas:
-            compr = 0.5 * (get_fluid(net).get_property("compressibility", p_from)
-                         + get_fluid(net).get_property("compressibility", p_to))
+            # calculate ideal compression power
+            compr = get_fluid(net).get_property("compressibility", p_from)
             molar_mass = net.fluid.get_molar_mass()  # [g/mol]
             R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
             # 'kappa' heat capacity ratio:
