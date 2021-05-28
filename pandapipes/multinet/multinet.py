@@ -45,6 +45,36 @@ class MultiNet(ADict):
             self.clear()
             self.update(**net.deepcopy())
 
+        self._bus =[]
+        self._line = []
+
+        self._gas_junction = []
+        self._gas_pipe = []
+
+        # Unterscheidungsmöglichkeit zwischen Gas- und Wärmenetzen fehlt
+        self._heat_junction = []
+        self._heat_pipes = []
+
+    def set_attributes(self, net):
+            if isinstance(net, pandapowerNet):
+                self._bus = net["bus"]
+                self._line = net["line"]
+            elif isinstance(net, pandapipesNet):
+                self._gas_junction = net["junction"]
+                self._gas_pipe = net["pipe"]
+
+    def get_gas_junctions(self):
+        return self._gas_junction
+
+    def get_gas_pipes(self):
+        return self._gas_pipe
+
+    def get_buses(self):
+        return self._bus
+
+    def get_lines(self):
+        return self._line
+
     def deepcopy(self):
         return copy.deepcopy(self)
 

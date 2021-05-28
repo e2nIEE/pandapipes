@@ -54,6 +54,7 @@ def add_net_to_multinet(multinet, net, net_name='power', overwrite=False):
                        "overwrite it, set 'overwrite' to True." % net_name)
     else:
         multinet['nets'][net_name] = net
+        multinet.set_attributes(net)
 
 
 def add_nets_to_multinet(multinet, overwrite=False, **networks):

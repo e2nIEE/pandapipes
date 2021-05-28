@@ -307,7 +307,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
 
 def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, loss_coefficient=0,
                 sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
-                geodata=None, in_service=True, type="pipe", **kwargs):
+                geodata=None, in_service=True, type="pipe", max_v_m_per_s = 0.1, **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
 
@@ -369,7 +369,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
          "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
          "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
          "sections": sections, "in_service": bool(in_service), "type": type, "qext_w": qext_w,
-         "text_k": text_k}
+         "text_k": text_k, "max_v_m_per_s": max_v_m_per_s}
     _set_entries(net, "pipe", index, **v, **kwargs)
 
     if geodata is not None:
@@ -381,7 +381,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=1,
                                 loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
                                 qext_w=0., name=None, index=None, geodata=None, in_service=True,
-                                type="pipe", **kwargs):
+                                type="pipe", max_v_m_per_s = 0.1, **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
 
@@ -440,7 +440,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
          "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
          "sections": sections, "in_service": bool(in_service),
-         "type": type, "qext_w": qext_w, "text_k": text_k}
+         "type": type, "qext_w": qext_w, "text_k": text_k, "max_v_m_per_s": max_v_m_per_s}
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
                           'create a pipe setting specific, individual parameters. If you want to '
@@ -962,7 +962,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=1,
 def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=1,
                                  loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
                                  qext_w=0., name=None, index=None, geodata=None, in_service=True,
-                                 type="pipe", **kwargs):
+                                 type="pipe", v_m_per_s_max=1, **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
@@ -1025,7 +1025,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
                "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
                "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
                "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
-               "text_k": text_k}
+               "text_k": text_k, "v_m_per_s_max":v_m_per_s_max}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
     if geodata is not None:
