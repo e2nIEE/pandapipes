@@ -84,5 +84,4 @@ class Compressor(Pump):
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
                 ("boost_ratio", "f8"),
-                ("in_service", 'bool'),
-                ("type", dtype(object))]
+                ("in_service", 'bool')]

@@ -1226,8 +1226,6 @@ def create_compressor(net, from_junction, to_junction, boost_ratio, name=None, i
     :type index: int, default None
     :param in_service: True for in_service or False for out of service
     :type in_service: bool, default True
-    :param type:  Type variable to classify the compressor (not relevant for calculations)
-    :type type: str, default "booster"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["compressor"] table
     :type kwargs: dict
@@ -1244,7 +1242,7 @@ def create_compressor(net, from_junction, to_junction, boost_ratio, name=None, i
     check_branch(net, "Compressor", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "boost_ratio": boost_ratio, "in_service": bool(in_service), "type": type}
+         "boost_ratio": boost_ratio, "in_service": bool(in_service)}
     _set_entries(net, "compressor", index, **v, **kwargs)
 
     return index
