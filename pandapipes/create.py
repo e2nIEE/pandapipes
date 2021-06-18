@@ -1208,7 +1208,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     return index
 
 
-def create_compressor(net, from_junction, to_junction, boost_ratio, name=None, index=None,
+def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
                          in_service=True, **kwargs):
     """
     Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost ratio)
@@ -1233,7 +1233,7 @@ def create_compressor(net, from_junction, to_junction, boost_ratio, name=None, i
     :rtype: int
 
     EXAMPLE:
-        >>> create_compressor_br(net, 0, 1, boost_ratio=1.3)
+        >>> create_compressor_br(net, 0, 1, pressure_ratio=1.3)
 
     """
     add_new_component(net, Compressor)
@@ -1242,7 +1242,7 @@ def create_compressor(net, from_junction, to_junction, boost_ratio, name=None, i
     check_branch(net, "Compressor", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "boost_ratio": boost_ratio, "in_service": bool(in_service)}
+         "pressure_ratio": pressure_ratio, "in_service": bool(in_service)}
     _set_entries(net, "compressor", index, **v, **kwargs)
 
     return index

@@ -12,7 +12,7 @@ from pandapipes.component_models import p_correction_height_air
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
-def test_compressor_boost_ratio():
+def test_compressor_pressure_ratio():
 
     net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="hgas")
 
@@ -26,9 +26,9 @@ def test_compressor_boost_ratio():
 
     br1 = 1.5
     br3 = 1.1
-    c1 = pandapipes.create_compressor_br(net, j2, j3, boost_ratio=br1)
-    c2 = pandapipes.create_compressor_br(net, j5, j4, boost_ratio=br1)  # reverse flow -> bypass
-    c3 = pandapipes.create_compressor_br(net, j5, j6, boost_ratio=br3)
+    c1 = pandapipes.create_compressor_br(net, j2, j3, pressure_ratio=br1)
+    c2 = pandapipes.create_compressor_br(net, j5, j4, pressure_ratio=br1)  # reverse flow -> bypass
+    c3 = pandapipes.create_compressor_br(net, j5, j6, pressure_ratio=br3)
 
     pandapipes.pipeflow(net)
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \
@@ -50,7 +50,7 @@ def test_compressor_boost_ratio():
        "pressure lift on rev. flow should be 0"
 
     br_new = 1.3
-    net.compressor.loc[c1, "boost_ratio"] = br_new
+    net.compressor.loc[c1, "pressure_ratio"] = br_new
 
     pandapipes.pipeflow(net)
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \

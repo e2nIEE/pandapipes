@@ -9,7 +9,7 @@ from numpy import dtype
 from pandapipes.component_models.pump_component import Pump
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL, BOOST_RATIO
+    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL, PRESSURE_RATIO
 from pandapipes.idx_node import PINIT, PAMB
 from pandapipes.pipeflow_setup import get_net_option, get_fluid
 
@@ -42,7 +42,7 @@ class Compressor(Pump):
         compressor_pit[:, D] = 0.1
         compressor_pit[:, AREA] = compressor_pit[:, D] ** 2 * np.pi / 4
         compressor_pit[:, LC] = 0
-        compressor_pit[:, BOOST_RATIO] = net[cls.table_name()].boost_ratio.values
+        compressor_pit[:, PRESSURE_RATIO] = net[cls.table_name()].pressure_ratio.values
 
     @classmethod
     def calculate_pressure_lift(cls, net, compressor_pit, node_pit):
@@ -57,12 +57,12 @@ class Compressor(Pump):
         :param node_pit:
         :type node_pit:
         """
-        boost_ratio = compressor_pit[:, BOOST_RATIO]
+        pressure_ratio = compressor_pit[:, PRESSURE_RATIO]
 
         p_scale = get_net_option(net, "p_scale")
         from_nodes = compressor_pit[:, FROM_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
-        p_to_calc = p_from * boost_ratio
+        p_to_calc = p_from * pressure_ratio
         pl_abs = p_to_calc - p_from
 
         v_mps = compressor_pit[:, VINIT]
@@ -83,5 +83,5 @@ class Compressor(Pump):
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
-                ("boost_ratio", "f8"),
+                ("pressure_ratio", "f8"),
                 ("in_service", 'bool')]
