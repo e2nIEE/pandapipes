@@ -149,21 +149,21 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("molar_mass")
 
-    def get_compressibility(self, temperature):
+    def get_compressibility(self, p_bar):
         """
-        This function returns the compressibility at a certain temperature.
+        This function returns the compressibility at a certain pressure.
 
-        :param temperature: Temperature at which the compressibility is queried
-        :type temperature: float
-        :return: compressibility at the required temperature
+        :param p_bar: pressure at which the compressibility is queried
+        :type p_bar: float or array of floats
+        :return: compressibility at the required pressure
 
         """
 
-        return self.get_property("compressibility", temperature)
+        return self.get_property("compressibility", p_bar)
 
     def get_der_compressibility(self):
         """
-        This function returns the derivative of the compressibility.
+        This function returns the derivative of the compressibility with respect to pressure.
 
         :return: derivative of the compressibility
 
