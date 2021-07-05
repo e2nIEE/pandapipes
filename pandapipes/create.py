@@ -271,7 +271,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :type diameter_m: float
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
-    :type qext_w: float, default 0.0
+    :type qext_w: float
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float
     :param name: The name of the heat exchanger

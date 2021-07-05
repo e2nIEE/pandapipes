@@ -4,3 +4,4 @@
 
 from pandapipes.networks.simple_gas_networks import *
 from pandapipes.networks.simple_water_networks import *
+from pandapipes.networks.simple_heat_transfer_networks import *
