@@ -162,9 +162,6 @@ class BranchComponent(Component):
             branch_component_pit[:, JAC_DERIV_DP] = -1
             branch_component_pit[:, JAC_DERIV_DP1] = 1
         else:
-            # Formulas for gas pressure loss according to laminar version described in STANET 10
-            # manual, page 1623
-
             # compressibility settings
             p_m = np.empty_like(p_init_i_abs)
             mask = p_init_i_abs != p_init_i1_abs
