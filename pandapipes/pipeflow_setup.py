@@ -230,8 +230,7 @@ def init_options(net, local_parameters):
                  automatically with respect to the convergence behaviour.
 
         - **gas_impl** (str): "pandapipes" - Implementation of the gas model. It can be set to\
-                "pandapipes" with calculations according to  "Handbuch der Gasversorgungstechnik"\
-                 or to "STANET" with calculations according to the STANET reference.
+                "pandapipes" with calculations according to "Handbuch der Gasversorgungstechnik".
 
         - **heat_transfer** (bool): False - Flag to determine if the heat transfer shall be\
                 calculated.
