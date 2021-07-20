@@ -309,7 +309,6 @@ class BranchComponent(Component):
 
         from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-        p_scale = get_net_option(net, "p_scale")
         fluid = get_fluid(net)
 
         v_mps = branch_pit[:, VINIT]
@@ -325,8 +324,8 @@ class BranchComponent(Component):
 
         if fluid.is_gas:
             # derived from the ideal gas law
-            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
-            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
+            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
             numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
             normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
                               / (p_from * NORMAL_TEMPERATURE)
