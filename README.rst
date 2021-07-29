@@ -62,18 +62,18 @@ Energy Management and Power System Operation, University of Kassel.
 
 .. image:: https://upload.wikimedia.org/wikipedia/commons/e/ee/FraunhoferIEELogo.gif
     :target: https://www.iee.fraunhofer.de/en.html
-    :width: 400
-
-|
-
-.. image:: https://www.uni-kassel.de/uni/fileadmin/sys/resources/images/logo/logo-main.svg
-    :target: https://www.uni-kassel.de/
     :width: 300
 
 |
 
 .. image:: https://www.uni-kassel.de/eecs/index.php?eID=dumpFile&t=p&p=1674&token=b0509afe2e7c4e41d7cdad83edd0ce49af9fceaa
     :target: https://www.uni-kassel.de/eecs/en/sections/energiemanagement-und-betrieb-elektrischer-netze/home
+    :width: 300
+
+|
+
+.. image:: https://www.uni-kassel.de/uni/fileadmin/sys/resources/images/logo/logo-main.svg
+    :target: https://www.uni-kassel.de/
     :width: 300
 
 |
