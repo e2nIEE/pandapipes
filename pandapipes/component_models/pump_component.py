@@ -69,12 +69,11 @@ class Pump(BranchWZeroLengthComponent):
         area = pump_pit[:, AREA]
         idx = pump_pit[:, STD_TYPE].astype(int)
         std_types = np.array(list(net.std_type['pump'].keys()))[idx]
-        p_scale = get_net_option(net, "p_scale")
         from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
         # to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
-        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
-        # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
+        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+        # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
         numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
         v_mps = pump_pit[:, VINIT]
         if fluid.is_gas:
