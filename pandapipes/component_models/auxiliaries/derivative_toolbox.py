@@ -55,6 +55,9 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
                 "inconsistencies. The maximum iterations can be given as 'max_iter_colebrook' "
                 "argument to the pipeflow.")
         return lambda_colebrook, re
+    elif friction_model == "explicit_colebrook":
+        lambda_explicit = explicit_colebrook(re, k)
+        return lambda_explicit, re
     elif friction_model == "swamee-jain":
         lambda_swamee_jain = 0.25 / ((np.log10(k/(3.7*d) + 5.74/(re**0.9)))**2)
         return lambda_swamee_jain, re
@@ -157,3 +160,33 @@ def colebrook(re, d, k, lambda_nikuradse, dummy, max_iter):
         niter += 1
 
     return converged, lambda_cb
+
+def explicit_colebrook(re, k):
+    """
+    Function calculates the friction factor of a pipe, it is an explicit correlation of the colebrook equation
+    could potentially enhance caclulation time
+
+    :param re:
+    :type re:
+    :param k:
+    :type k:
+    :return: lambda_explicit
+    :rtype:
+
+    for more info :
+    https://www.researchgate.net/publication/344081672_Review_of_new_flow_friction_equations_Constructing_Colebrook's_explicit_correlations_accurately
+    """
+
+    A = (re * k) / 8.0878
+    B = np.log(re) - 0.7794
+    x = A + B
+    C = np.log(x)
+    s1 = C * ((1 / x) - 1)
+    s2 = (C / (2 * (x**2))) * (C - 2)
+    s3 = (C / (6 * (x**3))) * ((2 * (C**2)) - ((9 * C) + 6))
+    s4 = (C / (12 * (x**4))) * ((3 * (C**3)) - (22 * (C**2)) + (36 * C) - 12)
+    s5 = (C / (60 * (x**5))) * ((12 * (C**4)) - (125 * (C**3)) + (350 * (C**2)) - (300 * C) + 60)
+    y = s1 + s2 + s3 + s4 + s5
+    lambda_explicit = (1 / (0.8686 * (B + y)))**2
+
+    return lambda_explicit
