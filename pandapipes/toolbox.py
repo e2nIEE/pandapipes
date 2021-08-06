@@ -11,6 +11,8 @@ from pandapipes.component_models.abstract_models.node_element_models import Node
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
+from pandapipes.topology import create_nxgraph
+from networkx import has_path
 
 try:
     import pplog as logging
@@ -408,6 +410,12 @@ def drop_pipes(net, pipes):
         res_pipes = net.res_pipe.index.intersection(pipes)
         net["res_pipe"].drop(res_pipes, inplace=True)
     logger.info("dropped %d pipes" % len(list(pipes)))
+
+
+def check_pressure_controllability(net, to_junction, controlled_junction):
+    mg = create_nxgraph(net, include_circ_pump_press_component=False, include_compressor=False,
+                        include_circ_pump_mass_component=False, include_pressure_control=False)
+    return has_path(mg, to_junction, controlled_junction)
 
 
 # TODO: change to pumps??
