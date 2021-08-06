@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1e-4, "tol_v": 1e-4,
                    "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
-                   "nonlinear_method": "constant", "p_scale": 1, "mode": "hydraulics",
+                   "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
                    "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
                    "reuse_internal_data": False,
@@ -229,12 +229,8 @@ def init_options(net, local_parameters):
                  same in each iteration) or "automatic", in which case **alpha** is adapted \
                  automatically with respect to the convergence behaviour.
 
-        - **gas_impl** (str): "pandapipes" - Implementation of the gas model. It can be set to\
-                "pandapipes" with calculations according to  "Handbuch der Gasversorgungstechnik"\
-                 or to "STANET" with calculations according to the STANET reference.
-
-        - **heat_transfer** (bool): False - Flag to determine if the heat transfer shall be\
-                calculated.
+        - **mode** (str): "hydraulics" - Define the calculation mode: what shall be calculated -
+                solely hydraulics ('hydraulic'), solely heat transfer('heat') or both combined ('all').
 
         - **only_update_hydraulic_matrix** (bool): False - If True, the system matrix is not \
                 created in every iteration, but only the data is updated according to a lookup that\

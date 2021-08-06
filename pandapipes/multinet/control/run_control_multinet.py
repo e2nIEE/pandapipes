@@ -129,8 +129,7 @@ def run_control(multinet, ctrl_variables=None, max_iter=30, **kwargs):
            - run (funct, e.g. pandapower.runpp, pandapipes.pipeflow): function to be used to
              conduct a loadflow/pipeflow \n
            - initial_run (boolean): Is a initial_run for a net required or not\n
-           - continue_on_divergence (boolean): What to do if loadflow/pipeflow is not converging,
-         fires control_repair
+           - continue_on_divergence (boolean): What to do if loadflow/pipeflow is not converging, fires control_repair
     :type ctrl_variables: dict, default: None
     :param max_iter: number of iterations for each controller to converge
     :type max_iter: int, default: 30
