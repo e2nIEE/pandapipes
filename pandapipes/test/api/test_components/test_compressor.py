@@ -26,9 +26,9 @@ def test_compressor_boost_ratio():
 
     br1 = 1.5
     br3 = 1.1
-    c1 = pandapipes.create_compressor_br(net, j2, j3, boost_ratio=br1)
-    c2 = pandapipes.create_compressor_br(net, j5, j4, boost_ratio=br1)  # reverse flow -> bypass
-    c3 = pandapipes.create_compressor_br(net, j5, j6, boost_ratio=br3)
+    c1 = pandapipes.create_compressor(net, j2, j3, boost_ratio=br1)
+    c2 = pandapipes.create_compressor(net, j5, j4, boost_ratio=br1)  # reverse flow -> bypass
+    c3 = pandapipes.create_compressor(net, j5, j6, boost_ratio=br3)
 
     pandapipes.pipeflow(net)
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \
