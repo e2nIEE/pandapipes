@@ -1,6 +1,12 @@
 Change Log
 =============
 
+[0.5.0] - 2021-07-29
+-------------------------------
+- [ADDED] Enabling encryption of pandapipes networks
+- [CHANGED] Removing p_scale from default net options
+- [FIXED] Input of get_compressibility in fluids.py is pressure, not temperature
+
 [0.4.0] - 2021-03-09
 -------------------------------
 - [ADDED] Six new tutorials.
