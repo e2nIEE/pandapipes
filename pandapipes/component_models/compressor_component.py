@@ -59,9 +59,8 @@ class Compressor(Pump):
         """
         boost_ratio = compressor_pit[:, BOOST_RATIO]
 
-        p_scale = get_net_option(net, "p_scale")
         from_nodes = compressor_pit[:, FROM_NODE].astype(np.int32)
-        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
+        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
         p_to_calc = p_from * boost_ratio
         pl_abs = p_to_calc - p_from
 
