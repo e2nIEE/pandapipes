@@ -56,3 +56,115 @@ class Component:
         :rtype:
         """
         raise NotImplementedError
+
+    @classmethod
+    def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
+                            current_table, internal_nodes_lookup):
+        """
+        Function which creates node lookups.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param ft_lookups:
+        :type ft_lookups:
+        :param table_lookup:
+        :type table_lookup:
+        :param idx_lookups:
+        :type idx_lookups:
+        :param current_start:
+        :type current_start:
+        :param current_table:
+        :type current_table:
+        :param internal_nodes_lookup:
+        :type internal_nodes_lookup:
+        :return:
+        :rtype:
+        """
+        return current_start, current_table
+
+    @classmethod
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
+        """
+        Function which creates branch lookups.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param ft_lookups:
+        :type ft_lookups:
+        :param table_lookup:
+        :type table_lookup:
+        :param idx_lookups:
+        :type idx_lookups:
+        :param current_table:
+        :type current_table:
+        :param current_start:
+        :type current_start:
+        :return: No Output.
+        """
+        return current_start, current_table
+
+    @classmethod
+    def create_pit_node_entries(cls, net, node_pit, node_name):
+        """
+        Function which creates pit branch entries.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_pit:
+        :type branch_pit:
+        :return: No Output.
+        """
+
+        pass
+
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit, node_name):
+        """
+        Function which creates pit branch entries.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param node_pit:
+        :type node_pit:
+        :return: No Output.
+        """
+
+        pass
+
+    @classmethod
+    def calculate_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        """
+        Function which creates derivatives.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_component_pit:
+        :type branch_component_pit:
+        :param node_pit:
+        :type node_pit:
+        :param idx_lookups:
+        :type idx_lookups:
+        :param options:
+        :type options:
+        :return: No Output.
+        """
+        pass
+
+    @classmethod
+    def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+        """
+        Function which creates derivatives.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_component_pit:
+        :type branch_component_pit:
+        :param node_pit:
+        :type node_pit:
+        :param idx_lookups:
+        :type idx_lookups:
+        :param options:
+        :type options:
+        :return: No Output.
+        """
+        pass
