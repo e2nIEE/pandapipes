@@ -413,8 +413,8 @@ def drop_pipes(net, pipes):
 
 
 def check_pressure_controllability(net, to_junction, controlled_junction):
-    mg = create_nxgraph(net, include_circ_pump_press_component=False, include_compressor=False,
-                        include_circ_pump_mass_component=False, include_pressure_control=False)
+    mg = create_nxgraph(net, include_pressure_circ_pumps=False, include_compressors=False,
+                        include_mass_circ_pumps=False, include_press_controls=False)
     return has_path(mg, to_junction, controlled_junction)
 
 
