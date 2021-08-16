@@ -9,7 +9,7 @@ from functools import partial
 
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
-from pandapower.io_utils import pp_hook
+from pandapower.io_utils import pp_hook, encrypt_string, decrypt_string
 
 from pandapipes.io.convert_format import convert_format
 from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
@@ -42,7 +42,7 @@ def to_pickle(net, filename):
         pickle.dump(save_net, f, protocol=2)  # use protocol 2 for py2 / py3 compatibility
 
 
-def to_json(net, filename=None):
+def to_json(net, filename=None, encryption_key=None):
     """
     Saves a pandapipes Network in JSON format. The index columns of all pandas DataFrames will be
     saved in ascending order. net elements which name begins with "_" (internal elements) will not
@@ -53,6 +53,8 @@ def to_json(net, filename=None):
     :param filename: The absolute or relative path to the output file or a writable file-like \
             object. If None, a JSON string is returned.
     :type filename: str, file-object, default None
+    :param encryption_key: If given, the pandapipes network is stored as an encrypted json string
+    :type encryption_key: str, default None
     :return: JSON string of the Network (only if filename is None)
 
     :Example:
@@ -60,13 +62,16 @@ def to_json(net, filename=None):
         >>> pandapipes.to_json(net, "example.json")
 
     """
+    json_string = json.dumps(net, cls=PPJSONEncoder, indent=2, isinstance_func=isinstance_partial)
+    if encryption_key is not None:
+        json_string = encrypt_string(json_string, encryption_key)
     if filename is None:
-        return json.dumps(net, cls=PPJSONEncoder, indent=2, isinstance_func=isinstance_partial)
+        return json_string
     if hasattr(filename, 'write'):
-        json.dump(net, fp=filename, cls=PPJSONEncoder, indent=2, isinstance_func=isinstance_partial)
+        filename.write(json_string)
     else:
         with open(filename, "w") as fp:
-            json.dump(net, fp=fp, cls=PPJSONEncoder, indent=2, isinstance_func=isinstance_partial)
+            fp.write(json_string)
 
 
 def from_pickle(filename):
@@ -89,7 +94,7 @@ def from_pickle(filename):
     return net
 
 
-def from_json(filename, convert=True):
+def from_json(filename, convert=True, encryption_key=None):
     """
     Load a pandapipes network from a JSON file or string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -99,6 +104,8 @@ def from_json(filename, convert=True):
     :type filename: str, file-object
     :param convert: whether or not to convert the format from earlier versions
     :type convert: bool
+    :param encryption_key: if given, key to decrypt an encrypted pandapower network
+    :type encryption_key: str
     :return: net - The pandapipes network that was saved as JSON
     :rtype: pandapipesNet
 
@@ -114,10 +121,10 @@ def from_json(filename, convert=True):
     else:
         with open(filename) as fp:
             json_string = fp.read()
-    return from_json_string(json_string, convert=convert)
+    return from_json_string(json_string, convert=convert, encryption_key=encryption_key)
 
 
-def from_json_string(json_string, convert=False):
+def from_json_string(json_string, convert=False, encryption_key=None):
     """
     Load a pandapipes network from a JSON string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -127,6 +134,8 @@ def from_json_string(json_string, convert=False):
     :type json_string: str
     :param convert: whether or not to convert the format from earlier versions
     :type convert: bool
+    :param encryption_key: if given, key to decrypt an encrypted pandapower network
+    :type encryption_key: str
     :return: net - The pandapipes network that was contained in the JSON string
     :rtype: pandapipesNet
 
@@ -135,6 +144,9 @@ def from_json_string(json_string, convert=False):
         >>> net = pandapipes.from_json_string(json_str)
 
     """
+    if encryption_key is not None:
+        json_string = decrypt_string(json_string, encryption_key)
+
     net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook,
                                                                          registry_class=FromSerializableRegistryPpipe))
 

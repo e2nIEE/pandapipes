@@ -27,10 +27,20 @@ def get_col_value(net, table_name, column_name):
 
 
 def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
-                   weighting_pipes=(get_col_value, ("pipe", "length_km")), include_valves=True,
-                   respect_status_valves=True, weighting_valves=None, include_pumps=True,
-                   respect_status_pumps=True, weighting_pumps=None, respect_status_junctions=True,
-                   nogojunctions=None, notravjunctions=None, multi=True,
+                   weighting_pipes=(get_col_value, ("pipe", "length_km")),
+                   include_valves=True, respect_status_valves=True,
+                   weighting_valves=None,
+                   include_compressor=True, respect_status_compressor=True,
+                   weighting_compressor=None,
+                   include_circ_pump_mass_component=True, respect_status_circ_pump_mass_component=True,
+                   weighting_circ_pump_mass_component=None,
+                   include_circ_pump_press_component=True, respect_status_circ_pump_press_component=True,
+                   weighting_circ_pump_press_component=None,
+                   include_pressure_control=True, respect_status_pressure_control=True,
+                   weighting_pressure_control=None,
+                   include_pumps=True, respect_status_pumps=True,
+                   weighting_pumps=None,
+                   respect_status_junctions=True, nogojunctions=None, notravjunctions=None, multi=True,
                    respect_status_branches_all=None, **kwargs):
     """
     Converts a pandapipes network into a NetworkX graph, which is a is a simplified representation

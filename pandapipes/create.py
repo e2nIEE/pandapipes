@@ -4,11 +4,9 @@
 
 import numpy as np
 import pandas as pd
+
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
-from packaging import version
-from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent,\
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
     Compressor
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
@@ -20,6 +18,7 @@ from pandapipes.std_types.std_type_toolbox import regression_function
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
     _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
+from pandapipes.toolbox import check_pressure_controllability
 
 try:
     import pplog as logging
@@ -277,7 +276,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :type diameter_m: float
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
-    :type qext_w: float, default 0.0
+    :type qext_w: float
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float
     :param name: The name of the heat exchanger
@@ -786,6 +785,10 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
         >>> create_pressure_control(net, 0, 1, 1, controlled_p_bar=5)
 
     """
+    if not check_pressure_controllability(net, to_junction, controlled_junction):
+        return logger.error('The controlled_junction is not controllable, as it is either not reachable or'
+                            'another pressure controllable component is in between')
+
     add_new_component(net, PressureControlComponent)
 
     index = _get_index_with_check(net, "press_control", index)
@@ -843,7 +846,7 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
     add_new_component(net, Junction)
 
     index = _get_multiple_index_with_check(net, "junction", index, nr_junctions)
-    entries = {"pn_bar": pn_bar,  "type": type, "tfluid_k": tfluid_k, "height_m": height_m,
+    entries = {"pn_bar": pn_bar, "type": type, "tfluid_k": tfluid_k, "height_m": height_m,
                "in_service": in_service, "name": name}
     _set_multiple_entries(net, "junction", index, **entries, **kwargs)
 
@@ -1197,7 +1200,6 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 
     index = _get_multiple_index_with_check(net, "press_control", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "press_control")
-
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
