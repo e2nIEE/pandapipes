@@ -2,10 +2,12 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import pandapipes
 import os
+
 import numpy as np
 import pandas as pd
+
+import pandapipes
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
@@ -45,3 +47,22 @@ def test_pressure_control_from_measurement_parameteres():
 
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)
+
+
+def test_2pressure_controller_controllability():
+    net = pandapipes.create_empty_network("net", add_stdtypes=False)
+
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j5 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+
+    pandapipes.create_pipe_from_parameters(net, j2, j3, k_mm=1., length_km=5.,
+                                           diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=10.,
+                                           diameter_m=0.1022)
+    pandapipes.create_pressure_control(net, j4, j5, j5, 20.)
+    pandapipes.create_pressure_control(net, j1, j2, j5, 20.)
+
+    assert len(net.press_control == 1)

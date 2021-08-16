@@ -6,13 +6,13 @@ from operator import itemgetter
 
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, TINIT_NODE
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TO_NODE, TINIT, PL, LOAD_VEC_NODES, ELEMENT_IDX
+    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
 from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
+from pandapipes.pipeflow_setup import get_fluid, get_net_option
 
 
 class Pump(BranchWZeroLengthComponent):
@@ -116,49 +116,32 @@ class Pump(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        placement_table, pump_pit, res_table = super().prepare_result_tables(net, options, node_name)
-        res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
-
-        node_pit = net["_active_pit"]["node"]
-        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
-        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
-        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["from_junction"].values[placement_table]]]
-        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["to_junction"].values[placement_table]]]
-
-        p_to = node_pit[to_junction_nodes, PINIT]
-        p_from = node_pit[from_junction_nodes, PINIT]
-
-        from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
-
-        t0 = node_pit[from_nodes, TINIT_NODE]
-        t1 = node_pit[to_nodes, TINIT_NODE]
-        mf = pump_pit[:, LOAD_VEC_NODES]
-        vf = pump_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
-
-        idx_active = pump_pit[:, ELEMENT_IDX]
-        idx_sort, mf_sum, vf_sum, internal_pipes = \
-            _sum_by_group(idx_active, mf, vf, np.ones_like(idx_active))
-        res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
-        res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
-        res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
-
-        if net.fluid.is_gas:
-            # calculate ideal compression power
-            compr = get_fluid(net).get_property("compressibility", p_from)
-            molar_mass = net.fluid.get_molar_mass()  # [g/mol]
-            R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
-            # 'kappa' heat capacity ratio:
-            k = 1.4  # TODO: implement proper calculation of kappa
-            w_real_isentr = (k / (k - 1)) * R_spec * compr * t0 * \
-                            (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-            res_table['compr_power_w'].values[placement_table] = \
-                w_real_isentr * abs(mf_sum / internal_pipes)
+        calc_compr_pow = options['calc_compression_power']
+        if calc_compr_pow:
+            placement_table, res_table, pump_pit, node_pit = super().extract_results(net, options, node_name)
+            p_from = res_table['p_from_bar'].values[placement_table]
+            p_to = res_table['p_to_bar'].values[placement_table]
+            from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
+            t0 = node_pit[from_nodes, TINIT_NODE]
+            vf_sum_int = res_table["vdot_norm_m3_per_s"].values[placement_table]
+            mf_sum_int = res_table["mdot_from_kg_per_s"].values[placement_table]
+            if net.fluid.is_gas:
+                # calculate ideal compression power
+                compr = get_fluid(net).get_property("compressibility", p_from)
+                molar_mass = net.fluid.get_molar_mass()  # [g/mol]
+                R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
+                # 'kappa' heat capacity ratio:
+                k = 1.4  # TODO: implement proper calculation of kappa
+                w_real_isentr = (k / (k - 1)) * R_spec * compr * t0 * \
+                                (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
+                res_table['compr_power_mw'].values[placement_table] = \
+                    w_real_isentr * abs(mf_sum_int) / 10**6
+            else:
+                res_table['compr_power_mw'].values[placement_table] = \
+                    pump_pit[:, PL] * P_CONVERSION * vf_sum_int / 10**6
         else:
-            res_table['compr_power_w'].values[placement_table] = \
-                pump_pit[:, PL] * P_CONVERSION * vf_sum / internal_pipes
+            placement_table, pump_pit, res_table = super().prepare_result_tables(net, options, node_name)
+        res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
 
     @classmethod
     def get_component_input(cls):
@@ -174,7 +157,8 @@ class Pump(BranchWZeroLengthComponent):
                 ("to_junction", "u4"),
                 ("std_type", dtype(object)),
                 ("in_service", 'bool'),
-                ("type", dtype(object))]
+                ("type", dtype(object)),
+                ("calc_compr_power", bool)]
 
     @classmethod
     def get_result_table(cls, net):
@@ -188,6 +172,18 @@ class Pump(BranchWZeroLengthComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        result_columns = ["deltap_bar", "compr_power_w", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                          "vdot_norm_m3_per_s"]
-        return result_columns, True
+        calc_compr_pow = get_net_option(net,'calc_compression_power')
+        if calc_compr_pow:
+            if get_fluid(net).is_gas:
+                output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                          "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                          "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                          "normfactor_to"]
+            else:
+                output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+                          "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                          "lambda"]
+            output += ["deltap_bar", "compr_power_mw"]
+        else:
+            output = ["deltap_bar"]
+        return output, True

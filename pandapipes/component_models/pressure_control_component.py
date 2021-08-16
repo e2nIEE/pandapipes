@@ -114,9 +114,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :type node_name:
         :return: No Output.
         """
-        placement_table, pc_pit, res_table = cls.prepare_result_tables(net, options, node_name)
 
-        node_pit = net["_active_pit"]["node"]
+        placement_table, res_table, pc_pit, node_pit = super().extract_results(net, options, node_name)
+
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
         from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
@@ -128,20 +128,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         p_from = node_pit[from_junction_nodes, PINIT]
         res_table['deltap_bar'].values[placement_table] = p_to - p_from
 
-        from_nodes = pc_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = pc_pit[:, TO_NODE].astype(np.int32)
-
-        t0 = node_pit[from_nodes, TINIT_NODE]
-        t1 = node_pit[to_nodes, TINIT_NODE]
-        mf = pc_pit[:, LOAD_VEC_NODES]
-        vf = pc_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
-
-        idx_active = pc_pit[:, ELEMENT_IDX]
-        idx_sort, mf_sum, vf_sum, internal_pipes = \
-            _sum_by_group(idx_active, mf, vf, np.ones_like(idx_active))
-        res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
-        res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
-        res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
+        return placement_table, res_table, pc_pit
 
     @classmethod
     def get_component_input(cls):
@@ -174,6 +161,14 @@ class PressureControlComponent(BranchWZeroLengthComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        result_columns = ["deltap_bar", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                          "vdot_norm_m3_per_s"]
-        return result_columns, True
+        if get_fluid(net).is_gas:
+            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "normfactor_to"]
+        else:
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                      "lambda"]
+        output += ["deltap_bar"]
+        return output, True
