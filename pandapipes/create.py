@@ -1233,7 +1233,7 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     :rtype: int
 
     EXAMPLE:
-        >>> create_compressor_br(net, 0, 1, pressure_ratio=1.3)
+        >>> create_compressor(net, 0, 1, pressure_ratio=1.3)
 
     """
     add_new_component(net, Compressor)
