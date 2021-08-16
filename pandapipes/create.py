@@ -15,10 +15,10 @@ from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
+from pandapipes.toolbox import check_pressure_controllability
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
     _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
-from pandapipes.toolbox import check_pressure_controllability
 
 try:
     import pplog as logging
@@ -786,7 +786,8 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
 
     """
     if not check_pressure_controllability(net, to_junction, controlled_junction):
-        return logger.error('The controlled_junction is not controllable, as it is either not reachable or'
+        return logger.error('The controlled junction of the created pressure control '
+                            'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
 
     add_new_component(net, PressureControlComponent)
