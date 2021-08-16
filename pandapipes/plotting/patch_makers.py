@@ -124,6 +124,32 @@ def pump_patches(coords, size, **kwargs):
         lines.append([p2, p1 + diff / 2 + vec_size])
     return lines, polys, {}
 
+def compressor_patches(coords, size, **kwargs):
+    polys, lines = list(), list()
+    edgecolor = kwargs.pop('patch_edgecolor')
+    colors = get_color_list(edgecolor, len(coords))
+    lw = kwargs.get("linewidths", 2.)
+    for geodata, col in zip(coords, colors):
+        p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
+        diff = p2 - p1
+        angle = np.arctan2(*diff)
+        vec_size = _rotate_dim2(np.array([0, size]), angle)
+        vec_size_or = _rotate_dim2(np.array([0, size * 1.4 / 2]), angle + np.pi / 2)
+        pul = p1 + 0.5 * diff + vec_size + vec_size_or/3  # lower left
+        pur = p1 + 0.5 * diff + vec_size - vec_size_or/3  # lower right
+        pll = p1 + 0.6 * diff - vec_size + vec_size_or    # upper left
+        plr = p1 + 0.6 * diff - vec_size - vec_size_or    # upper richt
+        radius = size
+
+        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor='w', lw=lw))
+
+        lines.append([p1, p1 + diff / 2 - vec_size])
+        lines.append([p2, p1 + diff / 2 + vec_size])
+
+        lines.append([pll, pul])
+        lines.append([plr, pur])
+
+    return lines, polys, {}
 
 def pressure_control_patches(coords, size, **kwargs):
     polys, lines = list(), list()

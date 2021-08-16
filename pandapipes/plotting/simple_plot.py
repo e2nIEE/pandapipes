@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from pandapipes.plotting.plotting_toolbox import get_collection_sizes
 from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
     create_valve_collection, create_source_collection, create_pressure_control_collection, \
-    create_heat_exchanger_collection, create_sink_collection, create_pump_collection
+    create_heat_exchanger_collection, create_sink_collection, create_pump_collection, \
+    create_compressor_collection
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
 from pandapower.plotting import draw_collections
 from itertools import chain
@@ -23,11 +24,12 @@ logger = logging.getLogger(__name__)
 def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2.0,
                 junction_size=1.0, ext_grid_size=1.0, plot_sinks=False, plot_sources=False,
                 sink_size=1.0, source_size=1.0, valve_size=1.0, pump_size=1.0,
-                heat_exchanger_size=1.0, pressure_control_size=1.0, scale_size=True,
+                heat_exchanger_size=1.0, pressure_control_size=1.0, compressor_size=1.0,
+                scale_size=True,
                 junction_color="r", pipe_color='silver', ext_grid_color='orange',
                 valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
-                pressure_control_color='silver', library="igraph", show_plot=True, ax=None,
-                **kwargs):
+                pressure_control_color='silver', compressor_color='silver', library="igraph",
+                show_plot=True, ax=None, **kwargs):
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
     geodata is generated. For advanced plotting see
@@ -96,9 +98,9 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
     collections = create_simple_collections(
         net, respect_valves, respect_in_service, pipe_width, junction_size, ext_grid_size,
         plot_sinks, plot_sources, sink_size, source_size, valve_size, pump_size,
-        heat_exchanger_size, pressure_control_size, scale_size, junction_color, pipe_color,
-        ext_grid_color, valve_color, pump_color, heat_exchanger_color, pressure_control_color,
-        library, as_dict=False, **kwargs)
+        heat_exchanger_size, pressure_control_size, compressor_size, scale_size, junction_color,
+        pipe_color, ext_grid_color, valve_color, pump_color, heat_exchanger_color,
+        pressure_control_color, compressor_color, library, as_dict=False, **kwargs)
     ax = draw_collections(collections, ax=ax)
 
     if show_plot:
@@ -110,9 +112,11 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                               junction_size=1.0, ext_grid_size=1.0, plot_sinks=False,
                               plot_sources=False, sink_size=1.0, source_size=1.0, valve_size=1.0,
                               pump_size=1.0, heat_exchanger_size=1.0, pressure_control_size=1.0,
+                              compressor_size=1.0,
                               scale_size=True, junction_color="r", pipe_color='silver',
                               ext_grid_color='orange', valve_color='silver', pump_color='silver',
                               heat_exchanger_color='silver', pressure_control_color='silver',
+                              compressor_color='silver',
                               library="igraph", as_dict=True, **kwargs):
     """
     Plots a pandapipes network as simple as possible.
@@ -190,7 +194,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         # if scale_size -> calc size from distance between min and max geocoord
         sizes = get_collection_sizes(
             net, junction_size, ext_grid_size, sink_size, source_size, valve_size, pump_size,
-            heat_exchanger_size, pressure_control_size)
+            heat_exchanger_size, pressure_control_size, compressor_size)
         junction_size = sizes["junction"]
         ext_grid_size = sizes["ext_grid"]
         source_size = sizes["source"]
@@ -199,6 +203,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         pump_size = sizes["pump"]
         heat_exchanger_size = sizes["heat_exchanger"]
         pressure_control_size = sizes["pressure_control"]
+        compressor_size = sizes["compressor"]
 
     # create junction collections to plot
     if respect_in_service:
@@ -319,6 +324,17 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                 net, size=pressure_control_size, linewidths=pipe_width,
                 color=pressure_control_color)
         collections["press_control"] = pc
+
+    if 'compressor' in net:
+        if respect_in_service:
+            compr_colls = create_compressor_collection(net,
+                                               net.compressor[net.compressor.in_service].index,
+                                                size=compressor_size, linewidths=pipe_width,
+                                                color=compressor_color)
+        else:
+            compr_colls = create_compressor_collection(net, size=compressor_size, linewidths=pipe_width,
+                                                color=compressor_color)
+        collections["compressor"] = compr_colls
 
     if 'additional_collections' in kwargs:
         collections["additional"] = list()
