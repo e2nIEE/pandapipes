@@ -59,9 +59,8 @@ class Compressor(Pump):
         """
         pressure_ratio = compressor_pit[:, PRESSURE_RATIO]
 
-        p_scale = get_net_option(net, "p_scale")
         from_nodes = compressor_pit[:, FROM_NODE].astype(np.int32)
-        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
+        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
         p_to_calc = p_from * pressure_ratio
         pl_abs = p_to_calc - p_from
 
