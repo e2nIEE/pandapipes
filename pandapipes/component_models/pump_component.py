@@ -157,8 +157,7 @@ class Pump(BranchWZeroLengthComponent):
                 ("to_junction", "u4"),
                 ("std_type", dtype(object)),
                 ("in_service", 'bool'),
-                ("type", dtype(object)),
-                ("calc_compr_power", bool)]
+                ("type", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):
@@ -173,17 +172,23 @@ class Pump(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         calc_compr_pow = get_net_option(net,'calc_compression_power')
-        if calc_compr_pow:
-            if get_fluid(net).is_gas:
-                output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
-                          "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                          "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
-                          "normfactor_to"]
-            else:
-                output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
-                          "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
-                          "lambda"]
-            output += ["deltap_bar", "compr_power_mw"]
+
+        if get_fluid(net).is_gas:
+            output = ["deltap_bar",
+                      "v_from_m_per_s", "v_to_m_per_s", # "v_mean_m_per_s",
+                      "p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "vdot_norm_m3_per_s",
+                      # "reynolds", "lambda", "normfactor_from", "normfactor_to"
+                      # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
+                      ]
         else:
-            output = ["deltap_bar"]
+            output = ["deltap_bar",
+                      "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
+                      # "reynolds", "lambda"
+                      ]
+        if calc_compr_pow:
+            output += ["compr_power_mw"]
+
         return output, True
