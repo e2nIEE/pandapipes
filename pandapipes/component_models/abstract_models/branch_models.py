@@ -371,3 +371,4 @@ class BranchComponent(Component):
             _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
         res_table["lambda"].values[placement_table] = lambda_sum / internal_pipes
         res_table["reynolds"].values[placement_table] = reynolds_sum / internal_pipes
+        return placement_table, res_table, branch_pit, node_pit

@@ -30,14 +30,14 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                    weighting_pipes=(get_col_value, ("pipe", "length_km")),
                    include_valves=True, respect_status_valves=True,
                    weighting_valves=None,
-                   include_compressor=True, respect_status_compressor=True,
-                   weighting_compressor=None,
-                   include_circ_pump_mass_component=True, respect_status_circ_pump_mass_component=True,
-                   weighting_circ_pump_mass_component=None,
-                   include_circ_pump_press_component=True, respect_status_circ_pump_press_component=True,
-                   weighting_circ_pump_press_component=None,
-                   include_pressure_control=True, respect_status_pressure_control=True,
-                   weighting_pressure_control=None,
+                   include_compressors=True, respect_status_compressors=True,
+                   weighting_compressors=None,
+                   include_mass_circ_pumps=True, respect_status_mass_circ_pumps=True,
+                   weighting_mass_circ_pumps=None,
+                   include_pressure_circ_pumps=True, respect_status_pressure_circ_pumps=True,
+                   weighting_pressure_circ_pumps=None,
+                   include_press_controls=True, respect_status_press_controls=True,
+                   weighting_press_controls=None,
                    include_pumps=True, respect_status_pumps=True,
                    weighting_pumps=None,
                    respect_status_junctions=True, nogojunctions=None, notravjunctions=None, multi=True,
@@ -111,7 +111,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     loc = locals()
     branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc))
                           for par in ["include", "respect_status", "weighting"]
-                          for bc in ["pipes", "valves", "pumps"]})
+                          for bc in ["pipes", "valves", "pumps", "press_controls",
+                                     "circ_pump_masss", "circ_pump_presss"]})
     for comp in net.component_list:
         if not issubclass(comp, BranchComponent):
             continue
