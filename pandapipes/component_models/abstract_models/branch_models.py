@@ -31,6 +31,7 @@ class BranchComponent(Component):
 
     @classmethod
     def table_name(cls):
+        print('Simon')
         raise NotImplementedError
 
     @classmethod
