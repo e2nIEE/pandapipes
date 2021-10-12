@@ -1,4 +1,4 @@
-from pandapipes.component_models.abstract_models.start_therm_stor_euler import StratThermStor
+from pandapipes.component_models.abstract_models.strat_thermal_storage import StratThermStor
 import math
 import numpy as np
 import pandas as pd
