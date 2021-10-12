@@ -69,7 +69,6 @@ def test_gas_internal_nodes():
 
 def test_temperature_internal_nodes_single_pipe():
     """
-
     :return:
     :rtype:
     """

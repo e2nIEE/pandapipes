@@ -5,7 +5,7 @@
 import numpy as np
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, \
     JAC_DERIV_DV_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DT1, \
-    JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T
+    JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T, JUNC_STORE_TERM_DER, JUNC_STORE_TERM
 from pandapipes.idx_node import LOAD, TINIT
 from pandapipes.idx_node import P, NODE_TYPE, T, NODE_TYPE_T
 from pandapipes.toolbox import _sum_by_group, _sum_by_group_sorted
@@ -181,10 +181,17 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         load_vector[slack_nodes] = 0
     else:
         tn_unique, tn_sums = _sum_by_group(tn, branch_pit[:, LOAD_VEC_NODES_T])
+        tn_unique_store, tn_unique_store_sums  = _sum_by_group(tn, branch_pit[:, JUNC_STORE_TERM])
+        tn_unique_store_der, tn_unique_store_sums_der  = _sum_by_group(tn, branch_pit[:, JUNC_STORE_TERM_DER])
         load_vector = np.zeros(len_n + len_b)
         load_vector[len(slack_nodes) + np.arange(0, len(tn_unique_der))] += tn_sums
         load_vector[len(slack_nodes) + np.arange(0, len(tn_unique_der))] -= tn_sums_der * node_pit[
             tn_unique_der, TINIT]
+        transient =False
+        if transient:
+            load_vector[len(slack_nodes) + np.arange(0, len(tn_unique_der))] -= tn_unique_store_sums_der * node_pit[
+                tn_unique_store_der, TINIT]
+            load_vector[len(slack_nodes) + np.arange(0, len(tn_unique_der))] += tn_unique_store_sums
         load_vector[0:len(slack_nodes)] = 0.
 
         load_vector[len_n:] = branch_pit[:, LOAD_VEC_BRANCHES_T]

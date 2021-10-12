@@ -11,7 +11,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
     VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, branch_cols, \
     T_OUT, CP, VINIT_T, FROM_NODE_T, PL, TL, \
     JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, JAC_DERIV_DV_NODE, \
-    LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
+    LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX, JUNC_STORE_TERM, JUNC_STORE_TERM_DER
 from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, P_CONVERSION
 
 from pandapipes.pipeflow_setup import get_table_number, get_lookup
@@ -197,7 +197,7 @@ class BranchComponent(Component):
         branch_component_pit[:, LOAD_VEC_NODES] = mass_flow_dv * v_init
 
     @classmethod
-    def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options, times, times_out, ti):
         """
         Function which creates derivatives of the temperature.
 
@@ -228,17 +228,45 @@ class BranchComponent(Component):
         cls.calculate_temperature_lift(net, branch_component_pit, node_pit)
         tl = branch_component_pit[:, TL]
         qext = branch_component_pit[:, QEXT]
+
+
+        times[from_nodes, ti] = node_pit[from_nodes, TINIT_NODE]
+        times_out[:, ti] = branch_pit[:, T_OUT]
         t_m = (t_init_i1 + t_init_i) / 2
+        tvor = (times[from_nodes, ti-1] + times_out[:,ti-1]) / 2
 
-        branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
-            -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
-              - alpha * (t_amb - t_m) * length + qext)
+        # Transient properties Nächster Schritt: Zeitschleife und tvor holen
+        transient=False
+        delta_t = 1
+        if transient:
+            print(rho*area*cp/delta_t*(t_m-tvor))
+            print(t_m-tvor)
+            branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
+                -(rho*area*cp/delta_t*(t_m-tvor) +  rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
+                  - alpha * (t_amb - t_m) * length + qext)
 
-        branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha/2 * length
-        branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha/2 * length
+            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha/2 * length +rho*area*cp/delta_t/2
+            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha/2 * length  +rho*area*cp/delta_t/2
 
-        branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
-        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] * t_init_i1
+            branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
+            branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] * t_init_i1
+            branch_component_pit[:, JUNC_STORE_TERM] = rho *  branch_component_pit[:, AREA]/delta_t * times_out[:,ti-1]
+            branch_component_pit[:, JUNC_STORE_TERM_DER] = rho *  branch_component_pit[:, AREA]/delta_t
+
+        else:
+
+            branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
+                -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
+                  - alpha * (t_amb - t_m) * length + qext)
+
+            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha/2 * length
+            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha/2 * length
+
+            branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
+            branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] * t_init_i1
+
+
+
 
     @classmethod
     def calculate_pressure_lift(cls, net, pipe_pit, node_pit):

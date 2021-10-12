@@ -40,5 +40,7 @@ TEXT = 34
 STD_TYPE = 35
 PL = 36
 TL = 37  # Temperature lift [K]
+JUNC_STORE_TERM = 38
+JUNC_STORE_TERM_DER = 39
 
-branch_cols = 38
+branch_cols = 40
