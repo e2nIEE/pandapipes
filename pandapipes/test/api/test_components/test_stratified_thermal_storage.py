@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from numpy.linalg import inv
 
-class TestStratThermStor(StratThermStor):
+class StratThermStorWithTest(StratThermStor):
     def __init__(self, init_strata_temp_c, t_source_c, t_sink_c, mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s,
                  delta_t_s, tank_height_mm=1700, tank_diameter_mm=810, wall_thickness_mm=160,
                  source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
