@@ -47,7 +47,7 @@ class StratThermStorWithTest(StratThermStor):
 
 def test_two_strata():
     q_source_w, q_sink_w = np.array([20, 60, 40, 80, 80]), np.array([40, 50, 70, 70, 40])  # create_heat_flows(60*24)
-    sts = TestStratThermStor(np.array([80, 30]), 90, 25, 1, 1, 60, 1700, 810, 160)
+    sts = StratThermStorWithTest(np.array([80, 30]), 90, 25, 1, 1, 60, 1700, 810, 160)
     for s, l in zip(q_source_w, q_sink_w):
         sts.do_time_step_from_heat_flow(s, l)
         assert not np.any(np.around(sts.t_ip1_k_new_k - np.array([sts.t1_np1, sts.t2_np1]), int(-math.log(sts.tol, 10))))
