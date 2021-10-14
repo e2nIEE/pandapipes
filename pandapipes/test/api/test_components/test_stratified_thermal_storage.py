@@ -20,11 +20,11 @@ class StratThermStorTestTwoStrata(StratThermStor):
         fac_al_zc = self.A_m2 * self.lambda_eff_w_per_m_k / self.z_m / self.c_p_w_s_per_kg_k
         fac_kaext_c = self.k_w_per_m2_k * self.A_ext_m2 / self.c_p_w_s_per_kg_k
         fac_kaexttop_c = self.k_w_per_m2_k * (self.A_ext_m2 + self.A_m2) / self.c_p_w_s_per_kg_k
-        self.a1 = 1 + fac_t_m * (fac_kaext_c - self.mdot_kg_per_ts * deltam + fac_al_zc + self.mdot_source_kg_per_ts)
+        self.a1 = 1 + fac_t_m * (fac_kaexttop_c - self.mdot_kg_per_ts * deltam + fac_al_zc + self.mdot_source_kg_per_ts)
         self.a2 = - fac_t_m * (deltap * self.mdot_kg_per_ts + fac_al_zc)
         self.b1 = fac_t_m * (deltam * self.mdot_kg_per_ts - fac_al_zc)
         self.b2 = 1 + fac_t_m * (deltap * self.mdot_kg_per_ts + fac_kaext_c + fac_al_zc + self.mdot_sink_kg_per_ts)
-        self.c1 = self.t_i_k[0] + fac_t_m * (fac_kaext_c * self.t_amb_k + self.t_source_k * self.mdot_source_kg_per_ts)
+        self.c1 = self.t_i_k[0] + fac_t_m * (fac_kaexttop_c * self.t_amb_k + self.t_source_k * self.mdot_source_kg_per_ts)
         self.c2 = self.t_i_k[1] + fac_t_m * (fac_kaext_c * self.t_amb_k + self.t_sink_k * self.mdot_sink_kg_per_ts)
 
     def calculate_temperatures_from_test_matrix_two_strata(self):
@@ -59,7 +59,7 @@ class StratThermStorTestFiveStrata(StratThermStor):
         self.a_above = - dt_m * (deltap * self.mdot_kg_per_ts + Al_zcp)
         self.a_below = dt_m * (deltam * self.mdot_kg_per_ts - Al_zcp)
         c = dt_m * kAx_cp * self.t_amb_k
-        self.c1 = self.t_i_k[0] + c + dt_m * self.mdot_source_kg_per_ts * self.t_source_k
+        self.c1 = self.t_i_k[0] + dt_m * (self.mdot_source_kg_per_ts * self.t_source_k + kAx_cp_top * self.t_amb_k)
         self.c2, self.c3, self.c4 = self.t_i_k[1] + c, self.t_i_k[2] + c, self.t_i_k[3] + c
         self.c5 = self.t_i_k[4] + c + dt_m * self.mdot_sink_kg_per_ts * self.t_sink_k
 
@@ -99,6 +99,7 @@ def test_two_strata():
         sts.do_time_step_from_heat_flow(s, l)
         assert not np.any(np.around(sts.t_ip1_k_new_k - np.array([sts.t1_np1, sts.t2_np1]), int(-math.log(sts.tol, 10))))
     print("No problemo ^^")
+
 
 def test_five_strata():
     q_source_w, q_sink_w = np.array([20, 60, 40, 80, 80]), np.array(

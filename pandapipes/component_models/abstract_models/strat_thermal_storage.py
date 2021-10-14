@@ -189,7 +189,6 @@ class StratThermStor():
             deltam, t_below_ip1_k, sup = 0, 0, 0
         else:
             deltam, sup = self.get_delta(False), 1  # superior to at least one stratum / not lowest
-        top = 0
         fac_ka_c = self.k_w_per_m2_k * (self.A_ext_m2 + top * self.A_m2) / self.c_p_w_s_per_kg_k
         fac_t_m = self.delta_t_s / self.m_strat_kg
         fac_al_zc = self.A_m2 * self.lambda_eff_w_per_m_k / self.z_m / self.c_p_w_s_per_kg_k
