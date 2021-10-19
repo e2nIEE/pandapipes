@@ -116,27 +116,10 @@ class StratThermStor():
                     flag, mdot = self.calculate_mass_flow(q, t_circuit, t_stratum, mdot_max)
         elif t_circuit is None:
             if mdot == 0:
-                flag, t_circuit, q = "m0", t_stratum, 0
+                flag, t_circuit, q = "min", t_stratum, 0
             else:
                 t_circuit = t_stratum + self.calculate_temperature_spread(q, mdot)
         return flag, q, mdot, t_circuit
-
-
-
-
-
-                # def do_time_step_from_heat_flow(self, q_source_w, q_sink_w):
-    #     self.q_source_w, self.q_sink_w = q_source_w, q_sink_w
-    #     flag = self.calculate_mass_flow()
-    #     self.mdot_kg_per_ts = self.mdot_source_kg_per_ts - self.mdot_sink_kg_per_ts
-    #     self.do_time_step(flag)
-    #
-    # def do_time_step_from_mass_flow(self, mdot_source_kg_per_s, mdot_sink_kg_per_s):
-    #     self.mdot_source_kg_per_ts, self.mdot_sink_kg_per_ts = mdot_source_kg_per_s * self.delta_t_s, \
-    #                                                            mdot_sink_kg_per_s * self.delta_t_s
-    #     self.mdot_kg_per_ts = self.mdot_source_kg_per_ts - self.mdot_sink_kg_per_ts
-    #     flag = self.calculate_heat_flow()
-    #     self.do_time_step(flag)
 
     def do_time_step(self, q_source_w=None, q_sink_w=None, mdot_source_kg_per_s=None, mdot_sink_kg_per_s=None,
                              t_source_c=None, t_sink_c=None):
@@ -173,43 +156,11 @@ class StratThermStor():
             flag, mdot_kg_per_ts = "max", max
         return flag, mdot_kg_per_ts
 
-
-        flag = ["orig", "orig"]
-        try:
-            self.mdot_source_kg_per_ts = self.q_source_w * self.delta_t_s / \
-                                         (self.c_p_w_s_per_kg_k * (self.t_source_c - self.t_i_c[self.s_outl_ind]))
-            if self.mdot_source_kg_per_ts > self.mdot_source_max_kg_per_ts:  # ToDo: Add revision of heat flow?
-                self.mdot_source_kg_per_ts = self.mdot_source_max_kg_per_ts
-                flag[0] = "max"
-        except ZeroDivisionError:
-            self.mdot_source_kg_per_ts = 0
-            flag[0] = "min"
-        try:
-            self.mdot_sink_kg_per_ts = self.q_sink_w * self.delta_t_s / \
-                                       (self.c_p_w_s_per_kg_k * (self.t_i_c[self.l_outl_ind] - self.t_sink_c))
-            if self.mdot_sink_kg_per_ts > self.mdot_sink_max_kg_per_ts:
-                self.mdot_sink_kg_per_ts = self.mdot_sink_max_kg_per_ts
-                flag[1] = "max"
-        except ZeroDivisionError:
-            self.mdot_sink_kg_per_ts = 0
-            flag[1] = min
-        return flag
-
     def calculate_heat_flow(self, mdot_kg_per_s, t_in_c, t_stratum_c):
         return abs(mdot_kg_per_s * self.c_p_w_s_per_kg_k * (t_in_c - t_stratum_c))
-        # self.q_source_w = self.mdot_source_kg_per_ts / self.delta_t_s * \
-        #                   (self.c_p_w_s_per_kg_k * (self.t_source_c - self.t_i_c[self.s_outl_ind]))
-        # self.q_sink_w = self.mdot_sink_kg_per_ts / self.delta_t_s * \
-        #                 (self.c_p_w_s_per_kg_k * (self.t_i_c[self.l_outl_ind] - self.t_sink_c))
 
     def calculate_temperature_spread(self, q_w, mdot_kg_per_s):
         return q_w / mdot_kg_per_s / self.c_p_w_s_per_kg_k
-
-        deltat_source_k = self.q_source_w * self.delta_t_s / self.mdot_source_kg_per_ts / self.c_p_w_s_per_kg_k
-        deltat_sink_k = self.q_sink_w * self.delta_t_s / self.mdot_sink_kg_per_ts / self.c_p_w_s_per_kg_k
-        self.t_source_c = self.t_i_c[self.s_outl_ind] + deltat_source_k
-        self.t_sink_c = self.t_i_c[self.l_outl_ind] + deltat_sink_k
-        return flag
 
     def jacobian(self, temps):
         """
@@ -324,7 +275,7 @@ def create_heat_flows(steps):
 
 
 if __name__ == "__main__":
-    q_source_w, q_sink_w = np.zeros(292), np.zeros(292)  # create_heat_flows(60*24)
+    q_source_w, q_sink_w = create_heat_flows(60*24)
     sts = StratThermStor(np.array([40, 40, 50, 60, 70, 80, 80, 80, 80, 80]), 90, 25, 1, 1, 60, 1700, 810, 160)
     for s, l in zip(q_source_w, q_sink_w):
         sts.do_time_step(s, l, None, None, 90, 25)
