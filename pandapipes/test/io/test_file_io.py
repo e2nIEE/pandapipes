@@ -9,7 +9,6 @@ import pytest
 from pandas.testing import assert_frame_equal
 from pandapipes.test.multinet.test_control_multinet import get_gas_example, get_power_example_simple
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
-import copy
 from pandapipes.multinet import MultiNet
 from pandapower.toolbox import nets_equal as nets_equal_pandapower
 from pandapipes.toolbox import nets_equal
