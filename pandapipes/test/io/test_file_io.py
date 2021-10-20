@@ -7,7 +7,10 @@ import os
 import pandapipes
 import pytest
 from pandas.testing import assert_frame_equal
-
+from pandapipes.test.multinet.test_control_multinet import get_gas_example, get_power_example_simple
+from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
+import copy
+from pandapipes.multinet import MultiNet
 
 # @pytest.fixture()
 def load_net():
@@ -97,6 +100,29 @@ def test_json(tmp_path):
     assert pandapipes.nets_equal(net, net2), "Error in comparison after saving to JSON."
 
 
+def test_json_multinet(tmp_path, get_gas_example, get_power_example_simple):
+    """
+    Checks if a network saved and reloaded as a json file is identical.
+    :return:
+    :rtype:
+    """
+
+    net_gas = copy.deepcopy(get_gas_example)
+    net_power = copy.deepcopy(get_power_example_simple)
+
+    # set up multinet
+    mn = create_empty_multinet("test_p2g")
+    add_nets_to_multinet(mn, power=net_power, gas=net_gas)
+    filename = os.path.abspath(str(tmp_path)) + "test_net_1.json"
+
+    # save test network
+
+    pandapipes.to_json(mn, filename)
+
+    mn = pandapipes.from_json(filename)
+    assert isinstance(mn, MultiNet)
+
+
 def test_json_string():
     """
     Checks if a network saved and reloaded as a json file is identical.
@@ -118,6 +144,28 @@ def test_json_string():
 
     assert pandapipes.nets_equal(net, net2), \
         "Error in comparison after saving to JSON string."
+
+
+def test_json_string_multinet(tmp_path, get_gas_example, get_power_example_simple):
+    """
+    Checks if a network saved and reloaded as a json file is identical.
+    :return:
+    :rtype:
+    """
+
+    net_gas = copy.deepcopy(get_gas_example)
+    net_power = copy.deepcopy(get_power_example_simple)
+
+    # set up multinet
+    mn = create_empty_multinet("test_p2g")
+    add_nets_to_multinet(mn, power=net_power, gas=net_gas)
+
+    # save test network
+
+    mn_str = pandapipes.to_json(mn)
+
+    mn = pandapipes.from_json_string(mn_str)
+    assert isinstance(mn, MultiNet)
 
 
 if __name__ == '__main__':

@@ -14,6 +14,9 @@ from pandapower.io_utils import pp_hook, encrypt_string, decrypt_string
 from pandapipes.io.convert_format import convert_format
 from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
 from pandapipes.pandapipes_net import pandapipesNet
+from pandapipes.multinet import MultiNet
+from pandapower import pandapowerNet
+from pandapower.convert_format import convert_format as convert_format_pandapower
 
 
 def to_pickle(net, filename):
@@ -150,6 +153,12 @@ def from_json_string(json_string, convert=False, encryption_key=None):
     net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook,
                                                                          registry_class=FromSerializableRegistryPpipe))
 
-    if convert:
+    if convert and isinstance(net, pandapipesNet):
         convert_format(net)
+    elif convert and isinstance(net, MultiNet):
+        for n in net['nets']:
+            if isinstance(n, pandapipesNet):
+                convert_format(net)
+            elif isinstance(n, pandapowerNet):
+                convert_format_pandapower(net)
     return net
