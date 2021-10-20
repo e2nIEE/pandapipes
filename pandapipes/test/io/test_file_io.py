@@ -11,6 +11,8 @@ from pandapipes.test.multinet.test_control_multinet import get_gas_example, get_
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
 import copy
 from pandapipes.multinet import MultiNet
+from pandapower.toolbox import nets_equal as nets_equal_pandapower
+from pandapipes.toolbox import nets_equal
 
 # @pytest.fixture()
 def load_net():
@@ -107,8 +109,8 @@ def test_json_multinet(tmp_path, get_gas_example, get_power_example_simple):
     :rtype:
     """
 
-    net_gas = copy.deepcopy(get_gas_example)
-    net_power = copy.deepcopy(get_power_example_simple)
+    net_gas = get_gas_example
+    net_power = get_power_example_simple
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -120,7 +122,10 @@ def test_json_multinet(tmp_path, get_gas_example, get_power_example_simple):
     pandapipes.to_json(mn, filename)
 
     mn = pandapipes.from_json(filename)
+
     assert isinstance(mn, MultiNet)
+    assert nets_equal_pandapower(mn['nets']['power'], net_power)
+    assert nets_equal(mn['nets']['gas'], net_gas)
 
 
 def test_json_string():
@@ -153,8 +158,8 @@ def test_json_string_multinet(tmp_path, get_gas_example, get_power_example_simpl
     :rtype:
     """
 
-    net_gas = copy.deepcopy(get_gas_example)
-    net_power = copy.deepcopy(get_power_example_simple)
+    net_gas = get_gas_example
+    net_power = get_power_example_simple
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -166,6 +171,8 @@ def test_json_string_multinet(tmp_path, get_gas_example, get_power_example_simpl
 
     mn = pandapipes.from_json_string(mn_str)
     assert isinstance(mn, MultiNet)
+    assert nets_equal_pandapower(mn['nets']['power'], net_power)
+    assert nets_equal(mn['nets']['gas'], net_gas)
 
 
 if __name__ == '__main__':
