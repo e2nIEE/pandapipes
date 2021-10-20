@@ -6,12 +6,12 @@ from numpy.linalg import inv
 
 
 class StratThermStorTestOneStratum(StratThermStor):
-    def __init__(self, init_strata_temp_c, t_source_c, t_sink_c, mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s,
-                 delta_t_s, tank_height_mm=1700, tank_diameter_mm=810, wall_thickness_mm=160,
-                 source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
-        super().__init__(init_strata_temp_c, t_source_c, t_sink_c, mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s,
-                 delta_t_s, tank_height_mm, tank_diameter_mm, wall_thickness_mm,
-                 source_ind, load_ind, tol)
+    def __init__(self, init_strata_temp_c, flag_input, initial_input_source, initial_input_sink,
+                 mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s, delta_t_s, tank_height_mm=1700, tank_diameter_mm=810,
+                 wall_thickness_mm=160, source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
+        super().__init__(init_strata_temp_c, flag_input, initial_input_source, initial_input_sink,
+                         mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s, delta_t_s, tank_height_mm, tank_diameter_mm,
+                         wall_thickness_mm, source_ind, load_ind, tol)
         self.t_np1 = 0
 
     def calculate_temperature(self):
@@ -28,12 +28,12 @@ class StratThermStorTestOneStratum(StratThermStor):
 
 
 class StratThermStorTestTwoStrata(StratThermStor):
-    def __init__(self, init_strata_temp_c, t_source_c, t_sink_c, mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s,
-                 delta_t_s, tank_height_mm=1700, tank_diameter_mm=810, wall_thickness_mm=160,
-                 source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
-        super().__init__(init_strata_temp_c, t_source_c, t_sink_c, mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s,
-                 delta_t_s, tank_height_mm, tank_diameter_mm, wall_thickness_mm,
-                 source_ind, load_ind, tol)
+    def __init__(self, init_strata_temp_c, flag_input, initial_input_source, initial_input_sink,
+                 mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s, delta_t_s, tank_height_mm=1700, tank_diameter_mm=810,
+                 wall_thickness_mm=160, source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
+        super().__init__(init_strata_temp_c, flag_input, initial_input_source, initial_input_sink,
+                         mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s, delta_t_s, tank_height_mm, tank_diameter_mm,
+                         wall_thickness_mm, source_ind, load_ind, tol)
         self.a1, self.b1, self.c1, self.a2, self.b2, self.c2 = 0, 0, 0, 0, 0, 0
         self.t1_np1, self.t2_np1 = 0, 0
 
@@ -69,6 +69,15 @@ class StratThermStorTestTwoStrata(StratThermStor):
 
 
 class StratThermStorTestFiveStrata(StratThermStor):
+    def __init__(self, init_strata_temp_c, flag_input, initial_input_source, initial_input_sink,
+                 mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s, delta_t_s, tank_height_mm=1700, tank_diameter_mm=810,
+                 wall_thickness_mm=160, source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
+        super().__init__(init_strata_temp_c, flag_input, initial_input_source, initial_input_sink,
+                         mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s, delta_t_s, tank_height_mm, tank_diameter_mm,
+                         wall_thickness_mm, source_ind, load_ind, tol)
+        self.a_self_top, self.a_self_mid, self.a_self_bot, self.a_above, self.a_below, \
+        self.c1, self.c2, self.c3, self.c4, self.c5 = 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.
+        self.t1, self.t2, self.t3, self.t4, self.t5 = 0., 0., 0., 0., 0.
 
     def calculate_test_matrix_five_strata(self):
         deltap, deltam = self.get_delta(True), self.get_delta(False)
@@ -116,18 +125,18 @@ class StratThermStorTestFiveStrata(StratThermStor):
 
 def test_one_stratum():
     q_source_w, q_sink_w = np.array([20, 60, 40, 80, 80]), np.array([40, 50, 70, 70, 40])  # create_heat_flows(60*24)
-    sts = StratThermStorTestOneStratum(np.array([50]), 90, 25, 1, 1, 60, 1700, 810, 160)
+    sts = StratThermStorTestOneStratum(np.array([50]), ('ct', 'hf'), 90, 25, 1, 1, 60, 1700, 810, 160)
     for s, l in zip(q_source_w, q_sink_w):
-        sts.do_time_step(s, l, None, None, 90, 25)
+        sts.do_time_step(s, l)
         assert not np.any(np.around(sts.t_ip1_new_c - np.array([sts.t_np1]), int(-math.log(sts.tol, 10))))
     print("This is your lucky day!")
 
 
 def test_two_strata():
     q_source_w, q_sink_w = np.array([20, 60, 40, 80, 80]), np.array([40, 50, 70, 70, 40])  # create_heat_flows(60*24)
-    sts = StratThermStorTestTwoStrata(np.array([80, 30]), 90, 25, 1, 1, 60, 1700, 810, 160)
+    sts = StratThermStorTestTwoStrata(np.array([80, 30]), ('ct', 'hf'), 90, 25, 1, 1, 60, 1700, 810, 160)
     for s, l in zip(q_source_w, q_sink_w):
-        sts.do_time_step(s, l, None, None, 90, 25)
+        sts.do_time_step(s, l)
         assert not np.any(np.around(sts.t_ip1_new_c - np.array([sts.t1_np1, sts.t2_np1]), int(-math.log(sts.tol, 10))))
     print("No problemo ^^")
 
@@ -135,9 +144,14 @@ def test_two_strata():
 def test_five_strata():
     q_source_w, q_sink_w = np.array([20, 60, 40, 80, 80]), np.array(
         [40, 50, 70, 70, 40])  # create_heat_flows(60*24)
-    sts = StratThermStorTestFiveStrata(np.array([80, 65, 50, 35, 30]), 90, 25, 1, 1, 60, 1700, 810, 160)
+    sts = StratThermStorTestFiveStrata(np.array([80, 65, 50, 35, 30]), ('ct', 'hf'), 90, 25, 1, 1, 60, 1700, 810, 160)
     for s, l in zip(q_source_w, q_sink_w):
-        sts.do_time_step(s, l, None, None, 90, 25)
+        sts.do_time_step(s, l)
         assert not np.any(np.around(sts.t_ip1_new_c - np.array([sts.t1, sts.t2, sts.t3, sts.t4, sts.t5]),
                                     int(-math.log(sts.tol, 10))))
     print("Eaaasy o.o")
+
+if __name__ == '__main__':
+    test_one_stratum()
+    test_two_strata()
+    test_five_strata()

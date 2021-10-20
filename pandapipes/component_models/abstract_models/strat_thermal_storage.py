@@ -4,9 +4,9 @@ from numpy.linalg import inv
 
 
 class StratThermStor():
-    def __init__(self, init_strata_temp_c, t_source_c, t_sink_c, mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s,
-                 delta_t_s, tank_height_mm=1700, tank_diameter_mm=810, wall_thickness_mm=160,
-                 source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
+    def __init__(self, init_strata_temp_c, flag_input, initial_input_source, initial_input_sink,
+                 mdot_source_max_kg_per_s, mdot_sink_max_kg_per_s, delta_t_s, tank_height_mm=1700, tank_diameter_mm=810,
+                 wall_thickness_mm=160, source_ind=(0, -1), load_ind=(-1, 0), tol=1e-6):
         """
         Model of a stratified thermal storage. Heat medium: water.
         Heat capacity c_p and density are assumed to be constant.
@@ -14,10 +14,27 @@ class StratThermStor():
         @param init_strata_temp_c: Each stratum's temperature in Celsius from highest to lowest stratum.
                                    Also defines the number of strata.
         @type init_strata_temp_c: numpy.ndarray
-        @param t_source_c: Temperature of heated water entering from the source circuit in Celsius.
-        @type t_source_c: float
-        @param t_sink_c: Temperature of cooled water entering from the load circuit in Celsius.
-        @type t_sink_c: float
+        @param flag_input: Containing two flags of 'hf' (heat flow), 'mf' (mass flow) and 'ct' (circuit temperature)
+                           defining for both source and sink circuit:
+                           the parameter set on initialization of the storage object to the values of the input
+                           parameters 'initial_input_source' and 'initial_input_sink' (first flag).
+                           the parameter whose value is to be defined for each time step (second flag).
+                           The unused flag is the flag of the parameter that will be calculated from the other two.
+        @type flag_input: tuple of str
+        @param initial_input_source: Value of the potential input parameter for the source circuit that will be constant
+                                     during the simulation, defined by first element in 'flag_input'. Possibilities:
+                                     Heat flow: The heat injected to the storage from the source circuit [W]
+                                     Mass flow: The mass of water injected to the storage from the source circuit [kg/s]
+                                     Circuit temperature: The temperature of water entering the storage
+                                                          from the source circuit [°C]
+        @type initial_input_source: float
+        @param initial_input_sink: Value of the potential input parameter for the sink circuit that will be constant
+                                   during the simulation, defined by first element in 'flag_input'. Possibilities:
+                                   Heat flow: The heat withdrawn from the storage by the sink circuit [W]
+                                   Mass flow: The mass of water withdrawn from the storage by the sink circuit [kg/s]
+                                   Circuit temperature: The temperature of water entering the storage
+                                                        from the sink circuit [°C]
+        @type initial_input_sink: float
         @param mdot_source_kg_per_ts: Mass flow from source circuit in kg per time step.
         @type mdot_source_kg_per_ts: float
         @param mdotl: Mass flow from load circuit in kg per time step.
@@ -42,18 +59,29 @@ class StratThermStor():
         self.z_m = tank_height_mm / 1000 / self.strata  # height of each stratum
         self.A_m2 = np.pi * (tank_diameter_mm / 1000 - 2 * wall_thickness_mm / 1000) ** 2 / 4  # cross section area
         self.A_ext_m2 = np.pi * tank_diameter_mm / 1000 * self.z_m   # barrel area of one stratum
-        self.m_strat_kg = self.A_m2 * self.z_m * 996  # each stratum's mass
+        self.m_strat_kg = self.A_m2 * self.z_m * 994.3025  # each stratum's mass
 
         # heat medium and tank properties
-        self.c_p_w_s_per_kg_k, self.k_w_per_m2_k, self.lambda_eff_w_per_m_k = 4183, 0.5, 1.5
+        self.c_p_w_s_per_kg_k, self.k_w_per_m2_k, self.lambda_eff_w_per_m_k = 4180, 5., 1.5  # bei cp = 9489 ähnlich
+        # k = 0.5 set to 0 for comparision with parantapas model  # toDo: Typo in Mail so .5 is correct?
 
         # parameters: ambient air temperature; temperature, mass flow and inlet position of source and load circuit
         self.t_amb_c = 20
-        self.t_source_c, self.t_sink_c = t_source_c, t_sink_c
-        self.mdot_source_kg_per_ts, self.mdot_sink_kg_per_ts, self.mdot_kg_per_ts = None, None, None
+        self.flag_input = flag_input
+        self.t_source_c, self.t_sink_c,  self.q_source_w, self.q_sink_w, \
+        self.mdot_source_kg_per_ts, self.mdot_sink_kg_per_ts, self.mdot_kg_per_ts = None, None, None, None, None, None, None
+        if self.flag_input[0] == 'hf':
+            self.q_source_w, self.q_sink_w = initial_input_source, initial_input_sink
+        elif self.flag_input[0] == 'mf':
+            self.mdot_source_kg_per_ts, self.mdot_sink_kg_per_ts = initial_input_source, initial_input_sink
+            self.mdot_kg_per_ts = self.mdot_source_kg_per_ts - self.mdot_sink_kg_per_ts
+        elif self.flag_input[0] == 'ct':
+            self.t_source_c, self.t_sink_c = initial_input_source, initial_input_sink
+        else:
+            raise ValueError("The input parameter 'flag_input' must be a tuple "
+                             "with two of the strings: 'hf', 'mf' and 'ct'.")
         self.mdot_source_max_kg_per_ts, self.mdot_sink_max_kg_per_ts = mdot_source_max_kg_per_s * delta_t_s, \
                                                                        mdot_sink_max_kg_per_s * delta_t_s
-        self.q_source_w, self.q_sink_w = 0., 0.
         self.s_inl_pos, self.l_inl_pos = np.zeros((self.strata,)), np.zeros((self.strata,))
         self.s_inl_pos[source_ind[0]], self.l_inl_pos[load_ind[0]] = 1, 1
         self.s_outl_ind, self.l_outl_ind = source_ind[1], load_ind[1]
@@ -87,44 +115,51 @@ class StratThermStor():
         else:
             return (1 - np.sign(self.mdot_kg_per_ts)) / 2
 
-    def initialize_time_step(self, q_source_w, q_sink_w, mdot_source_kg_per_s, mdot_sink_kg_per_s, t_source_c, t_sink_c):
-        flag_source, self.q_source_w, self.mdot_source_kg_per_ts, self.t_source_c = \
-            self.calculate_missing_values(q_source_w, mdot_source_kg_per_s, self.mdot_source_max_kg_per_ts,
-                                          t_source_c, self.t_i_c[self.s_outl_ind])
-        flag_sink, self.q_sink_w, self.mdot_sink_kg_per_ts, self.t_sink_c = \
-            self.calculate_missing_values(q_sink_w, mdot_sink_kg_per_s, self.mdot_sink_max_kg_per_ts, t_sink_c,
-                                          self.t_i_c[self.l_outl_ind])
-        self.mdot_kg_per_ts = self.mdot_source_kg_per_ts - self.mdot_sink_kg_per_ts
-        return [flag_source, flag_sink]
-
-    def calculate_missing_values(self, q, mdot, mdot_max, t_circuit, t_stratum):
-        message = "One value of heat flow, mass flow and temperature spread " \
-                  "of source and sink circuit each must not be defined."
-        flag = "orig"
-        if q is None:
-            if None in [mdot, t_circuit]:
+    def initialize_time_step(self,  source, sink):
+        flag = ['orig', 'orig']
+        message = "When initializing storage object, 'flag_input' must be set to a tuple " \
+                  "containing two of these three strings: 'hf', 'mf', 'ct'."
+        if self.flag_input[0] == 'hf':
+            if self.flag_input[1] == 'mf':
+                flag[0], self.mdot_source_kg_per_ts = self.calculate_mass_flow(
+                    self.q_source_w, source, self.t_i_c[self.s_outl_ind], self.mdot_source_max_kg_per_ts)
+                flag[1], self.mdot_sink_kg_per_ts = self.calculate_mass_flow(
+                    self.q_sink_w, sink, self.t_i_c[self.l_outl_ind], self.mdot_sink_max_kg_per_ts)
+            elif self.flag_input[1] == 'ct':
+                flag[0], self.t_source_c = self.calculate_temperature_spread(self.q_source_w, source)
+                flag[1], self.t_sink_c = self.calculate_temperature_spread(self.q_sink_w, sink)
+            else:
                 raise ValueError(message)
+            self.mdot_kg_per_ts = self.mdot_source_kg_per_ts - self.mdot_sink_kg_per_ts
+        elif self.flag_input[0] == 'mf':
+            if self.flag_input[1] == 'hf':
+                flag[0], self.t_source_c = self.calculate_temperature_spread(source, self.mdot_source_kg_per_ts)
+                flag[1], self.t_sink_c = self.calculate_temperature_spread(sink, self.mdot_sink_kg_per_ts)
+            elif self.flag_input[1] == 'ct':
+                flag[0], self.q_source_w = self.calculate_heat_flow(self.mdot_source_kg_per_ts, source,
+                                                                    self.t_i_c[self.s_outl_ind])
+                flag[1], self.q_sink_w = self.calculate_heat_flow(self.mdot_sink_kg_per_ts, sink,
+                                                                    self.t_i_c[self.l_outl_ind])
             else:
-                q = self.calculate_heat_flow(mdot, t_circuit, t_stratum)
-        elif mdot is None:
-            if t_circuit is None:
                 raise ValueError(message)
+        elif self.flag_input[0] == 'ct':
+            if self.flag_input[1] == 'hf':
+                flag[0], self.mdot_source_kg_per_ts = self.calculate_mass_flow(
+                    source, self.t_source_c, self.t_i_c[self.s_outl_ind], self.mdot_source_max_kg_per_ts)
+                flag[1], self.mdot_sink_kg_per_ts = self.calculate_mass_flow(
+                    sink, self.t_sink_c, self.t_i_c[self.l_outl_ind], self.mdot_sink_max_kg_per_ts)
+            elif self.flag_input[1] == 'mf':
+                flag[0], self.q_source_w = self.calculate_heat_flow(source, self.t_source_c, self.t_i_c[self.s_outl_ind])
+                flag[1], self.q_sink_w = self.calculate_heat_flow(sink,self.t_sink_c, self.t_i_c[self.l_outl_ind])
             else:
-                if t_circuit == t_stratum:
-                    flag, mdot = "min", 0
-                else:
-                    flag, mdot = self.calculate_mass_flow(q, t_circuit, t_stratum, mdot_max)
-        elif t_circuit is None:
-            if mdot == 0:
-                flag, t_circuit, q = "min", t_stratum, 0
-            else:
-                t_circuit = t_stratum + self.calculate_temperature_spread(q, mdot)
-        return flag, q, mdot, t_circuit
+                raise ValueError(message)
+            self.mdot_kg_per_ts = self.mdot_source_kg_per_ts - self.mdot_sink_kg_per_ts
+        else:
+            raise ValueError(message)
+        return flag
 
-    def do_time_step(self, q_source_w=None, q_sink_w=None, mdot_source_kg_per_s=None, mdot_sink_kg_per_s=None,
-                             t_source_c=None, t_sink_c=None):
-        flag = self.initialize_time_step(q_source_w, q_sink_w, mdot_source_kg_per_s, mdot_sink_kg_per_s,
-                                         t_source_c, t_sink_c)
+    def do_time_step(self, source, sink):
+        flag = self.initialize_time_step(source, sink)
         self.iterate()
         self.t_i_c = self.t_ip1_new_c
         self.finalize_time_step(flag)
@@ -275,9 +310,11 @@ def create_heat_flows(steps):
 
 
 if __name__ == "__main__":
-    q_source_w, q_sink_w = create_heat_flows(60*24)
-    sts = StratThermStor(np.array([40, 40, 50, 60, 70, 80, 80, 80, 80, 80]), 90, 25, 1, 1, 60, 1700, 810, 160)
+    q_source_w, q_sink_w = create_heat_flows(10001)
+    sts = StratThermStor(np.array([40, 40 + 10/9, 40 + 20/9, 40 + 30/9, 40 + 40/9, 40 + 50/9, 40 + 60/9, 40 + 70/9,
+                                   40 + 80/9, 50]), ('ct', 'hf'), 90, 25, 1, 1, 900, 1800, 825, 25)
     for s, l in zip(q_source_w, q_sink_w):
-        sts.do_time_step(s, l, None, None, 90, 25)
+        sts.do_time_step(s, l)
     results = sts.results[0:10].T
-    sts.save_simulation()
+    results.columns = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
+    # sts.save_simulation()
