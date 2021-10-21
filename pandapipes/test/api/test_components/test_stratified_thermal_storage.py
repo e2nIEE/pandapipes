@@ -151,6 +151,7 @@ def test_five_strata():
                                     int(-math.log(sts.tol, 10))))
     print("Eaaasy o.o")
 
+
 if __name__ == '__main__':
     test_one_stratum()
     test_two_strata()
