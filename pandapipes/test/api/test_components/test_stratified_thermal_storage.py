@@ -155,4 +155,4 @@ def test_five_strata():
 if __name__ == '__main__':
     test_one_stratum()
     test_two_strata()
-    test_five_strata()  # ToDo: There were no warnings before
+    test_five_strata()
