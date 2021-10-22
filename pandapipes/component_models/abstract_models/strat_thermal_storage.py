@@ -64,8 +64,7 @@ class StratThermStor():
         self.m_strat_kg = self.A_m2 * self.z_m * 994.3025  # each stratum's mass
 
         # heat medium and tank properties
-        self.c_p_w_s_per_kg_k, self.k_w_per_m2_k, self.lambda_eff_w_per_m_k = 4180, .5, 1.5  # bei cp = 9489 ähnlich
-        # k = 0.5 set to 0 for comparision with parantapas model  # toDo: Typo in Mail so .5 is correct?
+        self.c_p_w_s_per_kg_k, self.k_w_per_m2_k, self.lambda_eff_w_per_m_k = 4180, 2, 1.5
 
         # parameters: ambient air temperature; temperature, mass flow and inlet position of source and sink circuit
         self.t_amb_c = 20
@@ -319,11 +318,13 @@ def create_heat_flows(steps):
 
 
 if __name__ == "__main__":
-    q_source_w, q_sink_w = create_heat_flows(101)
-    sts = StratThermStor(np.array([40, 40 + 10/9, 40 + 20/9, 40 + 30/9, 40 + 40/9, 40 + 50/9, 40 + 60/9, 40 + 70/9,
-                                   40 + 80/9, 50]), ('ct', 'hf'), 90, 25, 1, 1, 900, 1800, 825, 25)
+    q_source_w, q_sink_w = create_heat_flows(10001)
+    sts = StratThermStor(np.array([50, 40 + 80/9, 40 + 70/9, 40 + 60/9, 40 + 50/9, 40 + 40/9, 40 + 30/9, 40 + 20/9,
+                                   40 + 10/9, 40]), ('ct', 'hf'), 90, 25, 1, 1, 900, 1800, 825, 25)
     for s, l in zip(q_source_w, q_sink_w):
         sts.do_time_step(s, l)
     results = sts.results[0:10].T
-    results.columns = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
+    results_rev = results[results.columns[::-1]]  # reverse order of strata in results dataframe since their order is
+                                                  # reversed in the fmu model
+    results_rev.columns = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']
     # sts.save_simulation()
