@@ -375,6 +375,58 @@ class FluidPropertyLinear(FluidProperty):
         return cls(slope, offset)
 
 
+class FluidPropertyPolynominal(FluidProperty):
+    """
+    Creates Property with a polynominal course.
+    """
+
+    def __init__(self, x_values, y_values, polynominal_degree):
+        """
+
+        :param x_values:
+        :type x_values:
+        :param y_values:
+        :type y_values:
+        :param polynominal_degree:
+        :type polynominal_degree:
+        """
+        coeffs = np.polyfit(x_values, y_values, polynominal_degree)
+        self.prop_getter = np.poly1d(coeffs)
+
+
+    def get_at_value(self, arg):
+        """
+
+        :param arg: Name of the property and one or more values (x-values) for which the function \
+            of the property should be calculated
+        :type arg: float or list-like objects
+        :return: y-value or function values
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_value(t_k)
+
+        """
+        return self.prop_getter(arg)
+
+    @classmethod
+    def from_path(cls, path, polynominal_degree):
+        """
+        Reads a text file with temperature values in the first column and property values in
+        second column.
+
+        :param path: Target path of the txt file
+        :type path: str
+        :param polynominal_degree: degree of the polynominal
+        :type method: float
+        :return: Fluid object
+        :rtype: pandapipes.FluidProperty
+        """
+        values = np.loadtxt(path)
+        return cls(values[:, 0], values[:, 1], polynominal_degree)
+
+
+
 def create_constant_property(net, property_name, value, overwrite=True, warn_on_duplicates=True):
     """
     Creates a property with a constant value.
