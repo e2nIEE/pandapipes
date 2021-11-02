@@ -11,6 +11,8 @@ from pandapipes.component_models.abstract_models.node_element_models import Node
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
+from pandapipes.topology import create_nxgraph
+from networkx import has_path
 
 try:
     import pplog as logging
@@ -97,7 +99,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
-
+    special_elements_junctions = [("press_control", "controlled_junction")]
     node_elements = []
     if net is not None and include_node_elements:
         node_elements = [comp.table_name() for comp in net.component_list
@@ -110,7 +112,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
                            if issubclass(comp, BranchComponent)]
     elif include_branch_elements:
         branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                           "heat_exchanger"]
+                           "heat_exchanger", "press_control"]
     ejts = set()
     if include_node_elements:
         for elm in node_elements:
@@ -126,6 +128,8 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
             elements_without_res = ["valve"]
         ejts.update(
             [("res_" + ejt[0], ejt[1]) for ejt in ejts if ejt[0] not in elements_without_res])
+    ejts.update((el, jn) for el, jn in special_elements_junctions if el in node_elements
+                or el in branch_elements)
     return ejts
 
 
@@ -406,6 +410,12 @@ def drop_pipes(net, pipes):
         res_pipes = net.res_pipe.index.intersection(pipes)
         net["res_pipe"].drop(res_pipes, inplace=True)
     logger.info("dropped %d pipes" % len(list(pipes)))
+
+
+def check_pressure_controllability(net, to_junction, controlled_junction):
+    mg = create_nxgraph(net, include_pressure_circ_pumps=False, include_compressors=False,
+                        include_mass_circ_pumps=False, include_press_controls=False)
+    return has_path(mg, to_junction, controlled_junction)
 
 
 # TODO: change to pumps??

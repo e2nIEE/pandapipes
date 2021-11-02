@@ -6,9 +6,10 @@ import os
 import tempfile
 
 import numpy as np
-import pandapower.control as control
 import pandas as pd
 import pytest
+
+import pandapower.control as control
 from pandapipes import networks as nw
 from pandapipes import pp_dir
 from pandapipes.timeseries import run_timeseries, init_default_outputwriter
@@ -36,8 +37,8 @@ def _prepare_grid(net):
 
     ds_sink, ds_source = _data_source()
     control.ConstControl(net, element='sink', variable='mdot_kg_per_s',
-                                      element_index=net.sink.index.values, data_source=ds_sink,
-                                      profile_name=net.sink.index.values.astype(str))
+                         element_index=net.sink.index.values, data_source=ds_sink,
+                         profile_name=net.sink.index.values.astype(str))
     control.ConstControl(
         net, element='source', variable='mdot_kg_per_s', element_index=net.source.index.values,
         data_source=ds_source, profile_name=net.source.index.values.astype(str))
@@ -87,7 +88,7 @@ def _compare_results(ow):
     res_ext_grid = ow.np_results["res_ext_grid.mdot_kg_per_s"]
     res_ext_grid = res_ext_grid[~np.isclose(res_ext_grid, 0)]
     test_res_ext_grid = test_res_ext_grid.values[~np.isclose(test_res_ext_grid.values, 0)]
-    diff = 1 - res_ext_grid.round(9)/test_res_ext_grid.round(9)
+    diff = 1 - res_ext_grid.round(9) / test_res_ext_grid.round(9)
     check = diff < 0.0001
     assert (np.all(check))
     test_res_junction = pd.read_csv(os.path.join(
@@ -96,7 +97,7 @@ def _compare_results(ow):
     res_junction = ow.np_results["res_junction.p_bar"]
     res_junction = res_junction[~np.isclose(res_junction, 0)]
     test_res_junction = test_res_junction.values[~np.isclose(test_res_junction.values, 0)]
-    diff = 1 - res_junction.round(9)/test_res_junction.round(9)
+    diff = 1 - res_junction.round(9) / test_res_junction.round(9)
     check = diff < 0.0001
     assert (np.all(check))
     test_res_pipe = pd.read_csv(os.path.join(
@@ -105,7 +106,7 @@ def _compare_results(ow):
     res_pipe = ow.np_results["res_pipe.v_mean_m_per_s"]
     res_pipe = res_pipe[~np.isclose(res_pipe, 0)]
     test_res_pipe = test_res_pipe.values[~np.isclose(test_res_pipe.values, 0)]
-    diff = 1 - res_pipe.round(9)/test_res_pipe.round(9)
+    diff = 1 - res_pipe.round(9) / test_res_pipe.round(9)
     check = diff < 0.0001
     assert (np.all(check))
     test_res_sink = pd.read_csv(os.path.join(
@@ -114,7 +115,7 @@ def _compare_results(ow):
     res_sink = ow.np_results["res_sink.mdot_kg_per_s"]
     res_sink = res_sink[~np.isclose(res_sink, 0)]
     test_res_sink = test_res_sink.values[~np.isclose(test_res_sink.values, 0)]
-    diff = 1 - res_sink.round(9)/test_res_sink.round(9)
+    diff = 1 - res_sink.round(9) / test_res_sink.round(9)
     check = diff < 0.0001
     assert (np.all(check))
     test_res_source = pd.read_csv(os.path.join(
@@ -123,7 +124,7 @@ def _compare_results(ow):
     res_source = ow.np_results["res_source.mdot_kg_per_s"]
     res_source = res_source[~np.isclose(res_source, 0)]
     test_res_source = test_res_source.values[~np.isclose(test_res_source.values, 0)]
-    diff = 1 - res_source.round(9)/test_res_source.round(9)
+    diff = 1 - res_source.round(9) / test_res_source.round(9)
     check = diff < 0.0001
     assert (np.all(check))
 
@@ -161,7 +162,7 @@ def test_time_series():
     time_steps = range(25)
     # _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
     _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-    run_timeseries(net, time_steps)
+    run_timeseries(net, time_steps, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
 
@@ -176,7 +177,7 @@ def test_time_series_default_ow():
     _prepare_grid(net)
     time_steps = range(25)
     init_default_outputwriter(net, time_steps)
-    run_timeseries(net, time_steps)
+    run_timeseries(net, time_steps, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
 

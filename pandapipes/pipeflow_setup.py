@@ -11,7 +11,7 @@ from scipy.sparse import coo_matrix, csgraph
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, branch_cols, \
     ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, \
-    ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
+    ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, PC
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -27,7 +27,7 @@ default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1
                    "ambient_temperature": 293, "check_connectivity": True,
                    "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
                    "reuse_internal_data": False,
-                   "quit_on_inconsistency_connectivity": False}
+                   "quit_on_inconsistency_connectivity": False, "calc_compression_power": True}
 
 
 def get_net_option(net, option_name):
@@ -452,7 +452,8 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
     active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    hyd_slacks = np.where(node_pit[:, NODE_TYPE] == P & active_node_lookup)[0]
+    hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
+                          & active_node_lookup)[0]
 
     nodes_connected, branches_connected = perform_connectivity_search(
         net, node_pit, hyd_slacks, from_nodes, to_nodes, active_node_lookup, active_branch_lookup,

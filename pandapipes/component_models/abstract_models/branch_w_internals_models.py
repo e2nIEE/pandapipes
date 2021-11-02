@@ -3,9 +3,15 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
-from pandapipes.idx_node import TINIT as TINIT_NODE, L, node_cols
+from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
+from pandapipes.idx_branch import ACTIVE
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
+    VINIT, RE, LAMBDA, CP, ELEMENT_IDX
+from pandapipes.idx_node import L, node_cols
+from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
+from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
 
@@ -170,9 +176,41 @@ class BranchWInternalsComponent(BranchComponent):
         branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
         branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
         branch_winternals_pit[:, ACTIVE] = \
-            np.repeat(net[cls.table_name()][cls.active_identifier()].values,internal_pipe_number)
+            np.repeat(net[cls.table_name()][cls.active_identifier()].values, internal_pipe_number)
 
         return branch_winternals_pit, internal_pipe_number
+
+    @classmethod
+    def extract_results(cls, net, options, node_name):
+        placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options, node_name)
+        fluid = get_fluid(net)
+
+        idx_active = branch_pit[:, ELEMENT_IDX]
+        v_mps = branch_pit[:, VINIT]
+        _, v_sum, internal_pipes = _sum_by_group(idx_active, v_mps, np.ones_like(idx_active))
+        idx_pit = branch_pit[:, ELEMENT_IDX]
+        _, lambda_sum, reynolds_sum, = \
+            _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
+        if fluid.is_gas:
+            from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+            to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+            numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
+            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+            mask = ~np.isclose(p_from, p_to)
+            p_mean = np.empty_like(p_to)
+            p_mean[~mask] = p_from[~mask]
+            p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
+                           / (p_from[mask] ** 2 - p_to[mask] ** 2)
+            normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
+                              / (p_mean * NORMAL_TEMPERATURE)
+            v_gas_mean = v_mps * normfactor_mean
+            _, v_gas_mean_sum = _sum_by_group(idx_active, v_gas_mean)
+            res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
+        else:
+            res_table["v_mean_m_per_s"].values[placement_table] = v_sum / internal_pipes
+        res_table["lambda"].values[placement_table] = lambda_sum / internal_pipes
+        res_table["reynolds"].values[placement_table] = reynolds_sum / internal_pipes
 
     @classmethod
     def get_internal_pipe_number(cls, net):
