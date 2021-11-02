@@ -3,11 +3,13 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+from scipy.interpolate import interp1d
+
 from pandapipes import pp_dir
 from pandapower.io_utils import JSONSerializableClass
-from scipy.interpolate import interp1d
 
 try:
     import pplog as logging
@@ -193,6 +195,16 @@ class FluidProperty(JSONSerializableClass):
         """
         raise NotImplementedError("Please implement a proper fluid property!")
 
+    def get_at_integral_value(self, *args):
+        """
+
+        :param args:
+        :type args:
+        :return:
+        :rtype:
+        """
+        raise NotImplementedError("Please implement a proper fluid property!")
+
 
 class FluidPropertyInterExtra(FluidProperty):
     """
@@ -227,6 +239,23 @@ class FluidPropertyInterExtra(FluidProperty):
         :rtype: float, array
         """
         return self.prop_getter(arg)
+
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        mean = (self.prop_getter(upper_limit_arg) + self.prop_getter(upper_limit_arg)) / 2
+        return mean * (upper_limit_arg-lower_limit_arg)
+
 
     @classmethod
     def from_path(cls, path, method="interpolate_extrapolate"):
@@ -300,6 +329,29 @@ class FluidPropertyConstant(FluidProperty):
             output = np.array([self.value])
         return output
 
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        if isinstance(upper_limit_arg, pd.Series):
+            ul = self.value * upper_limit_arg.values
+        else:
+            ul = self.value * np.array(upper_limit_arg)
+        if isinstance(lower_limit_arg, pd.Series):
+            ll = self.value * lower_limit_arg.values
+        else:
+            ll = self.value * np.array(lower_limit_arg)
+        return ul - ll
+
     @classmethod
     def from_path(cls, path):
         """
@@ -360,6 +412,31 @@ class FluidPropertyLinear(FluidProperty):
         else:
             return self.offset + self.slope * np.array(arg)
 
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        if isinstance(upper_limit_arg, pd.Series):
+            ul = self.offset * upper_limit_arg.values + 0.5 * self.slope * np.power(upper_limit_arg.values, 2)
+        else:
+            ul = self.offset * np.array(upper_limit_arg) + 0.5 * self.slope * np.array(
+                np.power(upper_limit_arg.values, 2))
+        if isinstance(lower_limit_arg, pd.Series):
+            ll = self.offset * lower_limit_arg.values + 0.5 * self.slope * np.power(lower_limit_arg.values, 2)
+        else:
+            ll = self.offset * np.array(lower_limit_arg) + 0.5 * self.slope * np.array(
+                np.power(lower_limit_arg.values, 2))
+        return ul - ll
+
     @classmethod
     def from_path(cls, path):
         """
@@ -390,9 +467,9 @@ class FluidPropertyPolynominal(FluidProperty):
         :param polynominal_degree:
         :type polynominal_degree:
         """
-        coeffs = np.polyfit(x_values, y_values, polynominal_degree)
-        self.prop_getter = np.poly1d(coeffs)
-
+        super(FluidPropertyPolynominal, self).__init__()
+        const = np.polyfit(x_values, y_values, polynominal_degree)
+        self.prop_getter = np.poly1d(const)
 
     def get_at_value(self, arg):
         """
@@ -409,6 +486,22 @@ class FluidPropertyPolynominal(FluidProperty):
         """
         return self.prop_getter(arg)
 
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        int_prop_getter = np.polyint(self.prop_getter)
+        return int_prop_getter(upper_limit_arg) - int_prop_getter(lower_limit_arg)
+
     @classmethod
     def from_path(cls, path, polynominal_degree):
         """
@@ -424,7 +517,6 @@ class FluidPropertyPolynominal(FluidProperty):
         """
         values = np.loadtxt(path)
         return cls(values[:, 0], values[:, 1], polynominal_degree)
-
 
 
 def create_constant_property(net, property_name, value, overwrite=True, warn_on_duplicates=True):
