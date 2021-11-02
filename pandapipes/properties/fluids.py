@@ -470,6 +470,7 @@ class FluidPropertyPolynominal(FluidProperty):
         super(FluidPropertyPolynominal, self).__init__()
         const = np.polyfit(x_values, y_values, polynominal_degree)
         self.prop_getter = np.poly1d(const)
+        self.prop_int_getter = np.polyint(self.prop_getter)
 
     def get_at_value(self, arg):
         """
@@ -499,8 +500,7 @@ class FluidPropertyPolynominal(FluidProperty):
             >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
 
         """
-        int_prop_getter = np.polyint(self.prop_getter)
-        return int_prop_getter(upper_limit_arg) - int_prop_getter(lower_limit_arg)
+        return self.prop_int_getter(upper_limit_arg) - self.prop_int_getter(lower_limit_arg)
 
     @classmethod
     def from_path(cls, path, polynominal_degree):
