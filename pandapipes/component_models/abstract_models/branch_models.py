@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.component_models.auxiliaries.derivative_toolbox import calc_der_lambda, calc_lambda
 from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
@@ -15,7 +16,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
     LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
 from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
-from pandapipes.pipeflow_setup import get_table_number, get_lookup, get_net_option
+from pandapipes.pipeflow_setup import get_table_number, get_lookup
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -278,7 +279,6 @@ class BranchComponent(Component):
         """
         raise NotImplementedError
 
-
     @classmethod
     def prepare_result_tables(cls, net, options, node_name):
         res_table = super().extract_results(net, options, node_name)
@@ -294,7 +294,6 @@ class BranchComponent(Component):
         placement_table = placement_table[active_pipes]
         branch_pit = net["_active_pit"]["branch"][fa:ta, :]
         return placement_table, branch_pit, res_table
-
 
     @classmethod
     def extract_results(cls, net, options, node_name):
