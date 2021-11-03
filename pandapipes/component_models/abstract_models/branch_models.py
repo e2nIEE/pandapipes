@@ -83,12 +83,15 @@ class BranchComponent(Component):
         :type node_name:
         :return: No Output.
         """
-
+        node_pit = net["_pit"]["node"]
         f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
         branch_table_nr = get_table_number(get_lookup(net, "branch", "table"), cls.table_name())
         branch_component_pit = branch_pit[f:t, :]
-        node_pit = net["_pit"]["node"]
+        if not len(net[cls.table_name()]):
+            return branch_component_pit, node_pit, [], []
+
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
+        print(cls.table_name())
         from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
         to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
@@ -300,6 +303,10 @@ class BranchComponent(Component):
         placement_table, branch_pit, res_table = cls.prepare_result_tables(net, options, node_name)
 
         node_pit = net["_active_pit"]["node"]
+
+        if not len(branch_pit):
+            return placement_table, res_table, branch_pit, node_pit
+
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
         from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
