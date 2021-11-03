@@ -2,12 +2,13 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import os
-
 import numpy as np
+import os
+import pandas as pd
+from pandapower.io_utils import JSONSerializableClass
+
 from pandapipes import pp_dir
 from pandapipes.std_types.std_type_toolbox import get_data, get_p_v_values, regression_function
-from pandapower.io_utils import JSONSerializableClass
 
 try:
     import pplog as logging
@@ -67,7 +68,6 @@ class PumpStdType(StdType):
         self._flowrate_list = flowrate_list
         self._reg_polynomial_degree = reg_polynomial_degree
 
-
     def get_pressure(self, vdot_m3_per_s):
         """
         Calculate the pressure lift based on a polynomial from a regression.
@@ -89,7 +89,7 @@ class PumpStdType(StdType):
             return 0
         # no negative pressure lift - bypassing always allowed:
         # /1 to ensure float format:
-        p = max(0, sum(self.reg_par * (vdot_m3_per_s/1 * 3600) ** (n - 1)))
+        p = max(0, sum(self.reg_par * (vdot_m3_per_s / 1 * 3600) ** (n - 1)))
         return p
 
     @classmethod
@@ -145,21 +145,37 @@ def load_std_type(net, name, element):
     Loads standard type data from the data base. Issues a warning if
     stdtype is unknown.
 
-    INPUT:
-        **net** - The pandapipes network
-
-        **name** - name of the standard type as string
-
-        **element** - "pipe"
-
-    OUTPUT:
-        **typedata** - dictionary containing type data
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param name: name of the standard type as string
+    :type name: str
+    :param element: type of element ("pipe" or "pump")
+    :type element: str
+    :return: typedata - dictionary containing type data
+    :rtype: dict
     """
     library = net.std_type[element]
     if name in library:
         return library[name]
     else:
         raise UserWarning("Unknown standard %s type %s" % (element, name))
+
+
+def std_type_exists(net, name, element):
+    """
+    Checks if a standard type exists.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param name: name of the standard type as string
+    :type name: str
+    :param element: type of element ("pipe" or "pump")
+    :type element: str
+    :return: exists - True if standard type exists, False otherwise
+    :rtype: bool
+    """
+    library = net.std_type[element]
+    return name in library
 
 
 def add_pump_std_type(net, name, pump_object, overwrite=False):
@@ -221,18 +237,16 @@ def add_std_types(net, std_type_category, component_dictionary, overwrite=False)
     :type net:
     :param std_type_category:
     :type std_type_category:
-    :param component_name:
-    :type component_name:
-    :param component_object:
-    :type component_object:
+    :param component_dictionary:
+    :type component_dictionary:
     :param overwrite:
     :type overwrite:
     :return:
     :rtype:
     """
-    if not 'std_type' in net:
+    if 'std_type' not in net:
         net.update({'std_type': {std_type_category: component_dictionary}})
-    elif not std_type_category in net.std_type:
+    elif std_type_category not in net.std_type:
         std_types = net.std_type
         std_types.update({std_type_category: component_dictionary})
         net.std_type = std_types
@@ -242,3 +256,44 @@ def add_std_types(net, std_type_category, component_dictionary, overwrite=False)
         net.std_type[std_type_category] = std_types
     else:
         net.std_type[std_type_category].update(component_dictionary)
+
+
+def delete_std_type(net, name, element):
+    """
+    Deletes standard type parameters from database.
+
+    :param net: pandapipes Network
+    :type net: pandapipesNet
+    :param name: name of the standard type as string
+    :type name: str
+    :param element: type of element ("pipe" or "pump")
+    :type element: str
+    """
+    library = net.std_type[element]
+    if name in library:
+        del library[name]
+    else:
+        raise UserWarning("Unknown standard %s type %s" % (element, name))
+
+
+def available_std_types(net, element):
+    """
+    Returns all standard types available for this network as a table.
+
+    :param net: pandapipes Network
+    :type net: pandapipesNet
+    :param element: type of element ("pipe" or "pump")
+    :type element: str
+    :return: typedata - table of standard type parameters
+    :rtype: pd.DataFrame
+    """
+    if element == "pump":
+        std_types = pd.Series(net.std_type[element])
+    else:
+        std_types = pd.DataFrame(net.std_type[element]).T
+    try:
+        return std_types.infer_objects()
+    except AttributeError:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return std_types.convert_objects()
