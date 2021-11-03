@@ -305,7 +305,7 @@ class BranchComponent(Component):
         node_pit = net["_active_pit"]["node"]
 
         if not len(branch_pit):
-            return  placement_table, res_table, branch_pit, node_pit
+            return placement_table, res_table, branch_pit, node_pit
 
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
@@ -358,9 +358,3 @@ class BranchComponent(Component):
         res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
         res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
         return placement_table, res_table, branch_pit, node_pit
-
-
-if __name__ == '__main__':
-    import pandapipes as pps
-    net = pps.from_json(r'C:\Users\sdrauz\Downloads\test(4).json')
-    pps.pipeflow(net)
