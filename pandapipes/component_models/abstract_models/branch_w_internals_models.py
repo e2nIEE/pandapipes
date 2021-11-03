@@ -155,6 +155,9 @@ class BranchWInternalsComponent(BranchComponent):
         branch_winternals_pit, node_pit, from_nodes, to_nodes \
             = super().create_pit_branch_entries(net, branch_winternals_pit, node_name)
 
+        if not len(branch_winternals_pit):
+            return branch_winternals_pit, []
+
         internal_pipe_number = cls.get_internal_pipe_number(net)
         node_ft_lookups = get_lookup(net, "node", "from_to")
 
