@@ -91,7 +91,6 @@ class BranchComponent(Component):
             return branch_component_pit, node_pit, [], []
 
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
-        print(cls.table_name())
         from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
         to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
