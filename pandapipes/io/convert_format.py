@@ -20,7 +20,9 @@ def convert_format(net):
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
     add_default_components(net, overwrite=False)
-    if isinstance(net.version, str) and version.parse(net.version) >= version.parse(__version__):
+    current_version = version.parse(__version__)
+    if isinstance(net.version, str) and version.parse(net.version) >= current_version \
+            and not current_version.is_devrelease:
         return net
     _rename_columns(net)
     _add_missing_columns(net)
