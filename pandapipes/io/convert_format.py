@@ -24,6 +24,7 @@ def convert_format(net):
         return net
     _rename_columns(net)
     _add_missing_columns(net)
+    _rename_attributes(net)
     net.version = __version__
     return net
 
@@ -46,3 +47,9 @@ def _add_missing_columns(net):
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
             else:
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow
+
+
+def _rename_attributes(net):
+    if "std_type" in net and "std_types" not in net:
+        net["std_types"] = net["std_type"]
+        del net["std_type"]

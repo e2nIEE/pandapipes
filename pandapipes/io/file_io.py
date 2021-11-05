@@ -150,8 +150,8 @@ def from_json_string(json_string, convert=False, encryption_key=None):
     if encryption_key is not None:
         json_string = decrypt_string(json_string, encryption_key)
 
-    net = json.loads(json_string, cls=PPJSONDecoder, object_hook=partial(pp_hook,
-                                                                         registry_class=FromSerializableRegistryPpipe))
+    net = json.loads(json_string, cls=PPJSONDecoder,
+                     object_hook=partial(pp_hook, registry_class=FromSerializableRegistryPpipe))
 
     if convert and isinstance(net, pandapipesNet):
         convert_format(net)

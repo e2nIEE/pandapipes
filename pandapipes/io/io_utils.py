@@ -32,6 +32,10 @@ def isinstance_partial(obj, cls):
     return ppow_isinstance(obj, cls)
 
 
+MODULE_CHANGES = {"PumpStdType": "pandapipes.std_types.std_type_class",
+                  "StdType": "pandapipes.std_types.std_type_class"}
+
+
 class FromSerializableRegistryPpipe(FromSerializableRegistry):
     from_serializable = deepcopy(FromSerializableRegistry.from_serializable)
     class_name = ''
@@ -69,7 +73,13 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
 
     @from_serializable.register()
     def rest(self):
-        module = importlib.import_module(self.module_name)
+        try:
+            module = importlib.import_module(self.module_name)
+        except ModuleNotFoundError as e:
+            if self.class_name in MODULE_CHANGES:
+                module = importlib.import_module(MODULE_CHANGES[self.class_name])
+            else:
+                raise e
         class_ = getattr(module, self.class_name)
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):

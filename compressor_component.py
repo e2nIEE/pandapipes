@@ -43,7 +43,7 @@ class Compressor(BranchWZeroLengthComponent):
         :return: No Output.
         """
         compressor_pit = super().create_pit_branch_entries(net, compressor_pit, node_name)
-        std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
+        std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
         compressor_pit[pos, STD_TYPE] = std_type
@@ -72,7 +72,7 @@ class Compressor(BranchWZeroLengthComponent):
         area = compressor_pit[:, AREA] # TODO: what is this? -> (dummy) only relevant for v
         idx = compressor_pit[:, STD_TYPE].astype(int) # TODO: what is this? -> lookup, numeric ID
         # of std type
-        std_types = np.array(list(net.std_type['compressor'].keys()))[idx]
+        std_types = np.array(list(net.std_types['compressor'].keys()))[idx]
         from_nodes = compressor_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = compressor_pit[:, TO_NODE].astype(np.int32)
         v_mps = compressor_pit[:, VINIT]
@@ -92,7 +92,7 @@ class Compressor(BranchWZeroLengthComponent):
         vol = v_mean * area
 
         # get the standard type for each compressor
-        fcts = itemgetter(*std_types)(net['std_type']['compressor'])
+        fcts = itemgetter(*std_types)(net['std_types']['compressor'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
 
         # use the get_pressure function of the standard type to calculate the pressure lift from
