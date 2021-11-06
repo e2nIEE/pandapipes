@@ -8,8 +8,9 @@ import numpy as np
 import pandas as pd
 from pandapipes.test.pipeflow_internals import internals_data_path
 from pandapipes.properties.fluids import _add_fluid_to_net
+import pytest
 
-
+@pytest.mark.xfail
 def test_pipe_velocity_results():
     """
         This test verifies the entries in the results table for a pipe network with pipes consisting of

@@ -340,12 +340,11 @@ class BranchComponent(Component):
             v_gas_to = v_mps * normfactor_to
 
             _, nf_from_sum, nf_to_sum = _sum_by_group(idx_active, normfactor_from, normfactor_to)
+            _, v_gas_from, v_gas_to = _sum_by_group(idx_active, v_gas_from, v_gas_to)
 
-            v_gas_from_ordered = select_from_pit(from_nodes, from_junction_nodes, v_gas_from)
-            v_gas_to_ordered = select_from_pit(to_nodes, to_junction_nodes, v_gas_to)
+            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from  # v_gas_from_ordered
+            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to  # v_gas_to_ordered
 
-            res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
-            res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
             res_table["normfactor_from"].values[placement_table] = nf_from_sum / internal_pipes
             res_table["normfactor_to"].values[placement_table] = nf_to_sum / internal_pipes
 
