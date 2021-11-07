@@ -49,9 +49,10 @@ class ExtGrid(NodeElementComponent):
         :return: No Output.
         """
         ext_grids = net[cls.table_name()]
+        ext_grids = ext_grids[ext_grids.in_service.values]
 
         p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
-        press = ext_grids.p_bar.values[p_mask] * ext_grids.in_service.values[p_mask]
+        press = ext_grids.p_bar.values[p_mask]
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         junction = cls.get_connected_junction(net)
         juncts_p, press_sum, number = _sum_by_group(junction.values[p_mask], press,
@@ -62,7 +63,7 @@ class ExtGrid(NodeElementComponent):
         node_pit[index_p, EXT_GRID_OCCURENCE] += number
 
         t_mask = np.where(np.isin(ext_grids.type.values, ["t", "pt"]))
-        t_k = ext_grids.t_k.values[t_mask] * ext_grids.in_service.values[t_mask]
+        t_k = ext_grids.t_k.values[t_mask]
         juncts_t, t_sum, number = _sum_by_group(junction.values[t_mask], t_k,
                                                 np.ones_like(t_k, dtype=np.int32))
         index = junction_idx_lookups[juncts_t]
