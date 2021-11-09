@@ -27,7 +27,8 @@ default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1
                    "ambient_temperature": 293, "check_connectivity": True,
                    "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
                    "reuse_internal_data": False,
-                   "quit_on_inconsistency_connectivity": False, "calc_compression_power": True}
+                   "quit_on_inconsistency_connectivity": False, "calc_compression_power": True, "transient": False,
+                   "time_step": None, "dt": 60}
 
 
 def get_net_option(net, option_name):

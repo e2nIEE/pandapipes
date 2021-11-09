@@ -13,6 +13,7 @@ from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, T
 from pandapipes.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.pipeflow_setup import get_net_option
 
 
 class Junction(NodeComponent):
@@ -104,9 +105,11 @@ class Junction(NodeComponent):
         """
         res_table = super().extract_results(net, options, node_name)
 
+        if get_net_option(net, "transient"):
+            net["res_internal"]["t_k"] = net["_active_pit"]["node"][:, TINIT]
+
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]
-
         junction_pit = net["_active_pit"]["node"][fa:ta, :]
         junctions_active = get_lookup(net, "node", "active")[f:t]
 
@@ -115,8 +118,8 @@ class Junction(NodeComponent):
                              'as pressure is negative at nodes %s'
                              % junction_pit[junction_pit[:, PINIT] < 0, ELEMENT_IDX]))
 
-        res_table["p_bar"].values[junctions_active] = junction_pit[:, PINIT]
-        res_table["t_k"].values[junctions_active] = junction_pit[:, TINIT]
+        res_table["p_bar"].values[:] = junction_pit[:, PINIT]
+        res_table["t_k"].values[:] = junction_pit[:, TINIT]
 
     @classmethod
     def get_component_input(cls):

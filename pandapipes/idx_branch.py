@@ -42,5 +42,6 @@ PL = 36
 TL = 37  # Temperature lift [K]
 BRANCH_TYPE = 38  # branch type relevant for the pressure controller
 PRESSURE_RATIO = 39  # boost ratio for compressors with proportional pressure lift
+T_OUT_OLD = 40
 
-branch_cols = 40
+branch_cols = 41
