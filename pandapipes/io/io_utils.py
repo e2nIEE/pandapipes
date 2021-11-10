@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 def isinstance_partial(obj, cls):
     if isinstance(obj, pandapipesNet):
         return False
+    elif isinstance(obj, MultiNet):
+        return False
     return ppow_isinstance(obj, cls)
 
 

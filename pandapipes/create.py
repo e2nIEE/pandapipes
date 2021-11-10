@@ -790,6 +790,9 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
                             'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
 
+    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature settings '
+                'at the junctions are kept. Therefore, energy is induced to meet these constraints.')
+
     add_new_component(net, PressureControlComponent)
 
     index = _get_index_with_check(net, "press_control", index)

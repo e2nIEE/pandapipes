@@ -4,9 +4,9 @@
 
 import numpy as np
 from numpy import linalg
+from scipy.sparse.linalg import spsolve
+
 from pandapipes.component_models import Junction
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
-    BranchComponent, BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T, T_OUT_OLD
@@ -15,12 +15,7 @@ from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_o
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     extract_results_active_pit, set_user_pf_options
-from scipy.sparse.linalg import spsolve
-from pandapipes.component_models import Junction, PressureControlComponent
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
-    BranchComponent, BranchWInternalsComponent
 from pandapower.auxiliary import ppException
-from scipy.sparse.linalg import spsolve
 
 try:
     import pplog as logging
@@ -44,7 +39,7 @@ def set_logger_level_pipeflow(level):
     logger.setLevel(level)
 
 
-def pipeflow(net, sol_vec=None,  **kwargs):
+def pipeflow(net, sol_vec=None, **kwargs):
     """
     The main method used to start the solver to calculate the velocity, pressure and temperature\
     distribution for a given net. Different options can be entered for \\**kwargs, which control\
@@ -71,11 +66,8 @@ def pipeflow(net, sol_vec=None,  **kwargs):
     calculation_mode = get_net_option(net, "mode")
 
     if get_net_option(net, "time_step") == 0:
-        create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
-        node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
-                                              NodeComponent, NodeElementComponent,
-                                              BranchComponent, BranchWInternalsComponent,
-                                              PressureControlComponent)
+        create_lookups(net)
+        node_pit, branch_pit = initialize_pit(net, Junction.table_name())
         if (len(node_pit) == 0) & (len(branch_pit) == 0):
             logger.warning("There are no node and branch entries defined. This might mean that your net"
                            " is empty")
@@ -91,6 +83,22 @@ def pipeflow(net, sol_vec=None,  **kwargs):
 
         reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
     else:
+        create_lookups(net)
+        node_pit, branch_pit = initialize_pit(net, Junction.table_name())
+        if (len(node_pit) == 0) & (len(branch_pit) == 0):
+            logger.warning("There are no node and branch entries defined. This might mean that your net"
+                           " is empty")
+            return
+
+
+        if get_net_option(net, "check_connectivity"):
+            nodes_connected, branches_connected = check_connectivity(
+                net, branch_pit, node_pit, check_heat=calculation_mode in ["heat", "all"])
+        else:
+            nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
+            branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
+
+        reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
         branch_pit = net["_active_pit"]["branch"]
         node_pit = net["_active_pit"]["node"]
         nodes_connected, branches_connected = check_connectivity(
@@ -117,7 +125,6 @@ def pipeflow(net, sol_vec=None,  **kwargs):
 
     extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
     extract_all_results(net, Junction.table_name())
-
 
 
 def hydraulics(net):
@@ -208,7 +215,6 @@ def heat_transfer(net):
 
     error_t, error_t_out, residual_norm = [], [], None
 
-
     set_net_option(net, "converged", False)
     niter = 0
 
@@ -226,7 +232,6 @@ def heat_transfer(net):
 
         # solve_hydraulics is where the calculation takes place
         t_out, t_out_old, t_init, t_init_old, epsilon = solve_temperature(net)
-
 
         # Error estimation & convergence plot
         delta_t_init = np.abs(t_init - t_init_old)
@@ -300,8 +305,7 @@ def solve_hydraulics(net):
 
     branch_lookups = get_lookup(net, "branch", "from_to_active")
     for comp in net['component_list']:
-        if issubclass(comp, BranchComponent):
-            comp.calculate_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, options)
+        comp.calculate_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
     v_init_old = branch_pit[:, VINIT].copy()
@@ -343,15 +347,13 @@ def solve_temperature(net):
     branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
 
     for comp in net['component_list']:
-        if issubclass(comp, BranchComponent):
-            comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()
     t_out_old = branch_pit[:, T_OUT].copy()
 
     x = spsolve(jacobian, epsilon)
-    #print(x)
     node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
     branch_pit[:, T_OUT] += x[len(node_pit):] * options["alpha"]
 
