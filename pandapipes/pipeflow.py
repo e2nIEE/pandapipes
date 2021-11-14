@@ -72,11 +72,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     if get_net_option(net, "transient"):
         if get_net_option(net, "time_step") == 0:
-            create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
-            node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
-                                                  NodeComponent, NodeElementComponent,
-                                                  BranchComponent, BranchWInternalsComponent,
-                                                  PressureControlComponent)
+            create_lookups(net)
+            node_pit, branch_pit = initialize_pit(net, Junction.table_name())
             if (len(node_pit) == 0) & (len(branch_pit) == 0):
                 logger.warning("There are no node and branch entries defined. This might mean that your net"
                                " is empty")
@@ -97,11 +94,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
             nodes_connected, branches_connected = check_connectivity(
                 net, branch_pit, node_pit, check_heat=calculation_mode in ["heat", "all"])
     else:
-        create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
-        node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
-                                              NodeComponent, NodeElementComponent,
-                                              BranchComponent, BranchWInternalsComponent,
-                                              PressureControlComponent)
+        create_lookups(net)
+        node_pit, branch_pit = initialize_pit(net, Junction.table_name())
         if (len(node_pit) == 0) & (len(branch_pit) == 0):
             logger.warning("There are no node and branch entries defined. This might mean that your net"
                            " is empty")

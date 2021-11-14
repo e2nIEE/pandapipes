@@ -40,17 +40,17 @@ def test_one_pipe_transient():
 
     #create junction elements
     ext_grid = pp.create_ext_grid(net, junction=j1, p_bar=5, t_k=330, name="Grid Connection")
-    sink = pp.create_sink(net, junction=j2, mdot_kg_per_s=4.41, name="Sink")
+    sink = pp.create_sink(net, junction=j2, mdot_kg_per_s=4, name="Sink")
 
 
     #create branch elements
     sections = 4
     nodes=2
-    length=0.01
-    pp.create_pipe_from_parameters(net, j1, j2, length, 75e-3, k_mm=.1, sections=sections, alpha_w_per_m2k=0, text_k=293)
+    length=1
+    pp.create_pipe_from_parameters(net, j1, j2, length, 75e-3, k_mm=.1, sections=sections, alpha_w_per_m2k=5, text_k=293)
 
-    dt=1
-    time_steps = range(10)
+    dt=60
+    time_steps = range(50)
     ow = _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
     run_timeseries(net, time_steps, transient=True, mode = "all",iter=20, dt=dt)
 
