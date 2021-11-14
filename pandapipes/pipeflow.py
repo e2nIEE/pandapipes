@@ -44,7 +44,7 @@ def set_logger_level_pipeflow(level):
     logger.setLevel(level)
 
 
-def pipeflow(net, sol_vec=None,  **kwargs):
+def pipeflow(net, sol_vec=None, **kwargs):
     """
     The main method used to start the solver to calculate the velocity, pressure and temperature\
     distribution for a given net. Different options can be entered for \\**kwargs, which control\
@@ -139,7 +139,6 @@ def pipeflow(net, sol_vec=None,  **kwargs):
     extract_all_results(net, Junction.table_name())
 
 
-
 def hydraulics(net):
     max_iter, nonlinear_method, tol_p, tol_v, tol_res = get_net_options(
         net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_res")
@@ -228,7 +227,6 @@ def heat_transfer(net):
 
     error_t, error_t_out, residual_norm = [], [], None
 
-
     set_net_option(net, "converged", False)
     niter = 0
 
@@ -246,7 +244,6 @@ def heat_transfer(net):
 
         # solve_hydraulics is where the calculation takes place
         t_out, t_out_old, t_init, t_init_old, epsilon = solve_temperature(net)
-
 
         # Error estimation & convergence plot
         delta_t_init = np.abs(t_init - t_init_old)
@@ -371,7 +368,6 @@ def solve_temperature(net):
     t_out_old = branch_pit[:, T_OUT].copy()
 
     x = spsolve(jacobian, epsilon)
-    #print(x)
     node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
     branch_pit[:, T_OUT] += x[len(node_pit):] * options["alpha"]
 

@@ -314,11 +314,11 @@ class Pipe(BranchWInternalsComponent):
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
-                      "normfactor_to", "internal"]
+                      "normfactor_to"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
-                      "lambda", "internal"]
+                      "lambda"]
         return output, True
 
     @classmethod

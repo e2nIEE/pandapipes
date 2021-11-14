@@ -310,5 +310,27 @@ def test_const_p2g_control(get_gas_example, get_power_example_simple):
            * p2g.efficiency
 
 
+def test_run_control_wo_controller(get_gas_example, get_power_example_simple):
+    net_gas = get_gas_example
+    net_power = get_power_example_simple
+
+    flow_gas = 0.003
+    pandapipes.create_source(net_gas, 5, flow_gas)
+    pandapipes.create_sink(net_gas, 3, flow_gas)
+    pandapipes.create_sink(net_gas, 4, flow_gas)
+
+    power_load = 0.004
+    pandapower.create_load(net_power, 6, power_load)
+    pandapower.create_load(net_power, 5, power_load)
+    pandapower.create_sgen(net_power, 4, power_load)
+
+    mn = create_empty_multinet('coupled net')
+
+    add_nets_to_multinet(mn, power=net_power, gas=net_gas)
+
+    run_control(mn)
+
+
+
 if __name__ == '__main__':
     pytest.main(['-xs', __file__])

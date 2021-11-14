@@ -4,16 +4,12 @@
 
 import numpy as np
 from numpy import dtype
-from pandapipes.constants import R_UNIVERSAL
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid, \
-    TINIT_NODE
+from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
 from pandapipes.idx_branch import D, AREA, PL, TL, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, FROM_NODE, TO_NODE, VINIT, \
-    LOAD_VEC_NODES, ELEMENT_IDX, LOSS_COEFFICIENT as LC
+    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_lookup, get_net_option
+from pandapipes.pipeflow_setup import get_lookup
 
 
 class PressureControlComponent(BranchWZeroLengthComponent):
@@ -162,13 +158,11 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+            output = ["v_from_m_per_s", "v_to_m_per_s", "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
-                      "normfactor_to"]
+                      "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
-                      "lambda"]
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
         output += ["deltap_bar"]
         return output, True

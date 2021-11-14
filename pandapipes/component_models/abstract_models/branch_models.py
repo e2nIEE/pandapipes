@@ -300,7 +300,6 @@ class BranchComponent(Component):
         """
         raise NotImplementedError
 
-
     @classmethod
     def prepare_result_tables(cls, net, options, node_name):
         res_table = super().extract_results(net, options, node_name)
@@ -316,7 +315,6 @@ class BranchComponent(Component):
         placement_table = placement_table[active_pipes]
         branch_pit = net["_active_pit"]["branch"][fa:ta, :]
         return placement_table, branch_pit, res_table
-
 
     @classmethod
     def extract_results(cls, net, options, node_name):

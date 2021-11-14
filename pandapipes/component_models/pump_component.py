@@ -135,10 +135,10 @@ class Pump(BranchWZeroLengthComponent):
                 w_real_isentr = (k / (k - 1)) * R_spec * compr * t0 * \
                                 (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
                 res_table['compr_power_mw'].values[placement_table] = \
-                    w_real_isentr * abs(mf_sum_int) / 10**6
+                    w_real_isentr * abs(mf_sum_int) / 10 ** 6
             else:
                 res_table['compr_power_mw'].values[placement_table] = \
-                    pump_pit[:, PL] * P_CONVERSION * vf_sum_int / 10**6
+                    pump_pit[:, PL] * P_CONVERSION * vf_sum_int / 10 ** 6
         else:
             placement_table, pump_pit, res_table = super().prepare_result_tables(net, options, node_name)
         res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
@@ -171,23 +171,19 @@ class Pump(BranchWZeroLengthComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        calc_compr_pow = get_net_option(net,'calc_compression_power')
+        calc_compr_pow = get_net_option(net, 'calc_compression_power')
 
         if get_fluid(net).is_gas:
             output = ["deltap_bar",
-                      "v_from_m_per_s", "v_to_m_per_s", # "v_mean_m_per_s",
+                      "v_from_m_per_s", "v_to_m_per_s",
                       "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s",
-                      # "reynolds", "lambda", "normfactor_from", "normfactor_to"
-                      # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
-                      ]
+                      "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
+            # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
         else:
             output = ["deltap_bar",
                       "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
-                      # "reynolds", "lambda"
-                      ]
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
         if calc_compr_pow:
             output += ["compr_power_mw"]
 
