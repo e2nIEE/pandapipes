@@ -55,7 +55,7 @@ def _sum_by_group(indices, *values):
     return _sum_by_group_sorted(indices, *val)
 
 
-def select_from_pit(table_index_array, input_array, data):
+def select_from_pit(idx_active, table_index_array, input_array, data):
     """
         Auxiliary function to retrieve values from a table like a pit. Each data entry corresponds
         to a table_index_array entry. Example: velocities are indexed by the corresponding
@@ -68,6 +68,8 @@ def select_from_pit(table_index_array, input_array, data):
         consisting of junction element entries and additional pipe section nodes. Data corresponds
         to the gas velocities.
 
+        idx_active necessary for sorting, as the input_array order does not correspond to the order of pipes
+
         :param table_index_array:
         :type table_index_array:
         :param input_array:
@@ -77,7 +79,10 @@ def select_from_pit(table_index_array, input_array, data):
         :return:
         :rtype:
         """
-    sorter = np.argsort(table_index_array)
-    indices = sorter[np.searchsorted(table_index_array, input_array, sorter=sorter)]
 
-    return data[indices]
+    input_array = np.unique(input_array)
+    x, result = np.where(table_index_array==input_array[:,np.newaxis])
+
+    pipidxsort = np.argsort(idx_active[result])
+    data = data[result]
+    return data[pipidxsort]

@@ -70,7 +70,33 @@ def pipeflow(net, sol_vec=None,  **kwargs):
     init_options(net, local_params)
     calculation_mode = get_net_option(net, "mode")
 
-    if get_net_option(net, "time_step") == 0:
+    if get_net_option(net, "transient"):
+        if get_net_option(net, "time_step") == 0:
+            create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
+            node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
+                                                  NodeComponent, NodeElementComponent,
+                                                  BranchComponent, BranchWInternalsComponent,
+                                                  PressureControlComponent)
+            if (len(node_pit) == 0) & (len(branch_pit) == 0):
+                logger.warning("There are no node and branch entries defined. This might mean that your net"
+                               " is empty")
+                return
+
+
+            if get_net_option(net, "check_connectivity"):
+                nodes_connected, branches_connected = check_connectivity(
+                    net, branch_pit, node_pit, check_heat=calculation_mode in ["heat", "all"])
+            else:
+                nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
+                branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
+
+            reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
+        else:
+            branch_pit = net["_active_pit"]["branch"]
+            node_pit = net["_active_pit"]["node"]
+            nodes_connected, branches_connected = check_connectivity(
+                net, branch_pit, node_pit, check_heat=calculation_mode in ["heat", "all"])
+    else:
         create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
         node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
                                               NodeComponent, NodeElementComponent,
@@ -81,7 +107,6 @@ def pipeflow(net, sol_vec=None,  **kwargs):
                            " is empty")
             return
 
-
         if get_net_option(net, "check_connectivity"):
             nodes_connected, branches_connected = check_connectivity(
                 net, branch_pit, node_pit, check_heat=calculation_mode in ["heat", "all"])
@@ -90,11 +115,6 @@ def pipeflow(net, sol_vec=None,  **kwargs):
             branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
 
         reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
-    else:
-        branch_pit = net["_active_pit"]["branch"]
-        node_pit = net["_active_pit"]["node"]
-        nodes_connected, branches_connected = check_connectivity(
-            net, branch_pit, node_pit, check_heat=calculation_mode in ["heat", "all"])
 
 
     if calculation_mode == "hydraulics":

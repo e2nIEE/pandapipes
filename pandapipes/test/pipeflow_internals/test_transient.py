@@ -32,26 +32,27 @@ def _output_writer(net, time_steps, ow_path=None):
     ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables)
     return ow
 
-def test_one_pipe():
+def test_one_pipe_transient():
     net = pp.create_empty_network(fluid="water")
     #create junctions
-    j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 1")
-    j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 2")
+    j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293, name="Junction 1")
+    j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293, name="Junction 2")
 
     #create junction elements
     ext_grid = pp.create_ext_grid(net, junction=j1, p_bar=5, t_k=330, name="Grid Connection")
-    sink = pp.create_sink(net, junction=j2, mdot_kg_per_s=2, name="Sink")
+    sink = pp.create_sink(net, junction=j2, mdot_kg_per_s=4.41, name="Sink")
 
 
     #create branch elements
     sections = 4
     nodes=2
-    pp.create_pipe_from_parameters(net, j1, j2, 1, 75e-3, k_mm=.1, sections=sections, alpha_w_per_m2k=5, text_k=293.15)
+    length=0.01
+    pp.create_pipe_from_parameters(net, j1, j2, length, 75e-3, k_mm=.1, sections=sections, alpha_w_per_m2k=0, text_k=293)
 
-
-    time_steps = range(5)
+    dt=1
+    time_steps = range(10)
     ow = _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-    run_timeseries(net, time_steps, transient=True, mode = "all",iter=20, dt=60)
+    run_timeseries(net, time_steps, transient=True, mode = "all",iter=20, dt=dt)
 
     res_T = ow.np_results["res_internal.t_k"]
     pipe1 = np.zeros(((sections+1),res_T.shape[0]))
@@ -64,11 +65,17 @@ def test_one_pipe():
     datap1 = pd.read_csv(os.path.join(internals_data_path, "transient_one_pipe.csv"), sep=';',
                          header=1, nrows=5, keep_default_na=False)["T"]
 
-    assert pipe1[-1]-datap1 < 1e-3
+    #resabs = np.full(len(datap1),1e-3)
+    print(pipe1[:,-1])
+    print(datap1)
+    print("v: " , net.res_pipe.loc[0,"v_mean_m_per_s"])
+    print("timestepsreq: ", ((length*1000)/net.res_pipe.loc[0,"v_mean_m_per_s"])/dt)
+
+    assert np.all(np.abs(pipe1[:,-1]-datap1) < 0.5)
 
 
 
-    from IPython.display import clear_output
+    #from IPython.display import clear_output
 
     # plt.ion()
     #

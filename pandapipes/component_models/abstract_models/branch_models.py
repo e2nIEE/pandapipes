@@ -238,7 +238,6 @@ class BranchComponent(Component):
         tl = branch_component_pit[:, TL]
         qext = branch_component_pit[:, QEXT]
 
-
         transient = get_net_option(net, "transient")
 
         t_m = t_init_i1 #(t_init_i1 + t_init_i) / 2
@@ -371,8 +370,8 @@ class BranchComponent(Component):
                                            normfactor_from, normfactor_to,
                                            np.ones_like(idx_active))
 
-            v_gas_from_ordered = select_from_pit(from_nodes, from_junction_nodes, v_gas_from)
-            v_gas_to_ordered = select_from_pit(to_nodes, to_junction_nodes, v_gas_to)
+            v_gas_from_ordered = select_from_pit(idx_active, from_nodes, from_junction_nodes, v_gas_from)
+            v_gas_to_ordered = select_from_pit(idx_active, to_nodes, to_junction_nodes, v_gas_to)
 
             res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
             res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
