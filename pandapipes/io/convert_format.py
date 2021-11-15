@@ -21,8 +21,9 @@ def convert_format(net):
     """
     add_default_components(net, overwrite=False)
     current_version = version.parse(__version__)
-    if isinstance(net.version, str) and version.parse(net.version) >= current_version \
-            and not current_version.is_devrelease:
+    # For possible problems with this line of code, please check out
+    # https://github.com/e2nIEE/pandapipes/issues/320
+    if isinstance(net.version, str) and version.parse(net.version) >= current_version:
         return net
     _rename_columns(net)
     _add_missing_columns(net)
