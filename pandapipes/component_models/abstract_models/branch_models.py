@@ -327,10 +327,10 @@ class BranchComponent(Component):
 
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
-        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["from_junction"].values[placement_table]]]
-        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["to_junction"].values[placement_table]]]
+        from_junction_nodes = node_active_idx_lookup[#junction_idx_lookup[
+            net[cls.table_name()]["from_junction"].values[placement_table]]#]
+        to_junction_nodes = node_active_idx_lookup[#junction_idx_lookup[
+            net[cls.table_name()]["to_junction"].values[placement_table]]#]
 
         from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
