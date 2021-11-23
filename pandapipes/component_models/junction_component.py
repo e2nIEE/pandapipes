@@ -118,8 +118,8 @@ class Junction(NodeComponent):
                              'as pressure is negative at nodes %s'
                              % junction_pit[junction_pit[:, PINIT] < 0, ELEMENT_IDX]))
 
-        res_table["p_bar"].values[:] = junction_pit[:, PINIT]
-        res_table["t_k"].values[:] = junction_pit[:, TINIT]
+        res_table["p_bar"].values[junctions_active] = junction_pit[:, PINIT]
+        res_table["t_k"].values[junctions_active] = junction_pit[:, TINIT]
 
     @classmethod
     def get_component_input(cls):
