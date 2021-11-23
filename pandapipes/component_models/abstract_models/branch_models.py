@@ -327,10 +327,20 @@ class BranchComponent(Component):
 
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
-        from_junction_nodes = node_active_idx_lookup[#junction_idx_lookup[
-            net[cls.table_name()]["from_junction"].values[placement_table]]#]
-        to_junction_nodes = node_active_idx_lookup[#junction_idx_lookup[
-            net[cls.table_name()]["to_junction"].values[placement_table]]#]
+        pipnr_from = net[cls.table_name()]["from_junction"].values[placement_table]
+        pipnr_to = net[cls.table_name()]["to_junction"].values[placement_table]
+        junction_indices_from = junction_idx_lookup[pipnr_from] #011
+        junction_indices_to = junction_idx_lookup[pipnr_to]
+        x, from_junction_nodes1 = np.where(node_active_idx_lookup==junction_indices_from[:, np.newaxis])
+        x, to_junction_nodes1 = np.where(node_active_idx_lookup==junction_indices_to[:, np.newaxis])
+
+        from_junction_nodes = node_active_idx_lookup[from_junction_nodes1]
+        to_junction_nodes = junction_idx_lookup[to_junction_nodes1]
+
+
+        #from_junction_nodes = node_active_idx_lookup[zwischen]
+        #to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
+        #    net[cls.table_name()]["to_junction"].values[placement_table]]]
 
         from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = branch_pit[:, TO_NODE].astype(np.int32)

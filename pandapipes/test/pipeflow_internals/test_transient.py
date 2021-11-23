@@ -183,24 +183,24 @@ def test_tee_pipe():
     line31, = ax2.plot(np.arange(0,sections+1,1)*1000/sections, pipe3[:,30], color = "black", linestyle="dotted")
     line32, = ax2.plot(np.arange(0,sections+1,1)*1000/sections, pipe3[:,90], color = "black", linestyle ="dashdot")
     #d3 = ax2.plot(np.arange(0,sections+1,1), datap3["T"], color = "black", linestyle="dashed")
-    ax.set_ylim((280,335))
-    ax1.set_ylim((280,335))
-    ax2.set_ylim((280,335))
-    fig.canvas.draw()
-    plt.show()
-
-
-    for phase in time_steps:
-        ax.set_ylim((280,335))
-        ax1.set_ylim((280,335))
-        ax2.set_ylim((280,335))
-        line1.set_ydata(pipe1[:,phase])
-        line2.set_ydata(pipe2[:,phase])
-        line3.set_ydata(pipe3[:, phase])
-        fig.canvas.draw()
-        fig.canvas.flush_events()
-        plt.pause(.01)
-
+    # ax.set_ylim((280,335))
+    # ax1.set_ylim((280,335))
+    # ax2.set_ylim((280,335))
+    # fig.canvas.draw()
+    # plt.show()
+    #
+    #
+    # for phase in time_steps:
+    #     ax.set_ylim((280,335))
+    #     ax1.set_ylim((280,335))
+    #     ax2.set_ylim((280,335))
+    #     line1.set_ydata(pipe1[:,phase])
+    #     line2.set_ydata(pipe2[:,phase])
+    #     line3.set_ydata(pipe3[:, phase])
+    #     fig.canvas.draw()
+    #     fig.canvas.flush_events()
+    #     plt.pause(.01)
+    #
 
 
 
