@@ -327,25 +327,23 @@ class BranchComponent(Component):
 
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
-        pipnr_from = net[cls.table_name()]["from_junction"].values[placement_table] #from_junction nodes für alle aktiven pipes (auch innere)
-        junction_indices_from = junction_idx_lookup[pipnr_from]  # Nur die Junctions, die auch tatsächlich mit junctions verbunden sind
-        x, a = np.where(np.arange(len(node_active_idx_lookup))==junction_indices_from[:, np.newaxis]) # Hier Fehler
-        node_active_idx_lookup[a] = junction_indices_from
-        nactiveunique = np.unique(node_active_idx_lookup)
-        x, from_junction_nodes1 = np.where(nactiveunique==junction_indices_from[:, np.newaxis])
-        from_junction_nodes = nactiveunique[from_junction_nodes1]
+        from_all_juntions = net[cls.table_name()]["from_junction"].values[placement_table]
+        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[from_all_juntions]]
+
+        to_all_juntions = net[cls.table_name()]["to_junction"].values[placement_table]
+        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[to_all_juntions]]
 
         #from_junction_nodes = node_active_idx_lookup[junction_indices_from]
         #to_junction_nodes = junction_idx_lookup[to_junction_nodes1]
 
-        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
-        pipnr_to = net[cls.table_name()]["to_junction"].values[placement_table] #from_junction nodes für alle aktiven pipes (auch innere)
-        junction_indices_to = junction_idx_lookup[pipnr_to]  # Nur die Junctions, die auch tatsächlich mit junctions verbunden sind
-        x, a = np.where(np.arange(len(node_active_idx_lookup))==junction_indices_to[:, np.newaxis])
-        node_active_idx_lookup[a] = junction_indices_to
-        nactiveunique = np.unique(node_active_idx_lookup)
-        x, to_junction_nodes1 = np.where(nactiveunique==junction_indices_to[:, np.newaxis])
-        to_junction_nodes = nactiveunique[to_junction_nodes1]
+        # node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
+        # pipnr_to = net[cls.table_name()]["to_junction"].values[placement_table] #from_junction nodes für alle aktiven pipes (auch innere)
+        # junction_indices_to = junction_idx_lookup[pipnr_to]  # Nur die Junctions, die auch tatsächlich mit junctions verbunden sind
+        # x, a = np.where(np.arange(len(node_active_idx_lookup))==junction_indices_to[:, np.newaxis])
+        # node_active_idx_lookup[a] = junction_indices_to
+        # nactiveunique = np.unique(node_active_idx_lookup)
+        # x, to_junction_nodes1 = np.where(nactiveunique==junction_indices_to[:, np.newaxis])
+        # to_junction_nodes = nactiveunique[to_junction_nodes1]
 
 
 
