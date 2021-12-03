@@ -4,16 +4,18 @@
 
 import numpy as np
 import pandas as pd
+
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
+    Compressor
 from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
-from pandapipes.properties.fluids import Fluid
-from pandapipes.properties.fluids import _add_fluid_to_net
+from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
+from pandapipes.toolbox import check_pressure_controllability
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
     _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
@@ -203,7 +205,8 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt"):
+def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt",
+                    **kwargs):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
     that it is connected to into a node with fixed value for either pressure, temperature or both
@@ -224,6 +227,7 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     :type in_service: bool, default True
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
+    :type index: int, default None
     :param type: The external grid type denotes the values that are fixed at the respective node:\n
             - "p": The pressure is fixed, the node acts as a slack node for the mass flow.
             - "t": The temperature is fixed and will not be solved for, but is assumed as the \
@@ -231,7 +235,8 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
                    inconsistencies in the formulation of heat transfer equations yet. \n
             - "pt": The external grid shows both "p" and "t" behavior.
     :type type: str, default "pt"
-    :type index: int, default None
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+                    net["ext_grid"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
@@ -737,6 +742,73 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     return index
 
 
+def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar,
+                            control_active=True, loss_coefficient=0., name=None, index=None,
+                            in_service=True, type="pressure_control", **kwargs):
+    """
+    Adds one pressure control with a constant mass flow in table net["press_control"].
+
+    :param net: The net within this pump should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the pressure control will be \
+            connected with
+    :type from_junction: int
+    :param controlled_junction: ID of the junction at which the pressure is controlled
+    :type controlled_junction: int
+    :param to_junction: ID of the junction on the other side which the pressure control will be \
+            connected with
+    :type to_junction: int
+    :param controlled_p_bar: Pressure set point
+    :type controlled_p_bar: float
+    :param control_active: Variable to state whether the pressure control is active (otherwise \
+        behaviour similar to open valve)
+    :type control_active: bool, default True
+    :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
+        (used only if control is not active).
+    :type loss_coefficient: float, default 0
+    :param name: Name of the pressure control element
+    :type name: str
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param type: Currently not used - possibility to specify a certain type of pressure control
+    :type type: str, default "pressure_control"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["press_control"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    :Example:
+        >>> create_pressure_control(net, 0, 1, 1, controlled_p_bar=5)
+
+    """
+    if not check_pressure_controllability(net, to_junction, controlled_junction):
+        return logger.error('The controlled junction of the created pressure control '
+                            'is not controllable, as it is either not reachable or '
+                            'another pressure controllable component is in between')
+
+    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature settings '
+                'at the junctions are kept. Therefore, energy is induced to meet these constraints.')
+
+    add_new_component(net, PressureControlComponent)
+
+    index = _get_index_with_check(net, "press_control", index)
+
+    # check if junctions exist to attach the pump to
+    check_branch(net, "PressureControl", index, from_junction, to_junction)
+
+    _set_entries(net, "press_control", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, controlled_junction=controlled_junction,
+                 control_active=bool(control_active), loss_coefficient=loss_coefficient,
+                 controlled_p_bar=controlled_p_bar, in_service=bool(in_service), type=type,
+                 **kwargs)
+
+    return index
+
+
 def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None, index=None,
                      in_service=True, type="junction", geodata=None, **kwargs):
     """
@@ -778,7 +850,7 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
     add_new_component(net, Junction)
 
     index = _get_multiple_index_with_check(net, "junction", index, nr_junctions)
-    entries = {"pn_bar": pn_bar,  "type": type, "tfluid_k": tfluid_k, "height_m": height_m,
+    entries = {"pn_bar": pn_bar, "type": type, "tfluid_k": tfluid_k, "height_m": height_m,
                "in_service": in_service, "name": name}
     _set_multiple_entries(net, "junction", index, **entries, **kwargs)
 
@@ -1036,7 +1108,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
 def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, loss_coefficient=0,
                   name=None, index=None, type='valve', **kwargs):
     """
-     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+     Convenience function for creating many valves at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values.
 
@@ -1080,6 +1152,104 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
                "diameter_m": diameter_m, "opened": opened, "loss_coefficient": loss_coefficient,
                "type": type}
     _set_multiple_entries(net, "valve", index, **entries, **kwargs)
+
+    return index
+
+
+def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions,
+                             controlled_p_bar, control_active=True, loss_coefficient=0., name=None,
+                             index=None, in_service=True, type="pressure_control", **kwargs):
+    """
+    Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
+    and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
+    same length or single values.
+
+    :param net: The net within this pump should be created
+    :type net: pandapipesNet
+    :param from_junctions: IDs of the junctions on one side which the pressure controls will be\
+            connected to
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side to which the pressure controls will\
+            be connected to
+    :type to_junctions: Iterable(int)
+    :param controlled_junctions: IDs of the junctions at which the pressure is controlled
+    :type controlled_junctions: Iterable or int
+    :param controlled_p_bar: Pressure set points
+    :type controlled_p_bar: Iterable or float
+    :param control_active: Variable to state whether the pressure control is active (otherwise \
+        behaviour similar to open valve)
+    :type control_active: bool, default True
+    :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
+        (used only if control is not active).
+    :type loss_coefficient: float, default 0
+    :param name: Name of the pressure control elements
+    :type name: Iterable or str
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: Iterable or bool, default True
+    :param type: Currently not used - possibility to specify a certain type of pressure control
+    :type type: Iterable or str, default "pressure_control"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["press_control"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        >>> create_pressure_controls(net, [0, 2], [1, 4], [1, 3], controlled_p_bar=[5, 4.9])
+
+    """
+    add_new_component(net, PressureControlComponent)
+
+    index = _get_multiple_index_with_check(net, "press_control", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "press_control")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
+               "control_active": control_active, "loss_coefficient": loss_coefficient,
+               "in_service": in_service, "type": type}
+    _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
+
+    return index
+
+
+def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
+                         in_service=True, **kwargs):
+    """
+    Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost ratio)
+
+    :param net: The net within this compressor should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the compressor will be connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the compressor will be connected with
+    :type to_junction: int
+    :param name: A name tag for this compressor
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["compressor"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    EXAMPLE:
+        >>> create_compressor(net, 0, 1, pressure_ratio=1.3)
+
+    """
+    add_new_component(net, Compressor)
+
+    index = _get_index_with_check(net, "compressor", index)
+    check_branch(net, "Compressor", index, from_junction, to_junction)
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "pressure_ratio": pressure_ratio, "in_service": bool(in_service)}
+    _set_entries(net, "compressor", index, **v, **kwargs)
 
     return index
 

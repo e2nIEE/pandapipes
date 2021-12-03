@@ -4,9 +4,14 @@
 
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
+from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import D, AREA, LOSS_COEFFICIENT as LC, PL, TL
-from pandapipes.pipeflow_setup import get_fluid
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, RE, LAMBDA, ELEMENT_IDX
+from pandapipes.idx_node import PINIT, PAMB
+from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.properties.fluids import get_fluid
 
 
 class Valve(BranchWZeroLengthComponent):
@@ -89,6 +94,38 @@ class Valve(BranchWZeroLengthComponent):
                 ("opened", "bool"),
                 ("loss_coefficient", "f8"),
                 ("type", dtype(object))]
+
+    @classmethod
+    def extract_results(cls, net, options, node_name):
+        placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options, node_name)
+        fluid = get_fluid(net)
+
+        idx_active = branch_pit[:, ELEMENT_IDX]
+        v_mps = branch_pit[:, VINIT]
+        _, v_sum, internal_pipes = _sum_by_group(idx_active, v_mps, np.ones_like(idx_active))
+        idx_pit = branch_pit[:, ELEMENT_IDX]
+        _, lambda_sum, reynolds_sum, = \
+            _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
+        if fluid.is_gas:
+            from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+            to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+            numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
+            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+            mask = ~np.isclose(p_from, p_to)
+            p_mean = np.empty_like(p_to)
+            p_mean[~mask] = p_from[~mask]
+            p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
+                           / (p_from[mask] ** 2 - p_to[mask] ** 2)
+            normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
+                              / (p_mean * NORMAL_TEMPERATURE)
+            v_gas_mean = v_mps * normfactor_mean
+            _, v_gas_mean_sum = _sum_by_group(idx_active, v_gas_mean)
+            res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
+        else:
+            res_table["v_mean_m_per_s"].values[placement_table] = v_sum / internal_pipes
+        res_table["lambda"].values[placement_table] = lambda_sum / internal_pipes
+        res_table["reynolds"].values[placement_table] = reynolds_sum / internal_pipes
 
     @classmethod
     def get_result_table(cls, net):
