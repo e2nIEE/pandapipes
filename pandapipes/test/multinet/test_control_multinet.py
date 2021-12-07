@@ -73,6 +73,13 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
                       (p_p2g_el/(net_gas.fluid.get_property('hhv')* 3.6)) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
+    # check scaling functionality
+    scaling_factor = 0.5
+    net_power.load.loc[p2g_id_el, 'scaling'] = scaling_factor
+    run_control(mn)
+    assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
+               (p_p2g_el * scaling_factor / (net_gas.fluid.get_property('hhv') * 3.6)) * eta)
+    assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
 def test_g2p_single(get_gas_example, get_power_example_simple):
     """ coupling of a single element in the power and gas net each with one MulitEnergyController"""
@@ -107,8 +114,15 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
            net_power.res_sgen.at[g2p_id_el, "p_mw"]
     assert np.isclose(net_power.sgen.at[g2p_id_el, "p_mw"],
                       (gas_cons_kg_per_s * fluid["cal_value"] * 3600 / 1000) * eta)  # 10.5264
-    assert net_gas.sink.at[
-               g2p_id_gas, "mdot_kg_per_s"] == gas_cons_kg_per_s  # has to be still the same
+    assert net_gas.sink.at[g2p_id_gas, "mdot_kg_per_s"] == gas_cons_kg_per_s
+
+    # check scaling functionality
+    scaling_factor = 0.5
+    net_gas.sink.loc[g2p_id_gas, 'scaling'] = scaling_factor
+    run_control(mn)
+    assert np.isclose(net_power.sgen.at[g2p_id_el, "p_mw"],
+                      (gas_cons_kg_per_s * scaling_factor * fluid["cal_value"] * 3.6) * eta)
+    assert net_gas.sink.at[g2p_id_gas, "mdot_kg_per_s"] == gas_cons_kg_per_s
 
 
 def test_g2g_single(get_gas_example):
@@ -149,6 +163,14 @@ def test_g2g_single(get_gas_example):
     assert net_gas1.sink.at[g2g_id_cons, "mdot_kg_per_s"] == gas1_cons_kg_per_s
     assert np.isclose(net_gas2.source.at[g2g_id_prod, "mdot_kg_per_s"],
                       (gas1_cons_kg_per_s * fluid1["cal_value"] / fluid2["cal_value"]) * eta)
+
+    # check scaling functionality
+    scaling_factor = 0.5
+    net_gas1.sink.loc[g2g_id_cons, 'scaling'] = scaling_factor
+    run_control(mn)
+    assert np.isclose(net_gas2.source.at[g2g_id_prod, "mdot_kg_per_s"],
+                      (gas1_cons_kg_per_s * scaling_factor * fluid1["cal_value"] \
+                       / fluid2["cal_value"]) * eta)
 
 
 def test_p2g_multiple(get_gas_example, get_power_example_simple):
@@ -191,6 +213,13 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     assert np.all(net_gas.source.loc[no_p2g, "mdot_kg_per_s"] == 0.001)
     assert np.all(net_power.load.loc[p2g_ids_el, "p_mw"] == p_p2g_el)  # has to be still the same
 
+    # check scaling functionality
+    scaling_factor = 0.5
+    net_power.load.loc[p2g_ids_el, 'scaling'] = scaling_factor
+    run_control(mn)
+
+    assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
+                       (p_p2g_el * scaling_factor/(net_gas.fluid.get_property('hhv')* 3.6)) * eta)
 
 def test_g2p_multiple(get_gas_example, get_power_example_simple):
     """ coupling of multiple elements with one MulitEnergyController"""
@@ -231,6 +260,14 @@ def test_g2p_multiple(get_gas_example, get_power_example_simple):
                        (gas_cons_kg_per_s * fluid["cal_value"] * 3600 / 1000) * eta)
     assert np.all(net_gas.sink.loc[g2p_ids_gas, "mdot_kg_per_s"] == gas_cons_kg_per_s)
     assert np.all(net_gas.sink.loc[no_g2p, "mdot_kg_per_s"] == 0.001)
+
+    # check scaling functionality
+    scaling_factor = 0.5
+    net_gas.sink.loc[g2p_ids_gas, 'scaling'] = scaling_factor
+    run_control(mn)
+
+    assert np.allclose(net_power.sgen.loc[g2p_ids_el, "p_mw"],
+                       (gas_cons_kg_per_s * scaling_factor * fluid["cal_value"] * 3.6) * eta)
 
 
 def test_g2g_multiple(get_gas_example):
@@ -277,6 +314,14 @@ def test_g2g_multiple(get_gas_example):
     assert np.all(net_gas2.source.loc[no_g2g, "mdot_kg_per_s"] == 0.0314)
     assert np.allclose(net_gas2.source.loc[g2g_ids_prod, "mdot_kg_per_s"],
                        (gas1_cons_kg_per_s * fluid1["cal_value"] / fluid2["cal_value"]) * eta)
+
+    # check scaling functionality
+    scaling_factor = 0.5
+    net_gas1.sink.loc[g2g_ids_cons, 'scaling'] = scaling_factor
+    run_control(mn)
+    assert np.allclose(net_gas2.source.loc[g2g_ids_prod, "mdot_kg_per_s"],
+                       (gas1_cons_kg_per_s * scaling_factor * fluid1["cal_value"] \
+                        / fluid2["cal_value"]) * eta)
 
 
 def test_const_p2g_control(get_gas_example, get_power_example_simple):
