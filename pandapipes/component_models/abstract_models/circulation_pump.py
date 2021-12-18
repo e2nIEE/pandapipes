@@ -8,7 +8,7 @@ from pandapipes.idx_node import PINIT
 from pandapipes.pipeflow_setup import get_lookup
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

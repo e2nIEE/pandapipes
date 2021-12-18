@@ -18,7 +18,7 @@ from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_o
 from pandapower.auxiliary import ppException
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

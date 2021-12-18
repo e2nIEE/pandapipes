@@ -12,7 +12,7 @@ from pandapipes.pipeflow import logger as pf_logger
 from pandapipes.pipeflow_setup import get_lookup
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

@@ -15,7 +15,7 @@ from pandapipes.topology import create_nxgraph
 from networkx import has_path
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

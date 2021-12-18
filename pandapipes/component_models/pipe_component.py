@@ -17,7 +17,7 @@ from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
 from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

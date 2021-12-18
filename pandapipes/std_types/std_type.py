@@ -10,7 +10,7 @@ from pandapipes.std_types.std_type_toolbox import get_data, get_p_v_values, regr
 from pandapower.io_utils import JSONSerializableClass
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

@@ -13,7 +13,7 @@ from pandapipes import __version__
 from pandapipes import pandapipesNet
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

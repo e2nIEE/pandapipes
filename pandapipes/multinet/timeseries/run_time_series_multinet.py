@@ -11,7 +11,7 @@ from pandapower.timeseries.run_time_series import get_recycle_settings, init_tim
     print_progress_bar, cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
 
 try:
-    import pplog
+    import pandaplan.core.pplog as pplog
 except ImportError:
     import logging as pplog
 

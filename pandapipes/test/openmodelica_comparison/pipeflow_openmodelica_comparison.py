@@ -11,7 +11,7 @@ from pandapipes.properties.fluids import get_fluid
 from pandapipes.component_models import Pipe
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

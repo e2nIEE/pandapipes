@@ -13,7 +13,7 @@ from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat
 from pandapower.plotting.plotting_toolbox import get_index_array
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

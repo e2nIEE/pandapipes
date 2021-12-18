@@ -16,7 +16,7 @@ from pandapipes.timeseries import run_timeseries, init_default_outputwriter
 from pandapower.timeseries import OutputWriter, DFData
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

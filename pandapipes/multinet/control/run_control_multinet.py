@@ -12,7 +12,7 @@ from pandapower.control.run_control import prepare_run_ctrl as prepare_run_ctrl_
     _evaluate_net as _evaluate_net, control_implementation, get_controller_order, NetCalculationNotConverged
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

@@ -13,7 +13,7 @@ from pandapipes.component_models.auxiliaries.component_toolbox import add_new_co
 from pandapower.auxiliary import ADict
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
