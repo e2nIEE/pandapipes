@@ -4,6 +4,7 @@
 
 import os
 import warnings
+import re
 
 import pandas as pd
 from pandapipes import pp_dir
@@ -17,7 +18,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def create_std_type(net, component, std_type_name, typedata, overwrite=False):
+def create_std_type(net, component, std_type_name, typedata, overwrite=False, check_required=True):
     """
     Create a new standard type for a specific component with the given data.
 
@@ -31,7 +32,20 @@ def create_std_type(net, component, std_type_name, typedata, overwrite=False):
     :type typedata: dict, StdType
     :param overwrite: if True, overwrites the standard type if it already exists in the net
     :type overwrite: bool, default False
+    :param check_required: if True, checks for required std_type entries
+    :type check_required: bool, default True
     """
+    if check_required:
+        if component == "pipe":
+            required = ["inner_diameter_mm"]
+        else:
+            if component in ["pump"]:
+                required = []
+            else:
+                raise ValueError("Unkown component type %s" % component)
+        for par in required:
+            if par not in typedata:
+                raise UserWarning("%s is required as %s type parameter" % (par, component))
     if "std_types" not in net:
         net.update({"std_types": {component: {std_type_name: typedata}}})
     elif component not in net.std_types:
@@ -79,7 +93,14 @@ def copy_std_types(to_net, from_net, component, overwrite=False):
     :type overwrite: bool, default True
     """
     for name, typdata in from_net.std_types[component].items():
-        create_std_type(to_net, component, name, typdata, overwrite=overwrite)
+        if overwrite is False:
+            try:
+                create_std_type(to_net, component, name, typdata, overwrite=overwrite)
+            except ValueError as e:
+                if re.search("Set overwrite=True if you want to change values", str(e)) is None:
+                    raise e
+        else:
+            create_std_type(to_net, component, name, typdata, overwrite=overwrite)
 
 
 def load_std_type(net, name, component):
