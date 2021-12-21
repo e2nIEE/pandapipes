@@ -117,11 +117,12 @@ def load_std_type(net, name, component):
     :return: typedata - dictionary containing type data
     :rtype: dict
     """
+    if component not in net.std_types:
+        raise UserWarning("Unknown std_type component %s" % component)
     library = net.std_types[component]
-    if name in library:
-        return library[name]
-    else:
+    if name not in library:
         raise UserWarning("Unknown standard %s type %s" % (component, name))
+    return library[name]
 
 
 def std_type_exists(net, name, component):

@@ -53,10 +53,14 @@ def test_create_and_load_std_type_pipe():
     assert net.std_types["pipe"][name] == typdata
 
     loaded_type = pandapipes.load_std_type(net, name, component="pipe")
+    assert loaded_type == typdata
 
     with pytest.raises(ValueError):
         pandapipes.create_std_type(net, component="test_comp", std_type_name=name, typedata=typdata)
-    assert loaded_type == typdata
+    with pytest.raises(UserWarning):
+        pandapipes.load_std_type(net, "test_name", component="pipe")
+    with pytest.raises(UserWarning):
+        pandapipes.load_std_type(net, name, component="test_comp")
 
 
 def test_create_std_types_pipe():
