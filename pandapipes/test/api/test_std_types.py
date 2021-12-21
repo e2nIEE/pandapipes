@@ -53,6 +53,9 @@ def test_create_and_load_std_type_pipe():
     assert net.std_types["pipe"][name] == typdata
 
     loaded_type = pandapipes.load_std_type(net, name, component="pipe")
+
+    with pytest.raises(ValueError):
+        pandapipes.create_std_type(net, component="test_comp", std_type_name=name, typedata=typdata)
     assert loaded_type == typdata
 
 
@@ -272,6 +275,41 @@ def test_change_type_pipe():
 #     net.line.endtemp_degree.at[lid3] = 10
 #     pandapipes.parameter_from_std_type(net, "endtemp_degree", fill=endtemp_fill)
 #     assert net.line.endtemp_degree.at[lid3] == 10 #check that existing values arent overwritten
+
+
+def test_delete_std_type():
+    net = pandapipes.create_empty_network()
+    w = 82
+    do = 99.5
+    di = 87.5
+    rat = 16.33
+    mat = "GGG"
+
+    typdata = {"standard_dimension_ratio": rat, "material": mat, "inner_diameter_mm": di,
+               "outer_diameter_mm": do, "nominal_width_mm": w}
+
+    typdatas = {"typ1": typdata, "typ2": typdata}
+    pandapipes.create_std_types(net, component="pipe", type_dict=typdatas)
+    pandapipes.delete_std_type(net, "typ1", "pipe")
+    with pytest.raises(UserWarning):
+        pandapipes.delete_std_type(net, "typ1", "pipe")
+
+
+def test_available_std_types():
+    net = pandapipes.create_empty_network()
+    w = 82
+    do = 99.5
+    di = 87.5
+    rat = 16.33
+    mat = "GGG"
+
+    typdata = {"standard_dimension_ratio": rat, "material": mat, "inner_diameter_mm": di,
+               "outer_diameter_mm": do, "nominal_width_mm": w}
+
+    typdatas = {"typ1": typdata, "typ2": typdata}
+    pandapipes.create_std_types(net, component="pipe", type_dict=typdatas)
+    av = pandapipes.available_std_types(net, component="pipe")
+    assert av.to_dict(orient="index") == net.std_types["pipe"]
 
 
 if __name__ == "__main__":

@@ -10,12 +10,12 @@ def calculate_mixture_viscosity(components_viscosities, components_molar_proport
     """
     Todo: Fill out parameters.
 
-    :param component_viscosities:
-    :type component_viscosities:
-    :param component_proportions:
-    :type component_proportions:
-    :param component_molar_mass:
-    :type component_molar_mass:
+    :param components_viscosities:
+    :type components_viscosities:
+    :param components_molar_proportions:
+    :type components_molar_proportions:
+    :param components_molar_mass:
+    :type components_molar_mass:
     :return:
     :rtype:
     """
@@ -43,12 +43,10 @@ def calculate_mixture_density(components_density, components_mass_proportions):
     """
     Todo: Fill out parameters.
 
-    :param component_density:
-    :type component_density:
-    :param component_molar_proportions:
-    :type component_molar_proportions: ?, default None
-    :param component_mass_proportions:
-    :type component_mass_proportions: ?, default None
+    :param components_density:
+    :type components_density:
+    :param components_mass_proportions:
+    :type components_mass_proportions: ?, default None
     :return:
     :rtype:
     """
@@ -100,12 +98,12 @@ def calculate_mixture_molar_mass(components_molar_mass, components_molar_proport
     """
     Todo: Fill out parameters.
 
-    :param component_molar_mass:
-    :type component_molar_mass:
-    :param component_molar_proportions:
-    :type component_molar_proportions: ?, default None
-    :param component_mass_proportions:
-    :type component_mass_proportions: ?, default None
+    :param components_molar_mass:
+    :type components_molar_mass:
+    :param components_molar_proportions:
+    :type components_molar_proportions: ?, default None
+    :param components_mass_proportions:
+    :type components_mass_proportions: ?, default None
     :return:
     :rtype:
     """
