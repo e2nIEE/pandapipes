@@ -176,7 +176,7 @@ class BranchComponent(Component):
             mask = p_init_i_abs != p_init_i1_abs
             p_m[~mask] = p_init_i_abs[~mask]
             p_m[mask] = 2 / 3 * (p_init_i_abs[mask] ** 3 - p_init_i1_abs[mask] ** 3) \
-                / (p_init_i_abs[mask] ** 2 - p_init_i1_abs[mask] ** 2)
+                        / (p_init_i_abs[mask] ** 2 - p_init_i1_abs[mask] ** 2)
             comp_fact = get_fluid(net).get_property("compressibility", p_m)
 
             const_lambda = NORMAL_PRESSURE * rho * comp_fact * t_init \
