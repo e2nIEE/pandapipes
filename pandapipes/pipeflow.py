@@ -4,6 +4,8 @@
 
 import numpy as np
 from numpy import linalg
+from scipy.sparse.linalg import spsolve
+
 from pandapipes.component_models import Junction
 from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
     BranchComponent, BranchWInternalsComponent
@@ -18,7 +20,6 @@ from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_o
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     extract_results_active_pit, set_user_pf_options
 from pandapower.auxiliary import ppException
-from scipy.sparse.linalg import spsolve
 
 try:
     import pplog as logging
@@ -67,10 +68,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
     # Init physical constants and options
     init_options(net, local_params)
 
-    create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent)
-    node_pit, branch_pit = initialize_pit(net, Junction.table_name(),
-                                          NodeComponent, NodeElementComponent,
-                                          BranchComponent, BranchWInternalsComponent)
+    create_lookups(net)
+    node_pit, branch_pit = initialize_pit(net, Junction.table_name())
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
         logger.warning("There are no node and branch entries defined. This might mean that your net"
                        " is empty")
@@ -320,8 +319,7 @@ def solve_temperature(net):
     branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
 
     for comp in net['component_list']:
-        if issubclass(comp, BranchComponent):
-            comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()

@@ -11,7 +11,7 @@ from scipy.sparse import coo_matrix, csgraph
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, branch_cols, \
     ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, \
-    ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
+    ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, PC
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -23,11 +23,11 @@ logger = logging.getLogger(__name__)
 
 default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1e-4, "tol_v": 1e-4,
                    "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
-                   "nonlinear_method": "constant", "p_scale": 1, "mode": "hydraulics",
+                   "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
                    "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
                    "reuse_internal_data": False,
-                   "quit_on_inconsistency_connectivity": False}
+                   "quit_on_inconsistency_connectivity": False, "calc_compression_power": True}
 
 
 def get_net_option(net, option_name):
@@ -229,12 +229,8 @@ def init_options(net, local_parameters):
                  same in each iteration) or "automatic", in which case **alpha** is adapted \
                  automatically with respect to the convergence behaviour.
 
-        - **gas_impl** (str): "pandapipes" - Implementation of the gas model. It can be set to\
-                "pandapipes" with calculations according to  "Handbuch der Gasversorgungstechnik"\
-                 or to "STANET" with calculations according to the STANET reference.
-
-        - **heat_transfer** (bool): False - Flag to determine if the heat transfer shall be\
-                calculated.
+        - **mode** (str): "hydraulics" - Define the calculation mode: what shall be calculated -
+                solely hydraulics ('hydraulic'), solely heat transfer('heat') or both combined ('all').
 
         - **only_update_hydraulic_matrix** (bool): False - If True, the system matrix is not \
                 created in every iteration, but only the data is updated according to a lookup that\
@@ -319,8 +315,7 @@ def write_internal_results(net, **kwargs):
     net["_internal_results"].update(kwargs)
 
 
-def initialize_pit(net, node_name, NodeComponent, NodeElementComponent, BranchComponent,
-                   BranchWInternalsComponent):
+def initialize_pit(net, node_name):
     """
     Initializes and fills the internal structure which is called pit (pandapipes internal tables).
     The structure is a dictionary which should contain one array for all nodes and one array for all
@@ -335,12 +330,8 @@ def initialize_pit(net, node_name, NodeComponent, NodeElementComponent, BranchCo
     pit = create_empty_pit(net)
 
     for comp in net['component_list']:
-        if issubclass(comp, NodeComponent) | \
-                issubclass(comp, BranchWInternalsComponent) | \
-                issubclass(comp, NodeElementComponent):
-            comp.create_pit_node_entries(net, pit["node"], node_name)
-        if issubclass(comp, BranchComponent):
-            comp.create_pit_branch_entries(net, pit["branch"], node_name)
+        comp.create_pit_node_entries(net, pit["node"], node_name)
+        comp.create_pit_branch_entries(net, pit["branch"], node_name)
     return pit["node"], pit["branch"]
 
 
@@ -382,7 +373,7 @@ def extract_all_results(net, node_name):
         comp.extract_results(net, net["_options"], node_name)
 
 
-def create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponent):
+def create_lookups(net):
     """
     Create all lookups necessary for the pipeflow of the given net.
     The lookups are usually:
@@ -412,14 +403,10 @@ def create_lookups(net, NodeComponent, BranchComponent, BranchWInternalsComponen
     internal_nodes_lookup = dict()
 
     for comp in net['component_list']:
-        if issubclass(comp, BranchComponent):
-            branch_from, branch_table_nr = comp.create_branch_lookups(
-                net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_table_nr,
-                branch_from)
-        if issubclass(comp, NodeComponent) | issubclass(comp, BranchWInternalsComponent):
-            node_from, node_table_nr = comp.create_node_lookups(
-                net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from,
-                node_table_nr, internal_nodes_lookup)
+        branch_from, branch_table_nr = comp.create_branch_lookups(
+            net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_table_nr, branch_from)
+        node_from, node_table_nr = comp.create_node_lookups(
+            net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from, node_table_nr, internal_nodes_lookup)
 
     net["_lookups"] = {"node_from_to": node_ft_lookups, "branch_from_to": branch_ft_lookups,
                        "node_table": node_table_lookups, "branch_table": branch_table_lookups,
@@ -465,7 +452,8 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
     active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    hyd_slacks = np.where(node_pit[:, NODE_TYPE] == P & active_node_lookup)[0]
+    hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
+                          & active_node_lookup)[0]
 
     nodes_connected, branches_connected = perform_connectivity_search(
         net, node_pit, hyd_slacks, from_nodes, to_nodes, active_node_lookup, active_branch_lookup,
