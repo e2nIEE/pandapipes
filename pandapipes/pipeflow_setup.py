@@ -359,6 +359,19 @@ def create_empty_pit(net):
     return pit
 
 
+def init_all_result_tables(net):
+    """
+    Initialize the result tables of all components in the net.
+
+    :param net: pandapipes net for which to extract results into net.res_xy
+    :type net: pandapipesNet
+    :return: No output
+
+    """
+    for comp in net['component_list']:
+        comp.init_results(net)
+
+
 def extract_all_results(net, node_name):
     """
     Extract results from branch pit and node pit and write them to the different tables of the net,
@@ -366,6 +379,8 @@ def extract_all_results(net, node_name):
 
     :param net: pandapipes net for which to extract results into net.res_xy
     :type net: pandapipesNet
+    :param node_name: name of node component table
+    :type node_name: str
     :return: No output
 
     """

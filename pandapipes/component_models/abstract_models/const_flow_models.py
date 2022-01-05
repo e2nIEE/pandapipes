@@ -55,7 +55,7 @@ class ConstFlow(NodeElementComponent):
         :type node_name:
         :return: No Output.
         """
-        res_table = super().extract_results(net, options, node_name)
+        res_table = net["res_" + cls.table_name()]
 
         loads = net[cls.table_name()]
 

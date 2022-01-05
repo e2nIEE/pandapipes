@@ -2,27 +2,22 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import copy
 import os
 
 import numpy as np
 import pandapipes as pp
 import pandas as pd
-from pandapipes.component_models import Pipe
+import pytest
 from pandapipes.idx_branch import VINIT
-from pandapipes.idx_node import PINIT, TINIT
-from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_node import PINIT
 from pandapipes.test import test_path
 
 data_path = os.path.join(test_path, "pipeflow_internals", "data")
 
 
-def test_hydraulic_only():
-    """
-
-    :return:
-    :rtype:
-    """
+@pytest.fixture
+def simple_test_net():
     net = pp.create_empty_network("net")
     d = 75e-3
     pp.create_junction(net, pn_bar=5, tfluid_k=283)
@@ -34,9 +29,18 @@ def test_hydraulic_only():
 
     pp.create_fluid_from_lib(net, "water", overwrite=True)
 
-    pp.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                tol_v=1e-4)
+    return net
+
+
+def test_hydraulic_only(simple_test_net):
+    """
+
+    :return:
+    :rtype:
+    """
+    net = copy.deepcopy(simple_test_net)
+    pp.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse", transient=False,
+                nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
 
     data = pd.read_csv(os.path.join(data_path, "hydraulics.csv"), sep=';', header=0,
                        keep_default_na=False)

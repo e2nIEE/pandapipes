@@ -29,6 +29,18 @@ class BranchWInternalsComponent(BranchComponent):
     """
 
     @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
     def active_identifier(cls):
         raise NotImplementedError
 
@@ -185,7 +197,8 @@ class BranchWInternalsComponent(BranchComponent):
 
     @classmethod
     def extract_results(cls, net, options, node_name):
-        placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options, node_name)
+        placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options,
+                                                                                   node_name)
         fluid = get_fluid(net)
 
         idx_active = branch_pit[:, ELEMENT_IDX]

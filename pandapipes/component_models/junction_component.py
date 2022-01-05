@@ -102,7 +102,7 @@ class Junction(NodeComponent):
         :type node_name:
         :return: No Output.
         """
-        res_table = super().extract_results(net, options, node_name)
+        res_table = net["res_" + cls.table_name()]
 
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]

@@ -14,7 +14,7 @@ from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
 from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
-    extract_results_active_pit, set_user_pf_options
+    extract_results_active_pit, set_user_pf_options, init_all_result_tables
 from pandapower.auxiliary import ppException
 
 try:
@@ -63,6 +63,10 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     # Init physical constants and options
     init_options(net, local_params)
+
+    # init result tables
+    net["converged"] = False
+    init_all_result_tables(net)
 
     create_lookups(net)
     node_pit, branch_pit = initialize_pit(net, Junction.table_name())
