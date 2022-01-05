@@ -14,6 +14,5 @@ can be accessed. This means that control strategies can also be applied for time
     :maxdepth: 1
 
     timeseries/overview
-    timeseries/example
     timeseries/functions
-    timeseries/tutorials_ts
+

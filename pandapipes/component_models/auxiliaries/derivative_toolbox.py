@@ -6,7 +6,7 @@ from numpy import linalg
 import numpy as np
 
 
-def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
+def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
     """
     Function calculates the friction factor of a pipe. Turbulence is calculated based on
     Nikuradse. If v equals 0, a value of 0.001 is used in order to avoid division by zero.
@@ -28,6 +28,8 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
     :type friction_model:
     :param dummy:
     :type dummy:
+    :param options:
+    :type options:
     :return:
     :rtype:
     """
@@ -43,7 +45,15 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy):
         lambda_nikuradse = 1 / (-2 * np.log10(k / (3.71 * d))) ** 2
 
     if friction_model == "colebrook":
-        lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy)
+        # TODO: move this import to top level if possible
+        from pandapipes.pipeflow import PipeflowNotConverged
+        max_iter = options.get("max_iter_colebrook", 100)
+        converged, lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy, max_iter)
+        if not converged:
+            raise PipeflowNotConverged(
+                "The Colebrook-White algorithm did not converge. There might be model "
+                "inconsistencies. The maximum iterations can be given as 'max_iter_colebrook' "
+                "argument to the pipeflow.")
         return lambda_colebrook, re
     elif friction_model == "swamee-jain":
         lambda_swamee_jain = 0.25 / ((np.log10(k/(3.7*d) + 5.74/(re**0.9)))**2)
@@ -103,7 +113,7 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
         return lambda_laminar_der
 
 
-def colebrook(re, d, k, lambda_nikuradse, dummy):
+def colebrook(re, d, k, lambda_nikuradse, dummy, max_iter):
     """
 
     :param re:
@@ -116,6 +126,8 @@ def colebrook(re, d, k, lambda_nikuradse, dummy):
     :type lambda_nikuradse:
     :param dummy:
     :type dummy:
+    :param max_iter:
+    :type max_iter:
     :return: lambda_cb
     :rtype:
     """
@@ -125,7 +137,7 @@ def colebrook(re, d, k, lambda_nikuradse, dummy):
     niter = 0
 
     # Inner Newton-loop for calculation of lambda
-    while not converged:
+    while not converged and niter < max_iter:
         f = lambda_cb ** (-1 / 2) + 2 * np.log10(2.51 / (re * np.sqrt(lambda_cb)) + k / (3.71 * d))
 
         df_dlambda_cb = (-1 / 2 * lambda_cb ** (-3 / 2)) - (2.51 / re) * lambda_cb ** (-3 / 2) \
@@ -144,4 +156,4 @@ def colebrook(re, d, k, lambda_nikuradse, dummy):
 
         niter += 1
 
-    return lambda_cb
+    return converged, lambda_cb

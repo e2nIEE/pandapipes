@@ -6,7 +6,7 @@ import copy
 
 import pandapipes
 from pandapipes.component_models import Sink, Source, Pump, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
 
 
 def test_default_input_tables():
@@ -80,3 +80,9 @@ def test_additional_tables():
     pandapipes.create_heat_exchanger(net, 0, 1, 0.2, qext_w=20000)
     hex_input_create = list(net.heat_exchanger.columns)
     assert hex_input == hex_input_create, "Input does not equal create-table"
+
+    pandapipes.add_new_component(net, PressureControlComponent)
+    press_control_input = list(copy.deepcopy(net.press_control.columns))
+    pandapipes.create_pressure_control(net, 0, 1, 1, controlled_p_bar=5)
+    press_control_input_create = list(net.press_control.columns)
+    assert press_control_input == press_control_input_create, "Input does not equal create-table"

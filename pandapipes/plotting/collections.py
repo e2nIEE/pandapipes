@@ -3,12 +3,13 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+import pandas as pd
 from pandapower.plotting.collections import _create_node_collection, \
     _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
-from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches,\
-    pump_patches
+from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
+    pump_patches, pressure_control_patches, compressor_patches
 from pandapower.plotting.plotting_toolbox import get_index_array
 
 try:
@@ -159,6 +160,8 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
     if cmap is not None:
         if z is None:
             z = net.res_pipe.v_mean_m_per_s.loc[pipes_with_geo]
+        elif isinstance(z, pd.Series):
+            z = z.loc[pipes_with_geo]
         add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim=clim)
 
     return lc
@@ -485,5 +488,110 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     lc, pc = _create_complex_branch_collection(
         coords, pump_patches, size, infos, picker=picker, linewidths=linewidths,
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
+
+    return lc, pc
+
+
+def create_pressure_control_collection(net, pcs=None, table_name='press_control',
+                                       size=5., junction_geodata=None,
+                                       color='k', infofunc=None, picker=False, **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
+    plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
+    between the junctions as well.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param valves: The valves for which the collections are created. If None, all valves which have\
+        entries in the respective junction geodata will be plotted.
+    :type valves: list, default None
+    :param size: Patch size
+    :type size: float, default 5.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :type junction_geodata: pandas.DataFrame, default None
+    :param colors: Color or list of colors for every valve
+    :type colors: iterable, float, default None
+    :param infofunc: infofunction for the patch element
+    :type infofunc: function, default None
+    :param picker: Picker argument passed to the patch collection
+    :type picker: bool, default False
+    :param fill_closed: If True, valves with parameter opened == False will be filled and those\
+        with opened == True will have a white facecolor. Vice versa if False.
+    :type fill_closed: bool, default True
+    :param kwargs: Keyword arguments are passed to the patch function
+    :return: lc - line collection, pc - patch collection
+
+    """
+    pcs = get_index_array(pcs, net[table_name].index)
+    pc_table = net[table_name].loc[pcs]
+
+    coords, pcs_with_geo = coords_from_node_geodata(
+        pcs, pc_table.from_junction.values, pc_table.to_junction.values,
+        junction_geodata if junction_geodata is not None else net["junction_geodata"], table_name,
+        "Junction")
+
+    if len(pcs_with_geo) == 0:
+        return None
+
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(pcs_with_geo))], 2)) \
+        if infofunc is not None else []
+    lc, pc = _create_complex_branch_collection(coords, pressure_control_patches, size, infos,
+                                               picker=picker, linewidths=linewidths,
+                                               patch_edgecolor=color, line_color=color,
+                                               **kwargs)
+
+    return lc, pc
+
+def create_compressor_collection(net, cmprs=None, table_name='compressor',
+                                       size=5., junction_geodata=None,
+                                       color='k', infofunc=None, picker=False, **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes compressors. Compressors are
+    plotted in the center between two junctions.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param cmprs: The compressors for which the collections are created. If None, all compressor
+                 which have entries in the respective junction geodata will be plotted.
+    :type cmprs: list, default None
+    :param size: Patch size
+    :type size: float, default 5.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :type junction_geodata: pandas.DataFrame, default None
+    :param colors: Color or list of colors for every compressor
+    :type colors: iterable, float, default None
+    :param infofunc: infofunction for the patch element
+    :type infofunc: function, default None
+    :param picker: Picker argument passed to the patch collection
+    :type picker: bool, default False
+    :param kwargs: Keyword arguments are passed to the patch function
+    :return: lc - line collection, pc - patch collection
+
+    """
+    cmprs = get_index_array(cmprs, net[table_name].index)
+    cmpr_table = net[table_name].loc[cmprs]
+
+    coords, cmprs_with_geo = coords_from_node_geodata(
+        cmprs, cmpr_table.from_junction.values, cmpr_table.to_junction.values,
+        junction_geodata if junction_geodata is not None else net["junction_geodata"], table_name,
+        "Junction")
+
+    if len(cmprs_with_geo) == 0:
+        return None
+
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(cmprs_with_geo))], 2)) \
+        if infofunc is not None else []
+    lc, pc = _create_complex_branch_collection(coords, compressor_patches, size, infos,
+                                               picker=picker, linewidths=linewidths,
+                                               patch_edgecolor=color, line_color=color,
+                                               **kwargs)
 
     return lc, pc

@@ -3,11 +3,13 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+from scipy.interpolate import interp1d
+
 from pandapipes import pp_dir
 from pandapower.io_utils import JSONSerializableClass
-from scipy.interpolate import interp1d
 
 try:
     import pplog as logging
@@ -56,7 +58,7 @@ class Fluid(JSONSerializableClass):
 
         r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
         for key in self.all_properties.keys():
-            r += "\n   - %s (%s)" %(key, self.all_properties[key].__class__.__name__[13:])
+            r += "\n   - %s (%s)" % (key, self.all_properties[key].__class__.__name__[13:])
         return r
 
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
@@ -74,7 +76,8 @@ class Fluid(JSONSerializableClass):
         :type warn_on_duplicates: bool
 
         :Example:
-            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061), overwrite=True, warn_on_duplicates=False)
+            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061),
+                                   overwrite=True, warn_on_duplicates=False)
 
         """
         if property_name in self.all_properties:
@@ -100,7 +103,7 @@ class Fluid(JSONSerializableClass):
         if property_name not in self.all_properties:
             raise UserWarning("The property %s was not defined for the fluid %s"
                               % (property_name, self.name))
-        return self.all_properties[property_name].get_property(*at_values)
+        return self.all_properties[property_name].get_at_value(*at_values)
 
     def get_density(self, temperature):
         """
@@ -148,21 +151,21 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("molar_mass")
 
-    def get_compressibility(self, temperature):
+    def get_compressibility(self, p_bar):
         """
-        This function returns the compressibility at a certain temperature.
+        This function returns the compressibility at a certain pressure.
 
-        :param temperature: Temperature at which the compressibility is queried
-        :type temperature: float
-        :return: compressibility at the required temperature
+        :param p_bar: pressure at which the compressibility is queried
+        :type p_bar: float or array of floats
+        :return: compressibility at the required pressure
 
         """
 
-        return self.get_property("compressibility", temperature)
+        return self.get_property("compressibility", p_bar)
 
     def get_der_compressibility(self):
         """
-        This function returns the derivative of the compressibility.
+        This function returns the derivative of the compressibility with respect to pressure.
 
         :return: derivative of the compressibility
 
@@ -182,11 +185,21 @@ class FluidProperty(JSONSerializableClass):
         """
         super().__init__()
 
-    def get_property(self, *args):
+    def get_at_value(self, *args):
         """
 
-        :param arg:
-        :type arg:
+        :param args:
+        :type args:
+        :return:
+        :rtype:
+        """
+        raise NotImplementedError("Please implement a proper fluid property!")
+
+    def get_at_integral_value(self, *args):
+        """
+
+        :param args:
+        :type args:
         :return:
         :rtype:
         """
@@ -216,15 +229,33 @@ class FluidPropertyInterExtra(FluidProperty):
         else:
             self.prop_getter = interp1d(x_values, y_values)
 
-    def get_property(self, arg):
+    def get_at_value(self, arg):
         """
 
-        :param arg: Name of the property and one or more values (x-values) for which the y-values of the property are to be displayed
+        :param arg: Name of the property and one or more values (x-values) for which the y-values \
+            of the property are to be displayed
         :type arg: str, float or array
         :return: y-value/s
         :rtype: float, array
         """
         return self.prop_getter(arg)
+
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        mean = (self.prop_getter(upper_limit_arg) + self.prop_getter(upper_limit_arg)) / 2
+        return mean * (upper_limit_arg-lower_limit_arg)
+
 
     @classmethod
     def from_path(cls, path, method="interpolate_extrapolate"):
@@ -266,7 +297,7 @@ class FluidPropertyConstant(FluidProperty):
     Creates Property with a constant value.
     """
 
-    def __init__(self, value):
+    def __init__(self, value, warn_dependent_variables=False):
         """
 
         :param value:
@@ -274,27 +305,52 @@ class FluidPropertyConstant(FluidProperty):
         """
         super(FluidPropertyConstant, self).__init__()
         self.value = value
+        self.warn_dependent_variables = warn_dependent_variables
 
-    def get_property(self, *args):
+    def get_at_value(self, *args):
         """
 
-        :param arg: Name of the property
-        :type arg: str
+        :param args: Name of the property
+        :type args: str
         :return: Value of the property
         :rtype: float
 
         :Example:
-            >>> heat_capacity = get_fluid(net).get_property("heat_capacity")
+            >>> heat_capacity = get_fluid(net).all_properties["heat_capacity"].get_at_value(293.15)
         """
         if len(args) > 1:
-            raise(UserWarning('Please define either none or an array-like argument'))
+            raise UserWarning('Please define either none or an array-like argument')
         elif len(args) == 1:
-            logger.warning('One constant property has several input variables even though it is '
-                           'independent of these')
+            if self.warn_dependent_variables:
+                logger.warning('Constant property received several input variables, although it is'
+                               'independent of these')
             output = np.array([self.value]) * np.ones(len(args[0]))
         else:
             output = np.array([self.value])
-        return  output
+        return output
+
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        if isinstance(upper_limit_arg, pd.Series):
+            ul = self.value * upper_limit_arg.values
+        else:
+            ul = self.value * np.array(upper_limit_arg)
+        if isinstance(lower_limit_arg, pd.Series):
+            ll = self.value * lower_limit_arg.values
+        else:
+            ll = self.value * np.array(lower_limit_arg)
+        return ul - ll
 
     @classmethod
     def from_path(cls, path):
@@ -311,6 +367,13 @@ class FluidPropertyConstant(FluidProperty):
         """
         value = np.loadtxt(path).item()
         return cls(value)
+
+    @classmethod
+    def from_dict(cls, d):
+        obj = super().from_dict(d)
+        if "warn_dependent_variables" not in obj.__dict__.keys():
+            obj.__dict__["warn_dependent_variables"] = False
+        return obj
 
 
 class FluidPropertyLinear(FluidProperty):
@@ -331,22 +394,48 @@ class FluidPropertyLinear(FluidProperty):
         self.slope = slope
         self.offset = offset
 
-    def get_property(self, arg):
+    def get_at_value(self, arg):
         """
 
-        :param arg: Name of the property and one or more values (x-values) for which the function of the property should be calculated
+        :param arg: Name of the property and one or more values (x-values) for which the function \
+            of the property should be calculated
         :type arg: str, float or array
         :return: y-value or function values
         :rtype: float, array
 
         :Example:
-            >>> comp_fact = get_fluid(net).get_property("compressibility", p_bar)
+            >>> comp_fact = get_fluid(net).all_properties["compressibility"].get_at_value(p_bar)
 
         """
         if isinstance(arg, pd.Series):
             return self.offset + self.slope * arg.values
         else:
             return self.offset + self.slope * np.array(arg)
+
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        if isinstance(upper_limit_arg, pd.Series):
+            ul = self.offset * upper_limit_arg.values + 0.5 * self.slope * np.power(upper_limit_arg.values, 2)
+        else:
+            ul = self.offset * np.array(upper_limit_arg) + 0.5 * self.slope * np.array(
+                np.power(upper_limit_arg.values, 2))
+        if isinstance(lower_limit_arg, pd.Series):
+            ll = self.offset * lower_limit_arg.values + 0.5 * self.slope * np.power(lower_limit_arg.values, 2)
+        else:
+            ll = self.offset * np.array(lower_limit_arg) + 0.5 * self.slope * np.array(
+                np.power(lower_limit_arg.values, 2))
+        return ul - ll
 
     @classmethod
     def from_path(cls, path):
@@ -356,13 +445,78 @@ class FluidPropertyLinear(FluidProperty):
 
         :param path:
         :type path:
-        :param method:
-        :type method:
         :return:
         :rtype:
         """
         slope, offset = np.loadtxt(path)
         return cls(slope, offset)
+
+
+class FluidPropertyPolynominal(FluidProperty):
+    """
+    Creates Property with a polynominal course.
+    """
+
+    def __init__(self, x_values, y_values, polynominal_degree):
+        """
+
+        :param x_values:
+        :type x_values:
+        :param y_values:
+        :type y_values:
+        :param polynominal_degree:
+        :type polynominal_degree:
+        """
+        super(FluidPropertyPolynominal, self).__init__()
+        const = np.polyfit(x_values, y_values, polynominal_degree)
+        self.prop_getter = np.poly1d(const)
+        self.prop_int_getter = np.polyint(self.prop_getter)
+
+    def get_at_value(self, arg):
+        """
+
+        :param arg: Name of the property and one or more values (x-values) for which the function \
+            of the property should be calculated
+        :type arg: float or list-like objects
+        :return: y-value or function values
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_value(t_k)
+
+        """
+        return self.prop_getter(arg)
+
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        """
+
+        :param arg: one or more values of upper and lower limit values for which the function \
+            of the property should calculate the integral for
+        :type arg: float or list-like objects
+        :return: integral between the limits
+        :rtype: float, array
+
+        :Example:
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+
+        """
+        return self.prop_int_getter(upper_limit_arg) - self.prop_int_getter(lower_limit_arg)
+
+    @classmethod
+    def from_path(cls, path, polynominal_degree):
+        """
+        Reads a text file with temperature values in the first column and property values in
+        second column.
+
+        :param path: Target path of the txt file
+        :type path: str
+        :param polynominal_degree: degree of the polynominal
+        :type method: float
+        :return: Fluid object
+        :rtype: pandapipes.FluidProperty
+        """
+        values = np.loadtxt(path)
+        return cls(values[:, 0], values[:, 1], polynominal_degree)
 
 
 def create_constant_property(net, property_name, value, overwrite=True, warn_on_duplicates=True):
@@ -431,39 +585,39 @@ def create_constant_fluid(name=None, fluid_type=None, **kwargs):
     return Fluid(name=name, fluid_type=fluid_type, **properties)
 
 
-def call_lib(fluid):
+def call_lib(fluid_name):
     """
     Creates a fluid with default fluid properties.
 
-    :param fluid: Fluid which should be used
-    :type fluid: str
+    :param fluid_name: Fluid which should be used
+    :type fluid_name: str
     :return: Fluid - Chosen fluid with default fluid properties
     :rtype: Fluid
     """
 
     def interextra_property(prop):
         return FluidPropertyInterExtra.from_path(
-            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+            os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     def constant_property(prop):
         return FluidPropertyConstant.from_path(
-            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+            os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     def linear_property(prop):
         return FluidPropertyLinear.from_path(
-            os.path.join(pp_dir, "properties", fluid, prop + ".txt"))
+            os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     liquids = ["water"]
     gases = ["air", "lgas", "hgas", "hydrogen", "methane"]
 
-    if fluid == "natural_gas":
+    if fluid_name == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
                      "(high- or low calorific natural gas)")
-    if fluid not in liquids and fluid not in gases:
+    if fluid_name not in liquids and fluid_name not in gases:
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
-                             "implemented yet." % fluid)
+                             "implemented yet." % fluid_name)
 
-    phase = "liquid" if fluid in liquids else "gas"
+    phase = "liquid" if fluid_name in liquids else "gas"
 
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
@@ -472,17 +626,18 @@ def call_lib(fluid):
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
 
-    if (phase == 'gas') & (fluid != 'air'):
+    if (phase == 'gas') & (fluid_name != 'air'):
         lhv = constant_property("lower_heating_value")
         hhv = constant_property("higher_heating_value")
 
-        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass,
                      compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
     else:
-        return Fluid(fluid, phase, density=density, viscosity=viscosity,
+        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
                      der_compressibility=der_compr)
+
 
 def get_fluid(net):
     """
@@ -494,7 +649,7 @@ def get_fluid(net):
     :rtype: Fluid
     """
     if "fluid" not in net or net["fluid"] is None:
-        raise UserWarning("There is no fluid defined for the given net!")
+        raise AttributeError("There is no fluid defined for the given net!")
     fluid = net["fluid"]
     if not isinstance(fluid, Fluid):
         logger.warning("The fluid in this net is not of the pandapipes Fluid type. This could lead"
@@ -526,6 +681,6 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
     if isinstance(fluid, str):
         logger.warning("Instead of a pandapipes.Fluid, a string ('%s') was passed to the fluid "
                        "argument. Internally, it will be passed to call_lib(fluid) to get the "
-                       "respective pandapipes.Fluid." %fluid)
+                       "respective pandapipes.Fluid." % fluid)
         fluid = call_lib(fluid)
     net["fluid"] = fluid
