@@ -26,7 +26,8 @@ classifiers = [
 
 with open('.github/workflows/run_tests_master.yml', 'rb') as f:
     lines = f.read().decode('utf-8')
-    for version in re.findall('python: 3.[0-9]', lines):
+    versions = set(re.findall('3.[0-9]', lines))
+    for version in versions:
         classifiers.append('Programming Language :: Python :: 3.%s' % version[-1])
 
 long_description = '\n\n'.join((install, changelog))
