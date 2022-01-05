@@ -572,17 +572,17 @@ def reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected):
     active_pit = dict()
     els = dict()
     reduced_node_lookup = None
-    net["_lookups"]["node_index_active"] = copy.deepcopy(get_lookup(net, "node", "index"))
     if np.alltrue(nodes_connected):
         net["_lookups"]["node_from_to_active"] = copy.deepcopy(get_lookup(net, "node", "from_to"))
+        net["_lookups"]["node_index_active"] = copy.deepcopy(get_lookup(net, "node", "index"))
         active_pit["node"] = np.copy(node_pit)
     else:
         active_pit["node"] = np.copy(node_pit[nodes_connected, :])
         reduced_node_lookup = np.cumsum(nodes_connected) - 1
         node_idx_lookup = get_lookup(net, "node", "index")
-        for tbl, idx_lookup in node_idx_lookup.items():
-            net["_lookups"]["node_index_active"][tbl][node_idx_lookup[tbl] != -1] = \
-                reduced_node_lookup[idx_lookup[idx_lookup != -1]]
+        net["_lookups"]["node_index_active"] = {
+            tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]]
+            for tbl, idx_lookup in node_idx_lookup.items()}
         els["node"] = nodes_connected
     if np.alltrue(branches_connected):
         net["_lookups"]["branch_from_to_active"] = copy.deepcopy(get_lookup(net, "branch",
