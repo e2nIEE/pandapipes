@@ -125,4 +125,4 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     run_loop(net, ts_variables, **kwargs)
 
     # cleanup functions after the last time step was calculated
-    cleanup(ts_variables)
+    cleanup(net, ts_variables)

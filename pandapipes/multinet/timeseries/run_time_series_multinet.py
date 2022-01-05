@@ -127,4 +127,4 @@ def run_timeseries(multinet, time_steps=None, continue_on_divergence=False,
 
     # cleanup functions after the last time step was calculated
     for net_name in multinet['nets'].keys():
-        cleanup(ts_variables[net_name])
+        cleanup(multinet['nets'][net_name], ts_variables[net_name])
