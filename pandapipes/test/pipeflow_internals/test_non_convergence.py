@@ -26,11 +26,6 @@ def test_pipeflow_non_convergence():
     with pytest.raises(PipeflowNotConverged):
         pp.pipeflow(net)
 
-    try:
-        pp.pipeflow(net)
-    except PipeflowNotConverged:
-        pass
-
     for comp in net["component_list"]:
         table_name = comp.table_name()
         assert np.all(net["res_" + table_name].index == net[table_name].index)
