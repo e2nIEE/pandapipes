@@ -24,16 +24,16 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+MODULE_CHANGES = {"PumpStdType": "pandapipes.std_types.std_type_class",
+                  "StdType": "pandapipes.std_types.std_type_class"}
+
+
 def isinstance_partial(obj, cls):
     if isinstance(obj, pandapipesNet):
         return False
     elif isinstance(obj, MultiNet):
         return False
     return ppow_isinstance(obj, cls)
-
-
-MODULE_CHANGES = {"PumpStdType": "pandapipes.std_types.std_type_class",
-                  "StdType": "pandapipes.std_types.std_type_class"}
 
 
 class FromSerializableRegistryPpipe(FromSerializableRegistry):
