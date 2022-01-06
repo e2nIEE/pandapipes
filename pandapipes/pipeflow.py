@@ -7,8 +7,7 @@ from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
 from pandapipes.component_models import Junction
-from pandapipes.component_models.abstract_models.branch_models import \
-    calculate_derivatives_hydraulic
+from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
