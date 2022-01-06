@@ -12,7 +12,7 @@ from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSA
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
     LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
 from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.pipeflow_setup import get_fluid, get_net_option
+from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option
 
 
 class Pump(BranchWZeroLengthComponent):

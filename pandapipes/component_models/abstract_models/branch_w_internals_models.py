@@ -11,8 +11,8 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
     VINIT, RE, LAMBDA, CP, ELEMENT_IDX
 from pandapipes.idx_node import L, node_cols
 from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
+from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
 
 try:

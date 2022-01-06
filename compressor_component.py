@@ -14,7 +14,7 @@ from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
 
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
-from pandapipes.pipeflow_setup import get_net_option, get_fluid
+from pandapipes.pf.pipeflow_setup import get_net_option, get_fluid
 
 # the Compressor class is an adapted pump (mainly copied pump code)
 class Compressor(BranchWZeroLengthComponent):

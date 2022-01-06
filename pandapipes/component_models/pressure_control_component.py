@@ -9,7 +9,7 @@ from pandapipes.component_models.abstract_models import BranchWZeroLengthCompone
 from pandapipes.idx_branch import D, AREA, PL, TL, \
     JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 
 class PressureControlComponent(BranchWZeroLengthComponent):

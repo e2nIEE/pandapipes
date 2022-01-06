@@ -10,7 +10,7 @@ from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import D, AREA, LOSS_COEFFICIENT as LC, PL, TL
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, VINIT, RE, LAMBDA, ELEMENT_IDX
 from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
 
 

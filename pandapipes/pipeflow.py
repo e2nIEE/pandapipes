@@ -7,15 +7,13 @@ from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
 from pandapipes.component_models import Junction
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
-    BranchComponent, BranchWInternalsComponent
 from pandapipes.component_models.abstract_models.branch_models import \
     calculate_derivatives_hydraulic
-from pandapipes.component_models.auxiliaries import build_system_matrix
+from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
 from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
-from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
+from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     extract_results_active_pit, set_user_pf_options

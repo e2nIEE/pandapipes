@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
+from pandapipes.component_models.component_toolbox import p_correction_height_air, \
     vinterp
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
@@ -14,7 +14,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
     VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, PL, TL
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
-from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
+from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 
 try:
     import pplog as logging

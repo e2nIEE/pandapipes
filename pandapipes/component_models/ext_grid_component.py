@@ -11,8 +11,8 @@ from pandapipes.idx_node import PINIT, LOAD, TINIT, NODE_TYPE, NODE_TYPE_T, P, T
     EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
 
-from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.pf.internals_toolbox import _sum_by_group
 
 try:
     import pplog as logging

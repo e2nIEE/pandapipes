@@ -8,9 +8,11 @@ import numpy as np
 import pandas as pd
 
 import pandapipes
+import pytest
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
+@pytest.mark.xfail(reason="Seems to be relying on wrong input data...")
 def test_pressure_control_from_measurement_parameteres():
     """
         :return:

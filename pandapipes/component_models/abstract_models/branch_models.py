@@ -5,7 +5,7 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models import Component
-from pandapipes.component_models.auxiliaries.derivative_toolbox import calc_der_lambda, calc_lambda
+from pandapipes.pf.derivative_toolbox import calc_der_lambda, calc_lambda
 from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
     P_CONVERSION
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, RHO, ETA, \
@@ -15,8 +15,8 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
     JAC_DERIV_DV_NODE, \
     LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
-from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
-from pandapipes.pipeflow_setup import get_table_number, get_lookup
+from pandapipes.pf.internals_toolbox import _sum_by_group, select_from_pit
+from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
 from pandapipes.properties.fluids import get_fluid
 
 try:

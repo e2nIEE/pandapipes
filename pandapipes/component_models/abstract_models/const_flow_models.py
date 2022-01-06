@@ -6,8 +6,8 @@ import numpy as np
 from numpy import dtype
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 
 class ConstFlow(NodeElementComponent):

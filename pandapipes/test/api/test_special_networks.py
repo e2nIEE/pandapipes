@@ -7,7 +7,8 @@ import copy
 import numpy as np
 import pandapipes as pp
 import pytest
-from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source
+from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink,\
+    create_source
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 
 

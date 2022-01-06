@@ -7,7 +7,7 @@ from pandapipes.component_models.abstract_models.branch_models import BranchComp
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
 from pandapipes.idx_node import TINIT as TINIT_NODE
 
-from pandapipes.pipeflow_setup import add_table_lookup
+from pandapipes.pf.pipeflow_setup import add_table_lookup
 from pandapipes.properties.fluids import get_fluid
 
 try:

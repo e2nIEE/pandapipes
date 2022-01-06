@@ -8,8 +8,8 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DV, JAC_DERIV_DP
     JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T, BRANCH_TYPE
 from pandapipes.idx_node import LOAD, TINIT
 from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T
-from pandapipes.internals_toolbox import _sum_by_group_sorted, _sum_by_group
-from pandapipes.pipeflow_setup import get_net_option
+from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group
+from pandapipes.pf.pipeflow_setup import get_net_option
 from scipy.sparse import csr_matrix
 
 
