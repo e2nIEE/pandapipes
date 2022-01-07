@@ -32,7 +32,7 @@ def test_compressor_pressure_ratio():
 
     pandapipes.pipeflow(net)
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \
-                                         p_correction_height_air(net.junction.height_m)
+                                    p_correction_height_air(net.junction.height_m)
 
     assert np.isclose(net.res_junction.at[j3, "abs_p_bar"],
                       br1 * net.res_junction.at[j2, "abs_p_bar"])
@@ -47,7 +47,7 @@ def test_compressor_pressure_ratio():
     assert np.isclose(net.res_compressor.at[c3, "deltap_bar"],
                       net.res_junction.at[j5, "abs_p_bar"] * (br3 - 1))
     assert np.isclose(net.res_compressor.at[c2, "deltap_bar"], 0.0), \
-       "pressure lift on rev. flow should be 0"
+        "pressure lift on rev. flow should be 0"
 
     br_new = 1.3
     net.compressor.loc[c1, "pressure_ratio"] = br_new
@@ -56,7 +56,8 @@ def test_compressor_pressure_ratio():
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \
                                     p_correction_height_air(net.junction.height_m)
 
-    assert np.isclose(net.res_junction.at[j3, "abs_p_bar"], br_new * net.res_junction.at[j2, "abs_p_bar"])
+    assert np.isclose(net.res_junction.at[j3, "abs_p_bar"],
+                      br_new * net.res_junction.at[j2, "abs_p_bar"])
     assert np.isclose(net.res_compressor.at[c1, "deltap_bar"],
                       net.res_junction.at[j2, "abs_p_bar"] * (br_new - 1))
     assert np.isclose(net.res_junction.at[j5, "abs_p_bar"], net.res_junction.at[j4, "abs_p_bar"])

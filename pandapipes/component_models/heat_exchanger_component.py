@@ -55,21 +55,6 @@ class HeatExchanger(BranchWZeroLengthComponent):
         heat_exchanger_pit[:, T_OUT] = 307
 
     @classmethod
-    def calculate_pressure_lift(cls, net, he_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param he_pit:
-        :type he_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        he_pit[:, PL] = 0
-
-    @classmethod
     def calculate_temperature_lift(cls, net, he_pit, node_pit):
         """
 

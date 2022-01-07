@@ -68,19 +68,18 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         press_pit[pc_branch, JAC_DERIV_DV] = 0
 
     @classmethod
-    def calculate_pressure_lift(cls, net, pc_pit, node_pit):
-        """
+    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+        pass
 
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param pc_pit:
-        :type pc_pit:
-        :param node_pit:
-        :type node_pit:
-        :return: power stroke
-        :rtype: float
-        """
-        pc_pit[:, PL] = 0
+    @classmethod
+    def adaption_after_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # set all PC branches to derivatives to 0
+        f, t = idx_lookups[cls.table_name()]
+        press_pit = branch_pit[f:t, :]
+        pc_branch = press_pit[:, BRANCH_TYPE] == PC
+        press_pit[pc_branch, JAC_DERIV_DP] = 0
+        press_pit[pc_branch, JAC_DERIV_DP1] = 0
+        press_pit[pc_branch, JAC_DERIV_DV] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, pc_pit, node_pit):

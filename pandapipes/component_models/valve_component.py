@@ -51,21 +51,6 @@ class Valve(BranchWZeroLengthComponent):
         valve_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
 
     @classmethod
-    def calculate_pressure_lift(cls, net, valve_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param valve_pit:
-        :type valve_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        valve_pit[:, PL] = 0
-
-    @classmethod
     def calculate_temperature_lift(cls, net, valve_pit, node_pit):
         """
 

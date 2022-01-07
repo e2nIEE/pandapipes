@@ -270,11 +270,12 @@ def solve_hydraulics(net):
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
 
+    branch_lookups = get_lookup(net, "branch", "from_to_active")
     for comp in net['component_list']:
-        comp.adaption_before_derivatives(net, branch_pit, node_pit)
+        comp.adaption_before_derivatives(net, branch_pit, node_pit, branch_lookups, options)
     calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
     for comp in net['component_list']:
-        comp.adaption_after_derivatives(net, branch_pit, node_pit)
+        comp.adaption_after_derivatives(net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
     v_init_old = branch_pit[:, VINIT].copy()

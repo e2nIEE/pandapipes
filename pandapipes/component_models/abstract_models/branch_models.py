@@ -12,8 +12,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
     VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, branch_cols, \
     T_OUT, CP, VINIT_T, FROM_NODE_T, PL, TL, \
     JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, \
-    JAC_DERIV_DV_NODE, \
-    LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
+    JAC_DERIV_DV_NODE, LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
 from pandapipes.pf.internals_toolbox import _sum_by_group, select_from_pit
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
@@ -154,14 +153,13 @@ class BranchComponent(Component):
         der_lambda_pipe = calc_der_lambda(v_init, eta, rho, d, k, friction_model, lambda_pipe)
         branch_component_pit[:, RE] = re
         branch_component_pit[:, LAMBDA] = lambda_pipe
-        cls.calculate_pressure_lift(net, branch_component_pit, node_pit)
         pl = branch_component_pit[:, PL]
 
         if not gas_mode:
             branch_component_pit[:, JAC_DERIV_DV] = \
                 rho / (P_CONVERSION * 2) * (length / d * (der_lambda_pipe * v_init2 + 2 *
-                                                          lambda_pipe * np.abs(v_init)) + 2 * loss_coef * np.abs(
-                    v_init))
+                                                          lambda_pipe * np.abs(v_init))
+                                            + 2 * loss_coef * np.abs(v_init))
 
             branch_component_pit[:, LOAD_VEC_BRANCHES] = \
                 - (-p_init_i_abs + p_init_i1_abs - pl
@@ -254,29 +252,12 @@ class BranchComponent(Component):
         branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
 
         branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
-        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:,
-                                                                   AREA] * t_init_i1
+        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA]\
+                                                    * t_init_i1
 
     @classmethod
-    def adaption_before_derivatives(cls, net, branch_pit, node_pit):
-        f, t = get_lookup(net, "branch", "from_to_active")[cls.table_name()]
-        branch_component_pit = branch_pit[f:t, :]
-        cls.calculate_pressure_lift(net, branch_component_pit, node_pit)
-
-    @classmethod
-    def calculate_pressure_lift(cls, net, branch_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_pit:
-        :type branch_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        raise NotImplementedError
+    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+        pass
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_pit, node_pit):
@@ -337,7 +318,8 @@ class BranchComponent(Component):
         vf = branch_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
 
         idx_active = branch_pit[:, ELEMENT_IDX]
-        _, v_sum, mf_sum, vf_sum, internal_pipes = _sum_by_group(idx_active, v_mps, mf, vf, np.ones_like(idx_active))
+        _, v_sum, mf_sum, vf_sum, internal_pipes = _sum_by_group(idx_active, v_mps, mf, vf,
+                                                                 np.ones_like(idx_active))
 
         if fluid.is_gas:
             # derived from the ideal gas law

@@ -5,15 +5,12 @@
 import os
 
 import numpy as np
-import pandas as pd
-
 import pandapipes
-import pytest
+import pandas as pd
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
-@pytest.mark.xfail(reason="Pressure control component still needs to be updated (PC branches).")
-def test_pressure_control_from_measurement_parameteres():
+def test_pressure_control_from_measurement_parameters():
     """
         :return:
         :rtype:

@@ -147,21 +147,6 @@ class Pipe(BranchWInternalsComponent):
                                     internal_pipe_number)
 
     @classmethod
-    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param pipe_pit:
-        :type pipe_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        pipe_pit[:, PL] = 0
-
-    @classmethod
     def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
         """
 

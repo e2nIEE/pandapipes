@@ -52,18 +52,9 @@ class Compressor(BranchWZeroLengthComponent):
         compressor_pit[:, LC] = 0
 
     @classmethod
-    def calculate_pressure_lift(cls, net, compressor_pit, node_pit):
-        """
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param compressor_pit:
-        :type compressor_pit:
-        :param node_pit:
-        :type node_pit:
-        :return: power stroke
-        :rtype: float
-        """
+    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+        f, t = idx_lookups[cls.table_name()]
+        compressor_pit = branch_pit[f:t, :]
         fluid = get_fluid(net)
 
         # calculate the 'real' velocity and volumen flow:
@@ -101,7 +92,6 @@ class Compressor(BranchWZeroLengthComponent):
         compressor_pit[:, PL] = pl
         # TODO: add mass flow in result table
         # TODO: add pressure at from_junction and to_junction to result table
-
 
     @classmethod
     def calculate_temperature_lift(cls, net, compressor_pit, node_pit):

@@ -55,18 +55,10 @@ class Pump(BranchWZeroLengthComponent):
         pump_pit[:, LC] = 0
 
     @classmethod
-    def calculate_pressure_lift(cls, net, pump_pit, node_pit):
-        """
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param pump_pit:
-        :type pump_pit:
-        :param node_pit:
-        :type node_pit:
-        :return: power stroke
-        :rtype: float
-        """
+    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # calculation of pressure lift
+        f, t = idx_lookups[cls.table_name()]
+        pump_pit = branch_pit[f:t, :]
         area = pump_pit[:, AREA]
         idx = pump_pit[:, STD_TYPE].astype(int)
         std_types = np.array(list(net.std_type['pump'].keys()))[idx]
@@ -114,6 +106,8 @@ class Pump(BranchWZeroLengthComponent):
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         calc_compr_pow = options['calc_compression_power']
@@ -129,10 +123,10 @@ class Pump(BranchWZeroLengthComponent):
                 # calculate ideal compression power
                 compr = get_fluid(net).get_property("compressibility", p_from)
                 molar_mass = net.fluid.get_molar_mass()  # [g/mol]
-                R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
+                r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                 # 'kappa' heat capacity ratio:
                 k = 1.4  # TODO: implement proper calculation of kappa
-                w_real_isentr = (k / (k - 1)) * R_spec * compr * t0 * \
+                w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                 (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
                 res_table['compr_power_mw'].values[placement_table] = \
                     w_real_isentr * abs(mf_sum_int) / 10 ** 6
@@ -140,7 +134,8 @@ class Pump(BranchWZeroLengthComponent):
                 res_table['compr_power_mw'].values[placement_table] = \
                     pump_pit[:, PL] * P_CONVERSION * vf_sum_int / 10 ** 6
         else:
-            placement_table, pump_pit, res_table = super().prepare_result_tables(net, options, node_name)
+            placement_table, pump_pit, res_table = super().prepare_result_tables(net, options,
+                                                                                 node_name)
         res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
 
     @classmethod

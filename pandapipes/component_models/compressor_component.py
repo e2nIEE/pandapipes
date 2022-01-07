@@ -40,30 +40,20 @@ class Compressor(Pump):
         compressor_pit[:, PRESSURE_RATIO] = net[cls.table_name()].pressure_ratio.values
 
     @classmethod
-    def calculate_pressure_lift(cls, net, compressor_pit, node_pit):
-        """ absolute inlet pressure multiplied by the compressor's boost ratio.
-
-        If the flow is reversed, the pressure lift is set to 0.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param compressor_pit:
-        :type compressor_pit:
-        :param node_pit:
-        :type node_pit:
-        """
-        pressure_ratio = compressor_pit[:, PRESSURE_RATIO]
+    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # calculation of pressure lift
+        f, t = idx_lookups[cls.table_name()]
+        compressor_pit = branch_pit[f:t, :]
 
         from_nodes = compressor_pit[:, FROM_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-        p_to_calc = p_from * pressure_ratio
+        p_to_calc = p_from * compressor_pit[:, PRESSURE_RATIO]
         pl_abs = p_to_calc - p_from
 
         v_mps = compressor_pit[:, VINIT]
-        pl_abs *= (v_mps >= 0)  # force pressure lift = 0 for reverse flow
+        pl_abs[v_mps < 0] = 0  # force pressure lift = 0 for reverse flow
 
         compressor_pit[:, PL] = pl_abs
-
 
     @classmethod
     def get_component_input(cls):
