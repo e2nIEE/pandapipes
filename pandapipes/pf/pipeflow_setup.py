@@ -15,6 +15,12 @@ from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, 
 from pandapipes.properties.fluids import get_fluid
 
 try:
+    import numba
+    numba_installed = True
+except ImportError:
+    numba_installed = False
+
+try:
     import pplog as logging
 except ImportError:
     import logging
@@ -26,7 +32,7 @@ default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1
                    "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
                    "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
-                   "reuse_internal_data": False,
+                   "reuse_internal_data": False, "use_numba": True,
                    "quit_on_inconsistency_connectivity": False, "calc_compression_power": True}
 
 
@@ -246,6 +252,8 @@ def init_options(net, local_parameters):
                 that out of service nodes are connected to in service branches. If that is the case\
                 and the flag is set to False, the connected nodes are activated.
 
+        - **use_numba** (bool): True - If True, use numba for more efficient internal calculations
+
     :param net: The pandapipesNet for which the options are initialized
     :type net: pandapipesNet
     :param local_parameters: Dictionary with local parameters that were passed to the pipeflow call.
@@ -286,6 +294,9 @@ def init_options(net, local_parameters):
     net["_options"]["fluid"] = get_fluid(net).name
     if not net["_options"]["only_update_hydraulic_matrix"]:
         net["_options"]["reuse_internal_data"] = False
+
+    if not numba_installed:
+        net["_options"]["use_numba"] = False
 
 
 def create_internal_results(net):

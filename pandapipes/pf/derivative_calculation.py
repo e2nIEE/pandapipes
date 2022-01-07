@@ -1,32 +1,9 @@
 import numpy as np
 from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, TINIT, LOAD_VEC_BRANCHES, \
-    JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, FROM_NODE, \
-    TO_NODE
+    JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
+    FROM_NODE, TO_NODE
 from pandapipes.idx_node import HEIGHT, PAMB, TINIT as TINIT_NODE, PINIT
 from pandapipes.properties.fluids import get_fluid
-
-try:
-    import numba
-    numba_installed = True
-except ImportError:
-    numba_installed = False
-
-if numba_installed:
-    from pandapipes.pf.derivative_toolbox_numba import \
-        derivatives_hydraulic_incomp_numba as derivatives_hydraulic_incomp, \
-        calc_medium_pressure_with_derivative_numba as calc_medium_pressure_with_derivative,\
-        derivatives_hydraulic_comp_numba as derivatives_hydraulic_comp, \
-        calc_lambda_nikuradse_comp_numba as calc_lambda_nikuradse_comp, \
-        calc_lambda_nikuradse_incomp_numba as calc_lambda_nikuradse_incomp,\
-        colebrook_numba as colebrook
-else:
-    from pandapipes.pf.derivative_toolbox import \
-        derivatives_hydraulic_incomp_np as derivatives_hydraulic_incomp, \
-        calc_medium_pressure_with_derivative_np as calc_medium_pressure_with_derivative,\
-        derivatives_hydraulic_comp_np as derivatives_hydraulic_comp, \
-        calc_lambda_nikuradse_comp_np as calc_lambda_nikuradse_comp, \
-        calc_lambda_nikuradse_incomp_np as calc_lambda_nikuradse_incomp,\
-        colebrook_np as colebrook
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -39,8 +16,6 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     :type branch_pit:
     :param node_pit:
     :type node_pit:
-    :param idx_lookups:
-    :type idx_lookups:
     :param options:
     :type options:
     :return: No Output.
@@ -65,9 +40,24 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     p_init_i1_abs = node_pit[to_nodes, PINIT] + node_pit[to_nodes, PAMB]
 
     if not gas_mode:
+        if options["use_numba"]:
+            from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_incomp_numba \
+                as derivatives_hydraulic_incomp
+        else:
+            from pandapipes.pf.derivative_toolbox import derivatives_hydraulic_incomp_np \
+                as derivatives_hydraulic_incomp
+
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
             branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference)
     else:
+        if options["use_numba"]:
+            from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
+                as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_numba as \
+                calc_medium_pressure_with_derivative
+        else:
+            from pandapipes.pf.derivative_toolbox import derivatives_hydraulic_comp_np \
+                as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
+                calc_medium_pressure_with_derivative
         p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
         comp_fact = get_fluid(net).get_compressibility(p_m)
         der_comp = get_fluid(net).get_der_compressibility() * der_p_m
@@ -113,6 +103,14 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
     :return:
     :rtype:
     """
+    if options["use_numba"]:
+        from pandapipes.pf.derivative_toolbox_numba import calc_lambda_nikuradse_incomp_numba as \
+            calc_lambda_nikuradse_incomp, colebrook_numba as colebrook,\
+            calc_lambda_nikuradse_comp_numba as calc_lambda_nikuradse_comp
+    else:
+        from pandapipes.pf.derivative_toolbox import calc_lambda_nikuradse_incomp_np as \
+            calc_lambda_nikuradse_incomp, colebrook_np as colebrook,\
+            calc_lambda_nikuradse_comp_np as calc_lambda_nikuradse_comp
     if gas_mode:
         re, lambda_laminar, lambda_nikuradse = calc_lambda_nikuradse_comp(v, d, k, eta, rho)
     else:
