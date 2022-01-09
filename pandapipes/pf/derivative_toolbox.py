@@ -51,8 +51,8 @@ def derivatives_hydraulic_comp_np(branch_pit, lambda_, der_lambda, p_init_i_abs,
                - const_lambda * comp_fact * v_init2 * friction_term * p_sum_div
 
     p_deriv = const_lambda * v_init2 * friction_term * p_sum_div
-    df_dp = -1. - p_deriv * (der_comp - comp_fact * p_sum_div) + const_height
-    df_dp1 = 1. - p_deriv * (der_comp1 - comp_fact * p_sum_div) + const_height
+    df_dp = -1. + p_deriv * (der_comp - comp_fact * p_sum_div) + const_height
+    df_dp1 = 1. + p_deriv * (der_comp1 - comp_fact * p_sum_div) + const_height
 
     df_dv = np.divide(2 * const_lambda * comp_fact, p_sum) * v_init_abs * friction_term \
             + np.divide(const_lambda * comp_fact * der_lambda * branch_pit[:, LENGTH] * v_init2,

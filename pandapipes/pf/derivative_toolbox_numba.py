@@ -68,8 +68,8 @@ def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_a
             - const_lambda * comp_fact[i] * v_init2 * friction_term * p_sum_div
 
         p_deriv = const_lambda * v_init2 * friction_term * p_sum_div
-        df_dp[i] = -1. - p_deriv * (der_comp[i] - comp_fact[i] * p_sum_div) + const_height
-        df_dp1[i] = 1. - p_deriv * (der_comp1[i] - comp_fact[i] * p_sum_div) + const_height
+        df_dp[i] = -1. + p_deriv * (der_comp[i] - comp_fact[i] * p_sum_div) + const_height
+        df_dp1[i] = 1. + p_deriv * (der_comp1[i] - comp_fact[i] * p_sum_div) + const_height
 
         df_dv[i] = np.divide(2 * const_lambda * comp_fact[i], p_sum) * v_init_abs * friction_term\
             + np.divide(const_lambda * comp_fact[i] * der_lambda[i] * branch_pit[i][LENGTH]
