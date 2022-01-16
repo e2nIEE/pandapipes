@@ -1,8 +1,8 @@
 import numpy as np
+
 from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, TINIT, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
     FROM_NODE, TO_NODE
-from pandapipes.idx_node import HEIGHT, PAMB, TINIT as TINIT_NODE, PINIT
 from pandapipes.properties.fluids import get_fluid
 
 
@@ -24,20 +24,18 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     gas_mode = fluid.is_gas
     friction_model = options["friction_model"]
 
-    dummy = (branch_pit[:, LENGTH] != 0).astype(np.float64)
     lambda_, re = calc_lambda(
         branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO], branch_pit[:, D],
-        branch_pit[:, K], gas_mode, friction_model, dummy, options)
+        branch_pit[:, K], gas_mode, friction_model, branch_pit[: LENGTH], options)
     der_lambda = calc_der_lambda(branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO],
                                  branch_pit[:, D], branch_pit[:, K], friction_model, lambda_)
     branch_pit[:, RE] = re
     branch_pit[:, LAMBDA] = lambda_
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    branch_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[to_nodes, TINIT_NODE]) / 2
-    height_difference = node_pit[from_nodes, HEIGHT] - node_pit[to_nodes, HEIGHT]
-    p_init_i_abs = node_pit[from_nodes, PINIT] + node_pit[from_nodes, PAMB]
-    p_init_i1_abs = node_pit[to_nodes, PINIT] + node_pit[to_nodes, PAMB]
+    tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = \
+        get_derived_values(node_pit, from_nodes, to_nodes, options["use_numba"])
+    branch_pit[:, TINIT] = tinit_branch
 
     if not gas_mode:
         if options["use_numba"]:
@@ -59,14 +57,12 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
                 calc_medium_pressure_with_derivative
         p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
-        comp_fact = get_fluid(net).get_compressibility(p_m)
-        der_comp = get_fluid(net).get_der_compressibility() * der_p_m
-        der_comp1 = get_fluid(net).get_der_compressibility() * der_p_m1
+        comp_fact = fluid.get_compressibility(p_m)
+        der_comp = fluid.get_der_compressibility() * der_p_m
+        der_comp1 = fluid.get_der_compressibility() * der_p_m1
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_comp(
             branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
             comp_fact, der_comp, der_comp1)
-
-    # return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
     branch_pit[:, LOAD_VEC_BRANCHES] = load_vec
     branch_pit[:, JAC_DERIV_DV] = df_dv
@@ -76,7 +72,15 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DV_NODE] = df_dv_nodes
 
 
-def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
+def get_derived_values(node_pit, from_nodes, to_nodes, use_numba):
+    if use_numba:
+        from pandapipes.pf.derivative_toolbox_numba import calc_derived_values_numba
+        return calc_derived_values_numba(node_pit, from_nodes, to_nodes)
+    from pandapipes.pf.derivative_toolbox import calc_derived_values_np
+    return calc_derived_values_np(node_pit, from_nodes, to_nodes)
+
+
+def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, lengths, options):
     """
     Function calculates the friction factor of a pipe. Turbulence is calculated based on
     Nikuradse. If v equals 0, a value of 0.001 is used in order to avoid division by zero.
@@ -96,8 +100,8 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
     :type gas_mode:
     :param friction_model:
     :type friction_model:
-    :param dummy:
-    :type dummy:
+    :param lengths:
+    :type lengths:
     :param options:
     :type options:
     :return:
@@ -120,6 +124,7 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
         # TODO: move this import to top level if possible
         from pandapipes.pipeflow import PipeflowNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
+        dummy = (lengths != 0).astype(np.float64)
         converged, lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy, max_iter)
         if not converged:
             raise PipeflowNotConverged(

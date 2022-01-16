@@ -4,10 +4,12 @@
 
 import numpy as np
 from numpy import linalg
+
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, TINIT, \
-    VINIT
+    VINIT, FROM_NODE, TO_NODE
+from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE
 
 
 def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
@@ -153,3 +155,11 @@ def colebrook_np(re, d, k, lambda_nikuradse, dummy, max_iter):
         niter += 1
 
     return converged, lambda_cb
+
+
+def calc_derived_values_np(node_pit, from_nodes, to_nodes):
+    tinit_branch = (node_pit[from_nodes, TINIT_NODE] + node_pit[to_nodes, TINIT_NODE]) / 2
+    height_difference = node_pit[from_nodes, HEIGHT] - node_pit[to_nodes, HEIGHT]
+    p_init_i_abs = node_pit[from_nodes, PINIT] + node_pit[from_nodes, PAMB]
+    p_init_i1_abs = node_pit[to_nodes, PINIT] + node_pit[to_nodes, PAMB]
+    return tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs

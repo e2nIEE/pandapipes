@@ -1,10 +1,15 @@
 import numpy as np
-from numba import jit
 from numpy import linalg
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, TINIT, \
-    VINIT
+    VINIT, FROM_NODE, TO_NODE
+from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
+
+try:
+    from numba import jit
+except ImportError:
+    from pandapower.pf.no_numba import jit
 
 
 @jit(nopython=True, cache=False)
@@ -93,7 +98,7 @@ def calc_lambda_nikuradse_incomp_numba(v, d, k, eta, rho):
             re[i] = np.divide(rho[i] * v_abs[i] * d[i], eta[i])
         if v[i] != 0:
             lambda_laminar[i] = 64 / re[i]
-        lambda_nikuradse[i] = np.divide(1, (-2 * np.log10(k[i] / (3.71 * d[i]))) ** 2)
+        lambda_nikuradse[i] = np.power(-2 * np.log10(k[i] / (3.71 * d[i])), -2)
     return re, lambda_laminar, lambda_nikuradse
 
 
@@ -102,15 +107,15 @@ def calc_lambda_nikuradse_comp_numba(v, d, k, eta, rho):
     lambda_nikuradse = np.empty_like(v)
     lambda_laminar = np.zeros_like(v)
     re = np.empty_like(v)
-    v_abs = np.abs(v)
-    for i in range(v.shape[0]):
-        if v_abs[i] < 1e-6:
+    for i in range(len(v)):
+        v_abs = np.abs(v[i])
+        if v_abs < 1e-6:
             re[i] = np.divide(rho[i] * 1e-6 * d[i], eta[i])
         else:
-            re[i] = np.divide(rho[i] * v_abs[i] * d[i], eta[i])
+            re[i] = np.divide(rho[i] * v_abs * d[i], eta[i])
         if v[i] != 0:
-            lambda_laminar[i] = 64 / re[i]
-        lambda_nikuradse[i] = np.divide(1, (2 * np.log10(d[i] / k[i]) + 1.14) ** 2)
+            lambda_laminar[i] = np.divide(64, re[i])
+        lambda_nikuradse[i] = np.divide(1, (2 * np.log10(np.divide(d[i], k[i])) + 1.14) ** 2)
     return re, lambda_laminar, lambda_nikuradse
 
 
@@ -167,3 +172,20 @@ def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
         niter += 1
 
     return converged, lambda_cb
+
+
+@jit(nopython=True)
+def calc_derived_values_numba(node_pit, from_nodes, to_nodes):
+    le = len(from_nodes)
+    tinit_branch = np.empty(le, dtype=np.float64)
+    height_difference = np.empty(le, dtype=np.float64)
+    p_init_i_abs = np.empty(le, dtype=np.float64)
+    p_init_i1_abs = np.empty(le, dtype=np.float64)
+    for i in range(le):
+        fn = from_nodes[i]
+        tn = to_nodes[i]
+        tinit_branch[i] = (node_pit[fn, TINIT_NODE] + node_pit[tn, TINIT_NODE]) / 2
+        height_difference[i] = node_pit[fn, HEIGHT] - node_pit[tn, HEIGHT]
+        p_init_i_abs[i] = node_pit[fn, PINIT] + node_pit[fn, PAMB]
+        p_init_i1_abs[i] = node_pit[tn, PINIT] + node_pit[tn, PAMB]
+    return tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs
