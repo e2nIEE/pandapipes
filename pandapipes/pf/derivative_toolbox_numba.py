@@ -1,9 +1,10 @@
 import numpy as np
 from numpy import linalg
+
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, TINIT, \
-    VINIT, FROM_NODE, TO_NODE
+    VINIT
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
 try:
@@ -148,7 +149,7 @@ def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
 
     # Inner Newton-loop for calculation of lambda
     while not converged and niter < max_iter:
-        for i in range(lambda_cb.shape[0]):
+        for i in range(len(lambda_cb)):
             sqt = np.sqrt(lambda_cb[i])
             add_val = np.divide(k[i], (3.71 * d[i]))
             sqt_div = np.divide(1, sqt)

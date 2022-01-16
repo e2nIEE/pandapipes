@@ -26,7 +26,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 
     lambda_, re = calc_lambda(
         branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO], branch_pit[:, D],
-        branch_pit[:, K], gas_mode, friction_model, branch_pit[: LENGTH], options)
+        branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options)
     der_lambda = calc_der_lambda(branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO],
                                  branch_pit[:, D], branch_pit[:, K], friction_model, lambda_)
     branch_pit[:, RE] = re
