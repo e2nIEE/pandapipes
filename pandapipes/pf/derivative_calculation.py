@@ -58,6 +58,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 calc_medium_pressure_with_derivative
         p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
         comp_fact = fluid.get_compressibility(p_m)
+        # TODO: this might not be required
         der_comp = fluid.get_der_compressibility() * der_p_m
         der_comp1 = fluid.get_der_compressibility() * der_p_m1
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_comp(

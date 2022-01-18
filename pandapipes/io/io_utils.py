@@ -60,7 +60,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     @from_serializable.register(class_name='pandapipesNet', module_name='pandapipes.pandapipes_net')
     def pandapipesNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from pandapipes import from_json_string
+            from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
             net = pandapipesNet(get_basic_net_entries())
@@ -89,7 +89,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     @from_serializable.register(class_name='MultiNet')
     def MultiNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from pandapipes import from_json_string
+            from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
             net = create_empty_multinet()

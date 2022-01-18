@@ -8,6 +8,7 @@ from pandapipes.component_models.abstract_models import CirculationPump
 from pandapipes.idx_node import LOAD
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_net_option
 
 try:
     import pplog as logging
@@ -40,7 +41,8 @@ class CirculationPumpMass(CirculationPump):
 
         mf = np.nan_to_num(circ_pump.mdot_kg_per_s.values)
         mass_flow_loads = mf * circ_pump.in_service.values
-        juncts, loads_sum = _sum_by_group(circ_pump.to_junction.values, mass_flow_loads)
+        juncts, loads_sum = _sum_by_group(get_net_option(net, "use_numba"),
+                                          circ_pump.to_junction.values, mass_flow_loads)
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         index = junction_idx_lookups[juncts]
         node_pit[index, LOAD] += loads_sum

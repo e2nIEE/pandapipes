@@ -9,11 +9,13 @@ from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
 try:
     from numba import jit
+    from numba import int32, float64, int64
 except ImportError:
     from pandapower.pf.no_numba import jit
+    from numpy import int32, float64, int64
 
 
-@jit(nopython=True, cache=False)
+@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
 def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
                                        height_difference):
     le = der_lambda.shape[0]
@@ -41,7 +43,8 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
     return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
 
-@jit(nopython=True, cache=False)
+@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
+      float64[:], float64[:]), nopython=True, cache=False)
 def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
                                      height_difference, comp_fact, der_comp, der_comp1):
     le = lambda_.shape[0]
@@ -52,8 +55,7 @@ def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_a
     load_vec_nodes = np.zeros_like(der_lambda)
     df_dv_nodes = np.zeros_like(der_lambda)
 
-    # Formulas for gas pressure loss according to laminar version described in STANET 10
-    # manual, page 1623
+    # Formulas for gas pressure loss according to laminar version
     for i in range(le):
         # compressibility settings
         v_init_abs = np.abs(branch_pit[i][VINIT])
@@ -86,7 +88,7 @@ def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_a
     return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
 
-@jit(nopython=True)
+@jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
 def calc_lambda_nikuradse_incomp_numba(v, d, k, eta, rho):
     lambda_nikuradse = np.empty_like(v)
     lambda_laminar = np.zeros_like(v)
@@ -103,7 +105,7 @@ def calc_lambda_nikuradse_incomp_numba(v, d, k, eta, rho):
     return re, lambda_laminar, lambda_nikuradse
 
 
-@jit(nopython=True)
+@jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
 def calc_lambda_nikuradse_comp_numba(v, d, k, eta, rho):
     lambda_nikuradse = np.empty_like(v)
     lambda_laminar = np.zeros_like(v)
@@ -120,11 +122,11 @@ def calc_lambda_nikuradse_comp_numba(v, d, k, eta, rho):
     return re, lambda_laminar, lambda_nikuradse
 
 
-@jit(nopython=True, cache=False)
+@jit((float64[:], float64[:]), nopython=True, cache=False)
 def calc_medium_pressure_with_derivative_numba(p_init_i_abs, p_init_i1_abs):
     p_m = p_init_i_abs.copy()
     der_p_m = np.ones_like(p_init_i_abs)
-    der_p_m1 = np.ones_like(p_init_i_abs) * (-1)
+    der_p_m1 = der_p_m * (-1)
     val = 2 / 3
     for i in range(p_init_i_abs.shape[0]):
         if p_init_i_abs[i] != p_init_i1_abs[i]:
@@ -139,7 +141,7 @@ def calc_medium_pressure_with_derivative_numba(p_init_i_abs, p_init_i1_abs):
     return p_m, der_p_m, der_p_m1
 
 
-@jit(nopython=True)
+@jit((float64[:], float64[:], float64[:], float64[:], float64[:], int64), nopython=True)
 def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
     lambda_cb = lambda_nikuradse.copy()
     lambda_cb_old = np.empty_like(lambda_nikuradse)
@@ -175,7 +177,7 @@ def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
     return converged, lambda_cb
 
 
-@jit(nopython=True)
+@jit((float64[:, :], int32[:], int32[:]), nopython=True)
 def calc_derived_values_numba(node_pit, from_nodes, to_nodes):
     le = len(from_nodes)
     tinit_branch = np.empty(le, dtype=np.float64)

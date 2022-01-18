@@ -7,7 +7,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models import CirculationPump
 from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
 from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
 
 try:
     import pplog as logging
@@ -39,9 +39,9 @@ class CirculationPumpPressure(CirculationPump):
         circ_pump, press = super().create_pit_node_entries(net, node_pit, node_name)
 
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
-        juncts_p, press_sum, number = _sum_by_group(circ_pump.to_junction.values,
-                                                    press - circ_pump.plift_bar.values,
-                                                    np.ones_like(press, dtype=np.int32))
+        juncts_p, press_sum, number = _sum_by_group(
+            get_net_option(net, "use_numba"), circ_pump.to_junction.values,
+            press - circ_pump.plift_bar.values, np.ones_like(press, dtype=np.int32))
 
         index_p = junction_idx_lookups[juncts_p]
         node_pit[index_p, PINIT] = press_sum / number

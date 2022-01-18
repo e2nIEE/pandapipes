@@ -15,7 +15,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K,
     JAC_DERIV_DV_NODE, LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
 from pandapipes.pf.internals_toolbox import _sum_by_group, select_from_pit
-from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
+from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -284,7 +284,8 @@ class BranchComponent(Component):
         placement_table = np.argsort(net[cls.table_name()].index.values)
         idx_pit = net["_pit"]["branch"][f:t, ELEMENT_IDX]
         pipe_considered = get_lookup(net, "branch", "active")[f:t]
-        _, active_pipes = _sum_by_group(idx_pit, pipe_considered.astype(np.int32))
+        _, active_pipes = _sum_by_group(get_net_option(net, "use_numba"), idx_pit,
+                                        pipe_considered.astype(np.int32))
         active_pipes = active_pipes > 0.99
         placement_table = placement_table[active_pipes]
         branch_pit = net["_active_pit"]["branch"][fa:ta, :]
@@ -317,9 +318,10 @@ class BranchComponent(Component):
         mf = branch_pit[:, LOAD_VEC_NODES]
         vf = branch_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
 
+        use_numba = get_net_option(net, "use_numba")
         idx_active = branch_pit[:, ELEMENT_IDX]
-        _, v_sum, mf_sum, vf_sum, internal_pipes = _sum_by_group(idx_active, v_mps, mf, vf,
-                                                                 np.ones_like(idx_active))
+        _, v_sum, mf_sum, vf_sum, internal_pipes = _sum_by_group(use_numba, idx_active, v_mps, mf,
+                                                                 vf, np.ones_like(idx_active))
 
         if fluid.is_gas:
             # derived from the ideal gas law
@@ -333,7 +335,8 @@ class BranchComponent(Component):
             v_gas_from = v_mps * normfactor_from
             v_gas_to = v_mps * normfactor_to
 
-            _, nf_from_sum, nf_to_sum = _sum_by_group(idx_active, normfactor_from, normfactor_to)
+            _, nf_from_sum, nf_to_sum = _sum_by_group(use_numba, idx_active, normfactor_from,
+                                                      normfactor_to)
 
             v_gas_from_ordered = select_from_pit(from_nodes, from_junction_nodes, v_gas_from)
             v_gas_to_ordered = select_from_pit(to_nodes, to_junction_nodes, v_gas_to)

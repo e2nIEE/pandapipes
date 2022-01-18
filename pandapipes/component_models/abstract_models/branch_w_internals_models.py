@@ -12,7 +12,8 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
 from pandapipes.idx_node import L, node_cols
 from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
+from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number, \
+    get_net_option
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -183,13 +184,14 @@ class BranchWInternalsComponent(BranchComponent):
     def extract_results(cls, net, options, node_name):
         placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options, node_name)
         fluid = get_fluid(net)
+        use_numba = get_net_option(net, "use_numba")
 
         idx_active = branch_pit[:, ELEMENT_IDX]
         v_mps = branch_pit[:, VINIT]
-        _, v_sum, internal_pipes = _sum_by_group(idx_active, v_mps, np.ones_like(idx_active))
+        _, v_sum, internal_pipes = _sum_by_group(use_numba, idx_active, v_mps, np.ones_like(idx_active))
         idx_pit = branch_pit[:, ELEMENT_IDX]
         _, lambda_sum, reynolds_sum, = \
-            _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
+            _sum_by_group(use_numba, idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
         if fluid.is_gas:
             from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
             to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
@@ -204,7 +206,7 @@ class BranchWInternalsComponent(BranchComponent):
             normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
                               / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
-            _, v_gas_mean_sum = _sum_by_group(idx_active, v_gas_mean)
+            _, v_gas_mean_sum = _sum_by_group(use_numba, idx_active, v_gas_mean)
             res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
         else:
             res_table["v_mean_m_per_s"].values[placement_table] = v_sum / internal_pipes

@@ -3,6 +3,18 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+try:
+    from numba import jit
+    from numba import int32, float64, int64
+    from numba.core.types.scalars import Integer
+    from numba.core.types.containers import Tuple
+    from numba import typeof
+    numba_installed = True
+except ImportError:
+    from pandapower.pf.no_numba import jit
+    from numpy import int32, float64, int64, int as Integer
+    from builtins import tuple as Tuple
+    numba_installed = False
 
 
 def _sum_by_group_sorted(indices, *values):
@@ -33,7 +45,7 @@ def _sum_by_group_sorted(indices, *values):
     return [indices] + val
 
 
-def _sum_by_group(indices, *values):
+def _sum_by_group_np(indices, *values):
     """
     Auxiliary function to sum up values by some given indices (both as numpy arrays).
 
@@ -53,6 +65,57 @@ def _sum_by_group(indices, *values):
         val[i] = val[i][order]
 
     return _sum_by_group_sorted(indices, *val)
+
+
+@jit((int32[:], float64[:, :], int32, int64, int64), nopython=True)
+def _sum_values_by_index(indices, value_arr, max_ind, le, n_vals):
+    ind1 = indices + 1
+    new_indices = np.zeros(max_ind + 2, dtype=np.int32)
+    summed_values = np.zeros((max_ind + 2, n_vals), dtype=np.float64)
+    for i in range(le):
+        new_indices[int(ind1[i])] = ind1[i]
+        for j in range(n_vals):
+            summed_values[int(ind1[i]), j] += value_arr[i, j]
+    summed_values = summed_values[new_indices > 0]
+    new_indices = new_indices[new_indices > 0] - 1
+    return new_indices, summed_values
+
+
+@jit(int64(int32[:]), nopython=True)
+def max_nb(arr):
+    return np.max(arr)
+
+
+def _sum_by_group(use_numba, indices, *values):
+    """
+    Auxiliary function to sum up values by some given indices (both as numpy arrays).
+
+    :param use_numba:
+    :type use_numba:
+    :param indices:
+    :type indices:
+    :param values:
+    :type values:
+    :return:
+    :rtype:
+    """
+    if not use_numba:
+        return _sum_by_group_np(indices, *values)
+    # idea: shift this into numba function and raise ValueError if condition not accepted,
+    # has not yet worked...
+    if len(indices) == 0:
+        return indices, *values
+    ind_dt = indices.dtype
+    indices = indices.astype(np.int32)
+    max_ind = max_nb(indices)
+    if max_ind < 1e5 and max_ind < 10 * len(indices):
+        dtypes = [v.dtype for v in values]
+        val_arr = np.array(list(values), dtype=np.float64).transpose()
+        new_ind, new_arr = _sum_values_by_index(indices, val_arr, max_ind, len(indices),
+                                                len(values))
+        return tuple([new_ind.astype(ind_dt)]
+                     + [new_arr[:, i].astype(dtypes[i]) for i in range(len(values))])
+    return _sum_by_group_np(indices, *values)
 
 
 def select_from_pit(table_index_array, input_array, data):

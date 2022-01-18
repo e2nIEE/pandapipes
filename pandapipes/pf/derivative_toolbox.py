@@ -34,8 +34,7 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
 
 def derivatives_hydraulic_comp_np(branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
                                   height_difference, comp_fact, der_comp, der_comp1):
-    # Formulas for gas pressure loss according to laminar version described in STANET 10
-    # manual, page 1623
+    # Formulas for gas pressure loss according to laminar version
     v_init_abs = np.abs(branch_pit[:, VINIT])
     v_init2 = branch_pit[:, VINIT] * v_init_abs
     p_diff = p_init_i_abs - p_init_i1_abs
