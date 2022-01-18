@@ -9,7 +9,7 @@ import pytest
 
 import pandapipes
 from pandapipes.pipeflow import logger as pf_logger
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 try:
     import pplog as logging

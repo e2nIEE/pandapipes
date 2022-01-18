@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 from pandapipes.component_models import Pipe, Junction
 from pandapipes.idx_node import PINIT, TINIT
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.test.pipeflow_internals import internals_data_path
 from pandapipes.properties.fluids import _add_fluid_to_net
 

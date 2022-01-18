@@ -7,11 +7,8 @@ import os
 import numpy as np
 import pandapipes as pp
 import pandas as pd
-from pandapipes.component_models import Pipe
 from pandapipes.idx_branch import VINIT
-from pandapipes.idx_node import PINIT, TINIT
-from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_node import PINIT
 from pandapipes.test import test_path
 
 data_path = os.path.join(test_path, "pipeflow_internals", "data")

@@ -5,7 +5,7 @@
 import numpy as np
 from pandapipes.component_models.ext_grid_component import ExtGrid
 from pandapipes.idx_node import PINIT
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 try:
     import pplog as logging

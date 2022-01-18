@@ -11,8 +11,8 @@ from pandapipes.idx_node import PINIT, LOAD, TINIT, NODE_TYPE, NODE_TYPE_T, P, T
     EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
 
-from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
+from pandapipes.pf.internals_toolbox import _sum_by_group
 
 try:
     import pplog as logging
@@ -49,21 +49,24 @@ class ExtGrid(NodeElementComponent):
         :return: No Output.
         """
         ext_grids = net[cls.table_name()]
+        ext_grids = ext_grids[ext_grids.in_service.values]
 
         p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
-        press = ext_grids.p_bar.values[p_mask] * ext_grids.in_service.values[p_mask]
+        press = ext_grids.p_bar.values[p_mask]
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         junction = cls.get_connected_junction(net)
-        juncts_p, press_sum, number = _sum_by_group(junction.values[p_mask], press,
-                                                    np.ones_like(press, dtype=np.int32))
+        juncts_p, press_sum, number = _sum_by_group(
+            get_net_option(net, "use_numba"), junction.values[p_mask], press,
+            np.ones_like(press, dtype=np.int32))
         index_p = junction_idx_lookups[juncts_p]
         node_pit[index_p, PINIT] = press_sum / number
         node_pit[index_p, NODE_TYPE] = P
         node_pit[index_p, EXT_GRID_OCCURENCE] += number
 
         t_mask = np.where(np.isin(ext_grids.type.values, ["t", "pt"]))
-        t_k = ext_grids.t_k.values[t_mask] * ext_grids.in_service.values[t_mask]
-        juncts_t, t_sum, number = _sum_by_group(junction.values[t_mask], t_k,
+        t_k = ext_grids.t_k.values[t_mask]
+        juncts_t, t_sum, number = _sum_by_group(get_net_option(net, "use_numba"),
+                                                junction.values[t_mask], t_k,
                                                 np.ones_like(t_k, dtype=np.int32))
         index = junction_idx_lookups[juncts_t]
         node_pit[index, TINIT] = t_sum / number
@@ -112,7 +115,8 @@ class ExtGrid(NodeElementComponent):
         loads = node_pit[node_uni, LOAD]
         all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
         all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
-        nodes, sum_mass_flows = _sum_by_group(all_index_nodes, all_mass_flows)
+        nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes,
+                                              all_mass_flows)
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)

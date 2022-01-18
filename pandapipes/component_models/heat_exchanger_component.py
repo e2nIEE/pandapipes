@@ -7,7 +7,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.idx_branch import PL, TL, ALPHA, \
     TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
-from pandapipes.pipeflow_setup import get_fluid
+from pandapipes.pf.pipeflow_setup import get_fluid
 
 try:
     import pplog as logging
@@ -53,21 +53,6 @@ class HeatExchanger(BranchWZeroLengthComponent):
         heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
         heat_exchanger_pit[:, TEXT] = 293.15
         heat_exchanger_pit[:, T_OUT] = 307
-
-    @classmethod
-    def calculate_pressure_lift(cls, net, he_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param he_pit:
-        :type he_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        he_pit[:, PL] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, he_pit, node_pit):
