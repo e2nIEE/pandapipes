@@ -28,7 +28,7 @@ def test_pressure_control_from_measurement_parameteres():
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=10.,
                                            diameter_m=0.1022)
     pandapipes.create_pressure_control(net, j1, j2, j4, 20.)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid='lgas', type="p")
     pandapipes.create_sink(net, j4, 0.5)
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)

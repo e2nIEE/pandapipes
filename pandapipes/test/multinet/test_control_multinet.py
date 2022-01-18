@@ -15,12 +15,14 @@ from pandapipes import networks as g_nw
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
 from pandapower import networks as e_nw
 from pandapower.control.controller.const_control import ConstControl
+from pandapipes.properties.fluids import get_fluid
 
 
 @pytest.fixture
 def get_gas_example():
     net_gas = g_nw.gas_meshed_square()
     pandapipes.create_fluid_from_lib(net_gas, "hgas", overwrite=True)
+    net_gas.ext_grid.fluid.values[:] = 'hgas'
     net_gas.sink.drop(index=0, inplace=True)
     net_gas.junction.pn_bar = 30
     net_gas.ext_grid.p_bar = 30
@@ -45,7 +47,8 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -70,7 +73,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     assert net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"] == \
            net_gas.res_source.at[p2g_id_gas, "mdot_kg_per_s"]
     assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
-                      (p_p2g_el/(net_gas.fluid.get_property('hhv')* 3.6)) * eta)
+                      (p_p2g_el/(get_fluid(net_gas).get_property('hhv')* 3.6)) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
     # check scaling functionality
@@ -78,7 +81,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     net_power.load.loc[p2g_id_el, 'scaling'] = scaling_factor
     run_control(mn)
     assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
-               (p_p2g_el * scaling_factor / (net_gas.fluid.get_property('hhv') * 3.6)) * eta)
+               (p_p2g_el * scaling_factor / (get_fluid(net_gas).get_property('hhv') * 3.6)) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
 def test_g2p_single(get_gas_example, get_power_example_simple):
@@ -87,7 +90,8 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_g2p")
@@ -131,10 +135,12 @@ def test_g2g_single(get_gas_example):
     fluid1 = {"name": "hgas", "cal_value": 14.62197}
     net_gas1 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas1, fluid1["name"], overwrite=True)
+    net_gas1.ext_grid.fluid.values[:] = fluid1['name']
 
     fluid2 = {"name": "hydrogen", "cal_value": 38.38024}
     net_gas2 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas2, fluid2["name"], overwrite=True)
+    net_gas2.ext_grid.fluid.values[:] = fluid2['name']
 
     # set up multinet
     mn = create_empty_multinet("test_g2g")
@@ -179,7 +185,8 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -209,7 +216,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     assert np.all(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"] == \
                   net_gas.res_source.loc[p2g_ids_gas, "mdot_kg_per_s"])
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
-                       (p_p2g_el/(net_gas.fluid.get_property('hhv')* 3.6)) * eta)
+                       (p_p2g_el/(get_fluid(net_gas).get_property('hhv')* 3.6)) * eta)
     assert np.all(net_gas.source.loc[no_p2g, "mdot_kg_per_s"] == 0.001)
     assert np.all(net_power.load.loc[p2g_ids_el, "p_mw"] == p_p2g_el)  # has to be still the same
 
@@ -219,7 +226,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     run_control(mn)
 
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
-                       (p_p2g_el * scaling_factor/(net_gas.fluid.get_property('hhv')* 3.6)) * eta)
+                       (p_p2g_el * scaling_factor/(get_fluid(net_gas).get_property('hhv')* 3.6)) * eta)
 
 def test_g2p_multiple(get_gas_example, get_power_example_simple):
     """ coupling of multiple elements with one MulitEnergyController"""
@@ -227,7 +234,8 @@ def test_g2p_multiple(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_g2p")
@@ -277,10 +285,12 @@ def test_g2g_multiple(get_gas_example):
     fluid1 = {"name": "hgas", "cal_value": 14.62197}
     net_gas1 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas1, fluid1["name"], overwrite=True)
+    net_gas1.ext_grid.fluid.values[:] = fluid1['name']
 
     fluid2 = {"name": "hydrogen", "cal_value": 38.38024}
     net_gas2 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas2, fluid2["name"], overwrite=True)
+    net_gas2.ext_grid.fluid.values[:] = fluid2['name']
 
     # set up multinet
     mn = create_empty_multinet("test_g2g")

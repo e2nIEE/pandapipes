@@ -29,7 +29,7 @@ def test_default_input_tables():
     assert pipe_input == pipe_input_create, "Input does not equal Table in create-function"
 
     ext_grid_input = list(copy.deepcopy(net.ext_grid.columns))
-    pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=330, type="pt")
+    pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=330, type="pt", fluid='hgas')
     ext_grid_input_create = list(net.ext_grid.columns)
     assert ext_grid_input == ext_grid_input_create, "Input does not equal Table in create-function"
 

@@ -28,7 +28,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def create_empty_network(name="", fluid=None, add_stdtypes=True):
+def create_empty_network(name="", add_stdtypes=True):
     """
     This function initializes the pandapipes datastructure.
 
@@ -54,15 +54,6 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     net['name'] = name
     if add_stdtypes:
         add_basic_std_types(net)
-
-    if fluid is not None:
-        if isinstance(fluid, Fluid):
-            net["fluid"] = fluid
-        elif isinstance(fluid, str):
-            create_fluid_from_lib(net, fluid)
-        else:
-            logger.warning("The fluid %s cannot be added to the net Only fluids of type Fluid or "
-                           "strings can be used." % fluid)
     return net
 
 
@@ -161,7 +152,7 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
     return index
 
 
-def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
+def create_source(net, junction, mdot_kg_per_s, fluid='slacklike', scaling=1., name=None, index=None, in_service=True,
                   type='source', **kwargs):
     """
     Adds one source in table net["source"].
@@ -198,15 +189,44 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
 
     index = _get_index_with_check(net, "source", index)
 
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, bool(in_service), type]
-    _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
+    cols = ["name", "junction", "mdot_kg_per_s", "fluid", "scaling", "in_service", "type"]
 
-    return index
+    if isinstance(fluid, Fluid):
+        if not junction in net.ext_grid.junction and net.fluid != 'slacklike':
+            logger.warning("Currently it is only possible to connect sources having different fluids than ext grid "
+                           "junctions to others than ext grid junction. Choose slacklike if the infeed is the same as the one prvoided by the ext grid.")
+            return
+        if fluid.name in net["fluid"]:
+            logger.warning("The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
+        else:
+            net["fluid"][fluid.name] = fluid
+        vals = [name, junction, mdot_kg_per_s, fluid.name, scaling, bool(in_service), type]
+        _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    elif isinstance(fluid, str):
+        if not junction in net.ext_grid.junction and fluid != 'slacklike':
+            logger.warning("Currently it is only possible to connect sources having different fluids to ext grid "
+                           "junctions. Choose slacklike if the infeed is the same as the one prvoided by the ext grid.")
+            return
+        elif fluid in net.fluid or fluid == 'slacklike':
+            vals = [name, junction, mdot_kg_per_s, fluid, scaling, bool(in_service), type]
+            _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
+            return index
+        else:
+            if fluid in net["fluid"]:
+                logger.warning(
+                    "The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
+            else:
+                create_fluid_from_lib(net, fluid)
+            vals = [name, junction, mdot_kg_per_s, fluid, scaling, bool(in_service), type]
+            _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
+            return index
+    else:
+        logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
+                       "strings can be used." % fluid)
 
 
-def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt",
-                    **kwargs):
+def create_ext_grid(net, junction, p_bar, t_k, fluid, name=None, in_service=True, index=None, type="pt", **kwargs):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
     that it is connected to into a node with fixed value for either pressure, temperature or both
@@ -252,14 +272,32 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     _check_junction_element(net, junction)
     index = _get_index_with_check(net, "ext_grid", index, name="external grid")
 
-    cols = ["name", "junction", "p_bar", "t_k", "in_service", "type"]
-    vals = [name, junction, p_bar, t_k, bool(in_service), type]
-    _set_entries(net, "ext_grid", index, **dict(zip(cols, vals)))
+    cols = ["name", "junction", "p_bar", "t_k", "fluid", "in_service", "type"]
+
+    if isinstance(fluid, Fluid):
+        if fluid.name in net["fluid"]:
+            logger.warning("The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
+        else:
+            net["fluid"][fluid.name] = fluid
+        vals = [name, junction, p_bar, t_k, fluid.name, bool(in_service), type]
+        _set_entries(net, "ext_grid", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    elif isinstance(fluid, str):
+        if fluid in net["fluid"]:
+            logger.warning("The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
+        else:
+            create_fluid_from_lib(net, fluid)
+        vals = [name, junction, p_bar, t_k, fluid, bool(in_service), type]
+        _set_entries(net, "ext_grid", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    else:
+        logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
+                       "strings can be used." % fluid)
 
     return index
 
 
-def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, loss_coefficient=0,
+def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, fluid='water', loss_coefficient=0,
                           name=None, index=None, in_service=True, type="heat_exchanger", **kwargs):
     """
     Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
@@ -302,11 +340,24 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     index = _get_index_with_check(net, "heat_exchanger", index, "heat exchanger")
     check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
-         "in_service": bool(in_service), "type": type}
-    _set_entries(net, "heat_exchanger", index, **v, **kwargs)
+    cols = ["name", "from_junction", "to_junction", "diameter_m", "qext_w", "fluid", "loss_coefficient",
+            "in_service", "type"]
 
+    if isinstance(fluid, Fluid):
+        net["fluid"][fluid.name] = fluid
+        vals = [name, from_junction, to_junction, diameter_m, qext_w, fluid.name, loss_coefficient,
+                bool(in_service), type]
+        _set_entries(net, "heat_exchanger", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    elif isinstance(fluid, str):
+        create_fluid_from_lib(net, fluid)
+        vals = [name, from_junction, to_junction, diameter_m, qext_w, fluid, loss_coefficient,
+                bool(in_service), type]
+        _set_entries(net, "heat_exchanger", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    else:
+        logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
+                       "strings can be used." % fluid)
     return index
 
 
@@ -909,7 +960,7 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None,
+def create_sources(net, junctions, mdot_kg_per_s, fluid='slacklike', scaling=1., name=None, index=None,
                    in_service=True, type='source', **kwargs):
     """
     Convenience function for creating many sources at once. Parameter 'junctions' must be an array \
@@ -947,7 +998,7 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     _check_multiple_junction_elements(net, junctions)
     index = _get_multiple_index_with_check(net, "source", index, len(junctions))
 
-    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
+    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling, "fluid": fluid,
                "in_service": in_service, "name": name, "type": type}
     _set_multiple_entries(net, "source", index, **entries, **kwargs)
 
@@ -1215,7 +1266,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 
 
 def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
-                         in_service=True, **kwargs):
+                      in_service=True, **kwargs):
     """
     Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost ratio)
 

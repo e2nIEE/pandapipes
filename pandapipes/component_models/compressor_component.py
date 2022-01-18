@@ -2,16 +2,12 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from operator import itemgetter
-
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.pump_component import Pump
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL, PRESSURE_RATIO
+from pandapipes.idx_branch import VINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL, PRESSURE_RATIO
 from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.pipeflow_setup import get_net_option, get_fluid
 
 
 class Compressor(Pump):
@@ -68,7 +64,6 @@ class Compressor(Pump):
         pl_abs *= (v_mps >= 0)  # force pressure lift = 0 for reverse flow
 
         compressor_pit[:, PL] = pl_abs
-
 
     @classmethod
     def get_component_input(cls):

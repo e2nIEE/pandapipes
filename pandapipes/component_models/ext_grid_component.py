@@ -137,6 +137,7 @@ class ExtGrid(NodeElementComponent):
                 ("junction", "u4"),
                 ("p_bar", "f8"),
                 ("t_k", "f8"),
+                ("fluid", dtype(object)),
                 ("in_service", "bool"),
                 ('type', dtype(object))]
 

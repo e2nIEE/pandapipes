@@ -8,13 +8,13 @@ import numpy as np
 import pandapipes as pp
 
 def test_pressure_profile_to_junction_geodata():
-    net = pp.create_empty_network(fluid="lgas")
+    net = pp.create_empty_network()
     j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15)
     j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15)
     j3 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15)
     j4 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15)
 
-    pp.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15)
+    pp.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15, fluid="lgas")
     pp.create_sink(net, junction=j4, mdot_kg_per_s=0.01)
 
     pp.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2,

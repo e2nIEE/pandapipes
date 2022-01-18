@@ -118,7 +118,25 @@ class Component:
         pass
 
     @classmethod
+    def create_property_pit_node_entries(cls, net, node_pit, node_name):
+        pass
+
+    @classmethod
     def create_pit_branch_entries(cls, net, branch_pit, node_name):
+        """
+        Function which creates pit branch entries.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param node_pit:
+        :type node_pit:
+        :return: No Output.
+        """
+
+        pass
+
+    @classmethod
+    def create_property_pit_branch_entries(cls, net, branch_pit, node_name):
         """
         Function which creates pit branch entries.
 

@@ -14,8 +14,9 @@ from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
 from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
-    extract_results_active_pit, set_user_pf_options
+    extract_results_active_pit, set_user_pf_options, update_pit
 from pandapower.auxiliary import ppException
+from pandapipes.properties.fluids import get_default_fluid
 
 try:
     import pplog as logging
@@ -56,20 +57,26 @@ def pipeflow(net, sol_vec=None, **kwargs):
         >>> pipeflow(net, mode="hydraulic")
 
     """
+
     local_params = dict(locals())
 
     # Inputs & initialization of variables
     # ------------------------------------------------------------------------------------------
-
     # Init physical constants and options
     init_options(net, local_params)
 
     create_lookups(net)
     node_pit, branch_pit = initialize_pit(net, Junction.table_name())
+
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
         logger.warning("There are no node and branch entries defined. This might mean that your net"
                        " is empty")
         return
+
+    get_default_fluid(net, node_pit, branch_pit)
+
+    node_pit, branch_pit = update_pit(net, node_pit, branch_pit, Junction.table_name())
+
     calculation_mode = get_net_option(net, "mode")
 
     if get_net_option(net, "check_connectivity"):
@@ -185,7 +192,7 @@ def heat_transfer(net):
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
 
-    if net.fluid.is_gas:
+    if net['_fluid'].is_gas:
         logger.info("Caution! Temperature calculation does currently not affect hydraulic "
                     "properties!")
 

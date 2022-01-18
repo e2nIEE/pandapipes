@@ -75,8 +75,6 @@ class P2GControlMultiEnergy(Controller):
         self.name_net_gas = name_gas_net
         self.efficiency = efficiency
         self.mdot_kg_per_s = None
-        self.fluid = get_fluid(multinet['nets'][name_gas_net])
-        self.fluid_calorific_value = self.fluid.get_property('hhv')
         self.applied = False
 
     def initialize_control(self, multinet):
@@ -86,6 +84,8 @@ class P2GControlMultiEnergy(Controller):
         return [self.name_net_power, self.name_net_gas]
 
     def control_step(self, multinet):
+        self.fluid = get_fluid(multinet['nets'][self.name_net_gas])
+        self.fluid_calorific_value = self.fluid.get_property('hhv')
         try:
             power_load = multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'p_mw'] \
                          * multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'scaling']
@@ -194,8 +194,6 @@ class G2PControlMultiEnergy(Controller):
         self.name_net_gas = name_gas_net
         self.efficiency = efficiency
         self.mdot_kg_per_s = None
-        self.fluid = get_fluid(multinet['nets'][name_gas_net])
-        self.fluid_calorific_value = self.fluid.get_property('hhv')
         self.el_power_led = calc_gas_from_power
         self.applied = False
 
@@ -206,6 +204,8 @@ class G2PControlMultiEnergy(Controller):
         return [self.name_net_gas, self.name_net_power]
 
     def control_step(self, multinet):
+        self.fluid = get_fluid(multinet['nets'][self.name_net_gas])
+        self.fluid_calorific_value = self.fluid.get_property('hhv')
         if self.el_power_led:
             try:
                 power_gen = multinet['nets'][self.name_net_power][self.elm_type_power].at[
@@ -326,8 +326,6 @@ class GasToGasConversion(Controller):
         self.name_net_from = name_gas_net_from
         self.name_net_to = name_gas_net_to
         self.efficiency = efficiency
-        self.gas1_calorific_value = get_fluid(multinet['nets'][name_gas_net_from]).get_property('hhv')
-        self.gas2_calorific_value = get_fluid(multinet['nets'][name_gas_net_to]).get_property('hhv')
         self.applied = False
 
     def initialize_control(self, multinet):
@@ -337,6 +335,8 @@ class GasToGasConversion(Controller):
         return [self.name_net_from, self.name_net_to]
 
     def control_step(self, multinet):
+        self.gas1_calorific_value = get_fluid(multinet['nets'][self.name_net_from]).get_property('hhv')
+        self.gas2_calorific_value = get_fluid(multinet['nets'][self.name_net_to]).get_property('hhv')
         try:
             gas_in = multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'mdot_kg_per_s'] \
                      * multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'scaling']

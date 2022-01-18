@@ -37,7 +37,7 @@ def create_test_net():
     j6 = pandapipes.create_junction(net, 1, 293.15)
     j7 = pandapipes.create_junction(net, 1, 293.15, in_service=False)
 
-    pandapipes.create_ext_grid(net, j1, 1, 285.15, type="pt")
+    pandapipes.create_ext_grid(net, j1, 1, 285.15, type="pt", fluid='lgas')
 
     pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, 0.1, sections=1, alpha_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 0.1, 0.1, sections=2, alpha_w_per_m2k=5,
@@ -75,9 +75,9 @@ def complex_heat_connectivity_grid():
     j9 = pandapipes.create_junction(net, 1, 320.15, index=9)
     j10 = pandapipes.create_junction(net, 1, 320.15, index=10)
 
-    pandapipes.create_ext_grid(net, j1, 1, 320.15, type="p", index=5)
-    pandapipes.create_ext_grid(net, j7, 1, 320.15, type="t", index=2)
-    pandapipes.create_ext_grid(net, j10, 1, 320.15, type="pt", index=1)
+    pandapipes.create_ext_grid(net, j1, 1, 320.15, fluid="water", type="p", index=5)
+    pandapipes.create_ext_grid(net, j7, 1, 320.15, fluid="water", type="t", index=2)
+    pandapipes.create_ext_grid(net, j10, 1, 320.15, fluid="water", type="pt", index=1)
 
     pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, 0.1, alpha_w_per_m2k=5, index=3)
     pandapipes.create_pipe_from_parameters(net, j1, j3, 0.1, 0.1, alpha_w_per_m2k=5, index=4)
@@ -329,13 +329,13 @@ def test_exclude_unconnected_junction():
     :return:
     :rtype:
     """
-    net = pandapipes.create_empty_network(fluid="lgas")
+    net = pandapipes.create_empty_network()
 
     j1 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 1")
     _ = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="unconnected junction")
     j3 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 3")
 
-    pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15)
+    pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15, fluid="lgas")
     pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.045)
     pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j3, length_km=0.1,
                                            diameter_m=0.05)

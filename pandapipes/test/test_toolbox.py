@@ -13,7 +13,7 @@ from pandapipes import networks as nw
 
 
 def create_base_net(oos, additional_pumps=True):
-    net = pandapipes.create_empty_network(fluid="lgas")
+    net = pandapipes.create_empty_network()
 
     # create network elements, such as junctions, external grid, pipes, valves, sinks and sources
     junction1 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, in_service=not oos,
@@ -39,7 +39,7 @@ def create_base_net(oos, additional_pumps=True):
 
 
     pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
-                               name="Grid Connection")
+                               name="Grid Connection", fluid="lgas")
     pandapipes.create_pipe_from_parameters(net, from_junction=junction1, to_junction=junction2,
                                            length_km=10, diameter_m=0.3, name="Pipe 1",
                                            geodata=[(0, 0), (2, 0)], in_service=not oos)
@@ -77,7 +77,7 @@ def create_base_net(oos, additional_pumps=True):
 
     if oos:
         pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
-                                   name="Grid Connection", in_service=False)
+                                   name="Grid Connection", in_service=False, fluid="lgas")
         pandapipes.create_heat_exchanger(net, junction3, junction8, diameter_m=0.3, qext_w=20000,
                                          in_service=False)
         pandapipes.create_sink(net, junction=junction4, mdot_kg_per_s=0.545, name="Sink 2",

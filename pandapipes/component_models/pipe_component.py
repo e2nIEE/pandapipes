@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
     vinterp
@@ -14,7 +15,8 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
     VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, PL, TL
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
-from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
+from pandapipes.pipeflow_setup import get_lookup, get_table_number
+from pandapipes.properties.fluids import get_fluid
 
 try:
     import pplog as logging
@@ -110,9 +112,20 @@ class Pipe(BranchWInternalsComponent):
                                               junction_pit[to_junctions, TINIT_NODE],
                                               int_node_number)
         int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
-        int_node_pit[:, RHO_NODES] = get_fluid(net).get_density(int_node_pit[:, TINIT_NODE])
         int_node_pit[:, ACTIVE_ND] = \
             np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
+
+    @classmethod
+    def create_property_pit_node_entries(cls, net, node_pit, node_name):
+        table_lookup = get_lookup(net, "node", "table")
+        table_nr = get_table_number(table_lookup, cls.internal_node_name())
+        if table_nr is None:
+            return
+        ft_lookup = get_lookup(net, "node", "from_to")
+        f, t = ft_lookup[cls.internal_node_name()]
+
+        junction_pit = node_pit[f:t, :]
+        junction_pit[:, RHO_NODES] = get_fluid(net).get_density(junction_pit[:, TINIT_NODE])
 
     @classmethod
     def create_pit_branch_entries(cls, net, pipe_pit, node_name):
@@ -239,7 +252,7 @@ class Pipe(BranchWInternalsComponent):
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
                                   / (p_from * NORMAL_TEMPERATURE)
                 normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                                  / (p_to * NORMAL_TEMPERATURE)
+                                / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean
                 v_pipe_data_from = v_pipe_data * normfactor_from

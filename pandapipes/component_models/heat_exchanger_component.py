@@ -7,7 +7,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.idx_branch import PL, TL, ALPHA, \
     TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
-from pandapipes.pipeflow_setup import get_fluid
+from pandapipes.properties.fluids import get_fluid
 
 try:
     import pplog as logging
@@ -96,6 +96,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
                 ("to_junction", "u4"),
                 ("diameter_m", "f8"),
                 ("qext_w", 'f8'),
+                ("fluid", dtype(object)),
                 ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]

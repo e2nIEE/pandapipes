@@ -6,13 +6,14 @@ from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
+from networkx import has_path
+
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.pandapipes_net import pandapipesNet
+from pandapipes.topology import create_nxgraph
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
-from pandapipes.topology import create_nxgraph
-from networkx import has_path
 
 try:
     import pplog as logging

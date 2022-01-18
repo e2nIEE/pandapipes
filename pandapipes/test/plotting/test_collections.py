@@ -26,7 +26,7 @@ def test_collection_lengths():
     j8 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(10, 0))
     j9 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(12, 0))
 
-    pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=293.15)
+    pandapipes.create_ext_grid(net, j1, p_bar=5, fluid="lgas", t_k=293.15)
     pandapipes.create_sink(net, j5, mdot_kg_per_s=0.5)
     pandapipes.create_sink(net, j6, mdot_kg_per_s=0.5)
     pandapipes.create_sink(net, j8, mdot_kg_per_s=0.5)

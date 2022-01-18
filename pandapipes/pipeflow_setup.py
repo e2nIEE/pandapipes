@@ -6,13 +6,13 @@ import copy
 import inspect
 
 import numpy as np
-from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, branch_cols, \
     ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, \
     ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, PC
-from pandapipes.properties.fluids import get_fluid
+from scipy.sparse import coo_matrix, csgraph
+
 
 try:
     import pplog as logging
@@ -261,7 +261,6 @@ def init_options(net, local_parameters):
     # the base layer of the options consists of the default options
     net["_options"] = copy.deepcopy(default_options)
     excluded_params = {"net", "interactive_plotting", "t_start", "sol_vec", "kwargs"}
-
     # the base layer is overwritten and extended by options given by the default parameters of the
     # pipeflow function definition
     args_pf = inspect.getfullargspec(pipeflow)
@@ -283,7 +282,6 @@ def init_options(net, local_parameters):
         params[k] = v
     params.update(local_parameters["kwargs"])
     net["_options"].update(params)
-    net["_options"]["fluid"] = get_fluid(net).name
     if not net["_options"]["only_update_hydraulic_matrix"]:
         net["_options"]["reuse_internal_data"] = False
 
@@ -334,6 +332,11 @@ def initialize_pit(net, node_name):
         comp.create_pit_branch_entries(net, pit["branch"], node_name)
     return pit["node"], pit["branch"]
 
+def update_pit(net, node_pit, branch_pit, node_name):
+    for comp in net['component_list']:
+        comp.create_property_pit_node_entries(net, node_pit, node_name)
+        comp.create_property_pit_branch_entries(net, branch_pit, node_name)
+    return net["_pit"]['node'], net["_pit"]['branch']
 
 def create_empty_pit(net):
     """
@@ -473,27 +476,11 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
 
 def perform_connectivity_search(net, node_pit, slack_nodes, from_nodes, to_nodes,
                                 active_node_lookup, active_branch_lookup, mode="hydraulics"):
-    len_nodes = len(node_pit)
-    nobranch = np.sum(active_branch_lookup)
     active_from_nodes = from_nodes[active_branch_lookup]
     active_to_nodes = to_nodes[active_branch_lookup]
 
-    # we create a "virtual" node that is connected to all slack nodes and start the connectivity
-    # search at this node
-    fn_matrix = np.concatenate([active_from_nodes, slack_nodes])
-    tn_matrix = np.concatenate([active_to_nodes,
-                                np.full(len(slack_nodes), len_nodes, dtype=np.int32)])
-
-    adj_matrix = coo_matrix((np.ones(nobranch + len(slack_nodes)), (fn_matrix, tn_matrix)),
-                            shape=(len_nodes + 1, len_nodes + 1))
-
-    # check which nodes are reachable from the virtual heat slack node
-    reachable_nodes = csgraph.breadth_first_order(adj_matrix, len_nodes, False, False)
-    # throw out the virtual heat slack node
-    reachable_nodes = reachable_nodes[reachable_nodes != len_nodes]
-
-    nodes_connected = np.zeros(len(active_node_lookup), dtype=np.bool)
-    nodes_connected[reachable_nodes] = True
+    nodes_connected = get_connected_nodes(node_pit, slack_nodes,
+                                          active_from_nodes, active_to_nodes, active_node_lookup, active_branch_lookup)
 
     if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
         raise ValueError(
@@ -655,3 +642,27 @@ def extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branc
             net["_active_pit"]["branch"][:, cols_br]
     else:
         net["_pit"]["branch"] = np.copy(net["_active_pit"]["branch"])
+
+
+def get_connected_nodes(node_pit, slack_nodes,
+                        active_from_nodes, active_to_nodes, active_node_lookup, active_branch_lookup):
+    len_nodes = len(node_pit)
+    nobranch = np.sum(active_branch_lookup)
+
+    # we create a "virtual" node that is connected to all slack nodes and start the connectivity
+    # search at this node
+
+    fn_matrix = np.concatenate([active_from_nodes, slack_nodes])
+    tn_matrix = np.concatenate([active_to_nodes,
+                                np.full(len(slack_nodes), len_nodes, dtype=np.int32)])
+    adj_matrix = coo_matrix((np.ones(nobranch + len(slack_nodes)), (fn_matrix, tn_matrix)),
+                            shape=(len_nodes + 1, len_nodes + 1))
+
+    # check which nodes are reachable from the virtual heat slack node
+    reachable_nodes = csgraph.breadth_first_order(adj_matrix, len_nodes, False, False)
+    # throw out the virtual heat slack node
+    reachable_nodes = reachable_nodes[reachable_nodes != len_nodes]
+
+    nodes_connected = np.zeros(len(active_node_lookup), dtype=np.bool)
+    nodes_connected[reachable_nodes] = True
+    return nodes_connected

@@ -174,14 +174,19 @@ class BranchWInternalsComponent(BranchComponent):
         branch_winternals_pit[:, TO_NODE] = to_nodes
         branch_winternals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
             to_nodes, TINIT_NODE]) / 2
-        fluid = get_fluid(net)
-        branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
         branch_winternals_pit[:, ACTIVE] = \
             np.repeat(net[cls.table_name()][cls.active_identifier()].values, internal_pipe_number)
 
         return branch_winternals_pit, internal_pipe_number
+
+    @classmethod
+    def create_property_pit_branch_entries(cls, net, branch_pit, node_name):
+        fluid = get_fluid(net)
+        f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+        branch_winternals_pit = branch_pit[f:t, :]
+        branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
+        branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
+        branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
 
     @classmethod
     def extract_results(cls, net, options, node_name):

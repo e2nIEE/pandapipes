@@ -17,7 +17,7 @@ from pandapipes.toolbox import nets_equal
 def load_net():
     # create test network
 
-    net = pandapipes.create_empty_network("test_net", fluid="lgas")
+    net = pandapipes.create_empty_network("test_net")
     j1 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15,
                                     name="Connection to External Grid", geodata=(0, 0))
     j2 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 2",
@@ -31,7 +31,7 @@ def load_net():
     j6 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 6",
                                     geodata=(5, -3))
 
-    pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
+    pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15, fluid='lgas', name="Grid Connection")
 
     pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=10,
                                            diameter_m=0.05, name="Pipe 1", geodata=[(0, 0), (2, 0)])

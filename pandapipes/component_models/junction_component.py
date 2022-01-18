@@ -85,9 +85,16 @@ class Junction(NodeComponent):
         junction_pit[:, HEIGHT] = junctions.height_m.values
         junction_pit[:, PINIT] = junctions.pn_bar.values
         junction_pit[:, TINIT] = junctions.tfluid_k.values
-        junction_pit[:, RHO] = get_fluid(net).get_density(junction_pit[:, TINIT])
         junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
         junction_pit[:, ACTIVE_ND] = junctions.in_service.values
+
+    @classmethod
+    def create_property_pit_node_entries(cls, net, node_pit, node_name):
+        ft_lookup = get_lookup(net, "node", "from_to")
+        f, t = ft_lookup[cls.table_name()]
+
+        junction_pit = node_pit[f:t, :]
+        junction_pit[:, RHO] = get_fluid(net).get_density(junction_pit[:, TINIT])
 
     @classmethod
     def extract_results(cls, net, options, node_name):

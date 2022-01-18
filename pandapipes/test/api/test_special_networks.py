@@ -7,7 +7,8 @@ import copy
 import numpy as np
 import pandapipes as pp
 import pytest
-from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source
+from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source, \
+    create_pipe_from_parameters
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 
 
@@ -18,18 +19,18 @@ def test_one_node_net():
     :rtype:
     """
 
-    net = create_empty_network(fluid='water')
+    net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    create_ext_grid(net, j, 1, 298.15, fluid='water')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     pp.pipeflow(net)
 
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
-    net = create_empty_network(fluid='lgas')
+    net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     pp.pipeflow(net)
@@ -44,26 +45,26 @@ def test_two_node_net():
     :rtype:
     """
 
-    net = create_empty_network(fluid='water')
+    net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    create_ext_grid(net, j, 1, 298.15, fluid='water')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    create_ext_grid(net, j, 1, 298.15, fluid='water')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     pp.pipeflow(net)
 
     assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, np.zeros((2, 1))))
 
-    net = create_empty_network(fluid='lgas')
+    net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     pp.pipeflow(net)
@@ -85,7 +86,8 @@ def test_random_net_and_one_node_net(create_test_net):
     pp.create_fluid_from_lib(net, "water")
 
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    net.ext_grid.fluid = 'water'
+    create_ext_grid(net, j, 1, 298.15, fluid='water')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     pp.pipeflow(net)
@@ -95,7 +97,8 @@ def test_random_net_and_one_node_net(create_test_net):
     pp.create_fluid_from_lib(net, "lgas")
 
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15)
+    net.ext_grid.fluid = 'lgas'
+    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
     pp.pipeflow(net)

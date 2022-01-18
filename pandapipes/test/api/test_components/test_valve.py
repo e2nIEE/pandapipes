@@ -26,7 +26,7 @@ def test_valve():
     j6 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=4)
     j7 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=8)
 
-    pandapipes.create_ext_grid(net, j0, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j0, 5, 283.15, fluid='lgas', type="p")
 
     pandapipes.create_pipe_from_parameters(net, j0, j1, diameter_m=.1, k=0.1, length_km=1.)
     pandapipes.create_pipe_from_parameters(net, j3, j4, diameter_m=.1, k=0.1, length_km=.5)

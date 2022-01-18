@@ -15,7 +15,7 @@ def create_empty_net():
 
 
 def test_create_network():
-    net = pandapipes.create_empty_network(fluid=3)
+    net = pandapipes.create_empty_network()
     with pytest.raises(AttributeError):
         pandapipes.get_fluid(net)
 
@@ -75,7 +75,7 @@ def test_create_ext_grid(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     pandapipes.create_junction(net, 1, 293, index=8)
     pandapipes.create_junction(net, 1, 293, index=9)
-    pandapipes.create_ext_grid(net, 9, p_bar=1, t_k=295, index=2)
+    pandapipes.create_ext_grid(net, 9, p_bar=1, t_k=295, index=2, fluid='lgas')
 
     assert len(net.junction) == 2
     assert len(net.ext_grid) == 1
@@ -85,9 +85,9 @@ def test_create_ext_grid(create_empty_net):
     assert net.ext_grid.at[2, "t_k"] == 295
 
     with pytest.raises(UserWarning):
-        pandapipes.create_ext_grid(net, junction=10, p_bar=1, t_k=295)
+        pandapipes.create_ext_grid(net, junction=10, p_bar=1, t_k=295, fluid='hgas')
     with pytest.raises(UserWarning):
-        pandapipes.create_ext_grid(net, junction=9, p_bar=1, t_k=295, index=2)
+        pandapipes.create_ext_grid(net, junction=9, p_bar=1, t_k=295, index=2, fluid='hgas')
 
 
 def test_create_heat_exchanger(create_empty_net):
@@ -134,7 +134,7 @@ def test_create_pipe(create_empty_net):
     with pytest.raises(UserWarning):
         pandapipes.create_pipe(net, 8, 9, "blah", 0.3)
 
-    net2 = pandapipes.create_empty_network(fluid="hgas", add_stdtypes=False)
+    net2 = pandapipes.create_empty_network(add_stdtypes=False)
     pandapipes.create_junction(net2, 1, 293, index=8, geodata=(0, 1))
     pandapipes.create_junction(net2, 1, 293, index=9, geodata=(2, 2))
     with pytest.raises(UserWarning):
@@ -210,7 +210,7 @@ def test_create_pump(create_empty_net):
     with pytest.raises(ValueError):
         pandapipes.create_pump(net, 8, 9, "P1", geodata=[(0, 1), (1, 1), (2, 2)])
 
-    net2 = pandapipes.create_empty_network(fluid="hgas", add_stdtypes=False)
+    net2 = pandapipes.create_empty_network(add_stdtypes=False)
     pandapipes.create_junction(net2, 1, 293, index=8, geodata=(0, 1))
     pandapipes.create_junction(net2, 1, 293, index=9, geodata=(2, 2))
     with pytest.raises(UserWarning):

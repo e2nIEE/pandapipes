@@ -9,7 +9,10 @@ import pandas as pd
 from scipy.interpolate import interp1d
 
 from pandapipes import pp_dir
+from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE
+from pandapipes.idx_node import ACTIVE as ACTIVE_ND, NODE_TYPE, P, PC, LOAD
 from pandapower.io_utils import JSONSerializableClass
+from pandapipes.pipeflow_setup import get_connected_nodes
 
 try:
     import pplog as logging
@@ -254,8 +257,7 @@ class FluidPropertyInterExtra(FluidProperty):
 
         """
         mean = (self.prop_getter(upper_limit_arg) + self.prop_getter(upper_limit_arg)) / 2
-        return mean * (upper_limit_arg-lower_limit_arg)
-
+        return mean * (upper_limit_arg - lower_limit_arg)
 
     @classmethod
     def from_path(cls, path, method="interpolate_extrapolate"):
@@ -519,7 +521,7 @@ class FluidPropertyPolynominal(FluidProperty):
         return cls(values[:, 0], values[:, 1], polynominal_degree)
 
 
-def create_constant_property(net, property_name, value, overwrite=True, warn_on_duplicates=True):
+def create_constant_property(net, fluid_name, property_name, value, overwrite=True, warn_on_duplicates=True):
     """
     Creates a property with a constant value.
 
@@ -536,12 +538,12 @@ def create_constant_property(net, property_name, value, overwrite=True, warn_on_
     :type warn_on_duplicates: basestring
     """
     prop = FluidPropertyConstant(value)
-    get_fluid(net).add_property(property_name, prop, overwrite=overwrite,
+    net.fluid[fluid_name].add_property(property_name, prop, overwrite=overwrite,
                                 warn_on_duplicates=warn_on_duplicates)
     return prop
 
 
-def create_linear_property(net, property_name, slope, offset, overwrite=True,
+def create_linear_property(net, fluid_name, property_name, slope, offset, overwrite=True,
                            warn_on_duplicates=True):
     """
     Creates a property with a linear correlation.
@@ -561,7 +563,7 @@ def create_linear_property(net, property_name, slope, offset, overwrite=True,
     :type warn_on_duplicates: basestring
     """
     prop = FluidPropertyLinear(slope, offset)
-    get_fluid(net).add_property(property_name, prop, overwrite=overwrite,
+    net.fluid[fluid_name].add_property(property_name, prop, overwrite=overwrite,
                                 warn_on_duplicates=warn_on_duplicates)
     return prop
 
@@ -648,12 +650,41 @@ def get_fluid(net):
     :return: Fluid - Name of the fluid which is used in the current network
     :rtype: Fluid
     """
-    if "fluid" not in net or net["fluid"] is None:
+    if "_fluid" not in net or net["_fluid"] is None:
         raise AttributeError("There is no fluid defined for the given net!")
-    fluid = net["fluid"]
+    fluid = net["_fluid"]
     if not isinstance(fluid, Fluid):
         logger.warning("The fluid in this net is not of the pandapipes Fluid type. This could lead"
                        " to errors, as some components might depend on this structure")
+    return fluid
+
+
+def get_default_fluid(net, node_pit, branch_pit):
+    fluids = []
+    for comp in net.component_list:
+        fluids += [net[comp.table_name()].fluid.values if 'fluid' in net[comp.table_name()] else []]
+    fluids = np.concatenate(fluids)
+    uni = np.unique(fluids[fluids != 'slacklike'])
+    if len(uni) == 1:
+        fluid = fluids[0]
+    else:
+        nodes_connected = []
+        active_branch_lookup = branch_pit[:, ACTIVE_BR].astype(np.bool)
+        active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
+        from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+        hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
+                              & active_node_lookup)[0]
+        active_from_nodes = from_nodes[active_branch_lookup]
+        active_to_nodes = to_nodes[active_branch_lookup]
+        for s in hyd_slacks:
+            nodes_connected += [get_connected_nodes(node_pit, [s],
+                                                    active_from_nodes, active_to_nodes, active_node_lookup,
+                                                    active_branch_lookup)]
+        node_pit[active_node_lookup][:, LOAD]
+        fluid = fluids[0]
+
+    net['_fluid'] = net.fluid[fluid]
     return fluid
 
 
@@ -671,11 +702,9 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
     :return: No output.
     :type: None
     """
-    if "fluid" in net and net["fluid"] is not None and not overwrite:
-        fluid_msg = "an existing fluid" if not hasattr(net["fluid"], "name") \
-            else "the fluid %s" % net["fluid"].name
-        logger.warning("The fluid %s would replace %s and thus cannot be created. Try to set "
-                       "overwrite to True" % (fluid.name, fluid_msg))
+    if "fluid" in net and fluid.name in net["fluid"] and not overwrite:
+        logger.warning("The fluid %s would replace the exisiting fluid with the same name and thus cannot be created. "
+                       "Try to set overwrite to True" % (fluid.name))
         return
 
     if isinstance(fluid, str):
@@ -683,4 +712,4 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
                        "argument. Internally, it will be passed to call_lib(fluid) to get the "
                        "respective pandapipes.Fluid." % fluid)
         fluid = call_lib(fluid)
-    net["fluid"] = fluid
+    net["fluid"][fluid.name] = fluid

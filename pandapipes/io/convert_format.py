@@ -22,11 +22,23 @@ def convert_format(net):
     add_default_components(net, overwrite=False)
     if isinstance(net.version, str) and version.parse(net.version) >= version.parse(__version__):
         return net
+    if version.parse(net.version) <= version.parse('0.5.0'):
+        _fluid_dictonary(net)
     _rename_columns(net)
     _add_missing_columns(net)
     net.version = __version__
     return net
 
+
+def _fluid_dictonary(net):
+    fluid = net.fluid
+    net.fluid = {}
+    net.fluid[fluid.name] = fluid
+    net.ext_grid.insert(4, 'fluid', fluid.name)
+    if 'source' in net:
+        net.source.insert(3, 'fluid', fluid.name)
+    if 'heat_exchanger' in net:
+        net.heat_exchanger.insert(5, 'fluid', fluid.name)
 
 def _rename_columns(net):
     if "controller" in net:

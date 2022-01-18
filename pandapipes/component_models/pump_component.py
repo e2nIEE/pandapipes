@@ -12,7 +12,8 @@ from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSA
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
     LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
 from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.pipeflow_setup import get_fluid, get_net_option
+from pandapipes.pipeflow_setup import get_net_option
+from pandapipes.properties.fluids import get_fluid
 
 
 class Pump(BranchWZeroLengthComponent):
@@ -125,10 +126,10 @@ class Pump(BranchWZeroLengthComponent):
             t0 = node_pit[from_nodes, TINIT_NODE]
             vf_sum_int = res_table["vdot_norm_m3_per_s"].values[placement_table]
             mf_sum_int = res_table["mdot_from_kg_per_s"].values[placement_table]
-            if net.fluid.is_gas:
+            if net._fluid.is_gas:
                 # calculate ideal compression power
                 compr = get_fluid(net).get_property("compressibility", p_from)
-                molar_mass = net.fluid.get_molar_mass()  # [g/mol]
+                molar_mass = get_fluid(net).get_molar_mass()  # [g/mol]
                 R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                 # 'kappa' heat capacity ratio:
                 k = 1.4  # TODO: implement proper calculation of kappa

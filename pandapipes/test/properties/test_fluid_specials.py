@@ -18,37 +18,40 @@ def test_add_fluid():
     fluid_new = pandapipes.create_constant_fluid("arbitrary_gas2", "gas", density=2,
                                                  compressibility=2)
     _add_fluid_to_net(net, fluid_new, overwrite=False)
-    assert pandapipes.get_fluid(net) == fluid_old
+    assert fluid_old.name in net.fluid
 
     _add_fluid_to_net(net, fluid_new)
-    assert pandapipes.get_fluid(net) == fluid_new
+    assert fluid_new.name in net.fluid
 
-    net["fluid"] = "Hello"
+    net["fluid"]['hello'] = "Hello"
 
     _add_fluid_to_net(net, fluid_new, overwrite=False)
-    assert pandapipes.get_fluid(net) == "Hello"
+    assert "hello" in net["fluid"]
+    assert "Hello" == net["fluid"]["hello"]
 
-    _add_fluid_to_net(net, fluid_new)
-    assert pandapipes.get_fluid(net) == fluid_new
+    #_add_fluid_to_net(net, fluid_new)
+    #assert pandapipes.get_fluid(net) == fluid_new
 
 
 def test_property_adaptation():
-    net = pandapipes.create_empty_network(fluid="hgas")
-    fluid = pandapipes.get_fluid(net)
+    net = pandapipes.create_empty_network()
+    _add_fluid_to_net(net, pandapipes.call_lib("hgas"))
+    fluid = net.fluid['hgas']
 
     density_old = fluid.all_properties["density"]
-    pandapipes.create_constant_property(net, "density", 1, overwrite=False)
-    assert pandapipes.get_fluid(net).all_properties["density"] == density_old
+    pandapipes.create_constant_property(net, "hgas", "density", 1, overwrite=False)
+    assert fluid.all_properties["density"] == density_old
 
-    pandapipes.create_constant_property(net, "density", 1, overwrite=True, warn_on_duplicates=False)
-    density_new = pandapipes.create_constant_property(net, "density", 1, overwrite=False)
-    assert pandapipes.get_fluid(net).all_properties["density"].equals(density_new)
-    assert pandapipes.get_fluid(net).all_properties["density"] != density_new
+    pandapipes.create_constant_property(net, "hgas", "density", 1, overwrite=True, warn_on_duplicates=False)
+    density_new = pandapipes.create_constant_property(net, "hgas", "density", 1, overwrite=False)
+    assert fluid.all_properties["density"].equals(density_new)
+    assert fluid.all_properties["density"] != density_new
 
 
 def test_fluid_exceptions():
-    net = pandapipes.create_empty_network(fluid="hgas")
-    fluid = pandapipes.get_fluid(net)
+    net = pandapipes.create_empty_network()
+    _add_fluid_to_net(net, pandapipes.call_lib("hgas"))
+    fluid = net.fluid['hgas']
 
     with pytest.raises(UserWarning, match="property xyz was not defined for the fluid"):
         fluid.get_property("xyz", 100)

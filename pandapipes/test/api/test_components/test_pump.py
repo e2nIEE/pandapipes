@@ -26,7 +26,7 @@ def test_pump_from_measurement_parameteres():
                                            diameter_m=0.1022)
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370,
                                            diameter_m=0.1022)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid='lgas', type="p")
     pandapipes.create_pump_from_parameters(net, j2, j3, 'P1', [6.1, 5.8, 4], [0, 19, 83], 2)
     pandapipes.create_sink(net, j4, 0.02333)
 
@@ -66,7 +66,7 @@ def test_pump_from_regression_parameteres():
                                            diameter_m=0.1022)
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370,
                                            diameter_m=0.1022)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid='lgas', type="p")
     pandapipes.create_pump_from_parameters(net, j2, j3, 'P1',
                                            poly_coefficents=[-1.48620799e-04, -1.29656785e-02,
                                                              6.10000000e+00])
@@ -106,7 +106,7 @@ def test_pump_from_std_type():
 
     pandapipes.create_pipe(net, j1, j2, std_type='125_PE_80_SDR_11', k_mm=1., length_km=0.43380)
     pandapipes.create_pipe(net, j3, j4, std_type='125_PE_80_SDR_11', k_mm=1., length_km=0.26370)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid='lgas', type="p")
     pandapipes.create_pump(net, j2, j3, std_type='P1')
     pandapipes.create_sink(net, j4, 0.02333)
 
@@ -143,7 +143,7 @@ def test_pump_bypass_on_reverse_flow():
 
     pandapipes.create_pipe(net, j1, j2, std_type='125_PE_80_SDR_11', k_mm=1., length_km=10)
     pandapipes.create_pipe(net, j3, j4, std_type='125_PE_80_SDR_11', k_mm=1., length_km=12)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid='hgas', type="p")
     pandapipes.create_pump(net, j2, j3, std_type='P1')
     pandapipes.create_source(net, j4, 0.02333)
 
@@ -171,7 +171,7 @@ def test_pump_bypass_high_vdot():
 
     pandapipes.create_pipe(net, j1, j2, std_type='2000_ST<16', k_mm=0.1, length_km=0.1)
     pandapipes.create_pipe(net, j3, j4, std_type='2000_ST<16', k_mm=0.1, length_km=0.1)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid='hgas', type="p")
     pandapipes.create_pump(net, j2, j3, std_type='P1')
     pandapipes.create_sink(net, j4, 1000)
 

@@ -50,8 +50,13 @@ class pandapipesNet(ADict):
             for tb in res:
                 r += "\n   - %s (%s elements)" % (tb, len(self[tb]))
         r += "."
-        if "fluid" in self and self["fluid"] is not None:
-            r += "\nIt contains the following fluid: \n%s" % self["fluid"]
+        if "fluid" in self and self["fluid"] and bool(self["fluid"]):
+            r += "\nIt contains the following fluids: "
+            try:
+                for key in self["fluid"].keys():
+                     r += "\n%s" % self["fluid"][key]
+            except:
+                r += "\n%s" % self["fluid"]
         else:
             r += "\nIt does not contain any defined fluid"
         if "component_list" in self:
@@ -63,7 +68,7 @@ class pandapipesNet(ADict):
 
 def get_basic_net_entries():
     return {
-        "fluid": None,
+        "fluid": {},
         "converged": False,
         "name": "",
         "version": __version__,
