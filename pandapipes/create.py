@@ -9,6 +9,7 @@ from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtG
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
     Compressor
 from pandapipes.component_models.component_toolbox import add_new_component
+from pandapipes.component_models.flow_control_component import FlowControlComponent
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
@@ -790,8 +791,9 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
                             'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
 
-    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature settings '
-                'at the junctions are kept. Therefore, energy is induced to meet these constraints.')
+    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature '
+                'settings at the junctions are kept. Therefore, energy is induced to meet these '
+                'constraints.')
 
     add_new_component(net, PressureControlComponent)
 
@@ -805,6 +807,25 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
                  control_active=bool(control_active), loss_coefficient=loss_coefficient,
                  controlled_p_bar=controlled_p_bar, in_service=bool(in_service), type=type,
                  **kwargs)
+
+    return index
+
+
+def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_s, diameter_m,
+                        control_active=True, name=None, index=None, in_service=True, type="fc",
+                        **kwargs):
+
+    add_new_component(net, FlowControlComponent)
+
+    index = _get_index_with_check(net, "flow_control", index)
+
+    # check if junctions exist to attach the pump to
+    check_branch(net, "FlowControl", index, from_junction, to_junction)
+
+    _set_entries(net, "flow_control", index, name=name, from_junction=from_junction,
+                 to_junction=to_junction, controlled_mdot_kg_per_s=controlled_mdot_kg_per_s,
+                 diameter_m=diameter_m, control_active=bool(control_active),
+                 in_service=bool(in_service), type=type, **kwargs)
 
     return index
 

@@ -5,21 +5,21 @@
 import numpy as np
 from numpy import dtype
 
+from pandapipes.component_models.component_toolbox import calculate_branch_results
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
-from pandapipes.idx_branch import D, AREA, PL, TL, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, LOSS_COEFFICIENT as LC
-from pandapipes.idx_node import PINIT, NODE_TYPE, PC
-from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
+    RHO, LOAD_VEC_BRANCHES
+from pandapipes.pf.pipeflow_setup import get_net_option
 
 
-class PressureControlComponent(BranchWZeroLengthComponent):
+class FlowControlComponent(BranchWZeroLengthComponent):
     """
 
     """
 
     @classmethod
     def table_name(cls):
-        return "press_control"
+        return "flow_control"
 
     @classmethod
     def active_identifier(cls):
@@ -30,33 +30,22 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         return "from_junction", "to_junction"
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
-        pcs = net[cls.table_name()]
-        controlled = pcs.in_service & pcs.control_active
-        juncts = pcs['controlled_junction'].values[controlled]
-        press = pcs['controlled_p_bar'].values[controlled]
-        junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
-        index_pc = junction_idx_lookups[juncts]
-        node_pit[index_pc, NODE_TYPE] = PC
-        node_pit[index_pc, PINIT] = press
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, pc_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit, node_name):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pc_pit:
-        :type pc_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_name:
         :type node_name:
         :return: No Output.
         """
-        pc_pit = super().create_pit_branch_entries(net, pc_pit, node_name)
-        pc_pit[:, D] = 0.1
-        pc_pit[:, AREA] = pc_pit[:, D] ** 2 * np.pi / 4
-        pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC
-        pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
+        fc_pit = super().create_pit_branch_entries(net, branch_pit, node_name)
+        fc_pit[:, D] = net[cls.table_name()].diameter_m.values
+        fc_pit[:, AREA] = fc_pit[:, D] ** 2 * np.pi / 4
+        fc_pit[:, VINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values / \
+                           (fc_pit[:, AREA] * fc_pit[:, RHO])
 
     @classmethod
     def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -64,13 +53,14 @@ class PressureControlComponent(BranchWZeroLengthComponent):
 
     @classmethod
     def adaption_after_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
-        # set all PC branches to derivatives to 0
+        # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
+        # of velocity is allowed during the pipeflow iteration
         f, t = idx_lookups[cls.table_name()]
-        press_pit = branch_pit[f:t, :]
-        pc_branch = press_pit[:, BRANCH_TYPE] == PC
-        press_pit[pc_branch, JAC_DERIV_DP] = 0
-        press_pit[pc_branch, JAC_DERIV_DP1] = 0
-        press_pit[pc_branch, JAC_DERIV_DV] = 0
+        fc_pit = branch_pit[f:t, :]
+        fc_pit[:, JAC_DERIV_DP] = 0
+        fc_pit[:, JAC_DERIV_DP1] = 0
+        fc_pit[:, JAC_DERIV_DV] = 1
+        fc_pit[:, LOAD_VEC_BRANCHES] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, pc_pit, node_pit):
@@ -101,21 +91,14 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
 
-        placement_table, res_table, pc_pit, node_pit = super().extract_results(net, options,
+        placement_table, res_table, fc_pit, node_pit = super().extract_results(net, options,
                                                                                node_name)
+        fluid = get_fluid(net)
+        use_numba = get_net_option(net, "use_numba")
 
-        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
-        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
-        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["from_junction"].values[placement_table]]]
-        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["to_junction"].values[placement_table]]]
+        calculate_branch_results(res_table, fc_pit, node_pit, placement_table, fluid, use_numba)
 
-        p_to = node_pit[to_junction_nodes, PINIT]
-        p_from = node_pit[from_junction_nodes, PINIT]
-        res_table['deltap_bar'].values[placement_table] = p_to - p_from
-
-        return placement_table, res_table, pc_pit
+        return placement_table, res_table, fc_pit
 
     @classmethod
     def get_component_input(cls):
@@ -129,10 +112,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
-                ("controlled_junction", "u4"),
-                ("controlled_p_bar", "f8"),
+                ("controlled_mdot_kg_per_s", "f8"),
+                ("diameter_m", "f8"),
                 ("control_active", "bool"),
-                ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
@@ -149,11 +131,12 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "p_from_bar", "p_to_bar",
+            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
+                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "normfactor_to"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
-        output += ["deltap_bar"]
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                      "lambda"]
         return output, True
