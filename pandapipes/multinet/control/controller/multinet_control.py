@@ -115,7 +115,7 @@ class P2GControlMultiEnergy(Controller):
                 = self.mdot_kg_per_s
         except (ValueError, TypeError, InvalidIndexError):
             multinet['nets'][self.name_net_gas].source.loc[self.elm_idx_gas,
-                                                           'mdot_kg_per_s'].values[:] = self.mdot_kg_per_s
+                                                           'mdot_kg_per_s'] = self.mdot_kg_per_s
 
     def is_converged(self, multinet):
         return self.applied
@@ -371,7 +371,7 @@ class GasToGasConversion(Controller):
                 = self.mdot_kg_per_s_out
         except (ValueError, TypeError, InvalidIndexError):
             multinet['nets'][self.name_net_to].source.loc[self.element_index_to,
-                                                          'mdot_kg_per_s'].values[:] = self.mdot_kg_per_s_out
+                                                          'mdot_kg_per_s'] = self.mdot_kg_per_s_out
 
     def is_converged(self, multinet):
         return self.applied
