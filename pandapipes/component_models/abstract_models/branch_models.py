@@ -2,22 +2,17 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from operator import itemgetter
+
 import numpy as np
 
 from pandapipes.component_models.abstract_models import Component
 from pandapipes.component_models.auxiliaries.derivative_toolbox import calc_der_lambda, calc_lambda
 from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
     P_CONVERSION
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, RHO, ETA, \
-    VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, branch_cols, \
-    T_OUT, CP, VINIT_T, FROM_NODE_T, PL, TL, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, \
-    JAC_DERIV_DV_NODE, \
-    LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T, ELEMENT_IDX
-from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
 from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
 from pandapipes.pipeflow_setup import get_table_number, get_lookup
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import is_fluid_gas, get_density, get_compressibility
 
 try:
     import pplog as logging
@@ -93,8 +88,8 @@ class BranchComponent(Component):
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
         from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
         to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
-        branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
-        branch_component_pit[:, VINIT] = 0.1
+        branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (net['_idx_branch']['branch_cols'] - 1))
+        branch_component_pit[:, net['_idx_branch']['VINIT']] = 0.1
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
     @classmethod
@@ -118,52 +113,54 @@ class BranchComponent(Component):
         branch_component_pit = branch_pit[f:t, :]
         if branch_component_pit.size == 0:
             return
-        fluid = get_fluid(net)
-        gas_mode = fluid.is_gas
+        gas_mode = is_fluid_gas(net)
         friction_model = options["friction_model"]
         g_const = GRAVITATION_CONSTANT
 
-        rho = branch_component_pit[:, RHO]
-        eta = branch_component_pit[:, ETA]
-        d = branch_component_pit[:, D]
-        k = branch_component_pit[:, K]
-        length = branch_component_pit[:, LENGTH]
-        from_nodes = branch_component_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = branch_component_pit[:, TO_NODE].astype(np.int32)
-        loss_coef = branch_component_pit[:, LC]
-        t_init = (node_pit[from_nodes, TINIT_NODE] + node_pit[to_nodes, TINIT_NODE]) / 2
-        branch_component_pit[:, TINIT] = t_init
-        v_init = branch_component_pit[:, VINIT]
+        rho = branch_component_pit[:, net['_idx_branch']['RHO']]
+        eta = branch_component_pit[:, net['_idx_branch']['ETA']]
+        d = branch_component_pit[:, net['_idx_branch']['D']]
+        k = branch_component_pit[:, net['_idx_branch']['K']]
+        length = branch_component_pit[:, net['_idx_branch']['LENGTH']]
+        from_nodes = branch_component_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+        to_nodes = branch_component_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
+        loss_coef = branch_component_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']]
+        t_init = (node_pit[from_nodes, net['_idx_node']['TINIT']] + node_pit[
+            to_nodes, net['_idx_node']['TINIT']]) / 2
+        branch_component_pit[:, net['_idx_branch']['TINIT']] = t_init
+        v_init = branch_component_pit[:, net['_idx_branch']['VINIT']]
 
-        p_init_i = node_pit[from_nodes, PINIT]
-        p_init_i1 = node_pit[to_nodes, PINIT]
-        p_init_i_abs = p_init_i + node_pit[from_nodes, PAMB]
-        p_init_i1_abs = p_init_i1 + node_pit[to_nodes, PAMB]
+        p_init_i = node_pit[from_nodes, net['_idx_node']['PINIT']]
+        p_init_i1 = node_pit[to_nodes, net['_idx_node']['PINIT']]
+        p_init_i_abs = p_init_i + node_pit[from_nodes, net['_idx_node']['PAMB']]
+        p_init_i1_abs = p_init_i1 + node_pit[to_nodes, net['_idx_node']['PAMB']]
         v_init2 = v_init * np.abs(v_init)
 
-        height_difference = node_pit[from_nodes, HEIGHT] - node_pit[to_nodes, HEIGHT]
+        height_difference = node_pit[from_nodes, net['_idx_node']['HEIGHT']] - node_pit[
+            to_nodes, net['_idx_node']['HEIGHT']]
         dummy = length != 0
         lambda_pipe, re = calc_lambda(v_init, eta, rho, d, k, gas_mode, friction_model, dummy,
                                       options)
         der_lambda_pipe = calc_der_lambda(v_init, eta, rho, d, k, friction_model, lambda_pipe)
-        branch_component_pit[:, RE] = re
-        branch_component_pit[:, LAMBDA] = lambda_pipe
+        branch_component_pit[:, net['_idx_branch']['RE']] = re
+        branch_component_pit[:, net['_idx_branch']['LAMBDA']] = lambda_pipe
         cls.calculate_pressure_lift(net, branch_component_pit, node_pit)
-        pl = branch_component_pit[:, PL]
+        pl = branch_component_pit[:, net['_idx_branch']['PL']]
 
         if not gas_mode:
-            branch_component_pit[:, JAC_DERIV_DV] = \
+            branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DV']] = \
                 rho / (P_CONVERSION * 2) * (length / d * (der_lambda_pipe * v_init2 + 2 *
                                                           lambda_pipe * np.abs(v_init)) + 2 * loss_coef * np.abs(
                     v_init))
 
-            branch_component_pit[:, LOAD_VEC_BRANCHES] = \
+            branch_component_pit[:, net['_idx_branch']['LOAD_VEC_BRANCHES']] = \
                 - (-p_init_i_abs + p_init_i1_abs - pl
                    - rho * g_const * height_difference / P_CONVERSION
-                   + (length * lambda_pipe / d + loss_coef) / (P_CONVERSION * 2) * rho * v_init2)
+                   + (length * lambda_pipe / d + loss_coef) / (
+                           P_CONVERSION * 2) * rho * v_init2)
 
-            branch_component_pit[:, JAC_DERIV_DP] = -1
-            branch_component_pit[:, JAC_DERIV_DP1] = 1
+            branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DP']] = -1
+            branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DP1']] = 1
         else:
             # compressibility settings
             p_m = np.empty_like(p_init_i_abs)
@@ -171,29 +168,40 @@ class BranchComponent(Component):
             p_m[~mask] = p_init_i_abs[~mask]
             p_m[mask] = 2 / 3 * (p_init_i_abs[mask] ** 3 - p_init_i1_abs[mask] ** 3) \
                         / (p_init_i_abs[mask] ** 2 - p_init_i1_abs[mask] ** 2)
-            comp_fact = get_fluid(net).get_property("compressibility", p_m)
+            if len(net._fluid) == 1:
+                comp_fact = get_compressibility(net, p_m)
+            else:
+                node_pit = net['_active_pit']['node']
+                vinit = branch_component_pit[:, net['_idx_branch']['VINIT']]
+                nodes = np.zeros(len(vinit), dtype=int)
+                nodes[vinit >= 0] = branch_component_pit[:, net['_idx_branch']['FROM_NODE']][vinit >= 0]
+                nodes[vinit < 0] = branch_component_pit[:, net['_idx_branch']['TO_NODE']][vinit < 0]
+                slacks = node_pit[nodes, net['_idx_node']['SLACK']]
+                mf = net['_mass_fraction']
+                mf = np.array(itemgetter(*slacks)(mf))
+                comp_fact = get_compressibility(net, p_m, mass_fraction=mf)
 
             const_lambda = NORMAL_PRESSURE * rho * comp_fact * t_init \
                            / (NORMAL_TEMPERATURE * P_CONVERSION)
             const_height = rho * NORMAL_TEMPERATURE / (2 * NORMAL_PRESSURE * t_init * P_CONVERSION)
 
-            branch_component_pit[:, LOAD_VEC_BRANCHES] = \
+            branch_component_pit[:, net['_idx_branch']['LOAD_VEC_BRANCHES']] = \
                 -(-p_init_i_abs + p_init_i1_abs - pl + const_lambda * v_init2 * (
                         lambda_pipe * length / d + loss_coef)
                   * (p_init_i_abs + p_init_i1_abs) ** (-1)
                   - const_height * (p_init_i_abs + p_init_i1_abs) * g_const * height_difference)
 
-            branch_component_pit[:, JAC_DERIV_DP] = \
+            branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DP']] = \
                 -1. - const_lambda * v_init2 * (lambda_pipe * length / d + loss_coef) \
                 * (p_init_i_abs + p_init_i1_abs) ** (-2) \
                 - const_height * g_const * height_difference
 
-            branch_component_pit[:, JAC_DERIV_DP1] = \
+            branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DP1']] = \
                 1. - const_lambda * v_init2 * (lambda_pipe * length / d + loss_coef) \
                 * (p_init_i_abs + p_init_i1_abs) ** (-2) \
                 - const_height * g_const * height_difference
 
-            branch_component_pit[:, JAC_DERIV_DV] = \
+            branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DV']] = \
                 2 * const_lambda * (p_init_i_abs + p_init_i1_abs) ** (-1) \
                 * np.abs(v_init) * lambda_pipe * length / d \
                 + const_lambda * (p_init_i_abs + p_init_i1_abs) ** (-1) * v_init2 \
@@ -201,9 +209,9 @@ class BranchComponent(Component):
                 + 2 * const_lambda * (p_init_i_abs + p_init_i1_abs) ** (-1) * np.abs(v_init) \
                 * loss_coef
 
-        mass_flow_dv = rho * branch_component_pit[:, AREA]
-        branch_component_pit[:, JAC_DERIV_DV_NODE] = mass_flow_dv
-        branch_component_pit[:, LOAD_VEC_NODES] = mass_flow_dv * v_init
+        mass_flow_dv = rho * branch_component_pit[:, net['_idx_branch']['AREA']]
+        branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DV_NODE']] = mass_flow_dv
+        branch_component_pit[:, net['_idx_branch']['LOAD_VEC_NODES']] = mass_flow_dv * v_init
         return branch_component_pit
 
     @classmethod
@@ -225,31 +233,34 @@ class BranchComponent(Component):
         """
         f, t = idx_lookups[cls.table_name()]
         branch_component_pit = branch_pit[f:t, :]
-        cp = branch_component_pit[:, CP]
-        rho = branch_component_pit[:, RHO]
-        v_init = branch_component_pit[:, VINIT_T]
-        from_nodes = branch_component_pit[:, FROM_NODE_T].astype(np.int32)
-        t_init_i = node_pit[from_nodes, TINIT_NODE]
-        t_init_i1 = branch_component_pit[:, T_OUT]
-        t_amb = branch_component_pit[:, TEXT]
-        area = branch_component_pit[:, AREA]
-        length = branch_component_pit[:, LENGTH]
-        alpha = branch_component_pit[:, ALPHA] * np.pi * branch_component_pit[:, D]
+        cp = branch_component_pit[:, net['_idx_branch']['CP']]
+        rho = branch_component_pit[:, net['_idx_branch']['RHO']]
+        v_init = branch_component_pit[:, net['_idx_branch']['VINIT_T']]
+        from_nodes = branch_component_pit[:, net['_idx_branch']['FROM_NODE_T']].astype(np.int32)
+        t_init_i = node_pit[from_nodes, net['_idx_node']['TINIT']]
+        t_init_i1 = branch_component_pit[:, net['_idx_branch']['T_OUT']]
+        t_amb = branch_component_pit[:, net['_idx_branch']['TEXT']]
+        area = branch_component_pit[:, net['_idx_branch']['AREA']]
+        length = branch_component_pit[:, net['_idx_branch']['LENGTH']]
+        alpha = branch_component_pit[:, net['_idx_branch']['ALPHA']] * np.pi * branch_component_pit[:,
+                                                                               net['_idx_branch']['D']]
         cls.calculate_temperature_lift(net, branch_component_pit, node_pit)
-        tl = branch_component_pit[:, TL]
-        qext = branch_component_pit[:, QEXT]
+        tl = branch_component_pit[:, net['_idx_branch']['TL']]
+        qext = branch_component_pit[:, net['_idx_branch']['QEXT']]
         t_m = (t_init_i1 + t_init_i) / 2
 
-        branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
+        branch_component_pit[:, net['_idx_branch']['LOAD_VEC_BRANCHES_T']] = \
             -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
               - alpha * (t_amb - t_m) * length + qext)
 
-        branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
-        branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
+        branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DT']] = - rho * area * cp * v_init + alpha / 2 * length
+        branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DT1']] = rho * area * cp * v_init + alpha / 2 * length
 
-        branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
-        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:,
-                                                                   AREA] * t_init_i1
+        branch_component_pit[:, net['_idx_branch']['JAC_DERIV_DT_NODE']] = rho * v_init * branch_component_pit[:,
+                                                                                          net['_idx_branch']['AREA']]
+        branch_component_pit[:, net['_idx_branch']['LOAD_VEC_NODES_T']] = rho * v_init * branch_component_pit[:,
+                                                                                         net['_idx_branch'][
+                                                                                             'AREA']] * t_init_i1
 
     @classmethod
     def calculate_pressure_lift(cls, net, branch_pit, node_pit):
@@ -289,7 +300,7 @@ class BranchComponent(Component):
         fa, ta = get_lookup(net, "branch", "from_to_active")[cls.table_name()]
 
         placement_table = np.argsort(net[cls.table_name()].index.values)
-        idx_pit = net["_pit"]["branch"][f:t, ELEMENT_IDX]
+        idx_pit = net["_pit"]["branch"][f:t, net['_idx_branch']['ELEMENT_IDX']]
         pipe_considered = get_lookup(net, "branch", "active")[f:t]
         _, active_pipes = _sum_by_group(idx_pit, pipe_considered.astype(np.int32))
         active_pipes = active_pipes > 0.99
@@ -313,29 +324,54 @@ class BranchComponent(Component):
         to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
             net[cls.table_name()]["to_junction"].values[placement_table]]]
 
-        from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-        fluid = get_fluid(net)
+        from_nodes = branch_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+        to_nodes = branch_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
 
-        v_mps = branch_pit[:, VINIT]
+        v_mps = branch_pit[:, net['_idx_branch']['VINIT']]
 
-        t0 = node_pit[from_nodes, TINIT_NODE]
-        t1 = node_pit[to_nodes, TINIT_NODE]
-        mf = branch_pit[:, LOAD_VEC_NODES]
-        vf = branch_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
+        t0 = node_pit[from_nodes, net['_idx_node']['TINIT']]
+        t1 = node_pit[to_nodes, net['_idx_node']['TINIT']]
 
-        idx_active = branch_pit[:, ELEMENT_IDX]
+        mf = branch_pit[:, net['_idx_branch']['LOAD_VEC_NODES']]
+
+        if len(net._fluid) == 1:
+            vf = branch_pit[:, net['_idx_branch']['LOAD_VEC_NODES']] / get_density(net, (t0 + t1) / 2)
+        else:
+            node_pit = net['_active_pit']['node']
+            vinit = branch_pit[:, net['_idx_branch']['VINIT']]
+            nodes = np.zeros(len(vinit), dtype=int)
+            nodes[vinit >= 0] = branch_pit[vinit >= 0, net['_idx_branch']['FROM_NODE']]
+            nodes[vinit < 0] = branch_pit[vinit < 0, net['_idx_branch']['TO_NODE']]
+            slacks = node_pit[nodes, net['_idx_node']['SLACK']]
+            mass_fract = net['_mass_fraction']
+            mass_fract = np.array(itemgetter(*slacks)(mass_fract))
+            vf = branch_pit[:, net['_idx_branch']['LOAD_VEC_NODES']] / get_density(net, (t0 + t1) / 2,
+                                                                                   mass_fraction=mass_fract)
+
+        idx_active = branch_pit[:, net['_idx_branch']['ELEMENT_IDX']]
         _, v_sum, mf_sum, vf_sum, internal_pipes = _sum_by_group(idx_active, v_mps, mf, vf, np.ones_like(idx_active))
 
-        if fluid.is_gas:
+        if is_fluid_gas(net):
             # derived from the ideal gas law
-            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
-            numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
-            normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                              / (p_from * NORMAL_TEMPERATURE)
-            normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                            / (p_to * NORMAL_TEMPERATURE)
+            p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
+            p_to = node_pit[to_nodes, net['_idx_node']['PAMB']] + node_pit[to_nodes, net['_idx_node']['PINIT']]
+            numerator = NORMAL_PRESSURE * branch_pit[:, net['_idx_branch']['TINIT']]
+
+            if len(net._fluid) == 1:
+                normfactor_from = numerator * get_compressibility(net, p_from) \
+                                  / (p_from * NORMAL_TEMPERATURE)
+                normfactor_to = numerator * get_compressibility(net, p_to) \
+                                / (p_to * NORMAL_TEMPERATURE)
+            else:
+                mass_fract = net['_mass_fraction']
+                mf_from = np.array(itemgetter(*node_pit[from_nodes, net['_idx_node']['SLACK']])(mass_fract))
+                mf_to = np.array(itemgetter(*node_pit[to_nodes, net['_idx_node']['SLACK']])(mass_fract))
+
+                normfactor_from = numerator * get_compressibility(net, p_from, mass_fraction=mf_from) \
+                                  / (p_from * NORMAL_TEMPERATURE)
+                normfactor_to = numerator * get_compressibility(net, p_to, mass_fraction=mf_to) \
+                                / (p_to * NORMAL_TEMPERATURE)
+
             v_gas_from = v_mps * normfactor_from
             v_gas_to = v_mps * normfactor_to
 
@@ -349,10 +385,10 @@ class BranchComponent(Component):
             res_table["normfactor_from"].values[placement_table] = nf_from_sum / internal_pipes
             res_table["normfactor_to"].values[placement_table] = nf_to_sum / internal_pipes
 
-        res_table["p_from_bar"].values[placement_table] = node_pit[from_junction_nodes, PINIT]
-        res_table["p_to_bar"].values[placement_table] = node_pit[to_junction_nodes, PINIT]
-        res_table["t_from_k"].values[placement_table] = node_pit[from_junction_nodes, TINIT_NODE]
-        res_table["t_to_k"].values[placement_table] = node_pit[to_junction_nodes, TINIT_NODE]
+        res_table["p_from_bar"].values[placement_table] = node_pit[from_junction_nodes, net['_idx_node']['PINIT']]
+        res_table["p_to_bar"].values[placement_table] = node_pit[to_junction_nodes, net['_idx_node']['PINIT']]
+        res_table["t_from_k"].values[placement_table] = node_pit[from_junction_nodes, net['_idx_node']['TINIT']]
+        res_table["t_to_k"].values[placement_table] = node_pit[to_junction_nodes, net['_idx_node']['TINIT']]
         res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
         res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
         res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes

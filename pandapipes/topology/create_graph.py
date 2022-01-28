@@ -113,9 +113,7 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                           for par in ["include", "respect_status", "weighting"]
                           for bc in ["pipes", "valves", "pumps", "press_controls",
                                      "circ_pump_masss", "circ_pump_presss"]})
-    for comp in net.component_list:
-        if not issubclass(comp, BranchComponent):
-            continue
+    for comp in net['branch_list']:
         table_name = comp.table_name()
         include_comp = branch_params.get("include_%ss" % table_name, True)
         respect_status = branch_params.get("respect_status_%ss" % table_name, True) \

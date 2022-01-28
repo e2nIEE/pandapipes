@@ -38,6 +38,29 @@ def test_one_node_net():
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
 
+def test_two_node_net_with_two_different_fluids():
+    """
+
+    :return:
+    :rtype:
+    """
+
+    net = create_empty_network()
+    j = create_junction(net, 1, 298.15, index=50)
+    j1 = create_junction(net, 1, 298.15, index=51)
+    j2 = create_junction(net, 1, 298.15, index=52)
+    create_ext_grid(net, j2, 1, 298.15, fluid='hgas', index=100)
+    create_ext_grid(net, j, 1, 298.15, fluid='hgas', index=101)
+    create_sink(net, j1, 0.2)
+    create_source(net, j, 0.02, fluid='hydrogen')
+    create_source(net, j, 0.02, fluid='hydrogen')
+    create_source(net, j, 0.02, fluid='lgas')
+    create_source(net, j2, 0.02, fluid='lgas')
+    create_pipe_from_parameters(net, j, j1, 0.01, 0.1, 0.01)
+    pp.pipeflow(net, tol_p= 1e-4, tol_v= 1e-4, iter=400)
+    assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
+
+
 def test_two_node_net():
     """
 

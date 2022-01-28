@@ -7,13 +7,10 @@ from operator import itemgetter
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, TINIT_NODE
+from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
-from pandapipes.idx_node import PINIT, PAMB
 from pandapipes.pipeflow_setup import get_net_option
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import is_fluid_gas, get_molar_mass, get_compressibility
 
 
 class Pump(BranchWZeroLengthComponent):
@@ -50,10 +47,10 @@ class Pump(BranchWZeroLengthComponent):
         std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
-        pump_pit[pos, STD_TYPE] = std_type
-        pump_pit[:, D] = 0.1
-        pump_pit[:, AREA] = pump_pit[:, D] ** 2 * np.pi / 4
-        pump_pit[:, LC] = 0
+        pump_pit[pos, net['_idx_branch']['STD_TYPE']] = std_type
+        pump_pit[:, net['_idx_branch']['D']] = 0.1
+        pump_pit[:, net['_idx_branch']['AREA']] = pump_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
+        pump_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']] = 0
 
     @classmethod
     def calculate_pressure_lift(cls, net, pump_pit, node_pit):
@@ -68,19 +65,18 @@ class Pump(BranchWZeroLengthComponent):
         :return: power stroke
         :rtype: float
         """
-        area = pump_pit[:, AREA]
-        idx = pump_pit[:, STD_TYPE].astype(int)
+        area = pump_pit[:, net['_idx_branch']['AREA']]
+        idx = pump_pit[:, net['_idx_branch']['STD_TYPE']].astype(int)
         std_types = np.array(list(net.std_type['pump'].keys()))[idx]
-        from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
+        from_nodes = pump_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
         # to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
-        fluid = get_fluid(net)
-        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+        p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
-        numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
-        v_mps = pump_pit[:, VINIT]
-        if fluid.is_gas:
+        numerator = NORMAL_PRESSURE * pump_pit[:, net['_idx_branch']['TINIT']]
+        v_mps = pump_pit[:, net['_idx_branch']['VINIT']]
+        if is_fluid_gas(net):
             # consider volume flow at inlet
-            normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
+            normfactor_from = numerator * get_compressibility(net, p_from) \
                               / (p_from * NORMAL_TEMPERATURE)
             v_mean = v_mps * normfactor_from
         else:
@@ -89,7 +85,7 @@ class Pump(BranchWZeroLengthComponent):
         fcts = itemgetter(*std_types)(net['std_type']['pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
         pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
-        pump_pit[:, PL] = pl
+        pump_pit[:, net['_idx_branch']['PL']] = pl
 
     @classmethod
     def calculate_temperature_lift(cls, net, pump_pit, node_pit):
@@ -104,7 +100,7 @@ class Pump(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        pump_pit[:, TL] = 0
+        pump_pit[:, net['idx_branch']['TL']] = 0
 
     @classmethod
     def extract_results(cls, net, options, node_name):
@@ -122,14 +118,14 @@ class Pump(BranchWZeroLengthComponent):
             placement_table, res_table, pump_pit, node_pit = super().extract_results(net, options, node_name)
             p_from = res_table['p_from_bar'].values[placement_table]
             p_to = res_table['p_to_bar'].values[placement_table]
-            from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
-            t0 = node_pit[from_nodes, TINIT_NODE]
+            from_nodes = pump_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+            t0 = node_pit[from_nodes, net['_idx_branch']['TINIT']]
             vf_sum_int = res_table["vdot_norm_m3_per_s"].values[placement_table]
             mf_sum_int = res_table["mdot_from_kg_per_s"].values[placement_table]
-            if net._fluid.is_gas:
+            if is_fluid_gas(net):
                 # calculate ideal compression power
-                compr = get_fluid(net).get_property("compressibility", p_from)
-                molar_mass = get_fluid(net).get_molar_mass()  # [g/mol]
+                compr = get_compressibility(net, p_from)
+                molar_mass = get_molar_mass(net)  # [g/mol]
                 R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                 # 'kappa' heat capacity ratio:
                 k = 1.4  # TODO: implement proper calculation of kappa
@@ -139,10 +135,10 @@ class Pump(BranchWZeroLengthComponent):
                     w_real_isentr * abs(mf_sum_int) / 10 ** 6
             else:
                 res_table['compr_power_mw'].values[placement_table] = \
-                    pump_pit[:, PL] * P_CONVERSION * vf_sum_int / 10 ** 6
+                    pump_pit[:, net['_idx_branch']['PL']] * P_CONVERSION * vf_sum_int / 10 ** 6
         else:
             placement_table, pump_pit, res_table = super().prepare_result_tables(net, options, node_name)
-        res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
+        res_table['deltap_bar'].values[placement_table] = pump_pit[:, net['_idx_branch']['PL']]
 
     @classmethod
     def get_component_input(cls):
@@ -174,7 +170,7 @@ class Pump(BranchWZeroLengthComponent):
         """
         calc_compr_pow = get_net_option(net, 'calc_compression_power')
 
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             output = ["deltap_bar",
                       "v_from_m_per_s", "v_to_m_per_s",
                       "p_from_bar", "p_to_bar",

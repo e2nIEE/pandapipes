@@ -10,7 +10,6 @@ import pytest
 
 import pandapipes
 from pandapipes.component_models import Pipe, Junction
-from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import _add_fluid_to_net
 from pandapipes.test.pipeflow_internals import internals_data_path
@@ -57,9 +56,9 @@ def test_gas_internal_nodes():
     to_junction_nodes = junction_idx_lookup[net["pipe"]["to_junction"].values]
 
     p_pandapipes = np.zeros(len(pipe_p_data[0]) + 2)
-    p_pandapipes[0] = node_pit[from_junction_nodes[0], PINIT]
+    p_pandapipes[0] = node_pit[from_junction_nodes[0], net['_idx_node']['PINIT']]
     p_pandapipes[1:-1] = pipe_p_data[:]
-    p_pandapipes[-1] = node_pit[to_junction_nodes[0], PINIT]
+    p_pandapipes[-1] = node_pit[to_junction_nodes[0], net['_idx_node']['PINIT']]
     p_pandapipes = p_pandapipes + 1.01325
     v_pandapipes = pipe_v_data[0, :]
 
@@ -106,9 +105,9 @@ def test_temperature_internal_nodes_single_pipe():
     to_junction_nodes = junction_idx_lookup[net["pipe"]["to_junction"].values]
 
     temp_pandapipes = np.zeros(len(pipe_temp_data[0]) + 2)
-    temp_pandapipes[0] = node_pit[from_junction_nodes[0], TINIT]
+    temp_pandapipes[0] = node_pit[from_junction_nodes[0], net['_idx_node']['TINIT']]
     temp_pandapipes[1:-1] = pipe_temp_data[:]
-    temp_pandapipes[-1] = node_pit[to_junction_nodes[0], TINIT]
+    temp_pandapipes[-1] = node_pit[to_junction_nodes[0], net['_idx_node']['TINIT']]
 
     temp_diff = np.abs(1 - temp_pandapipes / temp_an)
 

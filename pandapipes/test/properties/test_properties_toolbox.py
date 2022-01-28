@@ -276,15 +276,14 @@ def test_mixture_molar_mass_lgas():
     components_molar_mass = np.concatenate([molar_ch4, molar_n2, molar_co2, molar_c2h6])
     components_molar_proportions = np.array([.85, .103, .013, .034])
     mix_molar = calculate_mixture_molar_mass(
-        components_molar_mass=components_molar_mass,
-        components_molar_proportions=components_molar_proportions)
+        components_molar_mass=components_molar_mass, component_proportions=components_molar_proportions,
+        proportion_type='molar')
     assert (mix_molar == test_mix_molar)
 
     components_mass_proportions = calculate_mass_fraction_from_molar_fraction(
         components_molar_proportions, components_molar_mass)
     mix_molar = calculate_mixture_molar_mass(
-        components_molar_mass=components_molar_mass,
-        components_mass_proportions=components_mass_proportions)
+        components_molar_mass=components_molar_mass, component_proportions=components_mass_proportions)
     assert (mix_molar == test_mix_molar)
 
 
@@ -303,8 +302,8 @@ def test_mixture_molar_mass_hgas():
     components_molar_mass = np.concatenate([molar_ch4, molar_n2, molar_co2, molar_c2h6])
     components_molar_proportions = np.array([.964, .005, .005, .026])
     mix_molar = calculate_mixture_molar_mass(
-        components_molar_mass=components_molar_mass,
-        components_molar_proportions=components_molar_proportions)
+        components_molar_mass=components_molar_mass, component_proportions=components_molar_proportions,
+        proportion_type='molar')
     assert (mix_molar == test_mix_molar)
 
 

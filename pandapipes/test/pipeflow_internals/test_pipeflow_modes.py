@@ -5,13 +5,9 @@
 import os
 
 import numpy as np
-import pandapipes as pp
 import pandas as pd
-from pandapipes.component_models import Pipe
-from pandapipes.idx_branch import VINIT
-from pandapipes.idx_node import PINIT, TINIT
-from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.component_models.junction_component import Junction
+
+import pandapipes as pp
 from pandapipes.test import test_path
 
 data_path = os.path.join(test_path, "pipeflow_internals", "data")
@@ -47,8 +43,8 @@ def test_hydraulic_only():
     v_an = data.loc[0, "pv"]
     p_an = data.loc[1:3, "pv"]
 
-    p_pandapipes = node_pit[:, PINIT]
-    v_pandapipes = branch_pit[:, VINIT]
+    p_pandapipes = node_pit[:, net['_idx_node']['PINIT']]
+    v_pandapipes = branch_pit[:, net['_idx_branch']['VINIT']]
 
     p_diff = np.abs(1 - p_pandapipes / p_an)
     v_diff = np.abs(v_pandapipes - v_an)
@@ -86,8 +82,8 @@ def test_heat_only():
     pp.pipeflow(ntw, stop_condition="tol", iter=50, friction_model="nikuradse",
                 nonlinear_method="automatic", mode="hydraulics")
 
-    p = ntw._pit["node"][:, 5]
-    v = ntw._pit["branch"][:, 12]
+    p = ntw._pit["node"][:, net['_idx_node']['PINIT']]
+    v = ntw._pit["branch"][:, net['_idx_branch']['VINIT']]
     u = np.concatenate((p, v))
 
     pp.pipeflow(ntw, sol_vec=u, stop_condition="tol", iter=50, friction_model="nikuradse",

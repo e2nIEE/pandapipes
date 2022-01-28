@@ -8,7 +8,7 @@ import pandas as pd
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
     Compressor
-from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
+from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
@@ -192,19 +192,16 @@ def create_source(net, junction, mdot_kg_per_s, fluid='slacklike', scaling=1., n
     cols = ["name", "junction", "mdot_kg_per_s", "fluid", "scaling", "in_service", "type"]
 
     if isinstance(fluid, Fluid):
-        if not junction in net.ext_grid.junction and net.fluid != 'slacklike':
+        if not junction in net.ext_grid.junction.values and fluid.name != 'slacklike':
             logger.warning("Currently it is only possible to connect sources having different fluids than ext grid "
                            "junctions to others than ext grid junction. Choose slacklike if the infeed is the same as the one prvoided by the ext grid.")
             return
-        if fluid.name in net["fluid"]:
-            logger.warning("The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
-        else:
-            net["fluid"][fluid.name] = fluid
+        _add_fluid_to_net(net, fluid, False)
         vals = [name, junction, mdot_kg_per_s, fluid.name, scaling, bool(in_service), type]
         _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
         return index
     elif isinstance(fluid, str):
-        if not junction in net.ext_grid.junction and fluid != 'slacklike':
+        if not junction in net.ext_grid.junction.values and fluid != 'slacklike':
             logger.warning("Currently it is only possible to connect sources having different fluids to ext grid "
                            "junctions. Choose slacklike if the infeed is the same as the one prvoided by the ext grid.")
             return
@@ -213,10 +210,7 @@ def create_source(net, junction, mdot_kg_per_s, fluid='slacklike', scaling=1., n
             _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
             return index
         else:
-            if fluid in net["fluid"]:
-                logger.warning(
-                    "The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
-            else:
+            if fluid not in net.fluid:
                 create_fluid_from_lib(net, fluid)
             vals = [name, junction, mdot_kg_per_s, fluid, scaling, bool(in_service), type]
             _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
@@ -275,17 +269,12 @@ def create_ext_grid(net, junction, p_bar, t_k, fluid, name=None, in_service=True
     cols = ["name", "junction", "p_bar", "t_k", "fluid", "in_service", "type"]
 
     if isinstance(fluid, Fluid):
-        if fluid.name in net["fluid"]:
-            logger.warning("The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
-        else:
-            net["fluid"][fluid.name] = fluid
+        _add_fluid_to_net(net, fluid, False)
         vals = [name, junction, p_bar, t_k, fluid.name, bool(in_service), type]
         _set_entries(net, "ext_grid", index, **dict(zip(cols, vals)), **kwargs)
         return index
     elif isinstance(fluid, str):
-        if fluid in net["fluid"]:
-            logger.warning("The fluid %s cannot be added to the net as a fluid of the same name already exists" % fluid)
-        else:
+        if fluid not in net.fluid:
             create_fluid_from_lib(net, fluid)
         vals = [name, junction, p_bar, t_k, fluid, bool(in_service), type]
         _set_entries(net, "ext_grid", index, **dict(zip(cols, vals)), **kwargs)
@@ -297,7 +286,7 @@ def create_ext_grid(net, junction, p_bar, t_k, fluid, name=None, in_service=True
     return index
 
 
-def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, fluid='water', loss_coefficient=0,
+def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, loss_coefficient=0,
                           name=None, index=None, in_service=True, type="heat_exchanger", **kwargs):
     """
     Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
@@ -340,24 +329,11 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, f
     index = _get_index_with_check(net, "heat_exchanger", index, "heat exchanger")
     check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
-    cols = ["name", "from_junction", "to_junction", "diameter_m", "qext_w", "fluid", "loss_coefficient",
+    cols = ["name", "from_junction", "to_junction", "diameter_m", "qext_w", "loss_coefficient",
             "in_service", "type"]
-
-    if isinstance(fluid, Fluid):
-        net["fluid"][fluid.name] = fluid
-        vals = [name, from_junction, to_junction, diameter_m, qext_w, fluid.name, loss_coefficient,
-                bool(in_service), type]
-        _set_entries(net, "heat_exchanger", index, **dict(zip(cols, vals)), **kwargs)
-        return index
-    elif isinstance(fluid, str):
-        create_fluid_from_lib(net, fluid)
-        vals = [name, from_junction, to_junction, diameter_m, qext_w, fluid, loss_coefficient,
-                bool(in_service), type]
-        _set_entries(net, "heat_exchanger", index, **dict(zip(cols, vals)), **kwargs)
-        return index
-    else:
-        logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
-                       "strings can be used." % fluid)
+    vals = [name, from_junction, to_junction, diameter_m, qext_w, loss_coefficient,
+            bool(in_service), type]
+    _set_entries(net, "heat_exchanger", index, **dict(zip(cols, vals)), **kwargs)
     return index
 
 
@@ -684,7 +660,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
 
 
 def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plift_bar,
-                                    t_k=None, name=None, index=None, in_service=True, type="pt",
+                                    t_k=None, fluid='water', name=None, index=None, in_service=True, type="pt",
                                     **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"].
@@ -731,15 +707,28 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
                                   name="circulation pump with constant pressure")
     check_branch(net, "circulation pump with constant pressure", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
-         "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service), "type": type}
-    _set_entries(net, "circ_pump_pressure", index, **v, **kwargs)
+    cols = ["name", "from_junction", "to_junction", "p_bar", "t_k", "plift_bar", "fluid", "in_service", "type"]
 
+    if isinstance(fluid, Fluid):
+        net["fluid"][fluid.name] = fluid
+        vals = [name, from_junction, to_junction, p_bar, t_k, plift_bar, fluid.name,
+                bool(in_service), type]
+        _set_entries(net, "circ_pump_pressure", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    elif isinstance(fluid, str):
+        create_fluid_from_lib(net, fluid)
+        vals = [name, from_junction, to_junction, p_bar, t_k, plift_bar, fluid,
+                bool(in_service), type]
+        _set_entries(net, "circ_pump_pressure", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    else:
+        logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
+                       "strings can be used." % fluid)
     return index
 
 
 def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdot_kg_per_s,
-                                     t_k=None, name=None, index=None, in_service=True,
+                                     t_k=None, fluid='water', name=None, index=None, in_service=True,
                                      type="pt", **kwargs):
     """
     Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].
@@ -786,10 +775,23 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
                                   name="circulation pump with constant mass flow")
     check_branch(net, "circulation pump with constant mass flow", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
-         "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service), "type": type}
-    _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
+    cols = ["name", "from_junction", "to_junction", "p_bar", "t_k", "mdot_kg_per_s", "fluid", "in_service", "type"]
 
+    if isinstance(fluid, Fluid):
+        net["fluid"][fluid.name] = fluid
+        vals = [name, from_junction, to_junction, p_bar, t_k, mdot_kg_per_s, fluid.name,
+                bool(in_service), type]
+        _set_entries(net, "circ_pump_mass", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    elif isinstance(fluid, str):
+        create_fluid_from_lib(net, fluid)
+        vals = [name, from_junction, to_junction, p_bar, t_k, mdot_kg_per_s, fluid,
+                bool(in_service), type]
+        _set_entries(net, "circ_pump_mass", index, **dict(zip(cols, vals)), **kwargs)
+        return index
+    else:
+        logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
+                       "strings can be used." % fluid)
     return index
 
 

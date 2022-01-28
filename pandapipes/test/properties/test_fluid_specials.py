@@ -12,7 +12,7 @@ def test_add_fluid():
     fluid_old = pandapipes.call_lib("air")
 
     with pytest.raises(AttributeError, match="no fluid"):
-        pandapipes.get_fluid(net)
+        pandapipes.get_fluid(net, 'hgas')
 
     _add_fluid_to_net(net, fluid_old)
     fluid_new = pandapipes.create_constant_fluid("arbitrary_gas2", "gas", density=2,
@@ -29,8 +29,8 @@ def test_add_fluid():
     assert "hello" in net["fluid"]
     assert "Hello" == net["fluid"]["hello"]
 
-    #_add_fluid_to_net(net, fluid_new)
-    #assert pandapipes.get_fluid(net) == fluid_new
+    _add_fluid_to_net(net, fluid_new)
+    assert pandapipes.get_fluid(net, fluid_new.name) == fluid_new
 
 
 def test_property_adaptation():

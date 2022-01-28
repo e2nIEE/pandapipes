@@ -2,13 +2,14 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-import pandapipes as pp
-import pandas as pd
 import statistics as st
-from pandapipes.plotting import simple_plot
-from pandapipes.properties.fluids import get_fluid
+
+import numpy as np
+import pandas as pd
+
+import pandapipes as pp
 from pandapipes.component_models import Pipe
+from pandapipes.properties.fluids import is_fluid_gas
 
 try:
     import pplog as logging
@@ -46,7 +47,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
     p_valid = pd.notnull(p_om)
     p_om = p_om.loc[p_valid]
 
-    if get_fluid(net).is_gas:
+    if is_fluid_gas(net):
         if 'pipe' in net:
             v_diff_from_pipe, v_diff_to_pipe, v_diff_mean_pipe, v_diff_abs_pipe, \
             v_mean_pandapipes_pipe, v_om_pipe = retrieve_velocity_gas(net, 'pipe')
@@ -248,8 +249,8 @@ def retrieve_temperature_liquid(net):
         T_mean_om[i] = st.mean(T_om[i])
 
     for j in range(num_of_pipes):
-        pipe_res = Pipe.get_internal_results(net,[j])
-        T_mean_pandapipes[j] = st.mean(pipe_res["TINIT"][:,1])
+        pipe_res = Pipe.get_internal_results(net, [j])
+        T_mean_pandapipes[j] = st.mean(pipe_res["TINIT"][:, 1])
 
     T_diff_mean = np.abs(1 - T_mean_pandapipes / T_mean_om)
     T_diff_abs = np.abs(T_mean_om - T_mean_pandapipes)

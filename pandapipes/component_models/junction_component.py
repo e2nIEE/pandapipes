@@ -6,13 +6,14 @@ from warnings import warn
 
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models import NodeComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air
-from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
-    ACTIVE as ACTIVE_ND
-from pandapipes.pipeflow_setup import add_table_lookup, get_table_number, \
-    get_lookup
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.pipeflow_setup import add_table_lookup, \
+    get_lookup, get_table_number
+from pandapipes.properties.fluids import get_density
+
+from operator import itemgetter
 
 
 class Junction(NodeComponent):
@@ -74,27 +75,32 @@ class Junction(NodeComponent):
         :return: No Output.
         """
         ft_lookup = get_lookup(net, "node", "from_to")
-        table_nr = get_table_number(get_lookup(net, "node", "table"), cls.table_name())
-        f, t = ft_lookup[cls.table_name()]
+        table_nr = get_table_number(get_lookup(net, "node", "table"), node_name)
+        f, t = ft_lookup[node_name]
 
-        junctions = net[cls.table_name()]
+        junctions = net[node_name]
         junction_pit = node_pit[f:t, :]
-        junction_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
-
-        junction_pit[:, ELEMENT_IDX] = junctions.index.values
-        junction_pit[:, HEIGHT] = junctions.height_m.values
-        junction_pit[:, PINIT] = junctions.pn_bar.values
-        junction_pit[:, TINIT] = junctions.tfluid_k.values
-        junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
-        junction_pit[:, ACTIVE_ND] = junctions.in_service.values
+        junction_pit[:, :] = np.array([table_nr, 0, net['_idx_node']['L']] + [0] * (net['_idx_node']['node_cols'] - 3))
+        junction_pit[:, net['_idx_node']['ELEMENT_IDX']] = junctions.index.values
+        junction_pit[:, net['_idx_node']['HEIGHT']] = junctions.height_m.values
+        junction_pit[:, net['_idx_node']['PINIT']] = junctions.pn_bar.values
+        junction_pit[:, net['_idx_node']['TINIT']] = junctions.tfluid_k.values
+        junction_pit[:, net['_idx_node']['PAMB']] = p_correction_height_air(junction_pit[:, net['_idx_node']['HEIGHT']])
+        junction_pit[:, net['_idx_node']['ACTIVE']] = junctions.in_service.values
 
     @classmethod
     def create_property_pit_node_entries(cls, net, node_pit, node_name):
         ft_lookup = get_lookup(net, "node", "from_to")
         f, t = ft_lookup[cls.table_name()]
-
         junction_pit = node_pit[f:t, :]
-        junction_pit[:, RHO] = get_fluid(net).get_density(junction_pit[:, TINIT])
+        if len(net._fluid) == 1:
+            junction_pit[:, net['_idx_node']['RHO']] = get_density(net, junction_pit[:, net['_idx_node']['TINIT']])
+        else:
+            mf = net['_mass_fraction']
+            mf = np.array(itemgetter(*junction_pit[:, net['_idx_node']['SLACK']])(mf))
+            junction_pit[:, net['_idx_node']['RHO']] = get_density(net, junction_pit[:, net['_idx_node']['TINIT']],
+                                                                   mass_fraction=mf)
+
 
     @classmethod
     def extract_results(cls, net, options, node_name):
@@ -117,13 +123,14 @@ class Junction(NodeComponent):
         junction_pit = net["_active_pit"]["node"][fa:ta, :]
         junctions_active = get_lookup(net, "node", "active")[f:t]
 
-        if np.any(junction_pit[:, PINIT] < 0):
+        if np.any(junction_pit[:, net['_idx_node']['PINIT']] < 0):
             warn(UserWarning('Pipeflow converged, however, the results are phyisically incorrect '
                              'as pressure is negative at nodes %s'
-                             % junction_pit[junction_pit[:, PINIT] < 0, ELEMENT_IDX]))
+                             % junction_pit[
+                                 junction_pit[:, net['_idx_node']['PINIT']] < 0, net['_idx_node']['ELEMENT_IDX']]))
 
-        res_table["p_bar"].values[junctions_active] = junction_pit[:, PINIT]
-        res_table["t_k"].values[junctions_active] = junction_pit[:, TINIT]
+        res_table["p_bar"].values[junctions_active] = junction_pit[:, net['_idx_node']['PINIT']]
+        res_table["t_k"].values[junctions_active] = junction_pit[:, net['_idx_node']['TINIT']]
 
     @classmethod
     def get_component_input(cls):

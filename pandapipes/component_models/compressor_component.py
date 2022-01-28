@@ -6,8 +6,6 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.pump_component import Pump
-from pandapipes.idx_branch import VINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL, PRESSURE_RATIO
-from pandapipes.idx_node import PINIT, PAMB
 
 
 class Compressor(Pump):
@@ -35,10 +33,10 @@ class Compressor(Pump):
         """
         compressor_pit = super(Pump, cls).create_pit_branch_entries(net, compressor_pit, node_name)
 
-        compressor_pit[:, D] = 0.1
-        compressor_pit[:, AREA] = compressor_pit[:, D] ** 2 * np.pi / 4
-        compressor_pit[:, LC] = 0
-        compressor_pit[:, PRESSURE_RATIO] = net[cls.table_name()].pressure_ratio.values
+        compressor_pit[:, net['_idx_branch']['D']] = 0.1
+        compressor_pit[:, net['_idx_branch']['AREA']] = compressor_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
+        compressor_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']] = 0
+        compressor_pit[:, net['_idx_branch']['PRESSURE_RATIO']] = net[cls.table_name()].pressure_ratio.values
 
     @classmethod
     def calculate_pressure_lift(cls, net, compressor_pit, node_pit):
@@ -53,17 +51,17 @@ class Compressor(Pump):
         :param node_pit:
         :type node_pit:
         """
-        pressure_ratio = compressor_pit[:, PRESSURE_RATIO]
+        pressure_ratio = compressor_pit[:, net['_idx_branch']['PRESSURE_RATIO']]
 
-        from_nodes = compressor_pit[:, FROM_NODE].astype(np.int32)
-        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+        from_nodes = compressor_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+        p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
         p_to_calc = p_from * pressure_ratio
         pl_abs = p_to_calc - p_from
 
-        v_mps = compressor_pit[:, VINIT]
+        v_mps = compressor_pit[:, net['_idx_branch']['VINIT']]
         pl_abs *= (v_mps >= 0)  # force pressure lift = 0 for reverse flow
 
-        compressor_pit[:, PL] = pl_abs
+        compressor_pit[:, net['_idx_branch']['PL']] = pl_abs
 
     @classmethod
     def get_component_input(cls):

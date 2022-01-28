@@ -9,7 +9,7 @@ import pandas as pd
 from numpy import dtype
 from pandapipes import __version__
 from pandapipes.component_models import Junction, Pipe, ExtGrid
-from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
+from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
 from pandapower.auxiliary import ADict
 
 try:
@@ -63,6 +63,10 @@ class pandapipesNet(ADict):
             r += "\nand uses the following component models:"
             for component in self.component_list:
                 r += "\n   - %s" %component.__name__
+        elif "node_list" in self:
+            r += "\nand uses the following component models:"
+            for component in np.concatenate([self.node_list, self.branch_list, self.node_element_list]):
+                r += "\n   - %s" %component.__name__
         return r
 
 
@@ -72,7 +76,9 @@ def get_basic_net_entries():
         "converged": False,
         "name": "",
         "version": __version__,
-        "component_list": []}
+        "node_list": [],
+        "node_element_list": [],
+        "branch_list": []}
 
 
 def get_basic_components():

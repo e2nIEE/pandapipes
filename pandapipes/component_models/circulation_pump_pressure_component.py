@@ -4,8 +4,8 @@
 
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models import CirculationPump
-from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
 
@@ -44,9 +44,9 @@ class CirculationPumpPressure(CirculationPump):
                                                     np.ones_like(press, dtype=np.int32))
 
         index_p = junction_idx_lookups[juncts_p]
-        node_pit[index_p, PINIT] = press_sum / number
-        node_pit[index_p, NODE_TYPE] = P
-        node_pit[index_p, EXT_GRID_OCCURENCE] += number
+        node_pit[index_p, net['_idx_node']['PINIT']] = press_sum / number
+        node_pit[index_p, net['_idx_node']['NODE_TYPE']] = net['_idx_node']['P']
+        node_pit[index_p, net['_idx_node']['EXT_GRID_OCCURENCE']] += number
 
         net["_lookups"]["ext_grid"] = \
             np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p]))))
@@ -64,5 +64,6 @@ class CirculationPumpPressure(CirculationPump):
                 ("p_bar", "f8"),
                 ("t_k", "f8"),
                 ("plift_bar", "f8"),
+                ("fluid", dtype(object)),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]

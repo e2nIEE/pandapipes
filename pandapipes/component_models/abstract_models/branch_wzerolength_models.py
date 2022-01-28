@@ -4,7 +4,6 @@
 
 from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
     BranchWOInternalsComponent
-from pandapipes.idx_branch import LENGTH, K
 
 try:
     import pplog as logging
@@ -62,6 +61,6 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         """
         branch_wizerolength_pit = \
             super().create_pit_branch_entries(net, branch_wzerolength_pit, node_name)
-        branch_wizerolength_pit[:, LENGTH] = 0
-        branch_wizerolength_pit[:, K] = 1000
+        branch_wizerolength_pit[:, net['_idx_branch']['LENGTH']] = 0
+        branch_wizerolength_pit[:, net['_idx_branch']['K']] = 1000
         return branch_wizerolength_pit

@@ -5,7 +5,6 @@
 import numpy as np
 from numpy import dtype
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.idx_node import LOAD, ELEMENT_IDX
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
 
@@ -40,7 +39,8 @@ class ConstFlow(NodeElementComponent):
         juncts, loads_sum = _sum_by_group(loads.junction.values, mass_flow_loads)
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         index = junction_idx_lookups[juncts]
-        node_pit[index, LOAD] += loads_sum
+        node_pit[index, net['_idx_node']['LOAD']] += loads_sum
+
 
     @classmethod
     def extract_results(cls, net, options, node_name):
@@ -63,7 +63,7 @@ class ConstFlow(NodeElementComponent):
         fj, tj = get_lookup(net, "node", "from_to")[node_name]
         junct_pit = net["_pit"]["node"][fj:tj, :]
         nodes_connected = get_lookup(net, "node", "active")[fj:tj]
-        is_juncts = np.isin(loads.junction.values, junct_pit[nodes_connected, ELEMENT_IDX])
+        is_juncts = np.isin(loads.junction.values, junct_pit[nodes_connected, net['_idx_node']['ELEMENT_IDX']])
 
         is_calc = is_loads & is_juncts
         res_table["mdot_kg_per_s"].values[is_calc] = loads.mdot_kg_per_s.values[is_calc] \

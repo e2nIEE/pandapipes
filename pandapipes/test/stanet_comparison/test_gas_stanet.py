@@ -306,8 +306,8 @@ def test_case_2eg_hnet_n(log_results=False):
     """
     net = nw.gas_2eg_hnet(method="n")
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results)
-    assert np.all(p_diff < 0.002)
-    assert np.all(v_diff_abs < 0.03)
+    assert np.all(p_diff < 0.001)
+    assert np.all(v_diff_abs < 0.001)
 
 
 # H-net_PC
@@ -321,8 +321,8 @@ def test_case_2eg_hnet_pc(log_results=False):
     """
     net = nw.gas_2eg_hnet(method="pc")
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, friction_model="colebrook")
-    assert np.all(p_diff < 0.002)
-    assert np.all(v_diff_abs < 0.03)
+    assert np.all(p_diff < 0.001)
+    assert np.all(v_diff_abs < 0.001)
 
 
 # # ----------------------------------------

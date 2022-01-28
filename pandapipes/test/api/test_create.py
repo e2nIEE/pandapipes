@@ -17,7 +17,7 @@ def create_empty_net():
 def test_create_network():
     net = pandapipes.create_empty_network()
     with pytest.raises(AttributeError):
-        pandapipes.get_fluid(net)
+        pandapipes.get_fluid(net, 'hgas')
 
 
 def test_create_junction(create_empty_net):

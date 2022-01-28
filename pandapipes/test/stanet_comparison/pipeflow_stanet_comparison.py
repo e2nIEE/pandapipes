@@ -5,7 +5,7 @@
 import numpy as np
 import pandapipes
 import pandas as pd
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import is_fluid_gas
 
 try:
     import pplog as logging
@@ -40,7 +40,7 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
     p_valid = pd.notnull(p_stanet)
     p_stanet = p_stanet.loc[p_valid]
 
-    if get_fluid(net).is_gas:
+    if is_fluid_gas(net):
         if 'pipe' in net:
             v_diff_from_pipe, v_diff_to_pipe, v_diff_mean_pipe, v_diff_abs_pipe, \
             v_mean_pandapipes_pipe, v_stanet_pipe = retrieve_velocity_gas(net, 'pipe')

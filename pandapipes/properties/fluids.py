@@ -9,10 +9,10 @@ import pandas as pd
 from scipy.interpolate import interp1d
 
 from pandapipes import pp_dir
-from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE
-from pandapipes.idx_node import ACTIVE as ACTIVE_ND, NODE_TYPE, P, PC, LOAD
+from pandapipes.properties.properties_toolbox import calculate_mixture_density, calculate_mixture_viscosity, \
+    calculate_mixture_molar_mass, calculate_molar_fraction_from_mass_fraction, calculate_mixture_heat_capacity, \
+    calculate_mixture_compressibility, calculate_mixture_calorific_values, calculate_mass_fraction_from_molar_fraction
 from pandapower.io_utils import JSONSerializableClass
-from pandapipes.pipeflow_setup import get_connected_nodes
 
 try:
     import pplog as logging
@@ -539,7 +539,7 @@ def create_constant_property(net, fluid_name, property_name, value, overwrite=Tr
     """
     prop = FluidPropertyConstant(value)
     net.fluid[fluid_name].add_property(property_name, prop, overwrite=overwrite,
-                                warn_on_duplicates=warn_on_duplicates)
+                                       warn_on_duplicates=warn_on_duplicates)
     return prop
 
 
@@ -564,7 +564,7 @@ def create_linear_property(net, fluid_name, property_name, slope, offset, overwr
     """
     prop = FluidPropertyLinear(slope, offset)
     net.fluid[fluid_name].add_property(property_name, prop, overwrite=overwrite,
-                                warn_on_duplicates=warn_on_duplicates)
+                                       warn_on_duplicates=warn_on_duplicates)
     return prop
 
 
@@ -610,7 +610,7 @@ def call_lib(fluid_name):
             os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen", "methane"]
+    gases = ["air", "lgas", "hgas", "hydrogen", "methane", "ethane", "butane", "propane", "carbondioxide", "nitrogen"]
 
     if fluid_name == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
@@ -628,7 +628,7 @@ def call_lib(fluid_name):
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
 
-    if (phase == 'gas') & (fluid_name != 'air'):
+    if (phase == 'gas'):
         lhv = constant_property("lower_heating_value")
         hhv = constant_property("higher_heating_value")
 
@@ -641,7 +641,7 @@ def call_lib(fluid_name):
                      der_compressibility=der_compr)
 
 
-def get_fluid(net):
+def get_fluid(net, fluid_name):
     """
     This function shows which fluid is used in the net.
 
@@ -650,41 +650,12 @@ def get_fluid(net):
     :return: Fluid - Name of the fluid which is used in the current network
     :rtype: Fluid
     """
-    if "_fluid" not in net or net["_fluid"] is None:
+    if fluid_name not in net.fluid.keys():
         raise AttributeError("There is no fluid defined for the given net!")
-    fluid = net["_fluid"]
+    fluid = net.fluid[fluid_name]
     if not isinstance(fluid, Fluid):
         logger.warning("The fluid in this net is not of the pandapipes Fluid type. This could lead"
                        " to errors, as some components might depend on this structure")
-    return fluid
-
-
-def get_default_fluid(net, node_pit, branch_pit):
-    fluids = []
-    for comp in net.component_list:
-        fluids += [net[comp.table_name()].fluid.values if 'fluid' in net[comp.table_name()] else []]
-    fluids = np.concatenate(fluids)
-    uni = np.unique(fluids[fluids != 'slacklike'])
-    if len(uni) == 1:
-        fluid = fluids[0]
-    else:
-        nodes_connected = []
-        active_branch_lookup = branch_pit[:, ACTIVE_BR].astype(np.bool)
-        active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
-        from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-        hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
-                              & active_node_lookup)[0]
-        active_from_nodes = from_nodes[active_branch_lookup]
-        active_to_nodes = to_nodes[active_branch_lookup]
-        for s in hyd_slacks:
-            nodes_connected += [get_connected_nodes(node_pit, [s],
-                                                    active_from_nodes, active_to_nodes, active_node_lookup,
-                                                    active_branch_lookup)]
-        node_pit[active_node_lookup][:, LOAD]
-        fluid = fluids[0]
-
-    net['_fluid'] = net.fluid[fluid]
     return fluid
 
 
@@ -713,3 +684,136 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
                        "respective pandapipes.Fluid." % fluid)
         fluid = call_lib(fluid)
     net["fluid"][fluid.name] = fluid
+
+
+def get_property(net, property_name, *at_values):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_property(property_name, *at_values)
+    else:
+        return 100
+
+
+def get_molar_mass(net, **kwargs):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_molar_mass()
+    else:
+        molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
+        mass_fraction = kwargs.pop('mass_fraction')
+        calculate_mixture_molar_mass(molar_mass_list, component_proportions=mass_fraction)
+        return 100
+
+
+def get_density(net, temperature, **kwargs):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_density(temperature)
+    else:
+        density_list = [net.fluid[fluid].get_density(temperature) for fluid in net._fluid]
+        mass_fraction = kwargs.pop('mass_fraction')
+        return calculate_mixture_density(density_list, mass_fraction.T)
+
+
+def get_viscosity(net, temperature, **kwargs):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_viscosity(temperature)
+    else:
+        viscosity_list, molar_mass_list = [], []
+        for fluid in net._fluid:
+            viscosity_list += [net.fluid[fluid].get_viscosity(temperature)]
+            molar_mass_list += [net.fluid[fluid].get_molar_mass()]
+        mass_fraction = kwargs.pop('mass_fraction')
+        molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
+        return calculate_mixture_viscosity(viscosity_list, molar_fraction, np.array(molar_mass_list).T)
+
+
+def get_heat_capacity(net, temperature, **kwargs):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_heat_capacity(temperature)
+    else:
+        heat_capacity_list = [net.fluid[fluid].get_heat_capacity(temperature) for fluid in net._fluid]
+        mass_fraction = kwargs.pop('mass_fraction')
+        return calculate_mixture_heat_capacity(heat_capacity_list, mass_fraction.T)
+
+
+def get_compressibility(net, pressure, **kwargs):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_property('compressibility', pressure)
+    else:
+        compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
+        mass_fraction = kwargs.pop('mass_fraction')
+        return calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
+
+
+def get_higher_heating_value(net, **kwargs):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_property('hhv')
+    else:
+        calorific_list = np.array([net.fluid[fluid].get_property('hhv') for fluid in net._fluid])
+        mass_fraction = kwargs.pop('mass_fraction')
+        return calculate_mixture_calorific_values(calorific_list, mass_fraction.T)
+
+
+def get_lower_heating_value(net, **kwargs):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).get_property('lhv')
+    else:
+        calorific_list = np.array([net.fluid[fluid].get_property('lhv') for fluid in net._fluid])
+        mass_fraction = kwargs.pop('mass_fraction')
+        return calculate_mixture_calorific_values(calorific_list, mass_fraction.T)
+
+
+def is_fluid_gas(net):
+    if len(net._fluid) == 1:
+        return get_fluid(net, net._fluid[0]).is_gas
+    else:
+        return True
+
+
+def create_individual_fluid(fluid_name, fluid_components,
+                            temperature_list, component_proportions, proportion_type='mass', phase='gas'):
+    molar_mass = []
+    density = []
+    viscosity = []
+    heat_capacity = []
+    compressibility = []
+    der_compressibility = []
+    high_calorific = []
+    low_calorific = []
+    for fl_co in fluid_components:
+        fluid = call_lib(fl_co)
+        molar_mass += [fluid.get_molar_mass()]
+        density += [fluid.get_density(temperature_list)]
+        viscosity += [fluid.get_viscosity(temperature_list)]
+        heat_capacity += [fluid.get_heat_capacity(temperature_list)]
+        compressibility += [fluid.get_property('compressibility', temperature_list)]
+        der_compressibility += [fluid.get_property('der_compressibility', temperature_list)]
+        high_calorific += [fluid.get_property('hhv')]
+        low_calorific += [fluid.get_property('lhv')]
+    if proportion_type == 'mass':
+        mof = calculate_molar_fraction_from_mass_fraction(component_proportions, molar_mass)
+        maf = np.array(component_proportions)
+    elif proportion_type == 'molar':
+        mof = np.array(component_proportions)
+        maf = calculate_mass_fraction_from_molar_fraction(component_proportions, molar_mass)
+    else:
+        raise (AttributeError('proportion type %s not defined. Select either mass or molar' % s))
+    dens = calculate_mixture_density(density, maf)
+    visc = calculate_mixture_viscosity(viscosity, mof, np.array(molar_mass))
+    heat = calculate_mixture_heat_capacity(heat_capacity, maf)
+    comp = calculate_mixture_compressibility(compressibility, maf)
+    derc = calculate_mixture_compressibility(der_compressibility, maf)
+    mass = calculate_mixture_molar_mass(molar_mass, maf)
+    higc = calculate_mixture_calorific_values(np.array(high_calorific), maf)
+    lowc = calculate_mixture_calorific_values(np.array(low_calorific), maf)
+
+    dens = FluidPropertyInterExtra(temperature_list, dens)
+    visc = FluidPropertyInterExtra(temperature_list, visc)
+    heat = FluidPropertyInterExtra(temperature_list, heat)
+    mass = FluidPropertyConstant(mass)
+    higc = FluidPropertyConstant(higc)
+    lowc = FluidPropertyConstant(lowc)
+    derc = FluidPropertyInterExtra(temperature_list, derc)
+    comp = FluidPropertyInterExtra(temperature_list, comp)
+
+    fluid = Fluid(fluid_name, phase, density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
+                  der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+    return fluid

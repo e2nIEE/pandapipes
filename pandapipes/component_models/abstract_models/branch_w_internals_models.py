@@ -2,18 +2,16 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from operator import itemgetter
+
 import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.idx_branch import ACTIVE
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
-    VINIT, RE, LAMBDA, CP, ELEMENT_IDX
-from pandapipes.idx_node import L, node_cols
-from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import get_density, get_heat_capacity, get_viscosity, is_fluid_gas, \
+    get_compressibility
 
 try:
     import pplog as logging
@@ -130,10 +128,10 @@ class BranchWInternalsComponent(BranchComponent):
         f, t = ft_lookup[cls.internal_node_name()]
 
         int_node_pit = node_pit[f:t, :]
-        int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
+        int_node_pit[:, :] = np.array([table_nr, 0, net['_idx_node']['L']] + [0] * (net['_idx_node']['node_cols'] - 3))
         int_node_number = cls.get_internal_pipe_number(net) - 1
 
-        int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
+        int_node_pit[:, net['_idx_node']['ELEMENT_IDX']] = np.arange(t - f)
 
         f_junction, t_junction = ft_lookup[node_name]
         junction_pit = node_pit[f_junction:t_junction, :]
@@ -168,50 +166,82 @@ class BranchWInternalsComponent(BranchComponent):
             from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
             to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
 
-        branch_winternals_pit[:, ELEMENT_IDX] = np.repeat(net[cls.table_name()].index.values,
-                                                          internal_pipe_number)
-        branch_winternals_pit[:, FROM_NODE] = from_nodes
-        branch_winternals_pit[:, TO_NODE] = to_nodes
-        branch_winternals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
-            to_nodes, TINIT_NODE]) / 2
-        branch_winternals_pit[:, ACTIVE] = \
+        branch_winternals_pit[:, net['_idx_branch']['ELEMENT_IDX']] = np.repeat(net[cls.table_name()].index.values,
+                                                                                internal_pipe_number)
+        branch_winternals_pit[:, net['_idx_branch']['FROM_NODE']] = from_nodes
+        branch_winternals_pit[:, net['_idx_branch']['TO_NODE']] = to_nodes
+        branch_winternals_pit[:, net['_idx_branch']['TINIT']] = (node_pit[from_nodes, net['_idx_node']['TINIT']] +
+                                                                 node_pit[to_nodes, net['_idx_node']['TINIT']]) / 2
+
+        branch_winternals_pit[:, net['_idx_branch']['ACTIVE']] = \
             np.repeat(net[cls.table_name()][cls.active_identifier()].values, internal_pipe_number)
 
         return branch_winternals_pit, internal_pipe_number
 
     @classmethod
     def create_property_pit_branch_entries(cls, net, branch_pit, node_name):
-        fluid = get_fluid(net)
         f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
         branch_winternals_pit = branch_pit[f:t, :]
-        branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
+        if len(net._fluid) == 1:
+            branch_winternals_pit[:, net['_idx_branch']['RHO']] = \
+                get_density(net, branch_winternals_pit[:, net['_idx_branch']['TINIT']])
+            branch_winternals_pit[:, net['_idx_branch']['ETA']] = \
+                get_viscosity(net, branch_winternals_pit[:, net['_idx_branch']['TINIT']])
+            branch_winternals_pit[:, net['_idx_branch']['CP']] = \
+                get_heat_capacity(net, branch_winternals_pit[:, net['_idx_branch']['TINIT']])
+        else:
+            node_pit = net['_active_pit']['node'] if '_active_pit' in net else net['_pit']['node']
+            vinit = branch_winternals_pit[:, net['_idx_branch']['VINIT']]
+            nodes = np.zeros(len(vinit), dtype=int)
+            nodes[vinit>=0] = branch_winternals_pit[vinit>=0, net['_idx_branch']['FROM_NODE']]
+            nodes[vinit<0] = branch_winternals_pit[vinit<0, net['_idx_branch']['TO_NODE']]
+            slacks = node_pit[nodes, net['_idx_node']['SLACK']]
+            mf = net['_mass_fraction']
+            mf = np.array(itemgetter(*slacks)(mf))
+            branch_winternals_pit[:, net['_idx_branch']['RHO']] = \
+                get_density(net, branch_winternals_pit[:, net['_idx_branch']['TINIT']], mass_fraction=mf)
+            branch_winternals_pit[:, net['_idx_branch']['ETA']] = \
+                get_viscosity(net, branch_winternals_pit[:, net['_idx_branch']['TINIT']], mass_fraction=mf)
+            branch_winternals_pit[:, net['_idx_branch']['CP']] = \
+                get_heat_capacity(net, branch_winternals_pit[:, net['_idx_branch']['TINIT']], mass_fraction=mf)
 
     @classmethod
     def extract_results(cls, net, options, node_name):
         placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options, node_name)
-        fluid = get_fluid(net)
 
-        idx_active = branch_pit[:, ELEMENT_IDX]
-        v_mps = branch_pit[:, VINIT]
+        idx_active = branch_pit[:, net['_idx_branch']['ELEMENT_IDX']]
+        v_mps = branch_pit[:, net['_idx_branch']['VINIT']]
         _, v_sum, internal_pipes = _sum_by_group(idx_active, v_mps, np.ones_like(idx_active))
-        idx_pit = branch_pit[:, ELEMENT_IDX]
+        idx_pit = branch_pit[:, net['_idx_branch']['ELEMENT_IDX']]
         _, lambda_sum, reynolds_sum, = \
-            _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
-        if fluid.is_gas:
-            from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-            to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-            numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
-            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+            _sum_by_group(idx_pit, branch_pit[:, net['_idx_branch']['LAMBDA']], branch_pit[:, net['_idx_branch']['RE']])
+        if is_fluid_gas(net):
+            from_nodes = branch_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+            to_nodes = branch_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
+            numerator = NORMAL_PRESSURE * branch_pit[:, net['_idx_branch']['TINIT']]
+            p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
+            p_to = node_pit[to_nodes, net['_idx_node']['PAMB']] + node_pit[to_nodes, net['_idx_node']['PINIT']]
             mask = ~np.isclose(p_from, p_to)
             p_mean = np.empty_like(p_to)
             p_mean[~mask] = p_from[~mask]
             p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
                            / (p_from[mask] ** 2 - p_to[mask] ** 2)
-            normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                              / (p_mean * NORMAL_TEMPERATURE)
+
+            if len(net._fluid) == 1:
+                normfactor_mean = numerator * get_compressibility(net, p_mean) \
+                                  / (p_mean * NORMAL_TEMPERATURE)
+            else:
+                node_pit = net['_pit']['node']
+                vinit = branch_pit[:, net['_idx_branch']['VINIT']]
+                nodes = np.zeros(len(vinit), dtype=int)
+                nodes[vinit >= 0] = branch_pit[:, net['_idx_branch']['FROM_NODE']][vinit >= 0]
+                nodes[vinit < 0] = branch_pit[:, net['_idx_branch']['TO_NODE']][vinit < 0]
+                slacks = node_pit[nodes, net['_idx_node']['SLACK']]
+                mf = net['_mass_fraction']
+                mf = np.array(itemgetter(*slacks)(mf))
+                comp_fact = get_compressibility(net, p_mean, mass_fraction=mf)
+                normfactor_mean = numerator * comp_fact / (p_mean * NORMAL_TEMPERATURE)
+
             v_gas_mean = v_mps * normfactor_mean
             _, v_gas_mean_sum = _sum_by_group(idx_active, v_gas_mean)
             res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes

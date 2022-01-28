@@ -4,10 +4,9 @@
 
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
-from pandapipes.idx_branch import PL, TL, ALPHA, \
-    TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import is_fluid_gas
 
 try:
     import pplog as logging
@@ -46,13 +45,14 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :return: No Output.
         """
         heat_exchanger_pit = super().create_pit_branch_entries(net, heat_exchanger_pit, node_name)
-        heat_exchanger_pit[:, D] = net[cls.table_name()].diameter_m.values
-        heat_exchanger_pit[:, AREA] = heat_exchanger_pit[:, D] ** 2 * np.pi / 4
-        heat_exchanger_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
-        heat_exchanger_pit[:, ALPHA] = 0
-        heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
-        heat_exchanger_pit[:, TEXT] = 293.15
-        heat_exchanger_pit[:, T_OUT] = 307
+        heat_exchanger_pit[:, net['_idx_branch']['D']] = net[cls.table_name()].diameter_m.values
+        heat_exchanger_pit[:, net['_idx_branch']['AREA']] = heat_exchanger_pit[:,
+                                                           net['_idx_branch']['D']] ** 2 * np.pi / 4
+        heat_exchanger_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']] = net[cls.table_name()].loss_coefficient.values
+        heat_exchanger_pit[:, net['_idx_branch']['ALPHA']] = 0
+        heat_exchanger_pit[:, net['_idx_branch']['QEXT']] = net[cls.table_name()].qext_w.values
+        heat_exchanger_pit[:, net['_idx_branch']['TEXT']] = 293.15
+        heat_exchanger_pit[:, net['_idx_branch']['T_OUT']] = 307
 
     @classmethod
     def calculate_pressure_lift(cls, net, he_pit, node_pit):
@@ -67,7 +67,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        he_pit[:, PL] = 0
+        he_pit[:, net['_idx_branch']['PL']] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, he_pit, node_pit):
@@ -82,7 +82,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        he_pit[:, TL] = 0
+        he_pit[:, net['_idx_branch']['TL']] = 0
 
     @classmethod
     def get_component_input(cls):
@@ -96,7 +96,6 @@ class HeatExchanger(BranchWZeroLengthComponent):
                 ("to_junction", "u4"),
                 ("diameter_m", "f8"),
                 ("qext_w", 'f8'),
-                ("fluid", dtype(object)),
                 ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
@@ -111,7 +110,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",

@@ -103,14 +103,12 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     special_elements_junctions = [("press_control", "controlled_junction")]
     node_elements = []
     if net is not None and include_node_elements:
-        node_elements = [comp.table_name() for comp in net.component_list
-                         if issubclass(comp, NodeElementComponent)]
+        node_elements = [comp.table_name() for comp in net['node_element_list']]
     elif include_node_elements:
         node_elements = ["sink", "source", "ext_grid"]
     branch_elements = []
     if net is not None and include_branch_elements:
-        branch_elements = [comp.table_name() for comp in net.component_list
-                           if issubclass(comp, BranchComponent)]
+        branch_elements = [comp.table_name() for comp in net['branch_list']]
     elif include_branch_elements:
         branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
                            "heat_exchanger", "press_control"]

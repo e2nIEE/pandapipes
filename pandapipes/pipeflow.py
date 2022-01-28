@@ -8,15 +8,13 @@ from scipy.sparse.linalg import spsolve
 
 from pandapipes.component_models import Junction
 from pandapipes.component_models.auxiliaries import build_system_matrix
-from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
-    TO_NODE_T, VINIT, T_OUT, VINIT_T
-from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
 from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, extract_all_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
-    extract_results_active_pit, set_user_pf_options, update_pit
+    extract_results_active_pit, set_user_pf_options, update_pit, init_idx, assign_to_slack
 from pandapower.auxiliary import ppException
-from pandapipes.properties.fluids import get_default_fluid
+from pandapipes.properties.fluids import is_fluid_gas
+from pandapipes.pipeflow_setup import init_fluid
 
 try:
     import pplog as logging
@@ -65,7 +63,12 @@ def pipeflow(net, sol_vec=None, **kwargs):
     # Init physical constants and options
     init_options(net, local_params)
 
+    init_fluid(net)
+
+    init_idx(net)
+
     create_lookups(net)
+
     node_pit, branch_pit = initialize_pit(net, Junction.table_name())
 
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
@@ -73,7 +76,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
                        " is empty")
         return
 
-    get_default_fluid(net, node_pit, branch_pit)
+    if len(net._fluid) != 1:
+        assign_to_slack(net, node_pit, branch_pit)
 
     node_pit, branch_pit = update_pit(net, node_pit, branch_pit, Junction.table_name())
 
@@ -83,8 +87,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         nodes_connected, branches_connected = check_connectivity(
             net, branch_pit, node_pit, check_heat=calculation_mode in ["heat", "all"])
     else:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
+        nodes_connected = node_pit[:, net['_idx_node']['ACTIVE']].astype(np.bool)
+        branches_connected = branch_pit[:, net['_idx_branch']['ACTIVE']].astype(np.bool)
 
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
@@ -93,9 +97,9 @@ def pipeflow(net, sol_vec=None, **kwargs):
     elif calculation_mode == "heat":
         if net.user_pf_options["hyd_flag"]:
             node_pit = net["_active_pit"]["node"]
-            node_pit[:, PINIT] = sol_vec[:len(node_pit)]
+            node_pit[:, net['_idx_node']['PINIT']] = sol_vec[:len(node_pit)]
             branch_pit = net["_active_pit"]["branch"]
-            branch_pit[:, VINIT] = sol_vec[len(node_pit):]
+            branch_pit[:, net['_idx_branch']['VINIT']] = sol_vec[len(node_pit):]
             heat_transfer(net)
         else:
             logger.warning("Converged flag not set. Make sure that hydraulic calculation results "
@@ -144,9 +148,9 @@ def hydraulics(net):
             error_x0_increased, error_x1_increased = set_damping_factor(net, niter,
                                                                         [error_p, error_v])
             if error_x0_increased:
-                net["_active_pit"]["node"][:, PINIT] = p_init_old
+                net["_active_pit"]["node"][:, net['_idx_node']['PINIT']] = p_init_old
             if error_x1_increased:
-                net["_active_pit"]["branch"][:, VINIT] = v_init_old
+                net["_active_pit"]["branch"][:, net['_idx_branch']['VINIT']] = v_init_old
         elif nonlinear_method != "constant":
             logger.warning("No proper nonlinear method chosen. Using constant settings.")
 
@@ -192,7 +196,7 @@ def heat_transfer(net):
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
 
-    if net['_fluid'].is_gas:
+    if is_fluid_gas(net):
         logger.info("Caution! Temperature calculation does currently not affect hydraulic "
                     "properties!")
 
@@ -221,9 +225,9 @@ def heat_transfer(net):
             error_x0_increased, error_x1_increased = set_damping_factor(net, niter,
                                                                         [error_t, error_t_out])
             if error_x0_increased:
-                net["_active_pit"]["node"][:, TINIT] = t_init_old
+                net["_active_pit"]["node"][:, net['_idx_node']['TINIT']] = t_init_old
             if error_x1_increased:
-                net["_active_pit"]["branch"][:, T_OUT] = t_out_old
+                net["_active_pit"]["branch"][:, net['_idx_branch']['T_OUT']] = t_out_old
         elif nonlinear_method != "constant":
             logger.warning("No proper nonlinear method chosen. Using constant settings.")
 
@@ -277,18 +281,23 @@ def solve_hydraulics(net):
     node_pit = net["_active_pit"]["node"]
 
     branch_lookups = get_lookup(net, "branch", "from_to_active")
-    for comp in net['component_list']:
+    for comp in net['branch_list']:
         comp.calculate_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, options)
+    if len(net._fluid) != 1:
+        for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
+            comp.create_property_pit_node_entries(net, node_pit, Junction.table_name())
+            comp.create_property_pit_branch_entries(net, branch_pit, Junction.table_name())
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
-    v_init_old = branch_pit[:, VINIT].copy()
-    p_init_old = node_pit[:, PINIT].copy()
+    v_init_old = branch_pit[:, net['_idx_branch']['VINIT']].copy()
+    p_init_old = node_pit[:, net['_idx_node']['PINIT']].copy()
 
     x = spsolve(jacobian, epsilon)
-    branch_pit[:, VINIT] += x[len(node_pit):]
-    node_pit[:, PINIT] += x[:len(node_pit)] * options["alpha"]
+    branch_pit[:, net['_idx_branch']['VINIT']] += x[len(node_pit):]
+    node_pit[:, net['_idx_node']['PINIT']] += x[:len(node_pit)] * options["alpha"]
 
-    return branch_pit[:, VINIT], node_pit[:, PINIT], v_init_old, p_init_old, epsilon
+    return branch_pit[:, net['_idx_branch']['VINIT']], node_pit[:,
+                                                       net['_idx_node']['PINIT']], v_init_old, p_init_old, epsilon
 
 
 def solve_temperature(net):
@@ -311,26 +320,27 @@ def solve_temperature(net):
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
     # to_node for temperature calculation
-    branch_pit[:, VINIT_T] = branch_pit[:, VINIT]
-    branch_pit[:, FROM_NODE_T] = branch_pit[:, FROM_NODE]
-    branch_pit[:, TO_NODE_T] = branch_pit[:, TO_NODE]
-    mask = branch_pit[:, VINIT] < 0
-    branch_pit[mask, VINIT_T] = -branch_pit[mask, VINIT]
-    branch_pit[mask, FROM_NODE_T] = branch_pit[mask, TO_NODE]
-    branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
+    branch_pit[:, net['_idx_branch']['VINIT_T']] = branch_pit[:, net['_idx_branch']['VINIT']]
+    branch_pit[:, net['_idx_branch']['FROM_NODE_T']] = branch_pit[:, net['_idx_branch']['FROM_NODE']]
+    branch_pit[:, net['_idx_branch']['TO_NODE_T']] = branch_pit[:, net['_idx_branch']['TO_NODE']]
+    mask = branch_pit[:, net['_idx_branch']['VINIT']] < 0
+    branch_pit[mask, net['_idx_branch']['VINIT_T']] = -branch_pit[mask, net['_idx_branch']['VINIT']]
+    branch_pit[mask, net['_idx_branch']['FROM_NODE_T']] = branch_pit[mask, net['_idx_branch']['TO_NODE']]
+    branch_pit[mask, net['_idx_branch']['TO_NODE_T']] = branch_pit[mask, net['_idx_branch']['FROM_NODE']]
 
-    for comp in net['component_list']:
+    for comp in net['branch_list']:
         comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
-    t_init_old = node_pit[:, TINIT].copy()
-    t_out_old = branch_pit[:, T_OUT].copy()
+    t_init_old = node_pit[:, net['_idx_node']['TINIT']].copy()
+    t_out_old = branch_pit[:, net['_idx_branch']['T_OUT']].copy()
 
     x = spsolve(jacobian, epsilon)
-    node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
-    branch_pit[:, T_OUT] += x[len(node_pit):]
+    node_pit[:, net['_idx_node']['TINIT']] += x[:len(node_pit)] * options["alpha"]
+    branch_pit[:, net['_idx_branch']['T_OUT']] += x[len(node_pit):]
 
-    return branch_pit[:, T_OUT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
+    return branch_pit[:, net['_idx_branch']['T_OUT']], t_out_old, node_pit[:,
+                                                                  net['_idx_node']['TINIT']], t_init_old, epsilon
 
 
 def set_damping_factor(net, niter, error):

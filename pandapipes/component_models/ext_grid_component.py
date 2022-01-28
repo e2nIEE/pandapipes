@@ -2,17 +2,16 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import copy
+from operator import itemgetter
+
 import numpy as np
+import pandas as pd
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models import NodeElementComponent
-
-from pandapipes.idx_node import PINIT, LOAD, TINIT, NODE_TYPE, NODE_TYPE_T, P, T, \
-    EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
-
-from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.internals_toolbox import _sum_by_group
+from pandapipes.pipeflow_setup import get_lookup, get_table_number
 
 try:
     import pplog as logging
@@ -48,6 +47,7 @@ class ExtGrid(NodeElementComponent):
         :type node_name:
         :return: No Output.
         """
+
         ext_grids = net[cls.table_name()]
         ext_grids = ext_grids[ext_grids.in_service.values]
 
@@ -58,23 +58,52 @@ class ExtGrid(NodeElementComponent):
         juncts_p, press_sum, number = _sum_by_group(junction.values[p_mask], press,
                                                     np.ones_like(press, dtype=np.int32))
         index_p = junction_idx_lookups[juncts_p]
-        node_pit[index_p, PINIT] = press_sum / number
-        node_pit[index_p, NODE_TYPE] = P
-        node_pit[index_p, EXT_GRID_OCCURENCE] += number
+        node_pit[index_p, net['_idx_node']['PINIT']] = press_sum / number
+        node_pit[index_p, net['_idx_node']['NODE_TYPE']] = net['_idx_node']['P']
+        node_pit[index_p, net['_idx_node']['EXT_GRID_OCCURENCE']] += number
 
         t_mask = np.where(np.isin(ext_grids.type.values, ["t", "pt"]))
         t_k = ext_grids.t_k.values[t_mask]
         juncts_t, t_sum, number = _sum_by_group(junction.values[t_mask], t_k,
                                                 np.ones_like(t_k, dtype=np.int32))
         index = junction_idx_lookups[juncts_t]
-        node_pit[index, TINIT] = t_sum / number
-        node_pit[index, NODE_TYPE_T] = T
-        node_pit[index, EXT_GRID_OCCURENCE_T] += number
+        node_pit[index, net['_idx_node']['TINIT']] = t_sum / number
+        node_pit[index, net['_idx_node']['NODE_TYPE_T']] = net['_idx_node']['T']
+        node_pit[index, net['_idx_node']['EXT_GRID_OCCURENCE_T']] += number
 
         net["_lookups"]["ext_grid"] = \
             np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
-            "ext_grid" in net['_lookups'] else index_p
+                "ext_grid" in net['_lookups'] else index_p
         return ext_grids, press
+
+    @classmethod
+    def create_property_pit_node_entries(cls, net, node_pit, node_name):
+        if len(net._fluid) == 1:
+            return
+        branch_pit = net['_active_pit']['branch'] if '_active_pit' in net else net['_pit']['branch']
+        ext_grids = net[cls.table_name()]
+        eg_nodes, p_grids, sum_mass_flows, counts, inverse_nodes, node_uni = \
+            cls.get_mass_flow(net, ext_grids, node_pit, branch_pit, node_name)
+        sum_mass_flows[sum_mass_flows > 0] = 0
+        loads = itemgetter(*np.array(['LOAD__'] * len(ext_grids)) + net.ext_grid.fluid.values[p_grids])(
+            net['_idx_node'])
+        mask = pd.Series(net['_idx_node']).index[5:][:-1].str.contains('LOAD__')
+        recov = copy.deepcopy(node_pit[eg_nodes][:, mask])
+        node_pit[eg_nodes, loads] -= \
+            cls.sign() * (sum_mass_flows / counts)[inverse_nodes]
+
+        mass = node_pit[eg_nodes][:, mask].sum(axis=1)
+        mass_zero = mass == 0
+        mass_fracts = itemgetter(*np.array(['W_'] * len(ext_grids)) + ext_grids.fluid.values[p_grids])(net['_idx_node'])
+        mass_fracts = [mass_fracts] if not isinstance(mass_fracts, tuple) else mass_fracts
+        node_pit[eg_nodes[mass_zero], np.array(mass_fracts)[mass_zero]] = 1
+        for fluid in net._fluid:
+            node_pit[eg_nodes[~mass_zero], net['_idx_node']['W_' + fluid]] = \
+                node_pit[eg_nodes[~mass_zero], net['_idx_node']['LOAD__' + fluid]] / mass[~mass_zero]
+        mask_w = pd.Series(net['_idx_node']).index[5:][:-1].str.contains('W_')
+        mass_fractions = np.round(node_pit[eg_nodes][:, mask_w], 5)
+        node_pit[eg_nodes[:, np.newaxis], mask] = recov
+        net['_mass_fraction'] = dict(zip(eg_nodes, mass_fractions))
 
     @classmethod
     def extract_results(cls, net, options, node_name):
@@ -89,37 +118,45 @@ class ExtGrid(NodeElementComponent):
         :type node_name:
         :return: No Output.
         """
+
         ext_grids = net[cls.table_name()]
 
         if len(ext_grids) == 0:
             return
 
-        res_table = super().extract_results(net, options, node_name)
-
         branch_pit = net['_pit']['branch']
         node_pit = net["_pit"]["node"]
 
-        p_grids = np.isin(ext_grids.type.values, ["p", "pt"])
-        junction = cls.get_connected_junction(net)
-        eg_nodes = get_lookup(net, "node", "index")[node_name][np.array(junction.values[p_grids])]
-        node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True,
-                                                    return_inverse=True)
-        eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)
-        eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
-        from_nodes = branch_pit[eg_from_branches, FROM_NODE]
-        to_nodes = branch_pit[eg_to_branches, TO_NODE]
-        mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES]
-        mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES]
-        loads = node_pit[node_uni, LOAD]
-        all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
-        all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
-        nodes, sum_mass_flows = _sum_by_group(all_index_nodes, all_mass_flows)
+        eg_nodes, p_grids, sum_mass_flows, counts, inverse_nodes, node_uni = \
+            cls.get_mass_flow(net, ext_grids, node_pit, branch_pit, node_name)
+
+        res_table = super().extract_results(net, options, node_name)
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)
         res_table["mdot_kg_per_s"].values[p_grids] = \
             cls.sign() * (sum_mass_flows / counts)[inverse_nodes]
         return res_table, ext_grids, node_uni, node_pit, branch_pit
+
+    @classmethod
+    def get_mass_flow(cls, net, ext_grids, node_pit, branch_pit, node_name):
+
+        p_grids = np.isin(ext_grids.type.values, ["p", "pt"])
+        junction = cls.get_connected_junction(net)
+        eg_nodes = get_lookup(net, "node", "index")[node_name][np.array(junction.values[p_grids])]
+        node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True,
+                                                    return_inverse=True)
+        eg_from_branches = np.isin(branch_pit[:, net['_idx_branch']['FROM_NODE']], node_uni)
+        eg_to_branches = np.isin(branch_pit[:, net['_idx_branch']['TO_NODE']], node_uni)
+        from_nodes = branch_pit[eg_from_branches, net['_idx_branch']['FROM_NODE']]
+        to_nodes = branch_pit[eg_to_branches, net['_idx_branch']['TO_NODE']]
+        mass_flow_from = branch_pit[eg_from_branches, net['_idx_branch']['LOAD_VEC_NODES']]
+        mass_flow_to = branch_pit[eg_to_branches, net['_idx_branch']['LOAD_VEC_NODES']]
+        loads = node_pit[node_uni, net['_idx_node']['LOAD']]
+        all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
+        all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
+        nodes, sum_mass_flows = _sum_by_group(all_index_nodes, all_mass_flows)
+        return eg_nodes, p_grids, sum_mass_flows, counts, inverse_nodes, node_uni
 
     @classmethod
     def get_connected_junction(cls, net):

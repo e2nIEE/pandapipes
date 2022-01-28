@@ -8,13 +8,11 @@ from operator import itemgetter
 
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 
-from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TO_NODE, TINIT, PL
-
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 
-from pandapipes.pipeflow_setup import get_net_option, get_fluid
+from pandapipes.pipeflow_setup import get_net_option
+
+from pandapipes.properties.fluids import get_compressibility, is_fluid_gas
 
 # the Compressor class is an adapted pump (mainly copied pump code)
 class Compressor(BranchWZeroLengthComponent):
@@ -46,10 +44,10 @@ class Compressor(BranchWZeroLengthComponent):
         std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
-        compressor_pit[pos, STD_TYPE] = std_type
-        compressor_pit[:, D] = 0.9  # TODO: what is this -> Dummy
-        compressor_pit[:, AREA] = compressor_pit[:, D] ** 2 * np.pi / 4
-        compressor_pit[:, LC] = 0
+        compressor_pit[pos, net['_idx_branch']['STD_TYPE']] = std_type
+        compressor_pit[:, net['_idx_branch']['D']] = 0.9  # TODO: what is this -> Dummy
+        compressor_pit[:, net['_idx_branch']['AREA']] = compressor_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
+        compressor_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']] = 0
 
     @classmethod
     def calculate_pressure_lift(cls, net, compressor_pit, node_pit):
@@ -64,27 +62,28 @@ class Compressor(BranchWZeroLengthComponent):
         :return: power stroke
         :rtype: float
         """
-        fluid = get_fluid(net)
 
         # calculate the 'real' velocity and volumen flow:
 
         # get necessary parameters from pandapipes internal table (pit):
-        area = compressor_pit[:, AREA] # TODO: what is this? -> (dummy) only relevant for v
-        idx = compressor_pit[:, STD_TYPE].astype(int) # TODO: what is this? -> lookup, numeric ID
+        area = compressor_pit[:, net['_idx_branch']['AREA']] # TODO: what is this? -> (dummy) only relevant for v
+        idx = compressor_pit[:, net['_idx_branch']['STD_TYPE']].astype(int) # TODO: what is this? -> lookup, numeric ID
         # of std type
         std_types = np.array(list(net.std_type['compressor'].keys()))[idx]
-        from_nodes = compressor_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = compressor_pit[:, TO_NODE].astype(np.int32)
-        v_mps = compressor_pit[:, VINIT]
+        from_nodes = compressor_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+        to_nodes = compressor_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
+        v_mps = compressor_pit[:, net['_idx_branch']['VINIT']]
 
         # get absolute pressure in Pa:
         p_scale = get_net_option(net, "p_scale") # TODO: what is this? -> DLo fragen
-        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT] * p_scale
-        p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT] * p_scale
-        numerator = NORMAL_PRESSURE * compressor_pit[:, TINIT] # TODO: what is this? -> normfactor
-        if fluid.is_gas: # TODO: what is happening here?
+        p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + \
+                 node_pit[from_nodes, net['_idx_node']['PINIT']] * p_scale
+        p_to = node_pit[to_nodes, net['_idx_node']['PAMB']] + \
+               node_pit[to_nodes, net['_idx_node']['PINIT']] * p_scale
+        numerator = NORMAL_PRESSURE * compressor_pit[:, net['_idx_node']['TINIT']] # TODO: what is this? -> normfactor
+        if is_fluid_gas(net): # TODO: what is happening here?
             # consider volume flow at inlet
-            normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
+            normfactor_from = numerator * get_compressibility(net, p_from) \
                               / (p_from * NORMAL_TEMPERATURE)
             v_mean = v_mps * normfactor_from
         else:
@@ -98,7 +97,7 @@ class Compressor(BranchWZeroLengthComponent):
         # use the get_pressure function of the standard type to calculate the pressure lift from
         # the volume flow
         pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
-        compressor_pit[:, PL] = pl
+        compressor_pit[:, net['_idx_node']['PL']] = pl
         # TODO: add mass flow in result table
         # TODO: add pressure at from_junction and to_junction to result table
 
@@ -116,7 +115,7 @@ class Compressor(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        compressor_pit[:, TL] = 0
+        compressor_pit[:, net['_idx_branch']['TL']] = 0
 
     @classmethod
     def extract_results(cls, net, options, node_name):
@@ -131,7 +130,7 @@ class Compressor(BranchWZeroLengthComponent):
         """
         placement_table, compressor_pit, res_table = \
             super().extract_results(net, options, node_name)
-        res_table['deltap_bar'].values[placement_table] = compressor_pit[:, PL]
+        res_table['deltap_bar'].values[placement_table] = compressor_pit[:, net['_idx_branch']['PL']]
 
     @classmethod
     def get_component_input(cls):

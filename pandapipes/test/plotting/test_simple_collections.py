@@ -7,13 +7,14 @@ import copy
 import pandapipes.plotting as plot
 from matplotlib.collections import PatchCollection, LineCollection
 from pandapipes.test.test_toolbox import net_plotting, net_out_of_service_plotting
-
+import numpy as np
 
 def test_simple_collections(net_plotting):
     net = copy.deepcopy(net_plotting)
     collections = plot.create_simple_collections(net, plot_sinks=True, plot_sources=True)
 
-    assert len(collections) == len([comp for comp in net["component_list"]
+    assert len(collections) == len([comp for comp in
+                                    np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']])
                                     if not net[comp.table_name()].empty])
 
     assert len(collections["junction"].get_paths()) == len(net.junction)
@@ -66,7 +67,8 @@ def test_simple_collections_out_of_service(net_out_of_service_plotting):
     net = copy.deepcopy(net_out_of_service_plotting)
     collections = plot.create_simple_collections(net, plot_sinks=True, plot_sources=True)
 
-    assert len(collections) == len([comp for comp in net["component_list"]
+    assert len(collections) == len([comp for comp in
+                                    np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']])
                                     if not net[comp.table_name()].empty])
 
     assert len(collections["junction"].get_paths()) == len(net.junction[net.junction.in_service])

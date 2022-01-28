@@ -5,17 +5,18 @@
 import copy
 
 import numpy as np
+import pytest
+
 import pandapipes
 import pandapower
-import pytest
+from pandapipes import networks as g_nw
 from pandapipes.multinet.control.controller.multinet_control import P2GControlMultiEnergy, G2PControlMultiEnergy, \
     GasToGasConversion, coupled_p2g_const_control
 from pandapipes.multinet.control.run_control_multinet import run_control
-from pandapipes import networks as g_nw
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
+from pandapipes.properties.fluids import get_higher_heating_value
 from pandapower import networks as e_nw
 from pandapower.control.controller.const_control import ConstControl
-from pandapipes.properties.fluids import get_fluid
 
 
 @pytest.fixture
@@ -47,8 +48,8 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
-    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    # TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    # assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -73,7 +74,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     assert net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"] == \
            net_gas.res_source.at[p2g_id_gas, "mdot_kg_per_s"]
     assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
-                      (p_p2g_el/(get_fluid(net_gas).get_property('hhv')* 3.6)) * eta)
+                      (p_p2g_el / (get_higher_heating_value(net_gas) * 3.6)) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
     # check scaling functionality
@@ -81,8 +82,9 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     net_power.load.loc[p2g_id_el, 'scaling'] = scaling_factor
     run_control(mn)
     assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
-               (p_p2g_el * scaling_factor / (get_fluid(net_gas).get_property('hhv') * 3.6)) * eta)
+                      (p_p2g_el * scaling_factor / (get_higher_heating_value(net_gas) * 3.6)) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
+
 
 def test_g2p_single(get_gas_example, get_power_example_simple):
     """ coupling of a single element in the power and gas net each with one MulitEnergyController"""
@@ -90,8 +92,8 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
-    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    # TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    # assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_g2p")
@@ -185,8 +187,8 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
-    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    # TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    # assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -216,7 +218,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     assert np.all(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"] == \
                   net_gas.res_source.loc[p2g_ids_gas, "mdot_kg_per_s"])
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
-                       (p_p2g_el/(get_fluid(net_gas).get_property('hhv')* 3.6)) * eta)
+                       (p_p2g_el / (get_higher_heating_value(net_gas) * 3.6)) * eta)
     assert np.all(net_gas.source.loc[no_p2g, "mdot_kg_per_s"] == 0.001)
     assert np.all(net_power.load.loc[p2g_ids_el, "p_mw"] == p_p2g_el)  # has to be still the same
 
@@ -226,7 +228,8 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     run_control(mn)
 
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
-                       (p_p2g_el * scaling_factor/(get_fluid(net_gas).get_property('hhv')* 3.6)) * eta)
+                       (p_p2g_el * scaling_factor / (get_higher_heating_value(net_gas) * 3.6)) * eta)
+
 
 def test_g2p_multiple(get_gas_example, get_power_example_simple):
     """ coupling of multiple elements with one MulitEnergyController"""
@@ -234,8 +237,8 @@ def test_g2p_multiple(get_gas_example, get_power_example_simple):
     fluid = {"name": "hgas", "cal_value": 14.62197}
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    #TODO: Does this still make sense. A network fluid is only determined during the pipeflow
-    #assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+    # TODO: Does this still make sense. A network fluid is only determined during the pipeflow
+    # assert fluid["name"] == pandapipes.get_fluid(net_gas).name
 
     # set up multinet
     mn = create_empty_multinet("test_g2p")
@@ -361,7 +364,7 @@ def test_const_p2g_control(get_gas_example, get_power_example_simple):
 
     assert np.all(net_power.res_load.p_mw.values == power_load)
     assert np.all(net_gas.res_sink.values == flow_gas)
-    assert net_gas.source.mdot_kg_per_s.values == power_load * p2g.conversion_factor_mw_to_kgps()\
+    assert net_gas.source.mdot_kg_per_s.values == power_load * p2g.conversion_factor_mw_to_kgps() \
            * p2g.efficiency
 
 
@@ -384,7 +387,6 @@ def test_run_control_wo_controller(get_gas_example, get_power_example_simple):
     add_nets_to_multinet(mn, power=net_power, gas=net_gas)
 
     run_control(mn)
-
 
 
 if __name__ == '__main__':

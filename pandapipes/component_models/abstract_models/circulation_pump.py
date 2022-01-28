@@ -3,8 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.idx_node import PINIT
 from pandapipes.pipeflow_setup import get_lookup
 
 try:
@@ -41,7 +41,8 @@ class CirculationPump(ExtGrid):
         junct_uni_to = np.array(list(set(index_juncts_to)))
         index_nodes_to = get_lookup(net, "node", "index")[node_name][junct_uni_to]
 
-        deltap_bar = node_pit[index_nodes_from, PINIT] - node_pit[index_nodes_to, PINIT]
+        deltap_bar = node_pit[index_nodes_from, net['_idx_node']['PINIT']] - node_pit[
+            index_nodes_to, net['_idx_node']['PINIT']]
         res_table["deltap_bar"].values[:] = deltap_bar
 
     @classmethod

@@ -4,6 +4,7 @@
 
 import numpy as np
 import pandas as pd
+
 from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
     HEIGHT_EXPONENT
 
@@ -83,40 +84,3 @@ def init_results_element(net, element, output, all_float):
         net[res_element] = pd.DataFrame(np.zeros(0, dtype=output), index=[])
         net[res_element] = pd.DataFrame(np.NaN, index=net[element].index,
                                         columns=net[res_element].columns)
-
-
-def add_new_component(net, component, overwrite=False):
-    """
-
-    :param net:
-    :type net:
-    :param component:
-    :type component:
-    :param overwrite:
-    :type overwrite:
-    :return:
-    :rtype:
-    """
-    name = component.table_name()
-    if not overwrite and name in net:
-        # logger.info('%s is already in net. Try overwrite if you want to get a new entry' %name)
-        return
-    else:
-        if hasattr(component, 'geodata'):
-            geodata = component.geodata()
-        else:
-            geodata = None
-
-        comp_input = component.get_component_input()
-        if name not in net:
-            net['component_list'].append(component)
-        net.update({name: comp_input})
-        if isinstance(net[name], list):
-            net[name] = pd.DataFrame(np.zeros(0, dtype=net[name]), index=[])
-        # init_empty_results_table(net, name, component.get_result_table(net))
-
-        if geodata is not None:
-            net.update({name + '_geodata': geodata})
-            if isinstance(net[name + '_geodata'], list):
-                net[name + '_geodata'] = pd.DataFrame(np.zeros(0, dtype=net[name + '_geodata']),
-                                                      index=[])

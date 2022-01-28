@@ -5,7 +5,6 @@
 import numpy as np
 from numpy import dtype
 from pandapipes.component_models.abstract_models import CirculationPump
-from pandapipes.idx_node import LOAD
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
 
@@ -43,7 +42,7 @@ class CirculationPumpMass(CirculationPump):
         juncts, loads_sum = _sum_by_group(circ_pump.to_junction.values, mass_flow_loads)
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         index = junction_idx_lookups[juncts]
-        node_pit[index, LOAD] += loads_sum
+        node_pit[index, net['_idx_node']['LOAD']] += loads_sum
 
     @classmethod
     def get_component_input(cls):
@@ -58,5 +57,6 @@ class CirculationPumpMass(CirculationPump):
                 ("p_bar", "f8"),
                 ("t_k", "f8"),
                 ("mdot_kg_per_s", "f8"),
+                ("fluid", dtype(object)),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]

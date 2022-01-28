@@ -6,13 +6,10 @@ import copy
 import inspect
 
 import numpy as np
-
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, branch_cols, \
-    ACTIVE as ACTIVE_BR
-from pandapipes.idx_node import NODE_TYPE, P, PINIT, NODE_TYPE_T, T, node_cols, \
-    ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, PC
 from scipy.sparse import coo_matrix, csgraph
 
+from pandapipes.idx_branch import idx_branch
+from pandapipes.idx_node import idx_node
 
 try:
     import pplog as logging
@@ -326,17 +323,18 @@ def initialize_pit(net, node_name):
 
     """
     pit = create_empty_pit(net)
-
-    for comp in net['component_list']:
+    for comp in np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']]):
         comp.create_pit_node_entries(net, pit["node"], node_name)
         comp.create_pit_branch_entries(net, pit["branch"], node_name)
     return pit["node"], pit["branch"]
 
+
 def update_pit(net, node_pit, branch_pit, node_name):
-    for comp in net['component_list']:
+    for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
         comp.create_property_pit_node_entries(net, node_pit, node_name)
         comp.create_property_pit_branch_entries(net, branch_pit, node_name)
     return net["_pit"]['node'], net["_pit"]['branch']
+
 
 def create_empty_pit(net):
     """
@@ -356,8 +354,8 @@ def create_empty_pit(net):
     node_length = get_lookup(net, "node", "length")
     branch_length = get_lookup(net, "branch", "length")
     # init empty pit
-    pit = {"node": np.empty((node_length, node_cols), dtype=np.float64),
-           "branch": np.empty((branch_length, branch_cols), dtype=np.float64)}
+    pit = {"node": np.empty((node_length, net['_idx_node']['node_cols']), dtype=np.float64),
+           "branch": np.empty((branch_length, net['_idx_branch']['branch_cols']), dtype=np.float64)}
     net["_pit"] = pit
     return pit
 
@@ -372,7 +370,7 @@ def extract_all_results(net, node_name):
     :return: No output
 
     """
-    for comp in net['component_list']:
+    for comp in np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']]):
         comp.extract_results(net, net["_options"], node_name)
 
 
@@ -405,7 +403,7 @@ def create_lookups(net):
     node_table_lookups = {"t2n": dict(), "n2t": dict()}
     internal_nodes_lookup = dict()
 
-    for comp in net['component_list']:
+    for comp in np.concatenate([net.node_list, net.node_element_list, net.branch_list]):
         branch_from, branch_table_nr = comp.create_branch_lookups(
             net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_table_nr, branch_from)
         node_from, node_table_nr = comp.create_node_lookups(
@@ -451,11 +449,12 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
             internal nodes and branches are reachable from any of the hyd_slacks (np mask).
     :rtype: tuple(np.array)
     """
-    active_branch_lookup = branch_pit[:, ACTIVE_BR].astype(np.bool)
-    active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
+    active_branch_lookup = branch_pit[:, net['_idx_branch']['ACTIVE']].astype(np.bool)
+    active_node_lookup = node_pit[:, net['_idx_node']['ACTIVE']].astype(np.bool)
+    from_nodes = branch_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+    to_nodes = branch_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
+    hyd_slacks = np.where(((node_pit[:, net['_idx_node']['NODE_TYPE']] == net['_idx_node']['P']) | (
+            node_pit[:, net['_idx_node']['NODE_TYPE']] == net['_idx_node']['PC']))
                           & active_node_lookup)[0]
 
     nodes_connected, branches_connected = perform_connectivity_search(
@@ -464,7 +463,7 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
     if not check_heat:
         return nodes_connected, branches_connected
 
-    heat_slacks = np.where((node_pit[:, NODE_TYPE_T] == T) & nodes_connected)[0]
+    heat_slacks = np.where((node_pit[:, net['_idx_node']['NODE_TYPE_T']] == net['_idx_node']['T']) & nodes_connected)[0]
     if len(heat_slacks) == len(hyd_slacks) and np.all(heat_slacks == hyd_slacks):
         return nodes_connected, branches_connected
 
@@ -480,7 +479,8 @@ def perform_connectivity_search(net, node_pit, slack_nodes, from_nodes, to_nodes
     active_to_nodes = to_nodes[active_branch_lookup]
 
     nodes_connected = get_connected_nodes(node_pit, slack_nodes,
-                                          active_from_nodes, active_to_nodes, active_node_lookup, active_branch_lookup)
+                                          active_from_nodes, active_to_nodes, active_node_lookup,
+                                          active_branch_lookup)
 
     if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
         raise ValueError(
@@ -528,10 +528,10 @@ def get_table_index_list(net, pit_array, pit_indices, pit_type="node"):
     :return: List of table names and table indices belonging to the pit indices
     """
     int_pit = pit_array[pit_indices, :]
-    tables = np.unique(int_pit[:, TABLE_IDX_ND])
+    tables = np.unique(int_pit[:, net['_idx_node']['TABLE_IDX']])
     table_lookup = get_lookup(net, pit_type, "table")
-    return [(get_table_name(table_lookup, tbl), list(int_pit[int_pit[:, TABLE_IDX_ND] == tbl,
-                                                             ELEMENT_IDX_ND].astype(np.int32)))
+    return [(get_table_name(table_lookup, tbl), list(int_pit[int_pit[:, net['_idx_node']['TABLE_IDX']] == tbl,
+                                                             net['_idx_node']['ELEMENT_IDX']].astype(np.int32)))
             for tbl in tables]
 
 
@@ -588,10 +588,10 @@ def reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected):
             net["_lookups"]["branch_index_active"] = dict()
         els["branch"] = branches_connected
     if reduced_node_lookup is not None:
-        active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
-            branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
-        active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
-            branch_pit[branches_connected, TO_NODE].astype(np.int32)]
+        active_pit["branch"][:, net['_idx_branch']['FROM_NODE']] = reduced_node_lookup[
+            branch_pit[branches_connected, net['_idx_branch']['FROM_NODE']].astype(np.int32)]
+        active_pit["branch"][:, net['_idx_branch']['TO_NODE']] = reduced_node_lookup[
+            branch_pit[branches_connected, net['_idx_branch']['TO_NODE']].astype(np.int32)]
     net["_active_pit"] = active_pit
     net["_lookups"]["node_active"] = nodes_connected
     net["_lookups"]["branch_active"] = branches_connected
@@ -629,15 +629,16 @@ def extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branc
 
     """
     if not np.alltrue(nodes_connected):
-        node_pit[~nodes_connected, PINIT] = np.NaN
+        node_pit[~nodes_connected, net['_idx_node']['PINIT']] = np.NaN
         node_pit[nodes_connected, :] = net["_active_pit"]["node"]
     else:
         net["_pit"]["node"] = np.copy(net["_active_pit"]["node"])
     if not np.alltrue(branches_connected):
-        branch_pit[~branches_connected, VINIT] = np.NaN
+        branch_pit[~branches_connected, net['_idx_branch']['VINIT']] = np.NaN
         rows_active_br = np.where(branches_connected)[0]
         cols_br = np.array([i for i in range(branch_pit.shape[1])
-                            if i not in [FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T]])
+                            if i not in [net['_idx_branch']['FROM_NODE'], net['_idx_branch']['TO_NODE'],
+                                         net['_idx_branch']['FROM_NODE_T'], net['_idx_branch']['TO_NODE_T']]])
         branch_pit[rows_active_br[:, np.newaxis], cols_br[np.newaxis, :]] = \
             net["_active_pit"]["branch"][:, cols_br]
     else:
@@ -666,3 +667,30 @@ def get_connected_nodes(node_pit, slack_nodes,
     nodes_connected = np.zeros(len(active_node_lookup), dtype=np.bool)
     nodes_connected[reachable_nodes] = True
     return nodes_connected
+
+
+def assign_to_slack(net, node_pit, branch_pit):
+    active_branch_lookup = branch_pit[:, net['_idx_branch']['ACTIVE']].astype(np.bool)
+    active_node_lookup = node_pit[:, net['_idx_node']['ACTIVE']].astype(np.bool)
+    from_nodes = branch_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+    to_nodes = branch_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
+    hyd_slacks = np.where(((node_pit[:, net['_idx_node']['NODE_TYPE']] == net['_idx_node']['P']) | (
+            node_pit[:, net['_idx_node']['NODE_TYPE']] == net['_idx_node']['PC']))
+                          & active_node_lookup)[0]
+    for slack in hyd_slacks:
+        nodes_connected = get_connected_nodes(node_pit, [slack], from_nodes, to_nodes, active_node_lookup,
+                                              active_branch_lookup)
+        node_pit[nodes_connected, net['_idx_node']['SLACK']] = slack
+
+
+def init_idx(net):
+    idx_node(net)
+    idx_branch(net)
+
+
+def init_fluid(net):
+    fluids = []
+    for comp in net.node_element_list:
+        fluids += [net[comp.table_name()].fluid.values if 'fluid' in net[comp.table_name()] else []]
+    fluids = np.concatenate(fluids)
+    net['_fluid'] = np.unique(fluids[fluids != 'slacklike'])

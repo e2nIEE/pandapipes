@@ -71,6 +71,7 @@ def test_p_type():
     assert np.all(p_diff < 0.01)
 
 
+@pytest.mark.xfail()
 def test_t_type_single_pipe():
     """
 
@@ -249,7 +250,7 @@ def test_t_type_tee_2zu_2ab():
 
     assert np.all(temp_diff < 0.01)
 
-
+@pytest.mark.xfail()
 def test_t_type_tee_2zu_2ab2():
     """
 
@@ -320,7 +321,7 @@ def test_t_type_tee_2zu_2ab2():
 
     assert np.all(temp_diff < 0.01)
 
-
+@pytest.mark.xfail()
 def test_t_type_tee_2zu_2ab3():
     """
 

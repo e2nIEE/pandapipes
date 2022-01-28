@@ -54,15 +54,14 @@ def build_igraph_from_ppipes(net, junctions=None):
                    pp_junction_mapping[junction.to_junction],
                    weight=junction.length_km)
 
-    for comp in net['component_list']:
-        if comp in [Source, Sink, ExtGrid, Pipe, Junction]:
-            continue
-        mask = _get_element_mask_from_nodes(
-            net, comp.table_name(), ["from_junction", "to_junction"], junctions)
-        for comp_data in net[comp.table_name()][mask].itertuples():
-            g.add_edge(pp_junction_mapping[comp_data.from_junction],
-                       pp_junction_mapping[comp_data.to_junction],
-                       weight=0.001)
+    for comp in np.concatenate([net.branch_list]):
+        if not isinstance(comp, Pipe):
+            mask = _get_element_mask_from_nodes(
+                net, comp.table_name(), ["from_junction", "to_junction"], junctions)
+            for comp_data in net[comp.table_name()][mask].itertuples():
+                g.add_edge(pp_junction_mapping[comp_data.from_junction],
+                           pp_junction_mapping[comp_data.to_junction],
+                           weight=0.001)
 
     meshed = _igraph_meshed(g)
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]

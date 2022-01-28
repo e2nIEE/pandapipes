@@ -6,6 +6,9 @@ from packaging import version
 
 from pandapipes import __version__
 from pandapipes.pandapipes_net import add_default_components
+from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+from pandapipes.component_models.abstract_models.node_models import NodeComponent
+from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 
 try:
     import pplog as logging
@@ -24,10 +27,22 @@ def convert_format(net):
         return net
     if version.parse(net.version) <= version.parse('0.5.0'):
         _fluid_dictonary(net)
+    if 'component_list' in net:
+        _change_component_list(net)
     _rename_columns(net)
     _add_missing_columns(net)
     net.version = __version__
     return net
+
+def _change_component_list(net):
+    for component in net['component_list']:
+        if issubclass(component, BranchComponent):
+            net['branch_list'] += [component]
+        if issubclass(component, NodeElementComponent):
+            net['node_element_list'] += [component]
+        if issubclass(component, NodeComponent):
+            net['node_list'] += [component]
+
 
 
 def _fluid_dictonary(net):
