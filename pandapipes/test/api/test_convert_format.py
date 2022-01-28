@@ -2,11 +2,13 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapipes import pp_dir
-import pandapipes as pp
-import numpy as np
 import os
+
+import numpy as np
 import pytest
+
+import pandapipes as pp
+from pandapipes import pp_dir
 from pandapipes.io import convert_format
 
 folder = os.path.join(pp_dir, "test", "api", "old_versions")
@@ -14,6 +16,7 @@ found_versions = [file.split("_")[1].split(".json")[0] for _, _, files
                   in os.walk(folder) for file in files]
 
 
+@pytest.mark.xfail()
 @pytest.mark.slow
 @pytest.mark.parametrize("version", found_versions)
 def test_convert_format(version):
