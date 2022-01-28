@@ -113,7 +113,7 @@ class P2GControlMultiEnergy(Controller):
         try:
             multinet['nets'][self.name_net_gas].source.at[self.elm_idx_gas, 'mdot_kg_per_s'] \
                 = self.mdot_kg_per_s
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, InvalidIndexError):
             multinet['nets'][self.name_net_gas].source.loc[self.elm_idx_gas,
                                                            'mdot_kg_per_s'].values[:] = self.mdot_kg_per_s
 
@@ -228,7 +228,7 @@ class G2PControlMultiEnergy(Controller):
                     self.elm_idx_power, 'p_mw'] * multinet['nets'][self.name_net_power][
                     self.elm_type_power].at[self.elm_idx_power, 'scaling']
 
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, InvalidIndexError):
                 power_gen = multinet['nets'][self.name_net_power][self.elm_type_power].loc[
                                 self.elm_idx_power, 'p_mw'].values[:] \
                             * multinet['nets'][self.name_net_power][self.elm_type_power].loc[
@@ -257,14 +257,14 @@ class G2PControlMultiEnergy(Controller):
             try:
                 multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas,
                                                             'mdot_kg_per_s'] = self.gas_cons
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, InvalidIndexError):
                 multinet['nets'][self.name_net_gas].sink.loc[self.elm_idx_gas,
                                                              'mdot_kg_per_s'] = self.gas_cons
         else:
             try:
                 multinet['nets'][self.name_net_power][self.elm_type_power].at[
                     self.elm_idx_power, 'p_mw'] = self.power_gen
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, InvalidIndexError):
                 multinet['nets'][self.name_net_power][self.elm_type_power].loc[
                     self.elm_idx_power, 'p_mw'] = self.power_gen
 
@@ -357,7 +357,7 @@ class GasToGasConversion(Controller):
             gas_in = multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'mdot_kg_per_s'] \
                      * multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'scaling']
 
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, InvalidIndexError):
             gas_in = multinet['nets'][self.name_net_from].sink.loc[self.element_index_from, 'mdot_kg_per_s'].values \
                      * multinet['nets'][self.name_net_from].sink.loc[self.element_index_from, 'scaling'].values
 
@@ -369,7 +369,7 @@ class GasToGasConversion(Controller):
         try:
             multinet['nets'][self.name_net_to].source.at[self.element_index_to, 'mdot_kg_per_s'] \
                 = self.mdot_kg_per_s_out
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, InvalidIndexError):
             multinet['nets'][self.name_net_to].source.loc[self.element_index_to,
                                                           'mdot_kg_per_s'].values[:] = self.mdot_kg_per_s_out
 
