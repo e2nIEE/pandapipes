@@ -8,7 +8,7 @@ from pandapipes.properties.fluids import get_higher_heating_value, get_lower_hea
 import numpy as np
 from operator import itemgetter
 from pandapipes.pipeflow_setup import get_lookup
-
+from pandas.errors import InvalidIndexError
 
 class P2GControlMultiEnergy(Controller):
 
@@ -241,7 +241,7 @@ class G2PControlMultiEnergy(Controller):
                 gas_sink = multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'mdot_kg_per_s'] \
                            *multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'scaling']
 
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, InvalidIndexError):
                 gas_sink = multinet['nets'][self.name_net_gas].sink.loc[self.elm_idx_gas,
                                                                         'mdot_kg_per_s'].values[:] \
                            * multinet['nets'][self.name_net_gas].sink.loc[self.elm_idx_gas,
