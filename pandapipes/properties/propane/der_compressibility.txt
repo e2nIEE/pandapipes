@@ -1,0 +1,2 @@
+# derivative (slope) of compressibility
+-0.0022
