@@ -795,7 +795,7 @@ def create_individual_fluid(fluid_name, fluid_components,
         mof = np.array(component_proportions)
         maf = calculate_mass_fraction_from_molar_fraction(component_proportions, molar_mass)
     else:
-        raise (AttributeError('proportion type %s not defined. Select either mass or molar' % s))
+        raise (AttributeError('proportion type %s not defined. Select either mass or molar' %proportion_type))
     dens = calculate_mixture_density(density, maf)
     visc = calculate_mixture_viscosity(viscosity, mof, np.array(molar_mass))
     heat = calculate_mixture_heat_capacity(heat_capacity, maf)
