@@ -102,7 +102,7 @@ class P2GControlMultiEnergy(Controller):
         try:
             power_load = multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'p_mw'] \
                          * multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'scaling']
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, InvalidIndexError):
             power_load = multinet['nets'][self.name_net_power].load.loc[self.elm_idx_power, 'p_mw'].values \
                          * multinet['nets'][self.name_net_power].load.loc[self.elm_idx_power, 'scaling'].values
         self.mdot_kg_per_s = power_load * self.conversion_factor_mw_to_kgps() * self.efficiency
