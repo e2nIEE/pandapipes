@@ -97,7 +97,7 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
 
     p_pandapipes = net.res_junction.p_bar.loc[p_valid].values
     p_diff = np.abs(1 - p_pandapipes / p_stanet)
-    v_diff_abs = pd.concat([v_diff_abs_pipe.append, v_diff_abs_valve], ignore_index=True)
+    v_diff_abs = pd.concat([v_diff_abs_pipe, v_diff_abs_valve], ignore_index=True)
     v_diff_abs.dropna(inplace=True)
 
     # Avoiding division by zero
