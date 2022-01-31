@@ -492,7 +492,7 @@ def perform_connectivity_search(net, node_pit, slack_nodes, from_nodes, to_nodes
     # throw out the virtual heat slack node
     reachable_nodes = reachable_nodes[reachable_nodes != len_nodes]
 
-    nodes_connected = np.zeros(len(active_node_lookup), dtype=np.bool)
+    nodes_connected = np.zeros(len(active_node_lookup), dtype=bool)
     nodes_connected[reachable_nodes] = True
 
     if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
