@@ -135,8 +135,7 @@ class Pump(BranchWZeroLengthComponent):
                 res_table['compr_power_mw'].values[placement_table] = \
                     pump_pit[:, PL] * P_CONVERSION * vf_sum_int / 10 ** 6
         else:
-            placement_table, pump_pit, res_table = super().prepare_result_tables(net, options,
-                                                                                 node_name)
+            placement_table, pump_pit, res_table = super().prepare_result_tables(net)
         res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
 
     @classmethod
