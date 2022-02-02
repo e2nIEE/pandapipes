@@ -112,7 +112,8 @@ class Pump(BranchWZeroLengthComponent):
         """
         calc_compr_pow = options['calc_compression_power']
         if calc_compr_pow:
-            placement_table, res_table, pump_pit, node_pit = super().extract_results(net, options, node_name)
+            placement_table, res_table, pump_pit, node_pit = super().extract_results(net, options,
+                                                                                     node_name)
             p_from = res_table['p_from_bar'].values[placement_table]
             p_to = res_table['p_to_bar'].values[placement_table]
             from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)

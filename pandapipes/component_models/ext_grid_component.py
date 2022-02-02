@@ -96,7 +96,7 @@ class ExtGrid(NodeElementComponent):
         if len(ext_grids) == 0:
             return
 
-        res_table = super().extract_results(net, options, node_name)
+        res_table = net["res_" + cls.table_name()]
 
         branch_pit = net['_pit']['branch']
         node_pit = net["_pit"]["node"]

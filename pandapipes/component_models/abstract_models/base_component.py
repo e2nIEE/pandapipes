@@ -19,6 +19,20 @@ class Component:
         raise NotImplementedError()
 
     @classmethod
+    def init_results(cls, net):
+        """
+        Function that intializes the result table for the component.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: No Output.
+        """
+        output, all_float = cls.get_result_table(net)
+        init_results_element(net, cls.table_name(), output, all_float)
+        res_table = net["res_" + cls.table_name()]
+        return res_table
+
+    @classmethod
     def extract_results(cls, net, options, node_name):
         """
         Function that extracts certain results.
@@ -31,10 +45,7 @@ class Component:
         :type node_name:
         :return: No Output.
         """
-        output, all_float = cls.get_result_table(net)
-        init_results_element(net, cls.table_name(), output, all_float)
-        res_table = net["res_" + cls.table_name()]
-        return res_table
+        raise NotImplementedError
 
     @classmethod
     def get_component_input(cls):

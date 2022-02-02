@@ -110,7 +110,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
 
-        placement_table, res_table, pc_pit, node_pit = super().extract_results(net, options, node_name)
+        placement_table, res_table, pc_pit, node_pit = super().extract_results(net, options,
+                                                                               node_name)
 
         node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
         junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
