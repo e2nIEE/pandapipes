@@ -11,6 +11,7 @@ from pandapipes import __version__
 from pandapipes.component_models import Junction, Pipe, ExtGrid
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapower.auxiliary import ADict
+from pandas import Index
 
 try:
     import pplog as logging
@@ -84,4 +85,4 @@ def add_default_components(net, overwrite=False):
                        ('level', dtype(object)),
                        ('initial_run', "bool"),
                        ("recycle", "bool")]
-        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=pd.Int64Index([]))
+        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=Index([], dtype=np.int64))
