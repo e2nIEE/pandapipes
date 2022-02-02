@@ -463,8 +463,8 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
             internal nodes and branches are reachable from any of the hyd_slacks (np mask).
     :rtype: tuple(np.array)
     """
-    active_branch_lookup = branch_pit[:, ACTIVE_BR].astype(np.bool)
-    active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool)
+    active_branch_lookup = branch_pit[:, ACTIVE_BR].astype(bool)
+    active_node_lookup = node_pit[:, ACTIVE_ND].astype(bool)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
     hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
@@ -507,7 +507,7 @@ def perform_connectivity_search(net, node_pit, slack_nodes, from_nodes, to_nodes
     # throw out the virtual heat slack node
     reachable_nodes = reachable_nodes[reachable_nodes != len_nodes]
 
-    nodes_connected = np.zeros(len(active_node_lookup), dtype=np.bool)
+    nodes_connected = np.zeros(len(active_node_lookup), dtype=bool)
     nodes_connected[reachable_nodes] = True
 
     if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):

@@ -110,7 +110,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
         diff_results_v_valve = pd.DataFrame({"diff_v_mean_valve": v_diff_mean_valve,
                                              "diff_v_abs_valve": v_diff_abs_valve})
 
-    v_diff_abs = v_diff_abs_pipe.append(v_diff_abs_valve, ignore_index=True)
+    v_diff_abs = pd.concat([v_diff_abs_pipe, v_diff_abs_valve], ignore_index=True)
     v_diff_abs.dropna(inplace=True)
 
     p_pandapipes = net.res_junction.p_bar.loc[p_valid].values.astype(np.float64).round(4)
