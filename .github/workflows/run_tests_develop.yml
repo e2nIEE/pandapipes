@@ -34,7 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pytest python-igraph
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          python -m pip install git+https://github.com/e2nIEE/pandapower@master#egg=pandapower
+          python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           pip install .
       - name: List all installed packages
         run: |
