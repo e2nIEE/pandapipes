@@ -23,8 +23,6 @@ jobs:
         ci_node_index: [0,1,2,3,4,5,6,7]
     steps:
       - uses: actions/checkout@v2
-      - name: Make bin/ci executable
-        run: chmod +x ./bin/ci
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -45,7 +43,6 @@ jobs:
           CI_NODE_TOTAL: ${{ matrix.ci_node_total }}
           CI_NODE_INDEX: ${{ matrix.ci_node_index }}
         run: |
-          ./bin/ci
           pytest
       - name: Test with pytest and Codecov
         if: ${{ matrix.python-version == '3.9' }}
