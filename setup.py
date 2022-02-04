@@ -26,7 +26,7 @@ classifiers = [
 
 with open('.github/workflows/run_tests_master.yml', 'rb') as f:
     lines = f.read().decode('utf-8')
-    versions = set(re.findall('3.[0-9]', lines))
+    versions = set(re.findall('3.[7-9]', lines))
     for version in versions:
         classifiers.append('Programming Language :: Python :: 3.%s' % version[-1])
 
@@ -34,7 +34,7 @@ long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.5.0',
+    version='0.6.0',
     author='Dennis Cronbach, Daniel Lohmeier, Simon Ruben Drauz, Jolando Marius Kisse',
     author_email='dennis.cronbach@iee.fraunhofer.de, daniel.lohmeier@iee.fraunhofer.de, '
                  'simon.ruben.drauz@iee.fraunhofer.de, jolando.kisse@uni-kassel.de',
@@ -43,7 +43,7 @@ setup(
 	long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.7.0", "matplotlib"],
+    install_requires=["pandapower>=2.8.0", "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "python-igraph"],
                     "test": ["pytest", "pytest-xdist"]},
