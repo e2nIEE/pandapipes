@@ -145,17 +145,11 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
     res_table = net["res_" + table_name]
 
     f, t = get_lookup(net, "branch", "from_to")[table_name]
-    # fa, ta = get_lookup(net, "branch", "from_to_active")[cls.table_name()]
 
     branch_pit = net["_pit"]["branch"]
     placement_table = np.argsort(net[table_name].index.values)
     idx_pit = branch_pit[f:t, ELEMENT_IDX]
     comp_connected = branches_connected[f:t]
-    # pipe_considered = get_lookup(net, "branch", "active")[f:t]
-    # _, active_pipes = _sum_by_group(get_net_option(net, "use_numba"), idx_pit,
-    #                                 pipe_considered.astype(np.int32))
-    # active_pipes = active_pipes > 0.99
-    # placement_table = placement_table[active_pipes]
 
     node_pit = net["_pit"]["node"]
 
@@ -165,7 +159,6 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
         from_nodes = branch_results["from_nodes"][f:t]
         from_nodes_external = node_pit[from_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
         considered = from_nodes_external & comp_connected
-        # TODO: This is not working (cf. test_inservice -> test_connectivity_hydraulic2)
         external_active = comp_connected[from_nodes_external]
         for res_name, entry in res_nodes_from:
             res_table[res_name].values[external_active] = branch_results[entry][f:t][considered]
@@ -174,7 +167,6 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
         to_nodes = branch_results["to_nodes"][f:t]
         to_nodes_external = node_pit[to_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
         considered = to_nodes_external & comp_connected
-        # TODO: This is not working (cf. test_inservice -> test_connectivity_hydraulic2)
         external_active = comp_connected[to_nodes_external]
         for res_name, entry in res_nodes_to:
             res_table[res_name].values[external_active] = branch_results[entry][f:t][considered]
