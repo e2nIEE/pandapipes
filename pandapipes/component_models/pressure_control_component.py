@@ -5,11 +5,14 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
-from pandapipes.idx_branch import D, AREA, PL, TL, \
+from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
+    BranchWZeroLengthComponent
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_branch import D, AREA, TL, \
     JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC
 from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.properties.fluids import get_fluid
 
 
 class PressureControlComponent(BranchWZeroLengthComponent):
@@ -30,29 +33,32 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         return "from_junction", "to_junction"
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
+    def create_pit_node_entries(cls, net, node_pit):
         pcs = net[cls.table_name()]
         controlled = pcs.in_service & pcs.control_active
         juncts = pcs['controlled_junction'].values[controlled]
         press = pcs['controlled_p_bar'].values[controlled]
-        junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
+        junction_idx_lookups = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
         index_pc = junction_idx_lookups[juncts]
         node_pit[index_pc, NODE_TYPE] = PC
         node_pit[index_pc, PINIT] = press
 
     @classmethod
-    def create_pit_branch_entries(cls, net, pc_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pc_pit:
-        :type pc_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        pc_pit = super().create_pit_branch_entries(net, pc_pit, node_name)
+        pc_pit = super().create_pit_branch_entries(net, branch_pit)
         pc_pit[:, D] = 0.1
         pc_pit[:, AREA] = pc_pit[:, D] ** 2 * np.pi / 4
         pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC
@@ -97,24 +103,29 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         pc_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
 
-        placement_table, res_table, pc_pit, node_pit = super().extract_results(net, options,
-                                                                               node_name)
+        placement_table, res_table, pc_pit, node_pit = super().extract_results(net, options, None,
+                                                                               nodes_connected,
+                                                                               branches_connected)
 
-        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
-        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
+        node_active_idx_lookup = get_lookup(net, "node", "index_active")[cls.get_connected_node_type().table_name()]
+        junction_idx_lookup = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
         from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
             net[cls.table_name()]["from_junction"].values[placement_table]]]
         to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[

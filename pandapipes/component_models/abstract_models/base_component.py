@@ -33,7 +33,7 @@ class Component:
         return res_table
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
@@ -41,8 +41,12 @@ class Component:
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
+        :param branch_results:
+        :type branch_results:
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
         :return: No Output.
         """
         raise NotImplementedError
@@ -123,21 +127,7 @@ class Component:
         return current_start, current_table
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
-        """
-        Function which creates pit branch entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :return: No Output.
-        """
-
-        pass
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit branch entries.
 
@@ -147,7 +137,19 @@ class Component:
         :type node_pit:
         :return: No Output.
         """
+        pass
 
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
+        """
+        Function which creates pit branch entries.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_pit:
+        :type branch_pit:
+        :return: No Output.
+        """
         pass
 
     @classmethod

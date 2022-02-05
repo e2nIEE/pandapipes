@@ -18,7 +18,7 @@ class NodeElementComponent(Component):
     """
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function that creates pit node entries.
 
@@ -26,8 +26,10 @@ class NodeElementComponent(Component):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
         raise NotImplementedError

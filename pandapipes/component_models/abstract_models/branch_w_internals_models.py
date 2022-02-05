@@ -55,7 +55,7 @@ class BranchWInternalsComponent(BranchComponent):
 
     @classmethod
     def internal_node_name(cls):
-        return NotImplementedError
+        raise NotImplementedError
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
@@ -121,7 +121,7 @@ class BranchWInternalsComponent(BranchComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -144,14 +144,14 @@ class BranchWInternalsComponent(BranchComponent):
 
         int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
 
-        f_junction, t_junction = ft_lookup[node_name]
+        f_junction, t_junction = ft_lookup[cls.get_connected_node_type().table_name()]
         junction_pit = node_pit[f_junction:t_junction, :]
         from_junctions = net[cls.table_name()].from_junction.values.astype(np.int32)
         to_junctions = net[cls.table_name()].to_junction.values.astype(np.int32)
         return table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_winternals_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries.
 
@@ -161,11 +161,11 @@ class BranchWInternalsComponent(BranchComponent):
         :type branch_pit:
         :return: No Output.
         """
-        branch_winternals_pit, node_pit, from_nodes, to_nodes \
-            = super().create_pit_branch_entries(net, branch_winternals_pit, node_name)
+        branch_w_internals_pit, node_pit, from_nodes, to_nodes \
+            = super().create_pit_branch_entries(net, branch_pit)
 
-        if not len(branch_winternals_pit):
-            return branch_winternals_pit, []
+        if not len(branch_w_internals_pit):
+            return branch_w_internals_pit, []
 
         internal_pipe_number = cls.get_internal_pipe_number(net)
         node_ft_lookups = get_lookup(net, "node", "from_to")
@@ -177,25 +177,108 @@ class BranchWInternalsComponent(BranchComponent):
             from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
             to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
 
-        branch_winternals_pit[:, ELEMENT_IDX] = np.repeat(net[cls.table_name()].index.values,
-                                                          internal_pipe_number)
-        branch_winternals_pit[:, FROM_NODE] = from_nodes
-        branch_winternals_pit[:, TO_NODE] = to_nodes
-        branch_winternals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
+        branch_w_internals_pit[:, ELEMENT_IDX] = np.repeat(net[cls.table_name()].index.values,
+                                                           internal_pipe_number)
+        branch_w_internals_pit[:, FROM_NODE] = from_nodes
+        branch_w_internals_pit[:, TO_NODE] = to_nodes
+        branch_w_internals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
             to_nodes, TINIT_NODE]) / 2
         fluid = get_fluid(net)
-        branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ACTIVE] = \
+        branch_w_internals_pit[:, RHO] = fluid.get_density(branch_w_internals_pit[:, TINIT])
+        branch_w_internals_pit[:, ETA] = fluid.get_viscosity(branch_w_internals_pit[:, TINIT])
+        branch_w_internals_pit[:, CP] = fluid.get_heat_capacity(branch_w_internals_pit[:, TINIT])
+        branch_w_internals_pit[:, ACTIVE] = \
             np.repeat(net[cls.table_name()][cls.active_identifier()].values, internal_pipe_number)
 
-        return branch_winternals_pit, internal_pipe_number
+        return branch_w_internals_pit, internal_pipe_number
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        # # placement_table, branch_pit, res_table = cls.prepare_result_tables(net, options, node_name)
+        # # res_table = Component.extract_results(net, options, node_name, None)
+        # res_table = net["res_" + cls.table_name()]
+        #
+        # f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+        # fa, ta = get_lookup(net, "branch", "from_to_active")[cls.table_name()]
+        #
+        # placement_table = np.argsort(net[cls.table_name()].index.values)
+        # idx_pit = net["_pit"]["branch"][f:t, ELEMENT_IDX]
+        # pipe_considered = get_lookup(net, "branch", "active")[f:t]
+        # _, active_pipes = _sum_by_group(get_net_option(net, "use_numba"), idx_pit,
+        #                                 pipe_considered.astype(np.int32))
+        # active_pipes = active_pipes > 0.99
+        # placement_table = placement_table[active_pipes]
+        # branch_pit = net["_active_pit"]["branch"][fa:ta, :]
+        #
+        # node_pit = net["_active_pit"]["node"]
+        #
+        # if not len(branch_pit):
+        #     return placement_table, res_table, branch_pit, node_pit
+        #
+        # node_active_idx_lookup = get_lookup(net, "node", "index_active")[cls.get_connected_node_type().table_name()]
+        # junction_idx_lookup = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
+        # from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
+        #     net[cls.table_name()]["from_junction"].values[placement_table]]]
+        # to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
+        #     net[cls.table_name()]["to_junction"].values[placement_table]]]
+        #
+        # from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+        # to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+        # fluid = get_fluid(net)
+        #
+        # v_mps = branch_results["v_mps"][fa:ta]
+        #
+        # t0 = node_pit[from_nodes, TINIT_NODE]
+        # t1 = node_pit[to_nodes, TINIT_NODE]
+        # mf = branch_pit[:, LOAD_VEC_NODES]
+        # vf = branch_pit[:, LOAD_VEC_NODES] / get_fluid(net).get_density((t0 + t1) / 2)
+        #
+        # use_numba = get_net_option(net, "use_numba")
+        # idx_active = branch_pit[:, ELEMENT_IDX]
+        # _, v_sum, mf_sum, vf_sum, internal_pipes = _sum_by_group(use_numba, idx_active, v_mps, mf,
+        #                                                          vf, np.ones_like(idx_active))
+        #
+        # if fluid.is_gas:
+        #     # derived from the ideal gas law
+        #     p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+        #     p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+        #     numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
+        #     normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
+        #                       / (p_from * NORMAL_TEMPERATURE)
+        #     normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
+        #                     / (p_to * NORMAL_TEMPERATURE)
+        #     v_gas_from = v_mps * normfactor_from
+        #     v_gas_to = v_mps * normfactor_to
+        #
+        #     _, nf_from_sum, nf_to_sum = _sum_by_group(use_numba, idx_active, normfactor_from,
+        #                                               normfactor_to)
+        #
+        #     v_gas_from_ordered = select_from_pit(from_nodes, from_junction_nodes, v_gas_from)
+        #     v_gas_to_ordered = select_from_pit(to_nodes, to_junction_nodes, v_gas_to)
+        #
+        #     res_table["v_from_m_per_s"].values[placement_table] = v_gas_from_ordered
+        #     res_table["v_to_m_per_s"].values[placement_table] = v_gas_to_ordered
+        #     res_table["normfactor_from"].values[placement_table] = nf_from_sum / internal_pipes
+        #     res_table["normfactor_to"].values[placement_table] = nf_to_sum / internal_pipes
+        #
+        # res_table["p_from_bar"].values[placement_table] = node_pit[from_junction_nodes, PINIT]
+        # res_table["p_to_bar"].values[placement_table] = node_pit[to_junction_nodes, PINIT]
+        # res_table["t_from_k"].values[placement_table] = node_pit[from_junction_nodes, TINIT_NODE]
+        # res_table["t_to_k"].values[placement_table] = node_pit[to_junction_nodes, TINIT_NODE]
+        # res_table["mdot_to_kg_per_s"].values[placement_table] = -mf_sum / internal_pipes
+        # res_table["mdot_from_kg_per_s"].values[placement_table] = mf_sum / internal_pipes
+        # res_table["vdot_norm_m3_per_s"].values[placement_table] = vf_sum / internal_pipes
+        # return placement_table, res_table, branch_pit, node_pit
+        #
+        #
+        #
+        #
+        #
+
         placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options,
-                                                                                   node_name)
+                                                                                   branch_results,
+                                                                                   nodes_connected,
+                                                                                   branches_connected)
         fluid = get_fluid(net)
         use_numba = get_net_option(net, "use_numba")
 
@@ -243,8 +326,8 @@ class BranchWInternalsComponent(BranchComponent):
 
         :param net:
         :type net:
-        :param pipe:
-        :type pipe:
+        :param branch:
+        :type branch:
         :return:
         :rtype:
         """

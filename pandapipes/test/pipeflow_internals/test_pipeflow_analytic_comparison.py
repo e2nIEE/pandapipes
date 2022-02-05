@@ -8,7 +8,8 @@ import numpy as np
 import pandapipes
 import pandas as pd
 import pytest
-from pandapipes.component_models import Pipe, Junction
+from pandapipes.component_models.pipe_component import Pipe
+from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.test.pipeflow_internals import internals_data_path

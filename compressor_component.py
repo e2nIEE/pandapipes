@@ -2,19 +2,19 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-from numpy import dtype
 from operator import itemgetter
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
+import numpy as np
+from numpy import dtype
 
-from pandapipes.idx_node import PINIT, PAMB
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TO_NODE, TINIT, PL
-
+from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
+    BranchWZeroLengthComponent
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-
+from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, LOSS_COEFFICIENT as LC, FROM_NODE,\
+    TO_NODE, TINIT, PL
+from pandapipes.idx_node import PINIT, PAMB
 from pandapipes.pf.pipeflow_setup import get_net_option, get_fluid
+
 
 # the Compressor class is an adapted pump (mainly copied pump code)
 class Compressor(BranchWZeroLengthComponent):
@@ -31,18 +31,16 @@ class Compressor(BranchWZeroLengthComponent):
         return "in_service"
 
     @classmethod
-    def create_pit_branch_entries(cls, net, compressor_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param compressor_pit:
-        :type compressor_pit:
         :param internal_pipe_number:
         :type internal_pipe_number:
         :return: No Output.
         """
-        compressor_pit = super().create_pit_branch_entries(net, compressor_pit, node_name)
+        compressor_pit = super().create_pit_branch_entries(net, compressor_pit)
         std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
@@ -109,10 +107,16 @@ class Compressor(BranchWZeroLengthComponent):
         compressor_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
@@ -120,7 +124,7 @@ class Compressor(BranchWZeroLengthComponent):
         :return: No Output.
         """
         placement_table, compressor_pit, res_table = \
-            super().extract_results(net, options, node_name)
+            super().extract_results(net, options, None, nodes_connected, branches_connected)
         res_table['deltap_bar'].values[placement_table] = compressor_pit[:, PL]
 
     @classmethod

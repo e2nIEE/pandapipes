@@ -4,7 +4,9 @@
 
 import numpy as np
 from numpy import dtype
-from pandapipes.component_models.abstract_models import CirculationPump
+
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
 from pandapipes.idx_node import LOAD
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -25,7 +27,11 @@ class CirculationPumpMass(CirculationPump):
         return "circ_pump_mass"
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -33,17 +39,16 @@ class CirculationPumpMass(CirculationPump):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
-        circ_pump, _ = super().create_pit_node_entries(net, node_pit, node_name)
+        circ_pump, _ = super().create_pit_node_entries(net, node_pit)
 
         mf = np.nan_to_num(circ_pump.mdot_kg_per_s.values)
         mass_flow_loads = mf * circ_pump.in_service.values
         juncts, loads_sum = _sum_by_group(get_net_option(net, "use_numba"),
                                           circ_pump.to_junction.values, mass_flow_loads)
-        junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
+        junction_idx_lookups = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
         index = junction_idx_lookups[juncts]
         node_pit[index, LOAD] += loads_sum
 

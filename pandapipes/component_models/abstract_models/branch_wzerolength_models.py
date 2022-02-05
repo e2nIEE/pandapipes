@@ -44,20 +44,18 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         raise NotImplementedError
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_wzerolength_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_wzerolength_pit:
-        :type branch_wzerolength_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         branch_wizerolength_pit = \
-            super().create_pit_branch_entries(net, branch_wzerolength_pit, node_name)
+            super().create_pit_branch_entries(net, branch_pit)
         branch_wizerolength_pit[:, LENGTH] = 0
         branch_wizerolength_pit[:, K] = 1000
         return branch_wizerolength_pit

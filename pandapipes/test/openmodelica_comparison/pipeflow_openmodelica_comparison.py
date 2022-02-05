@@ -2,13 +2,14 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-import pandapipes as pp
-import pandas as pd
 import statistics as st
-from pandapipes.plotting import simple_plot
+
+import numpy as np
+import pandas as pd
+
+import pandapipes as pp
+from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.component_models import Pipe
 
 try:
     import pplog as logging

@@ -6,16 +6,16 @@ import numpy as np
 from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.component_models import Junction
+from pandapipes.component_models.junction_component import Junction
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
 from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
-    init_options, create_internal_results, write_internal_results, extract_all_results, \
-    get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
-    extract_results_active_pit, set_user_pf_options, init_all_result_tables
+    init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
+    set_user_pf_options, init_all_result_tables
+from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 from pandapower.auxiliary import ppException
 
 try:
@@ -70,7 +70,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     init_all_result_tables(net)
 
     create_lookups(net)
-    node_pit, branch_pit = initialize_pit(net, Junction.table_name())
+    node_pit, branch_pit = initialize_pit(net)
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
         raise UserWarning("There are no node and branch entries defined. This might mean that your"
                           " net is empty")
@@ -108,7 +108,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
         raise UserWarning("No proper calculation mode chosen.")
 
     extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
-    extract_all_results(net, Junction.table_name())
+    extract_all_results(net, nodes_connected, branches_connected)
 
 
 def hydraulics(net):

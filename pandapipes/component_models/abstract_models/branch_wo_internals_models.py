@@ -70,20 +70,18 @@ class BranchWOInternalsComponent(BranchComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_wo_internals_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_wo_internals_pit:
-        :type branch_wo_internals_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         branch_wo_internals_pit, node_pit, from_nodes, to_nodes \
-            = super().create_pit_branch_entries(net, branch_wo_internals_pit, node_name)
+            = super().create_pit_branch_entries(net, branch_pit)
         branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
         branch_wo_internals_pit[:, FROM_NODE] = from_nodes
         branch_wo_internals_pit[:, TO_NODE] = to_nodes

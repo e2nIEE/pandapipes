@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pandapipes.component_models.abstract_models import Component
+from pandapipes.component_models.abstract_models.base_component import Component
 from pandapipes.pf.derivative_calculation import calc_lambda, calc_der_lambda
 from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
     P_CONVERSION
@@ -54,6 +54,10 @@ class BranchComponent(Component):
         raise NotImplementedError()
 
     @classmethod
+    def get_connected_node_type(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
                               current_start):
         """
@@ -76,7 +80,7 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries.
 
@@ -84,8 +88,6 @@ class BranchComponent(Component):
         :type net: pandapipesNet
         :param branch_pit:
         :type branch_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         node_pit = net["_pit"]["node"]
@@ -95,7 +97,8 @@ class BranchComponent(Component):
         if not len(net[cls.table_name()]):
             return branch_component_pit, node_pit, [], []
 
-        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
+        junction_idx_lookup = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
         from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
         to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
@@ -292,7 +295,7 @@ class BranchComponent(Component):
         return placement_table, branch_pit, res_table
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         placement_table, branch_pit, res_table = cls.prepare_result_tables(net)
 
         node_pit = net["_active_pit"]["node"]
@@ -300,8 +303,10 @@ class BranchComponent(Component):
         if not len(branch_pit):
             return placement_table, res_table, branch_pit, node_pit
 
-        node_active_idx_lookup = get_lookup(net, "node", "index_active")[node_name]
-        junction_idx_lookup = get_lookup(net, "node", "index")[node_name]
+        node_active_idx_lookup = get_lookup(net, "node", "index_active")[
+            cls.get_connected_node_type().table_name()]
+        junction_idx_lookup = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
         from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
             net[cls.table_name()]["from_junction"].values[placement_table]]]
         to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[

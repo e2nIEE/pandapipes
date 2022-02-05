@@ -6,7 +6,7 @@ from warnings import warn
 
 import numpy as np
 from numpy import dtype
-from pandapipes.component_models.abstract_models import NodeComponent
+from pandapipes.component_models.abstract_models.node_models import NodeComponent
 from pandapipes.component_models.component_toolbox import p_correction_height_air
 from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
     ACTIVE as ACTIVE_ND
@@ -61,7 +61,7 @@ class Junction(NodeComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -69,8 +69,6 @@ class Junction(NodeComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         ft_lookup = get_lookup(net, "node", "from_to")
@@ -90,16 +88,20 @@ class Junction(NodeComponent):
         junction_pit[:, ACTIVE_ND] = junctions.in_service.values
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         res_table = net["res_" + cls.table_name()]

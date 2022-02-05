@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 from numpy import dtype
 from pandapipes import __version__
-from pandapipes.component_models import Junction, Pipe, ExtGrid
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.component_models.pipe_component import Pipe
+from pandapipes.component_models.ext_grid_component import ExtGrid
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapower.auxiliary import ADict
 from pandas import Index

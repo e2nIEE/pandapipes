@@ -2,14 +2,11 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import pandapipes
-import os
-import pytest
 import numpy as np
-import pandas as pd
+import pytest
 
-from pandapipes.component_models import p_correction_height_air
-from pandapipes.test.pipeflow_internals import internals_data_path
+import pandapipes
+from pandapipes.component_models.component_toolbox import p_correction_height_air
 
 
 def test_compressor_pressure_ratio():

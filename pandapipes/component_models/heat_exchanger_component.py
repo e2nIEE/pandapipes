@@ -4,9 +4,11 @@
 
 import numpy as np
 from numpy import dtype
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
-from pandapipes.idx_branch import PL, TL, ALPHA, \
-    TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
+
+from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
+    BranchWZeroLengthComponent
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_branch import TL, ALPHA, TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
 
 try:
@@ -33,19 +35,21 @@ class HeatExchanger(BranchWZeroLengthComponent):
         return "in_service"
 
     @classmethod
-    def create_pit_branch_entries(cls, net, heat_exchanger_pit, node_name):
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param heat_exchanger_pit:
-        :type heat_exchanger_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        heat_exchanger_pit = super().create_pit_branch_entries(net, heat_exchanger_pit, node_name)
+        heat_exchanger_pit = super().create_pit_branch_entries(net, branch_pit)
         heat_exchanger_pit[:, D] = net[cls.table_name()].diameter_m.values
         heat_exchanger_pit[:, AREA] = heat_exchanger_pit[:, D] ** 2 * np.pi / 4
         heat_exchanger_pit[:, LC] = net[cls.table_name()].loss_coefficient.values

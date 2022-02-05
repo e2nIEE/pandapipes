@@ -7,11 +7,13 @@ from operator import itemgetter
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, TINIT_NODE
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
+    BranchWZeroLengthComponent
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, \
-    LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
-from pandapipes.idx_node import PINIT, PAMB
+from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, LOSS_COEFFICIENT as LC, FROM_NODE, \
+    TINIT, PL
+from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option
 
 
@@ -33,19 +35,21 @@ class Pump(BranchWZeroLengthComponent):
         return "in_service"
 
     @classmethod
-    def create_pit_branch_entries(cls, net, pump_pit, node_name):
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pump_pit:
-        :type pump_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        pump_pit = super().create_pit_branch_entries(net, pump_pit, node_name)
+        pump_pit = super().create_pit_branch_entries(net, branch_pit)
         std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
@@ -98,22 +102,28 @@ class Pump(BranchWZeroLengthComponent):
         pump_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         calc_compr_pow = options['calc_compression_power']
         if calc_compr_pow:
             placement_table, res_table, pump_pit, node_pit = super().extract_results(net, options,
-                                                                                     node_name)
+                                                                                     None,
+                                                                                     nodes_connected,
+                                                                                     branches_connected)
             p_from = res_table['p_from_bar'].values[placement_table]
             p_to = res_table['p_to_bar'].values[placement_table]
             from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
