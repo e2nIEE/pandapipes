@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[0.6.0] - 2022-04-02
+[0.6.0] - 2022-02-07
 -------------------------------
 - [ADDED] Adding pressure controler as new component
 - [ADDED] Adding compressor as new component
