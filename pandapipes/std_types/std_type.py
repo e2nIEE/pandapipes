@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -198,15 +198,15 @@ def add_std_type(net, std_type_category, component_name, component_object, overw
     :return:
     :rtype:
     """
-    if not 'std_type' in net:
+    if 'std_type' not in net:
         net.update({'std_type': {std_type_category: {component_name: component_object}}})
-    elif not std_type_category in net.std_type:
+    elif std_type_category not in net.std_type:
         std_types = net.std_type
         std_types.update({std_type_category: {component_name: component_object}})
         net.std_type = std_types
     elif not overwrite and component_name in net['std_type'][std_type_category]:
         raise (ValueError(
-            '%s is already in net.std_type["%s"]. Set overwrite = True if you want to change values!'
+            '%s is already in net.std_type["%s"]. Set overwrite=True if you want to change values!'
             % (component_name, std_type_category)))
     else:
         std_types = net.std_type[std_type_category]

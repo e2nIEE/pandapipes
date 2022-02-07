@@ -1,4 +1,4 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -127,4 +127,4 @@ def run_timeseries(multinet, time_steps=None, continue_on_divergence=False,
 
     # cleanup functions after the last time step was calculated
     for net_name in multinet['nets'].keys():
-        cleanup(ts_variables[net_name])
+        cleanup(multinet['nets'][net_name], ts_variables[net_name])

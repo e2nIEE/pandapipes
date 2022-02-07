@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -105,7 +105,7 @@ def test_case_meshed_pumps(log_results=False):
     :rtype:
     """
     net = nw.gas_meshed_pumps()
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results)
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, calc_compression_power = False)
     assert np.all(p_diff < 0.002)
     assert np.all(v_diff_abs < 0.03)
 
@@ -228,7 +228,7 @@ def test_case_strand_pump(log_results=False):
     :rtype:
     """
     net = nw.gas_strand_pump()
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results)
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, calc_compression_power = False)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.03)
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -175,7 +175,7 @@ def get_controller_order_multinet(multinet):
         # if no controllers are in the net, we have no levels and no order lists
         multinets = [multinet] * len(multinet.controller)
         net_list += multinets
-        controller_list += [multinet.controller]
+        controller_list += [multinet.controller.values]
 
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]
@@ -184,14 +184,14 @@ def get_controller_order_multinet(multinet):
             continue
         nets = [net] * len(net.controller)
         net_list += nets
-        controller_list += [net.controller]
+        controller_list += [net.controller.values]
 
-    controller_list = pd.concat(controller_list).reset_index(drop=True)
-
-    if not controller_list.size:
+    if not len(controller_list):
         # if no controllers are in the net, we have no levels and no order lists
         return [0], [[]]
     else:
+        controller_list = pd.DataFrame(np.concatenate(controller_list), columns=multinet.controller.columns)
+        controller_list = controller_list.astype(multinet.controller.dtypes)
         return get_controller_order(net_list, controller_list)
 
 
