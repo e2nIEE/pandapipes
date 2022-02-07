@@ -14,7 +14,6 @@ Change Log
 - [FIXED] Bug with multinet controller in run_control
 - [FIXED] Bugfix in pandapower changed function cleanup in run_timeseries
 
-
 [0.5.0] - 2021-07-29
 -------------------------------
 - [ADDED] Enabling encryption of pandapipes networks
