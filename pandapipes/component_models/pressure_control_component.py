@@ -66,15 +66,6 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
 
     @classmethod
-    def calculate_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        press_pit = super().calculate_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups,
-                                                            options)
-        pc_branch = press_pit[:, BRANCH_TYPE] == PC
-        press_pit[pc_branch, JAC_DERIV_DP] = 0
-        press_pit[pc_branch, JAC_DERIV_DP1] = 0
-        press_pit[pc_branch, JAC_DERIV_DV] = 0
-
-    @classmethod
     def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 

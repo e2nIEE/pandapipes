@@ -52,6 +52,11 @@ class BranchWInternalsComponent(BranchComponent):
 
     @classmethod
     def internal_node_name(cls):
+        """
+
+        :return: internal_node_name - name of the internal nodes for this class
+        :rtype: str
+        """
         raise NotImplementedError
 
     @classmethod
