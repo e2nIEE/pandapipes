@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -18,7 +18,7 @@ def valve_patches(coords, size, **kwargs):
     edgecolor = kwargs.pop('patch_edgecolor')
     colors = get_color_list(edgecolor, len(coords))
     lw = kwargs.get("linewidths", 2.)
-    filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=np.bool))
+    filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=bool))
     filled = get_filled_list(filled, len(coords))
     for geodata, col, filled_ind in zip(coords, colors, filled):
         p1, p2 = np.array(geodata[0]), np.array(geodata[-1])

@@ -1,20 +1,24 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import dtype
-from pandapipes.component_models.abstract_models import BranchWInternalsComponent
+
+from pandapipes.component_models.abstract_models.branch_w_internals_models import \
+    BranchWInternalsComponent
 from pandapipes.component_models.component_toolbox import p_correction_height_air, \
     vinterp
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, PL, TL
+    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, TL
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
+from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
+    extract_branch_results_without_internals
 
 try:
     import pplog as logging
@@ -45,6 +49,10 @@ class Pipe(BranchWInternalsComponent):
     @classmethod
     def active_identifier(cls):
         return "in_service"
+
+    @classmethod
+    def get_connected_node_type(cls):
+        return Junction
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
@@ -86,7 +94,7 @@ class Pipe(BranchWInternalsComponent):
         return end, current_table
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -94,12 +102,10 @@ class Pipe(BranchWInternalsComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions = \
-            super().create_pit_node_entries(net, node_pit, node_name)
+            super().create_pit_node_entries(net, node_pit)
         if table_nr is None:
             return
         int_node_pit[:, HEIGHT] = vinterp(junction_pit[from_junctions, HEIGHT],
@@ -115,20 +121,18 @@ class Pipe(BranchWInternalsComponent):
             np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
 
     @classmethod
-    def create_pit_branch_entries(cls, net, pipe_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param pipe_pit:
-        :type pipe_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         pipe_pit, internal_pipe_number = \
-            super().create_pit_branch_entries(net, pipe_pit, node_name)
+            super().create_pit_branch_entries(net, branch_pit)
 
         pipe_pit[:, LENGTH] = np.repeat(net[cls.table_name()].length_km.values * 1000 /
                                         internal_pipe_number, internal_pipe_number)
@@ -160,6 +164,30 @@ class Pipe(BranchWInternalsComponent):
         :rtype:
         """
         pipe_pit[:, TL] = 0
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        res_nodes_from = [("p_from_bar", "p_from"), ("t_from_k", "temp_from"),
+                          ("mdot_from_kg_per_s", "mf_from")]
+        res_nodes_to = [("p_to_bar", "p_to"), ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to")]
+        res_mean = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")]
+
+        if get_fluid(net).is_gas:
+            res_nodes_from.extend(
+                [("v_from_m_per_s", "v_gas_from"), ("normfactor_from", "normfactor_from")])
+            res_nodes_to.extend([("v_to_m_per_s", "v_gas_to"), ("normfactor_to", "normfactor_to")])
+            res_mean.extend([("v_mean_m_per_s", "v_gas_mean")])
+        else:
+            res_mean.extend([("v_mean_m_per_s", "v_mps")])
+
+        if np.any(cls.get_internal_pipe_number(net) > 1):
+            extract_branch_results_with_internals(
+                net, branch_results, cls.table_name(), res_nodes_from, res_nodes_to, res_mean,
+                cls.get_connected_node_type().table_name(), branches_connected)
+        else:
+            required_results = res_nodes_from + res_nodes_to + res_mean
+            extract_branch_results_without_internals(net, branch_results, required_results,
+                                                     cls.table_name(), branches_connected)
 
     @classmethod
     def get_internal_results(cls, net, pipe):
@@ -220,11 +248,11 @@ class Pipe(BranchWInternalsComponent):
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
                 normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                                  / (p_mean * NORMAL_TEMPERATURE)
+                    / (p_mean * NORMAL_TEMPERATURE)
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                                  / (p_from * NORMAL_TEMPERATURE)
+                    / (p_from * NORMAL_TEMPERATURE)
                 normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                                  / (p_to * NORMAL_TEMPERATURE)
+                    / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean
                 v_pipe_data_from = v_pipe_data * normfactor_from

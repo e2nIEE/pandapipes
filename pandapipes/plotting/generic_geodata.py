@@ -1,9 +1,13 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.component_models import ExtGrid, Pipe, Sink, Source, Junction
+from pandapipes.component_models.ext_grid_component import ExtGrid
+from pandapipes.component_models.pipe_component import Pipe
+from pandapipes.component_models.sink_component import Sink
+from pandapipes.component_models.source_component import Source
+from pandapipes.component_models.junction_component import Junction
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
