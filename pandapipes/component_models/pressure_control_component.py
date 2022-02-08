@@ -12,6 +12,7 @@ from pandapipes.idx_branch import D, AREA, TL, \
     JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC
 from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
 
 
@@ -119,23 +120,28 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
+        required_results = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
+            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
+            ("vdot_norm_m3_per_s", "vf")
+        ]
 
-        placement_table, res_table, pc_pit, node_pit = super().extract_results(net, options, None,
-                                                                               nodes_connected,
-                                                                               branches_connected)
+        if get_fluid(net).is_gas:
+            required_results.extend([
+                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
+                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
+            ])
+        else:
+            required_results.extend([("v_mean_m_per_s", "v_mps")])
 
-        node_active_idx_lookup = get_lookup(net, "node", "index_active")[cls.get_connected_node_type().table_name()]
-        junction_idx_lookup = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
-        from_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["from_junction"].values[placement_table]]]
-        to_junction_nodes = node_active_idx_lookup[junction_idx_lookup[
-            net[cls.table_name()]["to_junction"].values[placement_table]]]
+        extract_branch_results_without_internals(net, branch_results, required_results,
+                                                 cls.table_name(), branches_connected)
 
-        p_to = node_pit[to_junction_nodes, PINIT]
-        p_from = node_pit[from_junction_nodes, PINIT]
-        res_table['deltap_bar'].values[placement_table] = p_to - p_from
-
-        return placement_table, res_table, pc_pit
+        res_table = net["res_" + cls.table_name()]
+        f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+        p_to = branch_results["p_to"][f:t]
+        p_from = branch_results["p_from"][f:t]
+        res_table["deltap_bar"].values[:] = p_to - p_from
 
     @classmethod
     def get_component_input(cls):

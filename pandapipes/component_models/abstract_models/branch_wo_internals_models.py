@@ -41,11 +41,8 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
-        raise NotImplementedError
-
-    @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
+                              current_start):
         """
         Function which creates branch lookups.
 
@@ -93,3 +90,15 @@ class BranchWOInternalsComponent(BranchComponent):
         branch_wo_internals_pit[:, CP] = fluid.get_heat_capacity(branch_wo_internals_pit[:, TINIT])
         branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
         return branch_wo_internals_pit
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError

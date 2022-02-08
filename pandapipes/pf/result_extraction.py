@@ -2,7 +2,7 @@ import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, LOAD_VEC_NODES, VINIT, RE, \
-    LAMBDA, TINIT, FROM_NODE_T, TO_NODE_T
+    LAMBDA, TINIT, FROM_NODE_T, TO_NODE_T, PL
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
@@ -26,12 +26,12 @@ def extract_all_results(net, nodes_connected, branches_connected):
     """
     branch_pit = net["_pit"]["branch"]
     node_pit = net["_pit"]["node"]
-    v_mps, mf, vf, from_nodes, to_nodes, temp_from, temp_to, reynolds, _lambda, p_from, p_to = \
+    v_mps, mf, vf, from_nodes, to_nodes, temp_from, temp_to, reynolds, _lambda, p_from, p_to, pl = \
         get_basic_branch_results(net, branch_pit, node_pit)
     branch_results = {"v_mps": v_mps, "mf_from": mf, "mf_to": -mf, "vf": vf, "p_from": p_from,
                       "p_to": p_to, "from_nodes": from_nodes, "to_nodes": to_nodes,
                       "temp_from": temp_from, "temp_to": temp_to, "reynolds": reynolds,
-                      "lambda": _lambda}
+                      "lambda": _lambda, "pl": pl}
     if get_fluid(net).is_gas:
         if get_net_option(net, "use_numba"):
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
@@ -62,7 +62,8 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     mf = branch_pit[:, LOAD_VEC_NODES]
     vf = mf / get_fluid(net).get_density((t0 + t1) / 2)
     return branch_pit[:, VINIT], mf, vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
-        branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT]
+        branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
+        branch_pit[:, PL]
 
 
 def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
@@ -142,20 +143,29 @@ def get_gas_vel_numba(branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_a
 
 def extract_branch_results_with_internals(net, branch_results, table_name, res_nodes_from,
                                           res_nodes_to, res_mean, node_name, branches_connected):
+    # the result table to write results to
     res_table = net["res_" + table_name]
 
+    # lookup for the component calling this function (where in branch_pit are entries for this
+    # table?)
     f, t = get_lookup(net, "branch", "from_to")[table_name]
 
     branch_pit = net["_pit"]["branch"]
+    # since the function _sum_by_group sorts the entries by an index (in this case the index of the
+    # respective table), the placement of the indices mus be known to allocate the values correctly
     placement_table = np.argsort(net[table_name].index.values)
     idx_pit = branch_pit[f:t, ELEMENT_IDX]
     comp_connected = branches_connected[f:t]
 
     node_pit = net["_pit"]["node"]
 
+    # the id of the external node table inside the node_pit (mostly this is "junction": 0)
     ext_node_tbl_idx = get_table_number(get_lookup(net, "node", "table"), node_name)
 
     if len(res_nodes_from) > 0:
+        # results that relate to the from_node --> in case of many internal nodes, only the single
+        # from_node that is the exterior node (e.g. junction vs. internal pipe_node) result has to
+        # be extracted from the node_pit
         from_nodes = branch_results["from_nodes"][f:t]
         from_nodes_external = node_pit[from_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
         considered = from_nodes_external & comp_connected
@@ -164,6 +174,9 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
             res_table[res_name].values[external_active] = branch_results[entry][f:t][considered]
 
     if len(res_nodes_to) > 0:
+        # results that relate to the to_node --> in case of many internal nodes, only the single
+        # to_node that is the exterior node (e.g. junction vs. internal pipe_node) result has to
+        # be extracted from the node_pit
         to_nodes = branch_results["to_nodes"][f:t]
         to_nodes_external = node_pit[to_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
         considered = to_nodes_external & comp_connected
@@ -172,12 +185,15 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
             res_table[res_name].values[external_active] = branch_results[entry][f:t][considered]
 
     if len(res_mean) > 0:
+        # results that relate to the whole branch and shall be averaged (by summing up all values
+        # and dividing by number of internal sections)
         use_numba = get_net_option(net, "use_numba")
         res = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
                             comp_connected.astype(np.int32),
                             *[branch_results[rn[1]][f:t] for rn in res_mean])
         connected_ind = res[2] > 0.99
         num_internals = res[1][connected_ind]
+        # hint: idx_pit[placement_table] should result in the indices as ordered in the table
         placement_table = placement_table[connected_ind]
 
         for i, (res_name, entry) in enumerate(res_mean):

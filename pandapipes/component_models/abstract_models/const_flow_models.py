@@ -75,7 +75,7 @@ class ConstFlow(NodeElementComponent):
 
         is_calc = is_loads & is_juncts
         res_table["mdot_kg_per_s"].values[is_calc] = loads.mdot_kg_per_s.values[is_calc] \
-                                                     * loads.scaling.values[is_calc]
+            * loads.scaling.values[is_calc]
 
     @classmethod
     def get_component_input(cls):

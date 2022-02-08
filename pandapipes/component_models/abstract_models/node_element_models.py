@@ -18,6 +18,22 @@ class NodeElementComponent(Component):
     """
 
     @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         """
         Function that creates pit node entries.
@@ -31,5 +47,5 @@ class NodeElementComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def get_connected_node_type(cls):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         raise NotImplementedError

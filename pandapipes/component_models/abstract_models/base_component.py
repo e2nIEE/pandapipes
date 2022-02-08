@@ -106,7 +106,8 @@ class Component:
         return current_start, current_table
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
+                              current_start):
         """
         Function which creates branch lookups.
 
@@ -159,8 +160,8 @@ class Component:
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_component_pit:
-        :type branch_component_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :param idx_lookups:
@@ -178,8 +179,8 @@ class Component:
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_component_pit:
-        :type branch_component_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :param idx_lookups:

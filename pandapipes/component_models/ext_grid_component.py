@@ -54,7 +54,8 @@ class ExtGrid(NodeElementComponent):
 
         p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
         press = ext_grids.p_bar.values[p_mask]
-        junction_idx_lookups = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
+        junction_idx_lookups = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
         junction = cls.get_connected_junction(net)
         juncts_p, press_sum, number = _sum_by_group(
             get_net_option(net, "use_numba"), junction.values[p_mask], press,
@@ -108,7 +109,8 @@ class ExtGrid(NodeElementComponent):
 
         p_grids = np.isin(ext_grids.type.values, ["p", "pt"])
         junction = cls.get_connected_junction(net)
-        eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][np.array(junction.values[p_grids])]
+        eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
+            np.array(junction.values[p_grids])]
         node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True,
                                                     return_inverse=True)
         eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)

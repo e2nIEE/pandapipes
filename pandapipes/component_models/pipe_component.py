@@ -13,11 +13,10 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, TL, ELEMENT_IDX
+    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, TL
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
-    RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_NODE
-from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option, get_table_number
+    RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
+from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
 
@@ -249,11 +248,11 @@ class Pipe(BranchWInternalsComponent):
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
                 normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                                  / (p_mean * NORMAL_TEMPERATURE)
+                    / (p_mean * NORMAL_TEMPERATURE)
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                                  / (p_from * NORMAL_TEMPERATURE)
+                    / (p_from * NORMAL_TEMPERATURE)
                 normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                                  / (p_to * NORMAL_TEMPERATURE)
+                    / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean
                 v_pipe_data_from = v_pipe_data * normfactor_from

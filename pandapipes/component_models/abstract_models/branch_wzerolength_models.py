@@ -40,7 +40,7 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def get_connected_node_type(cls):
         raise NotImplementedError
 
     @classmethod
@@ -59,3 +59,11 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         branch_wizerolength_pit[:, LENGTH] = 0
         branch_wizerolength_pit[:, K] = 1000
         return branch_wizerolength_pit
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError

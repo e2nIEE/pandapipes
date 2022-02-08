@@ -48,7 +48,8 @@ class CirculationPump(ExtGrid):
 
         index_juncts_to = circ_pump.to_junction.values
         junct_uni_to = np.array(list(set(index_juncts_to)))
-        index_nodes_to = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][junct_uni_to]
+        index_nodes_to = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()][junct_uni_to]
 
         deltap_bar = node_pit[index_nodes_from, PINIT] - node_pit[index_nodes_to, PINIT]
         res_table["deltap_bar"].values[:] = deltap_bar

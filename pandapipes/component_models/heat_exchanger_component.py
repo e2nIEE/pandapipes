@@ -10,6 +10,7 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import TL, ALPHA, TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
+from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 try:
     import pplog as logging
@@ -57,6 +58,26 @@ class HeatExchanger(BranchWZeroLengthComponent):
         heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
         heat_exchanger_pit[:, TEXT] = 293.15
         heat_exchanger_pit[:, T_OUT] = 307
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        required_results = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
+            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
+            ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
+        ]
+
+        if get_fluid(net).is_gas:
+            required_results.extend([
+                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
+                ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
+                ("normfactor_to", "normfactor_to")
+            ])
+        else:
+            required_results.extend([("v_mean_m_per_s", "v_mps")])
+
+        extract_branch_results_without_internals(net, branch_results, required_results,
+                                                 cls.table_name(), branches_connected)
 
     @classmethod
     def calculate_temperature_lift(cls, net, he_pit, node_pit):

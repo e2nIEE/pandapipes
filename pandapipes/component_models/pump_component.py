@@ -14,7 +14,8 @@ from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSA
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, LOSS_COEFFICIENT as LC, FROM_NODE, \
     TINIT, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
-from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option
+from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
+from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
 class Pump(BranchWZeroLengthComponent):
@@ -119,18 +120,33 @@ class Pump(BranchWZeroLengthComponent):
         :return: No Output.
         """
         calc_compr_pow = options['calc_compression_power']
+
+        required_results = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
+            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
+            ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl")
+        ]
+
+        if get_fluid(net).is_gas:
+            required_results.extend([
+                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
+                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
+            ])
+        else:
+            required_results.extend([("v_mean_m_per_s", "v_mps")])
+
+        extract_branch_results_without_internals(net, branch_results, required_results,
+                                                 cls.table_name(), branches_connected)
+
         if calc_compr_pow:
-            placement_table, res_table, pump_pit, node_pit = super().extract_results(net, options,
-                                                                                     None,
-                                                                                     nodes_connected,
-                                                                                     branches_connected)
-            p_from = res_table['p_from_bar'].values[placement_table]
-            p_to = res_table['p_to_bar'].values[placement_table]
-            from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
-            t0 = node_pit[from_nodes, TINIT_NODE]
-            vf_sum_int = res_table["vdot_norm_m3_per_s"].values[placement_table]
-            mf_sum_int = res_table["mdot_from_kg_per_s"].values[placement_table]
+            f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+            res_table = net["res_" + cls.table_name()]
             if net.fluid.is_gas:
+                p_from = branch_results["p_from"][f:t]
+                p_to = branch_results["p_to"][f:t]
+                from_nodes = branch_results["from_nodes"][f:t]
+                t0 = net["_pit"]["node"][from_nodes, TINIT_NODE]
+                mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
                 compr = get_fluid(net).get_property("compressibility", p_from)
                 molar_mass = net.fluid.get_molar_mass()  # [g/mol]
@@ -139,14 +155,11 @@ class Pump(BranchWZeroLengthComponent):
                 k = 1.4  # TODO: implement proper calculation of kappa
                 w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                 (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-                res_table['compr_power_mw'].values[placement_table] = \
-                    w_real_isentr * abs(mf_sum_int) / 10 ** 6
+                res_table['compr_power_mw'].values[:] = w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
             else:
-                res_table['compr_power_mw'].values[placement_table] = \
-                    pump_pit[:, PL] * P_CONVERSION * vf_sum_int / 10 ** 6
-        else:
-            placement_table, pump_pit, res_table = super().prepare_result_tables(net)
-        res_table['deltap_bar'].values[placement_table] = pump_pit[:, PL]
+                vf_sum_int = branch_results["vf"][f:t]
+                pl = branch_results["pl"][f:t]
+                res_table['compr_power_mw'].values[:] = pl * P_CONVERSION * vf_sum_int / 10 ** 6
 
     @classmethod
     def get_component_input(cls):
@@ -186,9 +199,8 @@ class Pump(BranchWZeroLengthComponent):
                       "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
             # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
         else:
-            output = ["deltap_bar",
-                      "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
+            output = ["deltap_bar", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
+                      "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
         if calc_compr_pow:
             output += ["compr_power_mw"]
 
