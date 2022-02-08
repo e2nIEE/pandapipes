@@ -5,11 +5,11 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.component_toolbox import calculate_branch_results
+from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
 from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
     RHO, LOAD_VEC_BRANCHES
-from pandapipes.pf.pipeflow_setup import get_net_option
+from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
 class FlowControlComponent(BranchWZeroLengthComponent):
@@ -30,22 +30,24 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         return "from_junction", "to_junction"
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit, node_name):
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param branch_pit:
         :type branch_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
-        fc_pit = super().create_pit_branch_entries(net, branch_pit, node_name)
+        fc_pit = super().create_pit_branch_entries(net, branch_pit)
         fc_pit[:, D] = net[cls.table_name()].diameter_m.values
         fc_pit[:, AREA] = fc_pit[:, D] ** 2 * np.pi / 4
         fc_pit[:, VINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values / \
-                           (fc_pit[:, AREA] * fc_pit[:, RHO])
+            (fc_pit[:, AREA] * fc_pit[:, RHO])
 
     @classmethod
     def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -78,27 +80,24 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         pc_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
-        """
-        Function that extracts certain results.
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        required_results = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
+            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
+            ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
+        ]
 
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param options:
-        :type options:
-        :param node_name:
-        :type node_name:
-        :return: No Output.
-        """
+        if get_fluid(net).is_gas:
+            required_results.extend([
+                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
+                ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
+                ("normfactor_to", "normfactor_to")
+            ])
+        else:
+            required_results.extend([("v_mean_m_per_s", "v_mps")])
 
-        placement_table, res_table, fc_pit, node_pit = super().extract_results(net, options,
-                                                                               node_name)
-        fluid = get_fluid(net)
-        use_numba = get_net_option(net, "use_numba")
-
-        calculate_branch_results(res_table, fc_pit, node_pit, placement_table, fluid, use_numba)
-
-        return placement_table, res_table, fc_pit
+        extract_branch_results_without_internals(net, branch_results, required_results,
+                                                 cls.table_name(), branches_connected)
 
     @classmethod
     def get_component_input(cls):

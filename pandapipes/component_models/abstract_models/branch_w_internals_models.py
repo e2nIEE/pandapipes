@@ -136,8 +136,6 @@ class BranchWInternalsComponent(BranchComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         table_lookup = get_lookup(net, "node", "table")
@@ -166,10 +164,8 @@ class BranchWInternalsComponent(BranchComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_w_internals_pit:
-        :type branch_w_internals_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         branch_w_internals_pit, node_pit, from_nodes, to_nodes \
