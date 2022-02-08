@@ -231,7 +231,7 @@ def test_create_pump_from_parameters(create_empty_net):
     assert net.pump.at[2, "from_junction"] == 8
     assert net.pump.at[2, "to_junction"] == 9
     assert net.pump.at[2, "std_type"] == "pump1"
-    assert "pump1" in net.std_type["pump"]
+    assert "pump1" in net.std_types["pump"]
 
     with pytest.raises(UserWarning):
         pandapipes.create_pump_from_parameters(net, 8, 9, "pump1", pressure_list=[0, 1, 2, 3],

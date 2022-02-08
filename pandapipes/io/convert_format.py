@@ -20,10 +20,14 @@ def convert_format(net):
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
     add_default_components(net, overwrite=False)
-    if isinstance(net.version, str) and version.parse(net.version) >= version.parse(__version__):
+    current_version = version.parse(__version__)
+    # For possible problems with this line of code, please check out
+    # https://github.com/e2nIEE/pandapipes/issues/320
+    if isinstance(net.version, str) and version.parse(net.version) >= current_version:
         return net
     _rename_columns(net)
     _add_missing_columns(net)
+    _rename_attributes(net)
     net.version = __version__
     return net
 
@@ -46,3 +50,9 @@ def _add_missing_columns(net):
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
             else:
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow
+
+
+def _rename_attributes(net):
+    if "std_type" in net and "std_types" not in net:
+        net["std_types"] = net["std_type"]
+        del net["std_type"]
