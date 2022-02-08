@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -167,12 +167,12 @@ def add_branch_component(comp, mg, net, table_name, include_comp, respect_status
 
 def init_par(tab, respect_status=True, in_service_col="in_service"):
     n = tab.shape[0]
-    indices = np.zeros((n, 3), dtype=np.int)
+    indices = np.zeros((n, 3), dtype=int)
     indices[:, INDEX] = tab.index
-    parameters = np.zeros((n, 1), dtype=np.float)
+    parameters = np.zeros((n, 1), dtype=float)
 
     if not respect_status:
-        return indices, parameters, np.ones(n, dtype=np.bool)
+        return indices, parameters, np.ones(n, dtype=bool)
     elif in_service_col in tab:
         return indices, parameters, tab[in_service_col].values.copy()
     else:

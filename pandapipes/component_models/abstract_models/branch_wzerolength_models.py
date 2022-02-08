@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -40,24 +40,30 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def get_connected_node_type(cls):
         raise NotImplementedError
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_wzerolength_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_wzerolength_pit:
-        :type branch_wzerolength_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         branch_wizerolength_pit = \
-            super().create_pit_branch_entries(net, branch_wzerolength_pit, node_name)
+            super().create_pit_branch_entries(net, branch_pit)
         branch_wizerolength_pit[:, LENGTH] = 0
         branch_wizerolength_pit[:, K] = 1000
         return branch_wizerolength_pit
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError

@@ -1,20 +1,20 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import importlib
 import json
+from copy import deepcopy
 from functools import partial
 from inspect import isclass
 
-from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
-from pandapipes.component_models.abstract_models import Component
-from pandapipes.create import create_empty_network
-from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
-from copy import deepcopy
+
+from pandapipes.component_models.abstract_models.branch_models import Component
+from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 
 try:
     import pplog as logging

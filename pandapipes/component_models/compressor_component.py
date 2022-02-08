@@ -1,11 +1,14 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 from numpy import dtype
+
+from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pump_component import Pump
-from pandapipes.idx_branch import VINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL, PRESSURE_RATIO
+from pandapipes.idx_branch import VINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL,\
+    PRESSURE_RATIO
 from pandapipes.idx_node import PINIT, PAMB
 
 
@@ -19,20 +22,21 @@ class Compressor(Pump):
         return "compressor"
 
     @classmethod
-    def create_pit_branch_entries(cls, net, compressor_pit, node_name):
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param compressor_pit: a part of the pit that includes only those columns relevant for
-                               compressors
-        :type compressor_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        compressor_pit = super(Pump, cls).create_pit_branch_entries(net, compressor_pit, node_name)
+        compressor_pit = super(Pump, cls).create_pit_branch_entries(net, branch_pit)
 
         compressor_pit[:, D] = 0.1
         compressor_pit[:, AREA] = compressor_pit[:, D] ** 2 * np.pi / 4

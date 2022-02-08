@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -856,9 +856,9 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
 
     if geodata is not None:
         # works with a 2-tuple or a matching array
-        net.junction_geodata = net.junction_geodata.append(pd.DataFrame(
+        net.junction_geodata = pd.concat([net.junction_geodata, pd.DataFrame(
             np.zeros((len(index), len(net.junction_geodata.columns)), dtype=int), index=index,
-            columns=net.junction_geodata.columns))
+            columns=net.junction_geodata.columns)])
         net.junction_geodata.loc[index, :] = np.nan
         net.junction_geodata.loc[index, ["x", "y"]] = geodata
 

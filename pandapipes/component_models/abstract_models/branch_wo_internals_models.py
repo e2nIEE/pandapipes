@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -41,11 +41,8 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
-        raise NotImplementedError
-
-    @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
+                              current_start):
         """
         Function which creates branch lookups.
 
@@ -70,20 +67,18 @@ class BranchWOInternalsComponent(BranchComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_wo_internals_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_wo_internals_pit:
-        :type branch_wo_internals_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         branch_wo_internals_pit, node_pit, from_nodes, to_nodes \
-            = super().create_pit_branch_entries(net, branch_wo_internals_pit, node_name)
+            = super().create_pit_branch_entries(net, branch_pit)
         branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
         branch_wo_internals_pit[:, FROM_NODE] = from_nodes
         branch_wo_internals_pit[:, TO_NODE] = to_nodes
@@ -95,3 +90,15 @@ class BranchWOInternalsComponent(BranchComponent):
         branch_wo_internals_pit[:, CP] = fluid.get_heat_capacity(branch_wo_internals_pit[:, TINIT])
         branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
         return branch_wo_internals_pit
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError
