@@ -4,12 +4,9 @@
 
 import numpy as np
 import pandas as pd
+
 from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
-    HEIGHT_EXPONENT, NORMAL_TEMPERATURE
-from pandapipes.idx_branch import ELEMENT_IDX as ELEMENT_IDX_BRANCH, VINIT, LAMBDA, RE, FROM_NODE,\
-    TO_NODE, TINIT as TINIT_BRANCH
-from pandapipes.idx_node import PAMB, PINIT
-from pandapipes.pf.internals_toolbox import _sum_by_group
+    HEIGHT_EXPONENT
 
 
 def p_correction_height_air(height):
