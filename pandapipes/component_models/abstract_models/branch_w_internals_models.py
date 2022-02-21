@@ -148,15 +148,17 @@ class BranchWInternalsComponent(BranchComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
+        :param branch_winternals_pit:
+        :type branch_winternals_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         branch_winternals_pit, node_pit, from_nodes, to_nodes \
             = super().create_pit_branch_entries(net, branch_winternals_pit, node_name)
 
         if not len(branch_winternals_pit):
-            return branch_winternals_pit, []
+            return branch_winternals_pit, np.array([], dtype=np.int32)
 
         internal_pipe_number = cls.get_internal_pipe_number(net).astype(np.int32)
         node_ft_lookups = get_lookup(net, "node", "from_to")
@@ -227,7 +229,7 @@ class BranchWInternalsComponent(BranchComponent):
         :return:
         :rtype:
         """
-        return net[cls.table_name()].sections.values
+        return np.array(net[cls.table_name()].sections.values)
 
     @classmethod
     def get_internal_results(cls, net, branch):

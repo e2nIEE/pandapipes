@@ -122,7 +122,7 @@ def add_new_component(net, component, overwrite=False):
                                                       index=[])
 
 
-def set_entry_check_repeat(pit, entry, repeat_number, column, repeated=True):
+def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
     if repeated:
         pit[:, column] = np.repeat(entry, repeat_number)
     else:
