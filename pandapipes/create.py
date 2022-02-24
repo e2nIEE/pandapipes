@@ -255,58 +255,7 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
 
     cols = ["name", "junction", "p_bar", "t_k", "in_service", "type"]
     vals = [name, junction, p_bar, t_k, bool(in_service), type]
-    _set_entries(net, "ext_grid", index, **dict(zip(cols, vals)))
-
-    return index
-
-
-def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, loss_coefficient=0,
-                          name=None, index=None, in_service=True, type="heat_exchanger", **kwargs):
-    """
-    Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
-
-    :param net: The net within this heat exchanger should be created
-    :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the heat exchanger will be\
-            connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the heat exchanger will be\
-            connected with
-    :type to_junction: int
-    :param diameter_m: The heat exchanger inner diameter in [m]
-    :type diameter_m: float
-    :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
-            negative, heat is being fed into the network from a heat source.
-    :type qext_w: float
-    :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
-    :type loss_coefficient: float
-    :param name: The name of the heat exchanger
-    :type name: str, default None
-    :param index: Force a specified ID if it is available. If None, the index one higher than the\
-            highest already existing index is selected.
-    :type index: int, default None
-    :param in_service: True for in_service or False for out of service
-    :type in_service: bool, default True
-    :param type: Not used yet
-    :type type: str
-    :param kwargs: Additional keyword arguments will be added as further columns to the\
-                    net["heat_exchanger"] table
-    :return: index - The unique ID of the created heat exchanger
-    :rtype: int
-
-    :Example:
-        >>> create_heat_exchanger(net, from_junction=0, to_junction=1, diameter_m=40e-3,\
-                                  qext_w=2000)
-    """
-    add_new_component(net, HeatExchanger)
-
-    index = _get_index_with_check(net, "heat_exchanger", index, "heat exchanger")
-    check_branch(net, "Heat exchanger", index, from_junction, to_junction)
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
-         "in_service": bool(in_service), "type": type}
-    _set_entries(net, "heat_exchanger", index, **v, **kwargs)
+    _set_entries(net, "ext_grid", index, **dict(zip(cols, vals)), **kwargs)
 
     return index
 
@@ -366,7 +315,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     add_new_component(net, Pipe)
 
     index = _get_index_with_check(net, "pipe", index)
-    check_branch(net, "Pipe", index, from_junction, to_junction)
+    _check_branch(net, "Pipe", index, from_junction, to_junction)
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
@@ -440,7 +389,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     add_new_component(net, Pipe)
 
     index = _get_index_with_check(net, "pipe", index)
-    check_branch(net, "Pipe", index, from_junction, to_junction)
+    _check_branch(net, "Pipe", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
@@ -455,6 +404,57 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
 
     if geodata is not None:
         net["pipe_geodata"].at[index, "coords"] = geodata
+
+    return index
+
+
+def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, loss_coefficient=0,
+                          name=None, index=None, in_service=True, type="heat_exchanger", **kwargs):
+    """
+    Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
+
+    :param net: The net for which this heat exchanger should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the heat exchanger will be\
+            connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the heat exchanger will be\
+            connected with
+    :type to_junction: int
+    :param diameter_m: The heat exchanger inner diameter in [m]
+    :type diameter_m: float
+    :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
+            negative, heat is being fed into the network from a heat source.
+    :type qext_w: float
+    :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
+    :type loss_coefficient: float
+    :param name: The name of the heat exchanger
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param type: Not used yet
+    :type type: str
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+                    net["heat_exchanger"] table
+    :return: index - The unique ID of the created heat exchanger
+    :rtype: int
+
+    :Example:
+        >>> create_heat_exchanger(net, from_junction=0, to_junction=1, diameter_m=40e-3,\
+                                  qext_w=2000)
+    """
+    add_new_component(net, HeatExchanger)
+
+    index = _get_index_with_check(net, "heat_exchanger", index, "heat exchanger")
+    _check_branch(net, "Heat exchanger", index, from_junction, to_junction)
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
+         "in_service": bool(in_service), "type": type}
+    _set_entries(net, "heat_exchanger", index, **v, **kwargs)
 
     return index
 
@@ -496,7 +496,7 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
     add_new_component(net, Valve)
 
     index = _get_index_with_check(net, "valve", index)
-    check_branch(net, "Valve", index, from_junction, to_junction)
+    _check_branch(net, "Valve", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "diameter_m": diameter_m, "opened": opened, "loss_coefficient": loss_coefficient,
@@ -511,7 +511,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     """
     Adds one pump in table net["pump"].
 
-    :param net: The net within this pump should be created
+    :param net: The net for which this pump should be created
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the pump will be connected with
     :type from_junction: int
@@ -543,7 +543,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     add_new_component(net, Pump)
 
     index = _get_index_with_check(net, "pump", index)
-    check_branch(net, "Pump", index, from_junction, to_junction)
+    _check_branch(net, "Pump", index, from_junction, to_junction)
 
     _check_std_type(net, std_type, "pump", "create_pump")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
@@ -560,7 +560,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     """
     Adds one pump in table net["pump"].
 
-    :param net: The net within this pump should be created
+    :param net: The net for which this pump should be created
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the pump will be connected with
     :type from_junction: int
@@ -615,7 +615,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     add_new_component(net, Pump)
 
     index = _get_index_with_check(net, "pump", index)
-    check_branch(net, "Pump", index, from_junction, to_junction)
+    _check_branch(net, "Pump", index, from_junction, to_junction)
 
     if pressure_list is not None and flowrate_list is not None \
             and reg_polynomial_degree is not None:
@@ -639,7 +639,7 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"].
 
-    :param net: The net within this pump should be created
+    :param net: The net for which this pump should be created
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the pump will be connected with
     :type from_junction: int
@@ -679,7 +679,7 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     index = _get_index_with_check(net, "circ_pump_pressure", index,
                                   name="circulation pump with constant pressure")
-    check_branch(net, "circulation pump with constant pressure", index, from_junction, to_junction)
+    _check_branch(net, "circulation pump with constant pressure", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
          "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service), "type": type}
@@ -694,7 +694,7 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     """
     Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].
 
-    :param net: The net within this pump should be created
+    :param net: The net for which this pump should be created
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the pump will be connected with
     :type from_junction: int
@@ -734,11 +734,56 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     index = _get_index_with_check(net, "circ_pump_mass", index,
                                   name="circulation pump with constant mass flow")
-    check_branch(net, "circulation pump with constant mass flow", index, from_junction, to_junction)
+    _check_branch(net, "circulation pump with constant mass flow", index, from_junction,
+                  to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
          "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service), "type": type}
     _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
+
+    return index
+
+
+def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
+                      in_service=True, **kwargs):
+    """
+    Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) \
+    (boost ratio)
+
+    :param net: The net for which this compressor should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the compressor will be connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the compressor will be \
+        connected with
+    :type to_junction: int
+    :param pressure_ratio:
+    :type pressure_ratio: float
+    :param name: A name tag for this compressor
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["compressor"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    EXAMPLE:
+        >>> create_compressor(net, 0, 1, pressure_ratio=1.3)
+
+    """
+    add_new_component(net, Compressor)
+
+    index = _get_index_with_check(net, "compressor", index)
+    _check_branch(net, "Compressor", index, from_junction, to_junction)
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "pressure_ratio": pressure_ratio, "in_service": bool(in_service)}
+    _set_entries(net, "compressor", index, **v, **kwargs)
 
     return index
 
@@ -749,16 +794,16 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     """
     Adds one pressure control with a constant mass flow in table net["press_control"].
 
-    :param net: The net within this pump should be created
+    :param net: The net for which this pressure control should be created
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the pressure control will be \
             connected with
     :type from_junction: int
-    :param controlled_junction: ID of the junction at which the pressure is controlled
-    :type controlled_junction: int
     :param to_junction: ID of the junction on the other side which the pressure control will be \
             connected with
     :type to_junction: int
+    :param controlled_junction: ID of the junction at which the pressure is controlled
+    :type controlled_junction: int
     :param controlled_p_bar: Pressure set point
     :type controlled_p_bar: float
     :param control_active: Variable to state whether the pressure control is active (otherwise \
@@ -800,7 +845,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     index = _get_index_with_check(net, "press_control", index)
 
     # check if junctions exist to attach the pump to
-    check_branch(net, "PressureControl", index, from_junction, to_junction)
+    _check_branch(net, "PressureControl", index, from_junction, to_junction)
 
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction,
                  to_junction=to_junction, controlled_junction=controlled_junction,
@@ -814,13 +859,50 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
 def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_s, diameter_m,
                         control_active=True, name=None, index=None, in_service=True, type="fc",
                         **kwargs):
+    """
+    Adds one flow control with a constant mass flow in table net["flow_control"].
+
+    :param net: The net for which this flow control should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the flow control will be connected \
+        with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the flow control will be \
+        connected with
+    :type to_junction: int
+    :param controlled_mdot_kg_per_s: Mass flow set point
+    :type controlled_mdot_kg_per_s: float
+    :param diameter_m: Measure of the diameter to derive the cross sectional area (important for \
+            the velocity calculation)
+    :type diameter_m: float
+    :param control_active: Variable to state whether the flow control is active (otherwise \
+            similar to open valve)
+    :type control_active: bool, default True
+    :param name: Name of the flow control element
+    :type name: str
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param type: Currently not used - possibility to specify a certain type of flow control
+    :type type: str, default "fc"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["flow_control"] table
+    :return: index - The unique ID of the created elements
+    :rtype: int
+
+    :Example:
+        >>> create_flow_control(net, 0, 1, 0.5, 0.8)
+
+    """
 
     add_new_component(net, FlowControlComponent)
 
     index = _get_index_with_check(net, "flow_control", index)
 
     # check if junctions exist to attach the pump to
-    check_branch(net, "FlowControl", index, from_junction, to_junction)
+    _check_branch(net, "FlowControl", index, from_junction, to_junction)
 
     _set_entries(net, "flow_control", index, name=name, from_junction=from_junction,
                  to_junction=to_junction, controlled_mdot_kg_per_s=controlled_mdot_kg_per_s,
@@ -1133,7 +1215,7 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values.
 
-    :param net: The net for which this valve should be created
+    :param net: The net for which these valves should be created
     :type net: pandapipesNet
     :param from_junctions: IDs of the junctions on one side which the valves will be connected to
     :type from_junctions: Iterable(int)
@@ -1185,7 +1267,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
 
-    :param net: The net within this pump should be created
+    :param net: The net for which this pressure controls should be created
     :type net: pandapipesNet
     :param from_junctions: IDs of the junctions on one side which the pressure controls will be\
             connected to
@@ -1235,42 +1317,59 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     return index
 
 
-def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
-                         in_service=True, **kwargs):
+def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_per_s, diameter_m,
+                         control_active=True, name=None, index=None, in_service=True, type="fc",
+                         **kwargs):
     """
-    Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost ratio)
+    Convenience function for creating many flow controls at once. Parameters 'from_junctions'\
+    and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
+    same length or single values.
 
-    :param net: The net within this compressor should be created
+    :param net: The net for which these flow controls should be created
     :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the compressor will be connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the compressor will be connected with
-    :type to_junction: int
-    :param name: A name tag for this compressor
-    :type name: str, default None
-    :param index: Force a specified ID if it is available. If None, the index one higher than the\
-            highest already existing index is selected.
-    :type index: int, default None
+    :param from_junctions: IDs of the junctions on one side which the flow controls will be\
+            connected to
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side to which the pressure controls will\
+            be connected to
+    :type to_junctions: Iterable(int)
+    :param controlled_mdot_kg_per_s: Mass flow set points
+    :type controlled_mdot_kg_per_s: Iterable or float
+    :param diameter_m: Measure of the diameter to derive the cross sectional area (important for \
+            the velocity calculation)
+    :type diameter_m: Iterable or float
+    :param control_active: Variable to state whether the flow control is active (otherwise \
+            similar to open valve)
+    :type control_active: bool, default True
+    :param name: Name of the flow control elements
+    :type name: Iterable or str
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
     :param in_service: True for in_service or False for out of service
-    :type in_service: bool, default True
-    :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["compressor"] table
-    :type kwargs: dict
-    :return: index - The unique ID of the created element
-    :rtype: int
+    :type in_service: Iterable or bool, default True
+    :param type: Currently not used - possibility to specify a certain type of flow control
+    :type type: Iterable or str, default "fc"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["flow_control"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
 
-    EXAMPLE:
-        >>> create_compressor(net, 0, 1, pressure_ratio=1.3)
+    :Example:
+        >>> create_flow_controls(net, [0, 2], [1, 4], [0.5, 0.9], [0.8, 0.8])
 
     """
-    add_new_component(net, Compressor)
 
-    index = _get_index_with_check(net, "compressor", index)
-    check_branch(net, "Compressor", index, from_junction, to_junction)
+    add_new_component(net, FlowControlComponent)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "pressure_ratio": pressure_ratio, "in_service": bool(in_service)}
-    _set_entries(net, "compressor", index, **v, **kwargs)
+    index = _get_multiple_index_with_check(net, "flow_control", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "flow_control")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "diameter_m": diameter_m,
+               "control_active": control_active, "in_service": in_service.astype(np.bool_),
+               "type": type}
+    _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
     return index
 
@@ -1304,7 +1403,7 @@ def _check_junction_element(net, junction):
     return _check_node_element(net, junction, node_table="junction")
 
 
-def check_branch(net, element_name, index, from_junction, to_junction):
+def _check_branch(net, element_name, index, from_junction, to_junction):
     return _check_branch_element(net, element_name, index, from_junction, to_junction,
                                  node_name="junction", plural="s")
 
