@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -120,3 +120,10 @@ def add_new_component(net, component, overwrite=False):
             if isinstance(net[name + '_geodata'], list):
                 net[name + '_geodata'] = pd.DataFrame(np.zeros(0, dtype=net[name + '_geodata']),
                                                       index=[])
+
+
+def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
+    if repeated:
+        pit[:, column] = np.repeat(entry, repeat_number)
+    else:
+        pit[:, column] = entry

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,14 +7,14 @@ import numpy as np
 from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air, \
-    vinterp
+    vinterp, set_entry_check_repeat
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, PL, TL
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, VINIT, ALPHA, QEXT, TEXT,\
+    LOSS_COEFFICIENT as LC, T_OUT, PL, TL
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
-from pandapipes.pipeflow_setup import get_net_option, get_fluid, get_lookup
+from pandapipes.pipeflow_setup import get_fluid, get_lookup
 
 try:
     import pplog as logging
@@ -75,12 +75,12 @@ class Pipe(BranchWInternalsComponent):
         if np.any(internal_nodes > 0):
             internal_nodes_lookup["TPINIT"] = np.empty((int_nodes_num, 2), dtype=np.int32)
             internal_nodes_lookup["TPINIT"][:, 0] = np.repeat(net[cls.table_name()].index,
-                                                              internal_nodes)
+                                                              internal_nodes.astype(np.int32))
             internal_nodes_lookup["TPINIT"][:, 1] = np.arange(current_start, end)
 
             internal_nodes_lookup["VINIT"] = np.empty((int_pipes_num, 2), dtype=np.int32)
             internal_nodes_lookup["VINIT"][:, 0] = np.repeat(net[cls.table_name()].index,
-                                                             internal_pipes)
+                                                             internal_pipes.astype(np.int32))
             internal_nodes_lookup["VINIT"][:, 1] = np.arange(int_pipes_num)
 
         return end, current_table
@@ -130,21 +130,26 @@ class Pipe(BranchWInternalsComponent):
         pipe_pit, internal_pipe_number = \
             super().create_pit_branch_entries(net, pipe_pit, node_name)
 
-        pipe_pit[:, LENGTH] = np.repeat(net[cls.table_name()].length_km.values * 1000 /
-                                        internal_pipe_number, internal_pipe_number)
-        pipe_pit[:, K] = np.repeat(net[cls.table_name()].k_mm.values / 1000,
-                                   internal_pipe_number)
+        has_internals = np.any(internal_pipe_number > 1)
+        tbl = cls.table_name()
+        set_entry_check_repeat(
+            pipe_pit, LENGTH, net[tbl].length_km.values * 1000 / internal_pipe_number,
+            internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            pipe_pit, ALPHA, net[tbl].alpha_w_per_m2k.values, internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            pipe_pit, TEXT, net[tbl].text_k.values, internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            pipe_pit, D, net[tbl].diameter_m.values, internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
+
         pipe_pit[:, T_OUT] = 293
-        pipe_pit[:, ALPHA] = np.repeat(net[cls.table_name()].alpha_w_per_m2k.values,
-                                       internal_pipe_number)
-        pipe_pit[:, QEXT] = np.repeat(net[cls.table_name()].qext_w.values,
-                                      internal_pipe_number)
-        pipe_pit[:, TEXT] = np.repeat(net[cls.table_name()].text_k.values,
-                                      internal_pipe_number)
-        pipe_pit[:, D] = np.repeat(net[cls.table_name()].diameter_m.values, internal_pipe_number)
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
-        pipe_pit[:, LC] = np.repeat(net[cls.table_name()].loss_coefficient.values,
-                                    internal_pipe_number)
 
     @classmethod
     def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
@@ -235,11 +240,11 @@ class Pipe(BranchWInternalsComponent):
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
                 normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                                  / (p_mean * NORMAL_TEMPERATURE)
+                    / (p_mean * NORMAL_TEMPERATURE)
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                                  / (p_from * NORMAL_TEMPERATURE)
+                    / (p_from * NORMAL_TEMPERATURE)
                 normfactor_to = numerator * fluid.get_property("compressibility", p_to) \
-                                  / (p_to * NORMAL_TEMPERATURE)
+                    / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean
                 v_pipe_data_from = v_pipe_data * normfactor_from

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -172,7 +172,7 @@ def init_par(tab, respect_status=True, in_service_col="in_service"):
     parameters = np.zeros((n, 1), dtype=float)
 
     if not respect_status:
-        return indices, parameters, np.ones(n, dtype=np.bool)
+        return indices, parameters, np.ones(n, dtype=bool)
     elif in_service_col in tab:
         return indices, parameters, tab[in_service_col].values.copy()
     else:
