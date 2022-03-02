@@ -1369,7 +1369,7 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
                "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "diameter_m": diameter_m,
                "control_active": control_active, "in_service": in_service.astype(np.bool_),
                "type": type}
-    _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
+    _set_multiple_entries(net, "flow_control", index, **entries, **kwargs)
 
     return index
 
