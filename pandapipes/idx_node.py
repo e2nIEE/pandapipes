@@ -35,11 +35,15 @@ def idx_node(net):
 
     for key in net._fluid:
         counter += 1
-        idx_node['RHO_' + key] = counter
+        idx_node[key + '_LOAD'] = counter
         counter += 1
-        idx_node['LOAD__' + key] = counter
+        idx_node[key + '_W'] = counter
         counter += 1
-        idx_node['W_' + key] = counter
+        idx_node[key + '_RHO'] = counter
+        counter += 1
+        idx_node[key + '_JAC_DERIV_RHO_SAME_W'] = counter
+        counter += 1
+        idx_node[key + '_JAC_DERIV_RHO_DIFF_W'] = counter
 
     idx_node['node_cols'] = counter + 1
     net['_idx_node'] = idx_node

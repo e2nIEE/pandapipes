@@ -693,79 +693,56 @@ def get_property(net, property_name, *at_values):
         return 100
 
 
-def get_molar_mass(net, **kwargs):
-    if len(net._fluid) == 1:
-        return get_fluid(net, net._fluid[0]).get_molar_mass()
-    else:
-        molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
-        mass_fraction = kwargs.pop('mass_fraction')
-        calculate_mixture_molar_mass(molar_mass_list, component_proportions=mass_fraction)
-        return 100
+def get_mixture_molar_mass(net, mass_fraction):
+    molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
+    return calculate_mixture_molar_mass(molar_mass_list, component_proportions=mass_fraction)
 
 
-def get_density(net, temperature, **kwargs):
-    if len(net._fluid) == 1:
-        return get_fluid(net, net._fluid[0]).get_density(temperature)
-    else:
-        density_list = [net.fluid[fluid].get_density(temperature) for fluid in net._fluid]
-        mass_fraction = kwargs.pop('mass_fraction')
-        return calculate_mixture_density(density_list, mass_fraction.T)
+def get_mixture_density(net, temperature, mass_fraction):
+    density_list = [net.fluid[fluid].get_density(temperature) for fluid in net._fluid]
+    return calculate_mixture_density(density_list, mass_fraction.T)
 
 
-def get_viscosity(net, temperature, **kwargs):
-    if len(net._fluid) == 1:
-        return get_fluid(net, net._fluid[0]).get_viscosity(temperature)
-    else:
-        viscosity_list, molar_mass_list = [], []
-        for fluid in net._fluid:
-            viscosity_list += [net.fluid[fluid].get_viscosity(temperature)]
-            molar_mass_list += [net.fluid[fluid].get_molar_mass()]
-        mass_fraction = kwargs.pop('mass_fraction')
-        molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
-        return calculate_mixture_viscosity(viscosity_list, molar_fraction, np.array(molar_mass_list).T)
+def get_mixture_viscosity(net, temperature, mass_fraction):
+    viscosity_list, molar_mass_list = [], []
+    for fluid in net._fluid:
+        viscosity_list += [net.fluid[fluid].get_viscosity(temperature)]
+        molar_mass_list += [net.fluid[fluid].get_molar_mass()]
+    molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
+    return calculate_mixture_viscosity(viscosity_list, molar_fraction, np.array(molar_mass_list).T)
 
 
-def get_heat_capacity(net, temperature, **kwargs):
-    if len(net._fluid) == 1:
-        return get_fluid(net, net._fluid[0]).get_heat_capacity(temperature)
-    else:
-        heat_capacity_list = [net.fluid[fluid].get_heat_capacity(temperature) for fluid in net._fluid]
-        mass_fraction = kwargs.pop('mass_fraction')
-        return calculate_mixture_heat_capacity(heat_capacity_list, mass_fraction.T)
+def get_mixture_heat_capacity(net, temperature, mass_fraction):
+    heat_capacity_list = [net.fluid[fluid].get_heat_capacity(temperature) for fluid in net._fluid]
+    return calculate_mixture_heat_capacity(heat_capacity_list, mass_fraction.T)
 
 
-def get_compressibility(net, pressure, **kwargs):
-    if len(net._fluid) == 1:
-        return get_fluid(net, net._fluid[0]).get_property('compressibility', pressure)
-    else:
-        compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
-        mass_fraction = kwargs.pop('mass_fraction')
-        return calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
+def get_mixture_compressibility(net, pressure, mass_fraction):
+    compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
+    return calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
 
 
-def get_higher_heating_value(net, **kwargs):
-    if len(net._fluid) == 1:
-        return get_fluid(net, net._fluid[0]).get_property('hhv')
-    else:
-        calorific_list = np.array([net.fluid[fluid].get_property('hhv') for fluid in net._fluid])
-        mass_fraction = kwargs.pop('mass_fraction')
-        return calculate_mixture_calorific_values(calorific_list, mass_fraction.T)
+def get_mixture_higher_heating_value(net, mass_fraction):
+    calorific_list = np.array([net.fluid[fluid].get_property('hhv') for fluid in net._fluid])
+    return calculate_mixture_calorific_values(calorific_list, mass_fraction.T)
 
 
-def get_lower_heating_value(net, **kwargs):
-    if len(net._fluid) == 1:
-        return get_fluid(net, net._fluid[0]).get_property('lhv')
-    else:
-        calorific_list = np.array([net.fluid[fluid].get_property('lhv') for fluid in net._fluid])
-        mass_fraction = kwargs.pop('mass_fraction')
-        return calculate_mixture_calorific_values(calorific_list, mass_fraction.T)
+def get_mixture_lower_heating_value(net, mass_fraction):
+    calorific_list = np.array([net.fluid[fluid].get_property('lhv') for fluid in net._fluid])
+    return calculate_mixture_calorific_values(calorific_list, mass_fraction.T)
 
 
 def is_fluid_gas(net):
     if len(net._fluid) == 1:
         return get_fluid(net, net._fluid[0]).is_gas
     else:
-        return True
+        state = [get_fluid(net, fluid).is_gas for fluid in net._fluid]
+        if np.all(state):
+            return True
+        elif np.all(~np.array(state)):
+            return False
+        else:
+            logger.warning('Be careful. You look at system containing both fluid and gaseous fluids.')
 
 
 def create_individual_fluid(fluid_name, fluid_components,
@@ -817,3 +794,31 @@ def create_individual_fluid(fluid_name, fluid_components,
     fluid = Fluid(fluid_name, phase, density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
     return fluid
+
+
+def get_derivative_density_diff(mass_fraction, density_list):
+    rho_prod = np.prod(density_list, axis=1)
+    shape = np.shape(mass_fraction)
+    loop = np.arange(0, shape[1])
+    nom = np.zeros(shape[0])
+    rho_select = np.zeros(shape)
+    for i in loop:
+        select = loop != i
+        nom += mass_fraction[:, i] * np.prod(density_list[:, select], axis=1)
+        rho_select[:, i] += np.prod(density_list[:, select], axis=1)
+    res = -rho_prod[:, np.newaxis] * rho_select * nom[:, np.newaxis] ** -2
+    return res
+
+
+def get_derivative_density_same(mass_fraction, density_list):
+    rho_prod = np.prod(density_list, axis=1)
+    shape = np.shape(mass_fraction)
+    loop = np.arange(0, shape[1])
+    nom = np.zeros(shape[0])
+    rho_select = np.zeros(shape)
+    for i in loop:
+        select = loop != i
+        nom += mass_fraction[:, i] * np.prod(density_list[:, select], axis=1)
+        rho_select[:, i] += np.prod(density_list[:, select], axis=1) * mass_fraction[:, i]
+    res = rho_prod[:, np.newaxis] * (-rho_select+nom[:, np.newaxis]) * nom[:, np.newaxis] ** -2
+    return res

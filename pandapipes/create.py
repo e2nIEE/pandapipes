@@ -152,7 +152,7 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
     return index
 
 
-def create_source(net, junction, mdot_kg_per_s, fluid='slacklike', scaling=1., name=None, index=None, in_service=True,
+def create_source(net, junction, mdot_kg_per_s, fluid='hgas', scaling=1., name=None, index=None, in_service=True,
                   type='source', **kwargs):
     """
     Adds one source in table net["source"].
@@ -201,11 +201,7 @@ def create_source(net, junction, mdot_kg_per_s, fluid='slacklike', scaling=1., n
         _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
         return index
     elif isinstance(fluid, str):
-        if not junction in net.ext_grid.junction.values and fluid != 'slacklike':
-            logger.warning("Currently it is only possible to connect sources having different fluids to ext grid "
-                           "junctions. Choose slacklike if the infeed is the same as the one prvoided by the ext grid.")
-            return
-        elif fluid in net.fluid or fluid == 'slacklike':
+        if fluid in net.fluid:
             vals = [name, junction, mdot_kg_per_s, fluid, scaling, bool(in_service), type]
             _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
             return index
@@ -909,9 +905,9 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
 
     if geodata is not None:
         # works with a 2-tuple or a matching array
-        net.junction_geodata = net.junction_geodata.append(pd.DataFrame(
+        net.junction_geodata = pd.concat([net.junction_geodata, pd.DataFrame(
             np.zeros((len(index), len(net.junction_geodata.columns)), dtype=int), index=index,
-            columns=net.junction_geodata.columns))
+            columns=net.junction_geodata.columns)])
         net.junction_geodata.loc[index, :] = np.nan
         net.junction_geodata.loc[index, ["x", "y"]] = geodata
 

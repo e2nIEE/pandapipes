@@ -4,6 +4,7 @@
 
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
@@ -40,7 +41,6 @@ class ConstFlow(NodeElementComponent):
         junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
         index = junction_idx_lookups[juncts]
         node_pit[index, net['_idx_node']['LOAD']] += loads_sum
-
 
     @classmethod
     def extract_results(cls, net, options, node_name):

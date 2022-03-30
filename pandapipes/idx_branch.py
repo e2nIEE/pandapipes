@@ -45,9 +45,21 @@ def idx_branch(net):
 
     idx_branch['RHO'] = 38  # Density in [kg/m^3
     idx_branch['ETA'] = 39  # Dynamic viscosity in [Pas]
+    idx_branch['V_FROM_NODE'] = 40  # node the fluid is coming from
+    idx_branch['V_TO_NODE'] = 41  # node the fluid is going to
 
-    idx_branch['branch_cols'] = 40
+    counter = 41
+
+    for key in net._fluid:
+        counter += 1
+        idx_branch[key + '_W'] = counter
+        counter += 1
+        idx_branch[key + '_RHO'] = counter
+        counter += 1
+        idx_branch[key + '_JAC_DERIV_RHO_SAME_W'] = counter
+        counter += 1
+        idx_branch[key + '_JAC_DERIV_RHO_DIFF_W'] = counter
+
+    idx_branch['branch_cols'] = counter + 1
+
     net['_idx_branch'] = idx_branch
-
-
-

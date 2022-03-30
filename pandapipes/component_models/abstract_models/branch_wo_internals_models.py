@@ -4,10 +4,8 @@
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 
-from pandapipes.pipeflow_setup import add_table_lookup, get_lookup
-from pandapipes.properties.fluids import get_density, get_viscosity, get_heat_capacity
-import numpy as np
-from operator import itemgetter
+from pandapipes.pipeflow_setup import add_table_lookup
+from pandapipes.properties.fluids import get_fluid
 
 try:
     import pplog as logging
@@ -93,31 +91,15 @@ class BranchWOInternalsComponent(BranchComponent):
         branch_wo_internals_pit[:, net['_idx_branch']['TINIT']] = (node_pit[from_nodes, net['_idx_node']['TINIT']]
                                                                    + node_pit[to_nodes, net['_idx_node']['TINIT']]) / 2
         branch_wo_internals_pit[:, net['_idx_branch']['ACTIVE']] = net[cls.table_name()][cls.active_identifier()].values
-        return branch_wo_internals_pit
-
-    @classmethod
-    def create_property_pit_branch_entries(cls, net, branch_pit, node_name):
-        f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
-        branch_wo_internals_pit = branch_pit[f:t, :]
         if len(net._fluid) == 1:
             branch_wo_internals_pit[:, net['_idx_branch']['RHO']] = \
-                get_density(net, branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
+                get_fluid(net, net._fluid[0]).get_density(branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
             branch_wo_internals_pit[:, net['_idx_branch']['ETA']] = \
-                get_viscosity(net, branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
+                get_fluid(net, net._fluid[0]).get_viscosity(branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
             branch_wo_internals_pit[:, net['_idx_branch']['CP']] = \
-                get_heat_capacity(net, branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
+                get_fluid(net, net._fluid[0]).get_heat_capacity(branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
         else:
-            node_pit = net['_active_pit']['node'] if '_active_pit' in net else net['_pit']['node']
-            vinit = branch_wo_internals_pit[:, net['_idx_branch']['VINIT']]
-            nodes = np.zeros(len(vinit), dtype=int)
-            nodes[vinit>=0] = branch_wo_internals_pit[vinit>=0, net['_idx_branch']['FROM_NODE']]
-            nodes[vinit<0] = branch_wo_internals_pit[vinit<0, net['_idx_branch']['TO_NODE']]
-            slacks = node_pit[nodes, net['_idx_node']['SLACK']]
-            mf = net['_mass_fraction']
-            mf = np.array(itemgetter(*slacks)(mf))
-            branch_wo_internals_pit[:, net['_idx_branch']['RHO']] = \
-                get_density(net, branch_wo_internals_pit[:, net['_idx_branch']['TINIT']], mass_fraction=mf)
-            branch_wo_internals_pit[:, net['_idx_branch']['ETA']] = \
-                get_viscosity(net, branch_wo_internals_pit[:, net['_idx_branch']['TINIT']], mass_fraction=mf)
-            branch_wo_internals_pit[:, net['_idx_branch']['CP']] = \
-                get_heat_capacity(net, branch_wo_internals_pit[:, net['_idx_branch']['TINIT']], mass_fraction=mf)
+            for fluid in net._fluid:
+                branch_wo_internals_pit[:, net['_idx_branch'][fluid + '_RHO']] = \
+                    get_fluid(net, net._fluid[0]).get_density(branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
+        return branch_wo_internals_pit

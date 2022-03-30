@@ -5,7 +5,7 @@
 import numpy as np
 
 from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pipeflow_setup import get_lookup, get_table_number
 
 try:
     import pplog as logging
@@ -22,6 +22,16 @@ class CirculationPump(ExtGrid):
         return -1.
 
     @classmethod
+    def junction_name(cls):
+        return 'from_junction'
+
+
+    @classmethod
+    def create_pit_node_element_entries(cls, net, node_element_pit, node_name):
+        super().create_pit_node_element_entries(net, node_element_pit, node_name)
+
+
+    @classmethod
     def extract_results(cls, net, options, node_name):
         """
         Function that extracts certain results.
@@ -34,15 +44,16 @@ class CirculationPump(ExtGrid):
         :type node_name:
         :return: No Output.
         """
-        res_table, circ_pump, index_nodes_from, node_pit, _ = \
-            super().extract_results(net, options, node_name)
 
-        index_juncts_to = circ_pump.to_junction.values
-        junct_uni_to = np.array(list(set(index_juncts_to)))
-        index_nodes_to = get_lookup(net, "node", "index")[node_name][junct_uni_to]
+        node_pit = net._active_pit['node']
+        node_lookup = get_lookup(net, "node", "index")[node_name]
 
-        deltap_bar = node_pit[index_nodes_from, net['_idx_node']['PINIT']] - node_pit[
-            index_nodes_to, net['_idx_node']['PINIT']]
+        res_table, circ_pump = super().extract_results(net, options, node_name)
+
+        nodes_from = node_lookup[circ_pump.from_junction]
+        nodes_to = node_lookup[circ_pump.to_junction]
+
+        deltap_bar = node_pit[nodes_from, net['_idx_node']['PINIT']] - node_pit[nodes_to, net['_idx_node']['PINIT']]
         res_table["deltap_bar"].values[:] = deltap_bar
 
     @classmethod

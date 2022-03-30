@@ -9,8 +9,8 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.pipeflow_setup import get_net_option
-from pandapipes.properties.fluids import is_fluid_gas, get_molar_mass, get_compressibility
+from pandapipes.pipeflow_setup import get_net_option, get_lookup
+from pandapipes.properties.fluids import is_fluid_gas, get_mixture_molar_mass, get_mixture_compressibility, get_fluid
 
 
 class Pump(BranchWZeroLengthComponent):
@@ -76,8 +76,15 @@ class Pump(BranchWZeroLengthComponent):
         v_mps = pump_pit[:, net['_idx_branch']['VINIT']]
         if is_fluid_gas(net):
             # consider volume flow at inlet
-            normfactor_from = numerator * get_compressibility(net, p_from) \
-                              / (p_from * NORMAL_TEMPERATURE)
+            if len(net._fluid) == 1:
+                fluid = net._fluid[0]
+                normfactor_from = numerator * get_fluid(net, fluid).get_compressibility(p_from) \
+                                  / (p_from * NORMAL_TEMPERATURE)
+            else:
+                w = get_lookup(net, 'branch', 'w')
+                mass_fraction = pump_pit[:, w]
+                normfactor_from = numerator * get_mixture_compressibility(net, p_from, mass_fraction) \
+                                  / (p_from * NORMAL_TEMPERATURE)
             v_mean = v_mps * normfactor_from
         else:
             v_mean = v_mps
@@ -124,8 +131,15 @@ class Pump(BranchWZeroLengthComponent):
             mf_sum_int = res_table["mdot_from_kg_per_s"].values[placement_table]
             if is_fluid_gas(net):
                 # calculate ideal compression power
-                compr = get_compressibility(net, p_from)
-                molar_mass = get_molar_mass(net)  # [g/mol]
+                if len(net._fluid) == 1:
+                    fluid = net._fluid[0]
+                    compr = get_fluid(net, fluid).get_compressibility(p_from)
+                    molar_mass = get_fluid(net, fluid).get_molar_mass()  # [g/mol]
+                else:
+                    w = get_lookup(net, 'node', 'w')
+                    mass_fraction = node_pit[:, w]
+                    compr = get_mixture_compressibility(net, p_from, mass_fraction)
+                    molar_mass = get_mixture_molar_mass(net, mass_fraction)
                 R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                 # 'kappa' heat capacity ratio:
                 k = 1.4  # TODO: implement proper calculation of kappa

@@ -2,16 +2,15 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapower.control import ConstControl
-from pandapower.control.basic_controller import Controller
-from pandapipes.properties.fluids import get_higher_heating_value, get_lower_heating_value
-import numpy as np
-from operator import itemgetter
-from pandapipes.pipeflow_setup import get_lookup
 from pandas.errors import InvalidIndexError
 
-class P2GControlMultiEnergy(Controller):
+from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.properties.fluids import get_fluid, get_mixture_higher_heating_value
+from pandapower.control import ConstControl
+from pandapower.control.basic_controller import Controller
 
+
+class P2GControlMultiEnergy(Controller):
     """
     A controller to be used in a multinet. Converts power consumption to gas production.
 
@@ -61,6 +60,7 @@ class P2GControlMultiEnergy(Controller):
     :param kwargs: optional additional controller arguments that were implemented by users
     :type kwargs: any
     """
+
     def __init__(self, multinet, element_index_power, element_index_gas, efficiency,
                  name_power_net='power', name_gas_net='gas',
                  in_service=True, order=0, level=0,
@@ -84,20 +84,22 @@ class P2GControlMultiEnergy(Controller):
     def initialize_control(self, multinet):
         self.applied = False
 
-
     def get_all_net_names(self):
         return [self.name_net_power, self.name_net_gas]
 
     def control_step(self, multinet):
         if len(multinet.nets[self.name_net_gas]._fluid) == 1:
-            self.fluid_calorific_value = get_higher_heating_value(multinet.nets[self.name_net_gas])
+            fluid = multinet.nets[self.name_net_gas]._fluid[0]
+            self.fluid_calorific_value = \
+                get_fluid(multinet.nets[self.name_net_gas], fluid).get_property('hhv')
         else:
-            mf= multinet.nets[self.name_net_gas]._mass_fraction
-            lk = get_lookup(multinet.nets[self.name_net_gas], 'node', 'index')['junction'][self.elm_idx_gas]
-            node_pit = multinet.nets[self.name_net_gas]['_pit']['node']
-            mf = np.array(itemgetter(*node_pit[lk, multinet.nets[self.name_net_gas]['_idx_node']['SLACK']])(mf))
-            self.fluid_calorific_value = get_higher_heating_value(multinet.nets[self.name_net_gas],
-                                                                  mass_fraction=mf)
+            net = multinet.nets[self.name_net_gas]
+            w = get_lookup(net, 'node', 'w')
+            node_pit = net._pit['node']
+            index = get_lookup(net, 'node', "index")['junction'][self.elm_idx_gas]
+            mf = node_pit[index, :][:, w]
+            self.fluid_calorific_value = get_mixture_higher_heating_value(multinet.nets[self.name_net_gas],
+                                                                          mass_fraction=mf)
 
         try:
             power_load = multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'p_mw'] \
@@ -123,13 +125,9 @@ class P2GControlMultiEnergy(Controller):
     def conversion_factor_mw_to_kgps(self):
         return 1e3 / (self.fluid_calorific_value * 3600)
 
-    def finalize_step(self, multinet, time):
-        if len(multinet.nets[self.name_net_gas]._fluid) != 1:
-            self.mass_fraction += [multinet['nets'][self.name_net_gas]._mass_fraction[104]]
 
 
 class G2PControlMultiEnergy(Controller):
-
     """
     A controller to be used in a multinet. Connects power generation and gas consumption.
 
@@ -221,31 +219,42 @@ class G2PControlMultiEnergy(Controller):
         return [self.name_net_gas, self.name_net_power]
 
     def control_step(self, multinet):
-        self.fluid_calorific_value = get_higher_heating_value(multinet['nets'][self.name_net_gas])
+        if len(multinet.nets[self.name_net_gas]._fluid) == 1:
+            fluid = multinet.nets[self.name_net_gas]._fluid[0]
+            self.fluid_calorific_value = \
+                get_fluid(multinet.nets[self.name_net_gas], fluid).get_property('hhv')
+        else:
+            net = multinet.nets[self.name_net_gas]
+            w = get_lookup(net, 'node', 'w')
+            node_pit = net._pit['node']
+            index = get_lookup(net, 'node', "index")['junction'][self.elm_idx_gas]
+            mf = node_pit[index, :][:, w]
+            self.fluid_calorific_value = get_mixture_higher_heating_value(multinet.nets[self.name_net_gas],
+                                                                          mass_fraction=mf)
         if self.el_power_led:
             try:
                 power_gen = multinet['nets'][self.name_net_power][self.elm_type_power].at[
-                    self.elm_idx_power, 'p_mw'] * multinet['nets'][self.name_net_power][
-                    self.elm_type_power].at[self.elm_idx_power, 'scaling']
+                                self.elm_idx_power, 'p_mw'] * multinet['nets'][self.name_net_power][
+                                self.elm_type_power].at[self.elm_idx_power, 'scaling']
 
             except (ValueError, TypeError, InvalidIndexError):
                 power_gen = multinet['nets'][self.name_net_power][self.elm_type_power].loc[
                                 self.elm_idx_power, 'p_mw'].values[:] \
                             * multinet['nets'][self.name_net_power][self.elm_type_power].loc[
-                                self.elm_idx_power, 'scaling'].values[:]
+                                  self.elm_idx_power, 'scaling'].values[:]
 
             self.gas_cons = power_gen / (self.conversion_factor_kgps_to_mw() * self.efficiency)
 
         else:
             try:
                 gas_sink = multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'mdot_kg_per_s'] \
-                           *multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'scaling']
+                           * multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'scaling']
 
             except (ValueError, TypeError, InvalidIndexError):
                 gas_sink = multinet['nets'][self.name_net_gas].sink.loc[self.elm_idx_gas,
                                                                         'mdot_kg_per_s'].values[:] \
                            * multinet['nets'][self.name_net_gas].sink.loc[self.elm_idx_gas,
-                                                                                'scaling'].values[:]
+                                                                          'scaling'].values[:]
 
             self.power_gen = gas_sink * self.conversion_factor_kgps_to_mw() * self.efficiency
 
@@ -276,7 +285,6 @@ class G2PControlMultiEnergy(Controller):
 
 
 class GasToGasConversion(Controller):
-
     """
     A controller to be used in a multinet with two gas nets that have different gases.
 
@@ -351,8 +359,29 @@ class GasToGasConversion(Controller):
         return [self.name_net_from, self.name_net_to]
 
     def control_step(self, multinet):
-        self.gas1_calorific_value = get_higher_heating_value(multinet['nets'][self.name_net_from])
-        self.gas2_calorific_value = get_higher_heating_value(multinet['nets'][self.name_net_to])
+        if len(multinet.nets[self.name_net_from]._fluid) == 1:
+            fluid = multinet.nets[self.name_net_from]._fluid[0]
+            self.gas1_calorific_value = \
+                get_fluid(multinet.nets[self.name_net_from], fluid).get_property('hhv')
+        else:
+            net = multinet.nets[self.name_net_from]
+            w = get_lookup(net, 'node', 'w')
+            node_pit = net._pit['node']
+            index = get_lookup(net, 'node', "index")['junction'][self.element_index_from]
+            mf = node_pit[index, :][:, w]
+            self.gas1_calorific_value = get_mixture_higher_heating_value(multinet.nets[self.name_net_from], mf)
+        if len(multinet.nets[self.name_net_to]._fluid) == 1:
+            fluid = multinet.nets[self.name_net_to]._fluid[0]
+            self.gas2_calorific_value = \
+                get_fluid(multinet.nets[self.name_net_to], fluid).get_property('hhv')
+        else:
+            net = multinet.nets[self.name_net_to]
+            w = get_lookup(net, 'node', 'w')
+            node_pit = net._pit['node']
+            index = get_lookup(net, 'node', "index")['junction'][self.element_index_from]
+            mf = node_pit[index, :][:, w]
+            self.gas2_calorific_value = get_mixture_higher_heating_value(multinet.nets[self.name_net_to], mf)
+
         try:
             gas_in = multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'mdot_kg_per_s'] \
                      * multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'scaling']

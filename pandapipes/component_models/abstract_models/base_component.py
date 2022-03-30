@@ -136,7 +136,7 @@ class Component:
         pass
 
     @classmethod
-    def create_property_pit_branch_entries(cls, net, branch_pit, node_name):
+    def create_property_pit_branch_entries(cls, net, node_pit, branch_pit, node_name):
         """
         Function which creates pit branch entries.
 

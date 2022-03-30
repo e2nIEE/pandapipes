@@ -8,8 +8,8 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.properties.fluids import is_fluid_gas, get_compressibility
-from operator import itemgetter
+from pandapipes.properties.fluids import is_fluid_gas, get_mixture_compressibility, get_fluid
+from pandapipes.pipeflow_setup import get_lookup
 
 
 class Valve(BranchWZeroLengthComponent):
@@ -115,18 +115,13 @@ class Valve(BranchWZeroLengthComponent):
             p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
                            / (p_from[mask] ** 2 - p_to[mask] ** 2)
             if len(net._fluid) == 1:
-                normfactor_mean = numerator * get_compressibility(net, p_mean) \
+                fluid = net._fluid[0]
+                normfactor_mean = numerator * get_fluid(net, fluid).get_compressibility(p_mean) \
                                   / (p_mean * NORMAL_TEMPERATURE)
             else:
-                node_pit = net['_pit']['node']
-                vinit = branch_pit[:, net['_idx_branch']['VINIT']]
-                nodes = np.zeros(len(vinit), dtype=int)
-                nodes[vinit >= 0] = branch_pit[:, net['_idx_branch']['FROM_NODE']][vinit >= 0]
-                nodes[vinit < 0] = branch_pit[:, net['_idx_branch']['TO_NODE']][vinit < 0]
-                slacks = node_pit[nodes, net['_idx_node']['SLACK']]
-                mf = net['_mass_fraction']
-                mf = np.array(itemgetter(*slacks)(mf))
-                comp_fact = get_compressibility(net, p_mean, mass_fraction=mf)
+                w = get_lookup(net, 'branch', 'w')
+                mf = branch_pit[:, w]
+                comp_fact = get_mixture_compressibility(net, p_mean, mf)
                 normfactor_mean = numerator * comp_fact / (p_mean * NORMAL_TEMPERATURE)
             v_gas_mean = v_mps * normfactor_mean
             _, v_gas_mean_sum = _sum_by_group(idx_active, v_gas_mean)
@@ -151,8 +146,13 @@ class Valve(BranchWZeroLengthComponent):
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
                       "normfactor_to"]
+
+            add = ["w_%s" % fluid for fluid in net._fluid]
+
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
                       "lambda"]
-        return output, True
+
+            add = []
+        return output + add, True

@@ -74,6 +74,7 @@ def get_basic_net_entries():
     return {
         "fluid": {},
         "converged": False,
+        "OPF_converged": False,
         "name": "",
         "version": __version__,
         "node_list": [],
@@ -82,7 +83,7 @@ def get_basic_net_entries():
 
 
 def get_basic_components():
-    return Junction, Pipe, ExtGrid
+    return Junction, ExtGrid, Pipe
 
 
 def add_default_components(net, overwrite=False):
@@ -95,4 +96,4 @@ def add_default_components(net, overwrite=False):
                        ('level', dtype(object)),
                        ('initial_run', "bool"),
                        ("recycle", "bool")]
-        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=pd.Int64Index([]))
+        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=pd.Index([], dtype=np.int64))

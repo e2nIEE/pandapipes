@@ -9,11 +9,11 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models import NodeComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air
+from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.pipeflow_setup import add_table_lookup, \
     get_lookup, get_table_number
-from pandapipes.properties.fluids import get_density
-
-from operator import itemgetter
+from pandapipes.properties.fluids import get_fluid, get_mixture_density, get_mixture_compressibility, \
+    get_derivative_density_same, get_derivative_density_diff
 
 
 class Junction(NodeComponent):
@@ -87,20 +87,32 @@ class Junction(NodeComponent):
         junction_pit[:, net['_idx_node']['TINIT']] = junctions.tfluid_k.values
         junction_pit[:, net['_idx_node']['PAMB']] = p_correction_height_air(junction_pit[:, net['_idx_node']['HEIGHT']])
         junction_pit[:, net['_idx_node']['ACTIVE']] = junctions.in_service.values
+        w = get_lookup(net, 'node', 'w')
+        junction_pit[:, w] = 1 / len(net._fluid)
+        if len(net._fluid) == 1:
+            junction_pit[:, net['_idx_node']['RHO']] = \
+                get_fluid(net, net._fluid[0]).get_density(junction_pit[:, net['_idx_node']['TINIT']])
+        else:
+            for fluid in net._fluid:
+                junction_pit[:, net['_idx_node'][fluid + '_RHO']] = \
+                    get_fluid(net, fluid).get_density(junction_pit[:, net['_idx_node']['TINIT']])
 
     @classmethod
     def create_property_pit_node_entries(cls, net, node_pit, node_name):
-        ft_lookup = get_lookup(net, "node", "from_to")
-        f, t = ft_lookup[cls.table_name()]
-        junction_pit = node_pit[f:t, :]
-        if len(net._fluid) == 1:
-            junction_pit[:, net['_idx_node']['RHO']] = get_density(net, junction_pit[:, net['_idx_node']['TINIT']])
-        else:
-            mf = net['_mass_fraction']
-            mf = np.array(itemgetter(*junction_pit[:, net['_idx_node']['SLACK']])(mf))
-            junction_pit[:, net['_idx_node']['RHO']] = get_density(net, junction_pit[:, net['_idx_node']['TINIT']],
-                                                                   mass_fraction=mf)
-
+        if len(net._fluid) != 1:
+            ft_lookup = get_lookup(net, "node", "from_to")
+            f, t = ft_lookup[cls.table_name()]
+            junction_pit = node_pit[f:t, :]
+            w = get_lookup(net, 'node', 'w')
+            rho = get_lookup(net, 'node', 'rho')
+            der_rho_same = get_lookup(net, 'node', 'deriv_rho_same')
+            der_rho_diff = get_lookup(net, 'node', 'deriv_rho_diff')
+            mf = junction_pit[:, w]
+            rl = junction_pit[:, rho]
+            temperature = junction_pit[:, net['_idx_node']['TINIT']]
+            junction_pit[:, net['_idx_node']['RHO']] = get_mixture_density(net, temperature, mf)
+            junction_pit[:, der_rho_same] = get_derivative_density_same(mf, rl)
+            junction_pit[:, der_rho_diff] = get_derivative_density_diff(mf, rl)
 
     @classmethod
     def extract_results(cls, net, options, node_name):
@@ -124,13 +136,34 @@ class Junction(NodeComponent):
         junctions_active = get_lookup(net, "node", "active")[f:t]
 
         if np.any(junction_pit[:, net['_idx_node']['PINIT']] < 0):
-            warn(UserWarning('Pipeflow converged, however, the results are phyisically incorrect '
-                             'as pressure is negative at nodes %s'
+            warn(UserWarning('Pipeflow converged, however, in your system there is underpressure '
+                             ' at nodes %s'
                              % junction_pit[
                                  junction_pit[:, net['_idx_node']['PINIT']] < 0, net['_idx_node']['ELEMENT_IDX']]))
 
         res_table["p_bar"].values[junctions_active] = junction_pit[:, net['_idx_node']['PINIT']]
         res_table["t_k"].values[junctions_active] = junction_pit[:, net['_idx_node']['TINIT']]
+        numerator = NORMAL_PRESSURE * junction_pit[:, net['_idx_node']['TINIT']]
+        if len(net._fluid) == 1:
+            p = junction_pit[:, net['_idx_node']['PAMB']] + junction_pit[:, net['_idx_node']['PINIT']]
+            normfactor = numerator * get_fluid(net, net._fluid[0]).get_compressibility(p) / (p * NORMAL_TEMPERATURE)
+            res_table["rho_kg_per_m3"].values[junctions_active] = junction_pit[:,
+                                                                  net['_idx_node']['RHO']] / normfactor
+        else:
+            w = get_lookup(net, 'node', 'w')
+            mf = junction_pit[:, w]
+            p = junction_pit[:, net['_idx_node']['PAMB']] + junction_pit[:, net['_idx_node']['PINIT']]
+
+            normfactor = numerator * get_mixture_compressibility(
+                net, junction_pit[:, net['_idx_node']['TINIT']], mf) / (p * NORMAL_TEMPERATURE)
+            rho = get_mixture_density(net, junction_pit[:, net['_idx_node']['TINIT']], mf) / normfactor
+            res_table["rho_kg_per_m3"].values[junctions_active] = rho
+            for i, fluid in enumerate(net._fluid):
+                normfactor = numerator * get_fluid(net, fluid).get_compressibility(p) / (p * NORMAL_TEMPERATURE)
+                rho_fluid = get_fluid(net, fluid).get_density(junction_pit[:, net['_idx_node']['TINIT']]) / normfactor
+
+                res_table["rho_kg_per_m3_%s" % fluid].values[junctions_active] = rho_fluid
+                res_table["w_%s" % fluid].values[junctions_active] = junction_pit[:, w[i]]
 
     @classmethod
     def get_component_input(cls):
@@ -165,4 +198,11 @@ class Junction(NodeComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        return ["p_bar", "t_k"], True
+        if len(net._fluid) == 1:
+            return ["p_bar", "t_k", "rho_kg_per_m3"], True
+        else:
+            default = ["p_bar", "t_k", "rho_kg_per_m3"]
+
+            add = ["rho_kg_per_m3_%s" % fluid for fluid in net._fluid]
+            add = ["w_%s" % fluid for fluid in net._fluid] + add
+            return default + add, True

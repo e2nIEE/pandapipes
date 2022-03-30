@@ -12,7 +12,7 @@ from pandapipes.component_models.auxiliaries.component_toolbox import p_correcti
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.pipeflow_setup import get_lookup, get_table_number
-from pandapipes.properties.fluids import get_density, is_fluid_gas, get_compressibility
+from pandapipes.properties.fluids import get_mixture_density, is_fluid_gas, get_mixture_compressibility, get_fluid
 
 try:
     import pplog as logging
@@ -113,23 +113,25 @@ class Pipe(BranchWInternalsComponent):
         int_node_pit[:, net['_idx_node']['PAMB']] = p_correction_height_air(int_node_pit[:, net['_idx_node']['HEIGHT']])
         int_node_pit[:, net['_idx_node']['ACTIVE']] = \
             np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
+        if len(net._fluid) == 1:
+            junction_pit[:, net['_idx_node']['RHO']] = \
+                get_fluid(net, net._fluid[0]).get_density(junction_pit[:, net['_idx_node']['TINIT']])
 
     @classmethod
     def create_property_pit_node_entries(cls, net, node_pit, node_name):
-        table_lookup = get_lookup(net, "node", "table")
-        table_nr = get_table_number(table_lookup, cls.internal_node_name())
-        if table_nr is None:
-            return
-        ft_lookup = get_lookup(net, "node", "from_to")
-        f, t = ft_lookup[cls.internal_node_name()]
+        if len(net._fluid) != 1:
+            table_lookup = get_lookup(net, "node", "table")
+            table_nr = get_table_number(table_lookup, cls.internal_node_name())
+            if table_nr is None:
+                return
+            ft_lookup = get_lookup(net, "node", "from_to")
+            f, t = ft_lookup[cls.internal_node_name()]
 
-        junction_pit = node_pit[f:t, :]
-        if len(net._fluid) == 1:
-            junction_pit[:, net['_idx_node']['RHO']] = get_density(net, junction_pit[:, net['_idx_node']['TINIT']])
-        else:
-            mass_fraction = [junction_pit[:, net['_idx_nodes']['W_' + fluid]] for fluid in net._fluid]
-            junction_pit[:, net['_idx_node']['RHO']] = get_density(net, junction_pit[:, net['_idx_node']['TINIT']],
-                                                                   mass_fraction = mass_fraction)
+            junction_pit = node_pit[f:t, :]
+            w = get_lookup(net, 'node', 'w')
+            mass_fraction = junction_pit[:, w]
+            junction_pit[:, net['_idx_node']['RHO']] = \
+                get_mixture_density(net, junction_pit[:, net['_idx_node']['TINIT']], mass_fraction=mass_fraction)
 
     @classmethod
     def create_pit_branch_entries(cls, net, pipe_pit, node_name):
@@ -251,12 +253,23 @@ class Pipe(BranchWInternalsComponent):
                 p_mean = np.where(p_from == p_to, p_from,
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
                 numerator = NORMAL_PRESSURE * node_pit[v_nodes, net['_idx_node']['TINIT']]
-                normfactor_mean = numerator * get_compressibility(net, p_mean) \
-                                  / (p_mean * NORMAL_TEMPERATURE)
-                normfactor_from = numerator * get_compressibility(net, p_from) \
-                                  / (p_from * NORMAL_TEMPERATURE)
-                normfactor_to = numerator * get_compressibility(net, p_to) \
-                                / (p_to * NORMAL_TEMPERATURE)
+                if len(net._fluid) == 1:
+                    fluid = get_fluid(net, net._fluid[0])
+                    normfactor_mean = numerator * fluid.get_compressibility(p_mean) \
+                                      / (p_mean * NORMAL_TEMPERATURE)
+                    normfactor_from = numerator * fluid.get_compressibility(p_from) \
+                                      / (p_from * NORMAL_TEMPERATURE)
+                    normfactor_to = numerator * fluid.get_compressibility(p_to) \
+                                    / (p_to * NORMAL_TEMPERATURE)
+                else:
+                    w = get_lookup(net, 'branch', 'w')
+                    mass_fraction = pipe_pit[:, w]
+                    normfactor_mean = numerator * get_mixture_compressibility(net, p_mean, mass_fraction) \
+                                      / (p_mean * NORMAL_TEMPERATURE)
+                    normfactor_from = numerator * get_mixture_compressibility(net, p_from, mass_fraction) \
+                                      / (p_from * NORMAL_TEMPERATURE)
+                    normfactor_to = numerator * get_mixture_compressibility(net, p_to, mass_fraction) \
+                                    / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean
                 v_pipe_data_from = v_pipe_data * normfactor_from
@@ -332,11 +345,15 @@ class Pipe(BranchWInternalsComponent):
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
                       "normfactor_to"]
+            add = ["w_%s" % fluid for fluid in net._fluid]
+
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
                       "lambda"]
-        return output, True
+            add = []
+
+        return output + add, True
 
     @classmethod
     def plot_pipe(cls, net, pipe, pipe_results):
