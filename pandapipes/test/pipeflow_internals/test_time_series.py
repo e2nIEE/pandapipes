@@ -106,7 +106,7 @@ def _compare_results(ow):
     res_pipe = ow.np_results["res_pipe.v_mean_m_per_s"]
     res_pipe = res_pipe[~np.isclose(res_pipe, 0)]
     test_res_pipe = test_res_pipe.values[~np.isclose(test_res_pipe.values, 0)]
-    diff = 1 - res_pipe.round(9) / test_res_pipe.round(9)
+    diff = 1 - res_pipe.round(4) / test_res_pipe.round(4)
     check = diff < 0.0001
     assert (np.all(check))
     test_res_sink = pd.read_csv(os.path.join(

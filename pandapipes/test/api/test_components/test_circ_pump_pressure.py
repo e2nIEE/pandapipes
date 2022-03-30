@@ -26,7 +26,7 @@ def test_circulation_pump_constant_pressure():
     pandapipes.create_circ_pump_const_pressure(net, j1, j4, 5, 2, 300, type='pt')
     pandapipes.create_heat_exchanger(net, j2, j3, 0.1, qext_w=200000)
     pandapipes.create_sink(net, j1, 2)
-    pandapipes.create_source(net, j4, 2)
+    pandapipes.create_source(net, j4, 2, fluid='water')
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 

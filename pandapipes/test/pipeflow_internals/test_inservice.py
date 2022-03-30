@@ -99,8 +99,8 @@ def complex_heat_connectivity_grid():
     pandapipes.create_sink(net, j7, mdot_kg_per_s=0.2, index=5)
     pandapipes.create_sink(net, j9, mdot_kg_per_s=0.1, index=7)
     pandapipes.create_sink(net, j8, mdot_kg_per_s=0.1, index=1)
-    pandapipes.create_source(net, j5, mdot_kg_per_s=0.1, index=7)
-    pandapipes.create_source(net, j2, mdot_kg_per_s=0.05, index=2)
+    pandapipes.create_source(net, j5, mdot_kg_per_s=0.1, fluid='water', index=7)
+    pandapipes.create_source(net, j2, mdot_kg_per_s=0.05, fluid='water', index=2)
 
     return net
 
