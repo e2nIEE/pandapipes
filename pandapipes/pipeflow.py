@@ -331,7 +331,7 @@ def solve_hydraulics(net, first_iter):
     node_element_pit[ne_mask, net['_idx_node_element']['MINIT']] += \
         x[len(branch_pit) + len(node_pit): ne_len]
     if len_fl:
-        node_pit[:, w_node[:-1]] += x[ne_len:].reshape((len_fl, -1)).T / 2
+        node_pit[:, w_node[:-1]] += x[ne_len:].reshape((len_fl, -1)).T #/ 2
         node_pit[:, w_node[-1]] = 1 - node_pit[:, w_node[:-1]].sum(axis=1)
 
     results += [branch_pit[:, net['_idx_branch']['VINIT']].copy()]
