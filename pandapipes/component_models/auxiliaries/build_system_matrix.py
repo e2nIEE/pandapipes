@@ -93,6 +93,9 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         # derivate branches mass flow from node after w
         n_wdF_dw = get_n_wdF_dw(net, branch_pit)
 
+        # derivate branches mass flow from node after w diff
+        n_wdF_dw_diff = get_n_wdF_dw(net, branch_pit)
+
         # derivate branches w after v
         wdF_dv = get_wdF_dv(net, node_pit, branch_pit, w_n_col)
 
@@ -444,6 +447,13 @@ def get_n_wdF_dw(net, branch_pit):
     der_rho_same = get_lookup(net, 'branch', 'deriv_rho_same')[:-1]
     v_a = np.abs(branch_pit[:, net['_idx_branch']['VINIT']] * branch_pit[:, net['_idx_branch']['AREA']])
     jac_deriv_rho = branch_pit[:, der_rho_same]
+    wdF_dw = v_a[:, np.newaxis] * jac_deriv_rho
+    return wdF_dw.flatten()
+
+def get_n_wdF_dw_diff(net, branch_pit):
+    der_rho_diff = get_lookup(net, 'branch', 'deriv_rho_diff')[:-1]
+    v_a = np.abs(branch_pit[:, net['_idx_branch']['VINIT']] * branch_pit[:, net['_idx_branch']['AREA']])
+    jac_deriv_rho = branch_pit[:, der_rho_diff]
     wdF_dw = v_a[:, np.newaxis] * jac_deriv_rho
     return wdF_dw.flatten()
 
