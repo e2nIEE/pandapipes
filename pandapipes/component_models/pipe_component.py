@@ -169,7 +169,7 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit, net['_idx_branch']['LOSS_COEFFICIENT'], net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
         pipe_pit[:, net['_idx_branch']['T_OUT']] = 293
-        pipe_pit[:, net['_idx_branch']['AREA']] = pipe_pit[:, D] ** 2 * np.pi / 4
+        pipe_pit[:, net['_idx_branch']['AREA']] = pipe_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
 
     @classmethod
     def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
