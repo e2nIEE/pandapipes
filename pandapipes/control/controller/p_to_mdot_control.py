@@ -6,6 +6,7 @@ import numpy as np
 from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import get_mixture_higher_heating_value, get_mixture_lower_heating_value, get_fluid
 from pandapower.control import ConstControl
+from pandapower.toolbox import write_to_net
 
 
 class PtoMdotController(ConstControl):
@@ -38,8 +39,8 @@ class PtoMdotController(ConstControl):
                                                                scale_factor=self.scale_factor)
             if len(net._fluid) == 1:
                 fluid = net._fluid[0]
-                cal = get_fluid(fluid).get_higher_heating_value(net) if self.cal == 'higher' else \
-                    get_fluid(fluid).get_lower_heating_value(net)
+                cal = get_fluid(net, fluid).get_higher_heating_value() if self.cal == 'higher' else \
+                    get_fluid(net, fluid).get_lower_heating_value()
                 self.values *= 1 / self.eff / cal / 3.6  # from W (/1000) and kWh (*3600) to kg / s
                 self.values = self.values.astype(float)
             else:
@@ -53,7 +54,7 @@ class PtoMdotController(ConstControl):
                 self.values_mdot = copy.deepcopy(self.values)
                 self.p_to_mdot(cal)
         if self.values is not None:
-            self.write_to_net(net)
+            write_to_net(net, self.element, self.element_index, self.variable, self.values, self.write_flag)
 
     def p_to_mdot(self, heating_value):
         self.values = self.values_mdot * 1 / self.eff / heating_value / 3.6
@@ -75,7 +76,7 @@ class PtoMdotController(ConstControl):
             cal = get_mixture_higher_heating_value(net, mf) \
                 if self.cal == 'higher' else get_mixture_lower_heating_value(net, mf)
             self.p_to_mdot(cal)
-            self.write_to_net(net)
+            write_to_net(net, self.element, self.element_index, self.variable, self.values, self.write_flag)
             self.mf = node_pit[:, w]
         else:
             self.applied = True
