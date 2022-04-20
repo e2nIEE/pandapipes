@@ -5,8 +5,9 @@
 import copy
 
 import numpy as np
-import pandapipes as pp
 import pytest
+
+import pandapipes as pp
 from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source, \
     create_pipe_from_parameters, create_valve
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
@@ -67,8 +68,49 @@ def simple_fluid(net):
                    der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
     _add_fluid_to_net(net, fluid2)
 
+    fluid_name = 'fluid3'
+    dens = FluidPropertyConstant(0.3)
+    visc = FluidPropertyConstant(0.03)
+    heat = FluidPropertyConstant(30)
+    mass = FluidPropertyConstant(3)
+    higc = FluidPropertyConstant(6)
+    lowc = FluidPropertyConstant(3)
+    derc = FluidPropertyConstant(0)
+    comp = FluidPropertyConstant(0.003)
+    fluid3 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
+                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+    _add_fluid_to_net(net, fluid3)
+
 
 def test_two_fluids_grid_simple_gases():
+    """
+
+    :return:
+    :rtype:
+    """
+    import logging
+    logger = logging.getLogger()
+    logger.setLevel("DEBUG")
+    logger.debug('external grid')
+
+    net = create_empty_network()
+    j1 = create_junction(net, 1, 298.15, index=50)
+    j2 = create_junction(net, 1, 298.15, index=52)
+    simple_fluid(net)
+
+    create_ext_grid(net, j1, 1, 298.15, fluid='fluid2', index=102)
+    create_sink(net, j2, 0.5)
+    create_source(net, j1, 0.3, fluid='fluid1')
+    create_pipe_from_parameters(net, j1, j2, 1, 10, np.pi)
+    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    w = get_lookup(net, 'node', 'w')
+
+    print(net._pit['node'][:, w])
+    print(net._internal_results)
+    assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
+
+
+def test_three_fluids_grid_simple_gases():
     """
 
     :return:
@@ -81,7 +123,8 @@ def test_two_fluids_grid_simple_gases():
 
     create_ext_grid(net, j1, 1, 298.15, fluid='fluid1', index=102)
     create_sink(net, j2, 0.5)
-    create_source(net, j1, 0.3, fluid='fluid2')
+    create_source(net, j1, 0.1, fluid='fluid2')
+    create_source(net, j1, 0.2, fluid='fluid3')
     create_pipe_from_parameters(net, j1, j2, 1, 10, np.pi)
     pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
     w = get_lookup(net, 'node', 'w')
@@ -103,7 +146,7 @@ def test_two_fluids_grid_simple():
     create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
-    create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
+    create_pipe_from_parameters(net, j1, j2, 0.5, 0.1, 0.01)
     pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
     w = get_lookup(net, 'node', 'w')
     print(net._pit['node'][:, w])
@@ -124,6 +167,28 @@ def test_three_fluids_grid_simple():
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_source(net, j1, 0.01, fluid='hgas')
+    create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
+    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    w = get_lookup(net, 'node', 'w')
+    print(net._pit['node'][:, w])
+    print(net._internal_results)
+    assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
+
+
+def test_four_fluids_grid_simple():
+    """
+
+    :return:
+    :rtype:
+    """
+    net = create_empty_network()
+    j1 = create_junction(net, 1, 298.15, index=50)
+    j2 = create_junction(net, 1, 298.15, index=52)
+    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_sink(net, j2, 0.08)
+    create_source(net, j1, 0.03, fluid='hydrogen')
+    create_source(net, j1, 0.01, fluid='hgas')
+    create_source(net, j1, 0.01, fluid='butane')
     create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
     pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
     w = get_lookup(net, 'node', 'w')
@@ -155,6 +220,30 @@ def test_two_fluids_two_pipes_grid_simple():
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
+def test_multiple_fluids_grid_line_ascending():
+    """
+
+    :return:
+    :rtype:
+    """
+    net = create_empty_network()
+    j1 = create_junction(net, 1, 298.15, index=50)
+    j2 = create_junction(net, 1, 298.15, index=52)
+    j3 = create_junction(net, 1, 298.15, index=54)
+    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_sink(net, j3, 0.08)
+    create_source(net, j1, 0.03, fluid='hydrogen')
+    create_source(net, j1, 0.01, fluid='butane')
+    # create_source(net, j1, 0.01, fluid='hgas')
+    create_pipe_from_parameters(net, j1, j2, 0.01, np.pi, 0.01)
+    create_pipe_from_parameters(net, j2, j3, 0.01, np.pi, 0.01)
+    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    w = get_lookup(net, 'node', 'w')
+    print(net._pit['node'][:, w])
+    print(net._internal_results)
+    assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
+
+
 def test_multiple_fluids_grid():
     """
 
@@ -168,8 +257,9 @@ def test_multiple_fluids_grid():
     j3 = create_junction(net, 1, 298.15, index=54)
     create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
     create_sink(net, j3, 0.08)
-    create_source(net, j1, 0.03, fluid='hydrogen')
+    create_source(net, j2, 0.03, fluid='hydrogen')
     create_source(net, j1, 0.01, fluid='butane')
+    create_source(net, j1, 0.01, fluid='hgas')
     create_pipe_from_parameters(net, j2, j1, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j3, j2, 0.01, np.pi, 0.01)
     pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
@@ -195,7 +285,7 @@ def test_multiple_fluids_grid_mesehd_valve():
     create_sink(net, j4, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 0.01, np.pi, 0.01)
-    create_valve(net, j3, j2, 0.01)
+    create_pipe_from_parameters(net, j2, j3, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j3, j4, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j4, j1, 0.01, np.pi, 0.01)
     pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
@@ -225,6 +315,28 @@ def test_multiple_fluids_grid_source():
     print(net._pit['node'][:, w])
     print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
+
+
+def test_multiple_fluids_grid_feed_back():
+    """
+
+    :return:
+    :rtype:
+    """
+    net = create_empty_network()
+    j1 = create_junction(net, 1, 298.15, index=50)
+    j2 = create_junction(net, 1, 298.15, index=52)
+    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_sink(net, j2, 0.08)
+    create_source(net, j1, 0.1, fluid='hydrogen')
+    create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
+    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    w = get_lookup(net, 'node', 'w')
+    print(net._pit['node'][:, w])
+    print(net._internal_results)
+    assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
+
+
 
 
 def test_multiple_fluids_feeder():
@@ -259,8 +371,8 @@ def test_multiple_fluids_feeder():
     create_pipe_from_parameters(net, j2, j4, 1, np.pi, 0.01)
     create_pipe_from_parameters(net, j4, j5, 1, np.pi, 0.01)
     create_pipe_from_parameters(net, j1, j6, 1, np.pi, 0.01)
-    create_valve(net, j7, j1, 1, np.pi, 0.01)
-    create_valve(net, j9, j1, 1, np.pi, 0.01)
+    create_valve(net, j7, j1, np.pi)
+    create_valve(net, j9, j1, np.pi)
     create_pipe_from_parameters(net, j8, j7, 1, np.pi, 0.01)
 
     pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)

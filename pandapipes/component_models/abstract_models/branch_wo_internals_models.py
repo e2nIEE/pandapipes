@@ -101,5 +101,5 @@ class BranchWOInternalsComponent(BranchComponent):
         else:
             for fluid in net._fluid:
                 branch_wo_internals_pit[:, net['_idx_branch'][fluid + '_RHO']] = \
-                    get_fluid(net, net._fluid[0]).get_density(branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
+                    get_fluid(net, fluid).get_density(branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
         return branch_wo_internals_pit

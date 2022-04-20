@@ -101,7 +101,9 @@ class BranchComponent(Component):
             v_from_b = branch_component_pit[:, net['_idx_branch']['V_FROM_NODE']].astype(int)
 
             w = get_lookup(net, 'node', 'w')
+            w_branch = get_lookup(net, 'branch', 'w')
             mf = node_pit[:, w][v_from_b]
+            branch_component_pit[:, w_branch] = mf
 
             branch_component_pit[:, net['_idx_branch']['RHO']] = \
                 get_mixture_density(net, branch_component_pit[:, net['_idx_branch']['TINIT']], mf)

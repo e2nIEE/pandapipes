@@ -71,8 +71,6 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
 
     vfn = branch_pit[:, net['_idx_branch']['V_FROM_NODE']].astype(int)
     vtn = branch_pit[:, net['_idx_branch']['V_TO_NODE']].astype(int)
-    not_slack_vfn_branch_mask = node_pit[vfn, ntyp_col] != slack_type
-    not_slack_vtn_branch_mask = node_pit[vtn, ntyp_col] != slack_type
 
     if len_fluid and not first_iter:
         # get nodes the fluid is moving from and to (ignoring the from_nodes and to_nodes convention)
@@ -94,7 +92,7 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         n_wdF_dw = get_n_wdF_dw(net, branch_pit)
 
         # derivate branches mass flow from node after w diff
-        n_wdF_dw_diff = get_n_wdF_dw(net, branch_pit)
+        n_wdF_dw_diff, dw_diff_row, dw_diff_col = get_n_wdF_dw_diff(net, node_pit, branch_pit, w_n_col)
 
         # derivate branches w after v
         wdF_dv = get_wdF_dv(net, node_pit, branch_pit, w_n_col)
@@ -116,11 +114,10 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
 
         extra += len_nw
     else:
-        fn_w, tn_w, slack_nodes_w, slack_wdF_dm, n_mdF_dw, n_wdF_dw, wdF_dv, \
-        fn_rhodF_dw, tn_rhodF_dw, fslack_rhodF_dw, tslack_rhodF_dw = \
+        fn_w, tn_w, slack_nodes_w, slack_wdF_dm, n_mdF_dw, n_wdF_dw, n_wdF_dw_diff, dw_diff_row, dw_diff_col, \
+        wdF_dv, fn_rhodF_dw, tn_rhodF_dw, fslack_rhodF_dw, tslack_rhodF_dw = \
             [], [], [], [], [], [], [], \
-            [], [], [], []
-
+            [], [], [], [], [], [], []
 
     if not heat_mode:
         len_fn_not_slack = np.sum(not_slack_fn_branch_mask)
@@ -139,7 +136,9 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         len_n_mdF_dw = len_nw + len_slack_wdF_dm
         len_fn_wdF_dw = len_bw + len_n_mdF_dw
         len_tn_wdF_dw = len_bw + len_fn_wdF_dw
-        len_fn_wdF_dv = len_bw + len_tn_wdF_dw
+        len_fn_wdF_dw_diff = len_bw * len_fluid + len_tn_wdF_dw
+        len_tn_wdF_dw_diff = len_bw * len_fluid + len_fn_wdF_dw_diff
+        len_fn_wdF_dv = len_bw + len_tn_wdF_dw_diff
         len_tn_wdF_dv = len_bw + len_fn_wdF_dv
         len_fn_rhodF_dw = len_fn_not_slack * len_fluid + len_tn_wdF_dv
         len_tn_rhodF_dw = len_tn_not_slack * len_fluid + len_fn_rhodF_dw
@@ -185,8 +184,12 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         system_data[len_n_mdF_dw:len_fn_wdF_dw] = n_wdF_dw
         # tn_wdF_dw
         system_data[len_fn_wdF_dw:len_tn_wdF_dw] = n_wdF_dw * (-1)
+        # fn_wdF_dw_diff
+        system_data[len_tn_wdF_dw:len_fn_wdF_dw_diff] = n_wdF_dw_diff
+        # tn_wdF_dw_diff
+        system_data[len_fn_wdF_dw_diff:len_tn_wdF_dw_diff] = n_wdF_dw_diff * (-1)
         # fn_wdF_dv
-        system_data[len_tn_wdF_dw:len_fn_wdF_dv] = wdF_dv
+        system_data[len_tn_wdF_dw_diff:len_fn_wdF_dv] = wdF_dv
         # tn_wdF_dv
         system_data[len_fn_wdF_dv:len_tn_wdF_dv] = wdF_dv * (-1)
         # fn_rhodF_dw
@@ -195,7 +198,7 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         system_data[len_fn_rhodF_dw:len_tn_rhodF_dw] = tn_rhodF_dw * (-1)
         # fslack_rhodF_dw
         system_data[len_tn_rhodF_dw:len_fslack_rhodF_dw] = fslack_rhodF_dw
-        # fslack_rhodF_dw
+        # tslack_rhodF_dw
         system_data[len_fslack_rhodF_dw:] = tslack_rhodF_dw * (-1)
     else:
         system_data[:len_b] = branch_pit[:, net['_idx_branch']['JAC_DERIV_DT']]
@@ -272,9 +275,24 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
             system_cols[len_fn_wdF_dw:len_tn_wdF_dw] = w_node_matrix_indices[fn_w]
             system_rows[len_fn_wdF_dw:len_tn_wdF_dw] = w_node_matrix_indices[tn_w]
 
+            fn_w_re = np.reshape(fn_w, [-1, len_fluid]).T.flatten() if len(fn_w) else np.array([])
+            tn_w_re = np.reshape(tn_w, [-1, len_fluid]).T.flatten() if len(tn_w) else np.array([])
+
+            # fn_wdF_dw_diff
+            system_cols[len_tn_wdF_dw:len_fn_wdF_dw_diff] = w_node_matrix_indices[
+                (np.array(fn_w_re)[dw_diff_col]).tolist()]
+            system_rows[len_tn_wdF_dw:len_fn_wdF_dw_diff] = w_node_matrix_indices[
+                (np.array(fn_w_re)[dw_diff_row]).tolist()]
+
+            # tn_wdF_dw_diff
+            system_cols[len_fn_wdF_dw_diff:len_tn_wdF_dw_diff] = w_node_matrix_indices[
+                (fn_w_re[dw_diff_col]).tolist()]
+            system_rows[len_fn_wdF_dw_diff:len_tn_wdF_dw_diff] = w_node_matrix_indices[
+                (tn_w_re[dw_diff_row]).tolist()]
+
             # fn_wdF_dv
-            system_cols[len_tn_wdF_dw:len_fn_wdF_dv] = get_w_like_vector(branch_matrix_indices, len_fluid)
-            system_rows[len_tn_wdF_dw:len_fn_wdF_dv] = w_node_matrix_indices[fn_w]
+            system_cols[len_tn_wdF_dw_diff:len_fn_wdF_dv] = get_w_like_vector(branch_matrix_indices, len_fluid)
+            system_rows[len_tn_wdF_dw_diff:len_fn_wdF_dv] = w_node_matrix_indices[fn_w]
 
             # tn_wdF_dv
             system_cols[len_fn_wdF_dv:len_tn_wdF_dv] = get_w_like_vector(branch_matrix_indices, len_fluid)
@@ -296,13 +314,13 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
             system_cols[len_tn_rhodF_dw:len_fslack_rhodF_dw] = w_node_matrix_indices[
                 get_w_like_node_vector(vfn[slack_branches_from], len_fluid, len_n)]
             system_rows[len_tn_rhodF_dw:len_fslack_rhodF_dw] = node_element_matrix_indices[
-                get_w_like_vector(fn[slack_branches_from], len_fluid)]
+                get_w_like_vector(slack_masses_from, len_fluid)]
 
             # tslack_rhodF_dw
             system_cols[len_fslack_rhodF_dw:] = w_node_matrix_indices[
                 get_w_like_node_vector(vfn[slack_branches_to], len_fluid, len_n)]
             system_rows[len_fslack_rhodF_dw:] = node_element_matrix_indices[
-                get_w_like_vector(tn[slack_branches_to], len_fluid)]
+                get_w_like_vector(slack_masses_to, len_fluid)]
 
         else:
             # pdF_dTfromnode
@@ -405,6 +423,27 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         load_vector[0:len(slack_nodes)] = 0.
 
         load_vector[len_n:] = branch_pit[:, net['_idx_branch']['LOAD_VEC_BRANCHES_T']]
+    v = branch_pit[:, net['_idx_branch']['VINIT']]
+    a = branch_pit[:, net['_idx_branch']['AREA']]
+    rho = branch_pit[:, net['_idx_branch']['RHO']]
+    w = node_pit[:, w_n_col]
+    der_rho_diff = get_lookup(net, 'branch', 'deriv_rho_diff')[:-1]
+    der_rho_diff = branch_pit[:, der_rho_diff]
+    der_rho_same = get_lookup(net, 'branch', 'deriv_rho_same')[:-1]
+    der_rho_same = branch_pit[:, der_rho_same]
+    #print(-der_rho_diff*a*v)
+
+    #print(rho*a)
+    #print(+1)
+    #print(a*der_rho_diff*v)
+
+    #print(rho*a*w[0,0])
+    #print(w[0,0])
+    #print(a*der_rho_same*v + slack_mass)
+
+    #print(-rho*a*w[0,0])
+    #print(-der_rho_same*a*v)
+    #print(get_load_vec(net, node_pit) [1])
     return system_matrix, load_vector
 
 
@@ -419,7 +458,7 @@ def get_slack_wdF_dm(net, node_pit, node_element_pit, slack_element_mask, w_n_co
     w_div_from = node_pit[slack_nodes, :][:, w_n_col] / \
                  np.tile(number_slacks_per_junction[inverse_position][:, np.newaxis], len_fluid)
     w[slack_mass < 0, :] = w_div_to[slack_mass < 0]
-    w[slack_mass >= 0, :] = -w_div_from[slack_mass >= 0]
+    w[slack_mass >= 0, :] = w_div_from[slack_mass >= 0]
     return w.T.flatten()
 
 
@@ -448,14 +487,26 @@ def get_n_wdF_dw(net, branch_pit):
     v_a = np.abs(branch_pit[:, net['_idx_branch']['VINIT']] * branch_pit[:, net['_idx_branch']['AREA']])
     jac_deriv_rho = branch_pit[:, der_rho_same]
     wdF_dw = v_a[:, np.newaxis] * jac_deriv_rho
-    return wdF_dw.flatten()
+    return wdF_dw.T.flatten()
 
-def get_n_wdF_dw_diff(net, branch_pit):
+
+def get_n_wdF_dw_diff(net, node_pit, branch_pit, w_n_col):
+    v_from_b = branch_pit[:, net['_idx_branch']['V_FROM_NODE']].astype(int)
     der_rho_diff = get_lookup(net, 'branch', 'deriv_rho_diff')[:-1]
+    w = node_pit[:, w_n_col][v_from_b, :]
     v_a = np.abs(branch_pit[:, net['_idx_branch']['VINIT']] * branch_pit[:, net['_idx_branch']['AREA']])
     jac_deriv_rho = branch_pit[:, der_rho_diff]
-    wdF_dw = v_a[:, np.newaxis] * jac_deriv_rho
-    return wdF_dw.flatten()
+    jac_deriv_rho_w = jac_deriv_rho[:, np.newaxis, :] * w[:, :, np.newaxis]
+    v_a_w = np.reshape(np.repeat(v_a, np.shape(jac_deriv_rho)[1] ** 2), np.shape(jac_deriv_rho_w))
+    wdF_dw = v_a_w * jac_deriv_rho_w
+    pos = np.reshape(np.tile(np.eye(np.shape(jac_deriv_rho)[1], dtype=bool), len(jac_deriv_rho_w)).T,
+                     np.shape(jac_deriv_rho_w))
+    wdF_dw[pos] = 0
+    sh = np.shape(jac_deriv_rho_w)
+    pos = np.array(list(np.ndindex(sh[0], sh[1], sh[2])))
+    pos_row = ((pos[:, 0] * (sh[1])) + pos[:, 1])
+    pos_col = ((pos[:, 0] * (sh[1])) + pos[:, 2])
+    return wdF_dw.flatten(), pos_row, pos_col
 
 
 def get_fn_rhodF_dw(net, branch_pit, not_slack_from_branches):
@@ -483,7 +534,7 @@ def get_n_rhodF_dw(net, branch_pit, branches):
     v_a = branch_pit[branches, net['_idx_branch']['VINIT']] * branch_pit[branches, net['_idx_branch']['AREA']]
     jac_deriv_rho = branch_pit[:, der_rho_diff][branches, :]
     rhodF_dw = v_a[:, np.newaxis] * jac_deriv_rho
-    return rhodF_dw.flatten()
+    return rhodF_dw.T.flatten()
 
 
 def get_wdF_dv(net, node_pit, branch_pit, w_n_col):
@@ -492,7 +543,7 @@ def get_wdF_dv(net, node_pit, branch_pit, w_n_col):
     v_from_b = branch_pit[:, net['_idx_branch']['V_FROM_NODE']].astype(int)
     w = node_pit[:, w_n_col][v_from_b, :]
     wdF_dv = load_vec[:, np.newaxis] * w
-    return wdF_dv.flatten()
+    return wdF_dv.T.flatten()
 
 
 ####################### auxiliaries ###############################

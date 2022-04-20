@@ -176,6 +176,12 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("der_compressibility")
 
+    def get_lower_heating_value(self):
+        return self.get_property("lhv")
+
+    def get_higher_heating_value(self):
+        return self.get_property("hhv")
+
 
 class FluidProperty(JSONSerializableClass):
     """

@@ -424,7 +424,8 @@ def create_lookups(net):
         node_element_from, node_element_table_nr = comp.create_node_element_lookups(
             net, node_element_ft_lookups, node_element_table_lookups, node_element_idx_lookups, node_element_from,
             node_element_table_nr)
-    node_element_w, node_w, branch_w, node_rho, branch_rho, jac_node_rho_same, jac_node_rho_diff, \
+    node_element_w, node_w, branch_w, \
+    node_rho, branch_rho, jac_node_rho_same, jac_node_rho_diff, \
     jac_branch_rho_same, jac_branch_rho_diff = \
         np.array([(net._idx_node_element[fluid + '_W'], net._idx_node[fluid + '_W'], net._idx_branch[fluid + '_W'],
                    net._idx_node[fluid + '_RHO'], net._idx_branch[fluid + '_RHO'],
