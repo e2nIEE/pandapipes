@@ -34,6 +34,7 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
     :rtype:
     """
     v_corr = np.where(np.abs(v) < 1e-6, 1e-6 * np.sign(v), v)
+    v_corr = np.where(v_corr == 0, 0.0000001, v)
     lambda_laminar = np.zeros_like(v)
 
     re = np.abs(rho * v_corr * d / eta)
@@ -46,11 +47,11 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, dummy, options):
 
     if friction_model == "colebrook":
         # TODO: move this import to top level if possible
-        from pandapipes.pipeflow import PipeflowNotConverged
+        from pandapower.control.run_control import NetCalculationNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
         converged, lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy, max_iter)
         if not converged:
-            raise PipeflowNotConverged(
+            raise NetCalculationNotConverged(
                 "The Colebrook-White algorithm did not converge. There might be model "
                 "inconsistencies. The maximum iterations can be given as 'max_iter_colebrook' "
                 "argument to the pipeflow.")
