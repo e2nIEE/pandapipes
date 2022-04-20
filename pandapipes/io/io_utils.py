@@ -17,7 +17,7 @@ from pandapower.io_utils import with_signature, to_serializable, JSONSerializabl
 from copy import deepcopy
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

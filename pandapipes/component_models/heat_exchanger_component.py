@@ -9,7 +9,7 @@ from pandapipes.component_models.abstract_models import BranchWZeroLengthCompone
 from pandapipes.properties.fluids import is_fluid_gas
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

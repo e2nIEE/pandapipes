@@ -9,7 +9,7 @@ from pandapower.topology.create_graph import add_edges, get_edge_table
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

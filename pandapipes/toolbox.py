@@ -16,7 +16,7 @@ from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

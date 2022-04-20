@@ -6,7 +6,7 @@ import os
 from pandapipes.io.file_io import from_json
 from pandapipes import pp_dir
 try:
-    import pplog as logging
+    from pandaplan.core import ppglog as logging
 except ImportError:
     import logging
 

@@ -11,7 +11,7 @@ from pandapipes.component_models.abstract_models.node_models import NodeComponen
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 
 try:
-    import pplog as logging
+    from pandaplan.core import ppglog as logging
 except ImportError:
     import logging
 

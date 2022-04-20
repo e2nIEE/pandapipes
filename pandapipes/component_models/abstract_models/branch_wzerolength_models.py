@@ -6,7 +6,7 @@ from pandapipes.component_models.abstract_models.branch_wo_internals_models impo
     BranchWOInternalsComponent
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

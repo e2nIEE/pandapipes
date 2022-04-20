@@ -14,7 +14,7 @@ from pandapipes.idx_node_element import idx_node_element
 from warnings import warn
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

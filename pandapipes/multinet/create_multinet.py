@@ -7,7 +7,7 @@ import pandas as pd
 from pandapipes.multinet.multinet import MultiNet, get_default_multinet_structure
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

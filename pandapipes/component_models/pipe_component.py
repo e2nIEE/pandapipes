@@ -15,7 +15,7 @@ from pandapipes.pipeflow_setup import get_lookup, get_table_number
 from pandapipes.properties.fluids import get_mixture_density, is_fluid_gas, get_mixture_compressibility, get_fluid
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

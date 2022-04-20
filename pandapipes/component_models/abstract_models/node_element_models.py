@@ -7,7 +7,7 @@ from pandapipes.pipeflow_setup import get_lookup, add_table_lookup, get_table_nu
 import numpy as np
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

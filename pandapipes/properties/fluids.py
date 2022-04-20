@@ -15,7 +15,7 @@ from pandapipes.properties.properties_toolbox import calculate_mixture_density, 
 from pandapower.io_utils import JSONSerializableClass
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

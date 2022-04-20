@@ -8,7 +8,7 @@ from pandapipes.component_models.ext_grid_component import ExtGrid
 from pandapipes.pipeflow_setup import get_lookup, get_table_number
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

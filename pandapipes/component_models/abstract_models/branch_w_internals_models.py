@@ -15,7 +15,7 @@ from pandapipes.properties.fluids import get_mixture_density, get_mixture_heat_c
     get_derivative_density_diff, get_derivative_density_same
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

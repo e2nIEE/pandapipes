@@ -12,7 +12,7 @@ import pandapipes as pp
 from pandapipes import pp_dir
 
 try:
-    import pplog as logging
+    from pandaplan.core import ppglog as logging
 except ImportError:
     import logging
 
