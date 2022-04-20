@@ -8,7 +8,7 @@ import pandas as pd
 from pandapipes.properties.fluids import is_fluid_gas
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

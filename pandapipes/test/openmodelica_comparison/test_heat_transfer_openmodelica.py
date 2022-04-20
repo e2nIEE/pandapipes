@@ -11,7 +11,7 @@ from pandapipes.test.openmodelica_comparison.pipeflow_openmodelica_comparison \
     import pipeflow_openmodelica_comparison
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 

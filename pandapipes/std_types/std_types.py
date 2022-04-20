@@ -11,7 +11,7 @@ from pandapipes import pp_dir
 from pandapipes.std_types.std_type_class import get_data, PumpStdType
 
 try:
-    import pplog as logging
+    from pandaplan.core import pplog as logging
 except ImportError:
     import logging
 
