@@ -1,6 +1,6 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapipes.std_types.std_type import *
-from pandapipes.std_types.std_type_toolbox import *
+from pandapipes.std_types.std_types import *
+from pandapipes.std_types.std_type_class import *

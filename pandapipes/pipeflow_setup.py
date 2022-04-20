@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -261,6 +261,7 @@ def init_options(net, local_parameters):
     # the base layer of the options consists of the default options
     net["_options"] = copy.deepcopy(default_options)
     excluded_params = {"net", "interactive_plotting", "t_start", "sol_vec", "kwargs"}
+
     # the base layer is overwritten and extended by options given by the default parameters of the
     # pipeflow function definition
     args_pf = inspect.getfullargspec(pipeflow)

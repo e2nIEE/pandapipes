@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,8 +9,9 @@ import pandas as pd
 from numpy import dtype
 from pandapipes import __version__
 from pandapipes.component_models import Junction, Pipe, ExtGrid
-from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
+from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapower.auxiliary import ADict
+from pandas import Index
 
 try:
     from pandaplan.core import pplog as logging
@@ -96,4 +97,4 @@ def add_default_components(net, overwrite=False):
                        ('level', dtype(object)),
                        ('initial_run', "bool"),
                        ("recycle", "bool")]
-        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=pd.Index([], dtype=np.int64))
+        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=Index([], dtype=np.int64))

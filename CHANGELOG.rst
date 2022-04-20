@@ -1,6 +1,25 @@
 Change Log
 =============
 
+[upcoming release] - 2022-..-..
+-------------------------------
+- [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
+- [FIXED] Bugfix to resolve problems with numpy indexing (especially with numpy.repeat) in some component models
+- [CHANGED] timeseries progress bar now shown with tqdm as in pandapower
+
+[0.6.0] - 2022-02-07
+-------------------------------
+- [ADDED] Adding pressure controller as new component
+- [ADDED] Adding compressor as new component
+- [ADDED] Compressing power of a pump component are returned as result
+- [ADDED] Adding polynomial fluids
+- [CHANGED] Removing irrelevant results in branch models with zero length (mean velocity, lambda, reynolds)
+- [FIXED] Only ext grids in service are considered
+- [FIXED] Converting format of the nets in a multinet correctly
+- [FIXED] Changes in pandas are considered
+- [FIXED] Bug with multinet controller in run_control
+- [FIXED] Bugfix in pandapower changed function cleanup in run_timeseries
+
 [0.5.0] - 2021-07-29
 -------------------------------
 - [ADDED] Enabling encryption of pandapipes networks

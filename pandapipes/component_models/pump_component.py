@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -44,7 +44,7 @@ class Pump(BranchWZeroLengthComponent):
         :return: No Output.
         """
         pump_pit = super().create_pit_branch_entries(net, pump_pit, node_name)
-        std_types_lookup = np.array(list(net.std_type[cls.table_name()].keys()))
+        std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
         pump_pit[pos, net['_idx_branch']['STD_TYPE']] = std_type
@@ -67,7 +67,7 @@ class Pump(BranchWZeroLengthComponent):
         """
         area = pump_pit[:, net['_idx_branch']['AREA']]
         idx = pump_pit[:, net['_idx_branch']['STD_TYPE']].astype(int)
-        std_types = np.array(list(net.std_type['pump'].keys()))[idx]
+        std_types = np.array(list(net.std_types['pump'].keys()))[idx]
         from_nodes = pump_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
         # to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
@@ -89,7 +89,7 @@ class Pump(BranchWZeroLengthComponent):
         else:
             v_mean = v_mps
         vol = v_mean * area
-        fcts = itemgetter(*std_types)(net['std_type']['pump'])
+        fcts = itemgetter(*std_types)(net['std_types']['pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
         pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
         pump_pit[:, net['_idx_branch']['PL']] = pl

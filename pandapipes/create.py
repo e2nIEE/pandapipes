@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -8,13 +8,13 @@ import pandas as pd
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
     Compressor
-from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
+from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
-from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_pump_std_type, \
+from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, \
     load_std_type
-from pandapipes.std_types.std_type_toolbox import regression_function
+from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.toolbox import check_pressure_controllability
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
@@ -192,10 +192,6 @@ def create_source(net, junction, mdot_kg_per_s, fluid='hgas', scaling=1., name=N
     cols = ["name", "junction", "mdot_kg_per_s", "fluid", "scaling", "in_service", "type"]
 
     if isinstance(fluid, Fluid):
-        if not junction in net.ext_grid.junction.values and fluid.name != 'slacklike':
-            logger.warning("Currently it is only possible to connect sources having different fluids than ext grid "
-                           "junctions to others than ext grid junction. Choose slacklike if the infeed is the same as the one prvoided by the ext grid.")
-            return
         _add_fluid_to_net(net, fluid, False)
         vals = [name, junction, mdot_kg_per_s, fluid.name, scaling, bool(in_service), type]
         _set_entries(net, "source", index, **dict(zip(cols, vals)), **kwargs)
@@ -472,7 +468,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
                           'create a pipe setting specific, individual parameters. If you want to '
-                          'create a pipe from net.std_type, please use `create_pipe`')
+                          'create a pipe from net.std_types, please use `create_pipe`')
     _set_entries(net, "pipe", index, **v, **kwargs)
 
     if geodata is not None:
@@ -643,10 +639,10 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
             and reg_polynomial_degree is not None:
         reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
         pump = PumpStdType(new_std_type_name, reg_par)
-        add_pump_std_type(net, new_std_type_name, pump)
+        create_pump_std_type(net, new_std_type_name, pump)
     elif poly_coefficents is not None:
         pump = PumpStdType(new_std_type_name, poly_coefficents)
-        add_pump_std_type(net, new_std_type_name, pump)
+        create_pump_std_type(net, new_std_type_name, pump)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": new_std_type_name, "in_service": bool(in_service), "type": type}
@@ -839,8 +835,9 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
                             'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
 
-    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature settings '
-                'at the junctions are kept. Therefore, energy is induced to meet these constraints.')
+    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature '
+                'settings at the junctions are kept. Therefore, energy is induced to meet these '
+                'constraints.')
 
     add_new_component(net, PressureControlComponent)
 
@@ -958,7 +955,7 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_sources(net, junctions, mdot_kg_per_s, fluid='slacklike', scaling=1., name=None, index=None,
+def create_sources(net, junctions, mdot_kg_per_s, fluid='hgas', scaling=1., name=None, index=None,
                    in_service=True, type='source', **kwargs):
     """
     Convenience function for creating many sources at once. Parameter 'junctions' must be an array \
@@ -1266,14 +1263,18 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
                       in_service=True, **kwargs):
     """
-    Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost ratio)
+    Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost
+    ratio)
 
     :param net: The net within this compressor should be created
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the compressor will be connected with
     :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the compressor will be connected with
+    :param to_junction: ID of the junction on the other side which the compressor will be connected\
+                        with
     :type to_junction: int
+    :param pressure_ratio:
+    :type pressure_ratio:
     :param name: A name tag for this compressor
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -1343,10 +1344,10 @@ def _check_branches(net, from_junctions, to_junctions, table):
 
 
 def _check_std_type(net, std_type, table, function_name):
-    if 'std_type' not in net:
+    if 'std_types' not in net:
         raise UserWarning('%s is defined as std_type in %s but there are no std_types '
                           'defined in your net. You need to define a std_type first or set '
                           'add_stdtypes=True in create_empty_network.' % (std_type, function_name))
-    if std_type not in net['std_type'][table]:
-        raise UserWarning('%s is not given in std_type (%s). Either change std_type or define new '
+    if std_type not in net['std_types'][table]:
+        raise UserWarning('%s is not given in std_types (%s). Either change std_type or define new '
                           'one' % (std_type, table))

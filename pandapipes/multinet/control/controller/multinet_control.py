@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@ from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import get_fluid, get_mixture_higher_heating_value
 from pandapower.control import ConstControl
 from pandapower.control.basic_controller import Controller
+from pandas.errors import InvalidIndexError
 
 
 class P2GControlMultiEnergy(Controller):

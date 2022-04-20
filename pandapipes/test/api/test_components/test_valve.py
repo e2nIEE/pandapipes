@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -28,13 +28,13 @@ def test_valve():
 
     pandapipes.create_ext_grid(net, j0, 5, 283.15, fluid='lgas', type="p")
 
-    pandapipes.create_pipe_from_parameters(net, j0, j1, diameter_m=.1, k=0.1, length_km=1.)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, diameter_m=.1, k=0.1, length_km=.5)
-    pandapipes.create_pipe_from_parameters(net, j2, j4, diameter_m=.1, k=0.1, length_km=.5)
-    pandapipes.create_pipe_from_parameters(net, j5, j4, diameter_m=.1, k=0.1, length_km=.35)
-    pandapipes.create_pipe_from_parameters(net, j1, j6, diameter_m=.1, k=0.1, length_km=.1,
+    pandapipes.create_pipe_from_parameters(net, j0, j1, diameter_m=.1, k_mm=1, length_km=1.)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, diameter_m=.1, k_mm=1, length_km=.5)
+    pandapipes.create_pipe_from_parameters(net, j2, j4, diameter_m=.1, k_mm=1, length_km=.5)
+    pandapipes.create_pipe_from_parameters(net, j5, j4, diameter_m=.1, k_mm=1, length_km=.35)
+    pandapipes.create_pipe_from_parameters(net, j1, j6, diameter_m=.1, k_mm=1, length_km=.1,
                                            loss_coefficient=9000)
-    pandapipes.create_pipe_from_parameters(net, j1, j7, diameter_m=.1, k=0.1, length_km=.1,
+    pandapipes.create_pipe_from_parameters(net, j1, j7, diameter_m=.1, k_mm=1, length_km=.1,
                                            loss_coefficient=9000)
 
     pandapipes.create_valve(net, j6, j2, diameter_m=0.1, opened=False)
