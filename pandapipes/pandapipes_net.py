@@ -9,7 +9,7 @@ import pandas as pd
 from numpy import dtype
 from pandapipes import __version__
 from pandapipes.component_models import Junction, Pipe, ExtGrid
-from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
+from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
 from pandapower.auxiliary import ADict
 from pandas import Index
 

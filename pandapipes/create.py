@@ -8,7 +8,7 @@ import pandas as pd
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
     Compressor
-from pandapipes.component_models.auxiliaries.component_toolbox import add_new_component
+from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
