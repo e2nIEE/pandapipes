@@ -2,6 +2,8 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import tqdm
+
 from pandapipes import pandapipesNet
 from pandapipes.multinet.control.run_control_multinet import prepare_run_ctrl, run_control
 from pandapipes.timeseries.run_time_series import init_default_outputwriter as init_default_ow_pps
@@ -81,6 +83,9 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
         ts_variables[net_name]['run'] = run['net_name'] if run is not None else ts_variables[net_name]['run']
         ts_variables[net_name]['recycle_options'] = recycle_options
         init_output_writer(net, time_steps)
+        if logger.level != 10 and verbose:
+            # simple progress bar
+            ts_variables['progress_bar'] = tqdm.tqdm(total=len(time_steps))
 
     # time steps to be calculated (list or range)
     ts_variables["time_steps"] = time_steps
