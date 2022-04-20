@@ -122,8 +122,6 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
     if not heat_mode:
         len_fn_not_slack = np.sum(not_slack_fn_branch_mask)
         len_tn_not_slack = np.sum(not_slack_tn_branch_mask)
-        #len_vfn_not_slack = np.sum(not_slack_vfn_branch_mask)
-        #len_vtn_not_slack = np.sum(not_slack_vtn_branch_mask)
         len_fn1 = num_der * len_b + len_fn_not_slack
         len_tn1 = len_fn1 + len_tn_not_slack
         len_pc = len_tn1 + pc_nodes.shape[0]
@@ -423,27 +421,6 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         load_vector[0:len(slack_nodes)] = 0.
 
         load_vector[len_n:] = branch_pit[:, net['_idx_branch']['LOAD_VEC_BRANCHES_T']]
-    v = branch_pit[:, net['_idx_branch']['VINIT']]
-    a = branch_pit[:, net['_idx_branch']['AREA']]
-    rho = branch_pit[:, net['_idx_branch']['RHO']]
-    w = node_pit[:, w_n_col]
-    der_rho_diff = get_lookup(net, 'branch', 'deriv_rho_diff')[:-1]
-    der_rho_diff = branch_pit[:, der_rho_diff]
-    der_rho_same = get_lookup(net, 'branch', 'deriv_rho_same')[:-1]
-    der_rho_same = branch_pit[:, der_rho_same]
-    #print(-der_rho_diff*a*v)
-
-    #print(rho*a)
-    #print(+1)
-    #print(a*der_rho_diff*v)
-
-    #print(rho*a*w[0,0])
-    #print(w[0,0])
-    #print(a*der_rho_same*v + slack_mass)
-
-    #print(-rho*a*w[0,0])
-    #print(-der_rho_same*a*v)
-    #print(get_load_vec(net, node_pit) [1])
     return system_matrix, load_vector
 
 
