@@ -9,6 +9,7 @@ from pandapipes.properties.fluids import get_fluid, get_mixture_higher_heating_v
 from pandapower.control import ConstControl
 from pandapower.control.basic_controller import Controller
 from pandas.errors import InvalidIndexError
+import numpy as np
 
 
 class P2GControlMultiEnergy(Controller):
@@ -89,18 +90,14 @@ class P2GControlMultiEnergy(Controller):
         return [self.name_net_power, self.name_net_gas]
 
     def control_step(self, multinet):
-        if len(multinet.nets[self.name_net_gas]._fluid) == 1:
-            fluid = multinet.nets[self.name_net_gas]._fluid[0]
-            self.fluid_calorific_value = \
-                get_fluid(multinet.nets[self.name_net_gas], fluid).get_property('hhv')
-        else:
-            net = multinet.nets[self.name_net_gas]
-            w = get_lookup(net, 'node', 'w')
-            node_pit = net._pit['node']
-            index = get_lookup(net, 'node', "index")['junction'][self.elm_idx_gas]
-            mf = node_pit[index, :][:, w]
-            self.fluid_calorific_value = get_mixture_higher_heating_value(multinet.nets[self.name_net_gas],
-                                                                          mass_fraction=mf)
+        net = multinet.nets[self.name_net_gas]
+        source = net.source.loc[self.elm_idx_gas, :]
+        fluid_calorific_value = np.zeros(len(source))
+        fluids = set(source.fluid)
+        density = [get_fluid(multinet.nets[self.name_net_gas], fluid).get_property('hhv') for fluid in fluids]
+        for i, fluid in enumerate(fluids):
+            fluid_calorific_value[source.fluid == fluid] = density[i]
+        self.fluid_calorific_value = fluid_calorific_value
 
         try:
             power_load = multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'p_mw'] \
