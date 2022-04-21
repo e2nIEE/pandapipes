@@ -752,7 +752,8 @@ def is_fluid_gas(net):
 
 
 def create_individual_fluid(fluid_name, fluid_components,
-                            temperature_list, component_proportions, proportion_type='mass', phase='gas'):
+                            temperature_list, pressure_list,
+                            component_proportions, proportion_type='mass', phase='gas'):
     molar_mass = []
     density = []
     viscosity = []
@@ -767,7 +768,7 @@ def create_individual_fluid(fluid_name, fluid_components,
         density += [fluid.get_density(temperature_list)]
         viscosity += [fluid.get_viscosity(temperature_list)]
         heat_capacity += [fluid.get_heat_capacity(temperature_list)]
-        compressibility += [fluid.get_property('compressibility', temperature_list)]
+        compressibility += [fluid.get_property('compressibility', pressure_list)]
         der_compressibility += [fluid.get_property('der_compressibility', temperature_list)]
         high_calorific += [fluid.get_property('hhv')]
         low_calorific += [fluid.get_property('lhv')]
@@ -795,7 +796,7 @@ def create_individual_fluid(fluid_name, fluid_components,
     higc = FluidPropertyConstant(higc)
     lowc = FluidPropertyConstant(lowc)
     derc = FluidPropertyInterExtra(temperature_list, derc)
-    comp = FluidPropertyInterExtra(temperature_list, comp)
+    comp = FluidPropertyInterExtra(pressure_list, comp)
 
     fluid = Fluid(fluid_name, phase, density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)

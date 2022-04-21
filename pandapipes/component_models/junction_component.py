@@ -155,7 +155,7 @@ class Junction(NodeComponent):
             p = junction_pit[:, net['_idx_node']['PAMB']] + junction_pit[:, net['_idx_node']['PINIT']]
 
             normfactor = numerator * get_mixture_compressibility(
-                net, junction_pit[:, net['_idx_node']['TINIT']], mf) / (p * NORMAL_TEMPERATURE)
+                net, junction_pit[:, net['_idx_node']['PINIT']], mf) / (p * NORMAL_TEMPERATURE)
             rho = get_mixture_density(net, junction_pit[:, net['_idx_node']['TINIT']], mf) / normfactor
             res_table["rho_kg_per_m3"].values[junctions_active] = rho
             for i, fluid in enumerate(net._fluid):
