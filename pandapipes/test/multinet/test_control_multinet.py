@@ -306,13 +306,13 @@ def test_g2g_multiple(get_gas_example):
 
     # dummy component for offset in sink/source indices:
     _ = pandapipes.create_sink(net_gas1, 0, mdot_kg_per_s=0.001)
-    no_g2g = pandapipes.create_sources(net_gas2, [0, 3], mdot_kg_per_s=0.0314)
+    no_g2g = pandapipes.create_sources(net_gas2, [0, 3], 0.0314, fluid2['name'])
 
     # add components to represent G2P unit
     gas1_cons_kg_per_s = 0.05
     g2g_ids_cons = pandapipes.create_sinks(net_gas1, range(1, 4), mdot_kg_per_s=gas1_cons_kg_per_s,
                                            name="SMR consumption")
-    g2g_ids_prod = pandapipes.create_sources(net_gas2, [0, 2, 5], 0, name="SMR production")
+    g2g_ids_prod = pandapipes.create_sources(net_gas2, [0, 2, 5], 0, fluid2['name'], name="SMR production")
 
     # add coupling controller
     eta = 0.65
