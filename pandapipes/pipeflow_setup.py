@@ -769,4 +769,4 @@ def init_fluid(net):
     for comp in net.node_element_list:
         fluids += [net[comp.table_name()].fluid.values if 'fluid' in net[comp.table_name()] else []]
     fluids = np.concatenate(fluids)
-    net['_fluid'] = np.unique(fluids[fluids != 'slacklike'])
+    net['_fluid'] = np.unique(fluids)
