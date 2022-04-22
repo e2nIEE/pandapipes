@@ -88,7 +88,7 @@ def _compare_results(ow):
     res_ext_grid = ow.np_results["res_ext_grid.mdot_kg_per_s"]
     res_ext_grid = res_ext_grid[~np.isclose(res_ext_grid, 0)]
     test_res_ext_grid = test_res_ext_grid.values[~np.isclose(test_res_ext_grid.values, 0)]
-    diff = 1 - res_ext_grid.round(9) / test_res_ext_grid.round(9)
+    diff = 1 - res_ext_grid.round(4) / test_res_ext_grid.round(4)
     check = diff < 0.0001
     assert (np.all(check))
     test_res_junction = pd.read_csv(os.path.join(
