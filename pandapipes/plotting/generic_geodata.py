@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.component_models import ExtGrid, Pipe, Sink, Source, Junction
+
+from pandapipes.component_models import Pipe
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 

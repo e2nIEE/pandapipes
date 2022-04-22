@@ -56,7 +56,7 @@ class pandapipesNet(ADict):
             try:
                 for key in self["fluid"].keys():
                      r += "\n%s" % self["fluid"][key]
-            except:
+            except AttributeError:
                 r += "\n%s" % self["fluid"]
         else:
             r += "\nIt does not contain any defined fluid"

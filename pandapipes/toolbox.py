@@ -8,8 +8,6 @@ import numpy as np
 import pandas as pd
 from networkx import has_path
 
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
 from pandapower.auxiliary import get_indices
@@ -415,7 +413,6 @@ def check_pressure_controllability(net, to_junction, controlled_junction):
     mg = create_nxgraph(net, include_pressure_circ_pumps=False, include_compressors=False,
                         include_mass_circ_pumps=False, include_press_controls=False)
     return has_path(mg, to_junction, controlled_junction)
-
 
 # TODO: change to pumps??
 # def drop_trafos(net, trafos, table="trafo"):

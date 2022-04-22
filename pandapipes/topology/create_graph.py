@@ -4,9 +4,8 @@
 
 import networkx as nx
 import numpy as np
-from pandapower.topology.create_graph import add_edges, get_edge_table
 
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+from pandapower.topology.create_graph import add_edges, get_edge_table
 
 try:
     from pandaplan.core import pplog as logging

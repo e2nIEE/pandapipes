@@ -2,15 +2,15 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from collections.abc import Iterable
+
+import numpy as np
 from pandas.errors import InvalidIndexError
 
 from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import get_fluid, get_mixture_higher_heating_value
 from pandapower.control import ConstControl
 from pandapower.control.basic_controller import Controller
-from pandas.errors import InvalidIndexError
-import numpy as np
-from collections.abc import Iterable
 
 
 class P2GControlMultiEnergy(Controller):

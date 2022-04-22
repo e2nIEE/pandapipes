@@ -10,8 +10,7 @@ from pandapipes.timeseries.run_time_series import init_default_outputwriter as i
 from pandapower import pandapowerNet
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.run_time_series import get_recycle_settings, init_time_steps, output_writer_routine, \
-    print_progress_bar, cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
-import tqdm
+    cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
 
 try:
     from pandaplan.core import pplog

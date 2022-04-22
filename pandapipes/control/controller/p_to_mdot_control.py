@@ -1,5 +1,4 @@
 import copy
-from operator import itemgetter
 
 import numpy as np
 
@@ -67,7 +66,7 @@ class PtoMdotController(ConstControl):
             self.applied = True
         elif self.values is None:
             self.applied = True
-        elif (self.mf is None) or np.any((self.mf - node_pit[:, w]) >= 10**-3):
+        elif (self.mf is None) or np.any((self.mf - node_pit[:, w]) >= 10 ** -3):
             w = get_lookup(net, 'node', 'w')
             node_pit = net._pit['node']
             index = get_lookup(net, 'node', "index")['junction'][net.sink.junction.values]
