@@ -10,6 +10,7 @@ from pandapower.control import ConstControl
 from pandapower.control.basic_controller import Controller
 from pandas.errors import InvalidIndexError
 import numpy as np
+from collections.abc import Iterable
 
 
 class P2GControlMultiEnergy(Controller):
@@ -92,8 +93,8 @@ class P2GControlMultiEnergy(Controller):
     def control_step(self, multinet):
         net = multinet.nets[self.name_net_gas]
         source = net.source.loc[self.elm_idx_gas, :]
-        fluid_calorific_value = np.zeros(len(source))
-        fluids = set(source.fluid)
+        fluid_calorific_value = np.zeros(len(source)) if isinstance(self.elm_idx_gas, Iterable) else np.zeros(len([source]))
+        fluids = set(source.fluid) if isinstance(self.elm_idx_gas, Iterable) else set([source.fluid])
         density = [get_fluid(multinet.nets[self.name_net_gas], fluid).get_property('hhv') for fluid in fluids]
         for i, fluid in enumerate(fluids):
             fluid_calorific_value[source.fluid == fluid] = density[i]
@@ -111,11 +112,10 @@ class P2GControlMultiEnergy(Controller):
 
     def write_to_net(self, multinet):
         try:
-            multinet['nets'][self.name_net_gas].source.at[self.elm_idx_gas, 'mdot_kg_per_s'] \
+            multinet['nets'][self.name_net_gas]['source'].at[self.elm_idx_gas, 'mdot_kg_per_s'] \
                 = self.mdot_kg_per_s
         except (ValueError, TypeError, InvalidIndexError):
-            multinet['nets'][self.name_net_gas].source.loc[self.elm_idx_gas,
-                                                           'mdot_kg_per_s'] = self.mdot_kg_per_s
+            multinet['nets'][self.name_net_gas]['source']['mdot_kg_per_s'][self.elm_idx_gas] = self.mdot_kg_per_s
 
     def is_converged(self, multinet):
         return self.applied
