@@ -12,6 +12,7 @@ from pandapipes.component_models.abstract_models.node_models import NodeComponen
 
 def add_new_component(net, component, overwrite=False):
     """
+    Adds a new component DataFrame to the net
 
     :param net:
     :type net:

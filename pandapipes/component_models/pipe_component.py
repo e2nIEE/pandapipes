@@ -11,9 +11,9 @@ from pandapipes.component_models.auxiliaries.component_toolbox import p_correcti
     vinterp, set_entry_check_repeat
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.pipeflow_setup import get_lookup, get_table_number
-from pandapipes.properties.fluids import get_mixture_density, is_fluid_gas, get_mixture_compressibility, get_fluid
 from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pipeflow_setup import get_table_number
+from pandapipes.properties.fluids import get_mixture_density, is_fluid_gas, get_mixture_compressibility, get_fluid
 
 try:
     from pandaplan.core import pplog as logging
@@ -166,7 +166,8 @@ class Pipe(BranchWInternalsComponent):
         set_entry_check_repeat(
             pipe_pit, net['_idx_branch']['D'], net[tbl].diameter_m.values, internal_pipe_number, has_internals)
         set_entry_check_repeat(
-            pipe_pit, net['_idx_branch']['LOSS_COEFFICIENT'], net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
+            pipe_pit, net['_idx_branch']['LOSS_COEFFICIENT'], net[tbl].loss_coefficient.values, internal_pipe_number,
+            has_internals)
 
         pipe_pit[:, net['_idx_branch']['T_OUT']] = 293
         pipe_pit[:, net['_idx_branch']['AREA']] = pipe_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
@@ -308,6 +309,7 @@ class Pipe(BranchWInternalsComponent):
     @classmethod
     def get_component_input(cls):
         """
+        Column names and types of the corresponding DataFrame
 
         :return:
         :rtype:

@@ -7,7 +7,7 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models import ConstFlow
 from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_lookup, get_table_number, add_table_lookup
+from pandapipes.pipeflow_setup import get_lookup
 
 
 class Source(ConstFlow):
@@ -57,6 +57,7 @@ class Source(ConstFlow):
     @classmethod
     def get_component_input(cls):
         """
+        Column names and types of the corresponding DataFrame
 
         :return:
         :rtype:

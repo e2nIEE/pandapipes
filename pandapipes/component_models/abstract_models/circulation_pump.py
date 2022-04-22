@@ -2,10 +2,8 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-
 from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.pipeflow_setup import get_lookup, get_table_number
+from pandapipes.pipeflow_setup import get_lookup
 
 try:
     from pandaplan.core import pplog as logging
@@ -25,11 +23,9 @@ class CirculationPump(ExtGrid):
     def junction_name(cls):
         return 'from_junction'
 
-
     @classmethod
     def create_pit_node_element_entries(cls, net, node_element_pit, node_name):
         super().create_pit_node_element_entries(net, node_element_pit, node_name)
-
 
     @classmethod
     def extract_results(cls, net, options, node_name):

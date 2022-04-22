@@ -2,17 +2,14 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from operator import itemgetter
-
 import numpy as np
+
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.auxiliaries.component_toolbox import set_entry_check_repeat
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
-from pandapipes.properties.fluids import get_mixture_density, get_mixture_heat_capacity, \
-    get_mixture_viscosity, get_mixture_compressibility, is_fluid_gas, get_fluid, \
-    get_derivative_density_diff, get_derivative_density_same
+from pandapipes.properties.fluids import get_mixture_compressibility, is_fluid_gas, get_fluid
 
 try:
     from pandaplan.core import pplog as logging

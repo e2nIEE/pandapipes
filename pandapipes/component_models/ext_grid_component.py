@@ -2,16 +2,12 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import copy
-from operator import itemgetter
-
 import numpy as np
-import pandas as pd
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models import NodeElementComponent
 from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_lookup, add_table_lookup, get_table_number
+from pandapipes.pipeflow_setup import get_lookup
 
 try:
     from pandaplan.core import pplog as logging
@@ -92,7 +88,6 @@ class ExtGrid(NodeElementComponent):
                 "ext_grid" in net['_lookups'] else index_p
         return ext_grids, press
 
-
     @classmethod
     def extract_results(cls, net, options, node_name):
         """
@@ -112,10 +107,10 @@ class ExtGrid(NodeElementComponent):
         if len(ext_grids) == 0:
             return
 
-        #branch_pit = net['_pit']['branch']
-        #node_pit = net["_pit"]["node"]
+        # branch_pit = net['_pit']['branch']
+        # node_pit = net["_pit"]["node"]
 
-        #eg_nodes, p_grids, sum_mass_flows, counts, inverse_nodes, node_uni = \
+        # eg_nodes, p_grids, sum_mass_flows, counts, inverse_nodes, node_uni = \
         #    cls.get_mass_flow(net, ext_grids, node_pit, branch_pit, node_name)
 
         res_table = super().extract_results(net, options, node_name)
@@ -123,7 +118,7 @@ class ExtGrid(NodeElementComponent):
         f, t = get_lookup(net, "node_element", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node_element", "from_to_active")[cls.table_name()]
 
-        node_element_pit  = net["_active_pit"]["node_element"][fa:ta, :]
+        node_element_pit = net["_active_pit"]["node_element"][fa:ta, :]
         node_elements_active = get_lookup(net, "node_element", "active")[f:t]
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
@@ -133,7 +128,6 @@ class ExtGrid(NodeElementComponent):
 
     @classmethod
     def get_mass_flow(cls, net, ext_grids, node_pit, branch_pit, node_name):
-
         p_grids = np.isin(ext_grids.type.values, ["p", "pt"])
         junction = cls.get_connected_junction(net)
         eg_nodes = get_lookup(net, "node", "index")[node_name][np.array(junction.values[p_grids])]
