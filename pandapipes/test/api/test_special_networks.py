@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 import pandapipes as pp
+from pandapipes import networks as nets_pps
 from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source, \
     create_pipe_from_parameters, create_valve
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
@@ -80,6 +81,34 @@ def simple_fluid(net):
     fluid3 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
                    der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
     _add_fluid_to_net(net, fluid3)
+
+
+def same_fluid_twice_defined(net):
+    fluid_name = 'fluid1'
+    dens = FluidPropertyConstant(0.1)
+    visc = FluidPropertyConstant(0.01)
+    heat = FluidPropertyConstant(10)
+    mass = FluidPropertyConstant(1)
+    higc = FluidPropertyConstant(2)
+    lowc = FluidPropertyConstant(1)
+    derc = FluidPropertyConstant(0)
+    comp = FluidPropertyConstant(0.001)
+    fluid1 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
+                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+    _add_fluid_to_net(net, fluid1)
+
+    fluid_name = 'fluid2'
+    dens = FluidPropertyConstant(0.1)
+    visc = FluidPropertyConstant(0.01)
+    heat = FluidPropertyConstant(10)
+    mass = FluidPropertyConstant(1)
+    higc = FluidPropertyConstant(2)
+    lowc = FluidPropertyConstant(1)
+    derc = FluidPropertyConstant(0)
+    comp = FluidPropertyConstant(0.001)
+    fluid2 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
+                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+    _add_fluid_to_net(net, fluid2)
 
 
 def test_two_fluids_grid_simple_gases():
@@ -337,8 +366,6 @@ def test_multiple_fluids_grid_feed_back():
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-
-
 def test_multiple_fluids_feeder():
     """
 
@@ -501,6 +528,31 @@ def test_random_net_and_one_node_net(create_test_net):
     pp.pipeflow(net)
 
     assert np.isclose(net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
+
+
+def test_multiple_fluids_sink_source():
+    net = pp.create_empty_network()
+    same_fluid_twice_defined(net)
+    j1 = pp.create_junction(net, 1, 273)
+    j2 = pp.create_junction(net, 1, 273)
+    j3 = pp.create_junction(net, 1, 273)
+    pp.create_ext_grid(net, j1, 1, 273, 'fluid1')
+    pp.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
+    pp.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
+    pp.create_sink(net, j3, 0.05)
+    pp.create_source(net, j2, 0.01, 'fluid2')
+    pp.create_source(net, j3, 0.02, 'fluid2')
+    pp.pipeflow(net, iter=100)
+    print(net._internal_results)
+    assert net.res_junction.w_fluid1.values == []
+
+
+def test_schutterwald_hydrogen():
+    net = nets_pps.schutterwald()
+    pp.create_sources(net, [5, 168, 193], 6.6e-3, 'hydrogen')
+    pp.pipeflow(net, iter=100)
+    print(net._internal_results)
+    print(np.min(np.abs(net.res_pipe)))
 
 
 if __name__ == "__main__":

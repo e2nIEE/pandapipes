@@ -72,6 +72,8 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
     vfn = branch_pit[:, net['_idx_branch']['V_FROM_NODE']].astype(int)
     vtn = branch_pit[:, net['_idx_branch']['V_TO_NODE']].astype(int)
 
+    node_pit[:, net['_idx_node']['LOAD']][node_pit[:, net['_idx_node']['LOAD']]==0] += 10**-20
+
     if len_fluid and not first_iter:
         # get nodes the fluid is moving from and to (ignoring the from_nodes and to_nodes convention)
         fn_w = get_w_like_node_vector(vfn, len_fluid, len_n)
@@ -393,7 +395,8 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
         load_vector[node_element_matrix_indices] -= slack_mass
         if len_fluid and not first_iter:
             branch_deriv = np.abs(branch_pit[:, net['_idx_branch']['LOAD_VEC_NODES']])
-            node_load = get_load_vec(net, node_pit) * (-1) * node_pit[:, w_n_col].T
+            node_load = get_load_vec(net, node_pit, node_element_pit, slack_element_mask) \
+                        * (-1) * node_pit[:, w_n_col].T
             load_vector[w_node_matrix_indices] = node_load.flatten()
             node_w_out, load_branch = _sum_by_group(vfn, np.abs(branch_deriv))
             branch_from_load = load_branch * node_pit[node_w_out, :][:, w_n_col].T
@@ -448,7 +451,8 @@ def get_slack_element_nodes_w(net, node_element_pit, slack_element_mask, number_
 
 
 def get_n_mdF_dw(net, node_pit, node_element_pit, slack_element_mask, number_of_fluids, number_of_nodes):
-    load = get_w_like_vector(node_pit[:, net['_idx_node']['LOAD']], number_of_fluids)
+    l = get_load_vec(net, node_pit, node_element_pit, slack_element_mask)
+    load = get_w_like_vector(l, number_of_fluids)
     slack_mass = node_element_pit[slack_element_mask, net['_idx_node_element']['MINIT']]
     slack_mass = get_w_like_vector(slack_mass, number_of_fluids)
     slack_nodes = node_element_pit[slack_element_mask, net['_idx_node_element']['JUNCTION']].astype(int)
@@ -538,8 +542,13 @@ def get_w_like_vector(entry, number_of_fluids):
     return entry_w
 
 
-def get_load_vec(net, node_pit):
+def get_load_vec(net, node_pit, node_element_pit, slack_element_mask):
+    mass_load = node_element_pit[~slack_element_mask, net['_idx_node_element']['MINIT']]
+    s_nods = node_element_pit[~slack_element_mask, net['_idx_node_element']['JUNCTION']].astype(int)
+    s_nods, mass_load = _sum_by_group(s_nods.flatten(), mass_load.flatten())
     l = node_pit[:, net['_idx_node']['LOAD']]
     load = np.zeros(len(l))
-    load[l >= 0] = l[l >= 0]
+    load[s_nods] += mass_load
+    load += l
+    load[load<0] = 0
     return load

@@ -993,9 +993,28 @@ def create_sources(net, junctions, mdot_kg_per_s, fluid='hgas', scaling=1., name
     _check_multiple_junction_elements(net, junctions)
     index = _get_multiple_index_with_check(net, "source", index, len(junctions))
 
-    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling, "fluid": fluid,
-               "in_service": in_service, "name": name, "type": type}
-    _set_multiple_entries(net, "source", index, **entries, **kwargs)
+    if isinstance(fluid, Fluid):
+        _add_fluid_to_net(net, fluid, False)
+        entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling, "fluid": fluid,
+                   "in_service": in_service, "name": name, "type": type}
+        _set_multiple_entries(net, "source", index, **entries, **kwargs)
+        return index
+    elif isinstance(fluid, str):
+        if fluid in net.fluid:
+            entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling, "fluid": fluid,
+                       "in_service": in_service, "name": name, "type": type}
+            _set_multiple_entries(net, "source", index, **entries, **kwargs)
+            return index
+        else:
+            if fluid not in net.fluid:
+                create_fluid_from_lib(net, fluid)
+            entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling, "fluid": fluid,
+                       "in_service": in_service, "name": name, "type": type}
+            _set_multiple_entries(net, "source", index, **entries, **kwargs)
+            return index
+    else:
+        logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
+                       "strings can be used." % fluid)
 
     return index
 
