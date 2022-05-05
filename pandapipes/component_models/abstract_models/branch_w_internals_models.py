@@ -3,8 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+from pandapipes.component_models.auxiliaries.component_toolbox import set_entry_check_repeat
+from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ACTIVE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
     CP, ELEMENT_IDX
@@ -169,28 +170,35 @@ class BranchWInternalsComponent(BranchComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
+        :param branch_winternals_pit:
+        :type branch_winternals_pit:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
         branch_w_internals_pit, node_pit, from_nodes, to_nodes \
             = super().create_pit_branch_entries(net, branch_pit)
 
         if not len(branch_w_internals_pit):
-            return branch_w_internals_pit, []
+            return branch_w_internals_pit, np.array([], dtype=np.int32)
 
-        internal_pipe_number = cls.get_internal_pipe_number(net)
+        internal_pipe_number = cls.get_internal_pipe_number(net).astype(np.int32)
         node_ft_lookups = get_lookup(net, "node", "from_to")
 
-        if cls.internal_node_name() in node_ft_lookups:
+        has_internals = cls.internal_node_name() in node_ft_lookups
+        if has_internals:
             pipe_nodes_from, pipe_nodes_to = node_ft_lookups[cls.internal_node_name()]
             pipe_nodes_idx = np.arange(pipe_nodes_from, pipe_nodes_to)
             insert_places = np.repeat(np.arange(len(from_nodes)), internal_pipe_number - 1)
             from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
             to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
 
-        branch_w_internals_pit[:, ELEMENT_IDX] = np.repeat(net[cls.table_name()].index.values,
-                                                           internal_pipe_number)
+        set_entry_check_repeat(
+            branch_w_internals_pit, ELEMENT_IDX, net[cls.table_name()].index.values,
+            internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            branch_w_internals_pit, ACTIVE, net[cls.table_name()][cls.active_identifier()].values,
+            internal_pipe_number, has_internals)
         branch_w_internals_pit[:, FROM_NODE] = from_nodes
         branch_w_internals_pit[:, TO_NODE] = to_nodes
         branch_w_internals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
@@ -213,7 +221,7 @@ class BranchWInternalsComponent(BranchComponent):
         :return:
         :rtype:
         """
-        return net[cls.table_name()].sections.values
+        return np.array(net[cls.table_name()].sections.values)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
