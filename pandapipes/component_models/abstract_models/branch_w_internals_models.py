@@ -4,8 +4,7 @@
 
 import numpy as np
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import set_entry_check_repeat
-from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
+from pandapipes.component_models.component_toolbox import set_entry_check_repeat
 from pandapipes.idx_branch import ACTIVE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
     CP, ELEMENT_IDX
