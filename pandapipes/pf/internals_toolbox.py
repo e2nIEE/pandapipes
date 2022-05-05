@@ -39,9 +39,18 @@ def _sum_by_group_sorted(indices, *values):
     for i, _ in enumerate(val):
         # sum up values, chose only those with unique indices and then subtract the previous sums
         # --> this way for each index the sum of all values belonging to this index is returned
-        np.cumsum(val[i], out=val[i])
-        val[i] = val[i][index]
-        val[i][1:] = val[i][1:] - val[i][:-1]
+        nans = np.isnan(val[i])
+        if np.any(nans):
+            np.nan_to_num(val[i], copy=False)
+            np.cumsum(val[i], out=val[i])
+            val[i] = val[i][index]
+            still_na = nans[index]
+            val[i][1:] = val[i][1:] - val[i][:-1]
+            val[i][still_na] = np.NaN
+        else:
+            np.cumsum(val[i], out=val[i])
+            val[i] = val[i][index]
+            val[i][1:] = val[i][1:] - val[i][:-1]
     return [indices] + val
 
 

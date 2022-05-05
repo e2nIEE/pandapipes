@@ -151,11 +151,16 @@ class BranchWInternalsComponent(BranchComponent):
 
         int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
 
-        f_junction, t_junction = ft_lookup[cls.get_connected_node_type().table_name()]
+        junction_table_name = cls.get_connected_node_type().table_name()
+        fj_name, tj_name = "from_" + junction_table_name, "to_" + junction_table_name
+        f_junction, t_junction = ft_lookup[junction_table_name]
         junction_pit = node_pit[f_junction:t_junction, :]
-        from_junctions = net[cls.table_name()].from_junction.values.astype(np.int32)
-        to_junctions = net[cls.table_name()].to_junction.values.astype(np.int32)
-        return table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions
+        from_junctions = net[cls.table_name()][fj_name].values.astype(np.int32)
+        to_junctions = net[cls.table_name()][tj_name].values.astype(np.int32)
+        junction_indices = get_lookup(net, "node", "index")[junction_table_name]
+        fj_nodes = junction_indices[from_junctions]
+        tj_nodes = junction_indices[to_junctions]
+        return table_nr, int_node_number, int_node_pit, junction_pit, fj_nodes, tj_nodes
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):

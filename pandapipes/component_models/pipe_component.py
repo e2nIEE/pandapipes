@@ -104,16 +104,17 @@ class Pipe(BranchWInternalsComponent):
         :type node_pit:
         :return: No Output.
         """
-        table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions = \
+        table_nr, int_node_number, int_node_pit, junction_pit, fj_nodes, tj_nodes = \
             super().create_pit_node_entries(net, node_pit)
         if table_nr is None:
             return
-        int_node_pit[:, HEIGHT] = vinterp(junction_pit[from_junctions, HEIGHT],
-                                          junction_pit[to_junctions, HEIGHT], int_node_number)
-        int_node_pit[:, PINIT] = vinterp(junction_pit[from_junctions, PINIT],
-                                         junction_pit[to_junctions, PINIT], int_node_number)
-        int_node_pit[:, TINIT_NODE] = vinterp(junction_pit[from_junctions, TINIT_NODE],
-                                              junction_pit[to_junctions, TINIT_NODE],
+        get_lookup(net, "node", "index")
+        int_node_pit[:, HEIGHT] = vinterp(junction_pit[fj_nodes, HEIGHT],
+                                          junction_pit[tj_nodes, HEIGHT], int_node_number)
+        int_node_pit[:, PINIT] = vinterp(junction_pit[fj_nodes, PINIT],
+                                         junction_pit[tj_nodes, PINIT], int_node_number)
+        int_node_pit[:, TINIT_NODE] = vinterp(junction_pit[fj_nodes, TINIT_NODE],
+                                              junction_pit[tj_nodes, TINIT_NODE],
                                               int_node_number)
         int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
         int_node_pit[:, RHO_NODES] = get_fluid(net).get_density(int_node_pit[:, TINIT_NODE])
