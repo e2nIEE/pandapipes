@@ -807,6 +807,12 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
                  controlled_p_bar=controlled_p_bar, in_service=bool(in_service), type=type,
                  **kwargs)
 
+    if controlled_junction != from_junction and controlled_junction != to_junction:
+        logger.warning("The pressure controller %d controls the pressure at a junction that it is "
+                       "not connected to. Please note that this can lead to errors in the pipeflow "
+                       "calculation that will not be displayed properly. Make sure that your grid "
+                       "configuration is valid." % index)
+
     return index
 
 
@@ -1211,6 +1217,15 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
                "control_active": control_active, "loss_coefficient": loss_coefficient,
                "in_service": in_service, "type": type}
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
+
+    controlled_elsewhere = (controlled_junctions != from_junctions) \
+                           & (controlled_junctions != to_junctions)
+    if np.any(controlled_elsewhere):
+        controllers_warn = index[controlled_elsewhere]
+        logger.warning("The pressure controllers %s control the pressure at junctions that they are"
+                       " not connected to. Please note that this can lead to errors in the pipeflow"
+                       " calculation that will not be displayed properly. Make sure that your grid "
+                       "configuration is valid." % controllers_warn)
 
     return index
 
