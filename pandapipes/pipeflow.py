@@ -72,8 +72,9 @@ def pipeflow(net, sol_vec=None, **kwargs):
     create_lookups(net)
     node_pit, branch_pit = initialize_pit(net)
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
-        raise UserWarning("There are no node and branch entries defined. This might mean that your"
-                          " net is empty")
+        logger.warning("There are no node and branch entries defined. This might mean that your net"
+                       " is empty")
+        return
     calculation_mode = get_net_option(net, "mode")
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
