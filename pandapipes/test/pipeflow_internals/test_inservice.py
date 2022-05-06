@@ -445,12 +445,11 @@ def test_mixed_indexing_oos2(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.xfail(reason="Pressure controllers not yet well integrated in connectivity check.")
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos3(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
     net.pipe.at[7, "in_service"] = False
-    oos_juncs = [9, 8, 7]
+    oos_juncs = [6, 15]
 
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
@@ -480,9 +479,25 @@ def test_mixed_indexing_oos4(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.xfail(reason="Pressure controllers not yet well integrated in connectivity check.")
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos5(create_mixed_indexing_grid, use_numba):
+    net = copy.deepcopy(create_mixed_indexing_grid)
+    net.pipe.at[6, "in_service"] = False
+    oos_juncs = [9, 8, 7]
+
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
+
+    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=True)
+    assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
+               for tbl, oos_func in all_tbls_funcs.items())
+    assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs)].isnull())
+               for tbl, oos_func in all_tbls_funcs.items())
+    assert check_mass_flows(net)
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
     net.valve.at[3, "opened"] = False
     oos_juncs = [14, 6, 15, 9, 8, 7]

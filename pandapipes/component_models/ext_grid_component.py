@@ -107,7 +107,7 @@ class ExtGrid(NodeElementComponent):
         branch_pit = net['_pit']['branch']
         node_pit = net["_pit"]["node"]
 
-        p_grids = np.isin(ext_grids.type.values, ["p", "pt"])
+        p_grids = np.isin(ext_grids.type.values, ["p", "pt"]) & ext_grids.in_service.values
         junction = cls.get_connected_junction(net)
         eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
             np.array(junction.values[p_grids])]
