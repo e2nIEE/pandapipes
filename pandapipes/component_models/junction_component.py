@@ -163,7 +163,7 @@ class Junction(NodeComponent):
                 rho_fluid = get_fluid(net, fluid).get_density(junction_pit[:, net['_idx_node']['TINIT']]) / normfactor
 
                 res_table["rho_kg_per_m3_%s" % fluid].values[junctions_active] = rho_fluid
-                res_table["w_%s" % fluid].values[junctions_active] = junction_pit[:, w[i]]
+                res_table["w_%s" % fluid].values[junctions_active] = np.round(junction_pit[:, w[i]], 6)
 
     @classmethod
     def get_component_input(cls):
