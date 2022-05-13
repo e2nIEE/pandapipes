@@ -9,7 +9,8 @@ import pytest
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 
 
-def test_set_user_pf_options(create_test_net):
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_set_user_pf_options(create_test_net, use_numba):
     """
 
     :param create_test_net:
@@ -20,7 +21,7 @@ def test_set_user_pf_options(create_test_net):
     net = copy.deepcopy(create_test_net)
     pandapipes.create_fluid_from_lib(net, "lgas")
 
-    necessary_options = {'mode': 'hydraulics'}
+    necessary_options = {'mode': 'hydraulics', 'use_numba': use_numba}
     pandapipes.pipeflow(net, **necessary_options)
 
     old_options = net._options.copy()

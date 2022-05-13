@@ -469,8 +469,9 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
     active_node_lookup = node_pit[:, ACTIVE_ND].astype(bool)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
-                          & active_node_lookup)[0]
+    hyd_slacks = np.where((node_pit[:, NODE_TYPE] == P) & active_node_lookup)[0]
+    # hyd_slacks = np.where(((node_pit[:, NODE_TYPE] == P) | (node_pit[:, NODE_TYPE] == PC))
+    #                       & active_node_lookup)[0]
 
     nodes_connected, branches_connected = perform_connectivity_search(
         net, node_pit, hyd_slacks, from_nodes, to_nodes, active_node_lookup, active_branch_lookup,

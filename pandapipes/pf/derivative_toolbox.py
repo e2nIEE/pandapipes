@@ -8,7 +8,7 @@ from numpy import linalg
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, TINIT, \
-    VINIT, FROM_NODE, TO_NODE
+    VINIT
 from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE
 
 
