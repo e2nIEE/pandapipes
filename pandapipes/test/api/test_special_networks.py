@@ -544,7 +544,7 @@ def test_multiple_fluids_sink_source():
     pp.create_source(net, j3, 0.02, 'fluid2')
     pp.pipeflow(net, iter=100)
     print(net._internal_results)
-    assert net.res_junction.w_fluid1.values == []
+    assert all(net.res_junction.w_fluid1.values == [1., 0.666667, 0.4])
 
 
 def test_schutterwald_hydrogen():
