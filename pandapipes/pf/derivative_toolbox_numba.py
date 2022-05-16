@@ -30,7 +30,7 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
         v_init_abs = np.abs(branch_pit[i][VINIT])
         v_init2 = v_init_abs * branch_pit[i][VINIT]
         lambda_term = np.divide(branch_pit[i][LENGTH] * branch_pit[i][LAMBDA], branch_pit[i][D]) \
-                      + branch_pit[i][LC]
+            + branch_pit[i][LC]
         const_p_term = np.divide(branch_pit[i][RHO], P_CONVERSION * 2)
         df_dv[i] = const_p_term * (2 * v_init_abs * lambda_term + der_lambda[i]
                                    * np.divide(branch_pit[i][LENGTH], branch_pit[i][D]) * v_init2)

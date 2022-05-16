@@ -60,7 +60,7 @@ class pandapipesNet(ADict):
         if "component_list" in self:
             r += "\nand uses the following component models:"
             for component in self.component_list:
-                r += "\n   - %s" %component.__name__
+                r += "\n   - %s" % component.__name__
         return r
 
 
@@ -87,4 +87,5 @@ def add_default_components(net, overwrite=False):
                        ('level', dtype(object)),
                        ('initial_run', "bool"),
                        ("recycle", "bool")]
-        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes), index=Index([], dtype=np.int64))
+        net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes),
+                                         index=Index([], dtype=np.int64))

@@ -4,19 +4,19 @@
 
 import numpy as np
 from numpy import linalg
+from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.component_models.junction_component import Junction
-from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
-from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
 from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
+from pandapipes.pf.build_system_matrix import build_system_matrix
+from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
-    init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
+    init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
+    initialize_pit, check_connectivity, reduce_pit, \
     set_user_pf_options, init_all_result_tables
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
-from pandapower.auxiliary import ppException
 
 try:
     import pplog as logging
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 def set_logger_level_pipeflow(level):
     """
     Set logger level from outside to reduce/extend pipeflow() printout.
-    :param level: levels according to 'logging' (i. e. DEBUG, INFO, WARNING, ERROR and CRITICAL)
+    :param level: levels according to 'logging' (i.e. DEBUG, INFO, WARNING, ERROR and CRITICAL)
     :type level: str
     :return: No output
 
