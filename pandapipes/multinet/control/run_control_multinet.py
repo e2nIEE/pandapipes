@@ -228,8 +228,7 @@ def prepare_run_ctrl(multinet, ctrl_variables, **kwargs):
             net_names = c.object.get_all_net_names()
             for net_name in net_names:
                 if net_name not in ctrl_variables.keys():
-                    ctrl_variables[net_name] = {'run': None, 'initial_run': None,
-                                                'continue_on_divergence': None, 'errors': ()}
+                    ctrl_variables[net_name] = {}
                 net = multinet['nets'][net_name]
                 if isinstance(net, ppipes.pandapipesNet):
                     ctrl_variables_net = prepare_run_ctrl_ppipes(net, None, **kwargs)
@@ -238,16 +237,13 @@ def prepare_run_ctrl(multinet, ctrl_variables, **kwargs):
                 else:
                     raise ValueError('the given nets are neither pandapipes nor pandapower nets')
 
-                ctrl_variables[net_name]['run'] = ctrl_variables_net['run']
-                ctrl_variables[net_name]['errors'] = ctrl_variables_net['errors']
-                ctrl_variables[net_name]['initial_run'] = ctrl_variables[net_name]['initial_run'] if \
-                    ctrl_variables[net_name]['initial_run'] is not None else ctrl_variables_net['initial_run']
+                ctrl_variables[net_name]['run'] = ctrl_variables[net_name].get("run", ctrl_variables_net['run'])
+                ctrl_variables[net_name]['errors'] = ctrl_variables[net_name].get("errors", ctrl_variables_net['errors'])
+                ctrl_variables[net_name]['initial_run'] = ctrl_variables[net_name].get('initial_run', ctrl_variables_net['initial_run'])
                 ctrl_variables[net_name]['only_v_results'], ctrl_variables[net_name]['recycle'] = \
                     get_recycle(ctrl_variables_net)
                 ctrl_variables[net_name]['continue_on_divergence'] = \
-                    ctrl_variables[net_name]['continue_on_divergence'] if \
-                    ctrl_variables[net_name]['continue_on_divergence'] is not None else \
-                    ctrl_variables_net['continue_on_divergence']
+                    ctrl_variables[net_name].get('continue_on_divergence', ctrl_variables_net['continue_on_divergence'])
                 excl_net += [net_name]
 
     for net_name in multinet['nets'].keys():
