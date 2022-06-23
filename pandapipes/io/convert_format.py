@@ -5,10 +5,10 @@
 from packaging import version
 
 from pandapipes import __version__
-from pandapipes.pandapipes_net import add_default_components
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.abstract_models.node_models import NodeComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
+from pandapipes.component_models.abstract_models.node_models import NodeComponent
+from pandapipes.pandapipes_net import add_default_components
 
 try:
     from pandaplan.core import ppglog as logging
@@ -28,7 +28,7 @@ def convert_format(net):
     # https://github.com/e2nIEE/pandapipes/issues/320
     if isinstance(net.version, str) and version.parse(net.version) >= current_version:
         return net
-    if version.parse(net.version) <= version.parse('0.5.0'):
+    if version.parse(net.version) <= version.parse('0.6.1.dev_1'):
         _fluid_dictonary(net)
     if 'component_list' in net:
         _change_component_list(net)
@@ -37,6 +37,7 @@ def convert_format(net):
     _rename_attributes(net)
     net.version = __version__
     return net
+
 
 def _change_component_list(net):
     for component in net['component_list']:
@@ -48,7 +49,6 @@ def _change_component_list(net):
             net['node_list'] += [component]
 
 
-
 def _fluid_dictonary(net):
     fluid = net.fluid
     net.fluid = {}
@@ -58,6 +58,7 @@ def _fluid_dictonary(net):
         net.source.insert(3, 'fluid', fluid.name)
     if 'heat_exchanger' in net:
         net.heat_exchanger.insert(5, 'fluid', fluid.name)
+
 
 def _rename_columns(net):
     if "controller" in net:
