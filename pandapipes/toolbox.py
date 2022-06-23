@@ -101,19 +101,27 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :rtype: set
     """
     special_elements_junctions = [("press_control", "controlled_junction")]
+    move_elements = {"n2b": ["circ_pump_mass", "circ_pump_pressure"], "b2n": []}
     node_elements = []
-    if net is not None and include_node_elements:
-        node_elements = [comp.table_name() for comp in net.component_list
-                         if issubclass(comp, NodeElementComponent)]
-    elif include_node_elements:
-        node_elements = ["sink", "source", "ext_grid"]
     branch_elements = []
-    if net is not None and include_branch_elements:
-        branch_elements = [comp.table_name() for comp in net.component_list
-                           if issubclass(comp, BranchComponent)]
-    elif include_branch_elements:
-        branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                           "heat_exchanger", "press_control"]
+    if net is not None:
+        all_tables = {comp.table_name(): comp for comp in net.component_list}
+        if include_node_elements:
+            node_elements = [tbl for tbl, comp in all_tables.items()
+                             if issubclass(comp, NodeElementComponent)
+                             and tbl not in move_elements["n2b"]]
+            node_elements += [me for me in move_elements["b2n"] if me in all_tables.keys()]
+        if include_branch_elements:
+            branch_elements = [comp.table_name() for comp in net.component_list
+                               if issubclass(comp, BranchComponent)
+                               and comp.table_name() not in move_elements["b2n"]]
+            branch_elements += [me for me in move_elements["n2b"] if me in all_tables.keys()]
+    else:
+        if include_node_elements:
+            node_elements = ["sink", "source", "ext_grid"]
+        if include_branch_elements:
+            branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
+                               "heat_exchanger", "press_control"]
     ejts = set()
     if include_node_elements:
         for elm in node_elements:
@@ -338,7 +346,7 @@ def fuse_junctions(net, j1, j2, drop=True):
 
 
 def select_subnet(net, junctions, include_results=False, keep_everything_else=False,
-                  remove_internals=True):
+                  remove_internals=True, remove_unused_components=False):
     """
     Selects a subnet by a list of junction indices and returns a net with all components connected
     to them.
@@ -387,7 +395,19 @@ def select_subnet(net, junctions, include_results=False, keep_everything_else=Fa
         p2["pipe_geodata"] = net.pipe_geodata.loc[p2.pipe.index.intersection(
             net.pipe_geodata.index)]
 
+    if remove_unused_components:
+        remove_empty_components(p2)
+
     return pandapipesNet(p2)
+
+
+def remove_empty_components(net):
+    removed = set()
+    for comp in net.component_list:
+        if net[comp.table_name()].empty:
+            del net[comp.table_name()]
+            removed.add(comp)
+    net.component_list = [c for c in net.component_list if c not in removed]
 
 
 def drop_junctions(net, junctions, drop_elements=True):
