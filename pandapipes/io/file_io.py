@@ -157,8 +157,8 @@ def from_json_string(json_string, convert=False, encryption_key=None):
         convert_format(net)
     elif convert and isinstance(net, MultiNet):
         for n in net['nets']:
-            if isinstance(n, pandapipesNet):
+            if isinstance(net['nets'][n], pandapipesNet):
                 convert_format(net)
-            elif isinstance(n, pandapowerNet):
+            elif isinstance(net['nets'][n], pandapowerNet):
                 convert_format_pandapower(net)
     return net
