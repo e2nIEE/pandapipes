@@ -13,7 +13,6 @@ def prepare_grid():
     net = pp.from_json(r'tutorials/files/sw_gas.json')
     pp.create_fluid_from_lib(net, 'hgas')
     net.ext_grid.fluid = 'hgas'
-    # pp.create_sinks(net, net.junction.index.values, 1e-5)
 
     j1128 = pp.create_junction(net, 0.1, 283.15)
 
