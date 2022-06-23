@@ -77,7 +77,6 @@ def test_collection_lengths():
     assert len(pc_coll_lines.get_paths()) == 4 * len(net.press_control)
 
 
-
 def test_collections2(base_net_is_with_pumps):
     net = copy.deepcopy(base_net_is_with_pumps)
 

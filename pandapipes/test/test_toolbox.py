@@ -103,8 +103,8 @@ def base_net_is_wo_pumps():
 
 
 @pytest.fixture
-def base_net_is_with_pumps(base_net_is_wo_pumps):
-    net = copy.deepcopy(base_net_is_wo_pumps)
+def base_net_is_with_pumps():
+    net = create_base_net(False)
     add_pumps(net)
     return net
 
@@ -115,8 +115,8 @@ def base_net_oos_wo_pumps():
 
 
 @pytest.fixture
-def base_net_oos_with_pumps(base_net_oos_wo_pumps):
-    net = copy.deepcopy(base_net_oos_wo_pumps)
+def base_net_oos_with_pumps():
+    net = create_base_net(True)
     add_pumps(net)
     return net
 
