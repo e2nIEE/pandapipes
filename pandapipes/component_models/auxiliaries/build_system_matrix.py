@@ -72,7 +72,7 @@ def build_system_matrix(net, branch_pit, node_pit, node_element_pit, heat_mode, 
     vfn = branch_pit[:, net['_idx_branch']['V_FROM_NODE']].astype(int)
     vtn = branch_pit[:, net['_idx_branch']['V_TO_NODE']].astype(int)
 
-    node_pit[:, net['_idx_node']['LOAD']][node_pit[:, net['_idx_node']['LOAD']]==0] += 10**-20
+    node_pit[:, net['_idx_node']['LOAD']][node_pit[:, net['_idx_node']['LOAD']]==0] += 10**-12
 
     if len_fluid and not first_iter:
         # get nodes the fluid is moving from and to (ignoring the from_nodes and to_nodes convention)
