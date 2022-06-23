@@ -187,7 +187,8 @@ def hydraulics(net):
         logger.debug("alpha: %s" % get_net_option(net, "alpha"))
         niter += 1
     write_internal_results(net, iterations=niter, error_p=error_p[niter - 1],
-                           error_v=error_v[niter - 1], residual_norm=residual_norm)
+                           error_v=error_v[niter - 1], error_m=error_m[niter - 1], error_w=error_w[niter - 1],
+                           residual_norm=residual_norm)
 
     logger.debug(
         "---------------------------------------------------------------------------------")
