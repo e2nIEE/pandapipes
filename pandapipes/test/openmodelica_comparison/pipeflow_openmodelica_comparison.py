@@ -2,13 +2,14 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-import pandapipes as pp
-import pandas as pd
 import statistics as st
-from pandapipes.plotting import simple_plot
+
+import numpy as np
+import pandas as pd
+
+import pandapipes as pp
+from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.component_models import Pipe
 
 try:
     import pplog as logging
@@ -19,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='colebrook',
-                                     mode='hydraulics', only_update_hydraulic_matrix=False):
+                                     mode='hydraulics', only_update_hydraulic_matrix=False,
+                                     use_numba=True):
     """
         Comparison of the calculations of OpenModelica and pandapipes.
 
@@ -33,11 +35,14 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
         :type mode: str, "nomral"
         :param only_update_hydraulic_matrix:
         :type only_update_hydraulic_matrix: bool, False
+        :param use_numba: whether to use numba for pipeflow calculations
+        :type use_numba: bool, True
         :return: p_diff, v_diff_abs
         :rtype: one-dimensional ndarray with axis labels
     """
-    pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
-                mode=mode, only_update_hydraulic_matrix=only_update_hydraulic_matrix)
+    pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7,
+                friction_model=friction_model, mode=mode, use_numba=use_numba,
+                only_update_hydraulic_matrix=only_update_hydraulic_matrix)
 
     logger.debug(net.res_junction)
     logger.debug(net.res_pipe)
