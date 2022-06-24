@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+import logging
 try:
     from numba import jit
     from numba import int32, float64, int64
@@ -15,6 +16,9 @@ except ImportError:
     from numpy import int32, float64, int64, int as Integer
     from builtins import tuple as Tuple
     numba_installed = False
+
+
+logger = logging.getLogger(__name__)
 
 
 def _sum_by_group_sorted(indices, *values):
@@ -91,10 +95,13 @@ def _sum_by_group(use_numba, indices, *values):
     """
     if not use_numba:
         return _sum_by_group_np(indices, *values)
-    # idea: shift this into numba function and raise ValueError if condition not accepted,
-    # has not yet worked...
+    elif not numba_installed:
+        logger.info("The numba import did not work out, it will not be used.")
+        return _sum_by_group_np(indices, *values)
     if len(indices) == 0:
         return tuple([indices] + list(values))
+    # idea: shift this into numba function and raise ValueError if condition not accepted,
+    # has not yet worked...
     ind_dt = indices.dtype
     indices = indices.astype(np.int32)
     max_ind = max_nb(indices)

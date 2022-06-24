@@ -44,7 +44,7 @@ class Compressor(Pump):
         compressor_pit[:, PRESSURE_RATIO] = net[cls.table_name()].pressure_ratio.values
 
     @classmethod
-    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         # calculation of pressure lift
         f, t = idx_lookups[cls.table_name()]
         compressor_pit = branch_pit[f:t, :]

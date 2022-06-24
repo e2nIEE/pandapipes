@@ -89,7 +89,7 @@ def _compare_results(ow):
     res_ext_grid = res_ext_grid[~np.isclose(res_ext_grid, 0)]
     test_res_ext_grid = test_res_ext_grid.values[~np.isclose(test_res_ext_grid.values, 0)]
     diff = 1 - res_ext_grid.round(9) / test_res_ext_grid.round(9)
-    check = diff < 0.00025
+    check = diff < 0.0001
     assert (np.all(check))
     test_res_junction = pd.read_csv(os.path.join(
         pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_junction',
@@ -107,7 +107,7 @@ def _compare_results(ow):
     res_pipe = res_pipe[~np.isclose(res_pipe, 0)]
     test_res_pipe = test_res_pipe.values[~np.isclose(test_res_pipe.values, 0)]
     diff = 1 - res_pipe.round(9) / test_res_pipe.round(9)
-    check = diff < 0.002
+    check = diff < 0.0001
     assert (np.all(check))
     test_res_sink = pd.read_csv(os.path.join(
         pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_sink',
