@@ -260,5 +260,15 @@ def test_select_subnet(base_net_is_wo_pumps):
     assert len(net.junction) == len(net2.junction) + 3
 
 
+def runpp_with_mark(net, **kwargs):
+    pandapower.runpp(net, **kwargs)
+    net['mark'] = "runpp"
+
+
+def pipeflow_with_mark(net, **kwargs):
+    pandapipes.pipeflow(net, **kwargs)
+    net['mark'] = "pipeflow"
+
+
 if __name__ == '__main__':
     n = pytest.main(["test_toolbox.py"])
