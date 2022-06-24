@@ -16,6 +16,8 @@ from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_
 from pandapower import networks as e_nw
 from pandapower.control.controller.const_control import ConstControl
 
+from pandapipes.test import runpp_with_mark, pipeflow_with_mark
+
 
 @pytest.fixture
 def get_gas_example():
@@ -375,6 +377,32 @@ def test_run_control_wo_controller(get_gas_example, get_power_example_simple):
 
     run_control(mn)
 
+
+def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
+    """ coupling of a single element in the power and gas net each with one MulitEnergyController"""
+    # get the nets
+    fluid = {"name": "hgas", "cal_value": 14.62197}
+    net_gas = copy.deepcopy(get_gas_example)
+    net_power = copy.deepcopy(get_power_example_simple)
+    assert fluid["name"] == pandapipes.get_fluid(net_gas).name
+
+    # set up multinet
+    mn = create_empty_multinet("test_p2g")
+    add_nets_to_multinet(mn, power=net_power, gas=net_gas)
+
+    # add components to represent P2G unit
+    p_p2g_el = 50
+    p2g_id_el = pandapower.create_load(net_power, 6, p_mw=p_p2g_el, name="power to gas consumption")
+    p2g_id_gas = pandapipes.create_source(net_gas, 1, 0, name="power to gas feed in")
+
+    # add coupling controller
+    eta = 0.5
+    P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
+
+    run_control(mn, ctrl_variables={"power": {"run": runpp_with_mark}, "gas": {"run": pipeflow_with_mark}})
+
+    assert net_power["mark"] == "runpp"
+    assert net_gas["mark"] == "pipeflow"
 
 
 if __name__ == '__main__':

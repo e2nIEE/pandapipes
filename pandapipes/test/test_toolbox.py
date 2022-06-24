@@ -5,6 +5,7 @@
 import copy
 
 import numpy as np
+import pandapower
 import pandas as pd
 import pytest
 
@@ -207,6 +208,16 @@ def test_create_continuous_index(create_net_changed_indices):
     pandapipes.create_continuous_elements_index(net)
     for comp in previous_junctions.keys():
         assert np.all(net[comp].index == np.arange(len(net[comp])))
+
+
+def runpp_with_mark(net, **kwargs):
+    pandapower.runpp(net, **kwargs)
+    net['mark'] = "runpp"
+
+
+def pipeflow_with_mark(net, **kwargs):
+    pandapipes.pipeflow(net, **kwargs)
+    net['mark'] = "pipeflow"
 
 
 if __name__ == '__main__':
