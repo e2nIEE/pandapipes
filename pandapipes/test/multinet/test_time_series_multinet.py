@@ -122,7 +122,7 @@ def test_time_series_p2g_control_run_parameter(get_gas_example, get_power_exampl
                      ('res_sgen', 'p_mw')]
 
     ow_power = OutputWriter(net_power, range(10), log_variables=log_variables)
-    run_timeseries(mn, range(10), run={"power": runpp_with_mark, "gas": pipeflow_with_mark})
+    run_timeseries(mn, range(1), run={"power": runpp_with_mark, "gas": pipeflow_with_mark})
 
     assert net_power.mark == "runpp"
     assert net_gas.mark == "pipeflow"
