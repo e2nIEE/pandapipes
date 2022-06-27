@@ -3,8 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ACTIVE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
     CP, ELEMENT_IDX
@@ -201,7 +203,10 @@ class BranchWInternalsComponent(BranchComponent):
         branch_w_internals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
             to_nodes, TINIT_NODE]) / 2
         fluid = get_fluid(net)
-        branch_w_internals_pit[:, RHO] = fluid.get_density(branch_w_internals_pit[:, TINIT])
+        if fluid.is_gas:
+            branch_w_internals_pit[:, RHO] = fluid.get_density(NORMAL_TEMPERATURE)
+        else:
+            branch_w_internals_pit[:, RHO] = fluid.get_density(branch_w_internals_pit[:, TINIT])
         branch_w_internals_pit[:, ETA] = fluid.get_viscosity(branch_w_internals_pit[:, TINIT])
         branch_w_internals_pit[:, CP] = fluid.get_heat_capacity(branch_w_internals_pit[:, TINIT])
 

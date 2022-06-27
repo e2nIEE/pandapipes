@@ -83,7 +83,6 @@ class Junction(NodeComponent):
         junction_pit[:, HEIGHT] = junctions.height_m.values
         junction_pit[:, PINIT] = junctions.pn_bar.values
         junction_pit[:, TINIT] = junctions.tfluid_k.values
-        junction_pit[:, RHO] = get_fluid(net).get_density(junction_pit[:, TINIT])
         junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
         junction_pit[:, ACTIVE_ND] = junctions.in_service.values
 

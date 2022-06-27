@@ -327,7 +327,10 @@ class FluidPropertyConstant(FluidProperty):
             if self.warn_dependent_variables:
                 logger.warning('Constant property received several input variables, although it is'
                                'independent of these')
-            output = np.array([self.value]) * np.ones(len(args[0]))
+            if not hasattr(args[0], "__len__"):
+                output = np.array([self.value])
+            else:
+                output = np.array([self.value]) * np.ones(len(args[0]))
         else:
             output = np.array([self.value])
         return output
