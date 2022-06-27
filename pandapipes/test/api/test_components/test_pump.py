@@ -2,15 +2,18 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import pandapipes
 import os
-import pytest
+
 import numpy as np
 import pandas as pd
+import pytest
+
+import pandapipes
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
-def test_pump_from_measurement_parameteres():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pump_from_measurement_parameteres(use_numba):
     """
         :return:
         :rtype:
@@ -34,8 +37,7 @@ def test_pump_from_measurement_parameteres():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_pump.csv"), sep=';')
 
@@ -49,7 +51,8 @@ def test_pump_from_measurement_parameteres():
     assert np.all(v_diff < 0.01)
 
 
-def test_pump_from_regression_parameteres():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pump_from_regression_parameteres(use_numba):
     """
 
         :return:
@@ -76,8 +79,7 @@ def test_pump_from_regression_parameteres():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_pump.csv"), sep=';')
 
@@ -91,7 +93,8 @@ def test_pump_from_regression_parameteres():
     assert np.all(v_diff < 0.01)
 
 
-def test_pump_from_std_type():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pump_from_std_type(use_numba):
     """
 
         :return:
@@ -114,8 +117,7 @@ def test_pump_from_std_type():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_pump.csv"), sep=';')
 
@@ -128,7 +130,9 @@ def test_pump_from_std_type():
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)
 
-def test_pump_bypass_on_reverse_flow():
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pump_bypass_on_reverse_flow(use_numba):
     """
     reverse flow = no pressure lift
         :return:
@@ -151,12 +155,14 @@ def test_pump_bypass_on_reverse_flow():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4)
+                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
 
     assert net.res_pump.deltap_bar.isin([0]).all()
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
 
-def test_pump_bypass_high_vdot():
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pump_bypass_high_vdot(use_numba):
     """
     High flow: pressure lift not <0, always >=0
         :return:
@@ -179,7 +185,7 @@ def test_pump_bypass_high_vdot():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=30, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4)
+                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
 
     assert net.res_pump.deltap_bar.isin([0]).all()
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])

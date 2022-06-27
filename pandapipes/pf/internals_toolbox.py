@@ -3,6 +3,16 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+import logging
+try:
+    from numba import jit
+    numba_installed = True
+except ImportError:
+    from pandapower.pf.no_numba import jit
+    numba_installed = False
+
+
+logger = logging.getLogger(__name__)
 
 
 def _sum_by_group_sorted(indices, *values):
@@ -27,13 +37,22 @@ def _sum_by_group_sorted(indices, *values):
     for i, _ in enumerate(val):
         # sum up values, chose only those with unique indices and then subtract the previous sums
         # --> this way for each index the sum of all values belonging to this index is returned
-        np.cumsum(val[i], out=val[i])
-        val[i] = val[i][index]
-        val[i][1:] = val[i][1:] - val[i][:-1]
+        nans = np.isnan(val[i])
+        if np.any(nans):
+            np.nan_to_num(val[i], copy=False)
+            np.cumsum(val[i], out=val[i])
+            val[i] = val[i][index]
+            still_na = nans[index]
+            val[i][1:] = val[i][1:] - val[i][:-1]
+            val[i][still_na] = np.NaN
+        else:
+            np.cumsum(val[i], out=val[i])
+            val[i] = val[i][index]
+            val[i][1:] = val[i][1:] - val[i][:-1]
     return [indices] + val
 
 
-def _sum_by_group(indices, *values):
+def _sum_by_group_np(indices, *values):
     """
     Auxiliary function to sum up values by some given indices (both as numpy arrays).
 
@@ -53,6 +72,41 @@ def _sum_by_group(indices, *values):
         val[i] = val[i][order]
 
     return _sum_by_group_sorted(indices, *val)
+
+
+def _sum_by_group(use_numba, indices, *values):
+    """
+    Auxiliary function to sum up values by some given indices (both as numpy arrays).
+
+    :param use_numba:
+    :type use_numba:
+    :param indices:
+    :type indices:
+    :param values:
+    :type values:
+    :return:
+    :rtype:
+    """
+    if not use_numba:
+        return _sum_by_group_np(indices, *values)
+    elif not numba_installed:
+        logger.info("The numba import did not work out, it will not be used.")
+        return _sum_by_group_np(indices, *values)
+    if len(indices) == 0:
+        return tuple([indices] + list(values))
+    # idea: shift this into numba function and raise ValueError if condition not accepted,
+    # has not yet worked...
+    ind_dt = indices.dtype
+    indices = indices.astype(np.int32)
+    max_ind = max_nb(indices)
+    if max_ind < 1e5 and max_ind < 10 * len(indices):
+        dtypes = [v.dtype for v in values]
+        val_arr = np.array(list(values), dtype=np.float64).transpose()
+        new_ind, new_arr = _sum_values_by_index(indices, val_arr, max_ind, len(indices),
+                                                len(values))
+        return tuple([new_ind.astype(ind_dt)]
+                     + [new_arr[:, i].astype(dtypes[i]) for i in range(len(values))])
+    return _sum_by_group_np(indices, *values)
 
 
 def select_from_pit(table_index_array, input_array, data):
@@ -81,3 +135,22 @@ def select_from_pit(table_index_array, input_array, data):
     indices = sorter[np.searchsorted(table_index_array, input_array, sorter=sorter)]
 
     return data[indices]
+
+
+@jit(nopython=True)
+def _sum_values_by_index(indices, value_arr, max_ind, le, n_vals):
+    ind1 = indices + 1
+    new_indices = np.zeros(max_ind + 2, dtype=np.int32)
+    summed_values = np.zeros((max_ind + 2, n_vals), dtype=np.float64)
+    for i in range(le):
+        new_indices[int(ind1[i])] = ind1[i]
+        for j in range(n_vals):
+            summed_values[int(ind1[i]), j] += value_arr[i, j]
+    summed_values = summed_values[new_indices > 0]
+    new_indices = new_indices[new_indices > 0] - 1
+    return new_indices, summed_values
+
+
+@jit(nopython=True)
+def max_nb(arr):
+    return np.max(arr)

@@ -18,6 +18,10 @@ class NodeComponent(Component):
     """
 
     @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
                             current_table, internal_nodes_lookup):
         """
@@ -42,15 +46,25 @@ class NodeComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
 
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         raise NotImplementedError

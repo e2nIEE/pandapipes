@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapower.control import ConstControl
-from pandapipes import get_fluid
+from pandapipes.properties.fluids import get_fluid
 from pandapower.control.basic_controller import Controller
 from pandas.errors import InvalidIndexError
 

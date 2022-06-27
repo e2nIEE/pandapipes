@@ -1,15 +1,18 @@
 # Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+import os
+
+import numpy as np
+import pandas as pd
+import pytest
 
 import pandapipes
-import os
-import pandas as pd
-import numpy as np
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
-def test_valve():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_valve(use_numba):
     """
 
         :return:
@@ -46,8 +49,7 @@ def test_valve():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_p=1e-8, tol_v=1e-8, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_valve.csv"), sep=';')
     data_p = data['p'].dropna(inplace=False)
@@ -55,14 +57,14 @@ def test_valve():
 
     res_junction = net.res_junction.p_bar.values
     res_pipe = net.res_pipe.v_mean_m_per_s.values
-    zeros = res_pipe == 0
-    test_zeros = data_v.values == 0
+    zeros = np.isclose(res_pipe, 0, atol=1e-12)
+    test_zeros = np.isclose(data_v.values, 0, atol=1e-12)
     check_zeros = zeros == test_zeros
 
     assert np.all(check_zeros)
 
     p_diff = np.abs(1 - res_junction / data_p[data_p != 0].values)
-    v_diff = np.abs(1 - res_pipe[res_pipe != 0] / data_v[data_v != 0].values)
+    v_diff = np.abs(1 - res_pipe[~zeros] / data_v[~test_zeros].values)
 
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)
