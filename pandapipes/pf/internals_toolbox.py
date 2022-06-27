@@ -3,18 +3,16 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+import logging
 try:
     from numba import jit
-    from numba import int32, float64, int64
-    from numba.core.types.scalars import Integer
-    from numba.core.types.containers import Tuple
-    from numba import typeof
     numba_installed = True
 except ImportError:
     from pandapower.pf.no_numba import jit
-    from numpy import int32, float64, int64, int as Integer
-    from builtins import tuple as Tuple
     numba_installed = False
+
+
+logger = logging.getLogger(__name__)
 
 
 def _sum_by_group_sorted(indices, *values):
@@ -91,10 +89,13 @@ def _sum_by_group(use_numba, indices, *values):
     """
     if not use_numba:
         return _sum_by_group_np(indices, *values)
-    # idea: shift this into numba function and raise ValueError if condition not accepted,
-    # has not yet worked...
+    elif not numba_installed:
+        logger.info("The numba import did not work out, it will not be used.")
+        return _sum_by_group_np(indices, *values)
     if len(indices) == 0:
         return tuple([indices] + list(values))
+    # idea: shift this into numba function and raise ValueError if condition not accepted,
+    # has not yet worked...
     ind_dt = indices.dtype
     indices = indices.astype(np.int32)
     max_ind = max_nb(indices)
@@ -136,7 +137,7 @@ def select_from_pit(table_index_array, input_array, data):
     return data[indices]
 
 
-@jit((int32[:], float64[:, :], int32, int64, int64), nopython=True)
+@jit(nopython=True)
 def _sum_values_by_index(indices, value_arr, max_ind, le, n_vals):
     ind1 = indices + 1
     new_indices = np.zeros(max_ind + 2, dtype=np.int32)
@@ -150,6 +151,6 @@ def _sum_values_by_index(indices, value_arr, max_ind, le, n_vals):
     return new_indices, summed_values
 
 
-@jit(int64(int32[:]), nopython=True)
+@jit(nopython=True)
 def max_nb(arr):
     return np.max(arr)

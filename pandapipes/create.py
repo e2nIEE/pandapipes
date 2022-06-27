@@ -575,7 +575,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
             type is selected.
     :type pressure_list: list, default None
     :param flowrate_list: This list contains the corresponding flowrate values to the given\
-            pressure values. Thus the length must be equal to the pressure list. Needs to be\
+            pressure values. Thus, the length must be equal to the pressure list. Needs to be\
             defined only if no pump of standard type is selected. ATTENTION: The flowrate values\
             are given in :math:`[\\frac{m^3}{h}]`.
     :type flowrate_list: list, default None
@@ -588,7 +588,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
             describes the dependency between pressure and flowrate.\
             ATTENTION: The determined parameteres must be retrieved by setting flowrate given\
             in :math:`[\\frac{m^3}{h}]` and pressure given in bar in context. The first entry in\
-            the list (c[0]) is for the polynom of highest degree (c[0]*x**n), the last one for
+            the list (c[0]) is for the polynom of the highest degree (c[0]*x**n), the last one for\
             c*x**0.
     :type poly_coefficents: list, default None
     :param name: A name tag for this pump
@@ -1392,7 +1392,7 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water",
+    Currently, existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water",
     "air".
 
     :param net: The net for which this fluid should be created

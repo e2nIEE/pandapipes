@@ -70,5 +70,5 @@ def test_pipe_velocity_results(use_numba):
     diff_from = v_1_sec_from - v_n_sec_from
     diff_to = v_1_sec_to - v_n_sec_to
 
-    assert np.all(np.abs(diff_from) < 1e-7)
-    assert np.all(np.abs(diff_to) < 1e-7)
+    assert np.all(np.abs(diff_from) < 1e-9)
+    assert np.all(np.abs(diff_to) < 1e-9)

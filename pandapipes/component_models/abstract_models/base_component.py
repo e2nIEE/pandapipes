@@ -73,11 +73,11 @@ class Component:
         raise NotImplementedError
 
     @classmethod
-    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
     @classmethod
-    def adaption_after_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
     @classmethod

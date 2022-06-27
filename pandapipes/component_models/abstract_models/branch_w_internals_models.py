@@ -169,10 +169,8 @@ class BranchWInternalsComponent(BranchComponent):
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_winternals_pit:
-        :type branch_winternals_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         branch_w_internals_pit, node_pit, from_nodes, to_nodes \
@@ -206,8 +204,6 @@ class BranchWInternalsComponent(BranchComponent):
         branch_w_internals_pit[:, RHO] = fluid.get_density(branch_w_internals_pit[:, TINIT])
         branch_w_internals_pit[:, ETA] = fluid.get_viscosity(branch_w_internals_pit[:, TINIT])
         branch_w_internals_pit[:, CP] = fluid.get_heat_capacity(branch_w_internals_pit[:, TINIT])
-        branch_w_internals_pit[:, ACTIVE] = \
-            np.repeat(net[cls.table_name()][cls.active_identifier()].values, internal_pipe_number)
 
         return branch_w_internals_pit, internal_pipe_number
 

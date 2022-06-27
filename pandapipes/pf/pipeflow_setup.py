@@ -300,6 +300,9 @@ def init_options(net, local_parameters):
         net["_options"]["reuse_internal_data"] = False
 
     if not numba_installed:
+        if net["_options"]["use_numba"]:
+            logger.info("numba is not installed. Install numba first before you set the 'use_numba'"
+                        " flag to True. The pipeflow will be performed without numba speedup.")
         net["_options"]["use_numba"] = False
 
 
