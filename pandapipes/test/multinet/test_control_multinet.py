@@ -83,6 +83,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
                (p_p2g_el * scaling_factor / (net_gas.fluid.get_property('hhv') * 3.6)) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
+
 def test_g2p_single(get_gas_example, get_power_example_simple):
     """ coupling of a single element in the power and gas net each with one MulitEnergyController"""
     # get the nets
@@ -134,7 +135,7 @@ def test_g2g_single(get_gas_example):
     net_gas1 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas1, fluid1["name"], overwrite=True)
 
-    fluid2 = {"name": "hydrogen", "cal_value": 38.38024}
+    fluid2 = {"name": "hydrogen", "cal_value": 39.41}
     net_gas2 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas2, fluid2["name"], overwrite=True)
 
@@ -223,6 +224,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
                        (p_p2g_el * scaling_factor/(net_gas.fluid.get_property('hhv')* 3.6)) * eta)
 
+
 def test_g2p_multiple(get_gas_example, get_power_example_simple):
     """ coupling of multiple elements with one MulitEnergyController"""
     # get the nets
@@ -280,7 +282,7 @@ def test_g2g_multiple(get_gas_example):
     net_gas1 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas1, fluid1["name"], overwrite=True)
 
-    fluid2 = {"name": "hydrogen", "cal_value": 38.38024}
+    fluid2 = {"name": "hydrogen", "cal_value": 39.41}
     net_gas2 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas2, fluid2["name"], overwrite=True)
 
