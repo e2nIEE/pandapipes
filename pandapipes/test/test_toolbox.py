@@ -227,7 +227,6 @@ def test_create_continuous_index(create_net_changed_indices):
 
 
 def test_select_subnet(base_net_is_wo_pumps):
-    # This network has switches of type 'l' and 't'
     net = copy.deepcopy(base_net_is_wo_pumps)
 
     # Do nothing
