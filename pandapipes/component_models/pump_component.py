@@ -12,6 +12,12 @@ from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSA
 from pandapipes.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.properties.fluids import is_fluid_gas, get_mixture_molar_mass, get_mixture_compressibility, get_fluid
 
+try:
+    import pandaplan.core.pplog as logging
+except ImportError:
+    import logging
+
+logger = logging.getLogger(__name__)
 
 class Pump(BranchWZeroLengthComponent):
     """
@@ -134,19 +140,34 @@ class Pump(BranchWZeroLengthComponent):
                 if len(net._fluid) == 1:
                     fluid = net._fluid[0]
                     compr = get_fluid(net, fluid).get_compressibility(p_from)
-                    molar_mass = get_fluid(net, fluid).get_molar_mass()  # [g/mol]
+                    try:
+                        molar_mass = get_fluid(net, fluid).get_molar_mass()  # [g/mol]
+                    except UserWarning:
+                        logger.error('Molar mass is missing in your fluid. Before you are able to retrieve '
+                                     'the compression power make sure that the molar mass is defined')
+                        molar_mass_given=False
+                    else:
+                        molar_mass_given=True
                 else:
                     w = get_lookup(net, 'node', 'w')
                     mass_fraction = node_pit[:, w]
                     compr = get_mixture_compressibility(net, p_from, mass_fraction)
-                    molar_mass = get_mixture_molar_mass(net, mass_fraction)
-                R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
-                # 'kappa' heat capacity ratio:
-                k = 1.4  # TODO: implement proper calculation of kappa
-                w_real_isentr = (k / (k - 1)) * R_spec * compr * t0 * \
-                                (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-                res_table['compr_power_mw'].values[placement_table] = \
-                    w_real_isentr * abs(mf_sum_int) / 10 ** 6
+                    try:
+                        molar_mass = get_mixture_molar_mass(net, mass_fraction)  # [g/mol]
+                    except UserWarning:
+                        logger.error('Molar mass is missing in your fluid. Before you are able to retrieve '
+                                     'the compression power make sure that the molar mass is defined')
+                        molar_mass_given=False
+                    else:
+                        molar_mass_given=True
+                if molar_mass_given:
+                    R_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
+                    # 'kappa' heat capacity ratio:
+                    k = 1.4  # TODO: implement proper calculation of kappa
+                    w_real_isentr = (k / (k - 1)) * R_spec * compr * t0 * \
+                                    (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
+                    res_table['compr_power_mw'].values[placement_table] = \
+                        w_real_isentr * abs(mf_sum_int) / 10 ** 6
             else:
                 res_table['compr_power_mw'].values[placement_table] = \
                     pump_pit[:, net['_idx_branch']['PL']] * P_CONVERSION * vf_sum_int / 10 ** 6
