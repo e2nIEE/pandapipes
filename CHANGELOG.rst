@@ -5,6 +5,7 @@ Change Log
 -------------------------------
 - [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
 - [FIXED] Bugfix to resolve problems with numpy indexing (especially with numpy.repeat) in some component models
+- [FIXED] HHV for H2 corrected
 - [CHANGED] timeseries progress bar now shown with tqdm as in pandapower
 
 [0.6.0] - 2022-02-07
