@@ -5,6 +5,7 @@
 import numpy as np
 from numpy import dtype
 
+from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pump_component import Pump
 
 
@@ -18,20 +19,21 @@ class Compressor(Pump):
         return "compressor"
 
     @classmethod
-    def create_pit_branch_entries(cls, net, compressor_pit, node_name):
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param compressor_pit: a part of the pit that includes only those columns relevant for
-                               compressors
-        :type compressor_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        compressor_pit = super(Pump, cls).create_pit_branch_entries(net, compressor_pit, node_name)
+        compressor_pit = super(Pump, cls).create_pit_branch_entries(net, branch_pit)
 
         compressor_pit[:, net['_idx_branch']['D']] = 0.1
         compressor_pit[:, net['_idx_branch']['AREA']] = compressor_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
@@ -39,27 +41,20 @@ class Compressor(Pump):
         compressor_pit[:, net['_idx_branch']['PRESSURE_RATIO']] = net[cls.table_name()].pressure_ratio.values
 
     @classmethod
-    def calculate_pressure_lift(cls, net, compressor_pit, node_pit):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         """ absolute inlet pressure multiplied by the compressor's boost ratio.
+        If the flow is reversed, the pressure lift is set to 0."""
 
-        If the flow is reversed, the pressure lift is set to 0.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param compressor_pit:
-        :type compressor_pit:
-        :param node_pit:
-        :type node_pit:
-        """
-        pressure_ratio = compressor_pit[:, net['_idx_branch']['PRESSURE_RATIO']]
+        f, t = idx_lookups[cls.table_name()]
+        compressor_pit = branch_pit[f:t, :]
 
         from_nodes = compressor_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
         p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
-        p_to_calc = p_from * pressure_ratio
+        p_to_calc = p_from * compressor_pit[:, PRESSURE_RATIO]
         pl_abs = p_to_calc - p_from
 
         v_mps = compressor_pit[:, net['_idx_branch']['VINIT']]
-        pl_abs *= (v_mps >= 0)  # force pressure lift = 0 for reverse flow
+        pl_abs[v_mps < 0] = 0  # force pressure lift = 0 for reverse flow
 
         compressor_pit[:, net['_idx_branch']['PL']] = pl_abs
 

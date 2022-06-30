@@ -5,7 +5,8 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import ConstFlow
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.component_models.abstract_models.const_flow_models import ConstFlow
 from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pipeflow_setup import get_lookup
 
@@ -22,6 +23,10 @@ class Source(ConstFlow):
     @classmethod
     def sign(cls):
         return -1
+
+    @classmethod
+    def node_element_relevant(cls, net):
+        return False
 
     @classmethod
     def node_element_relevant(cls, net):

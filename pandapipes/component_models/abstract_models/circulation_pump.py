@@ -2,8 +2,10 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import numpy as np
+
 from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 try:
     from pandaplan.core import pplog as logging
@@ -20,36 +22,40 @@ class CirculationPump(ExtGrid):
         return -1.
 
     @classmethod
-    def junction_name(cls):
-        return 'from_junction'
+    def get_connected_node_type(cls):
+        raise NotImplementedError
 
     @classmethod
     def create_pit_node_element_entries(cls, net, node_element_pit, node_name):
         super().create_pit_node_element_entries(net, node_element_pit, node_name)
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
+        res_table, circ_pump, index_nodes_from, node_pit, _ = \
+            super().extract_results(net, options, None, nodes_connected, branches_connected)
 
-        node_pit = net._active_pit['node']
-        node_lookup = get_lookup(net, "node", "index")[node_name]
+        index_juncts_to = circ_pump.to_junction.values
+        junct_uni_to = np.array(list(set(index_juncts_to)))
+        index_nodes_to = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()][junct_uni_to]
 
-        res_table, circ_pump = super().extract_results(net, options, node_name)
-
-        nodes_from = node_lookup[circ_pump.from_junction]
-        nodes_to = node_lookup[circ_pump.to_junction]
-
-        deltap_bar = node_pit[nodes_from, net['_idx_node']['PINIT']] - node_pit[nodes_to, net['_idx_node']['PINIT']]
+        deltap_bar = node_pit[index_nodes_from, net['_idx_node']['PINIT']] - \
+                     node_pit[index_nodes_to, net['_idx_node']['PINIT']]
         res_table["deltap_bar"].values[:] = deltap_bar
 
     @classmethod

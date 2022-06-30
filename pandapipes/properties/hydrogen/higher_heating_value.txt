@@ -1,2 +1,2 @@
-# higher heating value in kWh/kg (at nominal conditions)
-38.38024
+# higher heating value in kWh/kg (at nominal conditions). Source: gas supplier
+39.41

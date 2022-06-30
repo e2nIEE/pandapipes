@@ -79,7 +79,7 @@ class Fluid(JSONSerializableClass):
         :type warn_on_duplicates: bool
 
         :Example:
-            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061),
+            >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061),\
                                    overwrite=True, warn_on_duplicates=False)
 
         """
@@ -200,7 +200,7 @@ class FluidProperty(JSONSerializableClass):
         :param args:
         :type args:
         :return:
-        :rtype:
+        :rtype: float, np.array
         """
         raise NotImplementedError("Please implement a proper fluid property!")
 
@@ -252,14 +252,18 @@ class FluidPropertyInterExtra(FluidProperty):
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
         """
 
-        :param arg: one or more values of upper and lower limit values for which the function \
+        :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
-        :type arg: float or list-like objects
+        :type upper_limit_arg: float or list-like objects
+        :param lower_limit_arg: one or more values of lower limit values for which the function \
+            of the property should calculate the integral for
+        :type lower_limit_arg: float or list-like objects
         :return: integral between the limits
         :rtype: float, array
 
         :Example:
-            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
+                    t_upper_k, t_lower_k)
 
         """
         mean = (self.prop_getter(upper_limit_arg) + self.prop_getter(upper_limit_arg)) / 2
@@ -340,14 +344,18 @@ class FluidPropertyConstant(FluidProperty):
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
         """
 
-        :param arg: one or more values of upper and lower limit values for which the function \
+        :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
-        :type arg: float or list-like objects
+        :type upper_limit_arg: float or list-like objects
+        :param lower_limit_arg: one or more values of lower limit values for which the function \
+            of the property should calculate the integral for
+        :type lower_limit_arg: float or list-like objects
         :return: integral between the limits
         :rtype: float, array
 
         :Example:
-            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
+                    t_upper_k, t_lower_k)
 
         """
         if isinstance(upper_limit_arg, pd.Series):
@@ -368,8 +376,6 @@ class FluidPropertyConstant(FluidProperty):
 
         :param path:
         :type path:
-        :param method:
-        :type method:
         :return:
         :rtype:
         """
@@ -423,23 +429,29 @@ class FluidPropertyLinear(FluidProperty):
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
         """
 
-        :param arg: one or more values of upper and lower limit values for which the function \
+        :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
-        :type arg: float or list-like objects
+        :type upper_limit_arg: float or list-like objects
+        :param lower_limit_arg: one or more values of lower limit values for which the function \
+            of the property should calculate the integral for
+        :type lower_limit_arg: float or list-like objects
         :return: integral between the limits
         :rtype: float, array
 
         :Example:
-            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
+                    t_upper_k, t_lower_k)
 
         """
         if isinstance(upper_limit_arg, pd.Series):
-            ul = self.offset * upper_limit_arg.values + 0.5 * self.slope * np.power(upper_limit_arg.values, 2)
+            ul = self.offset * upper_limit_arg.values + 0.5 * self.slope * np.power(
+                upper_limit_arg.values, 2)
         else:
             ul = self.offset * np.array(upper_limit_arg) + 0.5 * self.slope * np.array(
                 np.power(upper_limit_arg.values, 2))
         if isinstance(lower_limit_arg, pd.Series):
-            ll = self.offset * lower_limit_arg.values + 0.5 * self.slope * np.power(lower_limit_arg.values, 2)
+            ll = self.offset * lower_limit_arg.values + 0.5 * self.slope * np.power(
+                lower_limit_arg.values, 2)
         else:
             ll = self.offset * np.array(lower_limit_arg) + 0.5 * self.slope * np.array(
                 np.power(lower_limit_arg.values, 2))
@@ -498,14 +510,18 @@ class FluidPropertyPolynominal(FluidProperty):
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
         """
 
-        :param arg: one or more values of upper and lower limit values for which the function \
+        :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
-        :type arg: float or list-like objects
+        :type upper_limit_arg: float or list-like objects
+        :param lower_limit_arg: one or more values of lower limit values for which the function \
+            of the property should calculate the integral for
+        :type lower_limit_arg: float or list-like objects
         :return: integral between the limits
         :rtype: float, array
 
         :Example:
-            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(t_upper_k, t_lower_k)
+            >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
+                    t_upper_k, t_lower_k)
 
         """
         return self.prop_int_getter(upper_limit_arg) - self.prop_int_getter(lower_limit_arg)
@@ -519,7 +535,7 @@ class FluidPropertyPolynominal(FluidProperty):
         :param path: Target path of the txt file
         :type path: str
         :param polynominal_degree: degree of the polynominal
-        :type method: float
+        :type polynominal_degree: int
         :return: Fluid object
         :rtype: pandapipes.FluidProperty
         """
@@ -692,11 +708,11 @@ def _add_fluid_to_net(net, fluid, overwrite=True):
     net["fluid"][fluid.name] = fluid
 
 
-def get_property(net, property_name, *at_values):
+def get_property(net, property_name, fluid_name=None, *at_values):
     if len(net._fluid) == 1:
         return get_fluid(net, net._fluid[0]).get_property(property_name, *at_values)
     else:
-        return 100
+        return net.fluid[fluid_name].get_property(property_name, *at_values)
 
 
 def get_mixture_molar_mass(net, mass_fraction):

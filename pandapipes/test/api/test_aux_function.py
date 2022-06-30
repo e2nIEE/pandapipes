@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pandapipes.internals_toolbox import select_from_pit
+from pandapipes.pf.internals_toolbox import select_from_pit
 
 
 def test_select_from_pit():

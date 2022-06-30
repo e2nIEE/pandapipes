@@ -4,7 +4,7 @@
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 
-from pandapipes.pipeflow_setup import add_table_lookup
+from pandapipes.pf.pipeflow_setup import add_table_lookup
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -38,15 +38,8 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
-        raise NotImplementedError
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
-        raise NotImplementedError
-
-    @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
+                              current_start):
         """
         Function which creates branch lookups.
 
@@ -71,20 +64,18 @@ class BranchWOInternalsComponent(BranchComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_wo_internals_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_wo_internals_pit:
-        :type branch_wo_internals_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
         branch_wo_internals_pit, node_pit, from_nodes, to_nodes \
-            = super().create_pit_branch_entries(net, branch_wo_internals_pit, node_name)
+            = super().create_pit_branch_entries(net, branch_pit)
         branch_wo_internals_pit[:, net['_idx_branch']['ELEMENT_IDX']] = net[cls.table_name()].index.values
         branch_wo_internals_pit[:, net['_idx_branch']['FROM_NODE']] = from_nodes
         branch_wo_internals_pit[:, net['_idx_branch']['TO_NODE']] = to_nodes
@@ -103,3 +94,15 @@ class BranchWOInternalsComponent(BranchComponent):
                 branch_wo_internals_pit[:, net['_idx_branch'][fluid + '_RHO']] = \
                     get_fluid(net, fluid).get_density(branch_wo_internals_pit[:, net['_idx_branch']['TINIT']])
         return branch_wo_internals_pit
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError

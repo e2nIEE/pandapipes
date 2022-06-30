@@ -80,7 +80,7 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
         if hasattr(run, "__name__") and run.__name__ == "runpp":
             # use faster runpp options if possible
             recycle_options = get_recycle_settings(net, **kwargs)
-        ts_variables[net_name]['run'] = run['net_name'] if run is not None else ts_variables[net_name]['run']
+        ts_variables[net_name]['run'] = run[net_name] if run is not None else ts_variables[net_name]['run']
         ts_variables[net_name]['recycle_options'] = recycle_options
         init_output_writer(net, time_steps)
         if logger.level != 10 and verbose:

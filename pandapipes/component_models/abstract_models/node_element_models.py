@@ -24,22 +24,19 @@ class NodeElementComponent(Component):
         return False
 
     @classmethod
-    def junction_name(cls):
-        return 'junction'
+    def table_name(cls):
+        raise NotImplementedError
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
-        """
-        Function that creates pit node entries.
+    def get_connected_node_type(cls):
+        raise NotImplementedError
 
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :param node_name:
-        :type node_name:
-        :return: No Output.
-        """
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
         raise NotImplementedError
 
     @classmethod
@@ -62,7 +59,20 @@ class NodeElementComponent(Component):
             return current_start, current_table
 
     @classmethod
-    def create_pit_node_element_entries(cls, net, node_element_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
+        """
+        Function that creates pit node entries.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param node_pit:
+        :type node_pit:
+        :return: No Output.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def create_pit_node_element_entries(cls, net, node_element_pit):
         if cls.node_element_relevant(net):
             ft_lookup = get_lookup(net, "node_element", "from_to")
             node_lookup = get_lookup(net, "node", "index")[node_name]
@@ -81,5 +91,9 @@ class NodeElementComponent(Component):
                 flp, nep = np.where(node_elements.fluid.values == net._fluid[:, np.newaxis])
                 node_element_pit[nep, w_lookup[flp]] = 1.
             return node_element_pit
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError
 
 

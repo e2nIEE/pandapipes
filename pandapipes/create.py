@@ -8,14 +8,13 @@ import pandas as pd
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
     Compressor
-from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
+from pandapipes.component_models.create_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, \
     load_std_type
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
-from pandapipes.toolbox import check_pressure_controllability
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
     _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
@@ -593,7 +592,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
             type is selected.
     :type pressure_list: list, default None
     :param flowrate_list: This list contains the corresponding flowrate values to the given\
-            pressure values. Thus the length must be equal to the pressure list. Needs to be\
+            pressure values. Thus, the length must be equal to the pressure list. Needs to be\
             defined only if no pump of standard type is selected. ATTENTION: The flowrate values\
             are given in :math:`[\\frac{m^3}{h}]`.
     :type flowrate_list: list, default None
@@ -606,7 +605,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
             describes the dependency between pressure and flowrate.\
             ATTENTION: The determined parameteres must be retrieved by setting flowrate given\
             in :math:`[\\frac{m^3}{h}]` and pressure given in bar in context. The first entry in\
-            the list (c[0]) is for the polynom of highest degree (c[0]*x**n), the last one for
+            the list (c[0]) is for the polynom of the highest degree (c[0]*x**n), the last one for\
             c*x**0.
     :type poly_coefficents: list, default None
     :param name: A name tag for this pump
@@ -830,6 +829,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
         >>> create_pressure_control(net, 0, 1, 1, controlled_p_bar=5)
 
     """
+    from pandapipes.toolbox import check_pressure_controllability
     if not check_pressure_controllability(net, to_junction, controlled_junction):
         return logger.error('The controlled junction of the created pressure control '
                             'is not controllable, as it is either not reachable or '
@@ -851,6 +851,12 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
                  control_active=bool(control_active), loss_coefficient=loss_coefficient,
                  controlled_p_bar=controlled_p_bar, in_service=bool(in_service), type=type,
                  **kwargs)
+
+    if controlled_junction != from_junction and controlled_junction != to_junction:
+        logger.warning("The pressure controller %d controls the pressure at a junction that it is "
+                       "not connected to. Please note that this can lead to errors in the pipeflow "
+                       "calculation that will not be displayed properly. Make sure that your grid "
+                       "configuration is valid." % index)
 
     return index
 
@@ -1276,6 +1282,15 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
                "in_service": in_service, "type": type}
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
+    controlled_elsewhere = (controlled_junctions != from_junctions) \
+        & (controlled_junctions != to_junctions)
+    if np.any(controlled_elsewhere):
+        controllers_warn = index[controlled_elsewhere]
+        logger.warning("The pressure controllers %s control the pressure at junctions that they are"
+                       " not connected to. Please note that this can lead to errors in the pipeflow"
+                       " calculation that will not be displayed properly. Make sure that your grid "
+                       "configuration is valid." % controllers_warn)
+
     return index
 
 
@@ -1326,7 +1341,7 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water",
+    Currently, existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water",
     "air".
 
     :param net: The net for which this fluid should be created

@@ -7,10 +7,10 @@ from warnings import warn
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import NodeComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air
+from pandapipes.component_models.abstract_models.node_models import NodeComponent
+from pandapipes.component_models.component_toolbox import p_correction_height_air
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.pipeflow_setup import add_table_lookup, \
+from pandapipes.pf.pipeflow_setup import add_table_lookup, \
     get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid, get_mixture_density, get_mixture_compressibility, \
     get_derivative_density_same, get_derivative_density_diff
@@ -62,7 +62,7 @@ class Junction(NodeComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -70,15 +70,13 @@ class Junction(NodeComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         ft_lookup = get_lookup(net, "node", "from_to")
-        table_nr = get_table_number(get_lookup(net, "node", "table"), node_name)
-        f, t = ft_lookup[node_name]
+        table_nr = get_table_number(get_lookup(net, "node", "table"), cls.table_name())
+        f, t = ft_lookup[cls.table_name()]
 
-        junctions = net[node_name]
+        junctions = net[cls.table_name()]
         junction_pit = node_pit[f:t, :]
         junction_pit[:, :] = np.array([table_nr, 0, net['_idx_node']['L']] + [0] * (net['_idx_node']['node_cols'] - 3))
         junction_pit[:, net['_idx_node']['ELEMENT_IDX']] = junctions.index.values
@@ -98,7 +96,7 @@ class Junction(NodeComponent):
                     get_fluid(net, fluid).get_density(junction_pit[:, net['_idx_node']['TINIT']])
 
     @classmethod
-    def create_property_pit_node_entries(cls, net, node_pit, node_name):
+    def create_property_pit_node_entries(cls, net, node_pit):
         if len(net._fluid) != 1:
             ft_lookup = get_lookup(net, "node", "from_to")
             f, t = ft_lookup[cls.table_name()]
@@ -115,19 +113,23 @@ class Junction(NodeComponent):
             junction_pit[:, der_rho_diff] = get_derivative_density_diff(mf, rl)
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
-        res_table = super().extract_results(net, options, node_name)
+        res_table = net["res_" + cls.table_name()]
 
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]

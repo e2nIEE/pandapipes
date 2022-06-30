@@ -5,13 +5,15 @@
 import os
 
 import numpy as np
-import pandapipes
 import pandas as pd
 import pytest
+
+import pandapipes
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
-def test_ext_grid_sorting():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_ext_grid_sorting(use_numba):
     net = pandapipes.create_empty_network()
     j1 = pandapipes.create_junction(net, 1, 293.15, index=1)
     j2 = pandapipes.create_junction(net, 1, 293.15, index=2)
@@ -35,7 +37,7 @@ def test_ext_grid_sorting():
     pandapipes.create_sink(net, j6, mdot_kg_per_s=0.1)
     pandapipes.create_sink(net, j2, mdot_kg_per_s=0.02)
 
-    pandapipes.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
 
     assert np.isclose(net.res_ext_grid.at[0, "mdot_kg_per_s"], -0.12, atol=1e-12, rtol=1e-12)
     assert np.isclose(net.res_ext_grid.at[1, "mdot_kg_per_s"], -0.1, atol=1e-12, rtol=1e-12)
@@ -44,7 +46,8 @@ def test_ext_grid_sorting():
     assert np.isclose(net.res_ext_grid.at[4, "mdot_kg_per_s"], -0.05, atol=1e-12, rtol=1e-12)
 
 
-def test_p_type():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_p_type(use_numba):
     """
 
     :return:
@@ -57,9 +60,9 @@ def test_p_type():
     pandapipes.create_pipe_from_parameters(net, 0, 1, 10, diameter_m=d, k_mm=0.1, sections=1)
     pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=285.15, fluid="water", type="p")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
-    pandapipes.create_fluid_from_lib(net, name="water")
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
+                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
+                        use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "ext_grid_p.csv"),
                        sep=';', header=0, keep_default_na=False)
@@ -71,8 +74,8 @@ def test_p_type():
     assert np.all(p_diff < 0.01)
 
 
-@pytest.mark.xfail()
-def test_t_type_single_pipe():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_t_type_single_pipe(use_numba):
     """
 
     :return:
@@ -91,7 +94,7 @@ def test_t_type_single_pipe():
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -109,7 +112,7 @@ def test_t_type_single_pipe():
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=70, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
-                        mode="all")
+                        mode="all", use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -118,7 +121,8 @@ def test_t_type_single_pipe():
     assert np.all(temp_diff < 0.01)
 
 
-def test_t_type_tee():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_t_type_tee(use_numba):
     """
 
     :return:
@@ -146,7 +150,7 @@ def test_t_type_tee():
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -171,7 +175,7 @@ def test_t_type_tee():
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=70, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
-                        mode="all")
+                        mode="all", use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -180,7 +184,8 @@ def test_t_type_tee():
     assert np.all(temp_diff < 0.01)
 
 
-def test_t_type_tee_2zu_2ab():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_t_type_tee_2zu_2ab(use_numba):
     """
 
     :return:
@@ -213,7 +218,7 @@ def test_t_type_tee_2zu_2ab():
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -242,7 +247,7 @@ def test_t_type_tee_2zu_2ab():
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=3, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -250,8 +255,9 @@ def test_t_type_tee_2zu_2ab():
 
     assert np.all(temp_diff < 0.01)
 
-@pytest.mark.xfail()
-def test_t_type_tee_2zu_2ab2():
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_t_type_tee_2zu_2ab2(use_numba):
     """
 
     :return:
@@ -284,7 +290,7 @@ def test_t_type_tee_2zu_2ab2():
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=20, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -313,7 +319,7 @@ def test_t_type_tee_2zu_2ab2():
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=20, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -321,8 +327,9 @@ def test_t_type_tee_2zu_2ab2():
 
     assert np.all(temp_diff < 0.01)
 
-@pytest.mark.xfail()
-def test_t_type_tee_2zu_2ab3():
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_t_type_tee_2zu_2ab3(use_numba):
     """
 
     :return:
@@ -355,7 +362,7 @@ def test_t_type_tee_2zu_2ab3():
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -384,7 +391,7 @@ def test_t_type_tee_2zu_2ab3():
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=10, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all")
+                        tol_v=1e-4, mode="all", use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 

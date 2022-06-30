@@ -7,7 +7,7 @@ import copy
 import numpy as np
 import pytest
 
-import pandapipes as pp
+import pandapipes
 from pandapipes import networks as nets_pps
 from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source, \
     create_pipe_from_parameters, create_valve
@@ -16,7 +16,8 @@ from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import FluidPropertyConstant, Fluid, _add_fluid_to_net
 
 
-def test_one_node_net():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_one_node_net(use_numba):
     """
 
     :return:
@@ -28,7 +29,7 @@ def test_one_node_net():
     create_ext_grid(net, j, 1, 298.15, fluid='water')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='water')
-    pp.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
 
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
@@ -37,7 +38,7 @@ def test_one_node_net():
     create_ext_grid(net, j, 1, 298.15, fluid='lgas')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='lgas')
-    pp.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
 
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
@@ -111,7 +112,8 @@ def same_fluid_twice_defined(net):
     _add_fluid_to_net(net, fluid2)
 
 
-def test_two_fluids_grid_simple_gases():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_two_fluids_grid_simple_gases(use_numba):
     """
 
     :return:
@@ -131,15 +133,15 @@ def test_two_fluids_grid_simple_gases():
     create_sink(net, j2, 0.5)
     create_source(net, j1, 0.3, fluid='fluid1')
     create_pipe_from_parameters(net, j1, j2, 1, 10, np.pi)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
 
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_three_fluids_grid_simple_gases():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_three_fluids_grid_simple_gases(use_numba):
     """
 
     :return:
@@ -155,15 +157,15 @@ def test_three_fluids_grid_simple_gases():
     create_source(net, j1, 0.1, fluid='fluid2')
     create_source(net, j1, 0.2, fluid='fluid3')
     create_pipe_from_parameters(net, j1, j2, 1, 10, np.pi)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
 
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_two_fluids_grid_simple():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_two_fluids_grid_simple(use_numba):
     """
 
     :return:
@@ -176,14 +178,14 @@ def test_two_fluids_grid_simple():
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 0.5, 0.1, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_three_fluids_grid_simple():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_three_fluids_grid_simple(use_numba):
     """
 
     :return:
@@ -197,14 +199,14 @@ def test_three_fluids_grid_simple():
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_source(net, j1, 0.01, fluid='hgas')
     create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_four_fluids_grid_simple():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_four_fluids_grid_simple(use_numba):
     """
 
     :return:
@@ -219,14 +221,14 @@ def test_four_fluids_grid_simple():
     create_source(net, j1, 0.01, fluid='hgas')
     create_source(net, j1, 0.01, fluid='butane')
     create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_two_fluids_two_pipes_grid_simple():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_two_fluids_two_pipes_grid_simple(use_numba):
     """
 
     :return:
@@ -242,14 +244,14 @@ def test_two_fluids_two_pipes_grid_simple():
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j2, j1, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j3, j2, 0.01, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_multiple_fluids_grid_line_ascending():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_fluids_grid_line_ascending(use_numba):
     """
 
     :return:
@@ -266,13 +268,13 @@ def test_multiple_fluids_grid_line_ascending():
     # create_source(net, j1, 0.01, fluid='hgas')
     create_pipe_from_parameters(net, j1, j2, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j2, j3, 0.01, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
+@pytest.mark.parametrize("use_numba", [True, False])
 def test_multiple_fluids_grid():
     """
 
@@ -291,14 +293,14 @@ def test_multiple_fluids_grid():
     create_source(net, j1, 0.01, fluid='hgas')
     create_pipe_from_parameters(net, j2, j1, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j3, j2, 0.01, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_multiple_fluids_grid_mesehd_valve():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_fluids_grid_mesehd_valve(use_numba):
     """
 
     :return:
@@ -317,14 +319,14 @@ def test_multiple_fluids_grid_mesehd_valve():
     create_pipe_from_parameters(net, j2, j3, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j3, j4, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j4, j1, 0.01, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_multiple_fluids_grid_source():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_fluids_grid_source(use_numba):
     """
 
     :return:
@@ -339,14 +341,14 @@ def test_multiple_fluids_grid_source():
     create_source(net, j2, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
     create_pipe_from_parameters(net, j2, j3, 1, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_multiple_fluids_grid_feed_back():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_fluids_grid_feed_back(use_numba):
     """
 
     :return:
@@ -359,14 +361,14 @@ def test_multiple_fluids_grid_feed_back():
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.1, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_multiple_fluids_feeder():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_fluids_feeder(use_numba):
     """
 
     :return:
@@ -402,14 +404,14 @@ def test_multiple_fluids_feeder():
     create_valve(net, j9, j1, np.pi)
     create_pipe_from_parameters(net, j8, j7, 1, np.pi, 0.01)
 
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_multiple_fluids_grid_valve():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_fluids_grid_valve(use_numba):
     """
 
     :return:
@@ -428,14 +430,14 @@ def test_multiple_fluids_grid_valve():
     create_valve(net, j3, j2, 0.01)
     create_pipe_from_parameters(net, j3, j4, 0.01, np.pi, 0.01)
     create_pipe_from_parameters(net, j4, j1, 0.01, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-10, tol_w=1e-6, iter=400,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_two_node_net_with_two_different_fluids():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_two_node_net_with_two_different_fluids(use_numba):
     """
 
     :return:
@@ -455,14 +457,14 @@ def test_two_node_net_with_two_different_fluids():
     create_source(net, j1, 0.01, fluid='hgas', index=105)
     create_sink(net, j2, 0.01, index=100)
     create_pipe_from_parameters(net, j1, j2, 0.01, np.pi, 0.01)
-    pp.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-8, tol_w=1e-8, iter=1000)
+    pandapipes.pipeflow(net, tol_p=1e-4, tol_v=1e-4, tol_m=1e-8, tol_w=1e-8, iter=1000,
+                        use_numba=use_numba)
     w = get_lookup(net, 'node', 'w')
-    print(net._pit['node'][:, w])
-    print(net._internal_results)
     assert np.isclose(net.res_ext_grid.values.sum() + net.res_sink.values.sum() - net.res_source.values.sum(), 0)
 
 
-def test_two_node_net():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_two_node_net(use_numba):
     """
 
     :return:
@@ -478,9 +480,10 @@ def test_two_node_net():
     create_ext_grid(net, j, 1, 298.15, fluid='water')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='water')
-    pp.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
 
-    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, np.zeros((2, 1))))
+    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values,
+                             np.zeros((2, 1))))
 
     net = create_empty_network()
     j = create_junction(net, 1, 298.15)
@@ -491,12 +494,14 @@ def test_two_node_net():
     create_ext_grid(net, j, 1, 298.15, fluid='lgas')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='lgas')
-    pp.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
 
-    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, np.zeros((2, 1))))
+    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values,
+                             np.zeros((2, 1))))
 
 
-def test_random_net_and_one_node_net(create_test_net):
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_random_net_and_one_node_net(create_test_net, use_numba):
     """
 
     :param create_test_net:
@@ -507,50 +512,51 @@ def test_random_net_and_one_node_net(create_test_net):
 
     net = copy.deepcopy(create_test_net)
 
-    pp.create_fluid_from_lib(net, "water")
+    pandapipes.create_fluid_from_lib(net, "water")
 
     j = create_junction(net, 1, 298.15)
     net.ext_grid.fluid = 'water'
     create_ext_grid(net, j, 1, 298.15, fluid='water')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='water')
-    pp.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
 
     net = copy.deepcopy(create_test_net)
 
-    pp.create_fluid_from_lib(net, "lgas")
+    pandapipes.create_fluid_from_lib(net, "lgas")
 
     j = create_junction(net, 1, 298.15)
     net.ext_grid.fluid = 'lgas'
     create_ext_grid(net, j, 1, 298.15, fluid='lgas')
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='lgas')
-    pp.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
 
-    assert np.isclose(net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
+    assert np.isclose(
+        net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
 
 
 def test_multiple_fluids_sink_source():
-    net = pp.create_empty_network()
+    net = pandapipes.create_empty_network()
     same_fluid_twice_defined(net)
-    j1 = pp.create_junction(net, 1, 273)
-    j2 = pp.create_junction(net, 1, 273)
-    j3 = pp.create_junction(net, 1, 273)
-    pp.create_ext_grid(net, j1, 1, 273, 'fluid1')
-    pp.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
-    pp.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
-    pp.create_sink(net, j3, 0.05)
-    pp.create_source(net, j2, 0.01, 'fluid2')
-    pp.create_source(net, j3, 0.02, 'fluid2')
-    pp.pipeflow(net, iter=100)
+    j1 = pandapipes.create_junction(net, 1, 273)
+    j2 = pandapipes.create_junction(net, 1, 273)
+    j3 = pandapipes.create_junction(net, 1, 273)
+    pandapipes.create_ext_grid(net, j1, 1, 273, 'fluid1')
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
+    pandapipes.create_sink(net, j3, 0.05)
+    pandapipes.create_source(net, j2, 0.01, 'fluid2')
+    pandapipes.create_source(net, j3, 0.02, 'fluid2')
+    pandapipes.pipeflow(net, iter=100)
     print(net._internal_results)
     assert all(net.res_junction.w_fluid1.values == [1., 0.666667, 0.4])
 
 
 def test_schutterwald_hydrogen():
     net = nets_pps.schutterwald()
-    pp.create_sources(net, [5, 168, 193], 6.6e-3, 'hydrogen')
-    pp.pipeflow(net, iter=100)
+    pandapipes.create_sources(net, [5, 168, 193], 6.6e-3, 'hydrogen')
+    pandapipes.pipeflow(net, iter=100)
     print(net._internal_results)
     print(np.min(np.abs(net.res_pipe)))
 
