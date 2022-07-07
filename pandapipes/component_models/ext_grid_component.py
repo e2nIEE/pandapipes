@@ -99,16 +99,12 @@ class ExtGrid(NodeElementComponent):
         """
         Function that extracts certain results.
 
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
-        :param branch_results:
-        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param node_name:
+        :type node_name:
         :return: No Output.
         """
 
@@ -119,32 +115,17 @@ class ExtGrid(NodeElementComponent):
 
         res_table = net["res_" + cls.table_name()]
 
-        branch_pit = net['_pit']['branch']
-        node_pit = net["_pit"]["node"]
+        f, t = get_lookup(net, "node_element", "from_to")[cls.table_name()]
+        fa, ta = get_lookup(net, "node_element", "from_to_active")[cls.table_name()]
 
-        p_grids = np.isin(ext_grids.type.values, ["p", "pt"]) & ext_grids.in_service.values
-        junction = cls.get_connected_junction(net)
-        eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
-            np.array(junction.values[p_grids])]
-        node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True,
-                                                    return_inverse=True)
-        eg_from_branches = np.isin(branch_pit[:, net['_idx_branch']['FROM_NODE']], node_uni)
-        eg_to_branches = np.isin(branch_pit[:, net['_idx_branch']['TO_NODE']], node_uni)
-        from_nodes = branch_pit[eg_from_branches, net['_idx_branch']['FROM_NODE']]
-        to_nodes = branch_pit[eg_to_branches, net['_idx_branch']['TO_NODE']]
-        mass_flow_from = branch_pit[eg_from_branches, net['_idx_branch']['LOAD_VEC_NODES']]
-        mass_flow_to = branch_pit[eg_to_branches, net['_idx_branch']['LOAD_VEC_NODES']]
-        loads = node_pit[node_uni, net['_idx_node']['LOAD']]
-        all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
-        all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
-        nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes,
-                                              all_mass_flows)
+        node_element_pit = net["_active_pit"]["node_element"][fa:ta, :]
+        node_elements_active = get_lookup(net, "node_element", "active")[f:t]
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)
-        res_table["mdot_kg_per_s"].values[p_grids] = \
-            cls.sign() * (sum_mass_flows / counts)[inverse_nodes]
-        return res_table, ext_grids, node_uni, node_pit, branch_pit
+        res_table["mdot_kg_per_s"].values[node_elements_active] = \
+            cls.sign() * node_element_pit[:, net['_idx_node_element']['MINIT']]
+        return res_table, ext_grids
 
     @classmethod
     def get_connected_junction(cls, net):

@@ -109,10 +109,9 @@ def complex_heat_connectivity_grid():
 @pytest.fixture
 def create_mixed_indexing_grid():
     net = pandapipes.create_empty_network()
-    pandapipes.create_fluid_from_lib(net, "lgas")
     pandapipes.create_junctions(net, 11, 1.0, 283.15, index=[1, 3, 5, 10, 12, 14, 9, 8, 7, 6, 15])
-    pandapipes.create_ext_grid(net, 1, 1.0, 283.15)
-    pandapipes.create_ext_grid(net, 5, 1.0, 283.15)
+    pandapipes.create_ext_grid(net, 1, 1.0, 283.15, fluid='lgas')
+    pandapipes.create_ext_grid(net, 5, 1.0, 283.15, fluid='lgas')
     pandapipes.create_pipes_from_parameters(
         net, [1, 5, 3, 14, 14, 8], [3, 3, 10, 6, 9, 7], 0.5, 0.12, sections=[1, 1, 1, 2, 3, 1],
         index=[0, 3, 10, 7, 6, 8])
@@ -120,8 +119,8 @@ def create_mixed_indexing_grid():
     pandapipes.create_pressure_control(net, 9, 8, 8, 0.7)
     pandapipes.create_sinks(net, [10, 6, 15, 7], 0.1, index=[3, 5, 1, 2],
                             in_service=[True, False, True, True])
-    pandapipes.create_source(net, 12, 0.05, index=2)
-    pandapipes.create_source(net, 9, 0.06, index=4, in_service=False)
+    pandapipes.create_source(net, 12, 0.05, index=2, fluid='lgas')
+    pandapipes.create_source(net, 9, 0.06, index=4, fluid='lgas', in_service=False)
     return net
 
 

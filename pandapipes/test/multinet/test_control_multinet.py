@@ -48,7 +48,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     # get the nets
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert pandapipes.get_fluid(net_gas).name == "hgas"
+    assert pandapipes.get_fluid(net_gas, 'hgas').name == "hgas"
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -92,7 +92,7 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     # get the nets
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert pandapipes.get_fluid(net_gas).name == "hgas"
+    assert pandapipes.get_fluid(net_gas, 'hgas').name == "hgas"
 
     # set up multinet
     mn = create_empty_multinet("test_g2p")
@@ -110,6 +110,8 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
 
     run_control(mn)
 
+    fluid = get_fluid(net_gas, 'hgas')
+
     # nets must not be changed
     assert mn.nets["power"] == net_power
     assert mn.nets["gas"] == net_gas
@@ -118,7 +120,7 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     assert net_power.sgen.at[g2p_id_el, "p_mw"] == \
            net_power.res_sgen.at[g2p_id_el, "p_mw"]
     assert np.isclose(net_power.sgen.at[g2p_id_el, "p_mw"],
-                      gas_cons_kg_per_s * net_gas.fluid.get_property("hhv") * 3600 / 1000 * eta)
+                      gas_cons_kg_per_s * fluid.get_property("hhv") * 3600 / 1000 * eta)
     assert net_gas.sink.at[g2p_id_gas, "mdot_kg_per_s"] == gas_cons_kg_per_s
 
     # check scaling functionality
@@ -126,7 +128,7 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     net_gas.sink.loc[g2p_id_gas, 'scaling'] = scaling_factor
     run_control(mn)
     assert np.isclose(net_power.sgen.at[g2p_id_el, "p_mw"],
-                      gas_cons_kg_per_s * scaling_factor * net_gas.fluid.get_property("hhv")
+                      gas_cons_kg_per_s * scaling_factor * fluid.get_property("hhv")
                       * 3.6 * eta)
     assert net_gas.sink.at[g2p_id_gas, "mdot_kg_per_s"] == gas_cons_kg_per_s
 
@@ -139,6 +141,7 @@ def test_g2g_single(get_gas_example):
 
     net_gas2 = copy.deepcopy(get_gas_example)
     pandapipes.create_fluid_from_lib(net_gas2, "hydrogen", overwrite=True)
+    net_gas2.ext_grid.fluid = 'hydrogen'
 
     # set up multinet
     mn = create_empty_multinet("test_g2g")
@@ -186,7 +189,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     # get the nets
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert pandapipes.get_fluid(net_gas).name == "hgas"
+    assert pandapipes.get_fluid(net_gas, 'hgas').name == "hgas"
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")
@@ -236,7 +239,7 @@ def test_g2p_multiple(get_gas_example, get_power_example_simple):
     # get the nets
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    fluid = pandapipes.get_fluid(net_gas)
+    fluid = pandapipes.get_fluid(net_gas, 'hgas')
     assert fluid.name == "hgas"
 
     # set up multinet
@@ -396,7 +399,7 @@ def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
     # get the nets
     net_gas = copy.deepcopy(get_gas_example)
     net_power = copy.deepcopy(get_power_example_simple)
-    assert pandapipes.get_fluid(net_gas).name == "hgas"
+    assert pandapipes.get_fluid(net_gas, 'hgas').name == "hgas"
 
     # set up multinet
     mn = create_empty_multinet("test_p2g")

@@ -85,7 +85,7 @@ def test_t_type_single_pipe(use_numba):
     d = 75e-3
 
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
-    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=327.765863)
     pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="pt")
     pandapipes.create_sink(net, j1, 1)
     pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
@@ -101,10 +101,10 @@ def test_t_type_single_pipe(use_numba):
     net2 = pandapipes.create_empty_network("net")
     d = 75e-3
 
-    j0 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283)
+    j0 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=645)
     j1 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283)
-    pandapipes.create_ext_grid(net2, j0, 5, 645, fluid="water", type="p")
-    pandapipes.create_ext_grid(net2, j1, 100, 323.15, fluid="water", type="t")
+    pandapipes.create_ext_grid(net2, j0, 5, 283, fluid="water", type="p")
+    pandapipes.create_ext_grid(net2, j1, 100, 327.765863, fluid="water", type="t")
     pandapipes.create_sink(net2, j1, 1)
 
     pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
@@ -303,7 +303,7 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j4 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     pandapipes.create_ext_grid(net2, j0, 5, 645, fluid="water", type="pt")
-    pandapipes.create_ext_grid(net2, j1, 5, 645, fluid="water", type="pt")
+    pandapipes.create_ext_grid(net2, j1, 5, 636.691232, fluid="water", type="pt")
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)
 
@@ -374,7 +374,7 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     j2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j4 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
-    pandapipes.create_ext_grid(net2, j0, 5, 645, fluid="water", type="pt")
+    pandapipes.create_ext_grid(net2, j0, 5, 636.691232, fluid="water", type="pt")
     pandapipes.create_ext_grid(net2, j2, 5, 645, fluid="water", type="pt")
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)

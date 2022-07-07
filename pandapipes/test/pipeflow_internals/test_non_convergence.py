@@ -14,10 +14,11 @@ from pandapipes.properties.fluids import FluidPropertyConstant
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pipeflow_non_convergence(use_numba):
     net = gas_versatility()
-    pandapipes.get_fluid(net).add_property("molar_mass", FluidPropertyConstant(16.6))
+    pandapipes.get_fluid(net, 'STANET_fluid').add_property("molar_mass", FluidPropertyConstant(16.6))
 
     pandapipes.pipeflow(net, use_numba=use_numba)
-    for comp in net["component_list"]:
+    comp_list = np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']])
+    for comp in comp_list:
         table_name = comp.table_name()
         assert np.all(net["res_" + table_name].index == net[table_name].index)
         if table_name == "valve":
@@ -28,7 +29,7 @@ def test_pipeflow_non_convergence(use_numba):
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, use_numba=use_numba)
 
-    for comp in net["component_list"]:
+    for comp in comp_list:
         table_name = comp.table_name()
         assert np.all(net["res_" + table_name].index == net[table_name].index)
         assert np.all(pd.isnull(net["res_" + table_name]))

@@ -10,6 +10,7 @@ import pandas as pd
 import pytest
 
 from pandapipes.test import test_path
+import pandapipes
 
 data_path = os.path.join(test_path, "pipeflow_internals", "data")
 

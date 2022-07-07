@@ -264,14 +264,15 @@ def solve_hydraulics(net, first_iter):
 
     branch_lookups = get_lookup(net, "branch", "from_to_active")
     ne_mask = node_element_pit[:, net._idx_node_element['NODE_ELEMENT_TYPE']].astype(bool)
-    for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
+    comp_list = np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']])
+    for comp in comp_list:
         comp.create_property_pit_node_entries(net, node_pit)
         comp.create_property_pit_branch_entries(net, node_pit, branch_pit)
-    for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
+    for comp in comp_list:
         comp.adaption_before_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
     calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
-    for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
+    for comp in comp_list :
         comp.adaption_after_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, node_element_pit, False, first_iter)

@@ -364,13 +364,12 @@ class Pipe(BranchWInternalsComponent):
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
                       "normfactor_to"]
-            add = ["w_%s" % fluid for fluid in net._fluid]
-
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
                       "lambda"]
-            add = []
+
+        add = ["w_%s" % fluid for fluid in net._fluid] if len(net._fluid) != 1 else []
 
         return output + add, True
 

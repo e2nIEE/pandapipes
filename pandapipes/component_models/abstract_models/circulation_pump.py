@@ -51,8 +51,16 @@ class CirculationPump(ExtGrid):
         :type options:
         :return: No Output.
         """
-        res_table, circ_pump, index_nodes_from, node_pit, _ = \
+        res_table, circ_pump = \
             super().extract_results(net, options, None, nodes_connected, branches_connected)
+
+        node_pit = net["_pit"]["node"]
+
+        p_grids = np.isin(circ_pump.type.values, ["p", "pt"]) & circ_pump.in_service.values
+        junction = cls.get_connected_junction(net)
+        eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
+            np.array(junction.values[p_grids])]
+        index_nodes_from = np.unique(eg_nodes)
 
         index_juncts_to = circ_pump.to_junction.values
         junct_uni_to = np.array(list(set(index_juncts_to)))
