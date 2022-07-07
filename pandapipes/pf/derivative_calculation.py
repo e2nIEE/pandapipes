@@ -100,7 +100,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 
 def get_derived_values(net, node_pit, from_nodes, to_nodes, use_numba):
     pit_cols = np.array([net['_idx_node']['TINIT'], net['_idx_node']['HEIGHT'],
-                         net['_idx_node']['PINIT'], net['_idx_node']['PAMB']])
+                         net['_idx_node']['PINIT'], net['_idx_node']['PAMB']], dtype=np.int32)
     if use_numba:
         from pandapipes.pf.derivative_toolbox_numba import calc_derived_values_numba
         return calc_derived_values_numba(pit_cols, node_pit, from_nodes, to_nodes)
