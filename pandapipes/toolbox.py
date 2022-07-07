@@ -1,18 +1,19 @@
 # Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
+import copy
 from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
+from networkx import has_path
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
+from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.auxiliary import get_indices
-from pandapower.toolbox import dataframes_equal
 from pandapipes.topology import create_nxgraph
-from networkx import has_path
+from pandapower.auxiliary import get_indices
+from pandapower.toolbox import dataframes_equal, clear_result_tables
 
 try:
     import pplog as logging
@@ -100,19 +101,27 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :rtype: set
     """
     special_elements_junctions = [("press_control", "controlled_junction")]
+    move_elements = {"n2b": ["circ_pump_mass", "circ_pump_pressure"], "b2n": []}
     node_elements = []
-    if net is not None and include_node_elements:
-        node_elements = [comp.table_name() for comp in net.component_list
-                         if issubclass(comp, NodeElementComponent)]
-    elif include_node_elements:
-        node_elements = ["sink", "source", "ext_grid"]
     branch_elements = []
-    if net is not None and include_branch_elements:
-        branch_elements = [comp.table_name() for comp in net.component_list
-                           if issubclass(comp, BranchComponent)]
-    elif include_branch_elements:
-        branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                           "heat_exchanger", "press_control"]
+    if net is not None:
+        all_tables = {comp.table_name(): comp for comp in net.component_list}
+        if include_node_elements:
+            node_elements = [tbl for tbl, comp in all_tables.items()
+                             if issubclass(comp, NodeElementComponent)
+                             and tbl not in move_elements["n2b"]]
+            node_elements += [me for me in move_elements["b2n"] if me in all_tables.keys()]
+        if include_branch_elements:
+            branch_elements = [comp.table_name() for comp in net.component_list
+                               if issubclass(comp, BranchComponent)
+                               and comp.table_name() not in move_elements["b2n"]]
+            branch_elements += [me for me in move_elements["n2b"] if me in all_tables.keys()]
+    else:
+        if include_node_elements:
+            node_elements = ["sink", "source", "ext_grid"]
+        if include_branch_elements:
+            branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
+                               "heat_exchanger", "press_control", "compressor"]
     ejts = set()
     if include_node_elements:
         for elm in node_elements:
@@ -334,6 +343,71 @@ def fuse_junctions(net, j1, j2, drop=True):
         drop_junctions(net, j2, drop_elements=False)
         # TODO: If junctions j1 and j2 are connected by one branch element, it should be dropped.
     return net
+
+
+def select_subnet(net, junctions, include_results=False, keep_everything_else=False,
+                  remove_internals=True, remove_unused_components=False):
+    """
+    Selects a subnet by a list of junction indices and returns a net with all components connected
+    to them.
+    """
+    junctions = list(junctions)
+
+    if keep_everything_else:
+        p2 = copy.deepcopy(net)
+        if not include_results:
+            clear_result_tables(p2)
+        if remove_internals:
+            for inter in [k for k in p2.keys() if k.startswith("_")]:
+                p2.pop(inter)
+    else:
+        p2 = create_empty_network(add_stdtypes=False)
+        p2["std_types"] = copy.deepcopy(net["std_types"])
+        net_parameters = ["name", "fluid", "user_pf_options", "component_list"]
+        for net_parameter in net_parameters:
+            if net_parameter in net.keys():
+                p2[net_parameter] = copy.deepcopy(net[net_parameter])
+
+    p2.junction = net.junction.loc[junctions]
+    comp_tuples = element_junction_tuples(include_node_elements=True, include_branch_elements=True,
+                                          net=net)
+    comp_junc_rows = {tbl: [jr for el, jr in comp_tuples if el == tbl] for tbl in
+                      set([v[0] for v in comp_tuples])}
+    for comp_tbl, junc_rows in comp_junc_rows.items():
+        isin_all = np.all([net[comp_tbl][jr].isin(junctions) for jr in junc_rows], axis=0)
+        p2[comp_tbl] = net[comp_tbl][isin_all]
+
+    if include_results:
+        for table in net.keys():
+            if net[table] is None or not isinstance(net[table], pd.DataFrame) or not \
+               net[table].shape[0] or not table.startswith("res_") or table[4:] not in \
+               net.keys() or not isinstance(net[table[4:]], pd.DataFrame) or not \
+               net[table[4:]].shape[0]:
+                continue
+            elif table == "res_junction":
+                p2[table] = net[table].loc[net[table].index.intersection(junctions)]
+            else:
+                p2[table] = net[table].loc[p2[table[4:]].index.intersection(net[table].index)]
+    if "junction_geodata" in net:
+        p2["junction_geodata"] = net.junction_geodata.loc[p2.junction.index.intersection(
+            net.junction_geodata.index)]
+    if "pipe_geodata" in net:
+        p2["pipe_geodata"] = net.pipe_geodata.loc[p2.pipe.index.intersection(
+            net.pipe_geodata.index)]
+
+    if remove_unused_components:
+        remove_empty_components(p2)
+
+    return pandapipesNet(p2)
+
+
+def remove_empty_components(net):
+    removed = set()
+    for comp in net.component_list:
+        if net[comp.table_name()].empty:
+            del net[comp.table_name()]
+            removed.add(comp)
+    net.component_list = [c for c in net.component_list if c not in removed]
 
 
 def drop_junctions(net, junctions, drop_elements=True):

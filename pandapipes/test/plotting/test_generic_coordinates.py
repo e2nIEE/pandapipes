@@ -5,7 +5,7 @@
 import pytest
 import copy
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
-from pandapipes.test.test_toolbox import net_plotting
+from pandapipes.test.test_toolbox import base_net_is_with_pumps
 
 try:
     import igraph
@@ -16,8 +16,8 @@ except ImportError:
 
 
 @pytest.mark.skipif(IGRAPH_INSTALLED is False, reason="Requires python-igraph.")
-def test_create_generic_coordinates_igraph(net_plotting):
-    net = copy.deepcopy(net_plotting)
+def test_create_generic_coordinates_igraph(base_net_is_with_pumps):
+    net = copy.deepcopy(base_net_is_with_pumps)
     net.junction_geodata.drop(net.junction_geodata.index, inplace=True)
     create_generic_coordinates(net, library="igraph")
     assert len(net.junction_geodata) == len(net.junction)
@@ -25,8 +25,8 @@ def test_create_generic_coordinates_igraph(net_plotting):
 
 @pytest.mark.xfail(reason="The current implementation is not working properly, as multigraph edges "
                           "as AtlasViews are accessed with list logic.")
-def test_create_generic_coordinates_nx(net_plotting):
-    net = copy.deepcopy(net_plotting)
+def test_create_generic_coordinates_nx(base_net_is_with_pumps):
+    net = copy.deepcopy(base_net_is_with_pumps)
     net.junction_geodata.drop(net.junction_geodata.index, inplace=True)
     create_generic_coordinates(net, library="networkx")
     assert len(net.junction_geodata) == len(net.junction)
