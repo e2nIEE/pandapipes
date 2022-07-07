@@ -1,12 +1,9 @@
 import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, LOAD_VEC_NODES, VINIT, RE, \
-    LAMBDA, TINIT, FROM_NODE_T, TO_NODE_T, PL
-from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import get_fluid, get_mixture_density, is_fluid_gas, get_mixture_compressibility
 
 try:
     from numba import jit
@@ -32,15 +29,15 @@ def extract_all_results(net, nodes_connected, branches_connected):
                       "p_to": p_to, "from_nodes": from_nodes, "to_nodes": to_nodes,
                       "temp_from": temp_from, "temp_to": temp_to, "reynolds": reynolds,
                       "lambda": _lambda, "pl": pl}
-    if get_fluid(net).is_gas:
+    if is_fluid_gas(net):
         if get_net_option(net, "use_numba"):
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
-                normfactor_to, normfactor_mean = get_branch_results_gas_numba(
-                    net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
+            normfactor_to, normfactor_mean = get_branch_results_gas_numba(
+                net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
         else:
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
-                normfactor_to, normfactor_mean = get_branch_results_gas(
-                    net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
+            normfactor_to, normfactor_mean = get_branch_results_gas(
+                net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
         gas_branch_results = {
             "v_gas_from": v_gas_from, "v_gas_to": v_gas_to, "v_gas_mean": v_gas_mean,
             "p_from": p_from, "p_to": p_to, "p_abs_from": p_abs_from, "p_abs_to": p_abs_to,
@@ -48,50 +45,64 @@ def extract_all_results(net, nodes_connected, branches_connected):
             "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean
         }
         branch_results.update(gas_branch_results)
-    for comp in net['component_list']:
+    for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
         comp.extract_results(net, net["_options"], branch_results, nodes_connected,
                              branches_connected)
 
 
 def get_basic_branch_results(net, branch_pit, node_pit):
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+    from_nodes = branch_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+    to_nodes = branch_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
 
-    t0 = node_pit[from_nodes, TINIT_NODE]
-    t1 = node_pit[to_nodes, TINIT_NODE]
-    mf = branch_pit[:, LOAD_VEC_NODES]
-    vf = mf / get_fluid(net).get_density((t0 + t1) / 2)
-    return branch_pit[:, VINIT], mf, vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
-        branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
-        branch_pit[:, PL]
+    t0 = node_pit[from_nodes, net['_idx_node']['TINIT']]
+    t1 = node_pit[to_nodes, net['_idx_node']['TINIT']]
+    mf = branch_pit[:, net['_idx_branch']['LOAD_VEC_NODES']]
+    if len(net._fluid) == 1:
+        density = get_fluid(net, net._fluid[0]).get_density((t0 + t1) / 2)
+    else:
+        w = get_lookup(net, 'branch', 'w')
+        mass_fract = branch_pit[:, w]
+        density = get_mixture_density(net, (t0 + t1) / 2, mass_fraction=mass_fract)
+    vf = mf / density
+    return branch_pit[:, net['_idx_branch']['VINIT']], mf, vf, from_nodes, to_nodes, t0, t1, \
+           branch_pit[:, net['_idx_branch']['RE']], \
+           branch_pit[:, net['_idx_branch']['LAMBDA']], \
+           node_pit[from_nodes, net['_idx_node']['PINIT']], \
+           node_pit[to_nodes, net['_idx_node']['PINIT']], \
+           branch_pit[:, net['_idx_branch']['PL']]
 
 
 def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
-    p_abs_from = node_pit[from_nodes, PAMB] + p_from
-    p_abs_to = node_pit[to_nodes, PAMB] + p_to
+    p_abs_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + p_from
+    p_abs_to = node_pit[to_nodes, net['_idx_node']['PAMB']] + p_to
     mask = ~np.isclose(p_abs_from, p_abs_to)
     p_abs_mean = np.empty_like(p_abs_to)
     p_abs_mean[~mask] = p_abs_from[~mask]
     p_abs_mean[mask] = 2 / 3 * (p_abs_from[mask] ** 3 - p_abs_to[mask] ** 3) \
-        / (p_abs_from[mask] ** 2 - p_abs_to[mask] ** 2)
-
-    fluid = get_fluid(net)
-    numerator = NORMAL_PRESSURE * branch_pit[:, TINIT] / NORMAL_TEMPERATURE
-    normfactor_from = numerator * fluid.get_property("compressibility", p_abs_from) / p_abs_from
-    normfactor_to = numerator * fluid.get_property("compressibility", p_abs_to) / p_abs_to
-    normfactor_mean = numerator * fluid.get_property("compressibility", p_abs_mean) / p_abs_mean
+                       / (p_abs_from[mask] ** 2 - p_abs_to[mask] ** 2)
+    numerator = NORMAL_PRESSURE * branch_pit[:, net['_idx_branch']['TINIT']] / NORMAL_TEMPERATURE
+    if len(net._fluid) == 1:
+        normfactor_from = numerator * get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_from) / p_abs_from
+        normfactor_to = numerator * get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_to) / p_abs_to
+        normfactor_mean = numerator * get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_mean) / p_abs_mean
+    else:
+        w = get_lookup(net, 'branch', 'w')
+        mass_fract = branch_pit[:, w]
+        normfactor_from = numerator * get_mixture_compressibility(net, p_abs_from, mass_fract) / p_abs_from
+        normfactor_to = numerator * get_mixture_compressibility(net, p_abs_to, mass_fract) / p_abs_to
+        normfactor_mean = numerator * get_mixture_compressibility(net, p_abs_mean, mass_fract) / p_abs_mean
 
     v_gas_from = v_mps * normfactor_from
     v_gas_to = v_mps * normfactor_to
     v_gas_mean = v_mps * normfactor_mean
 
-    return v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from,\
-        normfactor_to, normfactor_mean
+    return v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
+           normfactor_to, normfactor_mean
 
 
 def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from,
                                  p_to):
-    p_abs_from, p_abs_to, p_abs_mean = get_pressures_numba(node_pit, from_nodes, to_nodes, v_mps,
+    p_abs_from, p_abs_to, p_abs_mean = get_pressures_numba(net, node_pit, from_nodes, to_nodes, v_mps,
                                                            p_from, p_to)
 
     fluid = get_fluid(net)
@@ -100,20 +111,20 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
     comp_mean = fluid.get_property("compressibility", p_abs_mean)
 
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
-        get_gas_vel_numba(branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,
+        get_gas_vel_numba(net, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,
                           p_abs_mean, v_mps)
 
     return v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
-        normfactor_to, normfactor_mean
+           normfactor_to, normfactor_mean
 
 
 @jit(nopython=True)
-def get_pressures_numba(node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
+def get_pressures_numba(net, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
     p_abs_from, p_abs_to, p_abs_mean = [np.empty_like(v_mps) for _ in range(3)]
 
     for i in range(len(v_mps)):
-        p_abs_from[i] = node_pit[from_nodes[i], PAMB] + p_from[i]
-        p_abs_to[i] = node_pit[to_nodes[i], PAMB] + p_to[i]
+        p_abs_from[i] = node_pit[from_nodes[i], net['_idx_node']['PAMB']] + p_from[i]
+        p_abs_to[i] = node_pit[to_nodes[i], net['_idx_node']['PAMB']] + p_to[i]
         if np.less_equal(np.abs(p_abs_from[i] - p_abs_to[i]), 1e-8 + 1e-5 * abs(p_abs_to[i])):
             p_abs_mean[i] = p_abs_from[i]
         else:
@@ -124,13 +135,13 @@ def get_pressures_numba(node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
 
 
 @jit(nopython=True)
-def get_gas_vel_numba(branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to, p_abs_mean,
+def get_gas_vel_numba(net, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to, p_abs_mean,
                       v_mps):
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         [np.empty_like(v_mps) for _ in range(6)]
 
     for i in range(len(v_mps)):
-        numerator = np.divide(NORMAL_PRESSURE * branch_pit[i, TINIT], NORMAL_TEMPERATURE)
+        numerator = np.divide(NORMAL_PRESSURE * branch_pit[i, net['_idx_branch']['TINIT']], NORMAL_TEMPERATURE)
         normfactor_from[i] = np.divide(numerator * comp_from[i], p_abs_from[i])
         normfactor_to[i] = np.divide(numerator * comp_to[i], p_abs_to[i])
         normfactor_mean[i] = np.divide(numerator * comp_mean[i], p_abs_mean[i])
@@ -154,7 +165,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
     # since the function _sum_by_group sorts the entries by an index (in this case the index of the
     # respective table), the placement of the indices mus be known to allocate the values correctly
     placement_table = np.argsort(net[table_name].index.values)
-    idx_pit = branch_pit[f:t, ELEMENT_IDX]
+    idx_pit = branch_pit[f:t, net['_idx_branch']['ELEMENT_IDX']]
     comp_connected = branches_connected[f:t]
 
     node_pit = net["_pit"]["node"]
@@ -167,7 +178,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
         # from_node that is the exterior node (e.g. junction vs. internal pipe_node) result has to
         # be extracted from the node_pit
         from_nodes = branch_results["from_nodes"][f:t]
-        from_nodes_external = node_pit[from_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
+        from_nodes_external = node_pit[from_nodes, net['_idx_node']['TABLE_IDX']] == ext_node_tbl_idx
         considered = from_nodes_external & comp_connected
         external_active = comp_connected[from_nodes_external]
         for res_name, entry in res_nodes_from:
@@ -178,7 +189,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
         # to_node that is the exterior node (e.g. junction vs. internal pipe_node) result has to
         # be extracted from the node_pit
         to_nodes = branch_results["to_nodes"][f:t]
-        to_nodes_external = node_pit[to_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
+        to_nodes_external = node_pit[to_nodes, net['_idx_node']['TABLE_IDX']] == ext_node_tbl_idx
         considered = to_nodes_external & comp_connected
         external_active = comp_connected[to_nodes_external]
         for res_name, entry in res_nodes_to:
@@ -232,16 +243,19 @@ def extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branc
     """
     all_nodes_connected = np.alltrue(nodes_connected)
     if not all_nodes_connected:
-        node_pit[~nodes_connected, PINIT] = np.NaN
+        node_pit[~nodes_connected, net['_idx_node']['PINIT']] = np.NaN
         node_pit[nodes_connected, :] = net["_active_pit"]["node"]
         cols_br = np.array([i for i in range(branch_pit.shape[1])
-                            if i not in [FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T]])
+                            if i not in [net['_idx_branch']['FROM_NODE'],
+                                         net['_idx_branch']['TO_NODE'],
+                                         net['_idx_branch']['FROM_NODE_T'],
+                                         net['_idx_branch']['TO_NODE_T']]])
     else:
         net["_pit"]["node"] = np.copy(net["_active_pit"]["node"])
         cols_br = None
 
     if not np.alltrue(branches_connected):
-        branch_pit[~branches_connected, VINIT] = np.NaN
+        branch_pit[~branches_connected, net['_idx_branch']['VINIT']] = np.NaN
         rows_active_br = np.where(branches_connected)[0]
         if all_nodes_connected:
             branch_pit[rows_active_br, :] = net["_active_pit"]["branch"][:, :]

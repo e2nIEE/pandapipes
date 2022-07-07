@@ -463,7 +463,8 @@ def get_slack_element_nodes_w(net, node_element_pit, slack_element_mask, number_
 
 
 def get_n_mdF_dw(net, node_pit, node_element_pit, slack_element_mask, number_of_fluids, number_of_nodes):
-    l = get_load_vec(net, node_pit, node_element_pit, slack_element_mask)
+    use_numba = get_net_option(net, "use_numba")
+    l = get_load_vec(net, node_pit, node_element_pit, slack_element_mask, use_numba)
     load = get_w_like_vector(l, number_of_fluids)
     slack_mass = node_element_pit[slack_element_mask, net['_idx_node_element']['MINIT']]
     slack_mass = get_w_like_vector(slack_mass, number_of_fluids)

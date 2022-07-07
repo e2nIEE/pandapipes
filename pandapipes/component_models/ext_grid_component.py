@@ -40,10 +40,10 @@ class ExtGrid(NodeElementComponent):
         return True
 
     @classmethod
-    def create_pit_node_element_entries(cls, net, node_element_pit, node_name):
+    def create_pit_node_element_entries(cls, net, node_element_pit):
         ext_grids = net[cls.table_name()]
         ext_grids = ext_grids[ext_grids.in_service.values]
-        ext_grid_pit = super().create_pit_node_element_entries(net, node_element_pit, node_name)
+        ext_grid_pit = super().create_pit_node_element_entries(net, node_element_pit)
         p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
         t_mask = np.where(np.isin(ext_grids.type.values, ["t"]))
         ext_grid_pit[p_mask, net._idx_node_element['NODE_ELEMENT_TYPE']] = net._idx_node_element['P']
@@ -52,7 +52,7 @@ class ExtGrid(NodeElementComponent):
         return ext_grid_pit
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -128,13 +128,13 @@ class ExtGrid(NodeElementComponent):
             np.array(junction.values[p_grids])]
         node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True,
                                                     return_inverse=True)
-        eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)
-        eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
-        from_nodes = branch_pit[eg_from_branches, FROM_NODE]
-        to_nodes = branch_pit[eg_to_branches, TO_NODE]
-        mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES]
-        mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES]
-        loads = node_pit[node_uni, LOAD]
+        eg_from_branches = np.isin(branch_pit[:, net['_idx_branch']['FROM_NODE']], node_uni)
+        eg_to_branches = np.isin(branch_pit[:, net['_idx_branch']['TO_NODE']], node_uni)
+        from_nodes = branch_pit[eg_from_branches, net['_idx_branch']['FROM_NODE']]
+        to_nodes = branch_pit[eg_to_branches, net['_idx_branch']['TO_NODE']]
+        mass_flow_from = branch_pit[eg_from_branches, net['_idx_branch']['LOAD_VEC_NODES']]
+        mass_flow_to = branch_pit[eg_to_branches, net['_idx_branch']['LOAD_VEC_NODES']]
+        loads = node_pit[node_uni, net['_idx_node']['LOAD']]
         all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
         all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
         nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes,

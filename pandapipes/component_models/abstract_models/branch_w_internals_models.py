@@ -3,13 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+from pandapipes.component_models.component_toolbox import set_entry_check_repeat
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import set_entry_check_repeat
-from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
-from pandapipes.properties.fluids import get_mixture_compressibility, is_fluid_gas, get_fluid
+from pandapipes.properties.fluids import get_fluid
 
 try:
     from pandaplan.core import pplog as logging
@@ -95,7 +93,7 @@ class BranchWInternalsComponent(BranchComponent):
             add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
             ft_lookups[cls.internal_node_name()] = (current_start, end)
             return end, current_table + 1, internal_nodes, internal_pipes, int_nodes_num, \
-                int_pipes_num
+                   int_pipes_num
         else:
             return end, current_table + 1, 0, 0, 0, 0
 

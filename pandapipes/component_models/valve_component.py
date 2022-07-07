@@ -7,11 +7,8 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.properties.fluids import is_fluid_gas, get_mixture_compressibility, get_fluid
-from pandapipes.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.properties.fluids import is_fluid_gas, get_fluid
 
 
 class Valve(BranchWZeroLengthComponent):
@@ -90,7 +87,7 @@ class Valve(BranchWZeroLengthComponent):
             ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
         ]
 
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             required_results.extend([
                 ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
                 ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),

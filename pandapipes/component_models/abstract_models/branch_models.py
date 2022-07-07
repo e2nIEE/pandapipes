@@ -5,14 +5,10 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
-    P_CONVERSION
-from pandapipes.internals_toolbox import _sum_by_group, select_from_pit
-from pandapipes.pf.derivative_calculation import calc_lambda, calc_der_lambda
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
-from pandapipes.properties.fluids import is_fluid_gas, get_mixture_compressibility, get_mixture_density, \
+from pandapipes.properties.fluids import get_mixture_density, \
     get_mixture_viscosity, get_mixture_heat_capacity, \
-    get_fluid, get_derivative_density_diff, get_derivative_density_same
+    get_derivative_density_diff, get_derivative_density_same
 
 try:
     from pandaplan.core import pplog as logging
@@ -97,7 +93,7 @@ class BranchComponent(Component):
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
     @classmethod
-    def create_property_pit_branch_entries(cls, net, node_pit, branch_pit, node_name):
+    def create_property_pit_branch_entries(cls, net, node_pit, branch_pit):
         if len(net._fluid) != 1:
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
             branch_component_pit = branch_pit[f:t, :]

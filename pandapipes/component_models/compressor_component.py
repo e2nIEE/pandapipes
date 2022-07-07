@@ -50,7 +50,7 @@ class Compressor(Pump):
 
         from_nodes = compressor_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
         p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
-        p_to_calc = p_from * compressor_pit[:, PRESSURE_RATIO]
+        p_to_calc = p_from * compressor_pit[:, net['_idx_branch']['PRESSURE_RATIO']]
         pl_abs = p_to_calc - p_from
 
         v_mps = compressor_pit[:, net['_idx_branch']['VINIT']]

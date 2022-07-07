@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.pipeflow_setup import get_lookup, add_table_lookup, get_table_number
+from pandapipes.pf.pipeflow_setup import get_lookup, add_table_lookup, get_table_number
 import numpy as np
 
 try:
@@ -30,6 +30,11 @@ class NodeElementComponent(Component):
     @classmethod
     def get_connected_node_type(cls):
         raise NotImplementedError
+
+    #ToDo: remove as soon as the circulation pumps are redefined, replace by get_connected_node_type
+    @classmethod
+    def junction_column_name(cls):
+        return 'junction'
 
     @classmethod
     def get_component_input(cls):
@@ -75,7 +80,7 @@ class NodeElementComponent(Component):
     def create_pit_node_element_entries(cls, net, node_element_pit):
         if cls.node_element_relevant(net):
             ft_lookup = get_lookup(net, "node_element", "from_to")
-            node_lookup = get_lookup(net, "node", "index")[node_name]
+            node_lookup = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
             node_element_table_nr = get_table_number(get_lookup(net, "node_element", "table"), cls.table_name())
             f, t = ft_lookup[cls.table_name()]
 
@@ -84,7 +89,8 @@ class NodeElementComponent(Component):
             node_element_pit[:, :] = np.array([node_element_table_nr] + [0] *
                                               (net['_idx_node_element']['node_element_cols'] - 1))
             node_element_pit[:, net['_idx_node']['ELEMENT_IDX']] = node_elements.index.values
-            node_element_pit[:, net['_idx_node_element']['JUNCTION']] = node_lookup[node_elements[cls.junction_name()].values]
+            node_element_pit[:, net['_idx_node_element']['JUNCTION']] = \
+                node_lookup[node_elements[cls.junction_column_name()].values]
             node_element_pit[:, net['_idx_node_element']['ACTIVE']] = node_elements.in_service.values
             if len(net._fluid) != 1:
                 w_lookup = np.array(get_lookup(net, "node_element", "w"))

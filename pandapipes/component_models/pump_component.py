@@ -137,7 +137,7 @@ class Pump(BranchWZeroLengthComponent):
             ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl")
         ]
 
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             required_results.extend([
                 ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
                 ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
@@ -152,7 +152,7 @@ class Pump(BranchWZeroLengthComponent):
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
             res_table = net["res_" + cls.table_name()]
             pl = branch_results["pl"][f:t]
-            if net.fluid.is_gas:
+            if is_fluid_gas(net):
                 p_from = branch_results["p_from"][f:t]
                 p_to = branch_results["p_to"][f:t]
                 from_nodes = branch_results["from_nodes"][f:t]

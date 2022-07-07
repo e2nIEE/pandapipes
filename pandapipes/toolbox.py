@@ -8,8 +8,6 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 from networkx import has_path
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.create import create_empty_network
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
@@ -106,14 +104,15 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     node_elements = []
     branch_elements = []
     if net is not None:
-        all_tables = {comp.table_name(): comp for comp in net.component_list}
+        comp_list = np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']])
+        all_tables = {comp.table_name(): comp for comp in comp_list}
         if include_node_elements:
-            node_elements = [node.table_name() for node in net['node_element_list'])
-                              and node.table_name() not in move_elements["n2b"]]
+            node_elements = [node.table_name() for node in net['node_element_list']
+                             if node.table_name() not in move_elements["n2b"]]
             node_elements += [me for me in move_elements["b2n"] if me in all_tables.keys()]
         if include_branch_elements:
-            branch_elements = [branch.table_name() for branch in net['branch_list'])
-                               and branch.table_name() not in move_elements["b2n"]]
+            branch_elements = [branch.table_name() for branch in net['branch_list']
+                               if branch.table_name() not in move_elements["b2n"]]
             branch_elements += [me for me in move_elements["n2b"] if me in all_tables.keys()]
     else:
         if include_node_elements:
@@ -362,7 +361,7 @@ def select_subnet(net, junctions, include_results=False, keep_everything_else=Fa
     else:
         p2 = create_empty_network(add_stdtypes=False)
         p2["std_types"] = copy.deepcopy(net["std_types"])
-        net_parameters = ["name", "fluid", "user_pf_options", "component_list"]
+        net_parameters = ["name", "fluid", "user_pf_options", "node_list", "node_element_list", "branch_list"]
         for net_parameter in net_parameters:
             if net_parameter in net.keys():
                 p2[net_parameter] = copy.deepcopy(net[net_parameter])
@@ -402,12 +401,21 @@ def select_subnet(net, junctions, include_results=False, keep_everything_else=Fa
 
 def remove_empty_components(net):
     removed = set()
-    for comp in net.component_list:
+    for comp in net.node_list:
         if net[comp.table_name()].empty:
             del net[comp.table_name()]
             removed.add(comp)
-    net.component_list = [c for c in net.component_list if c not in removed]
-
+    net.node_list = [c for c in net.node_list if c not in removed]
+    for comp in net.node_element_list:
+        if net[comp.table_name()].empty:
+            del net[comp.table_name()]
+            removed.add(comp)
+    net.node_element_list = [c for c in net.node_element_list if c not in removed]
+    for comp in net.branch_list:
+        if net[comp.table_name()].empty:
+            del net[comp.table_name()]
+            removed.add(comp)
+    net.branch_list = [c for c in net.branch_list if c not in removed]
 
 def drop_junctions(net, junctions, drop_elements=True):
     """

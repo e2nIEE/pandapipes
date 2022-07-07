@@ -46,8 +46,7 @@ def test_circulation_pump_constant_pressure(use_numba):
     p_diff = np.abs(1 - res_junction.p_bar.values / data['p'].dropna().values)
     t_diff = np.abs(1 - res_junction.t_k.values / data['t'].dropna().values)
     v_diff = np.abs(1 - res_pipe / data['v'].dropna().values)
-    #TODO: check why the sign suddenly changes
-    mdot_diff = np.abs(1 + res_pump['mdot_kg_per_s'].values / data['mdot'].dropna().values)
+    mdot_diff = np.abs(1 - res_pump['mdot_kg_per_s'].values / data['mdot'].dropna().values)
     deltap_diff = np.abs(1 - res_pump['deltap_bar'].values / data['deltap'].dropna().values)
 
     assert np.all(p_diff < 0.01)

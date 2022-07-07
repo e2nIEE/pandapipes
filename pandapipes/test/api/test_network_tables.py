@@ -7,7 +7,7 @@ import copy
 import pandapipes
 from pandapipes.component_models import Sink, Source, Pump, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent
-from pandapipes.component_models.auxiliaries.create_toolbox import add_new_component
+from pandapipes.create_toolbox import add_new_component
 
 
 def test_default_input_tables():

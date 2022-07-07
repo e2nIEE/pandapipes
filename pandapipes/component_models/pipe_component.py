@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
     vinterp, set_entry_check_repeat
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.pf.pipeflow_setup import get_lookup, get_fluid
+from pandapipes.pf.pipeflow_setup import get_lookup, get_fluid, get_table_number
 from pandapipes.properties.fluids import get_mixture_density, is_fluid_gas, get_mixture_compressibility
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
@@ -123,7 +123,7 @@ class Pipe(BranchWInternalsComponent):
                 get_fluid(net, net._fluid[0]).get_density(junction_pit[:, net['_idx_node']['TINIT']])
 
     @classmethod
-    def create_property_pit_node_entries(cls, net, node_pit, node_name):
+    def create_property_pit_node_entries(cls, net, node_pit):
         if len(net._fluid) != 1:
             table_lookup = get_lookup(net, "node", "table")
             table_nr = get_table_number(table_lookup, cls.internal_node_name())
@@ -196,7 +196,7 @@ class Pipe(BranchWInternalsComponent):
         res_nodes_to = [("p_to_bar", "p_to"), ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to")]
         res_mean = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")]
 
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             res_nodes_from.extend(
                 [("v_from_m_per_s", "v_gas_from"), ("normfactor_from", "normfactor_from")])
             res_nodes_to.extend([("v_to_m_per_s", "v_gas_to"), ("normfactor_to", "normfactor_to")])

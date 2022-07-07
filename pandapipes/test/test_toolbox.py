@@ -231,9 +231,11 @@ def test_select_subnet(base_net_is_wo_pumps):
 
     # Do nothing
     same_net = pandapipes.select_subnet(net, net.junction.index)
-    assert len(same_net.component_list) == len(net.component_list)
-    assert set(same_net.component_list) == set(net.component_list)
-    for comp in net.component_list:
+    comp_list = np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']])
+    same_comp_list = np.concatenate([same_net['node_list'], same_net['node_element_list'], same_net['branch_list']])
+    assert len(same_comp_list) == len(comp_list)
+    assert set(same_comp_list) == set(comp_list)
+    for comp in comp_list:
         assert pandapower.dataframes_equal(net[comp.table_name()], same_net[comp.table_name()])
 
     same_net2 = pandapipes.select_subnet(net, net.junction.index, include_results=True,
@@ -242,19 +244,21 @@ def test_select_subnet(base_net_is_wo_pumps):
 
     # Remove everything
     empty = pandapipes.select_subnet(net, set())
-    for comp in net.component_list:
+    for comp in comp_list:
         assert len(empty[comp.table_name()]) == 0
 
     empty2 = pandapipes.select_subnet(net, set(), remove_unused_components=True)
-    for comp in net.component_list:
+    comp_list2 = np.concatenate([empty2['node_list'], empty2['node_element_list'], empty2['branch_list']])
+    for comp in comp_list:
         assert comp.table_name() not in empty2
-        assert comp not in empty2.component_list
+        assert comp not in comp_list2
 
     # check length of results
     net = nw.gas_tcross2()
     pandapipes.pipeflow(net)
     net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
-    for comp in net.component_list:
+    comp_list = np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']])
+    for comp in comp_list:
         assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
     assert len(net.junction) == len(net2.junction) + 3
 

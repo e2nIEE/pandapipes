@@ -11,10 +11,10 @@ from pandapipes.component_models import Junction
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
-    init_options, create_internal_results, write_internal_results, extract_all_results, \
+    init_options, create_internal_results, write_internal_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
     init_all_result_tables, set_user_pf_options, update_pit, init_idx
-from pandapipes.pipeflow_setup import init_fluid
+from pandapipes.pf.pipeflow_setup import init_fluid
 from pandapipes.properties.fluids import is_fluid_gas
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 
@@ -105,7 +105,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
         raise UserWarning("Converged flag not set. Make sure that hydraulic calculation results "
                           "are available.")
     elif calculation_mode == "heat" and net.user_pf_options["hyd_flag"]:
-        net["_active_pit"]["node"][:, , net['_idx_node']['PINIT']] = sol_vec[:len(node_pit)]
+        net["_active_pit"]["node"][:, net['_idx_node']['PINIT']] = sol_vec[:len(node_pit)]
         net["_active_pit"]["branch"][:, net['_idx_branch']['VINIT']] = sol_vec[len(node_pit):]
 
     if calculate_hydraulics:
@@ -172,11 +172,11 @@ def hydraulics(net):
 
         #ToDo: Maybe integration of m and w necessary
         finalize_iteration(net, niter, {'p': error_p, 'v': error_v},
-                           net['_idx_node']['PINIT'], net['_idx_node']['VINIT'],
-                           ['node', 'branch']
+                           [net['_idx_node']['PINIT'], net['_idx_branch']['VINIT']],
+                           ['node', 'branch'],
                            residual_norm, nonlinear_method,
                            [tol_p, tol_v],
-                           tol_res, [results[0], results[1]])
+                           tol_res, [results[1], results[0]])
         niter += 1
     write_internal_results(net, iterations=niter, error_p=error_p[niter - 1],
                            error_v=error_v[niter - 1], error_m=error_m[niter - 1], error_w=error_w[niter - 1],
@@ -226,8 +226,8 @@ def heat_transfer(net):
         error_t_out.append(linalg.norm(delta_t_out) / (len(delta_t_out)))
 
         finalize_iteration(net, niter, {'t': error_t, 't_out': error_t_out},
-                           net['_idx_node']['TINIT'], net['_idx_node']['T_OUT'],
-                           ['node', 'branch']
+                           [net['_idx_node']['TINIT'], net['_idx_branch']['T_OUT']],
+                           ['node', 'branch'],
                            residual_norm, nonlinear_method,
                            [tol_t, tol_t],
                            tol_res, [t_init_old, t_out_old])
@@ -266,12 +266,12 @@ def solve_hydraulics(net, first_iter):
     ne_mask = node_element_pit[:, net._idx_node_element['NODE_ELEMENT_TYPE']].astype(bool)
     if len(net._fluid) != 1:
         for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
-            comp.create_property_pit_node_entries(net, node_pit, Junction.table_name())
-            comp.create_property_pit_branch_entries(net, node_pit, branch_pit, Junction.table_name())
+            comp.create_property_pit_node_entries(net, node_pit)
+            comp.create_property_pit_branch_entries(net, node_pit, branch_pit)
     for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
         comp.adaption_before_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
-    calculate_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, options)
+    calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
     for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
         comp.adaption_after_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
@@ -388,23 +388,23 @@ def finalize_iteration(net, niter, specific_errors, pit_columns, pit_type, resid
 
     # Control of damping factor
     if nonlinear_method == "automatic":
-        error_x_increased = set_damping_factor(net, niter, specific_errors.values())
-        for error, col, pit_t, res in zip(error_x_increased, pit_columns, pit_type, old_results)
-            if error_x0_increased:
+        error_x_increased = set_damping_factor(net, niter, list(specific_errors.values()))
+        for error, col, pit_t, res in zip(error_x_increased, pit_columns, pit_type, old_results):
+            if error:
                 net["_active_pit"][pit_t][:, col] = res
     elif nonlinear_method != "constant":
         logger.warning("No proper nonlinear method chosen. Using constant settings.")
 
     # Setting convergence flag
-    bool_err = all([error[niter] <= tol for error, tol in zip(specific_errors, specific_tolerances)])
+    bool_err = all([error[niter] <= tol for error, tol in zip(specific_errors.values(), specific_tolerances)])
     if bool_err and residual_norm < tol_res:
         if nonlinear_method != "automatic":
             set_net_option(net, "converged", True)
         elif get_net_option(net, "alpha") == 1:
             set_net_option(net, "converged", True)
 
-    for key, error in specific_errors.items()
-        logger.debug("error_%s: %s" % (key, error[niter])
+    for key, error in specific_errors.items():
+        logger.debug("error_%s: %s" % (key, error[niter]))
         logger.debug("alpha: %s" % get_net_option(net, "alpha"))
 
 

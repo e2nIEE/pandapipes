@@ -29,12 +29,12 @@ class Sink(ConstFlow):
         return False
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
-        super().create_pit_node_entries(net, node_pit, node_name)
+    def create_pit_node_entries(cls, net, node_pit):
+        super().create_pit_node_entries(net, node_pit)
         fluids = net._fluid
         if len(fluids) != 1:
             sinks = net[cls.table_name()]
             juncts = sinks.loc[sinks.mdot_kg_per_s.values == 0, 'junction']
-            junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
+            junction_idx_lookups = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
             index = junction_idx_lookups[juncts]
             node_pit[index, net['_idx_node']['LOAD']] += 0#10 ** -16

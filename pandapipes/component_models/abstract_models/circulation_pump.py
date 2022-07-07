@@ -25,9 +25,14 @@ class CirculationPump(ExtGrid):
     def get_connected_node_type(cls):
         raise NotImplementedError
 
+    #ToDo: remove as soon as the circulation pumps are redefined, replace by get_connected_node_type
     @classmethod
-    def create_pit_node_element_entries(cls, net, node_element_pit, node_name):
-        super().create_pit_node_element_entries(net, node_element_pit, node_name)
+    def junction_column_name(cls):
+        return 'from_junction'
+
+    @classmethod
+    def create_pit_node_element_entries(cls, net, node_element_pit):
+        super().create_pit_node_element_entries(net, node_element_pit)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):

@@ -1,9 +1,9 @@
 import numpy as np
 
-from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, TINIT, LOAD_VEC_BRANCHES, \
-    JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
-    FROM_NODE, TO_NODE
-from pandapipes.properties.fluids import get_fluid
+
+from pandapipes.properties.fluids import is_fluid_gas, get_fluid, get_mixture_compressibility, \
+    get_mixture_der_cmpressibility
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -20,22 +20,32 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     :type options:
     :return: No Output.
     """
-    fluid = get_fluid(net)
-    gas_mode = fluid.is_gas
+
+    gas_mode = is_fluid_gas(net)
     friction_model = options["friction_model"]
 
     lambda_, re = calc_lambda(
-        branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO], branch_pit[:, D],
-        branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options)
-    der_lambda = calc_der_lambda(branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO],
-                                 branch_pit[:, D], branch_pit[:, K], friction_model, lambda_)
-    branch_pit[:, RE] = re
-    branch_pit[:, LAMBDA] = lambda_
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+        branch_pit[:, net['_idx_branch']['VINIT']],
+        branch_pit[:, net['_idx_branch']['ETA']],
+        branch_pit[:, net['_idx_branch']['RHO']],
+        branch_pit[:, net['_idx_branch']['D']],
+        branch_pit[:, net['_idx_branch']['K']],
+        gas_mode, friction_model,
+        branch_pit[:, net['_idx_branch']['LENGTH']], options)
+    der_lambda = calc_der_lambda(
+        branch_pit[:, net['_idx_branch']['VINIT']],
+        branch_pit[:, net['_idx_branch']['ETA']],
+        branch_pit[:, net['_idx_branch']['RHO']],
+        branch_pit[:, net['_idx_branch']['D']],
+        branch_pit[:, net['_idx_branch']['K']],
+        friction_model, lambda_)
+    branch_pit[:, net['_idx_branch']['RE']] = re
+    branch_pit[:, net['_idx_branch']['LAMBDA']] = lambda_
+    from_nodes = branch_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
+    to_nodes = branch_pit[:, net['_idx_branch']['TO_NODE']].astype(np.int32)
     tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = \
-        get_derived_values(node_pit, from_nodes, to_nodes, options["use_numba"])
-    branch_pit[:, TINIT] = tinit_branch
+        get_derived_values(net, node_pit, from_nodes, to_nodes, options["use_numba"])
+    branch_pit[:, net['_idx_branch']['TINIT']] = tinit_branch
 
     if not gas_mode:
         if options["use_numba"]:
@@ -46,7 +56,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_incomp
 
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
-            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference)
+            net, branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference)
     else:
         if options["use_numba"]:
             from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
@@ -57,28 +67,39 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
                 calc_medium_pressure_with_derivative
         p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
-        comp_fact = fluid.get_compressibility(p_m)
+        if len(net._fluid) == 1:
+            fluid = net._fluid[0]
+            comp_fact = get_fluid(net, fluid).get_compressibility(p_m)
+            der_comp_fact = get_fluid(net, fluid).get_der_compressibility()
+            der_comp = der_comp_fact * der_p_m
+            der_comp1 = der_comp_fact * der_p_m1
+        else:
+            w = get_lookup(net, 'branch', 'w')
+            mf = branch_pit[:, w]
+            comp_fact = get_mixture_compressibility(net, p_m, mf)
+            der_comp_fact = get_mixture_der_cmpressibility(net, p_m, mf)
+            der_comp = der_comp_fact * der_p_m
+            der_comp1 = der_comp_fact * der_p_m1
         # TODO: this might not be required
-        der_comp = fluid.get_der_compressibility() * der_p_m
-        der_comp1 = fluid.get_der_compressibility() * der_p_m1
+
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_comp(
-            branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
+            net, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
             comp_fact, der_comp, der_comp1)
 
-    branch_pit[:, LOAD_VEC_BRANCHES] = load_vec
-    branch_pit[:, JAC_DERIV_DV] = df_dv
-    branch_pit[:, JAC_DERIV_DP] = df_dp
-    branch_pit[:, JAC_DERIV_DP1] = df_dp1
-    branch_pit[:, LOAD_VEC_NODES] = load_vec_nodes
-    branch_pit[:, JAC_DERIV_DV_NODE] = df_dv_nodes
+    branch_pit[:, net['_idx_branch']['LOAD_VEC_BRANCHES']] = load_vec
+    branch_pit[:, net['_idx_branch']['JAC_DERIV_DV']] = df_dv
+    branch_pit[:, net['_idx_branch']['JAC_DERIV_DP']] = df_dp
+    branch_pit[:, net['_idx_branch']['JAC_DERIV_DP1']] = df_dp1
+    branch_pit[:, net['_idx_branch']['LOAD_VEC_NODES']] = load_vec_nodes
+    branch_pit[:, net['_idx_branch']['JAC_DERIV_DV_NODE']] = df_dv_nodes
 
 
-def get_derived_values(node_pit, from_nodes, to_nodes, use_numba):
+def get_derived_values(net, node_pit, from_nodes, to_nodes, use_numba):
     if use_numba:
         from pandapipes.pf.derivative_toolbox_numba import calc_derived_values_numba
         return calc_derived_values_numba(node_pit, from_nodes, to_nodes)
     from pandapipes.pf.derivative_toolbox import calc_derived_values_np
-    return calc_derived_values_np(node_pit, from_nodes, to_nodes)
+    return calc_derived_values_np(net, node_pit, from_nodes, to_nodes)
 
 
 def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, lengths, options):

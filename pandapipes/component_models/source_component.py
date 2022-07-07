@@ -5,10 +5,10 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.abstract_models.const_flow_models import ConstFlow
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
 
 
 class Source(ConstFlow):
@@ -25,18 +25,18 @@ class Source(ConstFlow):
         return -1
 
     @classmethod
-    def node_element_relevant(cls, net):
-        return False
+    def get_connected_node_type(cls):
+        return Junction
 
     @classmethod
     def node_element_relevant(cls, net):
         return len(net._fluid) != 1
 
     @classmethod
-    def create_pit_node_element_entries(cls, net, node_element_pit, node_name):
+    def create_pit_node_element_entries(cls, net, node_element_pit):
         fluids = net._fluid
         if len(fluids) != 1:
-            source_pit = super().create_pit_node_element_entries(net, node_element_pit, node_name)
+            source_pit = super().create_pit_node_element_entries(net, node_element_pit)
             sources = net[cls.table_name()]
             helper = sources.in_service.values * sources.scaling.values
             mf = np.nan_to_num(sources.mdot_kg_per_s.values)
@@ -44,8 +44,8 @@ class Source(ConstFlow):
             source_pit[:, net._idx_node_element['MINIT']] = mass_flow_loads
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
-        super().create_pit_node_entries(net, node_pit, node_name)
+    def create_pit_node_entries(cls, net, node_pit):
+        super().create_pit_node_entries(net, node_pit)
         sources = net[cls.table_name()]
         fluids = net._fluid
         if len(fluids) != 1:
@@ -53,9 +53,10 @@ class Source(ConstFlow):
             mf = np.nan_to_num(sources.mdot_kg_per_s.values)
             mass_flow_loads = mf * helper
             for fluid in fluids:
-                juncts, sources_sum = _sum_by_group(sources.junction.values[sources.fluid == fluid],
+                use_numba = get_net_option(net, "use_numba")
+                juncts, sources_sum = _sum_by_group(use_numba, sources.junction.values[sources.fluid == fluid],
                                                     mass_flow_loads[sources.fluid == fluid])
-                junction_idx_lookups = get_lookup(net, "node", "index")[node_name]
+                junction_idx_lookups = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
                 index = junction_idx_lookups[juncts]
                 node_pit[index, net['_idx_node'][fluid + '_LOAD']] -= sources_sum
 

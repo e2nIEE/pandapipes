@@ -67,7 +67,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
             ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
         ]
 
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             required_results.extend([
                 ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
                 ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),

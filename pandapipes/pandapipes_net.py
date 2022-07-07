@@ -11,7 +11,7 @@ from pandapipes import __version__
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.component_models.create_toolbox import add_new_component
+from pandapipes.create_toolbox import add_new_component
 from pandapower.auxiliary import ADict
 from pandas import Index
 

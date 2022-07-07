@@ -743,6 +743,10 @@ def get_mixture_compressibility(net, pressure, mass_fraction):
     compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
     return calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
 
+def get_mixture_der_cmpressibility(net, pressure, mass_fraction):
+    der_compressibility_list = [net.fluid[fluid].get_property('der_compressibility', pressure) for fluid in net._fluid]
+    return calculate_mixture_compressibility(der_compressibility_list, mass_fraction.T)
+
 
 def get_mixture_higher_heating_value(net, mass_fraction):
     calorific_list = np.array([net.fluid[fluid].get_property('hhv') for fluid in net._fluid])
