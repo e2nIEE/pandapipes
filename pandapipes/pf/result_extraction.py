@@ -102,7 +102,7 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
 
 def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from,
                                  p_to):
-    pit_cols = np.array([net['_idx_branch']['TINIT'], net['_idx_node']['PAMB']])
+    pit_cols = [net['_idx_branch']['TINIT'], net['_idx_node']['PAMB']]
 
     p_abs_from, p_abs_to, p_abs_mean = get_pressures_numba(pit_cols[1], node_pit, from_nodes, to_nodes, v_mps,
                                                            p_from, p_to)

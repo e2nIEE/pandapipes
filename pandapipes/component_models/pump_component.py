@@ -171,6 +171,7 @@ class Pump(BranchWZeroLengthComponent):
                     else:
                         molar_mass_given=True
                 else:
+                    node_pit = net["_active_pit"]["node"]
                     w = get_lookup(net, 'node', 'w')
                     mass_fraction = node_pit[:, w]
                     compr = get_mixture_compressibility(net, p_from, mass_fraction)
