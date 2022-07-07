@@ -87,6 +87,13 @@ class Junction(NodeComponent):
         junction_pit[:, net['_idx_node']['ACTIVE']] = junctions.in_service.values
         w = get_lookup(net, 'node', 'w')
         junction_pit[:, w] = 1 / len(net._fluid)
+
+
+    @classmethod
+    def create_property_pit_node_entries(cls, net, node_pit):
+        ft_lookup = get_lookup(net, "node", "from_to")
+        f, t = ft_lookup[cls.table_name()]
+        junction_pit = node_pit[f:t, :]
         if len(net._fluid) == 1:
             junction_pit[:, net['_idx_node']['RHO']] = \
                 get_fluid(net, net._fluid[0]).get_density(junction_pit[:, net['_idx_node']['TINIT']])
@@ -94,13 +101,6 @@ class Junction(NodeComponent):
             for fluid in net._fluid:
                 junction_pit[:, net['_idx_node'][fluid + '_RHO']] = \
                     get_fluid(net, fluid).get_density(junction_pit[:, net['_idx_node']['TINIT']])
-
-    @classmethod
-    def create_property_pit_node_entries(cls, net, node_pit):
-        if len(net._fluid) != 1:
-            ft_lookup = get_lookup(net, "node", "from_to")
-            f, t = ft_lookup[cls.table_name()]
-            junction_pit = node_pit[f:t, :]
             w = get_lookup(net, 'node', 'w')
             rho = get_lookup(net, 'node', 'rho')
             der_rho_same = get_lookup(net, 'node', 'deriv_rho_same')
@@ -111,6 +111,7 @@ class Junction(NodeComponent):
             junction_pit[:, net['_idx_node']['RHO']] = get_mixture_density(net, temperature, mf)
             junction_pit[:, der_rho_same] = get_derivative_density_same(mf, rl)
             junction_pit[:, der_rho_diff] = get_derivative_density_diff(mf, rl)
+
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
