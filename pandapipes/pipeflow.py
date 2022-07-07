@@ -171,7 +171,7 @@ def hydraulics(net):
             error_w.append(0)
 
         #ToDo: Maybe integration of m and w necessary
-        finalize_iteration(net, niter, {'p': error_p, 'v': error_v},
+        finalize_iteration(net, niter, ['p', 'v'], [error_p, error_v],
                            [net['_idx_node']['PINIT'], net['_idx_branch']['VINIT']],
                            ['node', 'branch'],
                            residual_norm, nonlinear_method,
@@ -225,7 +225,7 @@ def heat_transfer(net):
         error_t.append(linalg.norm(delta_t_init) / (len(delta_t_init)))
         error_t_out.append(linalg.norm(delta_t_out) / (len(delta_t_out)))
 
-        finalize_iteration(net, niter, {'t': error_t, 't_out': error_t_out},
+        finalize_iteration(net, niter, ['t', 't_out'], [error_t, error_t_out],
                            [net['_idx_node']['TINIT'], net['_idx_branch']['T_OUT']],
                            ['node', 'branch'],
                            residual_norm, nonlinear_method,
@@ -383,12 +383,12 @@ def set_damping_factor(net, niter, error):
     return error_x0_increased, error_x1_increased
 
 
-def finalize_iteration(net, niter, specific_errors, pit_columns, pit_type, residual_norm, nonlinear_method,
+def finalize_iteration(net, niter, error_names, specific_errors, pit_columns, pit_type, residual_norm, nonlinear_method,
                        specific_tolerances, tol_res, old_results):
 
     # Control of damping factor
     if nonlinear_method == "automatic":
-        error_x_increased = set_damping_factor(net, niter, list(specific_errors.values()))
+        error_x_increased = set_damping_factor(net, niter, specific_errors)
         for error, col, pit_t, res in zip(error_x_increased, pit_columns, pit_type, old_results):
             if error:
                 net["_active_pit"][pit_t][:, col] = res
@@ -396,16 +396,16 @@ def finalize_iteration(net, niter, specific_errors, pit_columns, pit_type, resid
         logger.warning("No proper nonlinear method chosen. Using constant settings.")
 
     # Setting convergence flag
-    bool_err = all([error[niter] <= tol for error, tol in zip(specific_errors.values(), specific_tolerances)])
+    bool_err = all([error[niter] <= tol for error, tol in zip(specific_errors, specific_tolerances)])
     if bool_err and residual_norm < tol_res:
         if nonlinear_method != "automatic":
             set_net_option(net, "converged", True)
         elif get_net_option(net, "alpha") == 1:
             set_net_option(net, "converged", True)
 
-    for key, error in specific_errors.items():
-        logger.debug("error_%s: %s" % (key, error[niter]))
-        logger.debug("alpha: %s" % get_net_option(net, "alpha"))
+    for name, error in zip(error_names, specific_errors):
+        logger.debug("error_%s: %s" % (name, error[niter]))
+    logger.debug("alpha: %s" % get_net_option(net, "alpha"))
 
 
 def log_final_results(net, converged, niter, residual_norm, hyraulic_mode=True):
