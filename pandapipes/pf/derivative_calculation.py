@@ -49,7 +49,8 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 
     pit_cols = np.array([net['_idx_branch']['VINIT'], net['_idx_branch']['LENGTH'], net['_idx_branch']['LAMBDA'],
                          net['_idx_branch']['D'], net['_idx_branch']['LOSS_COEFFICIENT'], net['_idx_branch']['RHO'],
-                         net['_idx_branch']['PL'], net['_idx_branch']['AREA'], net['_idx_branch']['TINIT']])
+                         net['_idx_branch']['PL'], net['_idx_branch']['AREA'], net['_idx_branch']['TINIT']],
+                         dtype=np.int32)
 
     if not gas_mode:
         if options["use_numba"]:
