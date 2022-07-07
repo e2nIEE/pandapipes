@@ -102,16 +102,23 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
 
 def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from,
                                  p_to):
-    p_abs_from, p_abs_to, p_abs_mean = get_pressures_numba(net, node_pit, from_nodes, to_nodes, v_mps,
-                                                           p_from, p_to)
+    pit_cols = np.array([net['_idx_branch']['TINIT'], net['_idx_node']['PAMB']])
 
-    fluid = get_fluid(net)
-    comp_from = fluid.get_property("compressibility", p_abs_from)
-    comp_to = fluid.get_property("compressibility", p_abs_to)
-    comp_mean = fluid.get_property("compressibility", p_abs_mean)
+    p_abs_from, p_abs_to, p_abs_mean = get_pressures_numba(pit_cols[1], node_pit, from_nodes, to_nodes, v_mps,
+                                                           p_from, p_to)
+    if len(net._fluid) == 1:
+        comp_from = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_from) / p_abs_from
+        comp_to = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_to) / p_abs_to
+        comp_mean = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_mean) / p_abs_mean
+    else:
+        w = get_lookup(net, 'branch', 'w')
+        mass_fract = branch_pit[:, w]
+        comp_from = get_mixture_compressibility(net, p_abs_from, mass_fract) / p_abs_from
+        comp_to = get_mixture_compressibility(net, p_abs_to, mass_fract) / p_abs_to
+        comp_mean = get_mixture_compressibility(net, p_abs_mean, mass_fract) / p_abs_mean
 
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
-        get_gas_vel_numba(net, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,
+        get_gas_vel_numba(pit_cols[0], branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,
                           p_abs_mean, v_mps)
 
     return v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
@@ -119,12 +126,12 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
 
 
 @jit(nopython=True)
-def get_pressures_numba(net, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
+def get_pressures_numba(pit_cols, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
     p_abs_from, p_abs_to, p_abs_mean = [np.empty_like(v_mps) for _ in range(3)]
 
     for i in range(len(v_mps)):
-        p_abs_from[i] = node_pit[from_nodes[i], net['_idx_node']['PAMB']] + p_from[i]
-        p_abs_to[i] = node_pit[to_nodes[i], net['_idx_node']['PAMB']] + p_to[i]
+        p_abs_from[i] = node_pit[from_nodes[i], pit_cols] + p_from[i]
+        p_abs_to[i] = node_pit[to_nodes[i], pit_cols] + p_to[i]
         if np.less_equal(np.abs(p_abs_from[i] - p_abs_to[i]), 1e-8 + 1e-5 * abs(p_abs_to[i])):
             p_abs_mean[i] = p_abs_from[i]
         else:
@@ -135,13 +142,13 @@ def get_pressures_numba(net, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to
 
 
 @jit(nopython=True)
-def get_gas_vel_numba(net, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to, p_abs_mean,
+def get_gas_vel_numba(pit_cols, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to, p_abs_mean,
                       v_mps):
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         [np.empty_like(v_mps) for _ in range(6)]
 
     for i in range(len(v_mps)):
-        numerator = np.divide(NORMAL_PRESSURE * branch_pit[i, net['_idx_branch']['TINIT']], NORMAL_TEMPERATURE)
+        numerator = np.divide(NORMAL_PRESSURE * branch_pit[i, pit_cols], NORMAL_TEMPERATURE)
         normfactor_from[i] = np.divide(numerator * comp_from[i], p_abs_from[i])
         normfactor_to[i] = np.divide(numerator * comp_to[i], p_abs_to[i])
         normfactor_mean[i] = np.divide(numerator * comp_mean[i], p_abs_mean[i])

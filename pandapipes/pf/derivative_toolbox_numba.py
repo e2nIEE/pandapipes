@@ -12,8 +12,8 @@ except ImportError:
     from numpy import int32, float64, int64
 
 
-@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
-def derivatives_hydraulic_incomp_numba(net, branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
+@jit((int32[:], float64[:, :], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
+def derivatives_hydraulic_incomp_numba(pit_cols, branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
                                        height_difference):
     le = der_lambda.shape[0]
     load_vec = np.zeros_like(der_lambda)
@@ -24,29 +24,29 @@ def derivatives_hydraulic_incomp_numba(net, branch_pit, der_lambda, p_init_i_abs
     df_dv_nodes = np.zeros_like(der_lambda)
 
     for i in range(le):
-        v_init_abs = np.abs(branch_pit[i][net['_idx_branch']['VINIT']])
-        v_init2 = v_init_abs * branch_pit[i][net['_idx_branch']['VINIT']]
-        lambda_term = np.divide(branch_pit[i][net['_idx_branch']['LENGTH']] *
-                                branch_pit[i][net['_idx_branch']['LAMBDA']],
-                                branch_pit[i][net['_idx_branch']['D']]) + \
-                                branch_pit[i][net['_idx_branch']['LOSS_COEFFICIENT']]
-        const_p_term = np.divide(branch_pit[i][net['_idx_branch']['RHO']], P_CONVERSION * 2)
+        v_init_abs = np.abs(branch_pit[i][pit_cols[0]])
+        v_init2 = v_init_abs * branch_pit[i][pit_cols[0]]
+        lambda_term = np.divide(branch_pit[i][pit_cols[1]] *
+                                branch_pit[i][pit_cols[2]],
+                                branch_pit[i][pit_cols[3]]) + \
+                                branch_pit[i][pit_cols[4]]
+        const_p_term = np.divide(branch_pit[i][pit_cols[5]], P_CONVERSION * 2)
         df_dv[i] = const_p_term * (2 * v_init_abs * lambda_term + der_lambda[i]
-                                   * np.divide(branch_pit[i][net['_idx_branch']['LENGTH']],
-                                               branch_pit[i][net['_idx_branch']['D']]) * v_init2)
-        load_vec[i] = p_init_i_abs[i] - p_init_i1_abs[i] + branch_pit[i][net['_idx_branch']['PL']] \
+                                   * np.divide(branch_pit[i][pit_cols[1]],
+                                               branch_pit[i][pit_cols[3]]) * v_init2)
+        load_vec[i] = p_init_i_abs[i] - p_init_i1_abs[i] + branch_pit[i][pit_cols[6]] \
             + const_p_term * (GRAVITATION_CONSTANT * 2 * height_difference[i]
                               - v_init2 * lambda_term)
-        mass_flow_dv = branch_pit[i][net['_idx_branch']['RHO']] * \
-                       branch_pit[i][net['_idx_branch']['AREA']]
+        mass_flow_dv = branch_pit[i][pit_cols[5]] * \
+                       branch_pit[i][pit_cols[7]]
         df_dv_nodes[i] = mass_flow_dv
-        load_vec_nodes[i] = mass_flow_dv * branch_pit[i][net['_idx_branch']['VINIT']]
+        load_vec_nodes[i] = mass_flow_dv * branch_pit[i][pit_cols[0]]
     return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
 
-@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
+@jit((int32[:], float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
       float64[:], float64[:]), nopython=True, cache=False)
-def derivatives_hydraulic_comp_numba(net, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
+def derivatives_hydraulic_comp_numba(pit_cols, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
                                      height_difference, comp_fact, der_comp, der_comp1):
     le = lambda_.shape[0]
     load_vec = np.zeros_like(lambda_)
@@ -59,23 +59,23 @@ def derivatives_hydraulic_comp_numba(net, branch_pit, lambda_, der_lambda, p_ini
     # Formulas for gas pressure loss according to laminar version
     for i in range(le):
         # compressibility settings
-        v_init_abs = np.abs(branch_pit[i][net['_idx_branch']['VINIT']])
-        v_init2 = branch_pit[i][net['_idx_branch']['VINIT']] * v_init_abs
+        v_init_abs = np.abs(branch_pit[i][pit_cols[0]])
+        v_init2 = branch_pit[i][pit_cols[0]] * v_init_abs
         p_diff = p_init_i_abs[i] - p_init_i1_abs[i]
         p_sum = p_init_i_abs[i] + p_init_i1_abs[i]
         p_sum_div = np.divide(1, p_sum)
 
-        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][net['_idx_branch']['RHO']] *
-                                                   branch_pit[i][net['_idx_branch']['TINIT']],
+        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][pit_cols[5]] *
+                                                   branch_pit[i][pit_cols[8]],
                                  NORMAL_TEMPERATURE * P_CONVERSION)
         const_height = np.divide(
-            branch_pit[i][net['_idx_branch']['RHO']] * NORMAL_TEMPERATURE * GRAVITATION_CONSTANT * height_difference[i],
-            2 * NORMAL_PRESSURE * branch_pit[i][net['_idx_branch']['TINIT']] * P_CONVERSION)
-        friction_term = np.divide(lambda_[i] * branch_pit[i][net['_idx_branch']['LENGTH']],
-                                               branch_pit[i][net['_idx_branch']['D']]) + \
-                                               branch_pit[i][net['_idx_branch']['LOSS_COEFFICICENT']]
+            branch_pit[i][pit_cols[5]] * NORMAL_TEMPERATURE * GRAVITATION_CONSTANT * height_difference[i],
+            2 * NORMAL_PRESSURE * branch_pit[i][pit_cols[8]] * P_CONVERSION)
+        friction_term = np.divide(lambda_[i] * branch_pit[i][pit_cols[1]],
+                                               branch_pit[i][pit_cols[3]]) + \
+                                               branch_pit[i][pit_cols[4]]
 
-        load_vec[i] = p_diff + branch_pit[i][net['_idx_branch']['PL']] + const_height * p_sum \
+        load_vec[i] = p_diff + branch_pit[i][pit_cols[6]] + const_height * p_sum \
             - const_lambda * comp_fact[i] * v_init2 * friction_term * p_sum_div
 
         p_deriv = const_lambda * v_init2 * friction_term * p_sum_div
@@ -83,12 +83,12 @@ def derivatives_hydraulic_comp_numba(net, branch_pit, lambda_, der_lambda, p_ini
         df_dp1[i] = 1. + p_deriv * (der_comp1[i] - comp_fact[i] * p_sum_div) + const_height
 
         df_dv[i] = np.divide(2 * const_lambda * comp_fact[i], p_sum) * v_init_abs * friction_term\
-            + np.divide(const_lambda * comp_fact[i] * der_lambda[i] * branch_pit[i][net['_idx_branch']['LENGTH']]
-                        * v_init2, p_sum * branch_pit[i][net['_idx_branch']['D']])
-        mass_flow_dv = branch_pit[i][net['_idx_branch']['RHO']] * \
-                       branch_pit[i][net['_idx_branch']['AREA']]
+            + np.divide(const_lambda * comp_fact[i] * der_lambda[i] * branch_pit[i][pit_cols[1]]
+                        * v_init2, p_sum * branch_pit[i][pit_cols[3]])
+        mass_flow_dv = branch_pit[i][pit_cols[5]] * \
+                       branch_pit[i][pit_cols[7]]
         df_dv_nodes[i] = mass_flow_dv
-        load_vec_nodes[i] = mass_flow_dv * branch_pit[i][net['_idx_branch']['VINIT']]
+        load_vec_nodes[i] = mass_flow_dv * branch_pit[i][pit_cols[0]]
     return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
 
@@ -181,8 +181,8 @@ def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
     return converged, lambda_cb
 
 
-@jit((float64[:, :], int32[:], int32[:]), nopython=True)
-def calc_derived_values_numba(net, node_pit, from_nodes, to_nodes):
+@jit((int32[:], float64[:, :], int32[:], int32[:]), nopython=True)
+def calc_derived_values_numba(pit_cols, node_pit, from_nodes, to_nodes):
     le = len(from_nodes)
     tinit_branch = np.empty(le, dtype=np.float64)
     height_difference = np.empty(le, dtype=np.float64)
@@ -191,12 +191,12 @@ def calc_derived_values_numba(net, node_pit, from_nodes, to_nodes):
     for i in range(le):
         fn = from_nodes[i]
         tn = to_nodes[i]
-        tinit_branch[i] = (node_pit[fn, net['_idx_node']['TINIT']] +
-                           node_pit[tn, net['_idx_node']['TINIT']]) / 2
-        height_difference[i] = node_pit[fn, net['_idx_node']['HEIGHT']] - \
-                               node_pit[tn, net['_idx_node']['HEIGHT']]
-        p_init_i_abs[i] = node_pit[fn, net['_idx_node']['PINIT']] + \
-                          node_pit[fn, net['_idx_node']['PAMB']]
-        p_init_i1_abs[i] = node_pit[tn, net['_idx_node']['PINIT']] + \
-                           node_pit[tn, net['_idx_node']['PAMB']]
+        tinit_branch[i] = (node_pit[fn, pit_cols[0]] +
+                           node_pit[tn, pit_cols[0]]) / 2
+        height_difference[i] = node_pit[fn, pit_cols[1]] - \
+                               node_pit[tn, pit_cols[1]]
+        p_init_i_abs[i] = node_pit[fn, pit_cols[2]] + \
+                          node_pit[fn, pit_cols[3]]
+        p_init_i1_abs[i] = node_pit[tn, pit_cols[2]] + \
+                           node_pit[tn, pit_cols[3]]
     return tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs

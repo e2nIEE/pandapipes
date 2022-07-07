@@ -47,6 +47,10 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
         get_derived_values(net, node_pit, from_nodes, to_nodes, options["use_numba"])
     branch_pit[:, net['_idx_branch']['TINIT']] = tinit_branch
 
+    pit_cols = np.array([net['_idx_branch']['VINIT'], net['_idx_branch']['LENGTH'], net['_idx_branch']['LAMBDA'],
+                         net['_idx_branch']['D'], net['_idx_branch']['LOSS_COEFFICIENT'], net['_idx_branch']['RHO'],
+                         net['_idx_branch']['PL'], net['_idx_branch']['AREA'], net['_idx_branch']['TINIT']])
+
     if not gas_mode:
         if options["use_numba"]:
             from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_incomp_numba \
@@ -56,7 +60,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_incomp
 
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
-            net, branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference)
+            pit_cols, branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference)
     else:
         if options["use_numba"]:
             from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
@@ -66,6 +70,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
             from pandapipes.pf.derivative_toolbox import derivatives_hydraulic_comp_np \
                 as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
                 calc_medium_pressure_with_derivative
+
         p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
         if len(net._fluid) == 1:
             fluid = net._fluid[0]
@@ -81,9 +86,8 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
             der_comp = der_comp_fact * der_p_m
             der_comp1 = der_comp_fact * der_p_m1
         # TODO: this might not be required
-
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_comp(
-            net, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
+            pit_cols, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
             comp_fact, der_comp, der_comp1)
 
     branch_pit[:, net['_idx_branch']['LOAD_VEC_BRANCHES']] = load_vec
@@ -95,11 +99,13 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 
 
 def get_derived_values(net, node_pit, from_nodes, to_nodes, use_numba):
+    pit_cols = np.array([net['_idx_node']['TINIT'], net['_idx_node']['HEIGHT'],
+                         net['_idx_node']['PINIT'], net['_idx_node']['PAMB']])
     if use_numba:
         from pandapipes.pf.derivative_toolbox_numba import calc_derived_values_numba
-        return calc_derived_values_numba(node_pit, from_nodes, to_nodes)
+        return calc_derived_values_numba(pit_cols, node_pit, from_nodes, to_nodes)
     from pandapipes.pf.derivative_toolbox import calc_derived_values_np
-    return calc_derived_values_np(net, node_pit, from_nodes, to_nodes)
+    return calc_derived_values_np(pit_cols, node_pit, from_nodes, to_nodes)
 
 
 def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, lengths, options):
