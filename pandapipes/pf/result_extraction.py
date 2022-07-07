@@ -107,15 +107,15 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
     p_abs_from, p_abs_to, p_abs_mean = get_pressures_numba(pit_cols[1], node_pit, from_nodes, to_nodes, v_mps,
                                                            p_from, p_to)
     if len(net._fluid) == 1:
-        comp_from = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_from) / p_abs_from
-        comp_to = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_to) / p_abs_to
-        comp_mean = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_mean) / p_abs_mean
+        comp_from = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_from)
+        comp_to = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_to)
+        comp_mean = get_fluid(net, net._fluid[0]).get_property("compressibility", p_abs_mean)
     else:
         w = get_lookup(net, 'branch', 'w')
         mass_fract = branch_pit[:, w]
-        comp_from = get_mixture_compressibility(net, p_abs_from, mass_fract) / p_abs_from
-        comp_to = get_mixture_compressibility(net, p_abs_to, mass_fract) / p_abs_to
-        comp_mean = get_mixture_compressibility(net, p_abs_mean, mass_fract) / p_abs_mean
+        comp_from = get_mixture_compressibility(net, p_abs_from, mass_fract)
+        comp_to = get_mixture_compressibility(net, p_abs_to, mass_fract)
+        comp_mean = get_mixture_compressibility(net, p_abs_mean, mass_fract)
 
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         get_gas_vel_numba(pit_cols[0], branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,
