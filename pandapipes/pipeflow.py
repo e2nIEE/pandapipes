@@ -54,7 +54,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     :return: No output
 
     :Example:
-        >>> pipeflow(net, mode="hydraulic")
+        >>> pipeflow(net, mode="hydraulics")
 
     """
     local_params = dict(locals())
