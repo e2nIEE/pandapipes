@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,11 +6,11 @@ import copy
 
 import pandapipes.plotting as plot
 from matplotlib.collections import PatchCollection, LineCollection
-from pandapipes.test.test_toolbox import net_plotting, net_out_of_service_plotting
+from pandapipes.test.test_toolbox import base_net_is_with_pumps, base_net_oos_with_pumps
 
 
-def test_simple_collections(net_plotting):
-    net = copy.deepcopy(net_plotting)
+def test_simple_collections(base_net_is_with_pumps):
+    net = copy.deepcopy(base_net_is_with_pumps)
     collections = plot.create_simple_collections(net, plot_sinks=True, plot_sources=True)
 
     assert len(collections) == len([comp for comp in net["component_list"]
@@ -62,8 +62,8 @@ def test_simple_collections(net_plotting):
     assert len(collections["circ_pump_mass"][0].get_paths()) == len(net.circ_pump_mass)
     assert len(collections["circ_pump_mass"][1].get_paths()) == 4 * len(net.circ_pump_mass)
 
-def test_simple_collections_out_of_service(net_out_of_service_plotting):
-    net = copy.deepcopy(net_out_of_service_plotting)
+def test_simple_collections_out_of_service(base_net_oos_with_pumps):
+    net = copy.deepcopy(base_net_oos_with_pumps)
     collections = plot.create_simple_collections(net, plot_sinks=True, plot_sources=True)
 
     assert len(collections) == len([comp for comp in net["component_list"]

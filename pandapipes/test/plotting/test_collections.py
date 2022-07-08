@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import pandapipes
 import pandapipes.plotting as plot
 import pytest
 from matplotlib.collections import PatchCollection, LineCollection
-from pandapipes.test.test_toolbox import net_plotting
+from pandapipes.test.test_toolbox import base_net_is_with_pumps
 
 
 def test_collection_lengths():
@@ -77,9 +77,8 @@ def test_collection_lengths():
     assert len(pc_coll_lines.get_paths()) == 4 * len(net.press_control)
 
 
-
-def test_collections2(net_plotting):
-    net = copy.deepcopy(net_plotting)
+def test_collections2(base_net_is_with_pumps):
+    net = copy.deepcopy(base_net_is_with_pumps)
 
     pipe_coll_direct = plot.create_pipe_collection(net, use_junction_geodata=True)
     pipe_coll_real = plot.create_pipe_collection(net)
