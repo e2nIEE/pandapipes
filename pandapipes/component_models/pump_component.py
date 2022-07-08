@@ -110,7 +110,7 @@ class Pump(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        pump_pit[:, net['idx_branch']['TL']] = 0
+        pump_pit[:, net['_idx_branch']['TL']] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
