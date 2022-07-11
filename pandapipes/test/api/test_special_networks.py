@@ -550,5 +550,23 @@ def test_schutterwald_hydrogen():
     pandapipes.pipeflow(net, iter=100)
 
 
+@pytest.mark.xfail
+def test_t_cross_mixture():
+    net = pandapipes.create_empty_network()
+    j1 = pandapipes.create_junction(net, 1, 273)
+    j2 = pandapipes.create_junction(net, 1, 273)
+    j3 = pandapipes.create_junction(net, 1, 273)
+    j4 = pandapipes.create_junction(net, 1, 273)
+    pandapipes.create_ext_grid(net, j1, 1, 273, 'hgas')
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
+    pandapipes.create_pipe_from_parameters(net, j2, j4, 1, 0.1, 0.1)
+    pandapipes.create_sink(net, j2, 0.005)
+    pandapipes.create_sink(net, j3, 0.005)
+    pandapipes.create_sink(net, j4, 0.005)
+    pandapipes.create_source(net, j3, 0.01, 'lgas')
+    pandapipes.create_source(net, j4, 0.02, 'hydrogen')
+    pandapipes.pipeflow(net, iter=100)
+
 if __name__ == "__main__":
     pytest.main([r'pandapipes/test/api/test_special_networks.py'])
