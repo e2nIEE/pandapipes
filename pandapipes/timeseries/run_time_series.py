@@ -86,11 +86,10 @@ def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True
     :rtype: dict, dict
     """
 
-    run = kwargs.get("run", ppipes.pipeflow)
+    run = kwargs.pop("run", ppipes.pipeflow)
     init_default_outputwriter(net, time_steps, **kwargs)
 
-    ts_variables = init_time_series_pp(net, time_steps, continue_on_divergence, verbose, run=run,
-                                       **kwargs)
+    ts_variables = init_time_series_pp(net, time_steps, continue_on_divergence, verbose, run=run, **kwargs)
 
     ts_variables["errors"] = tuple([PipeflowNotConverged])
 
