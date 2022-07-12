@@ -354,14 +354,6 @@ def initialize_pit(net):
     return pit["node"], pit["branch"], pit["node_element"]
 
 
-def update_pit(net):
-    node_pit = net['_active_pit']['node']
-    branch_pit = net['_active_pit']['branch']
-    for comp in np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']]):
-        comp.create_property_pit_node_entries(net, node_pit)
-        comp.create_property_pit_branch_entries(net, node_pit, branch_pit)
-
-
 def create_empty_pit(net):
     """
     Creates an empty internal structure which is called pit (pandapipes internal tables). The\

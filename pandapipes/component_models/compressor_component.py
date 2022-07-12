@@ -41,11 +41,11 @@ class Compressor(Pump):
         compressor_pit[:, net['_idx_branch']['PRESSURE_RATIO']] = net[cls.table_name()].pressure_ratio.values
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         """ absolute inlet pressure multiplied by the compressor's boost ratio.
         If the flow is reversed, the pressure lift is set to 0."""
-
-        f, t = idx_lookups[cls.table_name()]
+        super().adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, node_lookups, options)
+        f, t = branch_lookups[cls.table_name()]
         compressor_pit = branch_pit[f:t, :]
 
         from_nodes = compressor_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)

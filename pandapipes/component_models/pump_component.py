@@ -64,9 +64,9 @@ class Pump(BranchWZeroLengthComponent):
         pump_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']] = 0
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        # calculation of pressure lift
-        f, t = idx_lookups[cls.table_name()]
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
+        super().adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, node_lookups, options)
+        f, t = branch_lookups[cls.table_name()]
         pump_pit = branch_pit[f:t, :]
         area = pump_pit[:, net['_idx_branch']['AREA']]
         idx = pump_pit[:, net['_idx_branch']['STD_TYPE']].astype(int)

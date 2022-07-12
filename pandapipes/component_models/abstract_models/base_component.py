@@ -73,11 +73,11 @@ class Component:
         raise NotImplementedError
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         pass
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         pass
 
     @classmethod
@@ -141,9 +141,6 @@ class Component:
 
         pass
 
-    @classmethod
-    def create_property_pit_node_entries(cls, net, node_pit):
-        pass
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -158,19 +155,6 @@ class Component:
         """
         pass
 
-    @classmethod
-    def create_property_pit_branch_entries(cls, net, node_pit, branch_pit):
-        """
-        Function which creates pit branch entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :return: No Output.
-        """
-
-        pass
 
     @classmethod
     def calculate_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):

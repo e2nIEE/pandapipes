@@ -7,7 +7,7 @@ from pandapipes.component_models.component_toolbox import set_entry_check_repeat
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import get_fluid, get_mixture_density
 
 try:
     from pandaplan.core import pplog as logging
@@ -138,6 +138,7 @@ class BranchWInternalsComponent(BranchComponent):
         table_nr = get_table_number(table_lookup, cls.internal_node_name())
         if table_nr is None:
             return None, 0, 0, None, None, None
+        # TODO: should be from_to_active
         ft_lookup = get_lookup(net, "node", "from_to")
         f, t = ft_lookup[cls.internal_node_name()]
 
@@ -210,6 +211,18 @@ class BranchWInternalsComponent(BranchComponent):
                     get_fluid(net, fluid).get_density(branch_w_internals_pit[:, net['_idx_branch']['TINIT']])
 
         return branch_w_internals_pit, internal_pipe_number
+
+    @classmethod
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
+        super().adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, node_lookups, options)
+        internal_nodes = cls.get_internal_pipe_number(net) - 1
+        if len(net._fluid) != 1 and np.any(internal_nodes) > 0:
+            f, t = node_lookups[cls.internal_node_name()]
+            junction_pit = node_pit[f:t, :]
+            w = get_lookup(net, 'node', 'w')
+            mass_fraction = junction_pit[:, w]
+            junction_pit[:, net['_idx_node']['RHO']] = \
+                get_mixture_density(net, junction_pit[:, net['_idx_node']['TINIT']], mass_fraction=mass_fraction)
 
     @classmethod
     def get_internal_pipe_number(cls, net):

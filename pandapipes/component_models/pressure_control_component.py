@@ -61,14 +61,11 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         pc_pit[net[cls.table_name()].control_active.values, net['_idx_branch']['BRANCH_TYPE']] = net['_idx_node']['PC']
         pc_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']] = net[cls.table_name()].loss_coefficient.values
 
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         # set all PC branches to derivatives to 0
-        f, t = idx_lookups[cls.table_name()]
+        f, t = branch_lookups[cls.table_name()]
         press_pit = branch_pit[f:t, :]
         pc_branch = press_pit[:, net['_idx_branch']['BRANCH_TYPE']] == net['_idx_node']['PC']
         press_pit[pc_branch, net['_idx_branch']['JAC_DERIV_DP']] = 0

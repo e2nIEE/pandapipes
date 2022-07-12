@@ -93,9 +93,9 @@ class BranchComponent(Component):
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
     @classmethod
-    def create_property_pit_branch_entries(cls, net, node_pit, branch_pit):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         if len(net._fluid) != 1:
-            f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+            f, t = branch_lookups[cls.table_name()]
             branch_component_pit = branch_pit[f:t, :]
             create_v_node(net, branch_pit)
             v_from_b = branch_component_pit[:, net['_idx_branch']['V_FROM_NODE']].astype(int)
@@ -165,10 +165,6 @@ class BranchComponent(Component):
             rho * v_init * branch_component_pit[:, net['_idx_branch']['AREA']]
         branch_component_pit[:, net['_idx_branch']['LOAD_VEC_NODES_T']] = \
             rho * v_init * branch_component_pit[:, net['_idx_branch']['AREA']] * t_init_i1
-
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_pit, node_pit):

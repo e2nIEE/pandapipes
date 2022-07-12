@@ -90,9 +90,8 @@ class Junction(NodeComponent):
 
 
     @classmethod
-    def create_property_pit_node_entries(cls, net, node_pit):
-        ft_lookup = get_lookup(net, "node", "from_to")
-        f, t = ft_lookup[cls.table_name()]
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
+        f, t = node_lookups[cls.table_name()]
         junction_pit = node_pit[f:t, :]
         if len(net._fluid) == 1:
             junction_pit[:, net['_idx_node']['RHO']] = \

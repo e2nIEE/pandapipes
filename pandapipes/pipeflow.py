@@ -13,7 +13,7 @@ from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, \
     get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
-    init_all_result_tables, set_user_pf_options, update_pit, init_idx
+    init_all_result_tables, set_user_pf_options, init_idx
 from pandapipes.pf.pipeflow_setup import init_fluid
 from pandapipes.properties.fluids import is_fluid_gas
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
@@ -98,8 +98,6 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     reduce_pit(net, node_pit, branch_pit, node_element_pit,
                nodes_connected, branches_connected, node_elements_connected)
-
-    update_pit(net)
 
     if calculation_mode == "heat" and not net.user_pf_options["hyd_flag"]:
         raise UserWarning("Converged flag not set. Make sure that hydraulic calculation results "
@@ -262,19 +260,16 @@ def solve_hydraulics(net, first_iter):
     node_pit = net["_active_pit"]["node"]
     node_element_pit = net['_active_pit']['node_element']
 
-    branch_lookups = get_lookup(net, "branch", "from_to_active")
+    branch_lookups = get_lookup(net, "branch", "from_to_active")#
+    node_lookups = get_lookup(net, "node", "from_to_active")
     ne_mask = node_element_pit[:, net._idx_node_element['NODE_ELEMENT_TYPE']].astype(bool)
     comp_list = np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']])
     for comp in comp_list:
-        comp.create_property_pit_node_entries(net, node_pit)
-        comp.create_property_pit_branch_entries(net, node_pit, branch_pit)
-    for comp in comp_list:
-        comp.adaption_before_derivatives_hydraulic(
-            net, branch_pit, node_pit, branch_lookups, options)
+        comp.adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, node_lookups, options)
     calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
     for comp in comp_list :
         comp.adaption_after_derivatives_hydraulic(
-            net, branch_pit, node_pit, branch_lookups, options)
+            net, branch_pit, node_pit, branch_lookups, node_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, node_element_pit, False, first_iter)
 
     if first_iter:

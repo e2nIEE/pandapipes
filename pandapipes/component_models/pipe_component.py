@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
     vinterp, set_entry_check_repeat
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.pf.pipeflow_setup import get_lookup, get_fluid, get_table_number
+from pandapipes.pf.pipeflow_setup import get_lookup, get_fluid
 from pandapipes.properties.fluids import get_mixture_density, is_fluid_gas, get_mixture_compressibility
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
@@ -123,22 +123,6 @@ class Pipe(BranchWInternalsComponent):
                 get_fluid(net, net._fluid[0]).get_density(junction_pit[:, net['_idx_node']['TINIT']])
 
     @classmethod
-    def create_property_pit_node_entries(cls, net, node_pit):
-        if len(net._fluid) != 1:
-            table_lookup = get_lookup(net, "node", "table")
-            table_nr = get_table_number(table_lookup, cls.internal_node_name())
-            if table_nr is None:
-                return
-            ft_lookup = get_lookup(net, "node", "from_to")
-            f, t = ft_lookup[cls.internal_node_name()]
-
-            junction_pit = node_pit[f:t, :]
-            w = get_lookup(net, 'node', 'w')
-            mass_fraction = junction_pit[:, w]
-            junction_pit[:, net['_idx_node']['RHO']] = \
-                get_mixture_density(net, junction_pit[:, net['_idx_node']['TINIT']], mass_fraction=mass_fraction)
-
-    @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries.
@@ -173,6 +157,7 @@ class Pipe(BranchWInternalsComponent):
 
         pipe_pit[:, net['_idx_branch']['T_OUT']] = 293
         pipe_pit[:, net['_idx_branch']['AREA']] = pipe_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
+
 
     @classmethod
     def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
