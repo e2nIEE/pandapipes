@@ -12,7 +12,6 @@ from pandapipes import networks as nets_pps
 from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source, \
     create_pipe_from_parameters, create_valve
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
-from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import FluidPropertyConstant, Fluid, _add_fluid_to_net
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -528,7 +527,8 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
         net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
 
 
-def test_multiple_fluids_sink_source():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_fluids_sink_source(use_numba):
     net = pandapipes.create_empty_network()
     same_fluid_twice_defined(net)
     j1 = pandapipes.create_junction(net, 1, 273)
@@ -540,7 +540,7 @@ def test_multiple_fluids_sink_source():
     pandapipes.create_sink(net, j3, 0.05)
     pandapipes.create_source(net, j2, 0.01, 'fluid2')
     pandapipes.create_source(net, j3, 0.02, 'fluid2')
-    pandapipes.pipeflow(net, iter=100)
+    pandapipes.pipeflow(net, iter=100, use_numba=use_numba)
     assert all(net.res_junction.w_fluid1.values == [1., 0.666667, 0.4])
 
 
@@ -561,12 +561,11 @@ def test_t_cross_mixture():
     pandapipes.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
     pandapipes.create_pipe_from_parameters(net, j2, j4, 1, 0.1, 0.1)
-    pandapipes.create_sink(net, j2, 0.005)
-    pandapipes.create_sink(net, j3, 0.005)
-    pandapipes.create_sink(net, j4, 0.005)
-    pandapipes.create_source(net, j3, 0.01, 'lgas')
-    pandapipes.create_source(net, j4, 0.02, 'hydrogen')
-    pandapipes.pipeflow(net, iter=100)
+    pandapipes.create_sink(net, j3, 0.01)
+    pandapipes.create_sink(net, j4, 0.02)
+    pandapipes.create_source(net, j3, 0.02, 'lgas')
+    pandapipes.create_source(net, j4, 0.03, 'hydrogen')
+    pandapipes.pipeflow(net, iter=100, use_numba=False)
 
 if __name__ == "__main__":
     pytest.main([r'pandapipes/test/api/test_special_networks.py'])
