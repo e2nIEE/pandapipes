@@ -17,6 +17,13 @@ from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
+try:
+    import pplog as logging
+except ImportError:
+    import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Pump(BranchWZeroLengthComponent):
     """
@@ -149,13 +156,18 @@ class Pump(BranchWZeroLengthComponent):
                 mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
                 compr = get_fluid(net).get_property("compressibility", p_from)
-                molar_mass = net.fluid.get_molar_mass()  # [g/mol]
-                r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
-                # 'kappa' heat capacity ratio:
-                k = 1.4  # TODO: implement proper calculation of kappa
-                w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
-                                (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-                res_table['compr_power_mw'].values[:] = w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
+                try:
+                    molar_mass = net.fluid.get_molar_mass()  # [g/mol]
+                except UserWarning:
+                    logger.error('Molar mass is missing in your fluid. Before you are able to retrieve '
+                                 'the compression power make sure that the molar mass is defined')
+                else:
+                    r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
+                    # 'kappa' heat capacity ratio:
+                    k = 1.4  # TODO: implement proper calculation of kappa
+                    w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
+                                    (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
+                    res_table['compr_power_mw'].values[:] = w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
             else:
                 vf_sum_int = branch_results["vf"][f:t]
                 pl = branch_results["pl"][f:t]
