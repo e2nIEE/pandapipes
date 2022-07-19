@@ -7,7 +7,8 @@ import numpy as np
 from pandapipes.component_models.abstract_models.base_component import Component
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
 from pandapipes.properties.fluids import get_mixture_density, \
-    get_mixture_viscosity, get_mixture_heat_capacity, \
+    get_mixture_viscosity, get_mixture_heat_capacity
+from pandapipes.pf.derivative_toolbox import \
     get_derivative_density_diff, get_derivative_density_same
 
 try:

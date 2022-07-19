@@ -12,8 +12,8 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, \
     get_lookup, get_table_number
-from pandapipes.properties.fluids import get_fluid, get_mixture_density, get_mixture_compressibility, \
-    get_derivative_density_same, get_derivative_density_diff
+from pandapipes.properties.fluids import get_fluid, get_mixture_density, get_mixture_compressibility
+from pandapipes.pf.derivative_toolbox import get_derivative_density_same, get_derivative_density_diff
 
 
 class Junction(NodeComponent):

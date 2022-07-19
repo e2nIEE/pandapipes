@@ -171,3 +171,31 @@ def calc_derived_values_np(pit_cols, node_pit, from_nodes, to_nodes):
     p_init_i1_abs = node_pit[to_nodes, pit_cols[2]] + \
                     node_pit[to_nodes, pit_cols[3]]
     return tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs
+
+
+def get_derivative_density_diff(mass_fraction, density_list):
+    rho_prod = np.prod(density_list, axis=1)
+    shape = np.shape(mass_fraction)
+    loop = np.arange(0, shape[1])
+    nom = np.zeros(shape[0])
+    rho_select = np.zeros(shape)
+    for i in loop:
+        select = loop != i
+        nom += mass_fraction[:, i] * np.prod(density_list[:, select], axis=1)
+        rho_select[:, i] += np.prod(density_list[:, select], axis=1)
+    res = -rho_prod[:, np.newaxis] * rho_select * nom[:, np.newaxis] ** -2
+    return res
+
+
+def get_derivative_density_same(mass_fraction, density_list):
+    rho_prod = np.prod(density_list, axis=1)
+    shape = np.shape(mass_fraction)
+    loop = np.arange(0, shape[1])
+    nom = np.zeros(shape[0])
+    rho_select = np.zeros(shape)
+    for i in loop:
+        select = loop != i
+        nom += mass_fraction[:, i] * np.prod(density_list[:, select], axis=1)
+        rho_select[:, i] += np.prod(density_list[:, select], axis=1) * mass_fraction[:, i]
+    res = rho_prod[:, np.newaxis] * (-rho_select+nom[:, np.newaxis]) * nom[:, np.newaxis] ** -2
+    return res
