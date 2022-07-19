@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[upcoming release] - 2022-..-..
+[0.7.0] - 2022-07-22
 -------------------------------
 - [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
 - [ADDED] some internal functions of the hydraulic calculation are also implemented with numba's Just-in-time compilation mode for speed-up (switch on/off with the use_numba flag)
