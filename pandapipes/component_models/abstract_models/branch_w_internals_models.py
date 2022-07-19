@@ -14,7 +14,7 @@ from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

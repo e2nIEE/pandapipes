@@ -24,7 +24,7 @@ except ImportError:
     numba_installed = False
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

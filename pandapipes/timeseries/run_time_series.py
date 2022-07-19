@@ -12,7 +12,7 @@ from pandapower.timeseries.run_time_series import init_time_series as init_time_
     run_loop
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

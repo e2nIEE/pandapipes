@@ -12,7 +12,7 @@ from pandapower.timeseries.run_time_series import get_recycle_settings, init_tim
 import tqdm
 
 try:
-    import pplog
+    import pandaplan.core.pplog as pplog
 except ImportError:
     import logging as pplog
 
