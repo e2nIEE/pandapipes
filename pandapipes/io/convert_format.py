@@ -8,7 +8,7 @@ from pandapipes import __version__
 from pandapipes.pandapipes_net import add_default_components
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

@@ -12,7 +12,7 @@ from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

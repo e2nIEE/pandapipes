@@ -8,7 +8,7 @@ from pandapipes import pp_dir, drop_junctions
 from pandapipes.networks.nw_aux import log_result_upon_loading
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

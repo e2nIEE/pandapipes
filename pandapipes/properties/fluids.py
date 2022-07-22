@@ -12,7 +12,7 @@ from pandapipes import pp_dir
 from pandapower.io_utils import JSONSerializableClass
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
