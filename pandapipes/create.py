@@ -21,7 +21,7 @@ from pandapower.create import _get_multiple_index_with_check, _get_index_with_ch
     _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

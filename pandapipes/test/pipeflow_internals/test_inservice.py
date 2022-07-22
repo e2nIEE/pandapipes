@@ -13,7 +13,7 @@ from pandapipes.pipeflow import logger as pf_logger
 from pandapipes.pipeflow import PipeflowNotConverged
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

@@ -5,7 +5,7 @@
 from pandapipes.component_models.abstract_models.base_component import Component
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

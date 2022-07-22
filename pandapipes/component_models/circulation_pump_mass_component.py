@@ -13,7 +13,7 @@ from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.pipeflow_setup import get_net_option
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
