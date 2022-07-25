@@ -99,7 +99,7 @@ def _sum_by_group(use_numba, indices, *values):
     ind_dt = indices.dtype
     indices = indices.astype(np.int32)
     max_ind = max_nb(indices)
-    if max_ind < 1e5 and max_ind < 10 * len(indices):
+    if (max_ind < 1e5 or max_ind < 2 * len(indices)) and max_ind < 10 * len(indices):
         dtypes = [v.dtype for v in values]
         val_arr = np.array(list(values), dtype=np.float64).transpose()
         new_ind, new_arr = _sum_values_by_index(indices, val_arr, max_ind, len(indices),
