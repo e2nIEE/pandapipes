@@ -3,10 +3,14 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+from scipy.interpolate import interp1d
+
 from pandapipes import logger
 from pandapower.io_utils import JSONSerializableClass
+
 
 
 class StdType(JSONSerializableClass):
@@ -35,7 +39,119 @@ class StdType(JSONSerializableClass):
         return obj
 
 
-class PumpStdType(StdType):
+class InterpolationStdType(StdType):
+
+    def __init__(self, name, component, int_fct):
+        super(InterpolationStdType, self).__init__(name, component)
+        self.int_fct = int_fct
+        self._x_list = None
+        self._y_list = None
+        self._fill_value = 'extrapolate'
+
+    def update_std_type(self, x_list, y_list, fill_value='extrapolate'):
+        int_fct = interpolation_function(x_list, y_list, fill_value)
+        self.int_fct = int_fct
+        self._x_list = x_list
+        self._y_list = y_list
+        self._fill_value = fill_value
+
+    @classmethod
+    def init_std_type(cls, int_st, x_values, y_values, fill_value='extrapolate'):
+        int_st._x_list = x_values
+        int_st._y_list = y_values
+        int_st._fill_value = fill_value
+
+    @classmethod
+    def from_path(cls, name, path):
+        raise NotImplementedError
+
+    @classmethod
+    def from_list(cls, name, x_values, y_values, fill_value='extrapolate'):
+        raise NotImplementedError
+
+    @classmethod
+    def _from_path(cls, path):
+        """
+
+        :param name: Name of the pump object
+        :type name: str
+        :param path: Path where the CSV file, defining a pump object, is stored
+        :type path: str
+        :return: An object of the pump standard type class
+        :rtype: PumpStdType
+        """
+        data = cls.load_data(path)
+        x_values, y_values = get_data(data)
+        int_fct = interpolation_function(x_values, y_values)
+        return int_fct, x_values, y_values
+
+    @classmethod
+    def _from_list(cls, x_values, y_values, fill_value='extrapolate'):
+        int_fct = interpolation_function(x_values, y_values, fill_value)
+        return int_fct, x_values, y_values, fill_value
+
+    @classmethod
+    def load_data(cls, path):
+        raise NotImplementedError
+
+
+class RegressionStdType(StdType):
+
+    def __init__(self, name, component, reg_par):
+        super(RegressionStdType, self).__init__(name, component)
+        self.reg_par = reg_par
+        self._x_values = None
+        self._y_values = None
+        self._reg_polynomial_degree = 2
+
+    def update_std_type(self, x_values, y_values, reg_polynomial_degree):
+        reg_par = regression_function(x_values, y_values, reg_polynomial_degree)
+        self.reg_par = reg_par
+        self._x_values = x_values
+        self._y_values = y_values
+        self._reg_polynomial_degree = reg_polynomial_degree
+
+    @classmethod
+    def init_std_type(cls, reg_st, x_values, y_values, degree):
+        reg_st._x_values = x_values
+        reg_st._y_values = y_values
+        reg_st._reg_polynomial_degree = degree
+
+    @classmethod
+    def from_path(cls, name, path):
+        raise NotImplementedError
+
+    @classmethod
+    def from_list(cls, name, x_values, y_values, degree):
+        raise NotImplementedError
+
+    @classmethod
+    def _from_path(cls, path):
+        """
+
+        :param name: Name of the pump object
+        :type name: str
+        :param path: Path where the CSV file, defining a pump object, is stored
+        :type path: str
+        :return: An object of the pump standard type class
+        :rtype: PumpStdType
+        """
+        data = cls.load_data(path)
+        x_values, y_values, degree = get_data(data)
+        reg_par = regression_function(x_values, y_values, degree[0])
+        return reg_par, x_values, y_values, degree[0]
+
+    @classmethod
+    def _from_list(cls, x_values, y_values, degree):
+        reg_par = regression_function(x_values, y_values, degree)
+        return reg_par, x_values, y_values, degree
+
+    @classmethod
+    def load_data(cls, path):
+        raise NotImplementedError
+
+
+class PumpStdType(RegressionStdType):
 
     def __init__(self, name, reg_par):
         """
@@ -46,18 +162,7 @@ class PumpStdType(StdType):
                 can be directly be set by initializing a pump object
         :type reg_par: List of floats
         """
-        super(PumpStdType, self).__init__(name, 'pump')
-        self.reg_par = reg_par
-        self._pressure_list = None
-        self._flowrate_list = None
-        self._reg_polynomial_degree = 2
-
-    def update_pump(self, pressure_list, flowrate_list, reg_polynomial_degree):
-        reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
-        self.reg_par = reg_par
-        self._pressure_list = pressure_list
-        self._flowrate_list = flowrate_list
-        self._reg_polynomial_degree = reg_polynomial_degree
+        super(PumpStdType, self).__init__(name, 'pump', reg_par)
 
     def get_pressure(self, vdot_m3_per_s):
         """
@@ -67,88 +172,52 @@ class PumpStdType(StdType):
         assumed.
 
         :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s]. Abs() will be applied.
-        :type vdot_m3_per_s: float
+        :type vdot_m3_per_s: float, array-like
         :return: This function returns the corresponding pressure to the given volume flow rate \
                 in [bar]
         :rtype: float
         """
-        n = np.arange(len(self.reg_par), 0, -1)
         # no reverse flow - for vdot < 0, assume bypassing
-        if vdot_m3_per_s < 0:
+        if np.iterable(vdot_m3_per_s) and any(vdot_m3_per_s < 0):
             logger.debug("Reverse flow observed in a %s pump. "
                          "Bypassing without pressure change is assumed" % str(self.name))
-            return 0
+            vdot_m3_per_s[vdot_m3_per_s < 0] = 0
+        elif vdot_m3_per_s < 0:
+            vdot_m3_per_s = 0
         # no negative pressure lift - bypassing always allowed:
         # /1 to ensure float format:
-        p = max(0, sum(self.reg_par * (vdot_m3_per_s / 1 * 3600) ** (n - 1)))
-        return p
+        n = np.arange(len(self.reg_par), 0, -1)
+        return max(0, sum(self.reg_par * (vdot_m3_per_s / 1 * 3600) ** (n - 1)))
 
     @classmethod
     def from_path(cls, name, path):
-        """
-
-        :param name: Name of the pump object
-        :type name: str
-        :param path: Path where the CSV file, defining a pump object, is stored
-        :type path: str
-        :return: An object of the pump standard type class
-        :rtype: PumpStdType
-        """
-        p_values, v_values, degree = get_p_v_values(path)
-        reg_par = regression_function(p_values, v_values, degree)
-        pump_st = cls(name, reg_par)
-        pump_st._pressure_list = p_values
-        pump_st._flowrate_list = v_values
-        pump_st._reg_polynomial_degree = degree
-        return pump_st
+        reg_par, x_values, y_values, degree = cls._from_path(path)
+        reg_st = cls(name, reg_par)
+        cls.init_std_type(reg_st, x_values, y_values, degree)
+        return reg_st
 
     @classmethod
-    def from_list(cls, name, p_values, v_values, degree):
-        reg_par = regression_function(p_values, v_values, degree)
-        pump_st = cls(name, reg_par)
-        pump_st._pressure_list = p_values
-        pump_st._flowrate_list = v_values
-        pump_st._reg_polynomial_degree = degree
-        return pump_st
+    def from_list(cls, name, x_values, y_values, degree):
+        reg_par, x_values, y_values, degree = cls._from_list(x_values, y_values, degree)
+        reg_st = cls(name, reg_par)
+        cls.init_std_type(reg_st, x_values, y_values, degree)
 
+    @classmethod
+    def load_data(cls, path):
+        """
+        load_data.
 
-def get_data(path, std_type_category):
-    """
-    get_data.
-
-    :param path:
-    :type path:
-    :param std_type_category:
-    :type std_type_category:
-    :return:
-    :rtype:
-    """
-    if std_type_category == 'pump':
+        :param path:
+        :type path:
+        :return:
+        :rtype:
+        """
         path = os.path.join(path)
         data = pd.read_csv(path, sep=';', dtype=np.float64)
-    elif std_type_category == 'pipe':
-        data = pd.read_csv(path, sep=';', index_col=0).T
-    else:
-        raise AttributeError('std_type_category %s not implemented yet' % std_type_category)
-    return data
+        return data
 
 
-def get_p_v_values(path):
-    """
-
-    :param path:
-    :type path:
-    :return:
-    :rtype:
-    """
-    data = get_data(path, 'pump')
-    p_values = data.values[:, 0]
-    v_values = data.values[:, 1]
-    degree = data.values[0, 2]
-    return p_values, v_values, degree
-
-
-def regression_function(p_values, v_values, degree):
+def regression_function(x_values, y_values, degree):
     """
     Regression function...
 
@@ -164,6 +233,25 @@ def regression_function(p_values, v_values, degree):
     if not int(degree) == degree:
         raise UserWarning("The polynomial degree has to be an integer, but %s was given. "
                           "It will be rounded down now." % str(degree))
-    z = np.polyfit(v_values, p_values, degree)
-    reg_par = z
-    return reg_par
+    return np.polyfit(x_values, y_values, degree)
+
+
+def interpolation_function(x_values, y_values, fill_value='extrapolate'):
+    """
+    Regression function...
+
+    :param p_values:
+    :type p_values:
+    :param v_values:
+    :type v_values:
+    :param degree:
+    :type degree:
+    :return:
+    :rtype:
+    """
+    return interp1d(x_values, y_values, fill_value=fill_value)
+
+
+def get_data(loaded_data):
+    data_list = [loaded_data.values[:, i] for i in range(np.shape(loaded_data)[1])]
+    return data_list

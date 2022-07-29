@@ -617,7 +617,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
 
     if pressure_list is not None and flowrate_list is not None \
             and reg_polynomial_degree is not None:
-        reg_par = regression_function(pressure_list, flowrate_list, reg_polynomial_degree)
+        reg_par = regression_function(flowrate_list, pressure_list, reg_polynomial_degree)
         pump = PumpStdType(new_std_type_name, reg_par)
         create_pump_std_type(net, new_std_type_name, pump)
     elif poly_coefficents is not None:
