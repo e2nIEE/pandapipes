@@ -13,7 +13,7 @@ from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

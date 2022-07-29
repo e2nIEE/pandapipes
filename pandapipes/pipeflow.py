@@ -19,7 +19,7 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_ne
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

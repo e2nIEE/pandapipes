@@ -17,7 +17,7 @@ from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

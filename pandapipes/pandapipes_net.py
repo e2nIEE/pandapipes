@@ -16,7 +16,7 @@ from pandapower.auxiliary import ADict
 from pandas import Index
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

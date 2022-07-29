@@ -7,7 +7,7 @@ from pandapipes.component_models.abstract_models.branch_wo_internals_models impo
 from pandapipes.idx_branch import LENGTH, K
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

@@ -113,7 +113,7 @@ class Junction(NodeComponent):
         junctions_active = get_lookup(net, "node", "active")[f:t]
 
         if np.any(junction_pit[:, PINIT] < 0):
-            warn(UserWarning('Pipeflow converged, however, the results are phyisically incorrect '
+            warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
                              'as pressure is negative at nodes %s'
                              % junction_pit[junction_pit[:, PINIT] < 0, ELEMENT_IDX]))
 

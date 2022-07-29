@@ -15,7 +15,7 @@ except ImportError:
 from pandapower.test.run_tests import _get_cpus
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
     # logger = logging.getLogger()
     # for handler in logger.handlers:
     #     logger.removeHandler(handler)
