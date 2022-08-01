@@ -46,9 +46,9 @@ setup(
     install_requires=["pandapower>=2.9.0", "matplotlib"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "python-igraph"],
-                    "test": ["pytest", "pytest-xdist"],
+                    "test": ["pytest", "pytest-xdist", "nbmake"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-                            "plotly", "python-igraph", "pytest", "pytest-xdist"]},
+                            "plotly", "python-igraph", "pytest", "pytest-xdist", "nbmake"]},
     packages=find_packages(),
     include_package_data=True,
     classifiers=classifiers

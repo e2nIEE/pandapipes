@@ -16,5 +16,6 @@ doc/.build/*
 doc/_build/*
 doc/build/*
 tutorials/.ipynb_checkpoints
+tutorials/timeseries/results
 pandapipes/data/*
 pandapipes.egg-info/
