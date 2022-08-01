@@ -119,5 +119,5 @@ def run_tutorials(parallel=False, n_cpu=None):
 
 
 if __name__ == "__main__":
-    #run_tests()
-    run_tutorials(True)
+    run_tests()
+    run_tutorials()
