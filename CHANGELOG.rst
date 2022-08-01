@@ -7,11 +7,10 @@ Change Log
 - [ADDED] some internal functions of the hydraulic calculation are also implemented with numba's Just-in-time compilation mode for speed-up (switch on/off with the use_numba flag)
 - [ADDED] function for subnet selection
 - [ADDED] functions for standard type changes
-- [ADDED] functions for pre- and post-powerflow-calculation added to component models
 - [ADDED] added \__eq__ method for JSONSerializableClass using deepdiff library in pandapower. Required adjustments in property comparison test.
 - [CHANGED] timeseries progress bar now shown with tqdm as in pandapower
 - [CHANGED] some restructuring (the pf package now contains different modules for pipeflow internals)
-- [CHANGED] for hydraulic calculation, the derivatives and some result extraction functions were made global (previously in component models)
+- [CHANGED] for hydraulic calculation, the derivatives and some result extraction functions were made global (previously in component models). Components can influence the calculation beforehand/afterwards (e.g. for pressure lift) in pre-/ post derivative calculation functions.
 - [CHANGED] standard types now under net.std_types instead of net.std_type
 - [CHANGED] renaming extract_results to init_results in component_models
 - [CHANGED] standard types are created, not added anymore
