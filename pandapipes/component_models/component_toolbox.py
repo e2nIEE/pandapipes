@@ -120,3 +120,10 @@ def add_new_component(net, component, overwrite=False):
             if isinstance(net[name + '_geodata'], list):
                 net[name + '_geodata'] = pd.DataFrame(np.zeros(0, dtype=net[name + '_geodata']),
                                                       index=[])
+
+
+def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
+    if repeated:
+        pit[:, column] = np.repeat(entry, repeat_number)
+    else:
+        pit[:, column] = entry

@@ -3,12 +3,13 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.ext_grid_component import ExtGrid
 from pandapipes.idx_node import PINIT
-from pandapipes.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -22,24 +23,33 @@ class CirculationPump(ExtGrid):
         return -1.
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def get_connected_node_type(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         res_table, circ_pump, index_nodes_from, node_pit, _ = \
-            super().extract_results(net, options, node_name)
+            super().extract_results(net, options, None, nodes_connected, branches_connected)
 
         index_juncts_to = circ_pump.to_junction.values
         junct_uni_to = np.array(list(set(index_juncts_to)))
-        index_nodes_to = get_lookup(net, "node", "index")[node_name][junct_uni_to]
+        index_nodes_to = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()][junct_uni_to]
 
         deltap_bar = node_pit[index_nodes_from, PINIT] - node_pit[index_nodes_to, PINIT]
         res_table["deltap_bar"].values[:] = deltap_bar

@@ -4,24 +4,28 @@
 
 import importlib
 import json
+from copy import deepcopy
 from functools import partial
 from inspect import isclass
 
-from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
-from pandapipes.component_models.abstract_models import Component
-from pandapipes.create import create_empty_network
-from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
-from copy import deepcopy
+
+from pandapipes.component_models.abstract_models.branch_models import Component
+from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
+
+
+MODULE_CHANGES = {"PumpStdType": "pandapipes.std_types.std_type_class",
+                  "StdType": "pandapipes.std_types.std_type_class"}
 
 
 def isinstance_partial(obj, cls):
@@ -60,7 +64,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     @from_serializable.register(class_name='pandapipesNet', module_name='pandapipes.pandapipes_net')
     def pandapipesNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from pandapipes import from_json_string
+            from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
             net = pandapipesNet(get_basic_net_entries())
@@ -69,7 +73,13 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
 
     @from_serializable.register()
     def rest(self):
-        module = importlib.import_module(self.module_name)
+        try:
+            module = importlib.import_module(self.module_name)
+        except ModuleNotFoundError as e:
+            if self.class_name in MODULE_CHANGES:
+                module = importlib.import_module(MODULE_CHANGES[self.class_name])
+            else:
+                raise e
         class_ = getattr(module, self.class_name)
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
@@ -89,7 +99,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     @from_serializable.register(class_name='MultiNet')
     def MultiNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from pandapipes import from_json_string
+            from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
             net = create_empty_multinet()

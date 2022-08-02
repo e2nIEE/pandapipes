@@ -1,12 +1,35 @@
 Change Log
 =============
 
+[0.7.0] - 2022-08-02
+-------------------------------
+- [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
+- [ADDED] function to test tutorials / jupyter notebooks for raised errors
+- [ADDED] add tests for tutorials to GitHub Actions
+- [ADDED] some internal functions of the hydraulic calculation are also implemented with numba's Just-in-time compilation mode for speed-up (switch on/off with the use_numba flag)
+- [ADDED] function for subnet selection
+- [ADDED] functions for standard type changes
+- [ADDED] added \__eq__ method for JSONSerializableClass using deepdiff library in pandapower. Required adjustments in property comparison test.
+- [CHANGED] timeseries progress bar now shown with tqdm as in pandapower
+- [CHANGED] some restructuring (the pf package now contains different modules for pipeflow internals)
+- [CHANGED] for hydraulic calculation, the derivatives and some result extraction functions were made global (previously in component models). Components can influence the calculation beforehand/afterwards (e.g. for pressure lift) in pre-/ post derivative calculation functions.
+- [CHANGED] standard types now under net.std_types instead of net.std_type
+- [CHANGED] renaming extract_results to init_results in component_models
+- [CHANGED] standard types are created, not added anymore
+- [FIXED] bugfix to resolve problems with numpy indexing (especially with numpy.repeat) in some component models
+- [FIXED] HHV/LHV for H2 corrected
+- [FIXED] only considering external grids, which are in service
+- [FIXED] preventing unexpected behavior of pressure control component or displaying logger warnings
+- [FIXED] usage of tqdm for progress bar print
+- [FIXED] individual run function can be passed in run_timeseries now (test added)
+- [FIXED] converged flag set equals to False at the beginning of each pipeflow
+
 [0.6.0] - 2022-02-07
 -------------------------------
-- [ADDED] Adding pressure controler as new component
+- [ADDED] Adding pressure controller as new component
 - [ADDED] Adding compressor as new component
 - [ADDED] Compressing power of a pump component are returned as result
-- [ADDED] Adding polynominal fluids
+- [ADDED] Adding polynomial fluids
 - [CHANGED] Removing irrelevant results in branch models with zero length (mean velocity, lambda, reynolds)
 - [FIXED] Only ext grids in service are considered
 - [FIXED] Converting format of the nets in a multinet correctly

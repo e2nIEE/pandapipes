@@ -14,7 +14,7 @@ from pandapower.plotting import draw_collections
 from itertools import chain
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 

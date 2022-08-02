@@ -5,6 +5,7 @@
 import copy
 
 import numpy as np
+import pandapower
 import pandas as pd
 import pytest
 
@@ -12,7 +13,7 @@ import pandapipes
 from pandapipes import networks as nw
 
 
-def create_base_net(oos, additional_pumps=True):
+def create_base_net(oos):
     net = pandapipes.create_empty_network(fluid="lgas")
 
     # create network elements, such as junctions, external grid, pipes, valves, sinks and sources
@@ -34,9 +35,8 @@ def create_base_net(oos, additional_pumps=True):
                                            geodata=(9, 4))
     junction9 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 9",
                                            geodata=(9, 0))
-    junction10 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 9",
-                                           geodata=(12, 0))
-
+    junction10 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 10",
+                                            geodata=(12, 0))
 
     pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
                                name="Grid Connection")
@@ -70,11 +70,6 @@ def create_base_net(oos, additional_pumps=True):
     pandapipes.create_pump_from_parameters(net, junction4, junction7, 'P1')
     pandapipes.create_pressure_control(net, junction9, junction10, junction10, 5.)
 
-
-    if additional_pumps:
-        pandapipes.create_circ_pump_const_mass_flow(net, junction9, junction5, 1.05, 1)
-        pandapipes.create_circ_pump_const_pressure(net, junction9, junction6, 1.05, 0.5)
-
     if oos:
         pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
                                    name="Grid Connection", in_service=False)
@@ -92,21 +87,43 @@ def create_base_net(oos, additional_pumps=True):
     return net
 
 
+def add_pumps(net):
+    junction5 = net.junction.index[net.junction.name == "Junction 5"][0]
+    junction6 = net.junction.index[net.junction.name == "Junction 6"][0]
+    junction9 = net.junction.index[net.junction.name == "Junction 9"][0]
+
+    pandapipes.create_circ_pump_const_mass_flow(net, junction9, junction5, 1.05, 1)
+    pandapipes.create_circ_pump_const_pressure(net, junction9, junction6, 1.05, 0.5)
+    return net
+
+
 @pytest.fixture
-def net_plotting():
+def base_net_is_wo_pumps():
+    return create_base_net(False)
+
+
+@pytest.fixture
+def base_net_is_with_pumps():
     net = create_base_net(False)
+    add_pumps(net)
     return net
 
 
 @pytest.fixture
-def net_out_of_service_plotting():
+def base_net_oos_wo_pumps():
+    return create_base_net(True)
+
+
+@pytest.fixture
+def base_net_oos_with_pumps():
     net = create_base_net(True)
+    add_pumps(net)
     return net
 
 
 @pytest.fixture
-def create_net_changed_indices():
-    net = create_base_net(False, False)
+def create_net_changed_indices(base_net_is_wo_pumps):
+    net = copy.deepcopy(base_net_is_wo_pumps)
 
     new_junction_indices = [55, 38, 84, 65, 83, 82, 28, 49, 99, 105]
     new_pipe_indices = [30, 88, 72, 99,  0, 98, 70]
@@ -207,6 +224,49 @@ def test_create_continuous_index(create_net_changed_indices):
     pandapipes.create_continuous_elements_index(net)
     for comp in previous_junctions.keys():
         assert np.all(net[comp].index == np.arange(len(net[comp])))
+
+
+def test_select_subnet(base_net_is_wo_pumps):
+    net = copy.deepcopy(base_net_is_wo_pumps)
+
+    # Do nothing
+    same_net = pandapipes.select_subnet(net, net.junction.index)
+    assert len(same_net.component_list) == len(net.component_list)
+    assert set(same_net.component_list) == set(net.component_list)
+    for comp in net.component_list:
+        assert pandapower.dataframes_equal(net[comp.table_name()], same_net[comp.table_name()])
+
+    same_net2 = pandapipes.select_subnet(net, net.junction.index, include_results=True,
+                                         keep_everything_else=True)
+    assert pandapipes.nets_equal(net, same_net2)
+
+    # Remove everything
+    empty = pandapipes.select_subnet(net, set())
+    for comp in net.component_list:
+        assert len(empty[comp.table_name()]) == 0
+
+    empty2 = pandapipes.select_subnet(net, set(), remove_unused_components=True)
+    for comp in net.component_list:
+        assert comp.table_name() not in empty2
+        assert comp not in empty2.component_list
+
+    # check length of results
+    net = nw.gas_tcross2()
+    pandapipes.pipeflow(net)
+    net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
+    for comp in net.component_list:
+        assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
+    assert len(net.junction) == len(net2.junction) + 3
+
+
+def runpp_with_mark(net, **kwargs):
+    pandapower.runpp(net, **kwargs)
+    net['mark'] = "runpp"
+
+
+def pipeflow_with_mark(net, **kwargs):
+    pandapipes.pipeflow(net, **kwargs)
+    net['mark'] = "pipeflow"
 
 
 if __name__ == '__main__':

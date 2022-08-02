@@ -2,10 +2,10 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapipes.component_models.auxiliaries.component_toolbox import init_results_element
+from pandapipes.component_models.component_toolbox import init_results_element
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -19,7 +19,21 @@ class Component:
         raise NotImplementedError()
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def init_results(cls, net):
+        """
+        Function that intializes the result table for the component.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: No Output.
+        """
+        output, all_float = cls.get_result_table(net)
+        init_results_element(net, cls.table_name(), output, all_float)
+        res_table = net["res_" + cls.table_name()]
+        return res_table
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
@@ -27,14 +41,15 @@ class Component:
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
+        :param branch_results:
+        :type branch_results:
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
         :return: No Output.
         """
-        output, all_float = cls.get_result_table(net)
-        init_results_element(net, cls.table_name(), output, all_float)
-        res_table = net["res_" + cls.table_name()]
-        return res_table
+        raise NotImplementedError
 
     @classmethod
     def get_component_input(cls):
@@ -56,6 +71,14 @@ class Component:
         :rtype:
         """
         raise NotImplementedError
+
+    @classmethod
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        pass
+
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        pass
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
@@ -83,7 +106,8 @@ class Component:
         return current_start, current_table
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table, current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
+                              current_start):
         """
         Function which creates branch lookups.
 
@@ -104,21 +128,7 @@ class Component:
         return current_start, current_table
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
-        """
-        Function which creates pit branch entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :return: No Output.
-        """
-
-        pass
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit branch entries.
 
@@ -128,7 +138,19 @@ class Component:
         :type node_pit:
         :return: No Output.
         """
+        pass
 
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
+        """
+        Function which creates pit branch entries.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_pit:
+        :type branch_pit:
+        :return: No Output.
+        """
         pass
 
     @classmethod
@@ -138,8 +160,8 @@ class Component:
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_component_pit:
-        :type branch_component_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :param idx_lookups:
@@ -157,8 +179,8 @@ class Component:
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_component_pit:
-        :type branch_component_pit:
+        :param branch_pit:
+        :type branch_pit:
         :param node_pit:
         :type node_pit:
         :param idx_lookups:
