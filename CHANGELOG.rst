@@ -4,6 +4,8 @@ Change Log
 [0.7.0] - 2022-08-01
 -------------------------------
 - [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
+- [ADDED] function to test tutorials / jupyter notebooks for raised errors
+- [ADDED] add tests for tutorials to GitHub Actions
 - [ADDED] some internal functions of the hydraulic calculation are also implemented with numba's Just-in-time compilation mode for speed-up (switch on/off with the use_numba flag)
 - [ADDED] function for subnet selection
 - [ADDED] functions for standard type changes
