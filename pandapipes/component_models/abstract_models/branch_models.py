@@ -5,17 +5,11 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
-    P_CONVERSION
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, RHO, ETA, \
-    VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, branch_cols, \
-    T_OUT, CP, VINIT_T, FROM_NODE_T, PL, TL, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, \
-    JAC_DERIV_DV_NODE, LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T
-from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
-from pandapipes.pf.derivative_calculation import calc_lambda, calc_der_lambda
+from pandapipes.idx_branch import LENGTH, D, AREA, RHO, VINIT, ALPHA, QEXT, TEXT, branch_cols, \
+    T_OUT, CP, VINIT_T, FROM_NODE_T, TL, \
+    JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T
+from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
-from pandapipes.properties.fluids import get_fluid
 
 try:
     import pandaplan.core.pplog as logging
@@ -142,7 +136,7 @@ class BranchComponent(Component):
 
         branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
         branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] \
-            * t_init_i1
+                                                    * t_init_i1
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
