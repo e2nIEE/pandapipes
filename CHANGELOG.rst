@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[0.7.0] - 2022-08-01
+[0.7.0] - 2022-08-02
 -------------------------------
 - [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
 - [ADDED] function to test tutorials / jupyter notebooks for raised errors
