@@ -49,3 +49,28 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           verbose: true
+
+  tutorial_tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest nbmake pytest-xdist pytest-split python-igraph numba 
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python -m pip install git+https://github.com/e2nIEE/pandapower@master#egg=pandapower
+          pip install .
+      - name: List all installed packages
+        run: |
+          pip list
+      - name: Test with pytest
+        run: |
+          pytest --nbmake -n=auto "./tutorials"
