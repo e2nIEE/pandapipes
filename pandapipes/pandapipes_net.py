@@ -84,6 +84,8 @@ def add_default_components(net, overwrite=False):
         ctrl_dtypes = [('object', dtype(object)),
                        ('in_service', "bool"),
                        ('order', "float64"),
-                       ('level', dtype(object))]
+                       ('level', dtype(object)),
+                       ('initial_run', "bool"),
+                       ("recycle", "bool")]
         net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes),
                                          index=Index([], dtype=np.int64))
