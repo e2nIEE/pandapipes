@@ -2,14 +2,15 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import tqdm
+
 from pandapipes import pandapipesNet
 from pandapipes.multinet.control.run_control_multinet import prepare_run_ctrl, run_control
 from pandapipes.timeseries.run_time_series import init_default_outputwriter as init_default_ow_pps
 from pandapower import pandapowerNet
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.run_time_series import get_recycle_settings, init_time_steps, output_writer_routine, \
-    print_progress_bar, cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
-import tqdm
+    cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
 
 try:
     import pandaplan.core.pplog as pplog
@@ -65,7 +66,7 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
     time_steps = init_time_steps(multinet, time_steps, **kwargs)
     run = kwargs.get('run', None)
 
-    ts_variables = prepare_run_ctrl(multinet, None, **kwargs)
+    ts_variables = prepare_run_ctrl(multinet, **kwargs)
 
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]

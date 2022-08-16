@@ -3,9 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+import pandas as pd
+
 import pandapipes as ppipes
 import pandapower as pp
-import pandas as pd
 from pandapipes.control.run_control import prepare_run_ctrl as prepare_run_ctrl_ppipes
 from pandapower.control.run_control import prepare_run_ctrl as prepare_run_ctrl_pp, \
     net_initialization, get_recycle, control_initialization, control_finalization, \
@@ -55,8 +56,8 @@ def _relevant_nets(multinet, levelorder):
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
     :type multinet: pandapipes.Multinet
-    :param levelorder: list of tuples given the correct order of the different controllers within one level
-    :type levelorder: list
+    :param levelorder: array of tuples given the correct order of the different controllers within one level
+    :type levelorder: array-like
     :return: dictionary of all nets in multinet.nets. Entries are booleans. True means net is in the
     corresponding level, False means it is not.
     :rtype: dict
@@ -216,7 +217,7 @@ def prepare_ctrl_variables_for_net(multinet, net_name, ctrl_variables, **kwargs)
         ctrl_variables[net_name].get('continue_on_divergence', ctrl_variables_net['continue_on_divergence'])
 
 
-def prepare_run_ctrl(multinet, ctrl_variables, **kwargs):
+def prepare_run_ctrl(multinet, ctrl_variables=None, **kwargs):
     """
     Prepares run control functions.
 
@@ -233,7 +234,7 @@ def prepare_run_ctrl(multinet, ctrl_variables, **kwargs):
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
     :type multinet: pandapipes.Multinet
     :param ctrl_variables: contains all relevant information and boundaries required for a successful control run.
-    :type ctrl_variables: dict
+    :type ctrl_variables: dict, default: None
     :return: adapted ctrl_variables for all nets with all required boundary informaiton
     :rtype: dict
     """
@@ -246,7 +247,8 @@ def prepare_run_ctrl(multinet, ctrl_variables, **kwargs):
 
     if hasattr(multinet, "controller") and len(multinet.controller[multinet.controller.in_service]) != 0:
         for _, c in multinet['controller'].iterrows():
-            net_names = c.object.get_all_net_names()
+            fct = getattr(c.object, 'get_all_net_names', None)
+            net_names = [] if fct is None else fct()
             for net_name in net_names:
                 prepare_ctrl_variables_for_net(multinet, net_name, ctrl_variables, **kwargs)
                 excl_net += [net_name]

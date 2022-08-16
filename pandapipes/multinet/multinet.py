@@ -94,7 +94,5 @@ def get_default_multinet_structure():
         "controller": [('object', dtype(object)),
                        ('in_service', "bool"),
                        ('order', "float64"),
-                       ('level', dtype(object)),
-                       ('initial_run', "bool"),
-                       ("recycle", "bool")]}
+                       ('level', dtype(object))]}
     return default_multinet_structure
