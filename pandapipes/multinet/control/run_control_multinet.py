@@ -68,7 +68,7 @@ def _relevant_nets(multinet, levelorder):
     rel_levelorder_multi = levelorder[:, 1].__eq__(multinet)
     controller = levelorder[rel_levelorder_multi, 0]
     nns = [ctrl.get_all_net_names() for ctrl in controller]
-    nns = np.concatenate(nns)
+    nns = np.concatenate(nns) if len(nns) else nns
 
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]
