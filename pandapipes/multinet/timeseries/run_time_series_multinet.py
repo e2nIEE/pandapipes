@@ -40,7 +40,7 @@ def _call_output_writer(multinet, time_step, pf_converged, ctrl_converged, ts_va
     """
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]
-        output_writer_routine(net, time_step, pf_converged, ctrl_converged, ts_variables[net_name]["recycle_options"])
+        output_writer_routine(net, time_step, pf_converged, ctrl_converged, ts_variables['nets'][net_name]["recycle_options"])
 
 
 def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose=True,
@@ -80,8 +80,8 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
         if hasattr(run, "__name__") and run.__name__ == "runpp":
             # use faster runpp options if possible
             recycle_options = get_recycle_settings(net, **kwargs)
-        ts_variables[net_name]['run'] = run[net_name] if run is not None else ts_variables[net_name]['run']
-        ts_variables[net_name]['recycle_options'] = recycle_options
+        ts_variables['nets'][net_name]['run'] = run[net_name] if run is not None else ts_variables['nets'][net_name]['run']
+        ts_variables['nets'][net_name]['recycle_options'] = recycle_options
         init_output_writer(net, time_steps)
 
     # time steps to be calculated (list or range)
@@ -129,4 +129,4 @@ def run_timeseries(multinet, time_steps=None, continue_on_divergence=False,
 
     # cleanup functions after the last time step was calculated
     for net_name in multinet['nets'].keys():
-        cleanup(multinet['nets'][net_name], ts_variables[net_name])
+        cleanup(multinet['nets'][net_name], ts_variables['nets'][net_name])
