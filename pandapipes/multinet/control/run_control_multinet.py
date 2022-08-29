@@ -64,19 +64,18 @@ def _relevant_nets(multinet, levelorder):
     """
     net_names = dict()
 
-    nns = []
     levelorder = np.array(levelorder)
     rel_levelorder_multi = levelorder[:, 1].__eq__(multinet)
     controller = levelorder[rel_levelorder_multi, 0]
-    nns += [ctrl.get_all_net_names() for ctrl in controller]
+    nns = [ctrl.get_all_net_names() for ctrl in controller]
+    nns = np.concatenate(nns)
 
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]
         rel_levelorder = levelorder[:, 1].__eq__(net)
-        level_excl = [False if net_name not in nn else True for nn in nns]
-        rel_levelorder_multi[rel_levelorder_multi] = level_excl
-        net_names[net_name] = np.maximum(rel_levelorder_multi, rel_levelorder)
-
+        rel_levelorder = any(rel_levelorder)
+        rel_levelorder_multi = True if net_name in nns else False
+        net_names[net_name] = rel_levelorder or rel_levelorder_multi
     return net_names
 
 
