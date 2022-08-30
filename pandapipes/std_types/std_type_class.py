@@ -178,16 +178,23 @@ class PumpStdType(RegressionStdType):
         :rtype: float
         """
         # no reverse flow - for vdot < 0, assume bypassing
-        if np.iterable(vdot_m3_per_s) and any(vdot_m3_per_s < 0):
-            logger.debug("Reverse flow observed in a %s pump. "
-                         "Bypassing without pressure change is assumed" % str(self.name))
-            vdot_m3_per_s[vdot_m3_per_s < 0] = 0
-        elif vdot_m3_per_s < 0:
-            vdot_m3_per_s = 0
-        # no negative pressure lift - bypassing always allowed:
-        # /1 to ensure float format:
         n = np.arange(len(self.reg_par), 0, -1)
-        return max(0, sum(self.reg_par * (vdot_m3_per_s / 1 * 3600) ** (n - 1)))
+        if np.iterable(vdot_m3_per_s):
+            results = np.zeros(len(vdot_m3_per_s), dtype=float)
+            if any(vdot_m3_per_s < 0):
+                logger.debug("Reverse flow observed in a %s pump. "
+                             "Bypassing without pressure change is assumed" % str(self.name))
+            mask = vdot_m3_per_s >= 0
+            # no negative pressure lift - bypassing always allowed:
+            results[mask] = np.where(mask, sum(self.reg_par * (vdot_m3_per_s[mask] * 3600) ** (n - 1)), 0)
+        else:
+            if vdot_m3_per_s < 0:
+                logger.debug("Reverse flow observed in a %s pump. "
+                             "Bypassing without pressure change is assumed" % str(self.name))
+                results = 0
+            else:
+                results = max(0, sum(self.reg_par * (vdot_m3_per_s * 3600) ** (n - 1)))
+        return results
 
     @classmethod
     def from_path(cls, name, path):
