@@ -42,6 +42,15 @@ class StdType(JSONSerializableClass):
 class InterpolationStdType(StdType):
 
     def __init__(self, name, component, int_fct):
+        """
+
+        :param name: Name of the interpolation object
+        :type name: str
+        :param path: Path where the CSV file, defining a interpolation object, is stored
+        :type path: str
+        :return: An object of the interpolation standard type class
+        :rtype: InterpolationStdType
+        """
         super(InterpolationStdType, self).__init__(name, component)
         self.int_fct = int_fct
         self._x_list = None
@@ -71,15 +80,6 @@ class InterpolationStdType(StdType):
 
     @classmethod
     def _from_path(cls, path):
-        """
-
-        :param name: Name of the pump object
-        :type name: str
-        :param path: Path where the CSV file, defining a pump object, is stored
-        :type path: str
-        :return: An object of the pump standard type class
-        :rtype: PumpStdType
-        """
         data = cls.load_data(path)
         x_values, y_values = _retrieve_data(data)
         int_fct = interpolation_function(x_values, y_values)
@@ -98,6 +98,16 @@ class InterpolationStdType(StdType):
 class RegressionStdType(StdType):
 
     def __init__(self, name, component, reg_par):
+        """
+
+        :param name: Name of the regression object
+        :type name: str
+        :param path: Path where the CSV file, defining a regression object, is stored
+        :type path: str
+        :return: An object of the regression standard type class
+        :rtype: RegressionStdType
+        """
+
         super(RegressionStdType, self).__init__(name, component)
         self.reg_par = reg_par
         self._x_values = None
@@ -127,15 +137,6 @@ class RegressionStdType(StdType):
 
     @classmethod
     def _from_path(cls, path):
-        """
-
-        :param name: Name of the pump object
-        :type name: str
-        :param path: Path where the CSV file, defining a pump object, is stored
-        :type path: str
-        :return: An object of the pump standard type class
-        :rtype: PumpStdType
-        """
         data = cls.load_data(path)
         x_values, y_values, degree = _retrieve_data(data)
         reg_par = regression_function(x_values, y_values, degree[0])
@@ -171,7 +172,7 @@ class PumpStdType(RegressionStdType):
         It is ensured that the pressure lift is always >= 0. For reverse flows, bypassing is
         assumed.
 
-        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s]. Abs() will be applied.
+        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s].
         :type vdot_m3_per_s: float, array-like
         :return: This function returns the corresponding pressure to the given volume flow rate \
                 in [bar]
