@@ -71,7 +71,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     assert net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"] == \
            net_gas.res_source.at[p2g_id_gas, "mdot_kg_per_s"]
     assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
-                      (p_p2g_el/(net_gas.fluid.get_property('hhv') * 3.6)) * eta)
+                      (p_p2g_el / (net_gas.fluid.get_property('hhv') * 3.6)) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
 
     # check scaling functionality
@@ -212,7 +212,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     assert np.all(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"] ==
                   net_gas.res_source.loc[p2g_ids_gas, "mdot_kg_per_s"])
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
-                       (p_p2g_el/(net_gas.fluid.get_property('hhv') * 3.6)) * eta)
+                       (p_p2g_el / (net_gas.fluid.get_property('hhv') * 3.6)) * eta)
     assert np.all(net_gas.source.loc[no_p2g, "mdot_kg_per_s"] == 0.001)
     assert np.all(net_power.load.loc[p2g_ids_el, "p_mw"] == p_p2g_el)  # has to be still the same
 
@@ -358,7 +358,7 @@ def test_const_p2g_control(get_gas_example, get_power_example_simple):
 
     assert np.all(net_power.res_load.p_mw.values == power_load)
     assert np.all(net_gas.res_sink.values == flow_gas)
-    assert net_gas.source.mdot_kg_per_s.values == power_load * p2g.conversion_factor_mw_to_kgps()\
+    assert net_gas.source.mdot_kg_per_s.values == power_load * p2g.conversion_factor_mw_to_kgps() \
            * p2g.efficiency
 
 
@@ -403,8 +403,8 @@ def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
-    run_control(mn, ctrl_variables={"power": {"run": runpp_with_mark},
-                                    "gas": {"run": pipeflow_with_mark}})
+    run_control(mn, ctrl_variables={"nets": {"power": {"run": runpp_with_mark},
+                                             "gas": {"run": pipeflow_with_mark}}})
 
     assert net_power["mark"] == "runpp"
     assert net_gas["mark"] == "pipeflow"
