@@ -64,9 +64,8 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
             n_cpu = _get_cpus()
         err = pytest.main([test_dir, "-xs", "-n", str(n_cpu)])
         if err == 4:
-            if err == 4:
-                raise ModuleNotFoundError("Parallel testing not possible. Please make sure that "
-                                          "pytest-xdist is installed correctly.")
+            raise ModuleNotFoundError("Parallel testing not possible. Please make sure that "
+                                      "pytest-xdist is installed correctly.")
         elif err > 2:
             logger.error("Testing not successfully finished.")
     else:
@@ -84,20 +83,21 @@ def run_tutorials(parallel=False, n_cpu=None):
 
     Copies the whole "tutorials" folder to a temporary folder which is removed after all
     notebooks have been executed. Errors in the notebooks show up as Failures.
-    For further options on nbmake, visits
+    For further options on nbmake, visit
     https://semaphoreci.com/blog/test-jupyter-notebooks-with-pytest-and-nbmake
 
     :param parallel: If true and pytest-xdist is installed, jupyter notebooks are run in parallel
     :type parallel: bool, default False
     :param n_cpu: number of CPUs to run the files on in parallel. Only relevant for parallel runs.
     :type n_cpu: int, default None
-    :return: No Output.
+    :return: No return value.
     """
     try:
         import nbmake
-    except ImportError:
-        raise ModuleNotFoundError("Testing of jupyter notebooks requires the pytest extension "
-                                  "'nbmake'. Please make sure that nbmake is installed correctly.")
+    except (ImportError, ModuleNotFoundError) as e:
+        raise ModuleNotFoundError(f"Testing of jupyter notebooks requires the pytest extension "
+                                  f"'nbmake'. Please make sure that nbmake is installed correctly."
+                                  f"\nError message: {e}")
 
     # run notebooks in tempdir to safely remove output files
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -109,9 +109,8 @@ def run_tutorials(parallel=False, n_cpu=None):
                 n_cpu = 'auto'
             err = pytest.main(["--nbmake", f"-n={n_cpu}", test_dir])
             if err == 4:
-                if err == 4:
-                    raise ModuleNotFoundError("Parallel testing not possible. Please make sure "
-                                              "that pytest-xdist is installed correctly.")
+                raise ModuleNotFoundError("Parallel testing not possible. Please make sure "
+                                          "that pytest-xdist is installed correctly.")
             elif err > 2:
                 logger.error("Testing not successfully finished.")
         else:
@@ -120,4 +119,4 @@ def run_tutorials(parallel=False, n_cpu=None):
 
 if __name__ == "__main__":
     run_tests()
-    run_tutorials()
+    # run_tutorials()
