@@ -81,7 +81,7 @@ class InterpolationStdType(StdType):
         :rtype: PumpStdType
         """
         data = cls.load_data(path)
-        x_values, y_values = get_data(data)
+        x_values, y_values = _retrieve_data(data)
         int_fct = interpolation_function(x_values, y_values)
         return int_fct, x_values, y_values
 
@@ -137,7 +137,7 @@ class RegressionStdType(StdType):
         :rtype: PumpStdType
         """
         data = cls.load_data(path)
-        x_values, y_values, degree = get_data(data)
+        x_values, y_values, degree = _retrieve_data(data)
         reg_par = regression_function(x_values, y_values, degree[0])
         return reg_par, x_values, y_values, degree[0]
 
@@ -259,6 +259,24 @@ def interpolation_function(x_values, y_values, fill_value='extrapolate'):
     return interp1d(x_values, y_values, fill_value=fill_value)
 
 
-def get_data(loaded_data):
+def _retrieve_data(loaded_data):
     data_list = [loaded_data.values[:, i] for i in range(np.shape(loaded_data)[1])]
     return data_list
+
+def get_data(path, std_type_category):
+    """
+    get_data.
+
+    :param path:
+    :type path:
+    :param std_type_category:
+    :type std_type_category:
+    :return:
+    :rtype:
+    """
+    if std_type_category == 'pump':
+        return PumpStdType.load_data(path)
+    elif std_type_category == 'pipe':
+        return pd.read_csv(path, sep=';', index_col=0).T
+    else:
+        raise AttributeError('std_type_category %s not implemented yet' % std_type_category)

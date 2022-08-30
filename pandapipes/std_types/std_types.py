@@ -8,7 +8,7 @@ import re
 
 import pandas as pd
 from pandapipes import pp_dir
-from pandapipes.std_types.std_type_class import PumpStdType
+from pandapipes.std_types.std_type_class import get_data, PumpStdType
 
 try:
     import pandaplan.core.pplog as logging
@@ -243,5 +243,5 @@ def add_basic_std_types(net):
         create_pump_std_type(net, pump_name, pump, True)
 
     pipe_file = os.path.join(pp_dir, "std_types", "library", "Pipe.csv")
-    data = pd.read_csv(pipe_file, sep=';', index_col=0).T.to_dict()
+    data = get_data(pipe_file, "pipe").to_dict()
     create_std_types(net, "pipe", data, True)
