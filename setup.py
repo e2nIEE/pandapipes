@@ -35,7 +35,7 @@ long_description = '\n\n'.join((install, changelog))
 setup(
     name='pandapipes',
     version='0.7.0',
-    author='Simon Ruben Drauz, Daniel Lohmeier, Jolando Marius Kisse',
+    author='Simon Ruben Drauz-Mauel, Daniel Lohmeier, Jolando Marius Kisse',
     author_email='simon.ruben.drauz@iee.fraunhofer.de, daniel.lohmeier@retoflow.de, '
                  'jolando.kisse@uni-kassel.de',
     description='A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids',
