@@ -36,7 +36,7 @@ setup(
     name='pandapipes',
     version='0.7.0',
     author='Simon Ruben Drauz, Daniel Lohmeier, Jolando Marius Kisse',
-    author_email='simon.ruben.drauz@iee.fraunhofer.de, daniel.lohmeier@iee.fraunhofer.de, '
+    author_email='simon.ruben.drauz@iee.fraunhofer.de, daniel.lohmeier@retoflow.de, '
                  'jolando.kisse@uni-kassel.de',
     description='A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids',
     long_description=long_description,
