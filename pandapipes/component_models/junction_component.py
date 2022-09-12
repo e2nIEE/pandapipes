@@ -5,13 +5,16 @@
 from warnings import warn
 
 import numpy as np
+import pandas as pd
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models.node_models import NodeComponent
 from pandapipes.component_models.component_toolbox import p_correction_height_air
 from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
     ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
+from pandapipes.pf.pipeflow_setup import get_net_option
 from pandapipes.properties.fluids import get_fluid
 
 
@@ -106,9 +109,17 @@ class Junction(NodeComponent):
         """
         res_table = net["res_" + cls.table_name()]
 
+        if get_net_option(net, "transient"):
+            # output, all_float = cls.get_result_table(net)
+            if "res_internal" not in net:
+                net["res_internal"] = pd.DataFrame(
+                    np.NAN, columns=["t_k"], index=np.arange(len(net["_active_pit"]["node"][:, 8])),
+                    dtype=np.float64
+                )
+            net["res_internal"]["t_k"] = net["_active_pit"]["node"][:, TINIT]
+
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]
-
         junction_pit = net["_active_pit"]["node"][fa:ta, :]
         junctions_active = get_lookup(net, "node", "active")[f:t]
 
