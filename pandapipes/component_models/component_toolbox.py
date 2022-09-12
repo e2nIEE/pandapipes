@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
     HEIGHT_EXPONENT
-from pandapipes.pipeflow_setup import get_net_option
+from pandapipes.pf.pipeflow_setup import get_net_option
 
 
 def p_correction_height_air(height):
@@ -78,10 +78,6 @@ def init_results_element(net, element, output, all_float):
     """
     res_element = "res_" + element
     if all_float:
-        if element == "junction" and get_net_option(net, "transient") == True:
-            net["res_internal"] = pd.DataFrame(np.NAN, columns=output, index = np.arange(len(net["_active_pit"]["node"][:, 8])),
-                                            dtype=np.float64)
-
         net[res_element] = pd.DataFrame(np.NAN, columns=output, index=net[element].index,
                                         dtype=np.float64)
     else:

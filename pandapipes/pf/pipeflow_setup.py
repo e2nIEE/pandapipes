@@ -11,7 +11,7 @@ from scipy.sparse import coo_matrix, csgraph
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
     ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
-    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, PC
+    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -32,14 +32,11 @@ logger = logging.getLogger(__name__)
 
 default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1e-4, "tol_v": 1e-4,
                    "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
-                   "nonlinear_method": "constant", "mode": "hydraulics",
-                   "ambient_temperature": 293, "check_connectivity": True,
-                   "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
-                   "reuse_internal_data": False, "use_numba": True,
+                   "nonlinear_method": "constant", "mode": "hydraulics", "ambient_temperature": 293,
+                   "check_connectivity": True, "use_numba": True, "max_iter_colebrook": 100,
+                   "only_update_hydraulic_matrix": False, "reuse_internal_data": False,
                    "quit_on_inconsistency_connectivity": False, "calc_compression_power": True,
-                   "reuse_internal_data": False,
-                   "quit_on_inconsistency_connectivity": False, "calc_compression_power": True, "transient": False,
-                   "time_step": None, "dt": 60}
+                   "transient": False, "time_step": None, "dt": 60}
 
 
 def get_net_option(net, option_name):

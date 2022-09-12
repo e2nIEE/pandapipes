@@ -109,7 +109,36 @@ def _sum_by_group(use_numba, indices, *values):
     return _sum_by_group_np(indices, *values)
 
 
-def select_from_pit(table_index_array, input_array, data):
+# TODO: not sure which function is the correct one!
+# def select_from_pit(table_index_array, input_array, data):
+#     """
+#         Auxiliary function to retrieve values from a table like a pit. Each data entry corresponds
+#         to a table_index_array entry. Example: velocities are indexed by the corresponding
+#         from_nodes stored in the pipe pit.
+#
+#         The function inputs another array which consists of some table_index_array entries the user
+#         wants to retrieve. The function is used in pandapipes results evaluation. The input array is
+#         the list of from_junction entries, corresponding only to the junction elements, not
+#         containing additional pipe nodes. The table_index_array is the complete list of from_nodes
+#         consisting of junction element entries and additional pipe section nodes. Data corresponds
+#         to the gas velocities.
+#
+#         :param table_index_array:
+#         :type table_index_array:
+#         :param input_array:
+#         :type input_array:
+#         :param data:
+#         :type data:
+#         :return:
+#         :rtype:
+#         """
+#     sorter = np.argsort(table_index_array)
+#     indices = sorter[np.searchsorted(table_index_array, input_array, sorter=sorter)]
+#
+#     return data[indices]
+
+
+def select_from_pit(idx_active, table_index_array, input_array, data):
     """
         Auxiliary function to retrieve values from a table like a pit. Each data entry corresponds
         to a table_index_array entry. Example: velocities are indexed by the corresponding
@@ -122,6 +151,8 @@ def select_from_pit(table_index_array, input_array, data):
         consisting of junction element entries and additional pipe section nodes. Data corresponds
         to the gas velocities.
 
+        idx_active necessary for sorting, as the input_array order does not correspond to the order of pipes
+
         :param table_index_array:
         :type table_index_array:
         :param input_array:
@@ -131,10 +162,14 @@ def select_from_pit(table_index_array, input_array, data):
         :return:
         :rtype:
         """
-    sorter = np.argsort(table_index_array)
-    indices = sorter[np.searchsorted(table_index_array, input_array, sorter=sorter)]
 
-    return data[indices]
+    input_array = np.unique(input_array)
+    x, result = np.where(table_index_array==input_array[:,np.newaxis])
+
+    pipidxsort = np.argsort(idx_active[result])
+    data = data[result]
+    return data[pipidxsort]
+
 
 
 @jit(nopython=True)

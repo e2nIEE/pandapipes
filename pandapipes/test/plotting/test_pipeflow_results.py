@@ -41,6 +41,7 @@ def test_pressure_profile_to_junction_geodata():
     assert jgd.y.loc[jgd.index].equals(net.res_junction.p_bar.loc[jgd.index])
     assert np.isclose(jgd.x.loc[jgd.index].values, [0.0, 0.2, 0.5, 0.2]).all()
 
+
 def test_results_gas_velocity_entries():
     net = pp.create_empty_network(fluid="lgas")
     j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 1")

@@ -4,33 +4,16 @@
 
 import numpy as np
 from numpy import linalg
-from pandapower.auxiliary import ppException
-from scipy.sparse.linalg import spsolve
-
-from pandapipes.component_models import Junction
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
-    BranchComponent, BranchWInternalsComponent
-from pandapipes.component_models.auxiliaries import build_system_matrix
+from pandapipes.component_models.abstract_models import BranchComponent
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
-    TO_NODE_T, VINIT, T_OUT, VINIT_T
-from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
+    TO_NODE_T, VINIT, T_OUT, VINIT_T, T_OUT_OLD
+from pandapipes.idx_node import PINIT, TINIT, TINIT_OLD, ACTIVE as ACTIVE_ND
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
-    init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
-    initialize_pit, check_connectivity, reduce_pit, \
-    set_user_pf_options, init_all_result_tables
+    init_options, create_internal_results, write_internal_results, get_lookup, create_lookups,\
+    initialize_pit, check_connectivity, reduce_pit, set_user_pf_options, init_all_result_tables
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
-    TO_NODE_T, VINIT, T_OUT, VINIT_T, T_OUT_OLD
-from pandapipes.idx_node import PINIT, TINIT, TINIT_OLD, ACTIVE as ACTIVE_ND
-from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
-    init_options, create_internal_results, write_internal_results, extract_all_results, \
-    get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
-    extract_results_active_pit, set_user_pf_options
-from scipy.sparse.linalg import spsolve
-from pandapipes.component_models import Junction, PressureControlComponent
-from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
-    BranchComponent, BranchWInternalsComponent
 from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
@@ -86,16 +69,27 @@ def pipeflow(net, sol_vec=None, **kwargs):
     net["converged"] = False
     init_all_result_tables(net)
 
-    create_lookups(net)
-    node_pit, branch_pit = initialize_pit(net)
+    # TODO: a really bad solution, should be passed in from outside!
+    if get_net_option(net, "transient"):
+        if get_net_option(net, "time_step") is None:
+            set_net_option(net, "time_step", 0)
+    if get_net_option(net, "transient") and get_net_option(net, "time_step") != 0:
+        branch_pit = net["_active_pit"]["branch"]
+        node_pit = net["_active_pit"]["node"]
+    else:
+        create_lookups(net)
+        node_pit, branch_pit = initialize_pit(net)
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
         logger.warning("There are no node and branch entries defined. This might mean that your net"
                        " is empty")
         return
+
     calculation_mode = get_net_option(net, "mode")
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
+    # TODO: This is not necessary in every time step, but we need the result! The result of the
+    #       connectivity check is curnetly not saved anywhere!
     if get_net_option(net, "check_connectivity"):
         nodes_connected, branches_connected = check_connectivity(
             net, branch_pit, node_pit, check_heat=calculate_heat)
@@ -103,7 +97,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
         nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
         branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
 
-        reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
+    reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
     if calculation_mode == "heat" and not net.user_pf_options["hyd_flag"]:
         raise UserWarning("Converged flag not set. Make sure that hydraulic calculation results "
@@ -127,6 +121,10 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
     extract_all_results(net, nodes_connected, branches_connected)
+
+    # TODO: a really bad solution, should be passed in from outside!
+    if get_net_option(net, "transient"):
+        set_net_option(net, "time_step", get_net_option(net, "time_step") + 1)
 
 
 def hydraulics(net):
