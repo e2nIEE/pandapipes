@@ -7,6 +7,10 @@ from numpy import linalg
 from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
+from pandapipes.component_models import Junction
+from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
+    BranchComponent, BranchWInternalsComponent
+from pandapipes.component_models.auxiliaries import build_system_matrix
 from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
     TO_NODE_T, VINIT, T_OUT, VINIT_T
 from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
@@ -17,6 +21,18 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_ne
     initialize_pit, check_connectivity, reduce_pit, \
     set_user_pf_options, init_all_result_tables
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
+    TO_NODE_T, VINIT, T_OUT, VINIT_T, T_OUT_OLD
+from pandapipes.idx_node import PINIT, TINIT, TINIT_OLD, ACTIVE as ACTIVE_ND
+from pandapipes.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
+    init_options, create_internal_results, write_internal_results, extract_all_results, \
+    get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
+    extract_results_active_pit, set_user_pf_options
+from scipy.sparse.linalg import spsolve
+from pandapipes.component_models import Junction, PressureControlComponent
+from pandapipes.component_models.abstract_models import NodeComponent, NodeElementComponent, \
+    BranchComponent, BranchWInternalsComponent
+from pandapower.auxiliary import ppException
+from scipy.sparse.linalg import spsolve
 
 try:
     import pandaplan.core.pplog as logging
@@ -64,6 +80,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     # Init physical constants and options
     init_options(net, local_params)
+    calculation_mode = get_net_option(net, "mode")
 
     # init result tables
     net["converged"] = False
@@ -86,7 +103,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
         nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
         branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
 
-    reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
+        reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
     if calculation_mode == "heat" and not net.user_pf_options["hyd_flag"]:
         raise UserWarning("Converged flag not set. Make sure that hydraulic calculation results "
@@ -175,6 +192,14 @@ def heat_transfer(net):
     set_net_option(net, "converged", False)
     niter = 0
 
+    branch_pit = net["_active_pit"]["branch"]
+    node_pit = net["_active_pit"]["node"]
+    if get_net_option(net, "time_step") == 0:
+
+        node_pit[:, TINIT_OLD] = 293
+        branch_pit[:, T_OUT_OLD] = 293
+
+
     # This loop is left as soon as the solver converged
     while not get_net_option(net, "converged") and niter <= max_iter:
         logger.debug("niter %d" % niter)
@@ -197,6 +222,8 @@ def heat_transfer(net):
         logger.debug("T_out_: %s" % t_out.round(4))
         niter += 1
 
+    node_pit[:, TINIT_OLD] = node_pit[:, TINIT]
+    branch_pit[:, T_OUT_OLD] = branch_pit[:, T_OUT]
     write_internal_results(net, iterations_T=niter, error_T=error_t[niter - 1],
                            residual_norm_T=residual_norm)
 
@@ -271,7 +298,8 @@ def solve_temperature(net):
     branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
 
     for comp in net['component_list']:
-        comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        if issubclass(comp, BranchComponent):
+            comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()
@@ -279,7 +307,9 @@ def solve_temperature(net):
 
     x = spsolve(jacobian, epsilon)
     node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
-    branch_pit[:, T_OUT] += x[len(node_pit):]
+    branch_pit[:, T_OUT] += x[len(node_pit):] * options["alpha"]
+
+
 
     return branch_pit[:, T_OUT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
 

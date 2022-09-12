@@ -75,7 +75,6 @@ def test_gas_internal_nodes(use_numba):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_single_pipe(use_numba):
     """
-
     :return:
     :rtype:
     """

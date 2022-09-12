@@ -13,6 +13,7 @@ from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, T
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.pipeflow_setup import get_net_option
 
 
 class Junction(NodeComponent):
@@ -106,9 +107,11 @@ class Junction(NodeComponent):
         """
         res_table = net["res_" + cls.table_name()]
 
+        if get_net_option(net, "transient"):
+            net["res_internal"]["t_k"] = net["_active_pit"]["node"][:, TINIT]
+
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]
-
         junction_pit = net["_active_pit"]["node"][fa:ta, :]
         junctions_active = get_lookup(net, "node", "active")[f:t]
 

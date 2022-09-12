@@ -193,5 +193,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         load_vector[0:len(slack_nodes)] = 0.
 
         load_vector[len_n:] = branch_pit[:, LOAD_VEC_BRANCHES_T]
+        #print(system_matrix)
+        #print("F", load_vector)
 
     return system_matrix, load_vector
