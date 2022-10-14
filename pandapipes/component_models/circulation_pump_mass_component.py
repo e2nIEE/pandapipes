@@ -46,7 +46,7 @@ class CirculationPumpMass(CirculationPump):
         mf = np.nan_to_num(circ_pump.mdot_kg_per_s.values)
         mass_flow_loads = mf * circ_pump.in_service.values
         juncts, loads_sum = _sum_by_group(get_net_option(net, "use_numba"),
-                                          circ_pump.to_junction.values, mass_flow_loads)
+                                          circ_pump.from_junction.values, mass_flow_loads)
         junction_idx_lookups = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
         index = junction_idx_lookups[juncts]

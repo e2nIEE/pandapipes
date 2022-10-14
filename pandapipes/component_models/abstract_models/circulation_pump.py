@@ -56,7 +56,7 @@ class CirculationPump(ExtGrid):
 
     @classmethod
     def get_connected_junction(cls, net):
-        junction = net[cls.table_name()].from_junction
+        junction = net[cls.table_name()].to_junction
         return junction
 
     @classmethod

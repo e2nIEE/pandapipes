@@ -52,28 +52,19 @@ class ExtGrid(NodeElementComponent):
         ext_grids = net[cls.table_name()]
         ext_grids = ext_grids[ext_grids.in_service.values]
 
-        p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
-        press = ext_grids.p_bar.values[p_mask]
         junction_idx_lookups = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
         junction = cls.get_connected_junction(net)
-        juncts_p, press_sum, number = _sum_by_group(
-            get_net_option(net, "use_numba"), junction.values[p_mask], press,
-            np.ones_like(press, dtype=np.int32))
-        index_p = junction_idx_lookups[juncts_p]
-        node_pit[index_p, PINIT] = press_sum / number
-        node_pit[index_p, NODE_TYPE] = P
-        node_pit[index_p, EXT_GRID_OCCURENCE] += number
+        use_numba = get_net_option(net, "use_numba")
+
+        p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
+        press = ext_grids.p_bar.values[p_mask]
+        index_p = set_entries(node_pit, junction, p_mask, press, junction_idx_lookups, use_numba,
+                              "p")
 
         t_mask = np.where(np.isin(ext_grids.type.values, ["t", "pt"]))
         t_k = ext_grids.t_k.values[t_mask]
-        juncts_t, t_sum, number = _sum_by_group(get_net_option(net, "use_numba"),
-                                                junction.values[t_mask], t_k,
-                                                np.ones_like(t_k, dtype=np.int32))
-        index = junction_idx_lookups[juncts_t]
-        node_pit[index, TINIT] = t_sum / number
-        node_pit[index, NODE_TYPE_T] = T
-        node_pit[index, EXT_GRID_OCCURENCE_T] += number
+        set_entries(node_pit, junction, t_mask, t_k, junction_idx_lookups, use_numba, "t")
 
         net["_lookups"]["ext_grid"] = \
             np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
@@ -161,3 +152,16 @@ class ExtGrid(NodeElementComponent):
         :rtype: (list, bool)
         """
         return ["mdot_kg_per_s"], True
+
+
+def set_entries(node_pit, junction, mask, values, junction_idx_lookups, use_numba, mode):
+    val_col, type_col, eg_count_col, typ = (PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P) if mode == "p"\
+        else (TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T)
+    juncts, press_sum, number = _sum_by_group(use_numba, junction.values[mask], values,
+                                                np.ones_like(values, dtype=np.int32))
+    index = junction_idx_lookups[juncts]
+    node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, eg_count_col]
+                                + press_sum) / (number + node_pit[index, eg_count_col])
+    node_pit[index, type_col] = typ
+    node_pit[index, eg_count_col] += number
+    return index
