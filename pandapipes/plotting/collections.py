@@ -440,7 +440,8 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
 
 
 def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None,
-                           infofunc=None, picker=False, **kwargs):
+                           infofunc=None, picker=False, fj_col="from_junction",
+                           tj_col="to_junction", **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
     plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
@@ -459,6 +460,10 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     :type junction_geodata: pandas.DataFrame, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
+    :param fj_col: name of the from_junction column (can be different for different pump types)
+    :type fj_col: str, default "from_junction"
+    :param fj_col: name of the to_junction column (can be different for different pump types)
+    :type fj_col: str, default "to_junction"
     :param picker: Picker argument passed to the patch collection
     :type picker: bool, default False
     :param kwargs: Keyword arguments are passed to the patch function
@@ -469,7 +474,7 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     pump_table = net[table_name].loc[pumps]
 
     coords, pumps_with_geo = coords_from_node_geodata(
-        pumps, pump_table.from_junction.values, pump_table.to_junction.values,
+        pumps, pump_table[fj_col].values, pump_table[tj_col].values,
         junction_geodata if junction_geodata is not None else net["junction_geodata"], "pump",
         "Junction")
 

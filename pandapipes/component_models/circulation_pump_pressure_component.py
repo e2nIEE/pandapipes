@@ -45,7 +45,7 @@ class CirculationPumpPressure(CirculationPump):
         junction_idx_lookups = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
         juncts_p, press_sum, number = _sum_by_group(
-            get_net_option(net, "use_numba"), circ_pump.to_junction.values,
+            get_net_option(net, "use_numba"), circ_pump.return_junction.values,
             press - circ_pump.plift_bar.values, np.ones_like(press, dtype=np.int32))
 
         index_p = junction_idx_lookups[juncts_p]
@@ -64,8 +64,8 @@ class CirculationPumpPressure(CirculationPump):
         :rtype:
         """
         return [("name", dtype(object)),
-                ("from_junction", "u4"),
-                ("to_junction", "u4"),
+                ("return_junction", "u4"),
+                ("flow_junction", "u4"),
                 ("p_bar", "f8"),
                 ("t_k", "f8"),
                 ("plift_bar", "f8"),

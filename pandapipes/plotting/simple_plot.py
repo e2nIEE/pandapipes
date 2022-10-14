@@ -284,11 +284,11 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
             circ_pump_colls = create_pump_collection(
                 net, pumps=net.circ_pump_mass[net.circ_pump_mass.in_service].index,
                 table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
+                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
         else:
             circ_pump_colls = create_pump_collection(
                 net, table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
+                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
         collections["circ_pump_mass"] = circ_pump_colls
 
     if 'circ_pump_pressure' in net:
@@ -296,12 +296,12 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
             circ_pump_colls = create_pump_collection(
                 net, pumps=net.circ_pump_pressure[net.circ_pump_pressure.in_service].index,
                 table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
+                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
             collections["circ_pump_pressure"] = circ_pump_colls
         else:
             circ_pump_colls = create_pump_collection(
                 net, table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
+                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
             collections["circ_pump_pressure"] = circ_pump_colls
 
     if 'heat_exchanger' in net:

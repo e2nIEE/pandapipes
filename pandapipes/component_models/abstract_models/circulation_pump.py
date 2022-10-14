@@ -43,20 +43,20 @@ class CirculationPump(ExtGrid):
         :type options:
         :return: No Output.
         """
-        res_table, circ_pump, index_nodes_from, node_pit, _ = \
+        res_table, circ_pump, index_nodes_flow, node_pit, _ = \
             super().extract_results(net, options, None, nodes_connected, branches_connected)
 
-        index_juncts_to = circ_pump.to_junction.values
-        junct_uni_to = np.array(list(set(index_juncts_to)))
-        index_nodes_to = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()][junct_uni_to]
+        index_juncts_return = circ_pump.return_junction.values
+        junct_uni_return = np.array(list(set(index_juncts_return)))
+        index_nodes_return = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()][junct_uni_return]
 
-        deltap_bar = node_pit[index_nodes_from, PINIT] - node_pit[index_nodes_to, PINIT]
+        deltap_bar = node_pit[index_nodes_flow, PINIT] - node_pit[index_nodes_return, PINIT]
         res_table["deltap_bar"].values[:] = deltap_bar
 
     @classmethod
     def get_connected_junction(cls, net):
-        junction = net[cls.table_name()].to_junction
+        junction = net[cls.table_name()].flow_junction
         return junction
 
     @classmethod

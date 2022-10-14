@@ -631,7 +631,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     return index
 
 
-def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plift_bar,
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, plift_bar,
                                     t_k=None, name=None, index=None, in_service=True, type="pt",
                                     **kwargs):
     """
@@ -639,10 +639,10 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     :param net: The net within this pump should be created
     :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the pump will be connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the pump will be connected with
-    :type to_junction: int
+    :param return_junction: ID of the junction on one side which the pump will be connected with
+    :type return_junction: int
+    :param flow_junction: ID of the junction on the other side which the pump will be connected with
+    :type flow_junction: int
     :param p_bar: Pressure set point
     :type p_bar: float
     :param plift_bar: Pressure lift induced by the pump
@@ -677,16 +677,18 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     index = _get_index_with_check(net, "circ_pump_pressure", index,
                                   name="circulation pump with constant pressure")
-    _check_branch(net, "circulation pump with constant pressure", index, from_junction, to_junction)
+    _check_branch(net, "circulation pump with constant pressure", index, return_junction,
+                  flow_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
-         "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service), "type": type}
+    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
+         "p_bar": p_bar, "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service),
+         "type": type}
     _set_entries(net, "circ_pump_pressure", index, **v, **kwargs)
 
     return index
 
 
-def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdot_kg_per_s,
+def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar, mdot_kg_per_s,
                                      t_k=None, name=None, index=None, in_service=True,
                                      type="pt", **kwargs):
     """
@@ -694,10 +696,10 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     :param net: The net within this pump should be created
     :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the pump will be connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the pump will be connected with
-    :type to_junction: int
+    :param return_junction: ID of the junction on one side which the pump will be connected with
+    :type return_junction: int
+    :param flow_junction: ID of the junction on the other side which the pump will be connected with
+    :type flow_junction: int
     :param p_bar: Pressure set point
     :type p_bar: float
     :param mdot_kg_per_s: Constant mass flow, which is transported through the pump
@@ -732,10 +734,12 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     index = _get_index_with_check(net, "circ_pump_mass", index,
                                   name="circulation pump with constant mass flow")
-    _check_branch(net, "circulation pump with constant mass flow", index, from_junction, to_junction)
+    _check_branch(net, "circulation pump with constant mass flow", index, return_junction,
+                  flow_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
-         "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service), "type": type}
+    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
+         "p_bar": p_bar, "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service),
+         "type": type}
     _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
 
     return index
