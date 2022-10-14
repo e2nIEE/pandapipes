@@ -27,6 +27,10 @@ class CirculationPump(ExtGrid):
         raise NotImplementedError
 
     @classmethod
+    def from_to_node_cols(cls):
+        return "return_junction", "flow_junction"
+
+    @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
