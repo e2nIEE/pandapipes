@@ -6,6 +6,7 @@ from itertools import chain
 
 import numpy as np
 import pandas as pd
+from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe
 from shapely.geometry import LineString
 from shapely.ops import substring
 
@@ -130,10 +131,13 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         if add_layers:
             add_info["stanet_layer"] = str(row.LAYER)
         if stanet_like_valves:
-            raise UserWarning("The STANET valve-pipe component is not yet implemented in"
-                              " pandapipes. If you would like to use it, please open an Issue at "
-                              "https://github.com/e2nIEE/pandapipes/issues. Otherwise, please set "
-                              "the 'stanet_like_valves' attribute to False.")
+            create_valve_pipe(
+                net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
+                length_km=row.RORL / 1000, diameter_m=float(row.DM / 1000), k_mm=row.RAU,
+                opened=row.AUF == 'J', loss_coefficient=row.ZETA,
+                name="valve_pipe_%s_%s" % (row.ANFNAM, row.ENDNAM), in_service=bool(row.ISACTIVE),
+                stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID),  v_stanet=row.VM, **add_info
+            )
         else:
             j_ref = net.junction.loc[node_mapping[from_stanet_nr], :]
             j_ref_geodata = net.junction_geodata.loc[node_mapping[from_stanet_nr], :]
