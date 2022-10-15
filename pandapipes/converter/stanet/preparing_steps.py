@@ -6,11 +6,16 @@ from itertools import chain, product
 
 import numpy as np
 import pandas as pd
-from shapely.geometry import Point, LineString
 
 import pandapipes
 from pandapipes.converter.stanet.table_creation import CLIENT_TYPES_OF_NODES
 from pandapipes.properties.fluids import FluidPropertySutherland, _add_fluid_to_net
+
+try:
+    from shapely.geometry import Point, LineString
+    SHAPELY_INSTALLED = True
+except ImportError:
+    SHAPELY_INSTALLED = False
 
 try:
     import pandaplan.core.pplog as logging

@@ -7,11 +7,16 @@ from itertools import chain
 import numpy as np
 import pandas as pd
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe
-from shapely.geometry import LineString
-from shapely.ops import substring
 
 import pandapipes
 from pandapipes.component_models.component_toolbox import vrange
+
+try:
+    from shapely.geometry import LineString
+    from shapely.ops import substring
+    SHAPELY_INSTALLED = True
+except ImportError:
+    SHAPELY_INSTALLED = False
 
 try:
     import pandaplan.core.pplog as logging
