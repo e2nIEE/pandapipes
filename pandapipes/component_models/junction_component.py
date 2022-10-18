@@ -120,6 +120,7 @@ class Junction(NodeComponent):
 
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]
+
         junction_pit = net["_active_pit"]["node"][fa:ta, :]
         junctions_active = get_lookup(net, "node", "active")[f:t]
 

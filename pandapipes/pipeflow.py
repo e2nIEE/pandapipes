@@ -193,10 +193,8 @@ def heat_transfer(net):
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
     if get_net_option(net, "time_step") == 0:
-
         node_pit[:, TINIT_OLD] = 293
         branch_pit[:, T_OUT_OLD] = 293
-
 
     # This loop is left as soon as the solver converged
     while not get_net_option(net, "converged") and niter <= max_iter:
