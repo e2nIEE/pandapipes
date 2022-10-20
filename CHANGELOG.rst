@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[upcoming release] - 2022-..-..
+-------------------------------
+- [ADDED] new component flow controller: a branch component that controls the flow through itself. It adapts the pressure drop between two junctions to reflect the desired flow situation.
+
+
 [0.7.0] - 2022-08-02
 -------------------------------
 - [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
