@@ -4,7 +4,7 @@
 
 from packaging import version
 
-from pandapipes import __version__, __from_version__
+from pandapipes import __format_version__
 from pandapipes.pandapipes_net import add_default_components
 
 try:
@@ -28,7 +28,7 @@ def convert_format(net):
     _rename_columns(net)
     _add_missing_columns(net)
     _rename_attributes(net)
-    net.version = __format_version__
+    net.format_version = __format_version__
     return net
 
 
