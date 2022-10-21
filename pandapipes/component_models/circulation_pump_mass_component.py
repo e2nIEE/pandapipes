@@ -27,8 +27,28 @@ class CirculationPumpMass(CirculationPump):
         return "circ_pump_mass"
 
     @classmethod
+    def get_component_input(cls):
+        """
+
+        :return:
+        :rtype:
+        """
+        return [("name", dtype(object)),
+                ("return_junction", "u4"),
+                ("flow_junction", "u4"),
+                ("p_bar", "f8"),
+                ("t_k", "f8"),
+                ("mdot_kg_per_s", "f8"),
+                ("in_service", 'bool'),
+                ("type", dtype(object))]
+
+    @classmethod
     def get_connected_node_type(cls):
         return Junction
+
+    @classmethod
+    def active_identifier(cls):
+        return "in_service"
 
     @classmethod
     def create_pit_node_entries(cls, net, node_pit):
@@ -53,17 +73,5 @@ class CirculationPumpMass(CirculationPump):
         node_pit[index, LOAD] += loads_sum
 
     @classmethod
-    def get_component_input(cls):
-        """
-
-        :return:
-        :rtype:
-        """
-        return [("name", dtype(object)),
-                ("return_junction", "u4"),
-                ("flow_junction", "u4"),
-                ("p_bar", "f8"),
-                ("t_k", "f8"),
-                ("mdot_kg_per_s", "f8"),
-                ("in_service", 'bool'),
-                ("type", dtype(object))]
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        pass
