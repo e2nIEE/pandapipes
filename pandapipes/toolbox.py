@@ -605,10 +605,12 @@ pit_types = {TYPE_P: "P", TYPE_L: "L", TYPE_NONE: "NONE", TYPE_T: "T", TYPE_PC: 
 
 def get_internal_tables_pandas(net):
     """
-    Convert the internal structure (pit) for nodes and branches into a readable pandas table.
+    Convert the internal structure (pit) for nodes and branches into readable pandas DataFrames.
 
-    :param net:
-    :return:
+    :param net: pandapipes network
+    :type net: pandapipesNet
+    :return: node_table, branch_table
+    :rtype: pandas.DataFrame
     """
     if "_pit" not in net:
         logger.warning("The net does not contain an internal pandapipes structure. Please try "
