@@ -23,7 +23,7 @@ def convert_format(net):
     format_version = version.parse(__format_version__)
     # For possible problems with this line of code, please check out
     # https://github.com/e2nIEE/pandapipes/issues/320
-    if not hasattr(net, __format_version__):
+    if not hasattr(net, 'format_version'):
         net.format_version = net.version
     if isinstance(net.format_version, str) and version.parse(net.format_version) >= format_version:
         return net
