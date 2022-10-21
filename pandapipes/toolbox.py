@@ -599,10 +599,12 @@ branch_pit_indices = {
 
 def get_internal_tables_pandas(net):
     """
-    Convert the internal structure (pit) for nodes and branches into a readable pandas table.
+    Convert the internal structure (pit) for nodes and branches into readable pandas DataFrames.
 
-    :param net:
-    :return:
+    :param net: pandapipes network
+    :type net: pandapipesNet
+    :return: node_table, branch_table
+    :rtype: pandas.DataFrame
     """
     # What's left to do: It would make sense to convert some entries according to lookups, e.g.
     # the table numbers into table names, and the node types into the respective names in the
