@@ -7,20 +7,14 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 from networkx import has_path
+from pandapower.auxiliary import get_indices
+from pandapower.toolbox import dataframes_equal, clear_result_tables
+
+import pandapipes
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.create import create_empty_network
-from pandapipes.pandapipes_net import pandapipesNet
-from pandapipes.topology import create_nxgraph
-from pandapower.auxiliary import get_indices
-from pandapower.toolbox import dataframes_equal, clear_result_tables
-from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, ELEMENT_IDX as ELEMENT_IDX_NODE, \
-    NODE_TYPE as NODE_TYPE_NODE, ACTIVE as ACTIVE_NODE, RHO as RHO_NODE, PINIT as PINIT_NODE, \
-    LOAD as LOAD_NODE, HEIGHT as HEIGHT_NODE, TINIT as TINIT_NODE, PAMB as PAMB_NODE, \
-    LOAD_T as LOAD_T_NODE, NODE_TYPE_T as NODE_TYPE_T_NODE, \
-    EXT_GRID_OCCURENCE as EXT_GRID_OCCURENCE_NODE, \
-    EXT_GRID_OCCURENCE_T as EXT_GRID_OCCURENCE_T_NODE, node_cols
-from pandapipes.idx_branch import TABLE_IDX as TABLE_IDX_BRANCH, ELEMENT_IDX as ELEMENT_IDX_BRANCH,\
+from pandapipes.idx_branch import TABLE_IDX as TABLE_IDX_BRANCH, ELEMENT_IDX as ELEMENT_IDX_BRANCH, \
     FROM_NODE as FROM_NODE_BRANCH, TO_NODE as TO_NODE_BRANCH, ACTIVE as ACTIVE_BRANCH, \
     LENGTH as LENGTH_BRANCH, D as D_BRANCH, AREA as AREA_BRANCH, RHO as RHO_BRANCH, \
     ETA as ETA_BRANCH, K as K_BRANCH, TINIT as TINIT_BRANCH, VINIT as VINIT_BRANCH, \
@@ -35,6 +29,15 @@ from pandapipes.idx_branch import TABLE_IDX as TABLE_IDX_BRANCH, ELEMENT_IDX as 
     FROM_NODE_T as FROM_NODE_T_BRANCH, TO_NODE_T as TO_NODE_T_BRANCH, QEXT as QEXT_BRANCH, \
     TEXT as TEXT_BRANCH, STD_TYPE as STD_TYPE_BRANCH, PL as PL_BRANCH, TL as TL_BRANCH, \
     BRANCH_TYPE as BRANCH_TYPE_BRANCH, PRESSURE_RATIO as PRESSURE_RATIO_BRANCH, branch_cols
+from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, ELEMENT_IDX as ELEMENT_IDX_NODE, \
+    NODE_TYPE as NODE_TYPE_NODE, ACTIVE as ACTIVE_NODE, RHO as RHO_NODE, PINIT as PINIT_NODE, \
+    LOAD as LOAD_NODE, HEIGHT as HEIGHT_NODE, TINIT as TINIT_NODE, PAMB as PAMB_NODE, \
+    LOAD_T as LOAD_T_NODE, NODE_TYPE_T as NODE_TYPE_T_NODE, \
+    EXT_GRID_OCCURENCE as EXT_GRID_OCCURENCE_NODE, \
+    EXT_GRID_OCCURENCE_T as EXT_GRID_OCCURENCE_T_NODE, node_cols, \
+    T as TYPE_T, P as TYPE_P, PC as TYPE_PC, NONE as TYPE_NONE, L as TYPE_L
+from pandapipes.pandapipes_net import pandapipesNet
+from pandapipes.topology import create_nxgraph
 
 try:
     import pandaplan.core.pplog as logging
@@ -597,6 +600,9 @@ branch_pit_indices = {
 }
 
 
+pit_types = {TYPE_P: "P", TYPE_L: "L", TYPE_NONE: "NONE", TYPE_T: "T", TYPE_PC: "PC", 0: "NONE"}
+
+
 def get_internal_tables_pandas(net):
     """
     Convert the internal structure (pit) for nodes and branches into a readable pandas table.
@@ -604,9 +610,6 @@ def get_internal_tables_pandas(net):
     :param net:
     :return:
     """
-    # What's left to do: It would make sense to convert some entries according to lookups, e.g.
-    # the table numbers into table names, and the node types into the respective names in the
-    # idx_node file
     if "_pit" not in net:
         logger.warning("The net does not contain an internal pandapipes structure. Please try "
                        "running a pipeflow first.")
@@ -624,10 +627,17 @@ def get_internal_tables_pandas(net):
         logger.warning("%d branch pit entries are missing. Please verify the correctness of the "
                        "table." % missing_branches)
 
+    node_table_lookup = pandapipes.get_lookup(net, "node", "table")
     node_table = pd.DataFrame(node_pit)
     node_table.rename(columns=node_pit_indices, inplace=True)
+    node_table["NODE_TYPE"].replace(pit_types, inplace=True)
+    node_table["NODE_TYPE_T"].replace(pit_types, inplace=True)
+    node_table["TABLE_IDX"].replace(node_table_lookup["n2t"], inplace=True)
 
+    branch_table_lookup = pandapipes.get_lookup(net, "branch", "table")
     branch_table = pd.DataFrame(branch_pit)
     branch_table.rename(columns=branch_pit_indices, inplace=True)
+    branch_table["BRANCH_TYPE"].replace(pit_types, inplace=True)
+    branch_table["TABLE_IDX"].replace(branch_table_lookup["n2t"], inplace=True)
 
     return node_table, branch_table

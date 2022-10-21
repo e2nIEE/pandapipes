@@ -111,5 +111,13 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
         net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
 
 
+@pytest.mark.xfail(reason="The test net is not set up properly.")
+def test_wild_indexing(create_net_changed_indices):
+    net = copy.deepcopy(create_net_changed_indices)
+
+    pandapipes.pipeflow(net)
+    assert net["converged"]
+
+
 if __name__ == "__main__":
     pytest.main([r'pandapipes/test/api/test_special_networks.py'])
