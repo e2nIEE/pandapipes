@@ -50,11 +50,11 @@ class FlowControlComponent(BranchWZeroLengthComponent):
             (fc_pit[:, AREA] * fc_pit[:, RHO])
 
     @classmethod
-    def adaption_before_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
     @classmethod
-    def adaption_after_derivatives(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
         # of velocity is allowed during the pipeflow iteration
         f, t = idx_lookups[cls.table_name()]
