@@ -112,7 +112,7 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc))
                           for par in ["include", "respect_status", "weighting"]
                           for bc in ["pipes", "valves", "pumps", "press_controls",
-                                     "circ_pump_masss", "circ_pump_presss"]})
+                                     "circ_pump_masss", "circ_pump_presss", "valve_pipes"]})
     for comp in net.component_list:
         if not issubclass(comp, BranchComponent):
             continue

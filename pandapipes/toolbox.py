@@ -121,7 +121,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
             node_elements = ["sink", "source", "ext_grid"]
         if include_branch_elements:
             branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                               "heat_exchanger", "press_control", "compressor"]
+                               "heat_exchanger", "press_control", "compressor", "valve_pipe"]
     ejts = set()
     if include_node_elements:
         for elm in node_elements:
