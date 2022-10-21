@@ -83,10 +83,10 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         class_ = getattr(module, self.class_name)
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
-                self.obj = json.loads(self.obj, cls=PPJSONDecoder,
-                                      object_hook=partial(pp_hook,
-                                                          registry_class=FromSerializableRegistryPpipe))
-                                                          # backwards compatibility
+                self.obj = json.loads(
+                    self.obj, cls=PPJSONDecoder,
+                    object_hook=partial(pp_hook, registry_class=FromSerializableRegistryPpipe)
+                )  # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]
             return class_.from_dict(self.obj)

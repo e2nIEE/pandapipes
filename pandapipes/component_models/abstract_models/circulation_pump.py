@@ -8,8 +8,8 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
     BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, \
     get_mass_flow_at_nodes
-from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, ACTIVE
-from pandapipes.idx_node import PINIT, PC
+from pandapipes.idx_branch import D, AREA, ACTIVE
+from pandapipes.idx_node import PINIT
 from pandapipes.pf.pipeflow_setup import get_lookup
 
 try:

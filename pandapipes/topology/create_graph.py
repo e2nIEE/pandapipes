@@ -40,8 +40,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                    weighting_press_controls=None,
                    include_pumps=True, respect_status_pumps=True,
                    weighting_pumps=None,
-                   respect_status_junctions=True, nogojunctions=None, notravjunctions=None, multi=True,
-                   respect_status_branches_all=None, **kwargs):
+                   respect_status_junctions=True, nogojunctions=None, notravjunctions=None,
+                   multi=True, respect_status_branches_all=None, **kwargs):
     """
     Converts a pandapipes network into a NetworkX graph, which is a is a simplified representation
     of a network's topology, reduced to nodes and edges. Junctions are being represented by nodes,
@@ -83,8 +83,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     :type nogojunctions: iterable, default None
     :param notravjunctions: edges connected to these junctions are not being considered in the graph
     :type notravjunctions: iterable, default None
-    :param multi: True: The function generates a NetworkX MultiGraph, which allows multiple parallel\
-        edges between nodes
+    :param multi: True: The function generates a NetworkX MultiGraph, which allows multiple \
+        parallel edges between nodes
         False: NetworkX Graph (no multiple parallel edges)
     :type multi: bool, default True
     :param respect_status_branches_all: Flag for overriding the status consideration for all branch\
@@ -92,8 +92,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     :type respect_status_branches_all: bool, default None
     :param kwargs: Additional keyword arguments, especially useful to address inclusion of branch\
         components that are not in the default components (pipes, valves, pumps). It is always \
-        possible to add "include_xy", "respect_status_xy" or "weighting_xy" arguments for additional\
-        components
+        possible to add "include_xy", "respect_status_xy" or "weighting_xy" arguments for \
+        additional components
     :return: mg - the required NetworkX graph
 
     ..note: By default, all branch components are represented as edges in the graph. I.e. tables of\

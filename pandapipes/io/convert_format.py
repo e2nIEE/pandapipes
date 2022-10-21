@@ -46,10 +46,9 @@ def _rename_columns(net):
         if cp_tbl in net:
             for old_col, new_col in [("from_junction", "flow_junction"),
                                      ("to_junction", "return_junction")]:
-                if old_col in net[cp_tbl] and not new_col in net[cp_tbl]:
+                if old_col in net[cp_tbl] and new_col not in net[cp_tbl]:
                     net[cp_tbl][new_col] = net[cp_tbl][old_col]
                     net[cp_tbl].drop(old_col, inplace=True, axis=1)
-
 
 
 def _add_missing_columns(net):

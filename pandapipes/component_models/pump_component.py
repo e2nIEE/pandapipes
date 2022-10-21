@@ -159,15 +159,17 @@ class Pump(BranchWZeroLengthComponent):
                 try:
                     molar_mass = net.fluid.get_molar_mass()  # [g/mol]
                 except UserWarning:
-                    logger.error('Molar mass is missing in your fluid. Before you are able to retrieve '
-                                 'the compression power make sure that the molar mass is defined')
+                    logger.error('Molar mass is missing in your fluid. Before you are able to '
+                                 'retrieve the compression power make sure that the molar mass is'
+                                 ' defined')
                 else:
                     r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                     # 'kappa' heat capacity ratio:
                     k = 1.4  # TODO: implement proper calculation of kappa
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                     (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-                    res_table['compr_power_mw'].values[:] = w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
+                    res_table['compr_power_mw'].values[:] = \
+                        w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
             else:
                 vf_sum_int = branch_results["vf"][f:t]
                 pl = branch_results["pl"][f:t]

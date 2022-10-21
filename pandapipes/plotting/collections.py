@@ -8,7 +8,7 @@ from pandapower.plotting.collections import _create_node_collection, \
     _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
-from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
+from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches,\
     pump_patches, pressure_control_patches, compressor_patches
 from pandapower.plotting.plotting_toolbox import get_index_array
 
@@ -394,7 +394,8 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     :type valves: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
@@ -456,7 +457,8 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     :type table_name: str, default 'pump'
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
@@ -512,7 +514,8 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
     :type valves: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param colors: Color or list of colors for every valve
     :type colors: iterable, float, default None
@@ -551,9 +554,10 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
 
     return lc, pc
 
-def create_compressor_collection(net, cmprs=None, table_name='compressor',
-                                       size=5., junction_geodata=None,
-                                       color='k', infofunc=None, picker=False, **kwargs):
+
+def create_compressor_collection(net, cmprs=None, table_name='compressor', size=5.,
+                                 junction_geodata=None, color='k', infofunc=None, picker=False,
+                                 **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes compressors. Compressors are
     plotted in the center between two junctions.
@@ -565,7 +569,8 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor',
     :type cmprs: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param colors: Color or list of colors for every compressor
     :type colors: iterable, float, default None
