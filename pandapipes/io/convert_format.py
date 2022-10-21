@@ -25,7 +25,7 @@ def convert_format(net):
     # https://github.com/e2nIEE/pandapipes/issues/320
     if version.parse(net.version) <= version.parse('0.7.0'):
         net.format_version = net.version
-    if isinstance(net.format_version, str) and version.parse(net.format_version) >= format_version:
+    if version.parse(net.format_version) >= format_version:
         return net
     _rename_columns(net)
     _add_missing_columns(net)
