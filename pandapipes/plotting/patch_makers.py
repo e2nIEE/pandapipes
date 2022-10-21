@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from matplotlib.patches import RegularPolygon, Rectangle, Circle, PathPatch
+from matplotlib.patches import RegularPolygon, Rectangle, Circle, PathPatch, FancyArrow
 from matplotlib.path import Path
 from pandapower.plotting.plotting_toolbox import get_color_list, _rotate_dim2, get_angle_list, \
     get_list
@@ -34,6 +34,37 @@ def valve_patches(coords, size, **kwargs):
                                     orientation=-angle + np.pi / 3, ec=col, fc=face_col, lw=lw))
         lines.append([p1, p1 + diff / 2 - vec_size / 2 * 3])
         lines.append([p2, p1 + diff / 2 + vec_size / 2 * 3])
+    return lines, polys, {"filled"}
+
+
+def flow_control_patches(coords, size, **kwargs):
+    """Creates a valve-like patch with a T on it"""
+    polys, lines = list(), list()
+    edgecolor = kwargs.pop('patch_edgecolor')
+    colors = get_color_list(edgecolor, len(coords))
+    lw = kwargs.get("linewidths", 2.)
+    filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=bool))
+    filled = get_filled_list(filled, len(coords))
+    for geodata, col, filled_ind in zip(coords, colors, filled):
+        p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
+        center = (0.5 * (p1[0] + p2[0]), 0.5 * (p1[1] + p2[1]))
+        diff = p2 - p1
+        angle = np.arctan2(*diff)
+        vec_size = _rotate_dim2(np.array([0, size]), angle)
+        centroid_tri1 = p1 + diff / 2 - vec_size
+        centroid_tri2 = p1 + diff / 2 + vec_size
+        face_col = "w" if not filled_ind else col
+        polys.append(RegularPolygon(centroid_tri1, numVertices=3, radius=size, orientation=-angle,
+                                    ec=col, fc=face_col, lw=lw))
+        polys.append(RegularPolygon(centroid_tri2, numVertices=3, radius=size,
+                                    orientation=-angle + np.pi / 3, ec=col, fc=face_col, lw=lw))
+        lines.append([p1, p1 + diff / 2 - vec_size / 2 * 3])
+        lines.append([p2, p1 + diff / 2 + vec_size / 2 * 3])
+        dx = 1.5 * size * np.sin(angle - np.pi/2)
+        dy = 1.5 * size * np.cos(angle - np.pi/2)
+
+        polys.append(FancyArrow(center[0], center[1], dx, dy, head_length=0, head_width=2*size,
+                                color=col))
     return lines, polys, {"filled"}
 
 
