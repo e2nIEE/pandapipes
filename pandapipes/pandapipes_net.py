@@ -7,7 +7,7 @@ import copy
 import numpy as np
 import pandas as pd
 from numpy import dtype
-from pandapipes import __version__
+from pandapipes import __version__, __format_version__
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.component_models.ext_grid_component import ExtGrid
@@ -70,6 +70,7 @@ def get_basic_net_entries():
         "converged": False,
         "name": "",
         "version": __version__,
+        "format_version": __format_version__,
         "component_list": []}
 
 
