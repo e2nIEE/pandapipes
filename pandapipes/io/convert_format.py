@@ -4,7 +4,7 @@
 
 from packaging import version
 
-from pandapipes import __version__
+from pandapipes import __format_version__
 from pandapipes.pandapipes_net import add_default_components
 
 try:
@@ -20,15 +20,17 @@ def convert_format(net):
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
     add_default_components(net, overwrite=False)
-    current_version = version.parse(__version__)
+    format_version = version.parse(__format_version__)
     # For possible problems with this line of code, please check out
     # https://github.com/e2nIEE/pandapipes/issues/320
-    if isinstance(net.version, str) and version.parse(net.version) >= current_version:
+    if not hasattr(net, __format_version__):
+        net.format_version = net.version
+    if isinstance(net.format_version, str) and version.parse(net.format_version) >= format_version:
         return net
     _rename_columns(net)
     _add_missing_columns(net)
     _rename_attributes(net)
-    net.version = __version__
+    net.format_version = __format_version__
     return net
 
 
