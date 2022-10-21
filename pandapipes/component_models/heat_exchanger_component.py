@@ -80,19 +80,19 @@ class HeatExchanger(BranchWZeroLengthComponent):
                                                  cls.table_name(), branches_connected)
 
     @classmethod
-    def calculate_temperature_lift(cls, net, he_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param he_pit:
-        :type he_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
         :rtype:
         """
-        he_pit[:, TL] = 0
+        branch_component_pit[:, TL] = 0
 
     @classmethod
     def get_component_input(cls):

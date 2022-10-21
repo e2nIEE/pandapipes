@@ -65,19 +65,19 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         fc_pit[:, LOAD_VEC_BRANCHES] = 0
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pc_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param pc_pit:
-        :type pc_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
         :rtype:
         """
-        pc_pit[:, TL] = 0
+        branch_component_pit[:, TL] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
