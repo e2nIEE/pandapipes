@@ -9,7 +9,12 @@ def create_valve_pipe(net, from_junction, to_junction, length_km, diameter_m, op
                       max_vdot_m3_per_s=100, max_v_m_per_s=None, alpha_w_per_m2k=0., qext_w=0.,
                       name=None, index=None, in_service=True, type="valve_pipe", **kwargs):
     """
-    Creates a valve pipe element in net["valve_pipe"] from valve pipe parameters.
+    Creates a valve pipe element in net["valve_pipe"] from valve pipe parameters. This component is
+    an equivalent to STANET's valve element, as it represents a valve with a length, unlike the
+    normal pandapipes valve which is assumed to be of length 0. This component is not supposed to
+    be added to the standard pandapipes components, as it doesn't add value to the model itself, but
+    is just an alternative to how valves can be modeled. Its equivalent of one valve connected to
+    one or two pipes is a cleaner model from our point of view.
 
     :param net: The net within this pipe should be created
     :type net: pandapipesNet
