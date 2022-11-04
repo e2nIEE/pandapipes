@@ -1002,6 +1002,67 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     return index
 
 
+def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, index=None,
+                     type="auto", check_types=True, **kwargs):
+    """
+    Convenience function for creating many external grids at once. Parameter 'junctions' must be an\
+    array of the desired length. Other parameters may be either arrays of the same length or single\
+    values.\n
+    External grids transfer the junction that it is connected into a node with fixed value for \
+    either pressure, temperature or both (depending on the type). Usually external grids represent \
+    connections to other grids feeding the given pandapipesNet.
+
+    :param net: The net that the external grid should be connected to
+    :type net: pandapipesNet
+    :param junctions: The junctions to which the external grids are connected
+    :type junctions: Iterable(int)
+    :param p_bar: The pressure of the external grids
+    :type p_bar: Iterable(float) or float
+    :param t_k: The fixed temperature at the external grids
+    :type t_k: Iterable(float) or float
+    :param name: A name tag for the ext_grids
+    :type name: Iterable(str) or str, default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: Iterable(bool) or bool, default True
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param type: The external grid type denotes the values that are fixed at the respective node:\n
+            - "auto": Will automatically assign one of the following types based on the input for \
+                      p_bar and t_k \n
+            - "p": The pressure is fixed, the node acts as a slack node for the mass flow. \n
+            - "t": The temperature is fixed and will not be solved for, but is assumed as the \
+                   node's mix temperature. Please note that pandapipes cannot check for \
+                   inconsistencies in the formulation of heat transfer equations yet. \n
+            - "pt": The external grid shows both "p" and "t" behavior.
+    :type type: Iterable(str) or str, default "auto"
+    :param check_types: flag whether to check the given types for correctness and identify the \
+            correct types, if they are set to "auto"
+    :type check_types: bool, default True
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["ext_grid"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: Iterable(int)
+
+    :Example:
+        >>> create_ext_grids(net, junctions=[2, 4], p_bar=[100, 200], t_k=293.15)
+
+    """
+    add_new_component(net, ExtGrid)
+
+    _check_multiple_junction_elements(net, junctions)
+    index = _get_multiple_index_with_check(net, "ext_grid", index, len(junctions))
+
+    if check_types:
+        type = _auto_ext_grid_types(p_bar, t_k, type, ExtGrid)
+
+    entries = {"junction": junctions, "p_bar": p_bar, "t_k": t_k,
+               "in_service": in_service, "name": name, "type": type}
+    _set_multiple_entries(net, "ext_grid", index, **entries, **kwargs)
+
+    return index
+
+
 def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=1,
                  loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0.,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
@@ -1457,8 +1518,8 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
     if not typ_arr:
         typ = np.array([typ] * length)
 
-    p_null = ma.masked_values(p_bar, None).mask | np.isnan(p_bar)
-    t_null = ma.masked_values(t_k, None).mask | np.isnan(t_k)
+    p_null = ma.masked_object(p_bar, None).mask | np.isnan(p_bar)
+    t_null = ma.masked_object(t_k, None).mask | np.isnan(t_k)
 
     ptn = p_null & t_null
     if np.any(ptn):
