@@ -1518,8 +1518,8 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
     if not typ_arr:
         typ = np.array([typ] * length)
 
-    p_null = ma.masked_object(p_bar, None).mask | np.isnan(p_bar)
-    t_null = ma.masked_object(t_k, None).mask | np.isnan(t_k)
+    p_null = np.equal(p_bar, None) | np.isnan(p_bar)
+    t_null = np.equal(t_k, None) | np.isnan(t_k)
 
     ptn = p_null & t_null
     if np.any(ptn):
@@ -1531,7 +1531,6 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
         raise UserWarning("The types for component %s are %s, but must be one of the following: %s."
                           % (comp.__name__, typ, ALLOWED_EG_TYPES))
 
-    auto_types = typ == "auto"
     p_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp != "t"])
     t_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp != "p"])
 
@@ -1549,11 +1548,12 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
         raise UserWarning("The types %s for component %s (positions %s) require a temperature as "
                           "input!" % (invalid_types, invalid_ind, comp.__name__))
 
-    real_types = typ.copy()
+    auto_types = np.isin(typ, ["auto"])
+    real_types = np.array(typ).copy()
     if np.any(auto_types):
-        real_types[auto_types] = ""
-        real_types[auto_types & ~p_null] += "p"
-        real_types[auto_types & ~t_null] += "t"
+        real_types[auto_types & ~p_null & t_null] = "p"
+        real_types[auto_types & p_null & ~t_null] = "t"
+        real_types[auto_types & ~p_null & ~t_null] = "pt"
         return real_types
 
     tp_type = real_types == "tp"
