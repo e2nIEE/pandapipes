@@ -8,7 +8,7 @@ from numpy import dtype
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
 from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
-    RHO, LOAD_VEC_BRANCHES
+    RHO, LOAD_VEC_BRANCHES, ELEMENT_IDX
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -59,10 +59,13 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         # of velocity is allowed during the pipeflow iteration
         f, t = idx_lookups[cls.table_name()]
         fc_pit = branch_pit[f:t, :]
-        fc_pit[:, JAC_DERIV_DP] = 0
-        fc_pit[:, JAC_DERIV_DP1] = 0
-        fc_pit[:, JAC_DERIV_DV] = 1
-        fc_pit[:, LOAD_VEC_BRANCHES] = 0
+        in_service_elm = np.isin(net[cls.table_name()].index.values,
+                                 fc_pit[:, ELEMENT_IDX].astype(np.int32))
+        active = net[cls.table_name()].control_active.values[in_service_elm]
+        fc_pit[active, JAC_DERIV_DP] = 0
+        fc_pit[active, JAC_DERIV_DP1] = 0
+        fc_pit[active, JAC_DERIV_DV] = 1
+        fc_pit[active, LOAD_VEC_BRANCHES] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):

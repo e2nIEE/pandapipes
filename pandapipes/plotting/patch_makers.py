@@ -45,7 +45,9 @@ def flow_control_patches(coords, size, **kwargs):
     lw = kwargs.get("linewidths", 2.)
     filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=bool))
     filled = get_filled_list(filled, len(coords))
-    for geodata, col, filled_ind in zip(coords, colors, filled):
+    controlled = kwargs.pop("controlled", np.full(len(coords), 1, dtype=bool))
+    controlled = get_filled_list(controlled, len(coords))
+    for geodata, col, filled_ind, controlled_ind in zip(coords, colors, filled, controlled):
         p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
         center = (0.5 * (p1[0] + p2[0]), 0.5 * (p1[1] + p2[1]))
         diff = p2 - p1
@@ -63,17 +65,21 @@ def flow_control_patches(coords, size, **kwargs):
         dx = 1.5 * size * np.sin(angle - np.pi/2)
         dy = 1.5 * size * np.cos(angle - np.pi/2)
 
-        polys.append(FancyArrow(center[0], center[1], dx, dy, head_length=0, head_width=2*size,
-                                color=col))
-    return lines, polys, {"filled"}
+        if controlled_ind:
+            polys.append(FancyArrow(center[0], center[1], dx, dy, head_length=0, head_width=2*size,
+                                    color=col))
+    return lines, polys, {"filled", "controlled"}
 
 
 def heat_exchanger_patches(coords, size, **kwargs):
     polys, lines = list(), list()
     facecolor = kwargs.pop('patch_facecolor')
-    colors = get_color_list(facecolor, len(coords))
+    face_colors = get_color_list(facecolor, len(coords))
+    edgecolor = kwargs.pop('patch_edgecolor')
+    edge_colors = get_color_list(edgecolor, len(coords))
+
     lw = kwargs.get("linewidths", 2.)
-    for geodata, col in zip(coords, colors):
+    for geodata, face_col, edge_col in zip(coords, face_colors, edge_colors):
         p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
         diff = p2 - p1
         m = 3 * size / 4
@@ -87,9 +93,9 @@ def heat_exchanger_patches(coords, size, **kwargs):
         path = [path1, path2, path3, path4, path5]
         radius = size  # np.sqrt(diff[0]**2+diff[1]**2)/15
 
-        pa = Path(path)
-        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor="w", lw=lw))
-        polys.append(PathPatch(pa, fill=False, lw=lw, edgecolor=col))
+        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=edge_col, facecolor=face_col,
+                            lw=lw))
+        polys.append(PathPatch(Path(path), fill=False, lw=lw, edgecolor=edge_col))
         lines.append([p1, p1 + diff / 2 - direc * radius])
         lines.append([p2, p1 + diff / 2 + direc * radius])
     return lines, polys, {}

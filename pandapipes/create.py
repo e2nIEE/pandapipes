@@ -878,7 +878,7 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
     :type to_junction: int
     :param controlled_mdot_kg_per_s: Mass flow set point
     :type controlled_mdot_kg_per_s: float
-    :param diameter_m: Measure of the diameter to derive the cross sectional area (important for \
+    :param diameter_m: Measure of the diameter to derive the cross-sectional area (important for \
             the velocity calculation)
     :type diameter_m: float
     :param control_active: Variable to state whether the flow control is active (otherwise \
@@ -1350,7 +1350,7 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     :type to_junctions: Iterable(int)
     :param controlled_mdot_kg_per_s: Mass flow set points
     :type controlled_mdot_kg_per_s: Iterable or float
-    :param diameter_m: Measure of the diameter to derive the cross sectional area (important for \
+    :param diameter_m: Measure of the diameter to derive the cross-sectional area (important for \
             the velocity calculation)
     :type diameter_m: Iterable or float
     :param control_active: Variable to state whether the flow control is active (otherwise \

@@ -246,14 +246,10 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         flow_control_size = sizes["flow_control"]
 
     # create junction collections to plot
-    if respect_in_service:
-        junction_coll = create_junction_collection(net, net.junction[net.junction.in_service].index,
-                                                   size=junction_size,
-                                                   color=junction_color, zorder=10)
-    else:
-        junction_coll = create_junction_collection(net, net.junction.index,
-                                                   size=junction_size,
-                                                   color=junction_color, zorder=10)
+    junc_idx = net.junction[net.junction.in_service].index if respect_in_service \
+        else net.junction.index
+    junction_coll = create_junction_collection(net, junc_idx, size=junction_size,
+                                               color=junction_color, zorder=10)
 
     # if bus geodata is available, but no line geodata
     use_junction_geodata = len(net.pipe_geodata) == 0
@@ -283,25 +279,17 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         collections["ext_grid"] = eg_coll
 
     if 'source' in net and plot_sources and len(net.source) > 0:
-        if respect_in_service:
-            source_colls = create_source_collection(
-                net, sources=net.source[net.source.in_service].index, size=source_size,
-                patch_edgecolor='silver', line_color='silver', linewidths=pipe_width)
-        else:
-            source_colls = create_source_collection(
-                net, size=source_size, patch_edgecolor='silver', line_color='silver',
-                linewidths=pipe_width)
+        idx = net.source[net.source.in_service].index if respect_in_service else net.source.index
+        source_colls = create_source_collection(net, sources=idx, size=source_size,
+                                                patch_edgecolor='silver', line_color='silver',
+                                                linewidths=pipe_width)
         collections["source"] = source_colls
 
     if 'sink' in net and plot_sinks and len(net.sink) > 0:
-        if respect_in_service:
-            sink_colls = create_sink_collection(
-                net, sinks=net.sink[net.sink.in_service].index, size=sink_size,
-                patch_edgecolor='silver', line_color='silver', linewidths=pipe_width)
-        else:
-            sink_colls = create_sink_collection(
-                net, size=sink_size, patch_edgecolor='silver', line_color='silver',
-                linewidths=pipe_width)
+        idx = net.sink[net.sink.in_service].index if respect_in_service else net.sink.index
+        sink_colls = create_sink_collection(net, sinks=idx, size=sink_size,
+                                            patch_edgecolor='silver', line_color='silver',
+                                            linewidths=pipe_width)
         collections["sink"] = sink_colls
 
     if 'valve' in net:
@@ -316,70 +304,46 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         collections["flow_control"] = flow_control_colls
 
     if 'pump' in net:
-        if respect_in_service:
-            pump_colls = create_pump_collection(net, net.pump[net.pump.in_service].index,
-                                                size=pump_size, linewidths=pipe_width,
-                                                color=pump_color)
-        else:
-            pump_colls = create_pump_collection(net, size=pump_size, linewidths=pipe_width,
-                                                color=pump_color)
+        idx = net.pump[net.pump.in_service].index if respect_in_service else net.pump.index
+        pump_colls = create_pump_collection(net, idx, size=pump_size, linewidths=pipe_width,
+                                            color=pump_color)
         collections["pump"] = pump_colls
 
     if 'circ_pump_mass' in net:
-        if respect_in_service:
-            circ_pump_colls = create_pump_collection(
-                net, pumps=net.circ_pump_mass[net.circ_pump_mass.in_service].index,
-                table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
-        else:
-            circ_pump_colls = create_pump_collection(
-                net, table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
+        idx = net.circ_pump_mass[net.circ_pump_mass.in_service].index if respect_in_service \
+            else net.circ_pump_mass.index
+        circ_pump_colls = create_pump_collection(net, pumps=idx, table_name='circ_pump_mass',
+                                                 size=pump_size, linewidths=pipe_width,
+                                                 color=pump_color)
         collections["circ_pump_mass"] = circ_pump_colls
 
     if 'circ_pump_pressure' in net:
-        if respect_in_service:
-            circ_pump_colls = create_pump_collection(
-                net, pumps=net.circ_pump_pressure[net.circ_pump_pressure.in_service].index,
-                table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
-            collections["circ_pump_pressure"] = circ_pump_colls
-        else:
-            circ_pump_colls = create_pump_collection(
-                net, table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
-                color=pump_color)
-            collections["circ_pump_pressure"] = circ_pump_colls
+        idx = net.circ_pump_pressure[net.circ_pump_pressure.in_service].index if respect_in_service \
+            else net.circ_pump_pressure.index
+        circ_pump_colls = create_pump_collection(net, pumps=idx, table_name='circ_pump_pressure',
+                                                 size=pump_size, linewidths=pipe_width,
+                                                 color=pump_color)
+        collections["circ_pump_pressure"] = circ_pump_colls
 
     if 'heat_exchanger' in net:
-        if respect_in_service:
-            hxc = create_heat_exchanger_collection(
-                net, heat_ex=net.heat_exchanger[net.heat_exchanger.in_service].index,
-                size=heat_exchanger_size, linewidths=pipe_width, color=heat_exchanger_color)
-        else:
-            hxc = create_heat_exchanger_collection(
-                net, size=heat_exchanger_size, linewidths=pipe_width, color=heat_exchanger_color)
+        idx = net.heat_exchanger[net.heat_exchanger.in_service].index if respect_in_service \
+            else net.heat_exchanger.index
+        hxc = create_heat_exchanger_collection(net, heat_ex=idx, size=heat_exchanger_size,
+                                               linewidths=pipe_width, color=heat_exchanger_color)
         collections["heat_exchanger"] = hxc
 
     if 'press_control' in net:
-        if respect_in_service:
-            pc = create_pressure_control_collection(
-                net, pcs=net.press_control[net.press_control.in_service].index,
-                size=pressure_control_size, linewidths=pipe_width, color=pressure_control_color)
-        else:
-            pc = create_pressure_control_collection(
-                net, size=pressure_control_size, linewidths=pipe_width,
-                color=pressure_control_color)
+        idx = net.press_control[net.press_control.in_service].index if respect_in_service \
+            else net.press_control.index
+        pc = create_pressure_control_collection(net, pcs=idx, size=pressure_control_size,
+                                                linewidths=pipe_width, color=pressure_control_color)
         collections["press_control"] = pc
 
     if 'compressor' in net:
-        if respect_in_service:
-            compr_colls = create_compressor_collection(net,
-                                               net.compressor[net.compressor.in_service].index,
-                                                size=compressor_size, linewidths=pipe_width,
-                                                color=compressor_color)
-        else:
-            compr_colls = create_compressor_collection(net, size=compressor_size, linewidths=pipe_width,
-                                                color=compressor_color)
+        idx = net.compressor[net.compressor.in_service].index if respect_in_service \
+            else net.compressor.index
+        compr_colls = create_compressor_collection(net, idx, size=compressor_size,
+                                                   linewidths=pipe_width, color=compressor_color)
         collections["compressor"] = compr_colls
 
     if 'additional_collections' in kwargs:
