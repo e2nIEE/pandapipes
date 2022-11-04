@@ -1382,8 +1382,7 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "diameter_m": diameter_m,
-               "control_active": control_active, "in_service": in_service.astype(np.bool_),
-               "type": type}
+               "control_active": control_active, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "flow_control", index, **entries, **kwargs)
 
     return index
