@@ -132,8 +132,8 @@ class CirculationPump(BranchWZeroLengthComponent):
         flow_nodes = junction_lookup[flow_junctions]
         in_service = circ_pump_tbl.in_service.values
         p_grids = np.isin(circ_pump_tbl.type.values, ["p", "pt"]) & in_service
-        sum_mass_flows, node_uni, inverse_nodes, counts = \
-            get_mass_flow_at_nodes(net, node_pit, branch_pit, flow_nodes[p_grids], cls)
+        sum_mass_flows, inverse_nodes, counts = get_mass_flow_at_nodes(net, node_pit, branch_pit,
+                                                                       flow_nodes[p_grids], cls)
 
         # positive results mean that the circ_pump feeds in, negative means that the ext grid
         # extracts (like a load)

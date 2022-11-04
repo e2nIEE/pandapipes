@@ -176,4 +176,4 @@ def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
     if not np.all(nodes == node_uni):
         raise UserWarning("In component %s: Something went wrong with the mass flow balance. "
                           "Please report this error at github." % comp.__name__)
-    return sum_mass_flows, node_uni, inverse_nodes, counts
+    return sum_mass_flows, inverse_nodes, counts

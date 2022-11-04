@@ -93,14 +93,14 @@ class ExtGrid(NodeElementComponent):
         # get indices in internal structure for junctions in ext_grid tables which are "active"
         eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
             junction[p_grids]]
-        sum_mass_flows, node_uni, inverse_nodes, counts = \
-            get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, cls)
+        sum_mass_flows, inverse_nodes, counts = get_mass_flow_at_nodes(net, node_pit, branch_pit,
+                                                                       eg_nodes, cls)
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)
         res_table["mdot_kg_per_s"].values[p_grids] = \
             cls.sign() * (sum_mass_flows / counts)[inverse_nodes]
-        return res_table, ext_grids, node_uni, node_pit, branch_pit
+        return res_table, ext_grids, node_pit, branch_pit
 
     @classmethod
     def get_connected_junction(cls, net):
