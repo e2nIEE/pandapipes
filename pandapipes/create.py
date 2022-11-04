@@ -644,7 +644,13 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
                                     t_k=None, name=None, index=None, in_service=True, type="auto",
                                     check_types=True, **kwargs):
     """
-    Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"].
+    Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
+    A circulation pump is a component that sets the pressure at its outlet (flow junction) and
+    asserts that the correct mass flow is extracted at its inlet (return junction). \n
+    In this particular case, the pressure lift is fixed, i.e. the pressure on both sides are set
+    (with the pressure lift as difference). The mass flow through the component is just a result
+    of the balance of the network. An equal representation is adding external grids at each of the
+    connected nodes.
 
     :param net: The net within this pump should be created
     :type net: pandapipesNet
@@ -709,7 +715,13 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
                                      t_k=None, name=None, index=None, in_service=True,
                                      type="auto", check_types=True, **kwargs):
     """
-    Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].
+    Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].\n
+    A circulation pump is a component that sets the pressure at its outlet (flow junction) and
+    asserts that the correct mass flow is extracted at its inlet (return junction). \n
+    In this particular case, the mass flow and the pressure on the flow side are fixed, i.e. the
+    pressure on the return side is just a result of the friction losses in the network. An equal
+    representation is adding an external grid at the flow junction and a sink with the given mass
+    flow at the return junction.
 
     :param net: The net within this pump should be created
     :type net: pandapipesNet
