@@ -377,7 +377,7 @@ def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodat
         coords, heat_exchanger_patches, size, infos, picker=picker, linewidths=linewidths,
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
-    return lc, pc
+    return pc, lc
 
 
 def create_valve_collection(net, valves=None, size=5., junction_geodata=None, infofunc=None,
@@ -432,11 +432,11 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     filled = valve_table["opened"].values
     if fill_closed:
         filled = ~filled
-    lc, pc = _create_complex_branch_collection(
+    pc, lc = _create_complex_branch_collection(
         coords, valve_patches, size, infos, picker=picker, linewidths=linewidths, filled=filled,
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
-    return lc, pc
+    return pc, lc
 
 
 def create_flow_control_collection(net, flow_controllers=None, size=5., junction_geodata=None,
@@ -497,12 +497,12 @@ def create_flow_control_collection(net, flow_controllers=None, size=5., junction
     controlled = fc_table["control_active"].values
     if fill_closed:
         filled = ~filled
-    lc, pc = _create_complex_branch_collection(
+    pc, lc = _create_complex_branch_collection(
         coords, flow_control_patches, size, infos, picker=picker, linewidths=linewidths,
         filled=filled, patch_edgecolor=patch_edgecolor, line_color=line_color,
         controlled=controlled, **kwargs)
 
-    return lc, pc
+    return pc, lc
 
 
 def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None,
@@ -551,11 +551,11 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
 
     infos = list(np.repeat([infofunc(i) for i in range(len(pumps_with_geo))], 2)) \
         if infofunc is not None else []
-    lc, pc = _create_complex_branch_collection(
+    pc, lc = _create_complex_branch_collection(
         coords, pump_patches, size, infos, picker=picker, linewidths=linewidths,
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
-    return lc, pc
+    return pc, lc
 
 
 def create_pressure_control_collection(net, pcs=None, table_name='press_control',
@@ -605,12 +605,12 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
 
     infos = list(np.repeat([infofunc(i) for i in range(len(pcs_with_geo))], 2)) \
         if infofunc is not None else []
-    lc, pc = _create_complex_branch_collection(coords, pressure_control_patches, size, infos,
+    pc, lc = _create_complex_branch_collection(coords, pressure_control_patches, size, infos,
                                                picker=picker, linewidths=linewidths,
                                                patch_edgecolor=color, line_color=color,
                                                **kwargs)
 
-    return lc, pc
+    return pc, lc
 
 def create_compressor_collection(net, cmprs=None, table_name='compressor',
                                        size=5., junction_geodata=None,
@@ -655,9 +655,9 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor',
 
     infos = list(np.repeat([infofunc(i) for i in range(len(cmprs_with_geo))], 2)) \
         if infofunc is not None else []
-    lc, pc = _create_complex_branch_collection(coords, compressor_patches, size, infos,
+    pc, lc = _create_complex_branch_collection(coords, compressor_patches, size, infos,
                                                picker=picker, linewidths=linewidths,
                                                patch_edgecolor=color, line_color=color,
                                                **kwargs)
 
-    return lc, pc
+    return pc, lc
