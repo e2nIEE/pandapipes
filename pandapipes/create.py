@@ -1554,7 +1554,6 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
         real_types[auto_types & ~p_null & t_null] = "p"
         real_types[auto_types & p_null & ~t_null] = "t"
         real_types[auto_types & ~p_null & ~t_null] = "pt"
-        return real_types
 
     tp_type = np.isin(real_types, ["tp"])
     if np.any(tp_type):

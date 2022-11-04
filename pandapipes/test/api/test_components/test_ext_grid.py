@@ -24,7 +24,7 @@ def test_ext_grid_sorting(use_numba):
 
     pandapipes.create_ext_grids(net, [j2, j3, j5, j1, j1], p_bar=1, t_k=285.15,
                                 type=["auto", "pt", "t", "pt", "tp"])
-    assert net.ext_grid.type == ["pt", "pt", "t", "pt", "pt"]
+    assert np.all(net.ext_grid.type == ["pt", "pt", "t", "pt", "pt"])
 
     pandapipes.create_pipe_from_parameters(net, j1, j4, 0.1, 0.1)
     pandapipes.create_pipe_from_parameters(net, j2, j5, 0.1, 0.1)
