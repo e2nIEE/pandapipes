@@ -160,7 +160,7 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
         node_pit[index, eg_count_col] += number
 
 
-def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes):
+def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
     node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True, return_inverse=True)
     eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)
     eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
@@ -173,4 +173,7 @@ def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes):
     all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
     nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes,
                                           all_mass_flows)
-    return nodes, sum_mass_flows, node_uni, inverse_nodes, counts
+    if not np.all(nodes == node_uni):
+        raise UserWarning("In component %s: Something went wrong with the mass flow balance. "
+                          "Please report this error at github." % comp.__name__)
+    return sum_mass_flows, node_uni, inverse_nodes, counts
