@@ -299,7 +299,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     add_new_component(net, HeatExchanger)
 
     index = _get_index_with_check(net, "heat_exchanger", index, "heat exchanger")
-    check_branch(net, "Heat exchanger", index, from_junction, to_junction)
+    _check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
@@ -364,7 +364,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     add_new_component(net, Pipe)
 
     index = _get_index_with_check(net, "pipe", index)
-    check_branch(net, "Pipe", index, from_junction, to_junction)
+    _check_branch(net, "Pipe", index, from_junction, to_junction)
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
@@ -438,7 +438,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     add_new_component(net, Pipe)
 
     index = _get_index_with_check(net, "pipe", index)
-    check_branch(net, "Pipe", index, from_junction, to_junction)
+    _check_branch(net, "Pipe", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
@@ -494,7 +494,7 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
     add_new_component(net, Valve)
 
     index = _get_index_with_check(net, "valve", index)
-    check_branch(net, "Valve", index, from_junction, to_junction)
+    _check_branch(net, "Valve", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "diameter_m": diameter_m, "opened": opened, "loss_coefficient": loss_coefficient,
@@ -541,7 +541,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     add_new_component(net, Pump)
 
     index = _get_index_with_check(net, "pump", index)
-    check_branch(net, "Pump", index, from_junction, to_junction)
+    _check_branch(net, "Pump", index, from_junction, to_junction)
 
     _check_std_type(net, std_type, "pump", "create_pump")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
@@ -613,7 +613,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     add_new_component(net, Pump)
 
     index = _get_index_with_check(net, "pump", index)
-    check_branch(net, "Pump", index, from_junction, to_junction)
+    _check_branch(net, "Pump", index, from_junction, to_junction)
 
     if pressure_list is not None and flowrate_list is not None \
             and reg_polynomial_degree is not None:
@@ -677,7 +677,7 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     index = _get_index_with_check(net, "circ_pump_pressure", index,
                                   name="circulation pump with constant pressure")
-    check_branch(net, "circulation pump with constant pressure", index, from_junction, to_junction)
+    _check_branch(net, "circulation pump with constant pressure", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
          "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service), "type": type}
@@ -732,7 +732,7 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     index = _get_index_with_check(net, "circ_pump_mass", index,
                                   name="circulation pump with constant mass flow")
-    check_branch(net, "circulation pump with constant mass flow", index, from_junction, to_junction)
+    _check_branch(net, "circulation pump with constant mass flow", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
          "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service), "type": type}
@@ -799,7 +799,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     index = _get_index_with_check(net, "press_control", index)
 
     # check if junctions exist to attach the pump to
-    check_branch(net, "PressureControl", index, from_junction, to_junction)
+    _check_branch(net, "PressureControl", index, from_junction, to_junction)
 
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction,
                  to_junction=to_junction, controlled_junction=controlled_junction,
@@ -1265,7 +1265,7 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     add_new_component(net, Compressor)
 
     index = _get_index_with_check(net, "compressor", index)
-    check_branch(net, "Compressor", index, from_junction, to_junction)
+    _check_branch(net, "Compressor", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "pressure_ratio": pressure_ratio, "in_service": bool(in_service)}
@@ -1303,7 +1303,7 @@ def _check_junction_element(net, junction):
     return _check_node_element(net, junction, node_table="junction")
 
 
-def check_branch(net, element_name, index, from_junction, to_junction):
+def _check_branch(net, element_name, index, from_junction, to_junction):
     return _check_branch_element(net, element_name, index, from_junction, to_junction,
                                  node_name="junction", plural="s")
 

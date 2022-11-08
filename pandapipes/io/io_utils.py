@@ -67,7 +67,9 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
-            net = pandapipesNet(get_basic_net_entries())
+            entries = get_basic_net_entries()
+            entries =  {k: entries[k] for k in entries if k in self.obj}
+            net = pandapipesNet(entries)
             net.update(self.obj)
             return net
 
@@ -86,7 +88,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
                                       object_hook=partial(pp_hook,
                                                           registry_class=FromSerializableRegistryPpipe))
-                                                          # backwards compatibility
+                # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]
             return class_.from_dict(self.obj)
