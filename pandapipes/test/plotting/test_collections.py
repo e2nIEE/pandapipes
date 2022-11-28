@@ -12,6 +12,7 @@ import pandapipes
 import pandapipes.plotting as plot
 from pandapipes.converter.stanet.valve_pipe_component.create_valve_pipe import create_valve_pipe_from_parameters
 from pandapipes.converter.stanet.valve_pipe_component.valve_pipe_plotting import create_valve_pipe_collection
+from pandapipes.test.test_toolbox import base_net_is_with_pumps
 
 
 def test_collection_lengths():
