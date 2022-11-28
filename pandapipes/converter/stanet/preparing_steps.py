@@ -60,7 +60,8 @@ def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_
     logger.info("Reading STANET csv-file.")
     # read full csv file
     read_line_info = dict()
-    with open(stanet_path, 'rt', encoding="cp1252") as f:
+    encoding = read_options.get("encoding", "cp1252")
+    with open(stanet_path, 'rt', encoding=encoding) as f:
         all_lines = pd.Series(f.readlines())
 
     last_count = len(all_lines)
@@ -95,7 +96,7 @@ def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_
         read_args = read_options.get("global", dict())
         read_args.update(read_options.get(key, dict()))
         logger.debug("Reading CSV table %s into pandas." % key)
-        data = pd.read_csv(stanet_path, encoding="cp1252", sep=';', index_col=False,
+        data = pd.read_csv(stanet_path, encoding=encoding, sep=';', index_col=False,
                            skiprows=rows[:from_line] + rows[to_line:], **read_args)
         data.columns = [col[1:] if isinstance(col, str) and col.startswith("!")
                         else col for col in data.columns]
