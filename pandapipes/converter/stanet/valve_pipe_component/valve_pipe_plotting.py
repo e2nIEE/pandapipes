@@ -1,7 +1,14 @@
-
 import numpy as np
+import pandas as pd
 from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.patches import RegularPolygon
+
+from pandapipes.plotting.patch_makers import get_color_list, get_filled_list
+from pandapower.plotting.collections import _create_complex_branch_collection, \
+    add_cmap_to_collection, coords_from_node_geodata
+from pandapower.plotting.plotting_toolbox import get_index_array
+from pandapipes.plotting.patch_makers import valve_patches
+from functools import partial
 
 try:
     import pandaplan.core.pplog as logging
@@ -11,8 +18,10 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def create_valve_pipe_collection(net, size=5., helper_line_style=':', helper_line_size=1.,
-                                 helper_line_color="gray", orientation=np.pi/2, **kwargs):
+def create_valve_pipe_collection(net, valve_pipes=None, valve_pipe_geodata=None, junction_geodata=None,
+                                 use_junction_geodata=False, infofunc=None, fill_closed=True,
+                                 respect_valves=False, size=5., cmap=None, norm=None,
+                                 picker=False, z=None, cbar_title="Pipe Loading  [%]", clim=None, **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junctiion valve_pipes.
     Valve_pipes are plotted in the center between two junctions with a "helper" line
@@ -38,46 +47,59 @@ def create_valve_pipe_collection(net, size=5., helper_line_style=':', helper_lin
     :return: valves, helper_lines
     :rtype: tuple of patch collections
     """
-    valves = net.valve_pipe.index
-    color = kwargs.pop("color", "k")
-    valve_patches = []
-    line_patches = []
-    r_triangle = size * 1
-    ang = orientation if hasattr(orientation, '__iter__') else [orientation] * \
-        net.valve_pipe.shape[0]
-    for i, valve in enumerate(valves):
-        from_junction = net.valve_pipe.from_junction.loc[valve]
-        to_junction = net.valve_pipe.to_junction.loc[valve]
-        if from_junction not in net.junction_geodata.index or to_junction not in \
-                net.junction_geodata.index:
-            logger.warning("Junction coordinates for valve %s not found, skipped valve!" % valve)
-            continue
-        # switch bus and target coordinates
-        pos_fj = net.junction_geodata.loc[from_junction, ["x", "y"]].values.astype(np.float64)
-        pos_tj = net.junction_geodata.loc[to_junction, ["x", "y"]].values.astype(np.float64)
-        # position of switch symbol
-        vec = pos_tj - pos_fj
-        angle = np.arctan2(vec[1], vec[0])
-        pos_val = pos_fj + vec * 0.5 if not np.allclose(pos_tj, pos_fj) else pos_tj
-        mp_circ = pos_val
-        # rotation of switch symbol
-        # color switch by state
-        col = color if net.valve_pipe.opened.loc[valve] else "white"
-        # create switch patch (switch size is respected to center the switch on the line)
-        # norm = np.array([-vec[1], vec[0]])
-        mp_tri1 = mp_circ + vec * r_triangle * 0.9
-        mp_tri2 = mp_circ - vec * r_triangle * 0.9
-        valve_patches.append(RegularPolygon(
-            mp_tri1, numVertices=3, radius=r_triangle, orientation=angle+ang[i], facecolor=col,
-            edgecolor=color))
-        valve_patches.append(RegularPolygon(
-            mp_tri2, numVertices=3, radius=r_triangle, orientation=angle-ang[i], facecolor=col,
-            edgecolor=color))
-        # apply rotation
-        # add to collection lists
-        line_patches.append([pos_fj.tolist(), pos_tj.tolist()])
-    # create collections and return
-    valves = PatchCollection(valve_patches, match_original=True, **kwargs)
-    helper_lines = LineCollection(line_patches, linestyles=helper_line_style,
-                                  linewidths=helper_line_size, colors=helper_line_color)
-    return valves, helper_lines
+    if use_junction_geodata is False and net.valve_pipe_geodata.empty:
+        # if bus geodata is available, but no line geodata
+        logger.warning("use_junction_geodata is automatically set to True, since net.valve_pipe_geodata "
+                       "is empty.")
+        use_junction_geodata = True
+    valve_pipes = get_index_array(valve_pipes, net.valve[net.valve_pipe.opened.values].index if \
+        respect_valves else net.valve_pipe.index)
+    if len(valve_pipes) == 0:
+        return None
+
+    if use_junction_geodata:
+        coords, valve_pipes_with_geo = coords_from_node_geodata(
+            valve_pipes, net.valve_pipe.from_junction.loc[valve_pipes].values,
+            net.valve_pipe.to_junction.loc[valve_pipes].values,
+            junction_geodata if junction_geodata is not None else net["junction_geodata"], "valve_pipe",
+            "Junction")
+    else:
+        if valve_pipe_geodata is None:
+            valve_pipe_geodata = net.valve_pipe_geodata
+        valve_pipes_with_geo = valve_pipes[np.isin(valve_pipes, valve_pipe_geodata.index.values)]
+        coords = list(valve_pipe_geodata.loc[valve_pipes_with_geo, "coords"])
+        valve_pipes_without_geo = set(valve_pipes) - set(valve_pipes_with_geo)
+        if valve_pipes_without_geo:
+            logger.warning("Could not plot valve-pipes %s. Geodata is missing for those valve-pipes!"
+                           % valve_pipes_without_geo)
+
+    if len(valve_pipes_with_geo) == 0:
+        return None
+
+    infos = [infofunc(pipe) for pipe in valve_pipes_with_geo] if infofunc else []
+
+    colors = kwargs.pop("color", "k")
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
+
+    filled = net.valve_pipe.loc[valve_pipes, "opened"].values
+    if fill_closed:
+        filled = ~filled
+
+    patch = partial(valve_patches, valve_position=4, linestyle=':')
+    lc, pc = _create_complex_branch_collection(
+        coords, patch, size, infos, picker=picker, linewidths=linewidths, filled=filled,
+        patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
+
+    if cmap is not None:
+        if z is None:
+            z = net.res_valve_pipe.v_mean_m_per_s.loc[valve_pipes_with_geo]
+        elif isinstance(z, pd.Series):
+            z = z.loc[valve_pipes_with_geo]
+        add_cmap_to_collection(lc, cmap, norm, z, cbar_title, clim=clim)
+
+    return lc, pc
+

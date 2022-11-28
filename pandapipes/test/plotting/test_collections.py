@@ -5,11 +5,13 @@
 import copy
 
 import numpy as np
-import pandapipes
-import pandapipes.plotting as plot
 import pytest
 from matplotlib.collections import PatchCollection, LineCollection
-from pandapipes.test.test_toolbox import base_net_is_with_pumps
+
+import pandapipes
+import pandapipes.plotting as plot
+from pandapipes.converter.stanet.valve_pipe_component.create_valve_pipe import create_valve_pipe_from_parameters
+from pandapipes.converter.stanet.valve_pipe_component.valve_pipe_plotting import create_valve_pipe_collection
 
 
 def test_collection_lengths():
@@ -153,6 +155,24 @@ def test_collections2(base_net_is_with_pumps):
     assert pu2 is None
     pc2 = plot.create_pressure_control_collection(net, [])
     assert pc2 is None
+
+
+def test_collection_valve_pipe():
+    net = pandapipes.create_empty_network(add_stdtypes=False)
+    d = 40e-3
+
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(0, 0))
+    j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(2, 0))
+
+    create_valve_pipe_from_parameters(net, j1, j2, 0.1, diameter_m=d, opened=True, loss_coefficient=5e3)
+
+    vp_coll_patches, vp_coll_lines = create_valve_pipe_collection(net)
+
+    assert len(vp_coll_patches.get_paths()) == 2 * len(net.valve_pipe)
+    assert len(vp_coll_lines.get_paths()) == 2 * len(net.valve_pipe)
+
+    vp2 = create_valve_pipe_collection(net, [])
+    assert vp2 is None
 
 
 if __name__ == '__main__':

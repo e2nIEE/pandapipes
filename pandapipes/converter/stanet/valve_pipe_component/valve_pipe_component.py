@@ -1,14 +1,32 @@
 import numpy as np
 from numpy import dtype
+
+from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.idx_branch import LENGTH, K, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.properties.fluids import get_fluid
 
 
 class ValvePipe(Pipe):
-    table_name = "valve_pipe"
-    internal_node_name = "pipe_nodes"
-    active_identifier = "opened"
+    @classmethod
+    def from_to_node_cols(cls):
+        return "from_junction", "to_junction"
+
+    @classmethod
+    def table_name(cls):
+        return "valve_pipe"
+
+    @classmethod
+    def internal_node_name(cls):
+        return "valve_pipe_nodes"
+
+    @classmethod
+    def active_identifier(cls):
+        return "opened"
+
+    @classmethod
+    def get_connected_node_type(cls):
+        return Junction
 
     @classmethod
     def create_pit_branch_entries_table_specific(cls, net, comp_pit, internal_pipe_number):
@@ -34,28 +52,32 @@ class ValvePipe(Pipe):
 
     @classmethod
     def get_component_input(cls):
-        table_input = [("name", dtype(object)),
-                       ("std_type", dtype(object)),
-                       ("from_junction", "u4"),
-                       ("to_junction", "u4"),
-                       ("length_km", "f8"),
-                       ("diameter_m", "f8"),
-                       ("k_mm", "f8"),
-                       ("opened", "bool"),
-                       ("loss_coefficient", "f8"),
-                       ("sections", "u4"),
-                       ("max_vdot_m3_per_s", 'f8'),
-                       ("max_v_m_per_s", 'f8'),
-                       ("in_service", 'bool'),
-                       ("alpha_w_per_m2k", 'f8'),
-                       ("qext_w", 'f8'),
-                       ("type", dtype(object)),
-                       ('index', 'u4')]
-        return table_input
+        return [("name", dtype(object)),
+                ("from_junction", "u4"),
+                ("to_junction", "u4"),
+                ("std_type", dtype(object)),
+                ("length_km", "f8"),
+                ("diameter_m", "f8"),
+                ("k_mm", "f8"),
+                ("opened", "bool"),
+                ("loss_coefficient", "f8"),
+                ("sections", "u4"),
+                ("max_vdot_m3_per_s", 'f8'),
+                ("max_v_m_per_s", 'f8'),
+                ("in_service", 'bool'),
+                ("alpha_w_per_m2k", 'f8'),
+                ("qext_w", 'f8'),
+                ("type", dtype(object)),
+                ('index', 'u4')]
 
     @classmethod
     def geodata(cls):
-        pass
+        """
+
+        :return:
+        :rtype:
+        """
+        return [("coords", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):
