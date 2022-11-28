@@ -7,12 +7,7 @@ from pandapipes.converter.stanet.preparing_steps import connection_pipe_section_
 
 def sort_by_pos(group):
     group = group.sort_values("posL")
-    group["nodes_in_group"] = len(group)
-    group["current_node"] = np.arange(1, len(group) + 1)
-    pos_l_previous = np.zeros(len(group))
-    pos_l_previous[1:] = group["posL"].values[:-1]
-    group["len_previous"] = group["posL"] - pos_l_previous
-    group["len_remaining"] = group["RORL"] - group["posL"]
+    group_characteristics(group)
     return group
 
 
@@ -24,7 +19,12 @@ def sort_by_flow(group):
     while len(ls) < len(group):
         ls.append(int(group.follower[ls[-1]]))
     group = group.loc[ls]
+    group = group_characteristics(group)
     assert np.allclose(group.posL.values, np.sort(group.posL.values))
+
+    return group
+
+def group_characteristics(group):
     group["nodes_in_group"] = len(group)
     group["current_node"] = np.arange(1, len(group) + 1)
     pos_l_previous = np.zeros(len(group))
