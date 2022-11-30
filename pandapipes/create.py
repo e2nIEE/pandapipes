@@ -1529,8 +1529,8 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
                        "the following for correct model implementation: %s. \n%s"
                        % (comp.__name__, ALLOWED_EG_TYPES, overview))
 
-    p_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp != "t"])
-    t_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp != "p"])
+    p_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["t", "auto"]])
+    t_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["p", "auto"]])
 
     invalid_p = p_types & p_null
     if np.any(invalid_p):
