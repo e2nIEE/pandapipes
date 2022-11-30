@@ -6,6 +6,8 @@ from packaging import version
 
 from pandapipes import __format_version__
 from pandapipes.pandapipes_net import add_default_components
+from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
+from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 
 try:
     import pandaplan.core.pplog as logging
@@ -42,13 +44,13 @@ def _rename_columns(net):
             else:
                 net['controller'].drop('controller', inplace=True, axis=1)
         net["controller"].rename(columns={"controller": "object"}, inplace=True)
-    for cp_tbl in ["circ_pump_mass", "circ_pump_pressure"]:
+    for comp in [CirculationPumpMass, CirculationPumpPressure]:
+        cp_tbl = comp.table_name()
         if cp_tbl in net:
-            for old_col, new_col in [("from_junction", "flow_junction"),
-                                     ("to_junction", "return_junction")]:
+            for old_col, new_col in list(zip(["from_junction", "to_junction"],
+                                             comp.from_to_node_cols())):
                 if old_col in net[cp_tbl] and new_col not in net[cp_tbl]:
-                    net[cp_tbl][new_col] = net[cp_tbl][old_col]
-                    net[cp_tbl].drop(old_col, inplace=True, axis=1)
+                    net[cp_tbl].rename({old_col: new_col}, inplace=True)
 
 
 def _add_missing_columns(net):
