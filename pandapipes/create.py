@@ -206,7 +206,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
 
 
 def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="auto",
-                    check_types=True, **kwargs):
+                    **kwargs):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
     that it is connected to into a node with fixed value for either pressure, temperature or both
@@ -237,9 +237,6 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
                    inconsistencies in the formulation of heat transfer equations yet. \n
             - "pt": The external grid shows both "p" and "t" behavior.
     :type type: str, default "auto"
-    :param check_types: flag whether to check the given type for correctness and identify the \
-            correct type, if it is set to "auto"
-    :type check_types: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the\
                     net["ext_grid"] table
     :return: index - The unique ID of the created element
@@ -257,8 +254,7 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     _check_junction_element(net, junction)
     index = _get_index_with_check(net, "ext_grid", index, name="external grid")
 
-    if check_types:
-        type = _auto_ext_grid_type(p_bar, t_k, type, ExtGrid)
+    type = _auto_ext_grid_type(p_bar, t_k, type, ExtGrid)
 
     cols = ["name", "junction", "p_bar", "t_k", "in_service", "type"]
     vals = [name, junction, p_bar, t_k, bool(in_service), type]
@@ -640,9 +636,8 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     return index
 
 
-def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, plift_bar,
-                                    t_k=None, name=None, index=None, in_service=True, type="auto",
-                                    check_types=True, **kwargs):
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, plift_bar, t_k=None,
+                                    name=None, index=None, in_service=True, type="auto", **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -679,9 +674,6 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
              cannot check for inconsistencies in the formulation of heat transfer equations yet.
             - "pt": The pump shows both "p" and "t" behavior.
     :type type: str, default "auto"
-    :param check_types: flag whether to check the given type for correctness and identify the \
-            correct type, if it is set to "auto"
-    :type check_types: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["circ_pump_pressure"] table
     :type kwargs: dict
@@ -700,8 +692,7 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
     _check_branch(net, "circulation pump with constant pressure", index, return_junction,
                   flow_junction)
 
-    if check_types:
-        type = _auto_ext_grid_type(p_bar, t_k, type, CirculationPumpPressure)
+    type = _auto_ext_grid_type(p_bar, t_k, type, CirculationPumpPressure)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
          "p_bar": p_bar, "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service),
@@ -713,7 +704,7 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
 
 def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar, mdot_kg_per_s,
                                      t_k=None, name=None, index=None, in_service=True,
-                                     type="auto", check_types=True, **kwargs):
+                                     type="auto", **kwargs):
     """
     Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].\n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -750,9 +741,6 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
              cannot check for inconsistencies in the formulation of heat transfer equations yet.
             - "pt": The pump shows both "p" and "t" behavior.
     :type type: str, default "auto"
-    :param check_types: flag whether to check the given type for correctness and identify the \
-            correct type, if it is set to "auto"
-    :type check_types: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["circ_pump_mass"] table
     :type kwargs: dict
@@ -771,8 +759,7 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
     _check_branch(net, "circulation pump with constant mass flow", index, return_junction,
                   flow_junction)
 
-    if check_types:
-        type = _auto_ext_grid_type(p_bar, t_k, type, CirculationPumpMass)
+    type = _auto_ext_grid_type(p_bar, t_k, type, CirculationPumpMass)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
          "p_bar": p_bar, "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service),
@@ -1003,7 +990,7 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
 
 
 def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, index=None,
-                     type="auto", check_types=True, **kwargs):
+                     type="auto", **kwargs):
     """
     Convenience function for creating many external grids at once. Parameter 'junctions' must be an\
     array of the desired length. Other parameters may be either arrays of the same length or single\
@@ -1036,9 +1023,6 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
                    inconsistencies in the formulation of heat transfer equations yet. \n
             - "pt": The external grid shows both "p" and "t" behavior.
     :type type: Iterable(str) or str, default "auto"
-    :param check_types: flag whether to check the given types for correctness and identify the \
-            correct types, if they are set to "auto"
-    :type check_types: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["ext_grid"] table
     :return: index - The unique IDs of the created elements
@@ -1053,8 +1037,7 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
     _check_multiple_junction_elements(net, junctions)
     index = _get_multiple_index_with_check(net, "ext_grid", index, len(junctions))
 
-    if check_types:
-        type = _auto_ext_grid_types(p_bar, t_k, type, ExtGrid)
+    type = _auto_ext_grid_types(p_bar, t_k, type, ExtGrid)
 
     entries = {"junction": junctions, "p_bar": p_bar, "t_k": t_k,
                "in_service": in_service, "name": name, "type": type}
@@ -1451,15 +1434,8 @@ def _auto_ext_grid_type(p_bar, t_k, typ, comp):
                           % comp.__name__)
 
     if typ not in ALLOWED_EG_TYPES:
-        raise UserWarning("The type for component %s was %s, but must be one of the following: %s."
-                          % (comp.__name__, typ, ALLOWED_EG_TYPES))
-    if typ == "auto":
-        real_type = ""
-        if not p_null:
-            real_type += "p"
-        if not t_null:
-            real_type += "t"
-        return real_type
+        logger.warning("The type for component %s was %s, but must be one of the following for "
+                       "correct model implementation: %s." % (comp.__name__, typ, ALLOWED_EG_TYPES))
 
     if typ != "t" and p_null:
         raise UserWarning("The type %s for component %s requires a pressure as input!"
@@ -1469,9 +1445,27 @@ def _auto_ext_grid_type(p_bar, t_k, typ, comp):
         raise UserWarning("The type %s for component %s requires a temperature as input!"
                           % (typ, comp.__name__))
 
+    if typ != "auto" and "p" not in typ and not p_null:
+        logger.warning("For component %s you gave a value for p, although the component is not of "
+                       "'p'-type (type is %s), i.e. this value is probably neglected internally."
+                       % (comp, typ))
+
+    if typ != "auto" and "t" not in typ and not t_null:
+        logger.warning("For component %s you gave a value for t, although the component is not of "
+                       "'t'-type (type is %s), i.e. this value is probably neglected internally."
+                       % (comp, typ))
+
     if typ == "tp":
         logger.warning("The type 'tp' is replaced by type 'pt' (might be mistaken internally).")
         return "pt"
+
+    if typ == "auto":
+        real_type = ""
+        if not p_null:
+            real_type += "p"
+        if not t_null:
+            real_type += "t"
+        return real_type
 
     return typ
 
@@ -1527,9 +1521,14 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
         raise UserWarning("For component %s in positions %s, either pressure or temperature must be"
                           " defined!" % (comp.__name__, invalid_ind))
 
-    if np.any(~np.isin(typ, ALLOWED_EG_TYPES)):
-        raise UserWarning("The types for component %s are %s, but must be one of the following: %s."
-                          % (comp.__name__, typ, ALLOWED_EG_TYPES))
+    not_allowed_types = ~np.isin(typ, ALLOWED_EG_TYPES)
+    if np.any(not_allowed_types):
+        typ_not_allowed_types = typ[not_allowed_types]
+        pos_not_allowed_types = np.where(not_allowed_types)
+        overview = pd.DataFrame({"Position": pos_not_allowed_types, "Type": typ_not_allowed_types})
+        logger.warning("Please check the following types for component %s, as they must be one of "
+                       "the following for correct model implementation: %s. \n%s"
+                       % (comp.__name__, ALLOWED_EG_TYPES, overview))
 
     p_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp != "t"])
     t_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp != "p"])
@@ -1549,17 +1548,34 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
                           "input!" % (invalid_types, invalid_ind, comp.__name__))
 
     auto_types = np.isin(typ, ["auto"])
+
+    ununsed_p = ~auto_types & ~p_null & ~p_types
+    if np.any(ununsed_p):
+        overview = pd.DataFrame({"Positions": np.where(ununsed_p), "Type": typ[ununsed_p],
+                                 "p_value": p_bar[ununsed_p]})
+        logger.warning("For component %s you gave a value for p in some cases, although the "
+                       "respective components are not of 'p'-type, i.e. the given values are "
+                       "probably neglected internally. \n%s" % (comp, overview))
+
+    ununsed_t = ~auto_types & ~t_null & ~t_types
+    if np.any(ununsed_t):
+        overview = pd.DataFrame({"Positions": np.where(ununsed_t), "Type": typ[ununsed_t],
+                                 "t_value": p_bar[ununsed_t]})
+        logger.warning("For component %s you gave a value for t in some cases, although the "
+                       "respective components are not of 't'-type, i.e. the given values are "
+                       "probably neglected internally. \n%s" % (comp, overview))
+
     real_types = np.array(typ).copy()
+    tp_type = np.isin(real_types, ["tp"])
+    if np.any(tp_type):
+        tp_ind = np.where(tp_type)
+        logger.warning("The type 'tp' (positions %s) is replaced by type 'pt' (otherwise might be "
+                       "mistaken internally)." % tp_ind)
+        real_types[tp_type] = "pt"
+
     if np.any(auto_types):
         real_types[auto_types & ~p_null & t_null] = "p"
         real_types[auto_types & p_null & ~t_null] = "t"
         real_types[auto_types & ~p_null & ~t_null] = "pt"
-
-    tp_type = np.isin(real_types, ["tp"])
-    if np.any(tp_type):
-        tp_ind = np.where(tp_type)
-        logger.warning("The type 'tp' (positions %s) is replaced by type 'pt' (might be mistaken "
-                       "internally)." % tp_ind)
-        real_types[tp_type] = "pt"
 
     return real_types
