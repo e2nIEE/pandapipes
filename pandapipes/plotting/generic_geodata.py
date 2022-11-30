@@ -56,7 +56,7 @@ def build_igraph_from_ppipes(net, junctions=None):
                    weight=pipe.length_km)
 
     for comp in net['component_list']:
-        if not isinstance(comp, (BranchComponent, CirculationPump)):
+        if not isinstance(comp, BranchComponent):
             continue
         mask = _get_element_mask_from_nodes(
             net, comp.table_name(), comp.from_to_node_cols(), junctions)
