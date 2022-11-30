@@ -4,7 +4,9 @@
 
 import numpy as np
 import pandas as pd
-from numpy import ma
+from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
+    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
+    _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
@@ -13,12 +15,9 @@ from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
+from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, \
     load_std_type
-from pandapipes.std_types.std_type_class import regression_function, PumpStdType
-from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
-    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
-    _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
 
 try:
     import pandaplan.core.pplog as logging
