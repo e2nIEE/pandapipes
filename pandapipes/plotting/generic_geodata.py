@@ -58,9 +58,8 @@ def build_igraph_from_ppipes(net, junctions=None):
     for comp in net['component_list']:
         if not isinstance(comp, BranchComponent):
             continue
-        mask = _get_element_mask_from_nodes(
-            net, comp.table_name(), comp.from_to_node_cols(), junctions)
         fjc, tjc = comp.from_to_node_cols()
+        mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
         for comp_data in net[comp.table_name()][mask].itertuples():
             g.add_edge(pp_junction_mapping[comp_data[fjc]], pp_junction_mapping[comp_data[tjc]],
                        weight=0.001)
