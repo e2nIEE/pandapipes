@@ -1437,11 +1437,11 @@ def _auto_ext_grid_type(p_bar, t_k, typ, comp):
         logger.warning("The type for component %s was %s, but must be one of the following for "
                        "correct model implementation: %s." % (comp.__name__, typ, ALLOWED_EG_TYPES))
 
-    if typ != "t" and p_null:
+    if typ not in ["t", "auto"] and p_null:
         raise UserWarning("The type %s for component %s requires a pressure as input!"
                           % (typ, comp.__name__))
 
-    if typ != "p" and t_null:
+    if typ not in ["p", "auto"] and t_null:
         raise UserWarning("The type %s for component %s requires a temperature as input!"
                           % (typ, comp.__name__))
 
@@ -1551,16 +1551,18 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
 
     ununsed_p = ~auto_types & ~p_null & ~p_types
     if np.any(ununsed_p):
-        overview = pd.DataFrame({"Positions": np.where(ununsed_p), "Type": typ[ununsed_p],
-                                 "p_value": p_bar[ununsed_p]})
+        overview = pd.DataFrame({"Positions": np.where(ununsed_p)[0],
+                                 "Type": np.array(typ)[ununsed_p],
+                                 "p_value": np.array(p_bar)[ununsed_p]})
         logger.warning("For component %s you gave a value for p in some cases, although the "
                        "respective components are not of 'p'-type, i.e. the given values are "
                        "probably neglected internally. \n%s" % (comp, overview))
 
     ununsed_t = ~auto_types & ~t_null & ~t_types
     if np.any(ununsed_t):
-        overview = pd.DataFrame({"Positions": np.where(ununsed_t), "Type": typ[ununsed_t],
-                                 "t_value": p_bar[ununsed_t]})
+        overview = pd.DataFrame({"Positions": np.where(ununsed_t)[0],
+                                 "Type": np.array(typ)[ununsed_t],
+                                 "t_value": np.array(p_bar)[ununsed_t]})
         logger.warning("For component %s you gave a value for t in some cases, although the "
                        "respective components are not of 't'-type, i.e. the given values are "
                        "probably neglected internally. \n%s" % (comp, overview))
