@@ -47,10 +47,10 @@ def _rename_columns(net):
     for comp in [CirculationPumpMass, CirculationPumpPressure]:
         cp_tbl = comp.table_name()
         if cp_tbl in net:
-            for old_col, new_col in list(zip(["from_junction", "to_junction"],
+            for old_col, new_col in list(zip(["to_junction", "from_junction"],
                                              comp.from_to_node_cols())):
-                if old_col in net[cp_tbl] and new_col not in net[cp_tbl]:
-                    net[cp_tbl].rename({old_col: new_col}, inplace=True)
+                if old_col in net[cp_tbl].columns and new_col not in net[cp_tbl].columns:
+                    net[cp_tbl].rename(columns={old_col: new_col}, inplace=True)
 
 
 def _add_missing_columns(net):
