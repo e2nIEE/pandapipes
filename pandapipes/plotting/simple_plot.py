@@ -2,16 +2,20 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import matplotlib.pyplot as plt
+from itertools import chain
 
-from pandapipes.plotting.plotting_toolbox import get_collection_sizes
+import matplotlib.pyplot as plt
+from pandapower.plotting import draw_collections
+
+from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
+from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
+from pandapipes.component_models.pump_component import Pump
 from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
     create_valve_collection, create_source_collection, create_pressure_control_collection, \
     create_heat_exchanger_collection, create_sink_collection, create_pump_collection, \
     create_compressor_collection
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
-from pandapower.plotting import draw_collections
-from itertools import chain
+from pandapipes.plotting.plotting_toolbox import get_collection_sizes
 
 try:
     import pandaplan.core.pplog as logging
@@ -25,8 +29,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                 junction_size=1.0, ext_grid_size=1.0, plot_sinks=False, plot_sources=False,
                 sink_size=1.0, source_size=1.0, valve_size=1.0, pump_size=1.0,
                 heat_exchanger_size=1.0, pressure_control_size=1.0, compressor_size=1.0,
-                scale_size=True,
-                junction_color="r", pipe_color='silver', ext_grid_color='orange',
+                scale_size=True, junction_color="r", pipe_color='silver', ext_grid_color='orange',
                 valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
                 pressure_control_color='silver', compressor_color='silver', library="igraph",
                 show_plot=True, ax=None, **kwargs):
@@ -67,6 +70,8 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
     :type heat_exchanger_size: float, default 1.0
     :param pressure_control_size: Relative size of pres_control to plot.
     :type pressure_control_size: float, default 1.0
+    :param compressor_size: Relative size of compressor to plot.
+    :type compressor_size: float, default 1.0
     :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
             scaled with respect to grid mean distances
     :type scale_size: bool, default True
@@ -85,6 +90,8 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
     :type heat_exchanger_color: str, tuple, default "silver"
     :param pressure_control_color: Pressure Control Color.
     :type pressure_control_color: str, tuple, default "silver"
+    :param compressor_color: Compressor Color.
+    :type compressor_color: str, tuple, default "silver"
     :param library: Library name to create generic coordinates (case of missing geodata). Choose\
             "igraph" to use igraph package or "networkx" to use networkx package.
     :type library: str, default "igraph"
@@ -112,15 +119,15 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                               junction_size=1.0, ext_grid_size=1.0, plot_sinks=False,
                               plot_sources=False, sink_size=1.0, source_size=1.0, valve_size=1.0,
                               pump_size=1.0, heat_exchanger_size=1.0, pressure_control_size=1.0,
-                              compressor_size=1.0,
-                              scale_size=True, junction_color="r", pipe_color='silver',
-                              ext_grid_color='orange', valve_color='silver', pump_color='silver',
-                              heat_exchanger_color='silver', pressure_control_color='silver',
-                              compressor_color='silver',
+                              compressor_size=1.0, scale_size=True, junction_color="r",
+                              pipe_color='silver', ext_grid_color='orange', valve_color='silver',
+                              pump_color='silver', heat_exchanger_color='silver',
+                              pressure_control_color='silver', compressor_color='silver',
                               library="igraph", as_dict=True, **kwargs):
     """
     Plots a pandapipes network as simple as possible.
-    If no geodata is available, artificial geodata is generated. For advanced plotting see the tutorial
+    If no geodata is available, artificial geodata is generated. For advanced plotting see the
+    tutorial
 
     :param net: The pandapipes format network.
     :type net: pandapipesNet
@@ -156,6 +163,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :type heat_exchanger_size: float, default 1.0
     :param pressure_control_size: Relative size of pres_control to plot.
     :type pressure_control_size: float, default 1.0
+    :param compressor_size: Relative size of compressor to plot.
+    :type compressor_size: float, default 1.0
     :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
             scaled with respect to grid mean distances
     :type scale_size: bool, default True
@@ -174,6 +183,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :type heat_exchanger_color: str, tuple, default "silver"
     :param pressure_control_color: Pressure Control Color.
     :type pressure_control_color: str, tuple, default "silver"
+    :param compressor_color: Compressor Color.
+    :type compressor_color: str, tuple, default "silver"
     :param library: library name to create generic coordinates (case of missing geodata). Choose\
             "igraph" to use igraph package or "networkx" to use networkx package. **NOTE**: \
             Currently the networkx implementation is not working!
@@ -269,40 +280,20 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                                               color=valve_color, respect_valves=respect_valves)
         collections["valve"] = valve_colls
 
-    if 'pump' in net:
-        if respect_in_service:
-            pump_colls = create_pump_collection(net, net.pump[net.pump.in_service].index,
-                                                size=pump_size, linewidths=pipe_width,
-                                                color=pump_color)
-        else:
-            pump_colls = create_pump_collection(net, size=pump_size, linewidths=pipe_width,
-                                                color=pump_color)
-        collections["pump"] = pump_colls
-
-    if 'circ_pump_mass' in net:
-        if respect_in_service:
-            circ_pump_colls = create_pump_collection(
-                net, pumps=net.circ_pump_mass[net.circ_pump_mass.in_service].index,
-                table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
-                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
-        else:
-            circ_pump_colls = create_pump_collection(
-                net, table_name='circ_pump_mass', size=pump_size, linewidths=pipe_width,
-                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
-        collections["circ_pump_mass"] = circ_pump_colls
-
-    if 'circ_pump_pressure' in net:
-        if respect_in_service:
-            circ_pump_colls = create_pump_collection(
-                net, pumps=net.circ_pump_pressure[net.circ_pump_pressure.in_service].index,
-                table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
-                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
-            collections["circ_pump_pressure"] = circ_pump_colls
-        else:
-            circ_pump_colls = create_pump_collection(
-                net, table_name='circ_pump_pressure', size=pump_size, linewidths=pipe_width,
-                color=pump_color, fj_col="return_junction", tj_col="flow_junction")
-            collections["circ_pump_pressure"] = circ_pump_colls
+    for pump_comp in [Pump, CirculationPumpPressure, CirculationPumpMass]:
+        pump_tbl = pump_comp.table_name()
+        if pump_tbl in net:
+            fjc, tjc = pump_comp.from_to_node_cols()
+            if respect_in_service:
+                pump_colls = create_pump_collection(
+                    net, pumps=net.circ_pump_mass[net.circ_pump_mass.in_service].index,
+                    table_name=pump_tbl, size=pump_size, linewidths=pipe_width,
+                    color=pump_color, fj_col=fjc, tj_col=tjc)
+            else:
+                pump_colls = create_pump_collection(
+                    net, table_name=pump_tbl, size=pump_size, linewidths=pipe_width,
+                    color=pump_color, fj_col=fjc, tj_col=tjc)
+            collections[pump_tbl] = pump_colls
 
     if 'heat_exchanger' in net:
         if respect_in_service:
@@ -327,13 +318,12 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
 
     if 'compressor' in net:
         if respect_in_service:
-            compr_colls = create_compressor_collection(net,
-                                               net.compressor[net.compressor.in_service].index,
-                                                size=compressor_size, linewidths=pipe_width,
-                                                color=compressor_color)
+            compr_colls = create_compressor_collection(
+                net, net.compressor[net.compressor.in_service].index, size=compressor_size,
+                linewidths=pipe_width, color=compressor_color)
         else:
-            compr_colls = create_compressor_collection(net, size=compressor_size, linewidths=pipe_width,
-                                                color=compressor_color)
+            compr_colls = create_compressor_collection(
+                net, size=compressor_size, linewidths=pipe_width, color=compressor_color)
         collections["compressor"] = compr_colls
 
     if 'additional_collections' in kwargs:
