@@ -310,7 +310,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     return index
 
 
-def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, loss_coefficient=0,
+def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0,
                 sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
@@ -326,8 +326,9 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     :type std_type: str
     :param length_km: Length of the pipe in [km]
     :type length_km: float
-    :param k_mm: Pipe roughness in [mm]
-    :type k_mm: float, default 1
+    :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
+            pipes) and 0.3 (old steel pipelines)
+    :type k_mm: float, default 0.2
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float, default 0
     :param sections: The number of internal pipe sections. Important for gas and temperature\
@@ -383,7 +384,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=1, lo
     return index
 
 
-def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=1,
+def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2,
                                 loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
                                 qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                 type="pipe", **kwargs):
@@ -400,8 +401,9 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :type length_km: float
     :param diameter_m: The pipe diameter in [m]
     :type diameter_m: float
-    :param k_mm: Pipe roughness in [mm]
-    :type k_mm: float, default 1
+    :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
+            pipes) and 0.3 (old steel pipelines)
+    :type k_mm: float, default 0.2
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float, default 0
     :param sections: The number of internal pipe sections. Important for gas and temperature\
@@ -1063,7 +1065,7 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     return index
 
 
-def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=1,
+def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2,
                  loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0.,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
@@ -1083,8 +1085,9 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=1,
     :type std_type: str
     :param length_km: Lengths of the pipes in [km]
     :type length_km: Iterable or float
-    :param k_mm: Pipe roughness in [mm]
-    :type k_mm: Iterable or float, default 1
+    :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
+            pipes) and 0.3 (old steel pipelines)
+    :type k_mm: Iterable or float, default 0.2
     :param loss_coefficient: Additional pressure loss coefficients, introduced by e.g. bends
     :type loss_coefficient: Iterable or float, default 0
     :param sections: The number of internal pipe sections. Important for gas and temperature\
@@ -1140,7 +1143,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=1,
     return index
 
 
-def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=1,
+def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2,
                                  loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
                                  qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                  type="pipe", **kwargs):
@@ -1160,8 +1163,9 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :type length_km: Iterable or float
     :param diameter_m: The pipe diameters in [m]
     :type diameter_m: Iterable or float
-    :param k_mm: Pipe roughness in [mm]
-    :type k_mm: Iterable or float, default 1
+    :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
+            pipes) and 0.3 (old steel pipelines)
+    :type k_mm: Iterable or float, default 0.2 mm
     :param loss_coefficient: Additional pressure loss coefficients, introduced by e.g. bends
     :type loss_coefficient: Iterable or float, default 0
     :param sections: The number of internal pipe sections. Important for gas and temperature\

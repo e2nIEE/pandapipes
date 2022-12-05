@@ -4,7 +4,7 @@ Change Log
 [upcoming release] - 2022-..-..
 -------------------------------
 - [ADDED] new component flow controller: a branch component that controls the flow through itself. It adapts the pressure drop between two junctions to reflect the desired flow situation.
-
+- [CHANGED] default roughness parameter `k_mm` for pipes is now 0.2 mm instead of 1 mm (all create_pipe... functions)
 
 [0.7.0] - 2022-08-02
 -------------------------------
