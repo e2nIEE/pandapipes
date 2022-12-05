@@ -1,16 +1,20 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
-from pandapipes.idx_node import TINIT as TINIT_NODE, L, node_cols
-from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
+from pandapipes.component_models.component_toolbox import set_entry_check_repeat
+from pandapipes.idx_branch import ACTIVE
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
+    CP, ELEMENT_IDX
+from pandapipes.idx_node import L, node_cols
+from pandapipes.idx_node import TINIT as TINIT_NODE
+from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -23,11 +27,19 @@ class BranchWInternalsComponent(BranchComponent):
     """
 
     @classmethod
-    def active_identifier(cls):
+    def table_name(cls):
         raise NotImplementedError
 
     @classmethod
-    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
         raise NotImplementedError
 
     @classmethod
@@ -40,7 +52,16 @@ class BranchWInternalsComponent(BranchComponent):
 
     @classmethod
     def internal_node_name(cls):
-        return NotImplementedError
+        """
+
+        :return: internal_node_name - name of the internal nodes for this class
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
+        raise NotImplementedError
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
@@ -75,7 +96,8 @@ class BranchWInternalsComponent(BranchComponent):
             end = current_start + int_nodes_num
             add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
             ft_lookups[cls.internal_node_name()] = (current_start, end)
-            return end, current_table + 1, internal_nodes, internal_pipes, int_nodes_num, int_pipes_num
+            return end, current_table + 1, internal_nodes, internal_pipes, int_nodes_num, \
+                int_pipes_num
         else:
             return end, current_table + 1, 0, 0, 0, 0
 
@@ -106,7 +128,7 @@ class BranchWInternalsComponent(BranchComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -129,14 +151,19 @@ class BranchWInternalsComponent(BranchComponent):
 
         int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
 
-        f_junction, t_junction = ft_lookup[node_name]
+        junction_table_name = cls.get_connected_node_type().table_name()
+        fj_name, tj_name = "from_" + junction_table_name, "to_" + junction_table_name
+        f_junction, t_junction = ft_lookup[junction_table_name]
         junction_pit = node_pit[f_junction:t_junction, :]
-        from_junctions = net[cls.table_name()].from_junction.values.astype(np.int32)
-        to_junctions = net[cls.table_name()].to_junction.values.astype(np.int32)
-        return table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions
+        from_junctions = net[cls.table_name()][fj_name].values.astype(np.int32)
+        to_junctions = net[cls.table_name()][tj_name].values.astype(np.int32)
+        junction_indices = get_lookup(net, "node", "index")[junction_table_name]
+        fj_nodes = junction_indices[from_junctions]
+        tj_nodes = junction_indices[to_junctions]
+        return table_nr, int_node_number, int_node_pit, junction_pit, fj_nodes, tj_nodes
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_winternals_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries.
 
@@ -146,33 +173,39 @@ class BranchWInternalsComponent(BranchComponent):
         :type branch_pit:
         :return: No Output.
         """
-        branch_winternals_pit, node_pit, from_nodes, to_nodes \
-            = super().create_pit_branch_entries(net, branch_winternals_pit, node_name)
+        branch_w_internals_pit, node_pit, from_nodes, to_nodes \
+            = super().create_pit_branch_entries(net, branch_pit)
 
-        internal_pipe_number = cls.get_internal_pipe_number(net)
+        if not len(branch_w_internals_pit):
+            return branch_w_internals_pit, np.array([], dtype=np.int32)
+
+        internal_pipe_number = cls.get_internal_pipe_number(net).astype(np.int32)
         node_ft_lookups = get_lookup(net, "node", "from_to")
 
-        if cls.internal_node_name() in node_ft_lookups:
+        has_internals = cls.internal_node_name() in node_ft_lookups
+        if has_internals:
             pipe_nodes_from, pipe_nodes_to = node_ft_lookups[cls.internal_node_name()]
             pipe_nodes_idx = np.arange(pipe_nodes_from, pipe_nodes_to)
             insert_places = np.repeat(np.arange(len(from_nodes)), internal_pipe_number - 1)
             from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
             to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
 
-        branch_winternals_pit[:, ELEMENT_IDX] = np.repeat(net[cls.table_name()].index.values,
-                                                          internal_pipe_number)
-        branch_winternals_pit[:, FROM_NODE] = from_nodes
-        branch_winternals_pit[:, TO_NODE] = to_nodes
-        branch_winternals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
+        set_entry_check_repeat(
+            branch_w_internals_pit, ELEMENT_IDX, net[cls.table_name()].index.values,
+            internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            branch_w_internals_pit, ACTIVE, net[cls.table_name()][cls.active_identifier()].values,
+            internal_pipe_number, has_internals)
+        branch_w_internals_pit[:, FROM_NODE] = from_nodes
+        branch_w_internals_pit[:, TO_NODE] = to_nodes
+        branch_w_internals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
             to_nodes, TINIT_NODE]) / 2
         fluid = get_fluid(net)
-        branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ACTIVE] = \
-            np.repeat(net[cls.table_name()][cls.active_identifier()].values,internal_pipe_number)
+        branch_w_internals_pit[:, RHO] = fluid.get_density(branch_w_internals_pit[:, TINIT])
+        branch_w_internals_pit[:, ETA] = fluid.get_viscosity(branch_w_internals_pit[:, TINIT])
+        branch_w_internals_pit[:, CP] = fluid.get_heat_capacity(branch_w_internals_pit[:, TINIT])
 
-        return branch_winternals_pit, internal_pipe_number
+        return branch_w_internals_pit, internal_pipe_number
 
     @classmethod
     def get_internal_pipe_number(cls, net):
@@ -183,7 +216,11 @@ class BranchWInternalsComponent(BranchComponent):
         :return:
         :rtype:
         """
-        return net[cls.table_name()].sections.values
+        return np.array(net[cls.table_name()].sections.values)
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError
 
     @classmethod
     def get_internal_results(cls, net, branch):
@@ -191,8 +228,8 @@ class BranchWInternalsComponent(BranchComponent):
 
         :param net:
         :type net:
-        :param pipe:
-        :type pipe:
+        :param branch:
+        :type branch:
         :return:
         :rtype:
         """

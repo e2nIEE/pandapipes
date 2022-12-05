@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -18,7 +18,7 @@ def valve_patches(coords, size, **kwargs):
     edgecolor = kwargs.pop('patch_edgecolor')
     colors = get_color_list(edgecolor, len(coords))
     lw = kwargs.get("linewidths", 2.)
-    filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=np.bool))
+    filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=bool))
     filled = get_filled_list(filled, len(coords))
     for geodata, col, filled_ind in zip(coords, colors, filled):
         p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
@@ -31,7 +31,7 @@ def valve_patches(coords, size, **kwargs):
         polys.append(RegularPolygon(centroid_tri1, numVertices=3, radius=size, orientation=-angle,
                                     ec=col, fc=face_col, lw=lw))
         polys.append(RegularPolygon(centroid_tri2, numVertices=3, radius=size,
-                                    orientation=-angle+np.pi/3, ec=col, fc=face_col, lw=lw))
+                                    orientation=-angle + np.pi / 3, ec=col, fc=face_col, lw=lw))
         lines.append([p1, p1 + diff / 2 - vec_size / 2 * 3])
         lines.append([p2, p1 + diff / 2 + vec_size / 2 * 3])
     return lines, polys, {"filled"}
@@ -45,16 +45,16 @@ def heat_exchanger_patches(coords, size, **kwargs):
     for geodata, col in zip(coords, colors):
         p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
         diff = p2 - p1
-        m = 3*size/4
-        direc= diff/np.sqrt(diff[0]**2+diff[1]**2)
+        m = 3 * size / 4
+        direc = diff / np.sqrt(diff[0] ** 2 + diff[1] ** 2)
         normal = np.array([-direc[1], direc[0]])
-        path1 = (p1 + diff / 2+ direc *m/2) + normal * (size * 9 / 8)
-        path2 = p1 + diff / 2 + direc *m / 2
+        path1 = (p1 + diff / 2 + direc * m / 2) + normal * (size * 9 / 8)
+        path2 = p1 + diff / 2 + direc * m / 2
         path3 = p1 + diff / 2 + normal * size / 3
-        path4 = p1 + diff / 2 - direc *m/2
-        path5 = (p1 + diff / 2- direc *m/2)  + normal * (size * 9 / 8)
-        path =[path1, path2, path3, path4, path5]
-        radius = size #np.sqrt(diff[0]**2+diff[1]**2)/15
+        path4 = p1 + diff / 2 - direc * m / 2
+        path5 = (p1 + diff / 2 - direc * m / 2) + normal * (size * 9 / 8)
+        path = [path1, path2, path3, path4, path5]
+        radius = size  # np.sqrt(diff[0]**2+diff[1]**2)/15
 
         pa = Path(path)
         polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor="w", lw=lw))
@@ -111,15 +111,69 @@ def pump_patches(coords, size, **kwargs):
         diff = p2 - p1
         angle = np.arctan2(*diff)
         vec_size = _rotate_dim2(np.array([0, size]), angle)
-        line1 = _rotate_dim2(np.array([0, size * np.sqrt(2)]), angle - np.pi/4)
-        line2 = _rotate_dim2(np.array([0, size * np.sqrt(2)]), angle + np.pi/4)
+        line1 = _rotate_dim2(np.array([0, size * np.sqrt(2)]), angle - np.pi / 4)
+        line2 = _rotate_dim2(np.array([0, size * np.sqrt(2)]), angle + np.pi / 4)
         radius = size
 
         polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor='w', lw=lw))
 
-        lines.append([p1+diff/2+vec_size, p1+diff/2-vec_size+line1])
-        lines.append([p1+diff/2+vec_size, p1+diff/2-vec_size+line2])
+        lines.append([p1 + diff / 2 + vec_size, p1 + diff / 2 - vec_size + line1])
+        lines.append([p1 + diff / 2 + vec_size, p1 + diff / 2 - vec_size + line2])
 
         lines.append([p1, p1 + diff / 2 - vec_size])
         lines.append([p2, p1 + diff / 2 + vec_size])
+    return lines, polys, {}
+
+def compressor_patches(coords, size, **kwargs):
+    polys, lines = list(), list()
+    edgecolor = kwargs.pop('patch_edgecolor')
+    colors = get_color_list(edgecolor, len(coords))
+    lw = kwargs.get("linewidths", 2.)
+    for geodata, col in zip(coords, colors):
+        p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
+        diff = p2 - p1
+        angle = np.arctan2(*diff)
+        vec_size = _rotate_dim2(np.array([0, size]), angle)
+        vec_size_or = _rotate_dim2(np.array([0, size * 1.4 / 2]), angle + np.pi / 2)
+        pul = p1 + 0.5 * diff + vec_size + vec_size_or/3  # lower left
+        pur = p1 + 0.5 * diff + vec_size - vec_size_or/3  # lower right
+        pll = p1 + 0.6 * diff - vec_size + vec_size_or    # upper left
+        plr = p1 + 0.6 * diff - vec_size - vec_size_or    # upper richt
+        radius = size
+
+        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor='w', lw=lw))
+
+        lines.append([p1, p1 + diff / 2 - vec_size])
+        lines.append([p2, p1 + diff / 2 + vec_size])
+
+        lines.append([pll, pul])
+        lines.append([plr, pur])
+
+    return lines, polys, {}
+
+def pressure_control_patches(coords, size, **kwargs):
+    polys, lines = list(), list()
+    edgecolor = kwargs.pop('patch_edgecolor')
+    colors = get_color_list(edgecolor, len(coords))
+    lw = kwargs.get("linewidths", 2.)
+    for geodata, col in zip(coords, colors):
+        p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
+        diff = p2 - p1
+        angle = np.arctan2(*diff)
+        vec_size = _rotate_dim2(np.array([0, size]), angle)
+        vec_size_or = _rotate_dim2(np.array([0, size * 1.2 / 2]), angle + np.pi / 2)
+        pll = p1 + diff / 2 - vec_size + vec_size_or
+        plr = p1 + diff / 2 - vec_size - vec_size_or
+        pul = p1 + diff / 2 + vec_size + vec_size_or/3
+        pur = p1 + diff / 2 + vec_size - vec_size_or/3
+
+        polys.append(Rectangle(pll, 2 * size, size * 1.2, angle=np.rad2deg(-angle + np.pi/2),
+                               edgecolor=col, facecolor='w', lw=lw))
+
+        lines.append([p1, p1 + diff / 2 - vec_size])
+        lines.append([p2, p1 + diff / 2 + vec_size])
+
+        lines.append([pll, pul])
+        lines.append([plr, pur])
+
     return lines, polys, {}

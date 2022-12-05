@@ -1,21 +1,21 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+import numpy as np
+import pytest
 
 import pandapipes
-import os
-import numpy as np
-import pandas as pd
-from pandapipes.test.pipeflow_internals import internals_data_path
 from pandapipes.properties.fluids import _add_fluid_to_net
 
 
-def test_pipe_velocity_results():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pipe_velocity_results(use_numba):
     """
-        This test verifies the entries in the results table for a pipe network with pipes consisting of
-        more than one section. The basic idea is that the computation is first done with only one section per pipe.
-        Afterwards, the same network is calculated with more nodes. if everything works correctly, the entries
-        in the result table for the velocities (from, to) should be the same.
+        This test verifies the entries in the result table for a pipe network with pipes consisting
+        of more than one section. The basic idea is that the computation is first done with only one
+        section per pipe. Afterwards, the same network is calculated with more nodes. if everything
+        works correctly, the entries in the result table for the velocities (from, to) should be the
+        same.
 
         A T-junction is used for the test setup
         :return:
@@ -38,11 +38,11 @@ def test_pipe_velocity_results():
         compressibility=1, der_compressibility=0, density=0.82752
     ))
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
+                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_v=1e-5,
+                        use_numba=use_numba)
 
     v_1_sec_from = net.res_pipe.v_from_m_per_s
     v_1_sec_to = net.res_pipe.v_from_m_per_s
-
 
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
     d = 209.1e-3
@@ -61,17 +61,14 @@ def test_pipe_velocity_results():
         compressibility=1, der_compressibility=0, density=0.82752
     ))
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
+                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_v=1e-5,
+                        use_numba=use_numba)
 
     v_n_sec_from = net.res_pipe.v_from_m_per_s
     v_n_sec_to = net.res_pipe.v_from_m_per_s
 
-
-
     diff_from = v_1_sec_from - v_n_sec_from
     diff_to = v_1_sec_to - v_n_sec_to
 
-
     assert np.all(np.abs(diff_from) < 1e-9)
     assert np.all(np.abs(diff_to) < 1e-9)
-

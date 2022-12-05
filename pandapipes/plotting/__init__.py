@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@ from pandapipes.plotting.simple_plot import *
 from pandapipes.plotting.geo import *
 from pandapower.plotting.collections import add_collections_to_axes, add_cmap_to_collection, \
     add_single_collection
+from pandapipes.plotting.pipeflow_results import *
 
 import types
 from matplotlib.backend_bases import GraphicsContextBase, RendererBase

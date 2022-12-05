@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import pandas as pd
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -97,7 +97,7 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
 
     p_pandapipes = net.res_junction.p_bar.loc[p_valid].values
     p_diff = np.abs(1 - p_pandapipes / p_stanet)
-    v_diff_abs = v_diff_abs_pipe.append(v_diff_abs_valve, ignore_index=True)
+    v_diff_abs = pd.concat([v_diff_abs_pipe, v_diff_abs_valve], ignore_index=True)
     v_diff_abs.dropna(inplace=True)
 
     # Avoiding division by zero

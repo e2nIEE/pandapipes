@@ -1,18 +1,19 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import tempfile
 
-import pandapipes as ppipes
-from pandapipes.pipeflow import PipeflowNotConverged
+from pandapower.control import NetCalculationNotConverged
+
+from pandapipes.pipeflow import PipeflowNotConverged, pipeflow
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.output_writer import OutputWriter
 from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup,\
     run_loop
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -66,8 +67,10 @@ def pf_not_converged(time_step, ts_variables):
 
 def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True, **kwargs):
     """
-    Initializes the time series calculation. Creates the dict ts_variables, which includes
-    necessary variables for the time series / control function.
+    Initializes the time series calculation.
+
+    Creates the dict ts_variables, which includes necessary variables for the time series /
+    control function.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
@@ -84,13 +87,13 @@ def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True
     :rtype: dict, dict
     """
 
-    run = kwargs.get("run", ppipes.pipeflow)
+    run = kwargs.pop("run", pipeflow)
     init_default_outputwriter(net, time_steps, **kwargs)
 
     ts_variables = init_time_series_pp(net, time_steps, continue_on_divergence, verbose, run=run,
                                        **kwargs)
 
-    ts_variables["errors"] = tuple([PipeflowNotConverged])
+    ts_variables["errors"] = tuple([PipeflowNotConverged, NetCalculationNotConverged])
 
     return ts_variables
 
@@ -123,4 +126,4 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     run_loop(net, ts_variables, **kwargs)
 
     # cleanup functions after the last time step was calculated
-    cleanup(ts_variables)
+    cleanup(net, ts_variables)

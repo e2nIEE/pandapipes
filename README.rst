@@ -60,21 +60,21 @@ Institute for Energy Economics and Energy System Technology (IEE), Kassel, and t
 Energy Management and Power System Operation, University of Kassel.
 
 
-.. image:: https://www.uni-kassel.de/eecs/fileadmin/datas/fb16/Fachgebiete/energiemanagement/iee.png
+.. image:: https://upload.wikimedia.org/wikipedia/commons/e/ee/FraunhoferIEELogo.gif
     :target: https://www.iee.fraunhofer.de/en.html
-    :width: 300em
+    :width: 350
 
 |
 
 .. image:: https://www.uni-kassel.de/uni/fileadmin/sys/resources/images/logo/logo-main.svg
     :target: https://www.uni-kassel.de/
-    :width: 300em
+    :width: 350
 
 |
 
-.. image:: https://www.uni-kassel.de/eecs/fileadmin/datas/fb16/Fachgebiete/energiemanagement/e2n.png
-    :target: https://www.uni-kassel.de/eecs/en/fachgebiete/e2n/home.html
-    :width: 200em
+.. image:: https://www.uni-kassel.de/eecs/index.php?eID=dumpFile&t=p&p=1674&token=b0509afe2e7c4e41d7cdad83edd0ce49af9fceaa
+    :target: https://www.uni-kassel.de/eecs/en/sections/energiemanagement-und-betrieb-elektrischer-netze/home
+    :width: 250
 
 |
 

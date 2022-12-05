@@ -1,13 +1,14 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from packaging import version
 
-from pandapipes import __version__
+from pandapipes import __format_version__
+from pandapipes.pandapipes_net import add_default_components
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -18,11 +19,18 @@ def convert_format(net):
     """
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
-    if isinstance(net.version, str) and version.parse(net.version) >= version.parse(__version__):
+    add_default_components(net, overwrite=False)
+    format_version = version.parse(__format_version__)
+    # For possible problems with this line of code, please check out
+    # https://github.com/e2nIEE/pandapipes/issues/320
+    if not hasattr(net, 'format_version'):
+        net.format_version = net.version
+    if version.parse(net.format_version) >= format_version:
         return net
     _rename_columns(net)
     _add_missing_columns(net)
-    net.version = __version__
+    _rename_attributes(net)
+    net.format_version = __format_version__
     return net
 
 
@@ -44,3 +52,9 @@ def _add_missing_columns(net):
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
             else:
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow
+
+
+def _rename_attributes(net):
+    if "std_type" in net and "std_types" not in net:
+        net["std_types"] = net["std_type"]
+        del net["std_type"]

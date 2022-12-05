@@ -1,19 +1,46 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
+import copy
 from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
+from networkx import has_path
+from pandapower.auxiliary import get_indices
+from pandapower.toolbox import dataframes_equal, clear_result_tables
+
+import pandapipes
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
+from pandapipes.create import create_empty_network
+from pandapipes.idx_branch import TABLE_IDX as TABLE_IDX_BRANCH, ELEMENT_IDX as ELEMENT_IDX_BRANCH, \
+    FROM_NODE as FROM_NODE_BRANCH, TO_NODE as TO_NODE_BRANCH, ACTIVE as ACTIVE_BRANCH, \
+    LENGTH as LENGTH_BRANCH, D as D_BRANCH, AREA as AREA_BRANCH, RHO as RHO_BRANCH, \
+    ETA as ETA_BRANCH, K as K_BRANCH, TINIT as TINIT_BRANCH, VINIT as VINIT_BRANCH, \
+    RE as RE_BRANCH, LAMBDA as LAMBDA_BRANCH, JAC_DERIV_DV as JAC_DERIV_DV_BRANCH, \
+    JAC_DERIV_DP as JAC_DERIV_DP_BRANCH, JAC_DERIV_DP1 as JAC_DERIV_DP1_BRANCH, \
+    LOAD_VEC_BRANCHES as LOAD_VEC_BRANCHES_BRANCH, JAC_DERIV_DV_NODE as JAC_DERIV_DV_NODE_BRANCH, \
+    LOAD_VEC_NODES as LOAD_VEC_NODES_BRANCH, LOSS_COEFFICIENT as LOSS_COEFFICIENT_BRANCH, \
+    CP as CP_BRANCH, ALPHA as ALPHA_BRANCH, JAC_DERIV_DT as JAC_DERIV_DT_BRANCH, \
+    JAC_DERIV_DT1 as JAC_DERIV_DT1_BRANCH, LOAD_VEC_BRANCHES_T as LOAD_VEC_BRANCHES_T_BRANCH, \
+    T_OUT as T_OUT_BRANCH, JAC_DERIV_DT_NODE as JAC_DERIV_DT_NODE_BRANCH, \
+    LOAD_VEC_NODES_T as LOAD_VEC_NODES_T_BRANCH, VINIT_T as VINIT_T_BRANCH, \
+    FROM_NODE_T as FROM_NODE_T_BRANCH, TO_NODE_T as TO_NODE_T_BRANCH, QEXT as QEXT_BRANCH, \
+    TEXT as TEXT_BRANCH, STD_TYPE as STD_TYPE_BRANCH, PL as PL_BRANCH, TL as TL_BRANCH, \
+    BRANCH_TYPE as BRANCH_TYPE_BRANCH, PRESSURE_RATIO as PRESSURE_RATIO_BRANCH, branch_cols
+from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, ELEMENT_IDX as ELEMENT_IDX_NODE, \
+    NODE_TYPE as NODE_TYPE_NODE, ACTIVE as ACTIVE_NODE, RHO as RHO_NODE, PINIT as PINIT_NODE, \
+    LOAD as LOAD_NODE, HEIGHT as HEIGHT_NODE, TINIT as TINIT_NODE, PAMB as PAMB_NODE, \
+    LOAD_T as LOAD_T_NODE, NODE_TYPE_T as NODE_TYPE_T_NODE, \
+    EXT_GRID_OCCURENCE as EXT_GRID_OCCURENCE_NODE, \
+    EXT_GRID_OCCURENCE_T as EXT_GRID_OCCURENCE_T_NODE, node_cols, \
+    T as TYPE_T, P as TYPE_P, PC as TYPE_PC, NONE as TYPE_NONE, L as TYPE_L
 from pandapipes.pandapipes_net import pandapipesNet
-from pandapower.auxiliary import get_indices
-from pandapower.toolbox import dataframes_equal
+from pandapipes.topology import create_nxgraph
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -22,22 +49,23 @@ logger = logging.getLogger(__name__)
 
 def nets_equal(net1, net2, check_only_results=False, exclude_elms=None, **kwargs):
     """
-    Compares the DataFrames of two networks. The networks are considered equal if they share the
-    same keys and values, except of the 'et' (elapsed time) entry which differs depending on
-    runtime conditions and entries stating with '_'.
+    Compares the DataFrames of two networks.
 
-    :param net1:
+    The networks are considered equal if they share the same keys and values, except of the 'et'
+    (elapsed time) entry which differs depending on runtime conditions and entries stating with '_'.
+
+    :param net1: first net for comparison
     :type net1: pandapipesNet
-    :param net2:
-    :type net2:pandapipesNet
+    :param net2: second net for comparison
+    :type net2: pandapipesNet
     :param check_only_results:
     :type check_only_results: bool, default False
-    :param exclude_elms:
-    :type exclude_elms: ?, default None
-    :param kwargs:
+    :param exclude_elms: element types that should be skipped in the comparison
+    :type exclude_elms: list of strings, default None
+    :param kwargs: key word arguments
     :type kwargs:
-    :return:
-    :rtype:
+    :return: True, if nets are equal
+    :rtype: Bool
     """
 
     eq = isinstance(net1, pandapipesNet) and isinstance(net2, pandapipesNet)
@@ -85,7 +113,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     Provides the tuples of elements and corresponding columns for junctions they are connected to
 
     :param include_node_elements: whether tuples for junction elements e.g. sink, source, are \
-            included
+           included
     :type include_node_elements: bool
     :param include_branch_elements: whether branch elements e.g. pipe, pumps, ... are included
     :type include_branch_elements: bool
@@ -96,19 +124,28 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
+    special_elements_junctions = [("press_control", "controlled_junction")]
+    move_elements = {"n2b": ["circ_pump_mass", "circ_pump_pressure"], "b2n": []}
     node_elements = []
-    if net is not None and include_node_elements:
-        node_elements = [comp.table_name() for comp in net.component_list
-                         if issubclass(comp, NodeElementComponent)]
-    elif include_node_elements:
-        node_elements = ["sink", "source", "ext_grid"]
     branch_elements = []
-    if net is not None and include_branch_elements:
-        branch_elements = [comp.table_name() for comp in net.component_list
-                           if issubclass(comp, BranchComponent)]
-    elif include_branch_elements:
-        branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                           "heat_exchanger"]
+    if net is not None:
+        all_tables = {comp.table_name(): comp for comp in net.component_list}
+        if include_node_elements:
+            node_elements = [tbl for tbl, comp in all_tables.items()
+                             if issubclass(comp, NodeElementComponent)
+                             and tbl not in move_elements["n2b"]]
+            node_elements += [me for me in move_elements["b2n"] if me in all_tables.keys()]
+        if include_branch_elements:
+            branch_elements = [comp.table_name() for comp in net.component_list
+                               if issubclass(comp, BranchComponent)
+                               and comp.table_name() not in move_elements["b2n"]]
+            branch_elements += [me for me in move_elements["n2b"] if me in all_tables.keys()]
+    else:
+        if include_node_elements:
+            node_elements = ["sink", "source", "ext_grid"]
+        if include_branch_elements:
+            branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
+                               "heat_exchanger", "press_control", "compressor"]
     ejts = set()
     if include_node_elements:
         for elm in node_elements:
@@ -124,6 +161,8 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
             elements_without_res = ["valve"]
         ejts.update(
             [("res_" + ejt[0], ejt[1]) for ejt in ejts if ejt[0] not in elements_without_res])
+    ejts.update((el, jn) for el, jn in special_elements_junctions if el in node_elements
+                or el in branch_elements)
     return ejts
 
 
@@ -147,6 +186,7 @@ def pp_elements(junction=True, include_node_elements=True, include_branch_elemen
     :return: pp_elms - set of table names for the desired element types
     :rtype: set
     """
+
     pp_elms = {"junction"} if junction else set()
     pp_elms |= set([el[0] for el in element_junction_tuples(
         include_node_elements, include_branch_elements, include_res_elements, net)])
@@ -166,6 +206,7 @@ def reindex_junctions(net, junction_lookup):
     :return: junction_lookup - the finally reindexed junction lookup (with corrections if necessary)
     :rtype: dict
     """
+
     not_fitting_junction_lookup_keys = set(junction_lookup.keys()) - set(net.junction.index)
     if len(not_fitting_junction_lookup_keys):
         logger.error("These junction indices are unknown to net. Thus, they cannot be reindexed: " +
@@ -208,6 +249,7 @@ def reindex_elements(net, element, new_indices, old_indices=None):
     :type old_indices: iterable, default None
     :return: No output.
     """
+
     old_indices = old_indices if old_indices is not None else net[element].index
     if not len(new_indices) or not net[element].shape[0]:
         return
@@ -245,7 +287,7 @@ def create_continuous_junction_index(net, start=0, store_old_index=False):
     :type start: int, default 0
     :param store_old_index: if True, stores the old index in net.junction["old_index"]
     :type store_old_index: bool, default False
-    :return: bus_lookup - mapping of old to new index
+    :return: junction_lookup - mapping of old to new index
     :rtype: dict
     """
     net.junction.sort_index(inplace=True)
@@ -275,7 +317,7 @@ def create_continuous_elements_index(net, start=0, add_df_to_reindex=None):
     add_df_to_reindex = set() if add_df_to_reindex is None else set(add_df_to_reindex)
     elements = pp_elements(include_res_elements=True, net=net)
 
-    # create continuous bus index
+    # create continuous junction index
     create_continuous_junction_index(net, start=start)
     elements -= {"junction", "junction_geodata", "res_junction"}
 
@@ -325,6 +367,71 @@ def fuse_junctions(net, j1, j2, drop=True):
         drop_junctions(net, j2, drop_elements=False)
         # TODO: If junctions j1 and j2 are connected by one branch element, it should be dropped.
     return net
+
+
+def select_subnet(net, junctions, include_results=False, keep_everything_else=False,
+                  remove_internals=True, remove_unused_components=False):
+    """
+    Selects a subnet by a list of junction indices and returns a net with all components connected
+    to them.
+    """
+    junctions = list(junctions)
+
+    if keep_everything_else:
+        p2 = copy.deepcopy(net)
+        if not include_results:
+            clear_result_tables(p2)
+        if remove_internals:
+            for inter in [k for k in p2.keys() if k.startswith("_")]:
+                p2.pop(inter)
+    else:
+        p2 = create_empty_network(add_stdtypes=False)
+        p2["std_types"] = copy.deepcopy(net["std_types"])
+        net_parameters = ["name", "fluid", "user_pf_options", "component_list"]
+        for net_parameter in net_parameters:
+            if net_parameter in net.keys():
+                p2[net_parameter] = copy.deepcopy(net[net_parameter])
+
+    p2.junction = net.junction.loc[junctions]
+    comp_tuples = element_junction_tuples(include_node_elements=True, include_branch_elements=True,
+                                          net=net)
+    comp_junc_rows = {tbl: [jr for el, jr in comp_tuples if el == tbl] for tbl in
+                      set([v[0] for v in comp_tuples])}
+    for comp_tbl, junc_rows in comp_junc_rows.items():
+        isin_all = np.all([net[comp_tbl][jr].isin(junctions) for jr in junc_rows], axis=0)
+        p2[comp_tbl] = net[comp_tbl][isin_all]
+
+    if include_results:
+        for table in net.keys():
+            if net[table] is None or not isinstance(net[table], pd.DataFrame) or not \
+               net[table].shape[0] or not table.startswith("res_") or table[4:] not in \
+               net.keys() or not isinstance(net[table[4:]], pd.DataFrame) or not \
+               net[table[4:]].shape[0]:
+                continue
+            elif table == "res_junction":
+                p2[table] = net[table].loc[net[table].index.intersection(junctions)]
+            else:
+                p2[table] = net[table].loc[p2[table[4:]].index.intersection(net[table].index)]
+    if "junction_geodata" in net:
+        p2["junction_geodata"] = net.junction_geodata.loc[p2.junction.index.intersection(
+            net.junction_geodata.index)]
+    if "pipe_geodata" in net:
+        p2["pipe_geodata"] = net.pipe_geodata.loc[p2.pipe.index.intersection(
+            net.pipe_geodata.index)]
+
+    if remove_unused_components:
+        remove_empty_components(p2)
+
+    return pandapipesNet(p2)
+
+
+def remove_empty_components(net):
+    removed = set()
+    for comp in net.component_list:
+        if net[comp.table_name()].empty:
+            del net[comp.table_name()]
+            removed.add(comp)
+    net.component_list = [c for c in net.component_list if c not in removed]
 
 
 def drop_junctions(net, junctions, drop_elements=True):
@@ -403,6 +510,12 @@ def drop_pipes(net, pipes):
     logger.info("dropped %d pipes" % len(list(pipes)))
 
 
+def check_pressure_controllability(net, to_junction, controlled_junction):
+    mg = create_nxgraph(net, include_pressure_circ_pumps=False, include_compressors=False,
+                        include_mass_circ_pumps=False, include_press_controls=False)
+    return has_path(mg, to_junction, controlled_junction)
+
+
 # TODO: change to pumps??
 # def drop_trafos(net, trafos, table="trafo"):
 #     """
@@ -424,3 +537,109 @@ def drop_pipes(net, pipes):
 #     res_trafos = net["res_" + table].index.intersection(trafos)
 #     net["res_" + table].drop(res_trafos, inplace=True)
 #     logger.info("dropped %d %s elements with %d switches" % (len(trafos), table, num_switches))
+
+
+node_pit_indices = {
+    TABLE_IDX_NODE: "TABLE_IDX",
+    ELEMENT_IDX_NODE: "ELEMENT_IDX",
+    NODE_TYPE_NODE: "NODE_TYPE",
+    ACTIVE_NODE: "ACTIVE",
+    RHO_NODE: "RHO",
+    PINIT_NODE: "PINIT",
+    LOAD_NODE: "LOAD",
+    HEIGHT_NODE: "HEIGHT",
+    TINIT_NODE: "TINIT",
+    PAMB_NODE: "PAMB",
+    LOAD_T_NODE: "LOAD_T",
+    NODE_TYPE_T_NODE: "NODE_TYPE_T",
+    EXT_GRID_OCCURENCE_NODE: "EXT_GRID_OCCURENCE",
+    EXT_GRID_OCCURENCE_T_NODE: "EXT_GRID_OCCURENCE_T",
+}
+
+branch_pit_indices = {
+    TABLE_IDX_BRANCH: "TABLE_IDX",
+    ELEMENT_IDX_BRANCH: "ELEMENT_IDX",
+    FROM_NODE_BRANCH: "FROM_NODE",
+    TO_NODE_BRANCH: "TO_NODE",
+    ACTIVE_BRANCH: "ACTIVE",
+    LENGTH_BRANCH: "LENGTH",
+    D_BRANCH: "D",
+    AREA_BRANCH: "AREA",
+    RHO_BRANCH: "RHO",
+    ETA_BRANCH: "ETA",
+    K_BRANCH: "K",
+    TINIT_BRANCH: "TINIT",
+    VINIT_BRANCH: "VINIT",
+    RE_BRANCH: "RE",
+    LAMBDA_BRANCH: "LAMBDA",
+    JAC_DERIV_DV_BRANCH: "JAC_DERIV_DV",
+    JAC_DERIV_DP_BRANCH: "JAC_DERIV_DP",
+    JAC_DERIV_DP1_BRANCH: "JAC_DERIV_DP1",
+    LOAD_VEC_BRANCHES_BRANCH: "LOAD_VEC_BRANCHES",
+    JAC_DERIV_DV_NODE_BRANCH: "JAC_DERIV_DV_NODE",
+    LOAD_VEC_NODES_BRANCH: "LOAD_VEC_NODES",
+    LOSS_COEFFICIENT_BRANCH: "LOSS_COEFFICIENT",
+    CP_BRANCH: "CP",
+    ALPHA_BRANCH: "ALPHA",
+    JAC_DERIV_DT_BRANCH: "JAC_DERIV_DT",
+    JAC_DERIV_DT1_BRANCH: "JAC_DERIV_DT1",
+    LOAD_VEC_BRANCHES_T_BRANCH: "LOAD_VEC_BRANCHES_T",
+    T_OUT_BRANCH: "T_OUT",
+    JAC_DERIV_DT_NODE_BRANCH: "JAC_DERIV_DT_NODE",
+    LOAD_VEC_NODES_T_BRANCH: "LOAD_VEC_NODES_T",
+    VINIT_T_BRANCH: "VINIT_T",
+    FROM_NODE_T_BRANCH: "FROM_NODE_T",
+    TO_NODE_T_BRANCH: "TO_NODE_T",
+    QEXT_BRANCH: "QEXT",
+    TEXT_BRANCH: "TEXT",
+    STD_TYPE_BRANCH: "STD_TYPE",
+    PL_BRANCH: "PL",
+    TL_BRANCH: "TL",
+    BRANCH_TYPE_BRANCH: "BRANCH_TYPE",
+    PRESSURE_RATIO_BRANCH: "PRESSURE_RATIO",
+}
+
+
+pit_types = {TYPE_P: "P", TYPE_L: "L", TYPE_NONE: "NONE", TYPE_T: "T", TYPE_PC: "PC", 0: "NONE"}
+
+
+def get_internal_tables_pandas(net):
+    """
+    Convert the internal structure (pit) for nodes and branches into readable pandas DataFrames.
+
+    :param net: pandapipes network
+    :type net: pandapipesNet
+    :return: node_table, branch_table
+    :rtype: pandas.DataFrame
+    """
+    if "_pit" not in net:
+        logger.warning("The net does not contain an internal pandapipes structure. Please try "
+                       "running a pipeflow first.")
+        return None, None
+    branch_pit = net["_pit"]["branch"]
+    node_pit = net["_pit"]["node"]
+
+    missing_nodes = node_pit.shape[1] - node_cols
+    missing_branches = branch_pit.shape[1] - branch_cols
+
+    if missing_nodes > 0:
+        logger.warning("%d node pit entries are missing. Please verify the correctness of the "
+                       "table." % missing_nodes)
+    if missing_branches > 0:
+        logger.warning("%d branch pit entries are missing. Please verify the correctness of the "
+                       "table." % missing_branches)
+
+    node_table_lookup = pandapipes.get_lookup(net, "node", "table")
+    node_table = pd.DataFrame(node_pit)
+    node_table.rename(columns=node_pit_indices, inplace=True)
+    node_table["NODE_TYPE"].replace(pit_types, inplace=True)
+    node_table["NODE_TYPE_T"].replace(pit_types, inplace=True)
+    node_table["TABLE_IDX"].replace(node_table_lookup["n2t"], inplace=True)
+
+    branch_table_lookup = pandapipes.get_lookup(net, "branch", "table")
+    branch_table = pd.DataFrame(branch_pit)
+    branch_table.rename(columns=branch_pit_indices, inplace=True)
+    branch_table["BRANCH_TYPE"].replace(pit_types, inplace=True)
+    branch_table["TABLE_IDX"].replace(branch_table_lookup["n2t"], inplace=True)
+
+    return node_table, branch_table

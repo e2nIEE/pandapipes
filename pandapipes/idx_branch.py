@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -40,5 +40,7 @@ TEXT = 34
 STD_TYPE = 35
 PL = 36
 TL = 37  # Temperature lift [K]
+BRANCH_TYPE = 38  # branch type relevant for the pressure controller
+PRESSURE_RATIO = 39  # boost ratio for compressors with proportional pressure lift
 
-branch_cols = 38
+branch_cols = 40

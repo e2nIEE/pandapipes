@@ -1,6 +1,8 @@
-# Copyright (c) 2020 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
+import tqdm
 
 from pandapipes import pandapipesNet
 from pandapipes.multinet.control.run_control_multinet import prepare_run_ctrl, run_control
@@ -8,10 +10,10 @@ from pandapipes.timeseries.run_time_series import init_default_outputwriter as i
 from pandapower import pandapowerNet
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.run_time_series import get_recycle_settings, init_time_steps, output_writer_routine, \
-    print_progress_bar, cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
+    cleanup, run_loop, init_default_outputwriter as init_default_ow_pp, init_output_writer
 
 try:
-    import pplog
+    import pandaplan.core.pplog as pplog
 except ImportError:
     import logging as pplog
 
@@ -38,7 +40,7 @@ def _call_output_writer(multinet, time_step, pf_converged, ctrl_converged, ts_va
     """
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]
-        output_writer_routine(net, time_step, pf_converged, ctrl_converged, ts_variables[net_name]["recycle_options"])
+        output_writer_routine(net, time_step, pf_converged, ctrl_converged, ts_variables['nets'][net_name]["recycle_options"])
 
 
 def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose=True,
@@ -64,7 +66,7 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
     time_steps = init_time_steps(multinet, time_steps, **kwargs)
     run = kwargs.get('run', None)
 
-    ts_variables = prepare_run_ctrl(multinet, None, **kwargs)
+    ts_variables = prepare_run_ctrl(multinet, **kwargs)
 
     for net_name in multinet['nets'].keys():
         net = multinet['nets'][net_name]
@@ -78,8 +80,8 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
         if hasattr(run, "__name__") and run.__name__ == "runpp":
             # use faster runpp options if possible
             recycle_options = get_recycle_settings(net, **kwargs)
-        ts_variables[net_name]['run'] = run['net_name'] if run is not None else ts_variables[net_name]['run']
-        ts_variables[net_name]['recycle_options'] = recycle_options
+        ts_variables['nets'][net_name]['run'] = run[net_name] if run is not None else ts_variables['nets'][net_name]['run']
+        ts_variables['nets'][net_name]['recycle_options'] = recycle_options
         init_output_writer(net, time_steps)
 
     # time steps to be calculated (list or range)
@@ -91,7 +93,7 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
 
     if logger.level != 10 and verbose:
         # simple progress bar
-        print_progress_bar(0, len(time_steps), prefix='Progress:', suffix='Complete', length=50)
+        ts_variables['progress_bar'] = tqdm.tqdm(total=len(time_steps))
 
     return ts_variables
 
@@ -127,4 +129,4 @@ def run_timeseries(multinet, time_steps=None, continue_on_divergence=False,
 
     # cleanup functions after the last time step was calculated
     for net_name in multinet['nets'].keys():
-        cleanup(ts_variables[net_name])
+        cleanup(multinet['nets'][net_name], ts_variables['nets'][net_name])
