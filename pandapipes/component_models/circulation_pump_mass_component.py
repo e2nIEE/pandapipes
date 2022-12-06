@@ -38,7 +38,7 @@ class CirculationPumpMass(CirculationPump):
                 ("flow_junction", "u4"),
                 ("p_bar", "f8"),
                 ("t_k", "f8"),
-                ("mdot_kg_per_s", "f8"),
+                ("mdot_flow_kg_per_s", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
@@ -63,7 +63,7 @@ class CirculationPumpMass(CirculationPump):
         """
         circ_pump, _ = super().create_pit_node_entries(net, node_pit)
 
-        mf = np.nan_to_num(circ_pump.mdot_kg_per_s.values)
+        mf = np.nan_to_num(circ_pump.mdot_flow_kg_per_s.values)
         mass_flow_loads = mf * circ_pump.in_service.values
         juncts, loads_sum = _sum_by_group(get_net_option(net, "use_numba"),
                                           circ_pump.return_junction.values, mass_flow_loads)

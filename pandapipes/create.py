@@ -701,7 +701,7 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
     return index
 
 
-def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar, mdot_kg_per_s,
+def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar, mdot_flow_kg_per_s,
                                      t_k=None, name=None, index=None, in_service=True,
                                      type="auto", **kwargs):
     """
@@ -721,8 +721,8 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
     :type flow_junction: int
     :param p_bar: Pressure set point
     :type p_bar: float
-    :param mdot_kg_per_s: Constant mass flow, which is transported through the pump
-    :type mdot_kg_per_s: float
+    :param mdot_flow_kg_per_s: Constant mass flow, which is transported through the pump
+    :type mdot_flow_kg_per_s: float
     :param t_k: Temperature set point
     :type t_k: float
     :param name: Name of the pump
@@ -747,7 +747,7 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_kg_per_s=2, t_k=350, type="p")
+        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_flow_kg_per_s=2, t_k=350, type="p")
 
     """
 
@@ -761,8 +761,8 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
     type = _auto_ext_grid_type(p_bar, t_k, type, CirculationPumpMass)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_bar": p_bar, "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service),
-         "type": type}
+         "p_bar": p_bar, "t_k": t_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s,
+         "in_service": bool(in_service), "type": type}
     _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
 
     return index
