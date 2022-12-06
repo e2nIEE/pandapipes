@@ -14,4 +14,4 @@ from pandapipes.component_models.circulation_pump_mass_component import *
 from pandapipes.component_models.circulation_pump_pressure_component import *
 from pandapipes.component_models.pressure_control_component import *
 from pandapipes.component_models.compressor_component import *
-from pandapipes.component_models.storage_fluid_component import *
+from pandapipes.component_models.mass_storage_component import *

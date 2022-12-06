@@ -7,7 +7,7 @@ import pandas as pd
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
-    Compressor
+    Compressor, MassStorage
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
@@ -204,24 +204,27 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_storage_fluid(net, junction, mdot_kg_per_s, min_kg=0., max_kg=np.inf, scaling=1.,
-                         name=None, index=None, in_service=True, type='storage_fluid', **kwargs):
+def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_stored_kg=0.,
+                        max_m_stored_kg=np.inf, scaling=1., name=None, index=None,
+                        in_service=True, type="mass_storage", **kwargs):
     """
-    Adds one storage entry in table net["storage_fluid"]. Not suitable for thermal storage tanks.
+    Adds one storage entry in table net["mass_storage"]. Not suitable for thermal storage tanks.
 
     :param net: The net for which this storage unit should be created
     :type net: pandapipesNet
     :param junction: The index of the junction to which the storage is connected
     :type junction: int
-    :param mdot_kg_per_s: The quasi-stationary mass flow. (if fluid flows into storage: >0,
-                          if fluid flows from storage to net: <0)
+    :param mdot_kg_per_s: The quasi-stationary mass flow. (if fluid flows into storage: > 0,
+                          if fluid flows from storage to net: < 0)
     :type mdot_kg_per_s: float, default None
-    :param min_kg: Minimum amount of fluid that has to remain in the storage unit. (To be used
+    :param init_m_stored_kg: The initially stored mass in the storage
+    :type init_m_stored_kg: float, default None
+    :param min_m_stored_kg: Minimum amount of fluid that has to remain in the storage unit. (To be used
                    with controllers)
-    :type min_kg: float
-    :param max_kg: Maximum amount of fluid that can be stored in the storage unit. (To be used
+    :type min_m_stored_kg: float
+    :param max_m_stored_kg: Maximum amount of fluid that can be stored in the storage unit. (To be used
                    with controllers)
-    :type max_kg: float, default np.inf
+    :type max_m_stored_kg: float, default np.inf
     :param scaling: An optional scaling factor to be set customly
     :type scaling: float, default 1
     :param name: A name tag for this storage
@@ -232,28 +235,36 @@ def create_storage_fluid(net, junction, mdot_kg_per_s, min_kg=0., max_kg=np.inf,
     :param in_service: True for in service, False for out of service
     :type in_service: bool, default True
     :param type: Type variable to classify the storage
-    :type type: str, default None
+    :type type: str, default mass_storage
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["storage_fluid"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
     :Example:
-        >>> create_storage_fluid(net,junction=2,mdot_kg_per_s=0.1)
+        >>> create_mass_storage(net, junction=2, mdot_kg_per_s=0.1)
 
     """
+    if any([(init_m_stored_kg < 0), (min_m_stored_kg < 0), (max_m_stored_kg < 0)]):
+        raise ValueError("init_/min_/max_stored_kg have to be >= 0!")
+    if init_m_stored_kg > max_m_stored_kg:
+        logger.warning("init_m_stored is automatically limited to max_m_stored_kg!")
+        init_m_stored_kg = max_m_stored_kg
+    if init_m_stored_kg < min_m_stored_kg:
+        logger.warning("init_m_stored is automatically limited to min_m_stored_kg!")
+        init_m_stored_kg = min_m_stored_kg
 
-    add_new_component(net, StorageFluid)
+    add_new_component(net, MassStorage)
 
     _check_junction_element(net, junction)
 
-    index = _get_index_with_check(net, "storage_fluid", index)
+    index = _get_index_with_check(net, "mass_storage", index)
 
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "min_kg", "max_kg",
-            "in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, min_kg, max_kg,
-            bool(in_service), type]
-    _set_entries(net, "storage_fluid", index, **dict(zip(cols, vals)), **kwargs)
+    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "init_m_stored_kg", "min_m_stored_kg",
+            "max_m_stored_kg", "in_service", "type"]
+    vals = [name, junction, mdot_kg_per_s, scaling, init_m_stored_kg, min_m_stored_kg,
+            max_m_stored_kg, bool(in_service), type]
+    _set_entries(net, "mass_storage", index, **dict(zip(cols, vals)), **kwargs)
 
     return index
 
