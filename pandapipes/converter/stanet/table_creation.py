@@ -540,7 +540,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     )
 
 
-def create_heat_exchanger_sta(net, stored_data, connection_table, index_mapping, add_layers):
+def create_heat_exchangers(net, stored_data, connection_table, index_mapping, add_layers):
     """
 
     :param net:
