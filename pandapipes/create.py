@@ -86,7 +86,7 @@ def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the junction is in service or False if it is out of service
     :type in_service: boolean, default True
     :param type: not used yet - Designed for type differentiation on pandas lookups (e.g. household\
             connection vs. crossing)
@@ -284,7 +284,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the heat exchanger is in service or False if it is out of service
     :type in_service: bool, default True
     :param type: Not used yet
     :type type: str
@@ -527,7 +527,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the pump is in service or False if it is out of service
     :type in_service: bool, default True
     :param type:  Type variable to classify the pump
     :type type: str, default "pump"
@@ -597,7 +597,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the pump is in service or False if it is out of service
     :type in_service: bool, default True
     :param type:  type variable to classify the pump
     :type type: str, default "pump"
@@ -657,7 +657,7 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the circulation pump is in service or False if it is out of service
     :type in_service: bool, default True
     :param type: The pump type denotes the values that are fixed:\n
             - "p": The pressure is fixed.
@@ -712,7 +712,7 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the circulation pump is in service or False if it is out of service
     :type in_service: bool, default True
     :param type: The pump type denotes the values that are fixed:\n
             - "p": The pressure is fixed.
@@ -758,14 +758,14 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     :param to_junction: ID of the junction on the other side which the compressor will be \
         connected with
     :type to_junction: int
-    :param pressure_ratio:
+    :param pressure_ratio: The pressure ratio between inlet and outlet
     :type pressure_ratio: float
     :param name: A name tag for this compressor
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the compressor is in service or False if it is out of service
     :type in_service: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["compressor"] table
@@ -818,7 +818,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the pressure control is in service or False if it is out of service
     :type in_service: bool, default True
     :param type: Currently not used - possibility to specify a certain type of pressure control
     :type type: str, default "pressure_control"
@@ -891,7 +891,7 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if flow controller is in service or False if it is out of service
     :type in_service: bool, default True
     :param type: Currently not used - possibility to specify a certain type of flow control
     :type type: str, default "fc"
@@ -943,7 +943,7 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
             highest already existing index is selected and counted onwards.
     :type index: Iterable(int), default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the junctions are in service or False if they are out of service
     :type in_service: Iterable or boolean, default True
     :param type: not used yet - Designed for type differentiation on pandas lookups (e.g. \
             household connection vs. crossing)
@@ -1277,7 +1277,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
 
-    :param net: The net for which this pressure controls should be created
+    :param net: The net for which these pressure controls should be created
     :type net: pandapipesNet
     :param from_junctions: IDs of the junctions on one side which the pressure controls will be\
             connected to
@@ -1298,9 +1298,10 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     :param name: Name of the pressure control elements
     :type name: Iterable or str
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
-            highest already existing index is selected and counted onwards.
+        highest already existing index is selected and counted onwards.
     :type index: Iterable(int), default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the pressure controls are in service or False if they are out of\
+        service
     :type in_service: Iterable or bool, default True
     :param type: Currently not used - possibility to specify a certain type of pressure control
     :type type: Iterable or str, default "pressure_control"
@@ -1365,7 +1366,7 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
             highest already existing index is selected and counted onwards.
     :type index: Iterable(int), default None
-    :param in_service: True for in_service or False for out of service
+    :param in_service: True if the flow controls are in service or False if they are out of service
     :type in_service: Iterable or bool, default True
     :param type: Currently not used - possibility to specify a certain type of flow control
     :type type: Iterable or str, default "fc"
