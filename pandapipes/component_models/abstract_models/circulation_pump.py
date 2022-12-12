@@ -72,9 +72,9 @@ class CirculationPump(BranchWZeroLengthComponent):
 
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
-        press = circ_pump_tbl.p_bar.values
+        press = circ_pump_tbl.p_flow_bar.values
         set_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press,
-                               circ_pump_tbl.t_k.values, cls.get_connected_node_type())
+                               circ_pump_tbl.t_flow_k.values, cls.get_connected_node_type())
         return circ_pump_tbl, press
 
     @classmethod

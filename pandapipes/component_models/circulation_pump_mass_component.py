@@ -36,8 +36,8 @@ class CirculationPumpMass(CirculationPump):
         return [("name", dtype(object)),
                 ("return_junction", "u4"),
                 ("flow_junction", "u4"),
-                ("p_bar", "f8"),
-                ("t_k", "f8"),
+                ("p_flow_bar", "f8"),
+                ("t_flow_k", "f8"),
                 ("mdot_flow_kg_per_s", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]

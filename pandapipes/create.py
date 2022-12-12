@@ -204,8 +204,8 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="auto",
-                    **kwargs):
+def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None, in_service=True,
+                    index=None, **kwargs):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
     that it is connected to into a node with fixed value for either pressure, temperature or both
@@ -217,16 +217,9 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     :param junction: The junction to which the external grid is connected
     :type junction: int
     :param p_bar: The pressure of the external grid
-    :type p_bar: float
+    :type p_bar: float, default None
     :param t_k: The fixed temperature at the external grid
-    :type t_k: float, default 285.15
-    :param name: A name tag for this ext_grid
-    :type name: str, default None
-    :param in_service: True for in service, False for out of service
-    :type in_service: bool, default True
-    :param index: Force a specified ID if it is available. If None, the index one higher than the\
-            highest already existing index is selected.
-    :type index: int, default None
+    :type t_k: float, default None
     :param type: The external grid type denotes the values that are fixed at the respective node:\n
             - "auto": Will automatically assign one of the following types based on the input for \
                       p_bar and t_k \n
@@ -236,6 +229,13 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
                    inconsistencies in the formulation of heat transfer equations yet. \n
             - "pt": The external grid shows both "p" and "t" behavior.
     :type type: str, default "auto"
+    :param name: A name tag for this ext_grid
+    :type name: str, default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: bool, default True
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
     :param kwargs: Additional keyword arguments will be added as further columns to the\
                     net["ext_grid"] table
     :return: index - The unique ID of the created element
@@ -635,8 +635,9 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     return index
 
 
-def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, plift_bar, t_k=None,
-                                    name=None, index=None, in_service=True, type="auto", **kwargs):
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar,
+                                    t_flow_k=None, type="auto", name=None, index=None,
+                                    in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -652,12 +653,21 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
     :type return_junction: int
     :param flow_junction: ID of the junction on the other side which the pump will be connected with
     :type flow_junction: int
-    :param p_bar: Pressure set point
-    :type p_bar: float
+    :param p_flow_bar: Pressure set point at the flow junction
+    :type p_flow_bar: float
     :param plift_bar: Pressure lift induced by the pump
     :type plift_bar: float
-    :param t_k: Temperature set point
-    :type t_k: float
+    :param t_flow_k: Temperature set point at the flow junction
+    :type t_flow_k: float, default None
+    :param type: The pump type denotes the values that are fixed:\n
+            - "auto": Will automatically assign one of the following types based on the input for \
+                  p_bar and t_k \n
+            - "p": The pressure at the flow junction is fixed. \n
+            - "t": The temperature at the flow junction is fixed and will not be solved. Please \
+                note that pandapipes cannot check for inconsistencies in the formulation of heat \
+                transfer equations yet.
+            - "pt": The circulation pump shows both "p" and "t" behavior.
+    :type type: str, default "auto"
     :param name: Name of the pump
     :type name: str
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -665,14 +675,6 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
     :type index: int, default None
     :param in_service: True for in_service or False for out of service
     :type in_service: bool, default True
-    :param type: The pump type denotes the values that are fixed:\n
-            - "auto": Will automatically assign one of the following types based on the input for \
-                  p_bar and t_k \n
-            - "p": The pressure is fixed. \n
-            - "t": The temperature is fixed and will not be solved. Please note that pandapipes\
-             cannot check for inconsistencies in the formulation of heat transfer equations yet.
-            - "pt": The pump shows both "p" and "t" behavior.
-    :type type: str, default "auto"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["circ_pump_pressure"] table
     :type kwargs: dict
@@ -680,7 +682,7 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_pressure(net, 0, 1, p_bar=5, plift_bar=2, t_k=350, type="p")
+        >>> create_circ_pump_const_pressure(net, 0, 1, p_flow_bar=5, plift_bar=2, t_flow_k=350, type="p")
 
     """
 
@@ -691,19 +693,19 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_bar, 
     _check_branch(net, "circulation pump with constant pressure", index, return_junction,
                   flow_junction)
 
-    type = _auto_ext_grid_type(p_bar, t_k, type, CirculationPumpPressure)
+    type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpPressure)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_bar": p_bar, "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service),
-         "type": type}
+         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "plift_bar": plift_bar, "type": type,
+         "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_pressure", index, **v, **kwargs)
 
     return index
 
 
-def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar, mdot_flow_kg_per_s,
-                                     t_k=None, name=None, index=None, in_service=True,
-                                     type="auto", **kwargs):
+def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow_bar,
+                                     mdot_flow_kg_per_s, t_flow_k=None, type="auto", name=None,
+                                     index=None, in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].\n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -719,12 +721,12 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
     :type return_junction: int
     :param flow_junction: ID of the junction on the other side which the pump will be connected with
     :type flow_junction: int
-    :param p_bar: Pressure set point
-    :type p_bar: float
+    :param p_flow_bar: Pressure set point at the flow junction
+    :type p_flow_bar: float
     :param mdot_flow_kg_per_s: Constant mass flow, which is transported through the pump
     :type mdot_flow_kg_per_s: float
-    :param t_k: Temperature set point
-    :type t_k: float
+    :param t_flow_k: Temperature set point at the flow junction
+    :type t_flow_k: float, default None
     :param name: Name of the pump
     :type name: str
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -747,7 +749,8 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_flow_kg_per_s=2, t_k=350, type="p")
+        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_flow_bar=5, mdot_flow_kg_per_s=2, \
+                                             t_flow_k=350, type="pt")
 
     """
 
@@ -758,11 +761,11 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_bar,
     _check_branch(net, "circulation pump with constant mass flow", index, return_junction,
                   flow_junction)
 
-    type = _auto_ext_grid_type(p_bar, t_k, type, CirculationPumpMass)
+    type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpMass)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_bar": p_bar, "t_k": t_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s,
-         "in_service": bool(in_service), "type": type}
+         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s,
+         "type": type, "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
 
     return index
@@ -1426,7 +1429,7 @@ def _auto_ext_grid_type(p_bar, t_k, typ, comp):
     :return: adapted_type
     :rtype: str
     """
-    p_null, t_null = p_bar is None, t_k is None
+    p_null, t_null = p_bar is None or np.isnan(p_bar), t_k is None or np.isnan(t_k)
 
     if p_null and t_null:
         raise UserWarning("For component %s, either pressure or temperature must be defined!"
