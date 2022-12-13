@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[upcoming release] - 2022-..-..
+-------------------------------
+- [CHANGED] default roughness parameter `k_mm` for pipes is now 0.2 mm instead of 1 mm (all create_pipe... functions)
+
 [0.7.0] - 2022-08-02
 -------------------------------
 - [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)

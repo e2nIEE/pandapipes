@@ -499,11 +499,14 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
                          pipe_data.loc[pipe_nums, "ANFNR"].values[previous_different])
     con_to = np.insert(cons.RECNO.values, next_different_num + 1,
                        pipe_data.loc[pipe_nums, "ENDNR"].values[next_different])
+    vm_from = np.insert(cons.VMB.values, next_different_num, cons.VMA.values[next_different_num])
+    vm_to = np.insert(cons.VMA.values, next_different_num, cons.VMB.values[next_different_num])
+    vm = (vm_from + vm_to) / 2
 
     pipe_sections = pd.DataFrame({
         "SNUM": pipe_numbers, "rel_length": rel_lengths, "start_pos": start_pos, "end_pos": end_pos,
         "from_type": type_from, "to_type": type_to, "from_node": con_from, "to_node": con_to,
-        "full_geo": pipe_geodata.loc[pipe_numbers],
+        "full_geo": pipe_geodata.loc[pipe_numbers], "vm": vm,
         "length": rel_lengths * pipe_data.RORL.loc[pipe_numbers].values,
         "aux": np.ones(len(pipe_numbers), dtype=np.int32)
     })
@@ -532,7 +535,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             pipes.ANFNAM.values, pipes.ENDNAM.values, pipe_sections.section_no.values)],
         stanet_nr=pipes.RECNO.values, stanet_id=pipes.STANETID.values,
-        geodata=pipe_sections.section_geo.values, v_stanet=pipes.VM.values,
+        geodata=pipe_sections.section_geo.values, v_stanet=pipe_sections.vm.values,
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=pipes.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~pipes.CALCBAD.values.astype(np.bool_),
@@ -540,7 +543,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     )
 
 
-def create_heat_exchanger_sta(net, stored_data, connection_table, index_mapping, add_layers):
+def create_heat_exchangers(net, stored_data, connection_table, index_mapping, add_layers):
     """
 
     :param net:
@@ -1021,7 +1024,7 @@ def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers)
         logger.warning("The meters %s are not connected to any node and will be skipped."
                        % junctions_connected.index[junctions_connected.isnull()])
 
-    junctions_to_use = junctions_assigned if houses_in_calculation else junctions_connected
+    junctions_to_use = junctions_connected if houses_in_calculation else junctions_assigned
     try:
         junctions = junctions_to_use.astype(np.int32)
     except pd.errors.IntCastingNaNError:
