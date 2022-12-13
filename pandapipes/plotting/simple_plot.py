@@ -298,9 +298,12 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         collections["valve"] = valve_colls
 
     if 'flow_control' in net:
-        flow_control_colls = create_flow_control_collection(
-            net, size=flow_control_size, linewidths=pipe_width, color=flow_control_color,
-            respect_in_service=respect_in_service)
+        idx = net.flow_control[net.flow_control.in_service].index if respect_in_service \
+            else net.flow_control.index
+        flow_control_colls = create_flow_control_collection(net, flow_controllers=idx,
+                                                            size=flow_control_size,
+                                                            linewidths=pipe_width,
+                                                            color=flow_control_color)
         collections["flow_control"] = flow_control_colls
 
     if 'pump' in net:
