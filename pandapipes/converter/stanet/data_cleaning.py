@@ -2,7 +2,7 @@ import copy
 import os
 
 import numpy as np
-from pandapipes.converter.stanet.preparing_steps import connection_pipe_section_table
+from pandapipes.converter.stanet.preparing_steps import connection_pipe_section_table, get_pipe_geo
 
 
 def sort_by_pos(group):
@@ -24,6 +24,7 @@ def sort_by_flow(group):
 
     return group
 
+
 def group_characteristics(group):
     group["nodes_in_group"] = len(group)
     group["current_node"] = np.arange(1, len(group) + 1)
@@ -41,7 +42,10 @@ def remove_connections_zero_length(stored_data, cutoff_length=1e-1, save_path=No
         | np.isin(connections.STANETID, stored_data["house_pipes"].CLIENT2ID)
     unused_ids = connections.STANETID.loc[~used_connections].values
 
-    cons = connection_pipe_section_table(stored_data, True, False)
+    pipe_geodata = get_pipe_geo(stored_data, modus="main")
+    house_pipe_geodata = get_pipe_geo(stored_data, modus="houses")
+
+    cons = connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata, True)
     cons2 = cons.groupby("SNUM").apply(sort_by_pos)
 
     hh_pipes = stored_data["house_pipes"].copy()

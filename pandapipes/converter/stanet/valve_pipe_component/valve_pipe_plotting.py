@@ -1,14 +1,12 @@
+from functools import partial
+
 import numpy as np
 import pandas as pd
-from matplotlib.collections import LineCollection, PatchCollection
-from matplotlib.patches import RegularPolygon
-
-from pandapipes.plotting.patch_makers import get_color_list, get_filled_list
 from pandapower.plotting.collections import _create_complex_branch_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.plotting_toolbox import get_index_array
+
 from pandapipes.plotting.patch_makers import valve_patches
-from functools import partial
 
 try:
     import pandaplan.core.pplog as logging
