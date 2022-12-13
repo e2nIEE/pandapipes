@@ -1,8 +1,15 @@
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 import copy
 import os
 
 import numpy as np
 from pandapipes.converter.stanet.preparing_steps import connection_pipe_section_table, get_pipe_geo
+
+
+# Please note: The whole file is not being tested, please use any functions herein with care!
 
 
 def sort_by_pos(group):
