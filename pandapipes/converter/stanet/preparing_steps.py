@@ -334,7 +334,7 @@ def connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata,
     # exist there. I.e. in pandapipes, the pipes that contain connections will be split at the
     # respective position.
     required_columns = ["XRECHTS", "YHOCH", "GEOH", "SNUM", "RECNO", "STANETID", "PRECH",
-                        "CLIENTTYP", "ISACTIVE", "LAYER"]
+                        "CLIENTTYP", "ISACTIVE", "LAYER", "VMA", "VMB"]
     connections = pd.DataFrame(columns=required_columns)
     if "house_connections" in stored_data:
         # first connection type: house connection lines (in STANET their individual calculation can
