@@ -1,14 +1,16 @@
+# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
+from functools import partial
+
 import numpy as np
 import pandas as pd
-from matplotlib.collections import LineCollection, PatchCollection
-from matplotlib.patches import RegularPolygon
-
-from pandapipes.plotting.patch_makers import get_color_list, get_filled_list
 from pandapower.plotting.collections import _create_complex_branch_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.plotting_toolbox import get_index_array
+
 from pandapipes.plotting.patch_makers import valve_patches
-from functools import partial
 
 try:
     import pandaplan.core.pplog as logging

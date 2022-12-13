@@ -6,10 +6,10 @@ from itertools import chain
 
 import numpy as np
 import pandas as pd
-from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe
 
 import pandapipes
 from pandapipes.component_models.component_toolbox import vrange
+from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe
 
 try:
     from shapely.geometry import LineString
@@ -301,8 +301,9 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
 
     is_pc = control_table.RTYP.values == "P"
     is_fc = control_table.RTYP.values == "Q"
-    assert np.all(is_pc | is_fc), "There are controllers of types %s that cannot be converted!" \
-                                  % set(control_table.RTYP.values[~is_pc & ~is_fc])
+    if not np.all(is_pc | is_fc):
+        raise UserWarning("There are controllers of types %s that cannot be converted!" \
+                                  % set(control_table.RTYP.values[~is_pc & ~is_fc]))
 
     if np.any(is_pc):
         logger.info("Creating pressure controls.")
@@ -440,15 +441,17 @@ def determine_junctions_from_connection_nodes(pipe_sections, index_mapping):
     # TODO: from / to might have to be switched / more precise?
     for typ in set(pipe_sections.from_type.values):
         mapping = index_mapping.get(typ, index_mapping.get(typ + "_from", None))
-        assert mapping is not None, "No junction mapping found for connection type %s (types in " \
-                                    "mapping: %s)" % (typ, list(index_mapping.keys()))
+        if mapping is None:
+            raise UserWarning("No junction mapping found for connection type %s (types in mapping:"
+                              " %s)" % (typ, list(index_mapping.keys())))
         pipe_sections.loc[pipe_sections.from_type == typ, "fj"] = \
             pipe_sections.loc[pipe_sections.from_type == typ, "from_node"].map(mapping)
 
     for typ in set(pipe_sections.to_type.values):
         mapping = index_mapping.get(typ, index_mapping.get(typ + "_to", None))
-        assert mapping is not None, "No junction mapping found for connection type %s (types in " \
-                                    "mapping: %s)" % (typ, list(index_mapping.keys()))
+        if mapping is None:
+            raise UserWarning("No junction mapping found for connection type %s (types in mapping:"
+                              " %s)" % (typ, list(index_mapping.keys())))
         pipe_sections.loc[pipe_sections.to_type == typ, "tj"] = \
             pipe_sections.loc[pipe_sections.to_type == typ, "to_node"].map(mapping)
 
@@ -669,20 +672,21 @@ def check_connection_client_types(hh_pipes, all_client_types, node_client_types)
     # --> there are many ways how household connections can be created in STANET,
     # therefore this approach might not be sufficient for new data sets, please verify your
     # output network
-    assert np.all(hh_pipes.CLIENTTYP.isin(all_client_types)), \
-        "The connection types %s can not all be converted for house connections pipes." \
-        % set(hh_pipes.CLIENTTYP)
-    assert np.all(hh_pipes.CLIENT2TYP.isin(all_client_types)), \
-        "The connection types %s can not all be converted for house connections pipes." \
-        % set(hh_pipes.CLIENT2TYP)
+    if not np.all(hh_pipes.CLIENTTYP.isin(all_client_types)):
+        raise UserWarning("The connection types %s can not all be converted for house connections "
+                          "pipes." % set(hh_pipes.CLIENTTYP))
+    if not np.all(hh_pipes.CLIENT2TYP.isin(all_client_types)):
+        raise UserWarning("The connection types %s can not all be converted for house connections "
+                          "pipes." % set(hh_pipes.CLIENT2TYP))
     clientnodetype = hh_pipes.CLIENTTYP.isin(node_client_types)
     client2nodetype = hh_pipes.CLIENT2TYP.isin(node_client_types)
-    assert np.all(clientnodetype | client2nodetype), \
-        "One of the household connection sides must be connected to a node (type %s element) " \
-        "or a connection (type %s element with ID CON...) or a house node (type %s element). " \
-        "Check these types: %s" \
-        % (NODE_TYPE, HOUSE_CONNECTION_TYPE, HOUSE_TYPE,
-           set(hh_pipes.loc[~(clientnodetype | client2nodetype), ["CLIENTTYP", "CLIENT2TYP"]]))
+    if not np.all(clientnodetype | client2nodetype):
+        raise UserWarning(
+            "One of the household connection sides must be connected to a node (type %s element) or"
+            " a connection (type %s element with ID CON...) or a house node (type %s element). "
+            "Check these types: %s"
+            % (NODE_TYPE, HOUSE_CONNECTION_TYPE, HOUSE_TYPE,
+               set(hh_pipes.loc[~(clientnodetype | client2nodetype), ["CLIENTTYP", "CLIENT2TYP"]])))
     return clientnodetype, client2nodetype
 
 
@@ -1099,9 +1103,11 @@ def create_sinks_from_nodes(net, node_table, index_mapping, net_params, sinks_de
     node_table.index = node_table.RECNO.values
     fixed_p_nodes = node_table.DSTATUS.values == "!"
     unknown_flow_nodes = node_table.FSTATUS.values == "?"
-    assert np.all(fixed_p_nodes == unknown_flow_nodes), \
-        "The following nodes cannot be interpreted correctly, as they have a fixed pressure, but " \
-        "not unknown flow: %s" % node_table.RECNO.values[fixed_p_nodes != unknown_flow_nodes]
+    if np.any(fixed_p_nodes != unknown_flow_nodes):
+        raise UserWarning("The following nodes cannot be interpreted correctly, as they have a "
+                          "fixed pressure, but not unknown flow: %s"
+                          % node_table.RECNO.values[fixed_p_nodes != unknown_flow_nodes])
+
 
     node_table.loc[control_flows.index, "ZUFLUSS"] -= control_flows.values
 

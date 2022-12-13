@@ -85,7 +85,9 @@ def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_
             # the table starts 3 lines after the keyword and ends with the next empty line
             start = has_key[has_key].index[0] + 3
             end = newlines[newlines > start][0]
-            assert end > start
+            if not end > start:
+                raise UserWarning("Something went wrong in reading the data. For key %s, the first"
+                                  " found line is %s and the last one %s." % (key, start, end))
             read_line_info[key] = [start, end]
 
     # read tables separately by calling pd.read_csv(path, skiprows=[all rows except those between
