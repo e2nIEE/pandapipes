@@ -686,7 +686,8 @@ def check_connection_client_types(hh_pipes, all_client_types, node_client_types)
             " a connection (type %s element with ID CON...) or a house node (type %s element). "
             "Check these types: %s"
             % (NODE_TYPE, HOUSE_CONNECTION_TYPE, HOUSE_TYPE,
-               set(hh_pipes.loc[~(clientnodetype | client2nodetype), ["CLIENTTYP", "CLIENT2TYP"]])))
+               set(hh_pipes.loc[~(clientnodetype | client2nodetype),
+                                ["CLIENTTYP", "CLIENT2TYP"]].values.flatten())))
     return clientnodetype, client2nodetype
 
 
