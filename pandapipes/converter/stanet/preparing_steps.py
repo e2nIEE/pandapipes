@@ -358,8 +358,10 @@ def connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata,
         # --> In case pipe valves will be introduced in pandapipes, this behavior could be changed,
         #     but requires checks (e.g. positioning on pipe, max. 2 valves per pipe)
         c2 = stored_data["slider_valves"].loc[:, [c for c in required_columns if c not in
-                                                  ["PRECH"]]]
+                                                  ["PRECH", "VMA", "VMB"]]]
         c2["PRECH"] = np.NaN
+        c2["VMA"] = np.NaN
+        c2["VMB"] = np.NaN
         c2["type"] = "slider_valves"
         connections = pd.concat([connections, c2], ignore_index=True)
 
