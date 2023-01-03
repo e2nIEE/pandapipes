@@ -106,3 +106,14 @@ jobs:
       - name: Test with pytest
         run: |
           pytest --nbmake -n=auto "./tutorials"
+          
+  docs_check:
+    runs_on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: "Check docs"
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "doc/"
+          build-command: "sphinx-build -b html . _build"
+
