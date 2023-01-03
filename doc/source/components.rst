@@ -39,3 +39,4 @@ following documentation:
     components/circulation_pump_mass/circ_pump_mass_component
     components/circulation_pump_pressure/circ_pump_pressure_component
     components/heat_exchanger/heat_exchanger_component
+    components/storage/storage_component
