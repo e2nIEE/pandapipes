@@ -11,7 +11,7 @@ name: Test & Upload to TestPyPI
 # Controls when the action will run.
 on:
   # Triggers the workflow on push to the master branch
-  pull-request:
+  pull_request:
     branches: [ develop ]
 
   # Allows you to run this workflow manually from the Actions tab
