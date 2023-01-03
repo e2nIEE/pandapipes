@@ -123,4 +123,4 @@ jobs:
         with:
           pre-build-command: "python -m pip install --upgrade pip && python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower && pip install ."
           docs-folder: "doc/"
-          build-command: "sphinx-build -b html source _build"
+          build-command: "sphinx-build -b html source _build -W"
