@@ -40,6 +40,7 @@ This is the contents section of the pandapipes documentation.
    save_load
    plotting
    toolbox
+   converter
 
 
 

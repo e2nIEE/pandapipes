@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 #           might be inserted into the pandapipes net erroneously
 def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connections=True,
                          stanet_like_valves=False, read_options=None, add_layers=True, **kwargs):
-    """
-    Converts STANET csv-file to pandapipesNet.
+    """Converts STANET csv-file to pandapipesNet.
+
     :param stanet_path: path to csv-file exported from STANET
     :type stanet_path: str
     :param name: name for the created network
@@ -41,7 +41,8 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
     :param remove_unused_household_connections: if True, the intermediate nodes on pipes that are \
             not connected to any households will be skipped.
     :type remove_unused_household_connections: bool, default True
-    :param stanet_like_valves:
+    :param stanet_like_valves: whether pipes with valves should be treated as one component
+            (valve_pipe) or split into separate pipes and valves (common pandapipes practice)
     :type stanet_like_valves: bool, default False
     :param read_options: Additional kwargs for the tables to be read with pd.read_csv. If None, no\
             kwargs will be handed over.
