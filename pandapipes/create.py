@@ -1301,9 +1301,10 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 
 def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
                       in_service=True, **kwargs):
-    """
-    Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) (boost
-    ratio)
+    """Adds a compressor with relative pressure lift to net["compressor"].
+
+    The outlet (absolute) pressure is calculated by (p_in + p_ambient) * pressure_ratio. For
+    reverse flow, bypassing is assumed (no pressure lift).
 
     :param net: The net within this compressor should be created
     :type net: pandapipesNet
@@ -1312,8 +1313,8 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     :param to_junction: ID of the junction on the other side which the compressor will be connected\
                         with
     :type to_junction: int
-    :param pressure_ratio:
-    :type pressure_ratio:
+    :param pressure_ratio: enforced ratio of outlet to inlet absolute pressures
+    :type pressure_ratio: float
     :param name: A name tag for this compressor
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
