@@ -19,7 +19,6 @@ To perform a simulation of the pandapipes network using controllers, the functio
 Internally, this function calls the control loop implemented in pandapower.
 
 
-
 .. code::
 
 	from pandapipes.control.run_control import run_control_ppipe
