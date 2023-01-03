@@ -121,11 +121,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install sphinx
+          python -m pip install sphinx sphinx_rtd_theme numpydoc sphinxcontrib.bibtex
       - name: Check docs for Python ${{ matrix.python-version }}
         uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: "python -m pip install sphinx sphinx_rtd_theme numpydoc sphinxcontrib.bibtex"
+          #pre-build-command: "python -m pip install sphinx sphinx_rtd_theme numpydoc sphinxcontrib.bibtex"
           docs-folder: "doc/"
           build-command: "sphinx-build -b html . _build -c ./source/"
 
