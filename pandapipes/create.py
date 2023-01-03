@@ -214,7 +214,7 @@ def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_
     :type net: pandapipesNet
     :param junction: The index of the junction to which the storage is connected
     :type junction: int
-    :param mdot_kg_per_s: The quasi-stationary mass flow. (if fluid flows into storage: > 0,
+    :param mdot_kg_per_s: The stationary mass flow. (if fluid flows into storage: > 0,
                           if fluid flows from storage to net: < 0)
     :type mdot_kg_per_s: float, default None
     :param init_m_stored_kg: The initially stored mass in the storage
@@ -227,7 +227,7 @@ def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_
     :type max_m_stored_kg: float, default np.inf
     :param scaling: An optional scaling factor to be set customly
     :type scaling: float, default 1
-    :param name: A name tag for this storage
+    :param name: A name tag for this storage unit
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
@@ -237,7 +237,7 @@ def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_
     :param type: Type variable to classify the storage
     :type type: str, default mass_storage
     :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["storage_fluid"] table
+            net["mass_storage"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
