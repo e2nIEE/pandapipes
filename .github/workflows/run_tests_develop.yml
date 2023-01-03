@@ -124,7 +124,7 @@ jobs:
       - name: Check docs for Python ${{ matrix.python-version }}
         uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: "python -m pip install sphinx_rtd_theme numpydoc sphinxcontrib.bibtex"
+          pre-build-command: "python -m pip install sphinx sphinx_rtd_theme numpydoc sphinxcontrib.bibtex"
           docs-folder: "doc/"
           build-command: "sphinx-build -b html . _build -c ./source/"
 
