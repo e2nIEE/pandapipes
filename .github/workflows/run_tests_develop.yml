@@ -121,6 +121,6 @@ jobs:
       - name: Check docs for Python ${{ matrix.python-version }}
         uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: "apt-get update && apt-get install git"
+          pre-build-command: "apt-get update -y && apt-get install -y git"
           build-command: "sphinx-build -b html source _build "
           docs-folder: "doc/"
