@@ -122,7 +122,7 @@ jobs:
         uses: ammaraskar/sphinx-action@master
         with:
           pre-build-command: "apt-get update && apt-get install git && 
-                    python -m pip install --upgrade pip && 
+                    python -m pip install --upgrade pip && pip install pandas && 
                     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi &&
                     python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower && 
                     pip install ."
