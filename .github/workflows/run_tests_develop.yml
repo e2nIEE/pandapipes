@@ -106,7 +106,7 @@ jobs:
       - name: Test with pytest
         run: |
           pytest --nbmake -n=auto "./tutorials"
-          
+
   docs_check:
     runs_on: ubuntu-latest
     strategy:
