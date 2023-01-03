@@ -122,5 +122,5 @@ jobs:
         uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "doc/"
-          build-command: "sphinx-build -b html . _build -c ./source/  -D root_doc=source/index"
+          build-command: "make html"
 
