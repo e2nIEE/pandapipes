@@ -118,13 +118,13 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install sphinx sphinx_rtd_theme numpydoc sphinxcontrib.bibtex
+      #- name: Install dependencies
+       # run: |
+       #   python -m pip install --upgrade pip
       - name: Check docs for Python ${{ matrix.python-version }}
         uses: ammaraskar/sphinx-action@master
         with:
+          pre-build-command: "python -m pip install sphinx_rtd_theme numpydoc sphinxcontrib.bibtex"
           docs-folder: "doc/"
           build-command: "sphinx-build -b html . _build -c ./source/"
 
