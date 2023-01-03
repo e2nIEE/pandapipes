@@ -126,5 +126,5 @@ jobs:
         uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "doc/"
-          build-command: "sphinx-build -b html . _build -c ./source/conf.py"
+          build-command: "sphinx-build -b html . _build -c ./doc/source/conf.py"
 
