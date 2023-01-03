@@ -123,8 +123,8 @@ jobs:
         with:
           pre-build-command: "apt-get update -y && apt-get install -y git;
                               git --version;
-                              python -m pip install --update pip;
+                              python -m pip install --upgrade pip;
                               python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower;
-                              python install ."
+                              python -m pip install ."
           build-command: "sphinx-build -b html source _build "
           docs-folder: "doc/"
