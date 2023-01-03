@@ -812,25 +812,26 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
 def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
                       in_service=True, **kwargs):
-    """
-    Adds a compressor to net["compressor"] whith pressure lift rel. to (p_in + p_ambient) \
-    (boost ratio)
+    """Adds a compressor with relative pressure lift to net["compressor"].
 
-    :param net: The net for which this compressor should be created
+    The outlet (absolute) pressure is calculated by (p_in + p_ambient) * pressure_ratio. For
+    reverse flow, bypassing is assumed (no pressure lift).
+
+    :param net: The net within this compressor should be created
     :type net: pandapipesNet
     :param from_junction: ID of the junction on one side which the compressor will be connected with
     :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the compressor will be \
-        connected with
+    :param to_junction: ID of the junction on the other side which the compressor will be connected\
+                        with
     :type to_junction: int
-    :param pressure_ratio: The pressure ratio between inlet and outlet
+    :param pressure_ratio: enforced ratio of outlet to inlet absolute pressures
     :type pressure_ratio: float
     :param name: A name tag for this compressor
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param in_service: True if the compressor is in service or False if it is out of service
+    :param in_service: True for in_service or False for out of service
     :type in_service: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["compressor"] table
@@ -1454,51 +1455,6 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
                "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "diameter_m": diameter_m,
                "control_active": control_active, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "flow_control", index, **entries, **kwargs)
-
-    return index
-
-
-def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
-                      in_service=True, **kwargs):
-    """Adds a compressor with relative pressure lift to net["compressor"].
-
-    The outlet (absolute) pressure is calculated by (p_in + p_ambient) * pressure_ratio. For
-    reverse flow, bypassing is assumed (no pressure lift).
-
-    :param net: The net within this compressor should be created
-    :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the compressor will be connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the compressor will be connected\
-                        with
-    :type to_junction: int
-    :param pressure_ratio: enforced ratio of outlet to inlet absolute pressures
-    :type pressure_ratio: float
-    :param name: A name tag for this compressor
-    :type name: str, default None
-    :param index: Force a specified ID if it is available. If None, the index one higher than the\
-            highest already existing index is selected.
-    :type index: int, default None
-    :param in_service: True for in_service or False for out of service
-    :type in_service: bool, default True
-    :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["compressor"] table
-    :type kwargs: dict
-    :return: index - The unique ID of the created element
-    :rtype: int
-
-    EXAMPLE:
-        >>> create_compressor(net, 0, 1, pressure_ratio=1.3)
-
-    """
-    add_new_component(net, Compressor)
-
-    index = _get_index_with_check(net, "compressor", index)
-    _check_branch(net, "Compressor", index, from_junction, to_junction)
-
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "pressure_ratio": pressure_ratio, "in_service": bool(in_service)}
-    _set_entries(net, "compressor", index, **v, **kwargs)
 
     return index
 
