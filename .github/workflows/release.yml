@@ -46,8 +46,8 @@ jobs:
       - name: Build and Upload to TestPyPI
         run: |
           python3 setup.py sdist --formats=zip
-          twine check dist/*
-          python3 -m twine upload dist/*
+          if [ twine check dist/* ]; python3 -m twine upload dist/*; fi
+
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TESTPYPI }}
