@@ -107,7 +107,7 @@ jobs:
         run: |
           pytest --nbmake -n=auto "./tutorials"
           
-  docs_check:
+  docs:
     runs_on: ubuntu-latest
     strategy:
       matrix:
@@ -117,7 +117,7 @@ jobs:
       - name: Check docs for Python ${{ matrix.python-version }}
       - uses: ammaraskar/sphinx-action@master
         with:
-          docs_check-folder: "doc/"
+          docs-folder: "doc/"
           python-version: ${{ matrix.python-version }}
-          build-command: "sphinx-build -b html . _build"
+          #build-command: "sphinx-build -b html . _build"
 
