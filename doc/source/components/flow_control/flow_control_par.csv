@@ -1,0 +1,10 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+net;pandapipesNet;;The pandapipes net object in whose :code:`flow_control` table the new unit will be added
+from_junction;integer;:math:`>` 0;Index of junction at which the flow control unit starts
+to_junction;integer;:math:`>` 0;Index of junction at which the flow control unit ends
+controlled_mdot_kg_per_s;float;;The mass flow set point [kg/s]
+diameter;float;> 0;diameter to derive the cross-sectional area
+control_active;boolean;;If false, the unit behaves like an open valve
+name;string;;Name of the flow control unit
+in_service;boolean;True / False;If false, the unit behaves like a closed valve.
+type;string;;Type variable to classify different kinds of flow control units (not considered by pandapipes' calculations)
