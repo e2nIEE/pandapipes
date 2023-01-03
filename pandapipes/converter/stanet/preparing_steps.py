@@ -27,6 +27,21 @@ logger = logging.getLogger(__name__)
 
 def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_line_info=False,
                         keywords=None):
+    """
+    Extract raw data from STANET file.
+    :param stanet_path:  Path to STANET .csv file
+    :type stanet_path: string
+    :param read_options:
+    :type read_options:
+    :param add_layers:
+    :type add_layers: bool, default:True
+    :param return_line_info:
+    :type return_line_info: bool, default:False
+    :param keywords:
+    :type keywords:
+    :return: stored data
+    :rtype: dic
+    """
     read_options = read_options if read_options is not None else dict()
     if keywords is None:
         # the given keywords will be sought in the STANET CSV file to identify tables according to
@@ -142,6 +157,15 @@ def get_key_from_value(val, used_dict):
 
 
 def get_net_params(net, stored_data):
+    """
+    Returns pandapipesNet Parameters from STANET data.
+    :param net: Empty pandapipesNet
+    :type net: pandapipesNet
+    :param stored_data: dict of STANET tables
+    :type stored_data: dict
+    :return: net parameters
+    :rtype:
+    """
     known_friction_models = {1: "swamee-jain", 3: "nikuradse", 5: "colebrook"}
     compressibility_models = {0: "linear", 1: "AGA", 2: "GERG-88"}
     net_params = dict()
@@ -325,6 +349,19 @@ def get_pipe_geo(stored_data, modus):
 
 def connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata,
                                   remove_unused_household_connections):
+    """
+    Returns pipe and house connection lines
+    :param stored_data: dict of STANET tables
+    :type stored_data: dict
+    :param pipe_geodata: geodata of all pipes
+    :type pipe_geodata: panda series
+    :param house_pipe_geodata: geodata of all house connections
+    :type house_pipe_geodata: panda series
+    :param remove_unused_household_connections:
+    :type remove_unused_household_connections:
+    :return: connections
+    :rtype:
+    """
     logger.info("Calculation of pipe sections due to internal connections.")
     if "pipes" not in stored_data:
         raise UserWarning("There are no pipes in the stored data from STANET. It will not be "

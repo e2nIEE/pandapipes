@@ -33,8 +33,8 @@ logger = logging.getLogger(__name__)
 def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connections=True,
                          stanet_like_valves=False, read_options=None, add_layers=True, **kwargs):
     """
-
-    :param stanet_path: path to csv-file exportet from STANET
+    Converts STANET csv-file to pandapipesNet.
+    :param stanet_path: path to csv-file exported from STANET
     :type stanet_path: str
     :param name: name for the created network
     :type name: str, default "net"

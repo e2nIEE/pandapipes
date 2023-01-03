@@ -42,11 +42,11 @@ CLIENT_TYPES_OF_PIPES = {MAIN_PIPE_TYPE: "main", HOUSE_PIPE_TYPE: "house"}
 
 def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add_layers):
     """
-
-    :param net:
-    :type net:
-    :param stored_data:
-    :type stored_data:
+    Creates pandapipes junctions from given STANET nodes.
+    :param net: pandapipes Net
+    :type net: pandapipesNet
+    :param stored_data: STANET data
+    :type stored_data: dic
     :param net_params:
     :type net_params:
     :param index_mapping:
@@ -96,7 +96,7 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
 
 def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_like_valves, add_layers):
     """
-
+    Creates pandapipes valves and pipes from STANET data.
     :param net:
     :type net:
     :param stored_data:
@@ -170,6 +170,19 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
 
 
 def create_slider_valves(net, stored_data, index_mapping, add_layers):
+    """
+    Creates pandapipes slider valves from STANET data.
+    :param net:
+    :type net:
+    :param stored_data:
+    :type stored_data:
+    :param index_mapping:
+    :type index_mapping:
+    :param add_layers:
+    :type add_layers:
+    :return:
+    :rtype:
+    """
     if "slider_valves" not in stored_data:
         return
     logger.info("Creating all slider valves.")
@@ -211,7 +224,7 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers):
 # noinspection PyTypeChecker
 def create_pumps(net, pump_table, index_mapping, add_layers):
     """
-
+    Creates pandapipes pumps from STANET data.
     :param net:
     :type net:
     :param pump_table:
@@ -254,7 +267,7 @@ def create_pumps(net, pump_table, index_mapping, add_layers):
 
 def create_control_components(net, stored_data, index_mapping, net_params, add_layers, **kwargs):
     """
-
+    Creates pandapipes controller from STANET data.
     :param net:
     :type net:
     :param stored_data:
@@ -385,7 +398,7 @@ def get_connection_types(connection_table):
 
 def create_junctions_from_connections(net, connection_table, net_params, index_mapping, add_layers):
     """
-
+    Creates pandapipes junctions from STANET connections.
     :param net:
     :type net:
     :param connection_table:
@@ -435,6 +448,15 @@ def create_junctions_from_connections(net, connection_table, net_params, index_m
 
 
 def determine_junctions_from_connection_nodes(pipe_sections, index_mapping):
+    """
+
+    :param pipe_sections:
+    :type pipe_sections:
+    :param index_mapping:
+    :type index_mapping:
+    :return:
+    :rtype:
+    """
     pipe_sections["fj"] = -999
     pipe_sections["tj"] = -999
 
@@ -459,7 +481,7 @@ def determine_junctions_from_connection_nodes(pipe_sections, index_mapping):
 def create_pipes_from_connections(net, stored_data, connection_table, index_mapping, pipe_geodata,
                                   add_layers):
     """
-
+    Creates pandapipes pipes from STANET connections.
     :param net:
     :type net:
     :param stored_data:
@@ -548,7 +570,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
 
 def create_heat_exchangers(net, stored_data, connection_table, index_mapping, add_layers):
     """
-
+    Creates pandapipes heat exchangers from STANET connections.
     :param net:
     :type net:
     :param stored_data:
@@ -601,7 +623,7 @@ def create_heat_exchangers(net, stored_data, connection_table, index_mapping, ad
 def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, index_mapping,
                                            pipe_geodata, add_layers):
     """
-
+    
     :param net:
     :type net:
     :param stored_data:
