@@ -125,6 +125,6 @@ jobs:
       - name: Check docs for Python ${{ matrix.python-version }}
         uses: ammaraskar/sphinx-action@master
         with:
-          docs-folder: "doc/source"
-          #build-command: "sphinx-build -b html . _build"
+          docs-folder: "doc/"
+          build-command: "sphinx-build -b html . _build"
 
