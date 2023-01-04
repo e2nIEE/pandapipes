@@ -94,8 +94,6 @@ def heat_exchanger_patches(coords, size, **kwargs):
         path = [path1, path2, path3, path4, path5]
         radius = size  # np.sqrt(diff[0]**2+diff[1]**2)/15
 
-        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=edge_col, facecolor=face_col,
-                            lw=lw))
         pa = Path(path)
         polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=edge_col, facecolor=face_col,
                             lw=lw))
