@@ -126,7 +126,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     """
     from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
         CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
-        Compressor, FlowControl
+        Compressor, FlowControlComponent
     special_elements_junctions = [("press_control", "controlled_junction")]
     move_elements = {"n2b": [], "b2n": []}
     node_elements = []
