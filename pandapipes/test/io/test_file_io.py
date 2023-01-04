@@ -13,6 +13,7 @@ from pandapipes.multinet import MultiNet
 from pandapower.toolbox import nets_equal as nets_equal_pandapower
 from pandapipes.toolbox import nets_equal
 
+
 # @pytest.fixture()
 def load_net():
     # create test network

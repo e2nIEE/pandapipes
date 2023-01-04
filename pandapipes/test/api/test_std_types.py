@@ -3,10 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-import pandapipes.networks as nw
 import pytest
 
 import pandapipes
+
 
 # "std_type";"nominal_width_mm";"outer_diameter_mm";"inner_diameter_mm";"standard_dimension_ratio";"material"
 # 80_GGG;80;98.0;86.0;16.33;GGG
