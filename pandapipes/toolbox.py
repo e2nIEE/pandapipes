@@ -135,7 +135,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
         all_tables = {comp.table_name(): comp for comp in net.component_list}
     else:
         comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
-                     CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor, FlowControl]
+                     CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor, FlowControlComponent]
         all_tables = {comp.table_name(): comp for comp in comp_list}
 
     ejts = set()
