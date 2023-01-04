@@ -40,7 +40,7 @@ jobs:
       # Sets up python3
       - uses: actions/setup-python@v2
         with:
-          python-version: '$PYTHON_VERSION'
+          python-version: ${{ inputs.python_version }}
 
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
       - name: "Installs and upgrades pip, installs other dependencies and installs the package from setup.py"
