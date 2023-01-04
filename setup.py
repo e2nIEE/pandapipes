@@ -48,7 +48,8 @@ setup(
                     "plotting": ["plotly", "python-igraph"],
                     "test": ["pytest", "pytest-xdist", "nbmake"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-                            "plotly", "python-igraph", "pytest", "pytest-xdist", "nbmake"]},
+                            "plotly", "python-igraph", "pytest", "pytest-xdist", "nbmake",
+                            "shapely"]},
     packages=find_packages(),
     include_package_data=True,
     classifiers=classifiers

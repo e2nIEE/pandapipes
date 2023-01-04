@@ -98,8 +98,7 @@ The functions used to create the internal pit and extract results back from it a
 
 .. autofunction:: pandapipes.pf.pipeflow_setup.reduce_pit
 
-.. autofunction:: pandapipes.extract_results_active_pit
-   :noindex:
+.. autofunction:: pandapipes.pf.result_extraction.extract_results_active_pit
 
 
 .. _jacobian:
@@ -187,6 +186,6 @@ is the load vector.
           expressed as a sparse matrix. More information can also be found in :cite:`Ferziger2002`.
 
 
-.. autofunction:: pandapipes.pf.build_system_matrix
+.. autofunction:: pandapipes.pf.build_system_matrix.build_system_matrix
 
 
