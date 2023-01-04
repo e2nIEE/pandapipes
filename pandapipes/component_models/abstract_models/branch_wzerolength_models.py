@@ -54,11 +54,11 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         :type branch_pit:
         :return: No Output.
         """
-        branch_wizerolength_pit = \
+        branch_wzerolength_pit = \
             super().create_pit_branch_entries(net, branch_pit)
-        branch_wizerolength_pit[:, LENGTH] = 0
-        branch_wizerolength_pit[:, K] = 1000
-        return branch_wizerolength_pit
+        branch_wzerolength_pit[:, LENGTH] = 0
+        branch_wzerolength_pit[:, K] = 1000
+        return branch_wzerolength_pit
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):

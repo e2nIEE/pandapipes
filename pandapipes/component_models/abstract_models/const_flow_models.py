@@ -25,6 +25,10 @@ class ConstFlow(NodeElementComponent):
         raise NotImplementedError
 
     @classmethod
+    def active_identifier(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.

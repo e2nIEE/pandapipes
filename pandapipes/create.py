@@ -4,6 +4,9 @@
 
 import numpy as np
 import pandas as pd
+from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
+    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
+    _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
@@ -13,12 +16,9 @@ from pandapipes.component_models.flow_control_component import FlowControlCompon
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
+from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, \
     load_std_type
-from pandapipes.std_types.std_type_class import regression_function, PumpStdType
-from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
-    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
-    _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
 
 try:
     import pandaplan.core.pplog as logging
@@ -204,7 +204,6 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
 
     return index
 
-
 def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_stored_kg=0.,
                         max_m_stored_kg=np.inf, scaling=1., name=None, index=None,
                         in_service=True, type="mass_storage", **kwargs):
@@ -270,8 +269,8 @@ def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_
     return index
 
 
-def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index=None, type="pt",
-                    **kwargs):
+def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None, in_service=True,
+                    index=None, **kwargs):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
     that it is connected to into a node with fixed value for either pressure, temperature or both
@@ -283,9 +282,18 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     :param junction: The junction to which the external grid is connected
     :type junction: int
     :param p_bar: The pressure of the external grid
-    :type p_bar: float
+    :type p_bar: float, default None
     :param t_k: The fixed temperature at the external grid
-    :type t_k: float, default 285.15
+    :type t_k: float, default None
+    :param type: The external grid type denotes the values that are fixed at the respective node:\n
+            - "auto": Will automatically assign one of the following types based on the input for \
+                      p_bar and t_k \n
+            - "p": The pressure is fixed, the node acts as a slack node for the mass flow. \n
+            - "t": The temperature is fixed and will not be solved for, but is assumed as the \
+                   node's mix temperature. Please note that pandapipes cannot check for \
+                   inconsistencies in the formulation of heat transfer equations yet. \n
+            - "pt": The external grid shows both "p" and "t" behavior.
+    :type type: str, default "auto"
     :param name: A name tag for this ext_grid
     :type name: str, default None
     :param in_service: True for in service, False for out of service
@@ -293,13 +301,6 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
-    :param type: The external grid type denotes the values that are fixed at the respective node:\n
-            - "p": The pressure is fixed, the node acts as a slack node for the mass flow.
-            - "t": The temperature is fixed and will not be solved for, but is assumed as the \
-                   node's mix temperature. Please note that pandapipes cannot check for \
-                   inconsistencies in the formulation of heat transfer equations yet. \n
-            - "pt": The external grid shows both "p" and "t" behavior.
-    :type type: str, default "pt"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
                     net["ext_grid"] table
     :return: index - The unique ID of the created element
@@ -316,6 +317,8 @@ def create_ext_grid(net, junction, p_bar, t_k, name=None, in_service=True, index
 
     _check_junction_element(net, junction)
     index = _get_index_with_check(net, "ext_grid", index, name="external grid")
+
+    type = _auto_ext_grid_type(p_bar, t_k, type, ExtGrid)
 
     cols = ["name", "junction", "p_bar", "t_k", "in_service", "type"]
     vals = [name, junction, p_bar, t_k, bool(in_service), type]
@@ -699,24 +702,39 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     return index
 
 
-def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plift_bar,
-                                    t_k=None, name=None, index=None, in_service=True, type="pt",
-                                    **kwargs):
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar,
+                                    t_flow_k=None, type="auto", name=None, index=None,
+                                    in_service=True, **kwargs):
     """
-    Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"].
+    Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
+    A circulation pump is a component that sets the pressure at its outlet (flow junction) and
+    asserts that the correct mass flow is extracted at its inlet (return junction). \n
+    In this particular case, the pressure lift is fixed, i.e. the pressure on both sides are set
+    (with the pressure lift as difference). The mass flow through the component is just a result
+    of the balance of the network. An equal representation is adding external grids at each of the
+    connected nodes.
 
     :param net: The net for which this pump should be created
     :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the pump will be connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the pump will be connected with
-    :type to_junction: int
-    :param p_bar: Pressure set point
-    :type p_bar: float
+    :param return_junction: ID of the junction on one side which the pump will be connected with
+    :type return_junction: int
+    :param flow_junction: ID of the junction on the other side which the pump will be connected with
+    :type flow_junction: int
+    :param p_flow_bar: Pressure set point at the flow junction
+    :type p_flow_bar: float
     :param plift_bar: Pressure lift induced by the pump
     :type plift_bar: float
-    :param t_k: Temperature set point
-    :type t_k: float
+    :param t_flow_k: Temperature set point at the flow junction
+    :type t_flow_k: float, default None
+    :param type: The pump type denotes the values that are fixed:\n
+            - "auto": Will automatically assign one of the following types based on the input for \
+                  p_bar and t_k \n
+            - "p": The pressure at the flow junction is fixed. \n
+            - "t": The temperature at the flow junction is fixed and will not be solved. Please \
+                note that pandapipes cannot check for inconsistencies in the formulation of heat \
+                transfer equations yet.
+            - "pt": The circulation pump shows both "p" and "t" behavior.
+    :type type: str, default "auto"
     :param name: Name of the pump
     :type name: str
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -724,12 +742,6 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
     :type index: int, default None
     :param in_service: True if the circulation pump is in service or False if it is out of service
     :type in_service: bool, default True
-    :param type: The pump type denotes the values that are fixed:\n
-            - "p": The pressure is fixed.
-            - "t": The temperature is fixed and will not be solved. Please note that pandapipes\
-             cannot check for inconsistencies in the formulation of heat transfer equations yet.
-            - "pt": The pump shows both "p" and "t" behavior.
-    :type type: str, default "pt"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["circ_pump_pressure"] table
     :type kwargs: dict
@@ -737,8 +749,7 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_pressure(net, 0, 1, p_bar=5, plift_bar=2,
-        >>>                                 t_k=350, type="p")
+        >>> create_circ_pump_const_pressure(net, 0, 1, p_flow_bar=5, plift_bar=2, t_flow_k=350, type="p")
 
     """
 
@@ -746,33 +757,43 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
 
     index = _get_index_with_check(net, "circ_pump_pressure", index,
                                   name="circulation pump with constant pressure")
-    _check_branch(net, "circulation pump with constant pressure", index, from_junction, to_junction)
+    _check_branch(net, "circulation pump with constant pressure", index, return_junction,
+                  flow_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
-         "t_k": t_k, "plift_bar": plift_bar, "in_service": bool(in_service), "type": type}
+    type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpPressure)
+
+    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
+         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "plift_bar": plift_bar, "type": type,
+         "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_pressure", index, **v, **kwargs)
 
     return index
 
 
-def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdot_kg_per_s,
-                                     t_k=None, name=None, index=None, in_service=True,
-                                     type="pt", **kwargs):
+def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow_bar,
+                                     mdot_flow_kg_per_s, t_flow_k=None, type="auto", name=None,
+                                     index=None, in_service=True, **kwargs):
     """
-    Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].
+    Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].\n
+    A circulation pump is a component that sets the pressure at its outlet (flow junction) and
+    asserts that the correct mass flow is extracted at its inlet (return junction). \n
+    In this particular case, the mass flow and the pressure on the flow side are fixed, i.e. the
+    pressure on the return side is just a result of the friction losses in the network. An equal
+    representation is adding an external grid at the flow junction and a sink with the given mass
+    flow at the return junction.
 
     :param net: The net for which this pump should be created
     :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the pump will be connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the pump will be connected with
-    :type to_junction: int
-    :param p_bar: Pressure set point
-    :type p_bar: float
-    :param mdot_kg_per_s: Constant mass flow, which is transported through the pump
-    :type mdot_kg_per_s: float
-    :param t_k: Temperature set point
-    :type t_k: float
+    :param return_junction: ID of the junction on one side which the pump will be connected with
+    :type return_junction: int
+    :param flow_junction: ID of the junction on the other side which the pump will be connected with
+    :type flow_junction: int
+    :param p_flow_bar: Pressure set point at the flow junction
+    :type p_flow_bar: float
+    :param mdot_flow_kg_per_s: Constant mass flow, which is transported through the pump
+    :type mdot_flow_kg_per_s: float
+    :param t_flow_k: Temperature set point at the flow junction
+    :type t_flow_k: float, default None
     :param name: Name of the pump
     :type name: str
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -781,11 +802,13 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     :param in_service: True if the circulation pump is in service or False if it is out of service
     :type in_service: bool, default True
     :param type: The pump type denotes the values that are fixed:\n
-            - "p": The pressure is fixed.
+            - "auto": Will automatically assign one of the following types based on the input for \
+                  p_bar and t_k \n
+            - "p": The pressure is fixed. \n
             - "t": The temperature is fixed and will not be solved. Please note that pandapipes\
              cannot check for inconsistencies in the formulation of heat transfer equations yet.
             - "pt": The pump shows both "p" and "t" behavior.
-    :type type: str, default "pt"
+    :type type: str, default "auto"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
             net["circ_pump_mass"] table
     :type kwargs: dict
@@ -793,8 +816,8 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_kg_per_s=2,
-        >>>                                  t_k=350, type="p")
+        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_flow_bar=5, mdot_flow_kg_per_s=2, \
+                                             t_flow_k=350, type="pt")
 
     """
 
@@ -802,11 +825,14 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
 
     index = _get_index_with_check(net, "circ_pump_mass", index,
                                   name="circulation pump with constant mass flow")
-    _check_branch(net, "circulation pump with constant mass flow", index, from_junction,
-                  to_junction)
+    _check_branch(net, "circulation pump with constant mass flow", index, return_junction,
+                  flow_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "p_bar": p_bar,
-         "t_k": t_k, "mdot_kg_per_s": mdot_kg_per_s, "in_service": bool(in_service), "type": type}
+    type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpMass)
+
+    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
+         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s,
+         "type": type, "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
 
     return index
@@ -1137,6 +1163,63 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
                "in_service": in_service, "name": name, "type": type}
     _set_multiple_entries(net, "source", index, **entries, **kwargs)
+
+    return index
+
+
+def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, index=None,
+                     type="auto", **kwargs):
+    """
+    Convenience function for creating many external grids at once. Parameter 'junctions' must be an\
+    array of the desired length. Other parameters may be either arrays of the same length or single\
+    values.\n
+    External grids transfer the junction that it is connected into a node with fixed value for \
+    either pressure, temperature or both (depending on the type). Usually external grids represent \
+    connections to other grids feeding the given pandapipesNet.
+
+    :param net: The net that the external grid should be connected to
+    :type net: pandapipesNet
+    :param junctions: The junctions to which the external grids are connected
+    :type junctions: Iterable(int)
+    :param p_bar: The pressure of the external grids
+    :type p_bar: Iterable(float) or float
+    :param t_k: The fixed temperature at the external grids
+    :type t_k: Iterable(float) or float
+    :param name: A name tag for the ext_grids
+    :type name: Iterable(str) or str, default None
+    :param in_service: True for in service, False for out of service
+    :type in_service: Iterable(bool) or bool, default True
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param type: The external grid type denotes the values that are fixed at the respective node:\n
+            - "auto": Will automatically assign one of the following types based on the input for \
+                      p_bar and t_k \n
+            - "p": The pressure is fixed, the node acts as a slack node for the mass flow. \n
+            - "t": The temperature is fixed and will not be solved for, but is assumed as the \
+                   node's mix temperature. Please note that pandapipes cannot check for \
+                   inconsistencies in the formulation of heat transfer equations yet. \n
+            - "pt": The external grid shows both "p" and "t" behavior.
+    :type type: Iterable(str) or str, default "auto"
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["ext_grid"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: Iterable(int)
+
+    :Example:
+        >>> create_ext_grids(net, junctions=[2, 4], p_bar=[100, 200], t_k=293.15)
+
+    """
+    add_new_component(net, ExtGrid)
+
+    _check_multiple_junction_elements(net, junctions)
+    index = _get_multiple_index_with_check(net, "ext_grid", index, len(junctions))
+
+    type = _auto_ext_grid_types(p_bar, t_k, type, ExtGrid)
+
+    entries = {"junction": junctions, "p_bar": p_bar, "t_k": t_k,
+               "in_service": in_service, "name": name, "type": type}
+    _set_multiple_entries(net, "ext_grid", index, **entries, **kwargs)
 
     return index
 
@@ -1538,3 +1621,178 @@ def _check_std_type(net, std_type, table, function_name):
     if std_type not in net['std_types'][table]:
         raise UserWarning('%s is not given in std_types (%s). Either change std_type or define new '
                           'one' % (std_type, table))
+
+
+ALLOWED_EG_TYPES = ["auto", "t", "p", "pt", "tp"]
+
+
+def _auto_ext_grid_type(p_bar, t_k, typ, comp):
+    """
+    Determine the type of node that an "ext_grid" would imply (fixed pressure and / or temperature).
+    Also perform some validity checks.
+
+    :param p_bar: fixed pressure
+    :type p_bar: float
+    :param t_k: fixed temperature
+    :type t_k: float
+    :param typ: given type of ext_grid
+    :type typ: str
+    :param comp: component (just needed for output)
+    :type comp: pandapipes component
+    :return: adapted_type
+    :rtype: str
+    """
+    p_null, t_null = p_bar is None or np.isnan(p_bar), t_k is None or np.isnan(t_k)
+
+    if p_null and t_null:
+        raise UserWarning("For component %s, either pressure or temperature must be defined!"
+                          % comp.__name__)
+
+    if typ not in ALLOWED_EG_TYPES:
+        logger.warning("The type for component %s was %s, but must be one of the following for "
+                       "correct model implementation: %s." % (comp.__name__, typ, ALLOWED_EG_TYPES))
+
+    if typ not in ["t", "auto"] and p_null:
+        raise UserWarning("The type %s for component %s requires a pressure as input!"
+                          % (typ, comp.__name__))
+
+    if typ not in ["p", "auto"] and t_null:
+        raise UserWarning("The type %s for component %s requires a temperature as input!"
+                          % (typ, comp.__name__))
+
+    if typ != "auto" and "p" not in typ and not p_null:
+        logger.warning("For component %s you gave a value for p, although the component is not of "
+                       "'p'-type (type is %s), i.e. this value is probably neglected internally."
+                       % (comp, typ))
+
+    if typ != "auto" and "t" not in typ and not t_null:
+        logger.warning("For component %s you gave a value for t, although the component is not of "
+                       "'t'-type (type is %s), i.e. this value is probably neglected internally."
+                       % (comp, typ))
+
+    if typ == "tp":
+        logger.warning("The type 'tp' is replaced by type 'pt' (might be mistaken internally).")
+        return "pt"
+
+    if typ == "auto":
+        real_type = ""
+        if not p_null:
+            real_type += "p"
+        if not t_null:
+            real_type += "t"
+        return real_type
+
+    return typ
+
+
+def _auto_ext_grid_types(p_bar, t_k, typ, comp):
+    """
+    Determine the type of node that an "ext_grid" would imply (fixed pressure and / or temperature).
+    Also perform some validity checks. --> Same as `_auto_ext_grid_type`, but vectorized.
+
+    .. note:
+        This function is currently not used yet. Can be used, if bulk functions for ext_grid-like \
+        components are added.
+
+    :param p_bar: fixed pressure values
+    :type p_bar: iterable(float)
+    :param t_k: fixed temperature values
+    :type t_k: iterable(float)
+    :param typ: given types of ext_grid
+    :type typ: iterable(str)
+    :param comp: component (just needed for output)
+    :type comp: pandapipes component
+    :return: adapted_types
+    :rtype: iterable(str)
+    """
+    p_arr = hasattr(p_bar, "__iter__")
+    t_arr = hasattr(t_k, "__iter__")
+    typ_arr = hasattr(typ, "__iter__") and not isinstance(typ, str)
+
+    if not any([p_arr, t_arr, typ_arr]):
+        return _auto_ext_grid_type(p_bar, t_k, typ, comp)
+    else:
+        lengths = np.array([len(arr) for arr, it in zip([p_bar, t_k, typ], [p_arr, t_arr, typ_arr])
+                            if it])
+        if not np.array_equal(lengths[1:], lengths[:-1]):
+            raise UserWarning("The arrays for p_bar, t_k and type must have equal length!")
+        length = lengths[0]
+
+    if not p_arr:
+        p_bar = np.array([p_bar] * length)
+
+    if not t_arr:
+        t_k = np.array([t_k] * length)
+
+    if not typ_arr:
+        typ = np.array([typ] * length)
+
+    p_null = np.equal(p_bar, None) | np.isnan(p_bar)
+    t_null = np.equal(t_k, None) | np.isnan(t_k)
+
+    ptn = p_null & t_null
+    if np.any(ptn):
+        invalid_ind = np.where(ptn)
+        raise UserWarning("For component %s in positions %s, either pressure or temperature must be"
+                          " defined!" % (comp.__name__, invalid_ind))
+
+    not_allowed_types = ~np.isin(typ, ALLOWED_EG_TYPES)
+    if np.any(not_allowed_types):
+        typ_not_allowed_types = typ[not_allowed_types]
+        pos_not_allowed_types = np.where(not_allowed_types)
+        overview = pd.DataFrame({"Position": pos_not_allowed_types, "Type": typ_not_allowed_types})
+        logger.warning("Please check the following types for component %s, as they must be one of "
+                       "the following for correct model implementation: %s. \n%s"
+                       % (comp.__name__, ALLOWED_EG_TYPES, overview))
+
+    p_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["t", "auto"]])
+    t_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["p", "auto"]])
+
+    invalid_p = p_types & p_null
+    if np.any(invalid_p):
+        invalid_types = typ[invalid_p]
+        invalid_ind = np.where(invalid_p)
+        raise UserWarning("The types %s for component %s (positions %s) require a pressure as "
+                          "input!" % (invalid_types, invalid_ind, comp.__name__))
+
+    invalid_t = t_types & t_null
+    if np.any(invalid_t):
+        invalid_types = typ[invalid_t]
+        invalid_ind = np.where(invalid_t)
+        raise UserWarning("The types %s for component %s (positions %s) require a temperature as "
+                          "input!" % (invalid_types, invalid_ind, comp.__name__))
+
+    auto_types = np.isin(typ, ["auto"])
+
+    ununsed_p = ~auto_types & ~p_null & ~p_types
+    if np.any(ununsed_p):
+        overview = pd.DataFrame({"Positions": np.where(ununsed_p)[0],
+                                 "Type": np.array(typ)[ununsed_p],
+                                 "p_value": np.array(p_bar)[ununsed_p]})
+        logger.warning("For component %s you gave a value for p in some cases, although the "
+                       "respective components are not of 'p'-type, i.e. the given values are "
+                       "probably neglected internally. \n%s" % (comp, overview))
+
+    ununsed_t = ~auto_types & ~t_null & ~t_types
+    if np.any(ununsed_t):
+        overview = pd.DataFrame({"Positions": np.where(ununsed_t)[0],
+                                 "Type": np.array(typ)[ununsed_t],
+                                 "t_value": np.array(p_bar)[ununsed_t]})
+        logger.warning("For component %s you gave a value for t in some cases, although the "
+                       "respective components are not of 't'-type, i.e. the given values are "
+                       "probably neglected internally. \n%s" % (comp, overview))
+
+    real_types = np.array(typ).copy()
+    tp_type = np.isin(real_types, ["tp"])
+    if np.any(tp_type):
+        tp_ind = np.where(tp_type)
+        logger.warning("The type 'tp' (positions %s) is replaced by type 'pt' (otherwise might be "
+                       "mistaken internally)." % tp_ind)
+        real_types[tp_type] = "pt"
+
+    if np.any(auto_types):
+        real_types[auto_types & ~p_null & t_null] = "p"
+        real_types[auto_types & p_null & ~t_null] = "t"
+        real_types[auto_types & ~p_null & ~t_null] = "pt"
+
+    return real_types

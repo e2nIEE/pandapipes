@@ -160,6 +160,7 @@ def pump_patches(coords, size, **kwargs):
         lines.append([p2, p1 + diff / 2 + vec_size])
     return lines, polys, {}
 
+
 def compressor_patches(coords, size, **kwargs):
     polys, lines = list(), list()
     edgecolor = kwargs.pop('patch_edgecolor')
@@ -186,6 +187,7 @@ def compressor_patches(coords, size, **kwargs):
         lines.append([plr, pur])
 
     return lines, polys, {}
+
 
 def pressure_control_patches(coords, size, **kwargs):
     polys, lines = list(), list()
