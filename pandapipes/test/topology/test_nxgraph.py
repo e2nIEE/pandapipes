@@ -6,6 +6,7 @@ import pytest
 import pandapipes.networks as nw 
 import pandapipes.topology as top
 
+
 def test_include_branches():
     net = nw.gas_versatility()
     
