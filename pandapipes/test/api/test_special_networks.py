@@ -11,6 +11,7 @@ import pandapipes
 from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, \
     create_source
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
+from pandapipes.test.test_toolbox import create_net_changed_indices
 
 
 @pytest.mark.parametrize("use_numba", [True, False])

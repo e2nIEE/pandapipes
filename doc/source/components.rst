@@ -34,10 +34,12 @@ following documentation:
     components/valve/valve_component
     components/sink/sink_component
     components/source/source_component
+    components/storage/storage_component
     components/ext_grid/ext_grid_component
+    components/heat_exchanger/heat_exchanger_component
     components/pump/pump_component
     components/circulation_pump_mass/circ_pump_mass_component
     components/circulation_pump_pressure/circ_pump_pressure_component
     components/compressor/compressor_component
-    components/heat_exchanger/heat_exchanger_component
-    components/storage/storage_component
+    components/press_control/press_control_component
+    components/flow_control/flow_control_component

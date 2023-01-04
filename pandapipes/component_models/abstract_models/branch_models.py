@@ -87,8 +87,9 @@ class BranchComponent(Component):
 
         junction_idx_lookup = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
-        from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
-        to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
+        fn_col, tn_col = cls.from_to_node_cols()
+        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+        to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
         branch_component_pit[:, VINIT] = 0.1
         return branch_component_pit, node_pit, from_nodes, to_nodes
@@ -143,13 +144,13 @@ class BranchComponent(Component):
         pass
 
     @classmethod
-    def calculate_temperature_lift(cls, net, branch_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param branch_pit:
-        :type branch_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:

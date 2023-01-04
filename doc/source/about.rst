@@ -20,7 +20,7 @@ for the analysis and optimization of piping grids.
 |br|
 
 More information about pandapipes can be found on `www.pandapipes.org <https://www.pandapipes.org>`_
-or in our publication :cite:`Lohmeier2020`
+or in our publication :cite:`Lohmeier2020`. Please cite the paper if you use pandapipes.
 
 About pandapipes:
 
