@@ -34,6 +34,10 @@ class NodeElementComponent(Component):
         raise NotImplementedError
 
     @classmethod
+    def active_identifier(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         """
         Function that creates pit node entries.

@@ -1,0 +1,12 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+net;pandapipesNet;;The pandapipes net object in whose :code:`press_control` table the new unit will be added
+from_junction;integer;:math:`>` 0;Index of junction at which the pressure control unit starts
+to_junction;integer;:math:`>` 0;Index of junction at which the pressure control unit ends
+controlled_junction;integer;> 0;ID of the junction at which the pressure is controlled
+controlled_p_bar;float;> 0;Pressure set point [barg]
+control_active;boolean;;If false, the unit behaves like an open valve
+loss_coefficient;float;> ß;Pressure loss coefficient (only effective if control is not active)
+name;string;;Name of the pressure control unit
+index;integer;> 0;Force specific index the :code:`press_control`-DataFrame, if available
+in_service;boolean;True / False;If false, the unit behaves like a closed valve.
+type;string;;Type variable to classify different kinds of pressure control units (not considered by pandapipes' calculations)
