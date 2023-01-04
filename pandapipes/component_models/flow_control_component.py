@@ -1,39 +1,33 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
-# and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
+# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import TL, ALPHA, TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
-from pandapipes.pf.pipeflow_setup import get_fluid
+from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
+from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
+    RHO, LOAD_VEC_BRANCHES, ELEMENT_IDX
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+class FlowControlComponent(BranchWZeroLengthComponent):
+    """
 
-
-class HeatExchanger(BranchWZeroLengthComponent):
-
-    @classmethod
-    def from_to_node_cols(cls):
-        return "from_junction", "to_junction"
+    """
 
     @classmethod
     def table_name(cls):
-        return "heat_exchanger"
+        return "flow_control"
 
     @classmethod
     def active_identifier(cls):
         return "in_service"
+
+    @classmethod
+    def from_to_node_cols(cls):
+        return "from_junction", "to_junction"
 
     @classmethod
     def get_connected_node_type(cls):
@@ -43,21 +37,50 @@ class HeatExchanger(BranchWZeroLengthComponent):
     def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
-
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param branch_pit:
         :type branch_pit:
         :return: No Output.
         """
-        heat_exchanger_pit = super().create_pit_branch_entries(net, branch_pit)
-        heat_exchanger_pit[:, D] = net[cls.table_name()].diameter_m.values
-        heat_exchanger_pit[:, AREA] = heat_exchanger_pit[:, D] ** 2 * np.pi / 4
-        heat_exchanger_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
-        heat_exchanger_pit[:, ALPHA] = 0
-        heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
-        heat_exchanger_pit[:, TEXT] = 293.15
-        heat_exchanger_pit[:, T_OUT] = 307
+        fc_pit = super().create_pit_branch_entries(net, branch_pit)
+        fc_pit[:, D] = net[cls.table_name()].diameter_m.values
+        fc_pit[:, AREA] = fc_pit[:, D] ** 2 * np.pi / 4
+        fc_pit[:, VINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values / \
+            (fc_pit[:, AREA] * fc_pit[:, RHO])
+
+    @classmethod
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        pass
+
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
+        # of velocity is allowed during the pipeflow iteration
+        f, t = idx_lookups[cls.table_name()]
+        fc_pit = branch_pit[f:t, :]
+        in_service_elm = np.isin(net[cls.table_name()].index.values,
+                                 fc_pit[:, ELEMENT_IDX].astype(np.int32))
+        active = net[cls.table_name()].control_active.values[in_service_elm]
+        fc_pit[active, JAC_DERIV_DP] = 0
+        fc_pit[active, JAC_DERIV_DP1] = 0
+        fc_pit[active, JAC_DERIV_DV] = 1
+        fc_pit[active, LOAD_VEC_BRANCHES] = 0
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
+        """
+
+        :param net:
+        :type net:
+        :param branch_component_pit:
+        :type branch_component_pit:
+        :param node_pit:
+        :type node_pit:
+        :return:
+        :rtype:
+        """
+        branch_component_pit[:, TL] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
@@ -80,23 +103,10 @@ class HeatExchanger(BranchWZeroLengthComponent):
                                                  cls.table_name(), branches_connected)
 
     @classmethod
-    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_component_pit:
-        :type branch_component_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        branch_component_pit[:, TL] = 0
-
-    @classmethod
     def get_component_input(cls):
         """
+
+        Get component input.
 
         :return:
         :rtype:
@@ -104,15 +114,17 @@ class HeatExchanger(BranchWZeroLengthComponent):
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
+                ("controlled_mdot_kg_per_s", "f8"),
                 ("diameter_m", "f8"),
-                ("qext_w", 'f8'),
-                ("loss_coefficient", "f8"),
+                ("control_active", "bool"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):
         """
+
+        Gets the result table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet

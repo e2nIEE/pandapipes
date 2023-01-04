@@ -135,7 +135,7 @@ def from_json_string(json_string, convert=False, encryption_key=None):
 
     :param json_string: The JSON string representation of the network
     :type json_string: str
-    :param convert: whether or not to convert the format from earlier versions
+    :param convert: whether to convert the format from earlier versions
     :type convert: bool
     :param encryption_key: if given, key to decrypt an encrypted pandapower network
     :type encryption_key: str
