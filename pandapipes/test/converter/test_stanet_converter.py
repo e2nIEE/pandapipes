@@ -24,15 +24,9 @@ pf_logger.setLevel(logging.WARNING)
 test_file_folder = os.path.join(test_path, "converter", "converter_test_files")
 
 
-def test_mini_schutterwald():
-    """
-
-    :param log_results:
-    :type log_results:
-    :return:
-    :rtype:
-    """
-    schutterwald_path = os.path.join(test_file_folder, "Schutterwald_mini.CSV")
+def test_mini_exampelonia():
+    """Test a mini version of the Schutterwald network"""
+    schutterwald_path = os.path.join(test_file_folder, "Exampelonia_mini.CSV")
     net = stanet_to_pandapipes(schutterwald_path, add_layers=False)
     pandapipes.pipeflow(net)
 

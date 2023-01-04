@@ -184,7 +184,11 @@ def add_rated_p_values(net, **kwargs):
 
 
 def change_dtypes(net):
-    dtypes = {"stanet_nr": np.int32, "stanet_id": str, "stanet_status": str, "v_stanet": np.float64}
+    dtypes = {"stanet_nr": pd.Int32Dtype(),
+              "stanet_id": str,
+              "stanet_status": str,
+              "v_stanet": np.float64}
+
     for comp in net.component_list:
         table_name = comp.table_name()
         if table_name not in net:

@@ -9,7 +9,7 @@ import pandas as pd
 
 import pandapipes
 from pandapipes.component_models.component_toolbox import vrange
-from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe
+from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
 try:
     from shapely.geometry import LineString
@@ -136,7 +136,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         if add_layers:
             add_info["stanet_layer"] = str(row.LAYER)
         if stanet_like_valves:
-            create_valve_pipe(
+            create_valve_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
                 length_km=row.RORL / 1000, diameter_m=float(row.DM / 1000), k_mm=row.RAU,
                 opened=row.AUF == 'J', loss_coefficient=row.ZETA,
