@@ -1,3 +1,5 @@
+.. _sinks:
+
 ****
 Sink
 ****
@@ -33,8 +35,8 @@ Component Table Data
 Physical Model
 ==============
 
-A sink draws a specified mass flow from the connected junction. Note that positive mass flow values correspond to
-flows leaving the system.
+A sink draws a specified mass flow from the connected junction. Note that positive mass flow values
+correspond to flows leaving the network system.
 
 Sinks are typically used to model loads in hydraulic systems. Please note that sinks cannot be used to model loads for
 the pandapipes heat mode. In this case, to model a heat flow drawn by a consumer, the heat exchanger component can be

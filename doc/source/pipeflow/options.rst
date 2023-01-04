@@ -40,7 +40,7 @@ Initialize Option Function
 The final option setup is generated and saved under net["_options"] by the following internal
 function:
 
-.. autofunction:: pandapipes.pipeflow_setup.init_options
+.. autofunction:: pandapipes.pf.pipeflow_setup.init_options
 
 
 .. _user_options:
@@ -51,7 +51,7 @@ Setting User Options
 User options will be stored in a pandapipes network and will always override the default options,
 unless specified otherwise during the :ref:`pipeflow call <pipeflow_function>`.
 
-.. autofunction:: pandapipes.pipeflow_setup.set_user_pf_options
+.. autofunction:: pandapipes.pf.pipeflow_setup.set_user_pf_options
 
 
 Auxiliary Option Functions
@@ -60,11 +60,11 @@ Auxiliary Option Functions
 With the help of the following functions options can be set or retrieved. These functions are
 usually only used internally in the pipeflow.
 
-.. autofunction:: pandapipes.pipeflow_setup.get_net_option
+.. autofunction:: pandapipes.pf.pipeflow_setup.get_net_option
 
-.. autofunction:: pandapipes.pipeflow_setup.get_net_options
+.. autofunction:: pandapipes.pf.pipeflow_setup.get_net_options
 
 .. note:: If you set options with the following function, they will still be overridden once you \
           run another pipeflow.
 
-.. autofunction:: pandapipes.pipeflow_setup.set_net_option
+.. autofunction:: pandapipes.pf.pipeflow_setup.set_net_option
