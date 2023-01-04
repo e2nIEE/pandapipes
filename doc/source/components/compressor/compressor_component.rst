@@ -2,29 +2,6 @@
 Compressor
 **********
 
-
-Create Function
-===============
-
-.. _create_compressor:
-
-
-.. autofunction:: pandapipes.create_compressor
-
-
-Component Table Data
-====================
-
-*net.compressor*
-
-.. tabularcolumns:: |p{0.10\linewidth}|p{0.10\linewidth}|p{0.25\linewidth}|p{0.40\linewidth}|
-
-.. csv-table::
-   :file: compressor_par.csv
-   :delim: ;
-   :widths: 10, 10, 25, 40
-
-
 Physical Model
 ==============
 
@@ -52,6 +29,27 @@ estimated by the ideal adiabatic change in enthalpy by applying this equation
 
 Where :math:`\kappa` is the isentropic exponent (assumed as 1.4), :math:`R_\text{s}` is the
 specific gas constant, :math:`z(p)` the compressibility and :math:`T_i` the temperature.
+
+Create Function
+===============
+
+.. _create_compressor:
+
+
+.. autofunction:: pandapipes.create_compressor
+
+
+Component Table Data
+====================
+
+*net.compressor*
+
+.. tabularcolumns:: |p{0.10\linewidth}|p{0.10\linewidth}|p{0.25\linewidth}|p{0.40\linewidth}|
+
+.. csv-table::
+   :file: compressor_par.csv
+   :delim: ;
+   :widths: 10, 10, 25, 40
 
 
 Result Table Data
