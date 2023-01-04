@@ -21,3 +21,7 @@ class Sink(ConstFlow):
     @classmethod
     def get_connected_node_type(cls):
         return Junction
+
+    @classmethod
+    def active_identifier(cls):
+        return "in_service"

@@ -394,7 +394,8 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     :type valves: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
@@ -506,7 +507,8 @@ def create_flow_control_collection(net, flow_controllers=None, size=5., junction
 
 
 def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None,
-                           infofunc=None, picker=False, **kwargs):
+                           infofunc=None, picker=False, fj_col="from_junction",
+                           tj_col="to_junction", **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
     plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
@@ -521,10 +523,15 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     :type table_name: str, default 'pump'
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
+    :param fj_col: name of the from_junction column (can be different for different pump types)
+    :type fj_col: str, default "from_junction"
+    :param fj_col: name of the to_junction column (can be different for different pump types)
+    :type fj_col: str, default "to_junction"
     :param picker: Picker argument passed to the patch collection
     :type picker: bool, default False
     :param kwargs: Keyword arguments are passed to the patch function
@@ -535,7 +542,7 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     pump_table = net[table_name].loc[pumps]
 
     coords, pumps_with_geo = coords_from_node_geodata(
-        pumps, pump_table.from_junction.values, pump_table.to_junction.values,
+        pumps, pump_table[fj_col].values, pump_table[tj_col].values,
         junction_geodata if junction_geodata is not None else net["junction_geodata"], "pump",
         "Junction")
 
@@ -573,7 +580,8 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
     :type valves: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param colors: Color or list of colors for every valve
     :type colors: iterable, float, default None
@@ -612,9 +620,10 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
 
     return pc, lc
 
-def create_compressor_collection(net, cmprs=None, table_name='compressor',
-                                       size=5., junction_geodata=None,
-                                       color='k', infofunc=None, picker=False, **kwargs):
+
+def create_compressor_collection(net, cmprs=None, table_name='compressor', size=5.,
+                                 junction_geodata=None, color='k', infofunc=None, picker=False,
+                                 **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes compressors. Compressors are
     plotted in the center between two junctions.
@@ -626,7 +635,8 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor',
     :type cmprs: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param colors: Color or list of colors for every compressor
     :type colors: iterable, float, default None

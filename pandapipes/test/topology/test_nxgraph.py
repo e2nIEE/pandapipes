@@ -2,8 +2,7 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import pytest
-import pandapipes.networks as nw 
+import pandapipes.networks as nw
 import pandapipes.topology as top
 
 

@@ -85,8 +85,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     :type nogojunctions: iterable, default None
     :param notravjunctions: edges connected to these junctions are not being considered in the graph
     :type notravjunctions: iterable, default None
-    :param multi: True: The function generates a NetworkX MultiGraph, which allows multiple parallel\
-        edges between nodes
+    :param multi: True: The function generates a NetworkX MultiGraph, which allows multiple \
+        parallel edges between nodes
         False: NetworkX Graph (no multiple parallel edges)
     :type multi: bool, default True
     :param respect_status_branches_all: Flag for overriding the status consideration for all branch\
@@ -94,8 +94,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     :type respect_status_branches_all: bool, default None
     :param kwargs: Additional keyword arguments, especially useful to address inclusion of branch\
         components that are not in the default components (pipes, valves, pumps). It is always \
-        possible to add "include_xy", "respect_status_xy" or "weighting_xy" arguments for additional\
-        components
+        possible to add "include_xy", "respect_status_xy" or "weighting_xy" arguments for \
+        additional components
     :return: mg - the required NetworkX graph
 
     ..note: By default, all branch components are represented as edges in the graph. I.e. tables of\
@@ -114,13 +114,16 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc))
                           for par in ["include", "respect_status", "weighting"]
                           for bc in ["pipes", "valves", "pumps", "press_controls",
-                                     "circ_pump_masss", "circ_pump_presss", "valve_pipes"]})
+                                     "mass_circ_pumps", "press_circ_pumps", "valve_pipes"]})
     for comp in net.component_list:
         if not issubclass(comp, BranchComponent):
             continue
         table_name = comp.table_name()
-        include_comp = branch_params.get("include_%ss" % table_name, True)
-        respect_status = branch_params.get("respect_status_%ss" % table_name, True) \
+        include_kw = "%ss" % table_name
+        if table_name.startswith("circ_pump"):
+            include_kw = table_name.split("circ_pump")[-1][1:] + "_circ_pumps"
+        include_comp = branch_params.get("include_%s" % include_kw, True)
+        respect_status = branch_params.get("respect_status_%s" % include_kw, True) \
             if respect_status_branches_all not in [True, False] else respect_status_branches_all
         # some formulation to add weight
         weight_getter = branch_params.get("weighting_%ss" % table_name, None)
