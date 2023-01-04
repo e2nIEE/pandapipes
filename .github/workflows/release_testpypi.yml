@@ -64,7 +64,8 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TESTPYPI }}
           TWINE_REPOSITORY: testpypi
 
-files: !include run_tests_develop.yml
+
+      - uses: ./.github/workflows/releease_testpypi.yml
 
 
 
