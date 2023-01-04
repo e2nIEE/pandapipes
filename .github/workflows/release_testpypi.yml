@@ -11,6 +11,8 @@ name: release_testpypi
 # Controls when the action will run.
 on:
   # Allows you to run this workflow manually from the Actions tab
+  pull_request:
+    branch: [develop]
   workflow_dispatch:
     inputs:
       python_version:
@@ -28,7 +30,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  upload:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -61,5 +63,8 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TESTPYPI }}
           TWINE_REPOSITORY: testpypi
+
+files: !include run_tests_develop.yml
+
 
 

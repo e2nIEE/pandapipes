@@ -30,7 +30,7 @@ with open('.github/workflows/run_tests_master.yml', 'rb') as f:
     for version in versions:
         classifiers.append('Programming Language :: Python :: 3.%s' % version[-1])
 
-long_description = ' '.join((install, changelog))
+long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
