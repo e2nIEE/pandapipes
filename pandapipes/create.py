@@ -359,8 +359,8 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :rtype: int
 
     :Example:
-        >>> create_heat_exchanger(net, from_junction=0, to_junction=1, diameter_m=40e-3,\
-                                  qext_w=2000)
+        >>> create_heat_exchanger(net, from_junction=0, to_junction=1,
+        >>>                       diameter_m=40e-3, qext_w=2000)
     """
     add_new_component(net, HeatExchanger)
 
@@ -424,8 +424,8 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     :rtype: int
 
     :Example:
-        >>> create_pipe(net, from_junction=0, to_junction=1, std_type='315_PE_80_SDR_17',\
-                        length_km=1)
+        >>> create_pipe(net, from_junction=0, to_junction=1,
+        >>>             std_type='315_PE_80_SDR_17', length_km=1)
 
     """
     add_new_component(net, Pipe)
@@ -499,8 +499,8 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1,\
-                                        diameter_m=40e-3)
+        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1,
+        >>>                             length_km=1, diameter_m=40e-3)
 
     """
     add_new_component(net, Pipe)
@@ -673,8 +673,8 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     :rtype: int
 
     EXAMPLE:
-        >>> create_pump_from_parameters(net, 0, 1, 'pump1', pressure_list=[0,1,2,3],\
-                                        flowrate_list=[0,1,2,3], reg_polynomial_degree=1)
+        >>> create_pump_from_parameters(net, 0, 1, 'pump1', pressure_list=[0,1,2,3],
+        >>>                             flowrate_list=[0,1,2,3], reg_polynomial_degree=1)
         >>> create_pump_from_parameters(net, 0, 1, 'pump2', poly_coefficents=[1,0])
 
     """
@@ -737,7 +737,8 @@ def create_circ_pump_const_pressure(net, from_junction, to_junction, p_bar, plif
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_pressure(net, 0, 1, p_bar=5, plift_bar=2, t_k=350, type="p")
+        >>> create_circ_pump_const_pressure(net, 0, 1, p_bar=5, plift_bar=2,
+        >>>                                 t_k=350, type="p")
 
     """
 
@@ -792,7 +793,8 @@ def create_circ_pump_const_mass_flow(net, from_junction, to_junction, p_bar, mdo
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_kg_per_s=2, t_k=350, type="p")
+        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_bar=5, mdot_kg_per_s=2,
+        >>>                                  t_k=350, type="p")
 
     """
 
@@ -858,8 +860,12 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
 def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar,
                             control_active=True, loss_coefficient=0., name=None, index=None,
                             in_service=True, type="pressure_control", **kwargs):
-    """
-    Adds one pressure control with a constant mass flow in table net["press_control"].
+    """Adds one pressure control that enforces a pressure at a specific junction.
+
+    The pressure control unit creates a pressure drop / lift between the 'from' and the 'to'
+    junction so that the pressure set point at the controlled junction is met.
+    It is required that the controlled junction is hydraulically properly connected to the from
+    and to junction and no other pessure control unit is inbetween.
 
     :param net: The net for which this pressure control should be created
     :type net: pandapipesNet
@@ -895,6 +901,8 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     :rtype: int
 
     :Example:
+        Connect junction 0 and 1 and set the pressure at junction 1 to 5 bar.
+
         >>> create_pressure_control(net, 0, 1, 1, controlled_p_bar=5)
 
     """
@@ -1022,7 +1030,8 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
     :rtype: array(int)
 
     :Example:
-        >>> create_junctions(net, 200, pn_bar=5, tfluid_k=320, height_m=np.arange(200))
+        >>> create_junctions(net, 200, pn_bar=5, tfluid_k=320,
+        >>>                  height_m=np.arange(200))
     """
     add_new_component(net, Junction)
 
@@ -1072,7 +1081,8 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=Non
     :rtype: array(int)
 
     :Example:
-        >>> new_sink_ids = create_sinks(net, junctions=[1, 5, 10], mdot_kg_per_s=[0.1, 0.05, 0.2])
+        >>> new_sink_ids = create_sinks(net, junctions=[1, 5, 10],
+        >>>                             mdot_kg_per_s=[0.1, 0.05, 0.2])
     """
     add_new_component(net, Sink)
 
@@ -1184,8 +1194,11 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :rtype: array(int)
 
     :Example:
-        >>> pipe_indices = create_pipes(net, from_junctions=[0, 2, 6], to_junctions=[1, 3, 7], \
-                                        std_type='315_PE_80_SDR_17', length_km=[0.2, 1, 0.3])
+        >>> pipe_indices = create_pipes(net,
+        >>>                             from_junctions=[0, 2, 6],
+        >>>                             to_junctions=[1, 3, 7],
+        >>>                             std_type='315_PE_80_SDR_17',
+        >>>                             length_km=[0.2, 1, 0.3])
 
     """
     add_new_component(net, Pipe)
@@ -1262,9 +1275,11 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :rtype: array(int)
 
     :Example:
-        >>> pipe_indices = create_pipes_from_parameters(\
-                net, from_junctions=[0, 2, 6], to_junctions=[1, 3, 7], length_km=[0.2, 1, 0.3],\
-                diameter_m=40e-3)
+        >>> pipe_indices = create_pipes_from_parameters(net,
+        >>>                                             from_junctions=[0, 2, 6],
+        >>>                                             to_junctions=[1, 3, 7],
+        >>>                                             length_km=[0.2, 1, 0.3],
+        >>>                                             diameter_m=40e-3)
 
     """
     add_new_component(net, Pipe)
@@ -1318,8 +1333,9 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
     :rtype: array(int)
 
     :Example:
-        >>> create_valves(net, from_junctions=[0, 1, 4], to_junctions=[1, 5, 6], \
-                opened=[True, False, True], diameter_m=4e-3, name=["valve_%d" for d in range(3)])
+        >>> create_valves(net, from_junctions=[0, 1, 4], to_junctions=[1, 5, 6],
+        >>>               opened=[True, False, True], diameter_m=4e-3,
+        >>>               name=["valve_%d" for d in range(3)])
 
     """
     add_new_component(net, Valve)
@@ -1342,6 +1358,12 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
+
+    Pressure control units enforce a pressure at a specific junction by creating a pressure drop /
+    lift between the 'from' and the 'to' junction so that the pressure set point at the
+    controlled junction is met.
+    It is required that the controlled junction is hydraulically properly connected to the from
+    and to junction and no other pessure control unit is inbetween.
 
     :param net: The net for which these pressure controls should be created
     :type net: pandapipesNet
@@ -1377,7 +1399,14 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     :rtype: array(int)
 
     :Example:
-        >>> create_pressure_controls(net, [0, 2], [1, 4], [1, 3], controlled_p_bar=[5, 4.9])
+        Create one unit to connect junction 0 and 1,
+        set the pressure at junction 1 to 5 bar.
+
+        And create a 2nd unit to connect junction 2 and 4,
+        set the pressure at junction 3 to 4.9 bar.
+
+        >>> create_pressure_controls(net, [0, 2], [1, 4], [1, 3],
+        >>>                          controlled_p_bar=[5, 4.9])
 
     """
     add_new_component(net, PressureControlComponent)
@@ -1442,6 +1471,9 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     :rtype: array(int)
 
     :Example:
+        Create two flow controllers with 0.8 m diameter between junction 0 and 1 with 0.5 kg/s and
+        junction 2 and 4 with 0.9 kg/s, respectively.
+
         >>> create_flow_controls(net, [0, 2], [1, 4], [0.5, 0.9], [0.8, 0.8])
 
     """

@@ -2,13 +2,6 @@
 Flow Control
 ==============
 
-Create Function
-===============
-
-.. _create_flow_control:
-
-.. autofunction:: pandapipes.create_flow_control
-
 Physical Model
 ==============
 The flow control component enforces a specific mass flow between two junctions.
@@ -19,6 +12,19 @@ This is very helpful to control the mass flow in district heating networks.
     It is recommended to use the flow control components only in looped networks.
     Using the flow controller in non-looped networks, in particular on stubs, can
     likely lead to non-convergence of the pipeflow.
+
+Create Function
+===============
+
+.. _create_flow_control:
+
+For creating a single flow control unit:
+
+.. autofunction:: pandapipes.create_flow_control
+
+For creating multiple flow control units at once:
+
+.. autofunction:: pandapipes.create_flow_controls
 
 
 Component Table Data
