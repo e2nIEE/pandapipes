@@ -5,18 +5,18 @@
 name: release
 
 # Controls when the action will run.
-on: workflow_dispatch
+on:
   # Allows you to run this workflow manually from the Actions tab
-#  workflow_dispatch:
-#    inputs:
-#      upload_server:
-#        description: 'upload server'
-#        required: true
-#        default: 'testpypi'
-#        type: choice
-#        options:
-#          - 'testpypi'
-#          - 'pypi'
+  workflow_dispatch:
+    inputs:
+      upload_server:
+        description: 'upload server'
+        required: true
+        default: 'testpypi'
+        type: choice
+        options:
+          - 'testpypi'
+          - 'pypi'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
