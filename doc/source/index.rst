@@ -39,8 +39,8 @@ This is the contents section of the pandapipes documentation.
    multi_energy_nets
    save_load
    plotting
-   toolbox
    converter
+   toolbox
 
 
 

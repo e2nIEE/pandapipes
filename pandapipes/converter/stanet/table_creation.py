@@ -200,7 +200,8 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers):
     #     that matches this type.
     opened_sv = [2, 6, 10, 18]
     closed_sv = [3, 7, 11, 19]
-    opened_types = {o: True for o in opened_sv} | {c: False for c in closed_sv}
+    opened_types = {o: True for o in opened_sv}
+    opened_types.update({c: False for c in closed_sv})
     sv_types = set(slider_valves.TYP.values.astype(np.int32))
     if len(sv_types - set(opened_types.keys())):
         raise UserWarning("The slider valve types %s cannot be converted."
