@@ -1,9 +1,9 @@
 **Parameter**;**Datatype**;**Value Range**;**Explanation**
 name;string;;Name of the pump
-from_junction;integer;:math:`>` 0;Index of junction at which the pump starts
-to_junction;integer;:math:`>` 0;Index of junction at which the pump ends
-p_bar;float;:math:`>` 0;Pressure set point [bar]
-p_lift_bar;float;:math:`>` 0;Pressure lift induced by the pump [bar]
-t_k;float;:math:`>` 0;Temperature set point [K]
+return_junction;integer;:math:`>` 0;Index of junction on the return side (where the pump starts)
+flow_junction;integer;:math:`>` 0;Index of junction on the flow side (where the pump ends)
+p_flow_bar;float;:math:`>` 0;Pressure set point at the pump outlet (at flow side) [bar]
+mdot_flow_kg_per_s;float;:math:`>` 0;Mass flow transported by the pump [kg/s]
+t_flow_k;float;:math:`>` 0;Temperature set point (at flow side) [K]
 in_serivce;boolean;True / False;True for in service or False for out of service
 type;string;;Type variable to classify the pump
