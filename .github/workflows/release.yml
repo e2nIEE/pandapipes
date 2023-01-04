@@ -2,25 +2,21 @@
 # A coverage report will be created for the Python 3.8 version
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-# pandapipes-develop branch is designed to work with pandapower-develop branch
-
-# This is a basic workflow to help you get started with Actions
-
-name: release_testpypi
+name: release
 
 # Controls when the action will run.
-on:
+on: workflow_dispatch
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      upload_server:
-        description: 'upload server'
-        required: true
-        default: 'testpypi'
-        type: choice
-        options:
-          - 'testpypi'
-          - 'pypi'
+#  workflow_dispatch:
+#    inputs:
+#      upload_server:
+#        description: 'upload server'
+#        required: true
+#        default: 'testpypi'
+#        type: choice
+#        options:
+#          - 'testpypi'
+#          - 'pypi'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
