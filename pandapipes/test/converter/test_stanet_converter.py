@@ -5,6 +5,7 @@
 import os
 
 import numpy as np
+import pytest
 
 import pandapipes
 from pandapipes.converter.stanet.stanet2pandapipes import stanet_to_pandapipes
