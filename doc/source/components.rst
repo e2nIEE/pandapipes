@@ -41,3 +41,4 @@ following documentation:
     components/compressor/compressor_component
     components/heat_exchanger/heat_exchanger_component
     components/storage/storage_component
+    components/flow_control/flow_control_component

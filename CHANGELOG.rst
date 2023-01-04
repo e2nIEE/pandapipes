@@ -3,6 +3,7 @@ Change Log
 
 [upcoming release] - 2023-..-..
 -------------------------------
+- [ADDED] new component flow controller: a branch component that controls the flow through itself. It adapts the pressure drop between two junctions to reflect the desired flow situation.
 - [ADDED] new global variable `__format_version__` that shall only be increased in case of API changes (i.e. if the convert_format function for JSON I/O must be called)
 - [ADDED] toolbox function to extract the _pit (pandapipes internal tables) structure for nodes and branches as pandas tables with meaningful names for the stored columns as given in the node_idx and branch_idx files
 - [ADDED] new component `mass_storage` and tutorial how to use it
