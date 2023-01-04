@@ -11,6 +11,8 @@ from pandapipes.plotting.generic_geodata import *
 from pandapipes.plotting.geo import *
 from pandapipes.plotting.pipeflow_results import *
 from pandapipes.plotting.simple_plot import *
+from pandapower.plotting.collections import add_collections_to_axes, add_cmap_to_collection, \
+    add_single_collection
 
 
 class GC(GraphicsContextBase):
