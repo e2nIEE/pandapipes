@@ -18,22 +18,24 @@ def valve_patches(coords, size, **kwargs):
     edgecolor = kwargs.pop('patch_edgecolor')
     colors = get_color_list(edgecolor, len(coords))
     lw = kwargs.get("linewidths", 2.)
+    ls = kwargs.get("linestyle", '-')
     filled = kwargs.pop("filled", np.full(len(coords), 0, dtype=bool))
     filled = get_filled_list(filled, len(coords))
+    pos = kwargs.pop("valve_position", 2)
     for geodata, col, filled_ind in zip(coords, colors, filled):
         p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
         diff = p2 - p1
         angle = np.arctan2(*diff)
         vec_size = _rotate_dim2(np.array([0, size]), angle)
-        centroid_tri1 = p1 + diff / 2 - vec_size
-        centroid_tri2 = p1 + diff / 2 + vec_size
+        centroid_tri1 = p1 + diff / pos - vec_size
+        centroid_tri2 = p1 + diff / pos + vec_size
         face_col = "w" if not filled_ind else col
         polys.append(RegularPolygon(centroid_tri1, numVertices=3, radius=size, orientation=-angle,
-                                    ec=col, fc=face_col, lw=lw))
+                                    ec=col, fc=face_col, lw=lw, ls=ls))
         polys.append(RegularPolygon(centroid_tri2, numVertices=3, radius=size,
-                                    orientation=-angle + np.pi / 3, ec=col, fc=face_col, lw=lw))
-        lines.append([p1, p1 + diff / 2 - vec_size / 2 * 3])
-        lines.append([p2, p1 + diff / 2 + vec_size / 2 * 3])
+                                    orientation=-angle + np.pi / 3, ec=col, fc=face_col, lw=lw, ls=ls))
+        lines.append([p1, p1 + diff / pos - vec_size / 2 * 3])
+        lines.append([p2, p1 + diff / pos + vec_size / 2 * 3])
     return lines, polys, {"filled"}
 
 
@@ -72,13 +74,13 @@ def flow_control_patches(coords, size, **kwargs):
 
 def heat_exchanger_patches(coords, size, **kwargs):
     polys, lines = list(), list()
-    facecolor = kwargs.pop('patch_facecolor')
-    face_colors = get_color_list(facecolor, len(coords))
-    edgecolor = kwargs.pop('patch_edgecolor')
-    edge_colors = get_color_list(edgecolor, len(coords))
+    facecolor = kwargs.get("patch_facecolor", "w")
+    edgecolor = kwargs.get("patch_edgecolor", "k")
+    facecolors = get_color_list(facecolor, len(coords))
+    edgecolors = get_color_list(edgecolor, len(coords))
 
     lw = kwargs.get("linewidths", 2.)
-    for geodata, face_col, edge_col in zip(coords, face_colors, edge_colors):
+    for geodata, face_col, edge_col in zip(coords, facecolors, edgecolors):
         p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
         diff = p2 - p1
         m = 3 * size / 4
@@ -92,9 +94,10 @@ def heat_exchanger_patches(coords, size, **kwargs):
         path = [path1, path2, path3, path4, path5]
         radius = size  # np.sqrt(diff[0]**2+diff[1]**2)/15
 
+        pa = Path(path)
         polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=edge_col, facecolor=face_col,
                             lw=lw))
-        polys.append(PathPatch(Path(path), fill=False, lw=lw, edgecolor=edge_col))
+        polys.append(PathPatch(pa, fill=False, lw=lw, edgecolor=edge_col))
         lines.append([p1, p1 + diff / 2 - direc * radius])
         lines.append([p2, p1 + diff / 2 + direc * radius])
     return lines, polys, {}
