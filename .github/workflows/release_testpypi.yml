@@ -11,18 +11,18 @@ name: release_testpypi
 # Controls when the action will run.
 on:
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      python_version:
-        description: 'python version'
-        required: true
-        default: '3.10'
-        type: choice
-        options:
-          - '3.7'
-          - '3.8'
-          - '3.9'
-          - '3.10'
+  workflow_dispatch
+#    inputs:
+#      python_version:
+#        description: 'python version'
+#        required: true
+#        default: '3.10'
+#        type: choice
+#        options:
+#          - '3.7'
+#          - '3.8'
+#          - '3.9'
+#          - '3.10'
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
