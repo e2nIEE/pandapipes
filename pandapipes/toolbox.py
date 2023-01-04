@@ -127,6 +127,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
         CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
         Compressor, FlowControlComponent
+    from pandapipes.converter.stanet.valve_pipe_component import ValvePipe
     special_elements_junctions = [("press_control", "controlled_junction")]
     move_elements = {"n2b": [], "b2n": []}
     node_elements = []
@@ -135,7 +136,8 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
         all_tables = {comp.table_name(): comp for comp in net.component_list}
     else:
         comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
-                     CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor, FlowControlComponent]
+                     CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor,
+                     FlowControlComponent, ValvePipe]
         all_tables = {comp.table_name(): comp for comp in comp_list}
 
     ejts = set()
