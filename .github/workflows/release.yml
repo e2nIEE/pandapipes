@@ -60,7 +60,7 @@ jobs:
         run: |
           python3 setup.py sdist --formats=zip
           twine check dist/* --strict 
-          #python3 -m twine upload dist/*
+          python3 -m twine upload dist/*
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI }}
