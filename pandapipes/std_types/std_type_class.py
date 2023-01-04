@@ -43,11 +43,14 @@ class InterpolationStdType(StdType):
 
     def __init__(self, name, component, int_fct):
         """
+        The interpolation standrad type object interpolates and extrapolates between the given values
 
-        :param name: Name of the interpolation object
+        :param name: Name of the interpolation standard type object
         :type name: str
-        :param path: Path where the CSV file, defining a interpolation object, is stored
-        :type path: str
+        :param component: The specific interpolation standard type
+        :type component: str
+        :param int_fct: Defines the interpolation function
+        :type int_fct: fct
         :return: An object of the interpolation standard type class
         :rtype: InterpolationStdType
         """
@@ -99,11 +102,14 @@ class RegressionStdType(StdType):
 
     def __init__(self, name, component, reg_par):
         """
+        The regression standrad type object creates a regression based on the given data and regression parameters
 
         :param name: Name of the regression object
         :type name: str
-        :param path: Path where the CSV file, defining a regression object, is stored
-        :type path: str
+        :param component: The specific regression standard type
+        :type component: str
+        :param reg_par: The determined regression parameters based on the given data and polynominal degree
+        :type reg_par: list
         :return: An object of the regression standard type class
         :rtype: RegressionStdType
         """
@@ -156,6 +162,9 @@ class PumpStdType(RegressionStdType):
 
     def __init__(self, name, reg_par):
         """
+        Creates a concrete pump std type. The class is a child class of the RegressionStdType, therefore, the here
+        derived values are calculated based on a previously performed regression. The regression parameters need to
+        be passed or alternatively, can be determined through the here defined class methods.
 
         :param name: Name of the pump object
         :type name: str
@@ -227,16 +236,16 @@ class PumpStdType(RegressionStdType):
 
 def regression_function(x_values, y_values, degree):
     """
-    Regression function...
+    Regression function: performs a regression based on the given x-, y-values and the polynominal degree.
 
-    :param p_values:
-    :type p_values:
-    :param v_values:
-    :type v_values:
-    :param degree:
-    :type degree:
-    :return:
-    :rtype:
+    :param x_values: given data on x-axis
+    :type x_values: array_like
+    :param y_values: given data on y-axis
+    :type y_values: array_like
+    :param degree: polynominal degree
+    :type degree: int
+    :return: polynominal coefficients
+    :rtype: ndarray
     """
     if not int(degree) == degree:
         raise UserWarning("The polynomial degree has to be an integer, but %s was given. "
@@ -246,16 +255,16 @@ def regression_function(x_values, y_values, degree):
 
 def interpolation_function(x_values, y_values, fill_value='extrapolate'):
     """
-    Regression function...
+    interpolation function: performs an interpolation based on the given x- and y-values.
 
-    :param p_values:
-    :type p_values:
-    :param v_values:
-    :type v_values:
-    :param degree:
-    :type degree:
-    :return:
-    :rtype:
+    :param x_values: given data on x-axis
+    :type x_values: array_like
+    :param y_values: given data on y-axis
+    :type y_values: array_like
+    :param degree: how to handle missing data
+    :type degree: str
+    :return: interpolation function
+    :rtype: fct
     """
     return interp1d(x_values, y_values, fill_value=fill_value)
 
@@ -266,14 +275,14 @@ def _retrieve_data(loaded_data):
 
 def get_data(path, std_type_category):
     """
-    get_data.
+    retrieve data
 
-    :param path:
-    :type path:
+    :param path: path the data can be retrieved from
+    :type path: str
     :param std_type_category:
     :type std_type_category:
-    :return:
-    :rtype:
+    :return: data in a pd.DataFrame
+    :rtype: pd.DataFrame
     """
     if std_type_category == 'pump':
         return PumpStdType.load_data(path)
