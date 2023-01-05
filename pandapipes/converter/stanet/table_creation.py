@@ -710,13 +710,15 @@ def check_connection_client_types(hh_pipes, all_client_types, node_client_types)
     client2nodetype = hh_pipes.CLIENT2TYP.isin(node_client_types)
     if not np.all(clientnodetype | client2nodetype):
         raise UserWarning(
-            "One of the household connection sides must be connected to a node (type %s element) or"
-            " a connection (type %s element with ID CON...) or a house node (type %s element). "
-            "Check these types: %s inside the HA LEI table: \n %s"
-            % (NODE_TYPE, HOUSE_CONNECTION_TYPE, HOUSE_NODE_TYPE,
-               set(hh_pipes.loc[~clientnodetype, "CLIENTTYP"].values)
-               | set(hh_pipes.loc[~client2nodetype, "CLIENT2TYP"].values),
-               hh_pipes.loc[~clientnodetype | ~client2nodetype]))
+            f"One of the household connection sides must be connected to a node (type {NODE_TYPE} element)\n"
+            f"or a connection (type {HOUSE_CONNECTION_TYPE} element with ID CON...) "
+            f"or a house node (type {HOUSE_CONNECTION_TYPE} element). \n"
+            f"Please check that the input data is correct. \n"
+            f"Check these CLIENTTYP / CLIENT2TYP: "
+            f"{set(hh_pipes.loc[~clientnodetype, 'CLIENTTYP'].values) | set(hh_pipes.loc[~client2nodetype, 'CLIENT2TYP'].values)} "
+            f"in the HA LEI table (max. 10 entries shown): \n "
+            f"{hh_pipes.loc[~clientnodetype & ~client2nodetype].head(10)}"
+            )
     return clientnodetype, client2nodetype
 
 
