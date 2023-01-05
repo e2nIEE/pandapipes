@@ -9,13 +9,14 @@ import numpy as np
 import pandapower
 import pandas as pd
 import pytest
+from packaging import version
 
 import pandapipes
 from pandapipes import networks as nw, BranchComponent
 from pandapipes.component_models import NodeComponent
 from pandapipes.idx_node import node_cols
 from pandapipes.idx_branch import branch_cols
-from pandapipes.test.api.test_convert_format import found_versions, folder
+from pandapipes.test.api.test_convert_format import found_versions, folder, minimal_version_two_nets
 
 
 def create_base_net(oos):
@@ -266,30 +267,36 @@ def test_select_subnet(base_net_is_wo_pumps):
 
 def test_pit_extraction():
     max_ver = max(found_versions)
-    filename = os.path.join(folder, "example_%s.json" % max_ver)
-    net = pandapipes.from_json(filename)
-    pandapipes.pipeflow(net)
+    if version.parse(max_ver) >= version.parse(minimal_version_two_nets):
+        names = ["_gas", "_water"]
+    else:
+        names = [""]
 
-    node_table, branch_table = pandapipes.get_internal_tables_pandas(net)
+    for name in names:
+        filename = os.path.join(folder, "example_%s%s.json" % (max_ver, name))
+        net = pandapipes.from_json(filename)
+        pandapipes.pipeflow(net)
 
-    assert node_table.shape[1] == node_cols
-    assert branch_table.shape[1] == branch_cols
+        node_table, branch_table = pandapipes.get_internal_tables_pandas(net)
 
-    for comp in net.component_list:
-        tbl = comp.table_name()
-        if len(net[tbl]) > 0:
-            if issubclass(comp, NodeComponent):
-                assert tbl in node_table["TABLE_IDX"].values
-                assert np.all(np.isin(
-                    net[tbl].index.values,
-                    node_table.loc[node_table.TABLE_IDX == tbl].ELEMENT_IDX.values
-                ))
-            elif issubclass(comp, BranchComponent):
-                assert tbl in branch_table["TABLE_IDX"].values
-                assert np.all(np.isin(
-                    net[tbl].index.values,
-                    branch_table.loc[branch_table.TABLE_IDX == tbl].ELEMENT_IDX.values
-                ))
+        assert node_table.shape[1] == node_cols
+        assert branch_table.shape[1] == branch_cols
+
+        for comp in net.component_list:
+            tbl = comp.table_name()
+            if len(net[tbl]) > 0:
+                if issubclass(comp, NodeComponent):
+                    assert tbl in node_table["TABLE_IDX"].values
+                    assert np.all(np.isin(
+                        net[tbl].index.values,
+                        node_table.loc[node_table.TABLE_IDX == tbl].ELEMENT_IDX.values
+                    ))
+                elif issubclass(comp, BranchComponent):
+                    assert tbl in branch_table["TABLE_IDX"].values
+                    assert np.all(np.isin(
+                        net[tbl].index.values,
+                        branch_table.loc[branch_table.TABLE_IDX == tbl].ELEMENT_IDX.values
+                    ))
 
 
 def runpp_with_mark(net, **kwargs):
