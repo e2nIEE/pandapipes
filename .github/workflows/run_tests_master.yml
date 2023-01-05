@@ -87,7 +87,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Check docs for Python ${{ matrix.python-version }}
-        uses: SimonRubenDrauz/sphinx-action@master
+        uses: e2nIEE/sphinx-action@master
         with:
           pre-build-command: "apt-get update -y && apt-get install -y git;
                               git --version;
