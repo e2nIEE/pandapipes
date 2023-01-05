@@ -15,6 +15,7 @@ Change Log
 - [ADDED] toolbox function to extract the _pit (pandapipes internal tables) structure for nodes and branches as pandas tables with meaningful names for the stored columns as given in the node_idx and branch_idx files
 - [ADDED] new global variable `__format_version__` that shall only be increased in case of API changes (i.e. if the convert_format function for JSON I/O must be called)
 - [ADDED] documentation check which is able to throw errors in case of warnings
+- [ADDED] example networks including new component types for the convert_format test
 - [CHANGED] circ pump is now a branch component
 - [CHANGED] default roughness parameter `k_mm` for pipes is now 0.2 mm instead of 1 mm (all create_pipe... functions)
 - [CHANGED] instead of from and to junction, in case of circulation pumps it is called return and flow junction from now on
@@ -24,6 +25,7 @@ Change Log
 - [CHANGED] by default p and t are set to None in case of ext grids. Based on the type selected, p and t must be adapted accordingly. If set to 'auto', based on the given p and t values, the type is set
 - [CHANGED] 'auto' can also be set for type in case of circulation pumps. The behavior is the same as in case of ext grids
 - [CHANGED] authors list adapted
+- [CHANGED] as of now, not one but two example nets (water and gas) will be created for the convert_format test (ensure backward compatibility when loading nets from jsons)
 - [FIXED] the references to pipeflow procedures have changed. Caused problems in the documentation
 - [FIXED] removed unused import of 'progress_bar' from pandapower which caused import problems
 
