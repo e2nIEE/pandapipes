@@ -17,7 +17,8 @@ Hints for the conversion procedure:
    pipeflow as well (see the notes below for more info).
 #. Then, the network needs to be exported as CSV-file from STANET (export everything into
    one file).
-#. The pandapipes net can be created by passing the path to the CSV-file to the :code:`stanet_to_pandapipes` function.
+#. The pandapipes net can be created by passing the path to the CSV-file to the
+   :code:`stanet_to_pandapipes` function.
 
 .. autofunction:: pandapipes.converter.stanet.stanet2pandapipes.stanet_to_pandapipes
 
