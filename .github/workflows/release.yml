@@ -35,7 +35,7 @@ jobs:
         with:
           python-version: '3.10'
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
-      - name: "Installs and upgrades pip, installs other dependencies and installs the package from setup.py"
+      - name: Install dependencies
         run: |
           # Upgrade pip
           python3 -m pip install --upgrade pip
