@@ -28,13 +28,13 @@ with open('.github/workflows/run_tests_master.yml', 'rb') as f:
     lines = f.read().decode('utf-8')
     versions = set(re.findall('3.[7-9]', lines)) | set(re.findall('3.1[0-9]', lines))
     for version in versions:
-        classifiers.append('Programming Language :: Python :: 3.%s' % version[-1])
+        classifiers.append('Programming Language :: Python :: %s' % version)
 
 long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.8.0.post3',
+    version='0.8.0.post4',
     author='Simon Ruben Drauz-Mauel, Daniel Lohmeier, Jolando Marius Kisse',
     author_email='simon.ruben.drauz-mauel@iee.fraunhofer.de, daniel.lohmeier@retoflow.de, '
                  'jolando.kisse@uni-kassel.de',
