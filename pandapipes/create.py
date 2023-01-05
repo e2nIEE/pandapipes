@@ -746,7 +746,8 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_pressure(net, 0, 1, p_flow_bar=5, plift_bar=2, t_flow_k=350, type="p")
+        >>> create_circ_pump_const_pressure(net, 0, 1, p_flow_bar=5, plift_bar=2,
+        >>>                                 t_flow_k=350, type="p")
 
     """
 
@@ -813,8 +814,8 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_flow_bar=5, mdot_flow_kg_per_s=2, \
-                                             t_flow_k=350, type="pt")
+        >>> create_circ_pump_const_mass_flow(net, 0, 1, p_flow_bar=5, mdot_flow_kg_per_s=2,
+        >>>                                  t_flow_k=350, type="pt")
 
     """
 
@@ -1149,8 +1150,8 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     :rtype: array(int)
 
     :Example:
-        >>> new_source_ids = create_sources(net, junctions=[1, 5, 10],\
-                                            mdot_kg_per_s=[0.1, 0.05, 0.2])
+        >>> new_source_ids = create_sources(net, junctions=[1, 5, 10],
+        >>>                                 mdot_kg_per_s=[0.1, 0.05, 0.2])
     """
     add_new_component(net, Source)
 
