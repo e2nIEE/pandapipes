@@ -4,7 +4,7 @@
 
 from packaging import version
 
-from pandapipes import __format_version__
+from pandapipes import __format_version__, __version__
 from pandapipes.pandapipes_net import add_default_components
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
@@ -32,6 +32,7 @@ def convert_format(net):
     _rename_columns(net)
     _add_missing_columns(net)
     _rename_attributes(net)
+    net.version = __version__
     net.format_version = __format_version__
     return net
 
