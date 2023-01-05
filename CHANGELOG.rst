@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[0.8.1] - 2023-01-..
+-------------------------------
+- [ADDED] shapely as additional requirement (due to the stanet2pandapipes converter)
+
 [0.8.0] - 2023-01-05
 -------------------------------
 - [ADDED] new component `flow controller`: a branch component that controls the flow through itself. The flow controller component is able to keep its mass flow fixed. It adapts the pressure drop between two junctions to reflect the desired flow situation.
