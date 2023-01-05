@@ -1,15 +1,13 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat
-from pandapipes.idx_branch import ACTIVE
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
-    CP, ELEMENT_IDX
-from pandapipes.idx_node import L, node_cols
-from pandapipes.idx_node import TINIT as TINIT_NODE
+from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, TINIT, RHO, ETA, CP, ELEMENT_IDX
+from pandapipes.idx_node import L, node_cols, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
 
@@ -43,7 +41,7 @@ class BranchWInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         raise NotImplementedError
 
     @classmethod

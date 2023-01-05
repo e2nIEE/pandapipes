@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -12,6 +12,7 @@ from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_
 from pandapipes.multinet import MultiNet
 from pandapower.toolbox import nets_equal as nets_equal_pandapower
 from pandapipes.toolbox import nets_equal
+
 
 # @pytest.fixture()
 def load_net():

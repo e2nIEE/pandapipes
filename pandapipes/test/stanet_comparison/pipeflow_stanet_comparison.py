@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -43,7 +43,7 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
     if get_fluid(net).is_gas:
         if 'pipe' in net:
             v_diff_from_pipe, v_diff_to_pipe, v_diff_mean_pipe, v_diff_abs_pipe, \
-            v_mean_pandapipes_pipe, v_stanet_pipe = retrieve_velocity_gas(net, 'pipe')
+                v_mean_pandapipes_pipe, v_stanet_pipe = retrieve_velocity_gas(net, 'pipe')
         else:
             v_diff_abs_pipe = pd.Series(dtype="float64")
             v_stanet_pipe = pd.Series(dtype="float64")
@@ -58,7 +58,7 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
 
         if 'valve' in net:
             v_diff_from_valve, v_diff_to_valve, v_diff_mean_valve, v_diff_abs_valve, \
-            v_mean_pandapipes_valve, v_stanet_valve = retrieve_velocity_gas(net, 'valve')
+                v_mean_pandapipes_valve, v_stanet_valve = retrieve_velocity_gas(net, 'valve')
         else:
             v_diff_abs_valve = pd.Series(dtype="float64")
             v_stanet_valve = pd.Series(dtype="float64")

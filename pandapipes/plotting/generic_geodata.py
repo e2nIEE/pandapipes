@@ -1,15 +1,13 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.component_models.sink_component import Sink
-from pandapipes.component_models.source_component import Source
-from pandapipes.component_models.junction_component import Junction
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
+
+from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
 
 try:
     import pandaplan.core.pplog as logging
@@ -53,19 +51,17 @@ def build_igraph_from_ppipes(net, junctions=None):
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
     mask = _get_element_mask_from_nodes(net, "pipe", ["from_junction", "to_junction"], junctions)
-    for junction in net.pipe[mask].itertuples():
-        g.add_edge(pp_junction_mapping[junction.from_junction],
-                   pp_junction_mapping[junction.to_junction],
-                   weight=junction.length_km)
+    for pipe in net.pipe[mask].itertuples():
+        g.add_edge(pp_junction_mapping[pipe.from_junction], pp_junction_mapping[pipe.to_junction],
+                   weight=pipe.length_km)
 
     for comp in net['component_list']:
-        if comp in [Source, Sink, ExtGrid, Pipe, Junction]:
+        if not isinstance(comp, BranchComponent):
             continue
-        mask = _get_element_mask_from_nodes(
-            net, comp.table_name(), ["from_junction", "to_junction"], junctions)
+        fjc, tjc = comp.from_to_node_cols()
+        mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
         for comp_data in net[comp.table_name()][mask].itertuples():
-            g.add_edge(pp_junction_mapping[comp_data.from_junction],
-                       pp_junction_mapping[comp_data.to_junction],
+            g.add_edge(pp_junction_mapping[comp_data[fjc]], pp_junction_mapping[comp_data[tjc]],
                        weight=0.001)
 
     meshed = _igraph_meshed(g)
