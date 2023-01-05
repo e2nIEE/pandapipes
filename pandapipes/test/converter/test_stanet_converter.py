@@ -6,8 +6,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import pytest
-from packaging import version
 
 import pandapipes
 from pandapipes.converter.stanet.stanet2pandapipes import stanet_to_pandapipes
@@ -48,14 +46,12 @@ def test_mini_exampelonia():
     assert np.all(v_diff.loc[several_sections] < 0.02)
 
 
-@pytest.mark.xfail(version.parse(pd.__version__) < version.parse("1.4"), # Python 3.7 pipeline failed
-                   reason="workaround in change_dtypes does not work with auxiliary nodes")
 def test_mini_exampelonia_not_stanetlike():
     """Test a mini version of the Schutterwald network enhanced with valves.
     Convert valve pipes to separate valves and pipes."""
     mininet_path = os.path.join(test_file_folder,
                                      "Exampelonia_mini_with_2valvepipe.CSV")
-    net = stanet_to_pandapipes(mininet_path, stanet_like_valves=False, add_layers=False)
+    net = stanet_to_pandapipes(mininet_path, stanet_like_valves=False)
     pandapipes.pipeflow(net)
 
     assert net.converged
@@ -72,7 +68,6 @@ def test_mini_exampelonia_stanetlike():
     assert net.converged
 
 
-@pytest.mark.xfail(reason="open sliders lead to non-converging pipe flow")
 def test_mini_exampelonia_sliders_open():
     """Test a mini version of the Schutterwald network enhanced with sliders.
     Test with open sliders"""
@@ -84,8 +79,6 @@ def test_mini_exampelonia_sliders_open():
     assert net.converged
 
 
-@pytest.mark.xfail(version.parse(pd.__version__) < version.parse("1.4"), # Python 3.7 pipeline failed
-                   reason="workaround in change_dtypes does not work with auxiliary nodes")
 def test_mini_exampelonia_sliders_closed():
     """Test a mini version of the Schutterwald network enhanced with sliders.
     Test with closed sliders."""

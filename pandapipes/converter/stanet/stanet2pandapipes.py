@@ -14,7 +14,6 @@ from pandapipes.converter.stanet.table_creation import create_junctions_from_nod
     create_sinks_meters, create_sinks_from_nodes, create_control_components, \
     create_sinks_from_customers, create_pipes_house_connections
 from pandapipes.create import create_empty_network
-from packaging import version
 
 try:
     import pandaplan.core.pplog as logging
@@ -131,7 +130,10 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
                             control_flows, add_layers)
 
     if add_layers:
-        net["stanet_layers"] = stored_data["layers"]
+        if hasattr(stored_data, "layers"):
+            net["stanet_layers"] = stored_data["layers"]
+        else:
+            logger.warning("Layer data could not be found in the CSV file.")
 
     # add a p_n value to the nodes, which does not exist in STANET
     add_rated_p_values(net, **kwargs)
@@ -185,13 +187,8 @@ def add_rated_p_values(net, **kwargs):
 
 
 def change_dtypes(net):
-    if version.parse(pd.__version__) > version.parse("1.4"):
-        # pd.Int32Dtype() is preferred because it does not fail if there are NaN in the array
-        preferred_int_type = pd.Int32Dtype()
-    else:
-        # the pd.Int32Dtype() solution did not work in Python 3.7 with pandas 1.3.5
-        preferred_int_type = np.int32
-    dtypes = {"stanet_nr": preferred_int_type,
+
+    dtypes = {"stanet_nr": np.int32,
               "stanet_id": str,
               "stanet_status": str,
               "v_stanet": np.float64}
