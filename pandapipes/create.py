@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -311,9 +311,6 @@ def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None,
 
     """
     add_new_component(net, ExtGrid)
-
-    if type not in ["p", "t", "pt"]:
-        logger.warning("no proper type was chosen.")
 
     _check_junction_element(net, junction)
     index = _get_index_with_check(net, "ext_grid", index, name="external grid")

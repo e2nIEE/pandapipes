@@ -9,7 +9,7 @@ import pandas as pd
 
 import pandapipes
 from pandapipes.component_models.component_toolbox import vrange
-from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe
+from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
 try:
     from shapely.geometry import LineString
@@ -136,7 +136,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         if add_layers:
             add_info["stanet_layer"] = str(row.LAYER)
         if stanet_like_valves:
-            create_valve_pipe(
+            create_valve_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
                 length_km=row.RORL / 1000, diameter_m=float(row.DM / 1000), k_mm=row.RAU,
                 opened=row.AUF == 'J', loss_coefficient=row.ZETA,
@@ -149,14 +149,14 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
             j_aux = pandapipes.create_junction(
                 net, np.NaN, tfluid_k=net_params["medium_temp_K"], height_m=j_ref['height_m'],
                 name='aux_' + j_ref['stanet_id'], geodata=(j_ref_geodata.x, j_ref_geodata.y),
-                stanet_nr=np.NaN, stanet_id='aux_' + j_ref['stanet_id'], p_stanet=np.NaN,
+                stanet_nr=-999, stanet_id='aux_' + j_ref['stanet_id'], p_stanet=np.NaN,
                 stanet_active=bool(row.ISACTIVE), **add_info
             )
             pandapipes.create_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
                 diameter_m=float(row.DM / 1000), k_mm=row.RAU, loss_coefficient=row.ZETA,
                 name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
-                in_service=bool(row.ISACTIVE), stanet_nr=np.NaN,
+                in_service=bool(row.ISACTIVE), stanet_nr=-999,
                 stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
                 stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info
             )
@@ -212,6 +212,11 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers):
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = slider_valves.LAYER.values.astype(str)
+    # account for sliders with diameter 0 m
+    if any(slider_valves.DM == 0):
+        logger.warning(f"{sum(slider_valves.DM == 0)} sliders have a inner diameter of 0 m! "
+                       f"The diameter will be set to 1 m.")
+        slider_valves.DM[slider_valves.DM == 0] = 1e3
     pandapipes.create_valves(
         net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
         opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
@@ -705,13 +710,15 @@ def check_connection_client_types(hh_pipes, all_client_types, node_client_types)
     client2nodetype = hh_pipes.CLIENT2TYP.isin(node_client_types)
     if not np.all(clientnodetype | client2nodetype):
         raise UserWarning(
-            "One of the household connection sides must be connected to a node (type %s element) or"
-            " a connection (type %s element with ID CON...) or a house node (type %s element). "
-            "Check these types: %s inside the HA LEI table: \n %s"
-            % (NODE_TYPE, HOUSE_CONNECTION_TYPE, HOUSE_NODE_TYPE,
-               set(hh_pipes.loc[~clientnodetype, "CLIENTTYP"].values)
-               | set(hh_pipes.loc[~client2nodetype, "CLIENT2TYP"].values),
-               hh_pipes.loc[~clientnodetype | ~client2nodetype]))
+            f"One of the household connection sides must be connected to a node (type {NODE_TYPE} element)\n"
+            f"or a connection (type {HOUSE_CONNECTION_TYPE} element with ID CON...) "
+            f"or a house node (type {HOUSE_CONNECTION_TYPE} element). \n"
+            f"Please check that the input data is correct. \n"
+            f"Check these CLIENTTYP / CLIENT2TYP: "
+            f"{set(hh_pipes.loc[~clientnodetype, 'CLIENTTYP'].values) | set(hh_pipes.loc[~client2nodetype, 'CLIENT2TYP'].values)} "
+            f"in the HA LEI table (max. 10 entries shown): \n "
+            f"{hh_pipes.loc[~clientnodetype & ~client2nodetype].head(10)}"
+            )
     return clientnodetype, client2nodetype
 
 

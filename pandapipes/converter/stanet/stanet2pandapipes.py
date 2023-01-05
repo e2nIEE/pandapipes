@@ -130,7 +130,10 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
                             control_flows, add_layers)
 
     if add_layers:
-        net["stanet_layers"] = stored_data["layers"]
+        if hasattr(stored_data, "layers"):
+            net["stanet_layers"] = stored_data["layers"]
+        else:
+            logger.warning("Layer data could not be found in the CSV file.")
 
     # add a p_n value to the nodes, which does not exist in STANET
     add_rated_p_values(net, **kwargs)
@@ -184,7 +187,12 @@ def add_rated_p_values(net, **kwargs):
 
 
 def change_dtypes(net):
-    dtypes = {"stanet_nr": np.int32, "stanet_id": str, "stanet_status": str, "v_stanet": np.float64}
+
+    dtypes = {"stanet_nr": np.int32,
+              "stanet_id": str,
+              "stanet_status": str,
+              "v_stanet": np.float64}
+
     for comp in net.component_list:
         table_name = comp.table_name()
         if table_name not in net:
