@@ -312,9 +312,6 @@ def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None,
     """
     add_new_component(net, ExtGrid)
 
-    if type not in ["p", "t", "pt"]:
-        logger.warning("no proper type was chosen.")
-
     _check_junction_element(net, junction)
     index = _get_index_with_check(net, "ext_grid", index, name="external grid")
 
