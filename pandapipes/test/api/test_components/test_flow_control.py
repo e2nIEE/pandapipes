@@ -61,3 +61,26 @@ def test_flow_control_simple_gas(use_numba):
     assert np.allclose(net.res_pipe.loc[[p12, p23, p34, p45, p56, p58, p67], "mdot_from_kg_per_s"],
                        [0.15, 0.12, 0.08, 0.01, 0.01, -0.01, 0.04])
     assert np.allclose(net.res_flow_control["mdot_from_kg_per_s"].values, [0.03, 0.02, 0.03])
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_flow_control_simple_gas_two_eg(use_numba):
+    net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="hgas")
+
+    j = pandapipes.create_junctions(net, 4, pn_bar=1, tfluid_k=298)
+    j1, j2, j3, j4 = j
+
+    p12, p34 = pandapipes.create_pipes_from_parameters(net, [j1, j3], [j2, j4], 0.2, 0.1, k_mm=0.1)
+
+    pandapipes.create_flow_control(net, j2, j3, 0.03, 0.1)
+
+    pandapipes.create_ext_grid(net, j1, p_bar=1, t_k=298)
+    pandapipes.create_ext_grid(net, j4, p_bar=0.95, t_k=298)
+
+    pandapipes.create_sinks(net, [j2, j3], [0.02, 0.04])
+
+    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba)
+
+    assert np.allclose(net.res_pipe.loc[[p12, p34], "mdot_from_kg_per_s"], [0.05, -0.01])
+    assert np.allclose(net.res_flow_control["mdot_from_kg_per_s"].values, [0.03])
+    assert np.allclose(net.res_ext_grid["mdot_kg_per_s"].values, [-0.05, -0.01])
