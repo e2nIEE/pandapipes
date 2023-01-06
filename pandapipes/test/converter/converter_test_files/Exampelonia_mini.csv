@@ -24,32 +24,32 @@ FEL;KNO;KNO;FSTATUS;C;  1;  0;Fluss-Status;?
 FEL;KNO;KNO;PMESS;N;  8;  4;Messdruck;bar
 FEL;KNO;KNO;DSTATUS;C;  1;  0;Druck-Status;!
 FEL;KNO;KNO;TEMP;N;  6;  1;Temperatur;C
-FEL;KNO;KNO;GEOH;N;  7;  2;Hˆhe;mNN
+FEL;KNO;KNO;GEOH;N;  7;  2;H√∂he;mNN
 FEL;KNO;KNO;PRECH;N;  8;  4;Ber.Druck;bar
 FEL;KNO;KNO;PABS;N;  8;  4;Abs.Druck;bar
 FEL;KNO;KNO;DP;N;  8;  4;Diff.Druck;bar
-FEL;KNO;KNO;HO;N;  8;  4;Qualit‰t 1;
+FEL;KNO;KNO;HO;N;  8;  4;Qualit√§t 1;
 FEL;KNO;KNO;FEUCHTE;N;  6;  2;Feuchte;%
-FEL;KNO;KNO;HP;N; 10;  3;Druckhˆhe;m
+FEL;KNO;KNO;HP;N; 10;  3;Druckh√∂he;m
 FEL;KNO;KNO;SYMBOL;N;  3;  0;Symbol-Nr.;
-FEL;KNO;KNO;ABGAENGE;N;  3;  0;Abg‰nge;
+FEL;KNO;KNO;ABGAENGE;N;  3;  0;Abg√§nge;
 FEL;KNO;KNO;NETZNR;N;  4;  0;Teilnetz;
-FEL;KNO;KNO;LASTMODI;N; 19;  0;Letzte ƒnderung;
+FEL;KNO;KNO;LASTMODI;N; 19;  0;Letzte √Ñnderung;
 FEL;KNO;KNO;LOCATION;C; 18;  0;Ort;
-FEL;KNO;KNO;INVERT;N;  7;  2;Sohlhˆhe;mNN
+FEL;KNO;KNO;INVERT;N;  7;  2;Sohlh√∂he;mNN
 FEL;KNO;KNO;USERNAME;C; 16;  0;Letzter Benutzer;
 FEL;KNO;KNO;TMIN;N; 11;  2;Minimale Laufzeit;h
 FEL;KNO;KNO;TMAX;N; 11;  2;Maximale Laufzeit;h
 FEL;KNO;KNO;RHO;N;  8;  2;Betriebsdichte;kg/m3
-FEL;KNO;KNO;ETA;N;  8;  2;Medium-Z‰higkeit;E-6kg/ms
-FEL;KNO;KNO;QUALI2;N; 12;  4;Qualit‰t 2;
-FEL;KNO;KNO;QUALI3;N; 12;  4;Qualit‰t 3;
+FEL;KNO;KNO;ETA;N;  8;  2;Medium-Z√§higkeit;E-6kg/ms
+FEL;KNO;KNO;QUALI2;N; 12;  4;Qualit√§t 2;
+FEL;KNO;KNO;QUALI3;N; 12;  4;Qualit√§t 3;
 FEL;KNO;KNO;TMESS;N;  6;  1;Messtemp.;C
 FEL;KNO;KNO;DISCONNECT;C;  1;  0;Trennt;[J/N]
 FEL;KNO;KNO;FLAGOFFX;N;  6;  0;Text Abstand x;
 FEL;KNO;KNO;FLAGOFFY;N;  6;  0;Text Abstand y;
 FEL;KNO;KNO;SWMMPRINT;C;  1;  0;Ergebnisdiagramm;[+]
-FEL;KNO;KNO;PASTESTATE;C;  1;  0;Einf¸gen Status;[I/U/D/K]
+FEL;KNO;KNO;PASTESTATE;C;  1;  0;Einf√ºgen Status;[I/U/D/K]
 FEL;KNO;KNO;IMEXSTATE;C;  1;  0;Import Status;[I/U/M]
 FEL;KNO;KNO;RHON;N; 11;  4;Normdichte;kg/m3
 FEL;KNO;KNO;TMED;N; 11;  2;Mittlere Laufzeit;h
@@ -61,7 +61,7 @@ FEL;KNO;KNO;LINKERR;C;  1;  0;Verbindungsfehler;[J/N]
 FEL;KNO;KNO;SIGMAP;N;  8;  4;Streuung Druck;bar
 FEL;KNO;KNO;SIGMAFLOW;N; 12;  3;Streuung Durchf.;Nm3/h
 FEL;KNO;KNO;SIGMATEMP;N;  6;  2;Streuung Temp.;C
-FEL;KNO;KNO;SIGMAW;N; 11;  3;Streuung W‰rme;kW
+FEL;KNO;KNO;SIGMAW;N; 11;  3;Streuung W√§rme;kW
 FEL;KNO;KNO;SIGMAHUMID;N;  6;  2;Streuung Feuchte;%
 FEL;KNO;KNO;SIGMAQUA1;N; 12;  4;Streuung Qual.1;
 FEL;KNO;KNO;SIGMAQUA2;N; 12;  4;Streuung Qual.2;
@@ -80,18 +80,18 @@ FEL;KNO;KNO;QMAX;N; 11;  2;Max.Leistung;Nm3/h
 FEL;KNO;KNO;QRESERV;N; 11;  2;Reserveleistung;Nm3/h
 FEL;KNO;KNO;QMAXERR;C;  1;  0;Fehler QMax.;
 FEL;KNO;KNO;H0;N;  8;  3;Brennwert;kWh/m3
-FEL;KNO;KNO;QUALM2;N; 12;  4;Qualit‰t Messwert 2;
-FEL;KNO;KNO;QUALM3;N; 12;  4;Qualit‰t Messwert 3;
+FEL;KNO;KNO;QUALM2;N; 12;  4;Qualit√§t Messwert 2;
+FEL;KNO;KNO;QUALM3;N; 12;  4;Qualit√§t Messwert 3;
 FEL;KNO;KNO;TORESULT;C;  1;  0;Batchergebniss Ablegen;[J/N]
-FEL;KNO;KNO;NOHIDECHRT;C;  1;  0;In L‰ngsschnitt nicht ausblenden;[J/N]
-FEL;KNO;KNO;CHRTSHOWTX;C;  1;  0;Text in L‰ngsschnitt ausgeben;[J/N]
+FEL;KNO;KNO;NOHIDECHRT;C;  1;  0;In L√§ngsschnitt nicht ausblenden;[J/N]
+FEL;KNO;KNO;CHRTSHOWTX;C;  1;  0;Text in L√§ngsschnitt ausgeben;[J/N]
 FEL;KNO;KNO;CO2;N;  8;  4;CO2-Gehalt;mol-%
 FEL;KNO;KNO;H2;N;  8;  4;H2-Gehalt;mol-%
 FEL;KNO;KNO;N2;N;  8;  4;N2-Gehalt;mol-%
 FEL;KNO;KNO;GEBIET;C;  2;  0;Gebiet;
 FEL;KNO;KNO;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;KNO;KNO;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;KNO;KNO;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;KNO;KNO;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;KNO;KNO;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;KNO;KNO;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen Leitungen
@@ -102,7 +102,7 @@ FEL;LEI;LEI;ENDNR;N;  7;  0;End.Nr.;
 FEL;LEI;LEI;PARALLEL;N;  1;  0;Parallel;
 FEL;LEI;LEI;STANETID;C; 24;  0;STANET-ID;
 FEL;LEI;LEI;WDZAHL;N;  7;  2;WD-Zahl;W/K*m2
-FEL;LEI;LEI;RORL;N;  8;  1;L‰nge;m
+FEL;LEI;LEI;RORL;N;  8;  1;L√§nge;m
 FEL;LEI;LEI;DM;N;  6;  1;Innendurchm.;mm
 FEL;LEI;LEI;AUX1;C;  3;  0;Aux1;
 FEL;LEI;LEI;RAU;N;  9;  4;Rauhigkeit;mm
@@ -118,15 +118,15 @@ FEL;LEI;LEI;BAUJAHR;N;  4;  0;Baujahr;
 FEL;LEI;LEI;DPREL;N; 14;  2;Reibungsverl./km;mbar/km
 FEL;LEI;LEI;ROHRTYP;C; 21;  0;Rohrtyp;
 FEL;LEI;LEI;STRANGNR;C; 16;  0;StrangNo;
-FEL;LEI;LEI;DPM;N; 10;  3;Druckhˆhendiff.;m
+FEL;LEI;LEI;DPM;N; 10;  3;Druckh√∂hendiff.;m
 FEL;LEI;LEI;DN;C; 10;  0;Nennweite;
-FEL;LEI;LEI;LASTMODI;N; 19;  0;Letzte ƒnderung;
+FEL;LEI;LEI;LASTMODI;N; 19;  0;Letzte √Ñnderung;
 FEL;LEI;LEI;TU;N;  6;  1;Temp.Soll (ext. Einfluss);C
 FEL;LEI;LEI;DIASTATUS;C;  1;  0;Optimieren;?
-FEL;LEI;LEI;CONPRICE;N; 10;  5;Verlegepreis konst.;Ä/m
-FEL;LEI;LEI;DIAPRICE;N; 10;  5;Verlegepreis/mm;Ä/m/mm
-FEL;LEI;LEI;PIPEPRICE;N; 10;  5;Rohrpreis;Ä/m
-FEL;LEI;LEI;WBWERT;N; 11;  2;Wiederbeschaf.wert;Ä
+FEL;LEI;LEI;CONPRICE;N; 10;  5;Verlegepreis konst.;‚Ç¨/m
+FEL;LEI;LEI;DIAPRICE;N; 10;  5;Verlegepreis/mm;‚Ç¨/m/mm
+FEL;LEI;LEI;PIPEPRICE;N; 10;  5;Rohrpreis;‚Ç¨/m
+FEL;LEI;LEI;WBWERT;N; 11;  2;Wiederbeschaf.wert;‚Ç¨
 FEL;LEI;LEI;LOADPERMET;N; 15;  5;Last/m;Nm3/(h*m)
 FEL;LEI;LEI;STATICLOAD;N; 10;  3;Last;Nm3/h
 FEL;LEI;LEI;XRA;N; 14;  5;Koordinate x Anfang;
@@ -137,18 +137,18 @@ FEL;LEI;LEI;VERLEGEART;C;  3;  0;Verlegeart;
 FEL;LEI;LEI;OVRHEADLIN;C;  1;  0;Freileitung;[J/N]
 FEL;LEI;LEI;TXROTATE;N;  1;  0;Textfahne;[0-6]
 FEL;LEI;LEI;USERNAME;C; 16;  0;Letzter Benutzer;
-FEL;LEI;LEI;WAERMEMENG;N; 11;  3;W‰rmeverl.leist.;kW
-FEL;LEI;LEI;RAISE;N; 10;  5;Gef‰lle;0/00
+FEL;LEI;LEI;WAERMEMENG;N; 11;  3;W√§rmeverl.leist.;kW
+FEL;LEI;LEI;RAISE;N; 10;  5;Gef√§lle;0/00
 FEL;LEI;LEI;PN;C;  6;  0;Druckstufe;bar
 FEL;LEI;LEI;SWMMPRINT;C;  1;  0;Ergebnisdiagramm;[+]
 FEL;LEI;LEI;PZONE;C;  4;  0;Druckklasse;
-FEL;LEI;LEI;PASTESTATE;C;  1;  0;Einf¸gen Status;[I/U/D/K]
+FEL;LEI;LEI;PASTESTATE;C;  1;  0;Einf√ºgen Status;[I/U/D/K]
 FEL;LEI;LEI;IMEXSTATE;C;  1;  0;Import Status;[I/U/M]
 FEL;LEI;LEI;RAUZONE;N;  3;  0;Rauheitsklasse;
 FEL;LEI;LEI;STRORT;C; 28;  0;Ort;
 FEL;LEI;LEI;STROTEIL;C; 22;  0;Ortsteil;
 FEL;LEI;LEI;AREACODE;C;  8;  0;PLZ;
-FEL;LEI;LEI;GEOQUALITY;C; 24;  0;Geocode Qualit‰t;
+FEL;LEI;LEI;GEOQUALITY;C; 24;  0;Geocode Qualit√§t;
 FEL;LEI;LEI;LAMBDA;N;  7;  4;Widerstandszahl;
 FEL;LEI;LEI;RE;N; 10;  0;Reynoldszahl;
 FEL;LEI;LEI;FLAGOFFX;N;  6;  0;Text Abstand x;
@@ -174,7 +174,7 @@ FEL;LEI;LEI;CRITSOTOP;N;  6;  0;Unversorgt Sond.Anzahl (bei Ausfall);#
 FEL;LEI;LEI;CRITHAUAMT;N; 11;  2;Direkt betr.HA Menge (bei Ausfall);Nm3/h
 FEL;LEI;LEI;CRITHAUCNT;N;  6;  0;Direkt betr.HA Anzahl (bei Ausfall);#
 FEL;LEI;LEI;CRITABNCNT;N;  6;  0;Betroffene Abnehmer Anzahl (bei Ausfall);#
-FEL;LEI;LEI;CRITMTRCNT;N;  6;  0;Betroffene HA-Z‰hler Anzahl (bei Ausfall);#
+FEL;LEI;LEI;CRITMTRCNT;N;  6;  0;Betroffene HA-Z√§hler Anzahl (bei Ausfall);#
 FEL;LEI;LEI;CRITISTAT;C; 32;  0;Status (bei Ausfall);
 FEL;LEI;LEI;HYSGROUP;N;  6;  0;Gruppe Schieberbereich;
 FEL;LEI;LEI;CALCBAD;N;  1;  0;Sim. Status;
@@ -185,7 +185,7 @@ FEL;LEI;LEI;GASVOL;N; 12;  3;Gasvolumen;Nm3
 FEL;LEI;LEI;VMAX;N;  6;  2;Geschw.Max.;m/s
 FEL;LEI;LEI;SIGMAFLOW;N; 12;  3;Streuung Durchf.;Nm3/h
 FEL;LEI;LEI;SIGMAVM;N;  7;  3;Streuung Geschw.;m/s
-FEL;LEI;LEI;SIGMAW;N; 11;  3;Streuung W‰rmevl.;kW
+FEL;LEI;LEI;SIGMAW;N; 11;  3;Streuung W√§rmevl.;kW
 FEL;LEI;LEI;SIGMACONDE;N;  9;  3;Streuung Kond.;Nm3/h
 FEL;LEI;LEI;RAUNOMI;N;  6;  3;Rauh. Nominal;mm
 FEL;LEI;LEI;RAUVARI;N;  6;  3;Rauh. Streuung;mm
@@ -200,38 +200,38 @@ FEL;LEI;LEI;RSTAURTYP;C; 32;  0;Erneuerungsart;
 FEL;LEI;LEI;BROWNPRICE;N; 10;  2;Erneuerungspreis;
 FEL;LEI;LEI;BROWNST;N;  9;  5;Prognostizierte Schadensrate;#/km/Jahr
 FEL;LEI;LEI;VIRTAGE;N;  8;  3;Eintrittswahrscheinlichkeit;
-FEL;LEI;LEI;BROWNRISK;N;  6;  2;Schadensausmaﬂ;
+FEL;LEI;LEI;BROWNRISK;N;  6;  2;Schadensausma√ü;
 FEL;LEI;LEI;BFRISKALL;N;  6;  2;Risiko;
-FEL;LEI;LEI;QUALDECAY;N;  8;  2;Qualit‰ts-Abfallzeit;
-FEL;LEI;LEI;QUALFINAL;N; 12;  4;Qualit‰t-Endwert;
-FEL;LEI;LEI;NOHIDECHRT;C;  1;  0;In L‰ngsschnitt nicht ausblenden;[J/N]
-FEL;LEI;LEI;CHRTSHOWTX;C;  1;  0;Text in L‰ngsschnitt ausgeben;[J/N]
+FEL;LEI;LEI;QUALDECAY;N;  8;  2;Qualit√§ts-Abfallzeit;
+FEL;LEI;LEI;QUALFINAL;N; 12;  4;Qualit√§t-Endwert;
+FEL;LEI;LEI;NOHIDECHRT;C;  1;  0;In L√§ngsschnitt nicht ausblenden;[J/N]
+FEL;LEI;LEI;CHRTSHOWTX;C;  1;  0;Text in L√§ngsschnitt ausgeben;[J/N]
 FEL;LEI;LEI;TORESULT;C;  1;  0;Batchergebniss Ablegen;[J/N]
 FEL;LEI;LEI;PDECLINE;N; 16;  6;Rel.Druckabfall;mBar/Nm3/h
 FEL;LEI;LEI;BFPROBS1;C;  3;  0;E(t) Verkehrslast;S1
 FEL;LEI;LEI;BFPROBS2;C;  3;  0;E(t) Max. Druck/Ruhedruck;S2
 FEL;LEI;LEI;BFPROBS3;C;  3;  0;E(t) Boden/Bettung/GW;S3
-FEL;LEI;LEI;BFPROBS4;C;  3;  0;E(t) Anzahl Sch‰den;S4 [S/m]
+FEL;LEI;LEI;BFPROBS4;C;  3;  0;E(t) Anzahl Sch√§den;S4 [S/m]
 FEL;LEI;LEI;BFPROBS5;C;  3;  0;E(t) Weitere Zustandsdaten;S5
-FEL;LEI;LEI;BFRISKG1;C;  3;  0;SA Gef.Geb‰ude/Infrastr;G1
+FEL;LEI;LEI;BFRISKG1;C;  3;  0;SA Gef.Geb√§ude/Infrastr;G1
 FEL;LEI;LEI;BFRISKG2;C;  3;  0;SA Folgekosten;G2
 FEL;LEI;LEI;BFRISKBP;C;  3;  0;SA Bruchpotenzial;BP
 FEL;LEI;LEI;BFRISKER;C;  3;  0;SA Erosionsradius;ER [m]/PW
 FEL;LEI;LEI;BFRISKVS1;C;  3;  0;SA Druck;VS1
 FEL;LEI;LEI;BFRISKVS2;C;  3;  0;SA Menge;VS2
 FEL;LEI;LEI;BFRISKV3;C;  3;  0;SA Besondere Anforderung;V3
-FEL;LEI;LEI;BFRISKTR;C;  3;  0;SA Tr¸bungsgrad;TR [NTU]
+FEL;LEI;LEI;BFRISKTR;C;  3;  0;SA Tr√ºbungsgrad;TR [NTU]
 FEL;LEI;LEI;BFUSERU1;C;  3;  0;Brownfield Benutzer 1;U1
 FEL;LEI;LEI;BFUSERU2;C;  3;  0;Brownfield Benutzer 2;U2
 FEL;LEI;LEI;ANKLASSE;C; 12;  0;Anlagenklasse;
 FEL;LEI;LEI;REHAJAHR;N;  4;  0;Rehabilitationsjahr;
 FEL;LEI;LEI;GEBIET;C;  2;  0;Gebiet;
 FEL;LEI;LEI;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;LEI;LEI;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;LEI;LEI;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;LEI;LEI;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;LEI;LEI;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;LEI;LEI;!RECNO;N;  8;  0;Satz No*;
 
-REM Feldbeschreibungen H‰user
+REM Feldbeschreibungen H√§user
 FEL;HAU;HAU;XRECHTS;N; 14;  5;Koordinate x;m
 FEL;HAU;HAU;YHOCH;N; 14;  5;Koordinate y;m
 FEL;HAU;HAU;X_SCHEMA;N; 14;  5;Schemakoor.x;m
@@ -241,20 +241,20 @@ FEL;HAU;HAU;STRANUM;C; 60;  0;Strassennummer;
 FEL;HAU;HAU;HAUSNUM;C; 20;  0;Hausnummer;
 FEL;HAU;HAU;HAUSNOZUS;C; 20;  0;Hausnr. Zusatz;
 FEL;HAU;HAU;MENGE;N; 13;  5;Ges.Menge;
-FEL;HAU;HAU;ZAEHLERMEN;N; 12;  5;Grˆsste Menge;Nm3/h
+FEL;HAU;HAU;ZAEHLERMEN;N; 12;  5;Gr√∂sste Menge;Nm3/h
 FEL;HAU;HAU;ZAEHLERTAR;C;  5;  0;Tarif;
-FEL;HAU;HAU;ZAEHLERNO;C; 10;  0;Z‰hler-Nr.;
-FEL;HAU;HAU;ZAEHLERANZ;N;  4;  0;Z‰hler-Anz;
+FEL;HAU;HAU;ZAEHLERNO;C; 10;  0;Z√§hler-Nr.;
+FEL;HAU;HAU;ZAEHLERANZ;N;  4;  0;Z√§hler-Anz;
 FEL;HAU;HAU;GESCHOSSE;N;  2;  0;Geschosse;
 FEL;HAU;HAU;HAUSID;C; 40;  0;Haus-ID;
 FEL;HAU;HAU;ABSTAND;N; 14;  5;Abstand;
 FEL;HAU;HAU;KNOTENNAME;C; 10;  0;Knoten;
 FEL;HAU;HAU;KNONUM;N;  7;  0;Knoten-Nr.;
 FEL;HAU;HAU;BEZEICHNG;C; 24;  0;Bezeichnung;
-FEL;HAU;HAU;LASTMODI;N; 19;  0;Letzte ƒnderung;
+FEL;HAU;HAU;LASTMODI;N; 19;  0;Letzte √Ñnderung;
 FEL;HAU;HAU;USERNAME;C; 16;  0;Letzter Benutzer;
 FEL;HAU;HAU;PRECH;N;  8;  4;Ber.Druck;bar
-FEL;HAU;HAU;PASTESTATE;C;  1;  0;Einf¸gen Status;[I/U/D/K]
+FEL;HAU;HAU;PASTESTATE;C;  1;  0;Einf√ºgen Status;[I/U/D/K]
 FEL;HAU;HAU;IMEXSTATE;C;  1;  0;Import Status;[I/U/M]
 FEL;HAU;HAU;PIPENO;N;  6;  0;Leitungs-Nr.;
 FEL;HAU;HAU;STRASSE;C; 35;  0;Strassenname;
@@ -267,14 +267,14 @@ FEL;HAU;HAU;LAYER;C;  5;  0;Layer;
 FEL;HAU;HAU;STRORT;C; 32;  0;Ort;
 FEL;HAU;HAU;STROTEIL;C; 32;  0;Ortsteil;
 FEL;HAU;HAU;AREACODE;C;  8;  0;PLZ;
-FEL;HAU;HAU;GEOQUALITY;C; 24;  0;Geocode Qualit‰t;
+FEL;HAU;HAU;GEOQUALITY;C; 24;  0;Geocode Qualit√§t;
 FEL;HAU;HAU;GEBIET;C; 14;  0;Gebiet;
 FEL;HAU;HAU;STANETID;C; 24;  0;STANET-ID;
-FEL;HAU;HAU;ABGAENGE;N;  3;  0;Abg‰nge;
+FEL;HAU;HAU;ABGAENGE;N;  3;  0;Abg√§nge;
 FEL;HAU;HAU;CLIENT2NO;N;  7;  0;Verbdg.2 Satznr.;
 FEL;HAU;HAU;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;HAU;HAU;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;HAU;HAU;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;HAU;HAU;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;HAU;HAU;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;HAU;HAU;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen Netzparameter
@@ -283,7 +283,7 @@ FEL;NET;NET;KTEX;C;127;  0;Netzbezeichnung;
 FEL;NET;NET;NETPATH;C; 40;  0;(Obsolet);
 FEL;NET;NET;LASTFALL;C; 32;  0;Lastfall;
 FEL;NET;NET;MEDI;C;  1;  0;Netzmedium;
-FEL;NET;NET;RORL;N;  8;  1;Vorherrschende L‰nge;m
+FEL;NET;NET;RORL;N;  8;  1;Vorherrschende L√§nge;m
 FEL;NET;NET;QFAK;N;  9;  6;Belastungsfaktor Zu-/Abfluss;
 FEL;NET;NET;IPR;N;  2;  0;Steuerparameter Testausschriebe;
 FEL;NET;NET;IMAX;N;  3;  0;Maximale Iterationszahl;
@@ -293,21 +293,21 @@ FEL;NET;NET;SIMREPEAT;N;  5;  0;Simulation Wiederholung Steuerungen;
 FEL;NET;NET;SP;N; 12;  4;SP;
 FEL;NET;NET;SQ;N; 12;  3;SQ;
 FEL;NET;NET;BEARBEITER;C; 16;  0;Name des Bearbeiters;
-FEL;NET;NET;KATA_X0;N; 14;  5;x-Koord. Start Katasterbl‰tt.;
-FEL;NET;NET;KATA_Y0;N; 14;  5;y-Koord. Start Katasterbl‰tt.;
-FEL;NET;NET;KATA_DELTX;N; 14;  5;Katasterblattl‰nge x;
-FEL;NET;NET;KATA_DELTY;N; 14;  5;Katasterblattl‰nge y;
-FEL;NET;NET;BLAETTER_R;N;  3;  0;Anzahl Katasterbl‰tter je Zeile;
-FEL;NET;NET;KATA_X1;N; 14;  5;Gegenkathedenl‰nge Kata.drehung;
-FEL;NET;NET;KATA_Y1;N; 14;  5;Hypotenusenl‰nge Kata.drehung;
+FEL;NET;NET;KATA_X0;N; 14;  5;x-Koord. Start Katasterbl√§tt.;
+FEL;NET;NET;KATA_Y0;N; 14;  5;y-Koord. Start Katasterbl√§tt.;
+FEL;NET;NET;KATA_DELTX;N; 14;  5;Katasterblattl√§nge x;
+FEL;NET;NET;KATA_DELTY;N; 14;  5;Katasterblattl√§nge y;
+FEL;NET;NET;BLAETTER_R;N;  3;  0;Anzahl Katasterbl√§tter je Zeile;
+FEL;NET;NET;KATA_X1;N; 14;  5;Gegenkathedenl√§nge Kata.drehung;
+FEL;NET;NET;KATA_Y1;N; 14;  5;Hypotenusenl√§nge Kata.drehung;
 FEL;NET;NET;ZEITVON;N;  5;  2;Beginnzeitpunkt der Rechnung;HH:MM
 FEL;NET;NET;NETMAX;N;  3;  0;Maximale Anzahl Teilnetze;
 FEL;NET;NET;OPTNMETER;C;  1;  0;Weltkoordinaten Masseinheit Meter;[J/N]
 FEL;NET;NET;ROTATEHYP;N; 14;  5;Netz drehen Hypotenuse;
-FEL;NET;NET;ROTATEANKA;N; 14;  5;Netzt drehen Gegenkathedenl‰nge;
-FEL;NET;NET;CALCDIRTY;N;  1;  0;Ergebnisse ung¸ltig;
-FEL;NET;NET;HCALCDIRTY;N;  1;  0;Ergebnisse HA ung¸ltig;
-FEL;NET;NET;CLCDRTYMSG;C;120;  0;Hinweis zu Ergebnisse G¸ltig;
+FEL;NET;NET;ROTATEANKA;N; 14;  5;Netzt drehen Gegenkathedenl√§nge;
+FEL;NET;NET;CALCDIRTY;N;  1;  0;Ergebnisse ung√ºltig;
+FEL;NET;NET;HCALCDIRTY;N;  1;  0;Ergebnisse HA ung√ºltig;
+FEL;NET;NET;CLCDRTYMSG;C;120;  0;Hinweis zu Ergebnisse G√ºltig;
 FEL;NET;NET;STANETVERS;C; 32;  0;STANET Version;
 FEL;NET;NET;RUNVERBRA3;C;  1;  0;Verbrauchsermittl. auf Strassen vor Simulation;[ /J/N]
 FEL;NET;NET;USEMESSDAT;C;  1;  0;Messwerte als Vorgaben verwenden;[J/N]
@@ -323,17 +323,17 @@ FEL;NET;NET;EXSTARTEVT;C;  1;  0;Anfangszustand aus Ereignissen bilden;[J/N]
 FEL;NET;NET;BUNDESLAND;C;  2;  0;Vorherrschende Bundesland;
 FEL;NET;NET;COMPACT;C;  1;  0;Dateien kompaktiert (UPDATE ignorieren);[J/N]
 FEL;NET;NET;MAXMEASAGE;N;  6;  2;Max. Zeitabstand Messdaten zu Sim.Zeit;mm.ss
-FEL;NET;NET;MAXPIPRAIS;N;  3;  0;Leitungsgef‰lle zu groﬂ Warnung ab;0/00
+FEL;NET;NET;MAXPIPRAIS;N;  3;  0;Leitungsgef√§lle zu gro√ü Warnung ab;0/00
 FEL;NET;NET;RULELOOPS;N;  2;  0;Max. Wiederholung f.Steuerungen;
 FEL;NET;NET;TASISTEP;N;  7;  2;Zeitschritt TASI;mm.ss
 FEL;NET;NET;RAU;N;  7;  4;Vorherrschende Rauhigkeit;mm
 FEL;NET;NET;DM;N;  6;  1;Vorherrschender Durchmesser;mm
-FEL;NET;NET;ETA;N;  7;  2;Dynamische Z‰higkeit;E-6kg/ms
+FEL;NET;NET;ETA;N;  7;  2;Dynamische Z√§higkeit;E-6kg/ms
 FEL;NET;NET;RHON;N; 11;  4;Dichte des Mediums;kg/m3
 FEL;NET;NET;PATM;N;  5;  3;Luftdruck;bar
-FEL;NET;NET;GEOH;N;  6;  1;Geod‰t. Hˆhe Luftdruckmessung;m
+FEL;NET;NET;GEOH;N;  6;  1;Geod√§t. H√∂he Luftdruckmessung;m
 FEL;NET;NET;TEMP;N;  6;  1;Vorherrschende Mediumtemperatur;Grd. C.
-FEL;NET;NET;KPAR;N;  8;  5;Druckfaktor Kompressibilit‰t;1/bar
+FEL;NET;NET;KPAR;N;  8;  5;Druckfaktor Kompressibilit√§t;1/bar
 FEL;NET;NET;KTOL;N;  2;  0;KTOL;
 FEL;NET;NET;RTOL;N;  4;  2;RTOL;
 FEL;NET;NET;LAM;N;  1;  0;Widerstandsgesetz;[1-5]
@@ -345,30 +345,30 @@ FEL;NET;NET;REMA;N; 11;  1;Maximale Reynoldszahl im Netz;
 FEL;NET;NET;TOLP;N;  9;  6;Endgenauigkeit Druckabfall;bar
 FEL;NET;NET;TOLQ;N; 10;  5;Endgenauigkeit Knotenfluss;m3/h, L/s
 FEL;NET;NET;HO;N;  8;  4;Brennwert;kWh/m3
-FEL;NET;NET;TA;N;  6;  1;Z‰higkeitsbeiwert TA;Grd. K
-FEL;NET;NET;TB;N;  6;  1;Z‰higkeitsbeiwert TB;Grd. K
-FEL;NET;NET;TS;N;  6;  1;Sutherlandkonstante Z‰higkeit;Grd. K
-FEL;NET;NET;T0;N;  6;  1;Z‰higkeits-Bezugstemperatur;Grd. K
+FEL;NET;NET;TA;N;  6;  1;Z√§higkeitsbeiwert TA;Grd. K
+FEL;NET;NET;TB;N;  6;  1;Z√§higkeitsbeiwert TB;Grd. K
+FEL;NET;NET;TS;N;  6;  1;Sutherlandkonstante Z√§higkeit;Grd. K
+FEL;NET;NET;T0;N;  6;  1;Z√§higkeits-Bezugstemperatur;Grd. K
 FEL;NET;NET;KOND_AUS;C;  1;  0;Kondensation berechnen;[J/N]
 FEL;NET;NET;RHODAMPF;N;  8;  3;Dampfdichte;kg/m3
-FEL;NET;NET;RW;N;  8;  3;Verdampfungsw‰rme Kondensat;kJ/kg
-FEL;NET;NET;CG;N;  8;  4;W‰rmekapazit‰t Medium;kJ/kg*K
-FEL;NET;NET;CW;N;  8;  4;W‰rmekapazit‰t Kondensat;kJ/kg*K
-FEL;NET;NET;CD;N;  8;  4;W‰rmekapazit‰t Dampf;kJ/kg*K
-FEL;NET;NET;WDZAHL;N;  7;  2;Vorherrsch. W‰rmedurchgangszahl;W/(K*m2)
+FEL;NET;NET;RW;N;  8;  3;Verdampfungsw√§rme Kondensat;kJ/kg
+FEL;NET;NET;CG;N;  8;  4;W√§rmekapazit√§t Medium;kJ/kg*K
+FEL;NET;NET;CW;N;  8;  4;W√§rmekapazit√§t Kondensat;kJ/kg*K
+FEL;NET;NET;CD;N;  8;  4;W√§rmekapazit√§t Dampf;kJ/kg*K
+FEL;NET;NET;WDZAHL;N;  7;  2;Vorherrsch. W√§rmedurchgangszahl;W/(K*m2)
 FEL;NET;NET;TU;N;  5;  1;Bodentemperatur;Celsius
 FEL;NET;NET;FEUCHTE;N;  6;  2;Vorherrschende Feuchte;Prozent
-FEL;NET;NET;VENL;N;  8;  1;Vorherrschende Ventill‰nge;m
+FEL;NET;NET;VENL;N;  8;  1;Vorherrschende Ventill√§nge;m
 FEL;NET;NET;DPMAX;N; 14;  6;Max. Druckfehler in Strecke;bar
 FEL;NET;NET;DQMAX;N; 14;  6;Max. Flussfehler in Knoten;m3/h, L/s
-FEL;NET;NET;QUALI;C;  1;  0;Qualit‰ts-Verfolgung rechnen;[J/N]
+FEL;NET;NET;QUALI;C;  1;  0;Qualit√§ts-Verfolgung rechnen;[J/N]
 FEL;NET;NET;MIXRHO;C;  1;  0;Individuelle Normdichte;[J/N]
 FEL;NET;NET;TEMPCALC;C;  1;  0;Temperatur berechnen;[J/N]
 FEL;NET;NET;OPTIDIA;C;  1;  0;Optimierung aktiviert;[J/N]
 FEL;NET;NET;GENETIC;C;  1;  0;GA Aktivieren (Genetischer Algorithmus);[J/N]
 FEL;NET;NET;DIFFDIA;C;  1;  0;Individueller Durchmesser;[J/N]
 FEL;NET;NET;MAXGEN;N;  5;  0;GA Anzahl Generationen;
-FEL;NET;NET;POPSIZE;N;  6;  0;GA Populationsgrˆsse;
+FEL;NET;NET;POPSIZE;N;  6;  0;GA Populationsgr√∂sse;
 FEL;NET;NET;MICROGA;N;  1;  0;GA MICROGA;[J/N]
 FEL;NET;NET;PMUTATE;N;  6;  4;GA Jump Mutation Probability (0 = auto);0...1
 FEL;NET;NET;PCROSS;N;  6;  4;GA Crossover Probability;0.5...0.7
@@ -393,7 +393,7 @@ FEL;NET;NET;GESMENGE;N; 12;  2;Gesamtabgabe;Nm3/h
 FEL;NET;NET;VOLUSTART;N; 11;  1;Netzvolumen Anfang;Nm3
 FEL;NET;NET;SUMZUFLUSS;N; 12;  2;Gesamtzufluss;Nm3/h
 FEL;NET;NET;GESABNRLM;N; 12;  2;Gesamtabgabe Abnehmer;Nm3/h
-FEL;NET;NET;GESABNSLP;N; 12;  2;Gesamtabgabe HA Z‰hler;Nm3/h
+FEL;NET;NET;GESABNSLP;N; 12;  2;Gesamtabgabe HA Z√§hler;Nm3/h
 FEL;NET;NET;LASTERRNO;N;  8;  0;Fehlercode;
 FEL;NET;NET;VOLUFEHL;N; 11;  1;Netzvolumen-Diff.;Nm3
 FEL;NET;NET;VOLUFELREL;N;  6;  2;Netzvol.Diff Rel.;%
@@ -402,8 +402,8 @@ FEL;NET;NET;RELAXNEWQ;N; 10;  2;Relaxationsfaktor Fluss;[0...1]
 FEL;NET;NET;RELAXNEWT;N; 10;  2;Relaxationsfaktor Temperatur;[0...1]
 FEL;NET;NET;RESIFACT;N; 10;  2;Widerstandsfaktor;
 FEL;NET;NET;REGSWITCH;N;  2;  0;Max. Anzahl Reglerumschaltungen;
-FEL;NET;NET;SUMLEN;N;  9;  2;Netzl‰nge;km
-FEL;NET;NET;MINLEN;N;  5;  1;Mindestl‰nge;m
+FEL;NET;NET;SUMLEN;N;  9;  2;Netzl√§nge;km
+FEL;NET;NET;MINLEN;N;  5;  1;Mindestl√§nge;m
 FEL;NET;NET;KALIBREGF;N;  7;  3;Regularisierungs-Faktor Kalibrierung;
 FEL;NET;NET;QUABER;C;  1;  0;D.Q. Qualitaeten berechnen;[J/N]
 FEL;NET;NET;VTOL;N;  6;  2;D.Q. Geschwindigkeits-Schwellwert;m/s
@@ -412,9 +412,9 @@ FEL;NET;NET;DQGETTIME;C;  1;  0;D.Q. Laufzeit ermitteln;[J/N]
 FEL;NET;NET;DQGETTEMP;C;  1;  0;D.Q. Temperatur ermitteln;[J/N]
 FEL;NET;NET;DQGETINFLW;C;  1;  0;D.Q. Einspeise.Anteile ermitteln;[J/N]
 FEL;NET;NET;REDMSGFAIL;C;  1;  0;In Batch/TASI Sim. mit Fehler nicht verwenden;[J/N]
-FEL;NET;NET;NOHAUPDATE;C;  1;  0;Bei HA-Sim.vorh.HA-Zuweisung nicht ver‰ndern;[J/N]
-FEL;NET;NET;MINRAISLEN;N;  4;  1;Leitungsgef‰lle pr¸fen ab Leitungsl‰nge;m
-FEL;NET;NET;QUALICYC;C;  1;  0;Qualit‰tsberechnung zyklisch mit Kreisfluss;[J/N]
+FEL;NET;NET;NOHAUPDATE;C;  1;  0;Bei HA-Sim.vorh.HA-Zuweisung nicht ver√§ndern;[J/N]
+FEL;NET;NET;MINRAISLEN;N;  4;  1;Leitungsgef√§lle pr√ºfen ab Leitungsl√§nge;m
+FEL;NET;NET;QUALICYC;C;  1;  0;Qualit√§tsberechnung zyklisch mit Kreisfluss;[J/N]
 FEL;NET;NET;KANF;N;  2;  0;Anzahl Startiterationen GANESI;
 FEL;NET;NET;CONTCO2;N; 10;  2;Vorherrschender Co2-Gehalt;
 FEL;NET;NET;CONTH2;N; 10;  2;Vorherrschender H2-Gehalt;
@@ -431,8 +431,8 @@ FEL;NET;NET;MTBIA;N;  6;  0;SE Strg Letzter Zeitschritt Druckanpassung;
 FEL;NET;NET;MTRAU;N;  6;  0;SE Strg Letzter Zeitschritt Rauhigkeitsber.;
 FEL;NET;NET;TESTPQ;N;  2;  0;SE Strg Testausschriebe PQ-Berechnung;
 FEL;NET;NET;TESTQUA;N;  2;  0;SE Strg Testausschriebe Qualitaet;
-FEL;NET;NET;TESTK;N;  7;  0;SE Strg Testausschriebe f¸r Knoten;
-FEL;NET;NET;TESTL;N;  7;  0;SE Strg Testauschriebe f¸r Leitungen;
+FEL;NET;NET;TESTK;N;  7;  0;SE Strg Testausschriebe f√ºr Knoten;
+FEL;NET;NET;TESTL;N;  7;  0;SE Strg Testauschriebe f√ºr Leitungen;
 FEL;NET;NET;WLZ;N;  8;  4;SE Umgb Waermeleitzahl Boden;kJ/(m*h*K)
 FEL;NET;NET;VT;N;  5;  3;SE Umgb Verlegetiefe;m
 FEL;NET;NET;RAUREG;N;  6;  3;SE Qual Regelparameter Rauhigkeit;
@@ -440,28 +440,28 @@ FEL;NET;NET;GF;N;  6;  3;SE Qual Glaettungsfaktor Fehlfluesse;0<x<1
 FEL;NET;NET;SKALG;N;  6;  3;SE Qual Skalierung Gleichungsfehler;
 FEL;NET;NET;GFP1;N;  6;  3;SE Qual Glaettungsfaktor Druckbias 1;
 FEL;NET;NET;GFP2;N;  6;  3;SE Qual Glaettungsfaktor Druckbias 2;
-FEL;NET;NET;GPM;N;  6;  3;SE Qual Glaettungfaktor Meﬂdruck;0<x<1
+FEL;NET;NET;GPM;N;  6;  3;SE Qual Glaettungfaktor Me√üdruck;0<x<1
 FEL;NET;NET;DPTOL;N;  8;  4;SE Qual Toleranz Messdruck-Rechendruck;bar
 FEL;NET;NET;TOLT;N;  6;  2;SE Qual Toleranz Temperatur;Grad Kelvin
-FEL;NET;NET;TOLQ1;N; 12;  4;SE Qual Toleranz Qualit‰t;
-FEL;NET;NET;TOLQ2;N; 12;  4;SE Qual Toleranz Qualit‰t2;
-FEL;NET;NET;TOLQ3;N; 12;  4;SE Qual Toleranz Qualit‰t3;
-FEL;NET;NET;ZEIFAK;N;  3;  1;SE Qual Zeitfaktor Qualit‰t;norm.=1 RCM<0
+FEL;NET;NET;TOLQ1;N; 12;  4;SE Qual Toleranz Qualit√§t;
+FEL;NET;NET;TOLQ2;N; 12;  4;SE Qual Toleranz Qualit√§t2;
+FEL;NET;NET;TOLQ3;N; 12;  4;SE Qual Toleranz Qualit√§t3;
+FEL;NET;NET;ZEIFAK;N;  3;  1;SE Qual Zeitfaktor Qualit√§t;norm.=1 RCM<0
 FEL;NET;NET;SIGMAP;N;  8;  4;SE Mess Streuung Druck;
 FEL;NET;NET;SIGMAFLOW;N; 11;  2;SE Mess Streuung Fluss;
 FEL;NET;NET;SIGMAFMAN;N; 11;  2;SE Mess Streuung Ersatzwert Fluss;
 FEL;NET;NET;SIGMATEMP;N;  6;  2;SE Mess Streuung Temperatur;
-FEL;NET;NET;SIGMAW;N; 11;  3;SE Mess Streuung W‰rmeleistung;
+FEL;NET;NET;SIGMAW;N; 11;  3;SE Mess Streuung W√§rmeleistung;
 FEL;NET;NET;SIGMAHUMID;N;  6;  2;SE Mess Streuung Feuchte;
-FEL;NET;NET;SIGMAQUA1;N; 12;  4;SE Mess Streuung Qualit‰t 1;
-FEL;NET;NET;SIGMAQUA2;N; 12;  4;SE Mess Streuung Qualit‰t 2;
-FEL;NET;NET;SIGMAQUA3;N; 12;  4;SE Mess Streuung Qualit‰t 3;
+FEL;NET;NET;SIGMAQUA1;N; 12;  4;SE Mess Streuung Qualit√§t 1;
+FEL;NET;NET;SIGMAQUA2;N; 12;  4;SE Mess Streuung Qualit√§t 2;
+FEL;NET;NET;SIGMAQUA3;N; 12;  4;SE Mess Streuung Qualit√§t 3;
 FEL;NET;NET;SIGMARHO;N; 11;  2;SE Mess Streuung Normdichte;
-FEL;NET;NET;SIGMAFWA;N; 11;  2;SE Mess Streuung FWA-Auflˆsung 8 Bit;
-FEL;NET;NET;SIGMAGEO;N; 11;  2;SE Mess Streuung geod‰tische Hˆhe;
+FEL;NET;NET;SIGMAFWA;N; 11;  2;SE Mess Streuung FWA-Aufl√∂sung 8 Bit;
+FEL;NET;NET;SIGMAGEO;N; 11;  2;SE Mess Streuung geod√§tische H√∂he;
 FEL;NET;NET;SIGMAKOMP;N; 11;  2;SE Mess Streuung K-Faktor;
-FEL;NET;NET;SIGMAETA;N; 11;  2;SE Mess Streuung dyn. Z‰higkeit;
-FEL;NET;NET;SIGMAROL;N; 11;  2;SE Mess Streuung Rohrl‰nge;
+FEL;NET;NET;SIGMAETA;N; 11;  2;SE Mess Streuung dyn. Z√§higkeit;
+FEL;NET;NET;SIGMAROL;N; 11;  2;SE Mess Streuung Rohrl√§nge;
 FEL;NET;NET;SIGMADI;N; 11;  2;SE Mess Streuung Durchmesser;
 FEL;NET;NET;SIGMARAU;N; 11;  2;SE Mess Streuung Rauhigkeit;
 FEL;NET;NET;SIGMACP;N; 11;  2;SE Mess Streuung CP-Wert;
@@ -474,7 +474,7 @@ FEL;NET;NET;MAXRESQFAK;N;  6;  3;SE Messfehlergrenze Fluss;
 FEL;NET;NET;THYST;N;  6;  3;SE Limit-Schwelle P;bar
 FEL;NET;NET;PHYST;N;  6;  4;SE Limit-Schwelle Q;Nm3/h
 FEL;NET;NET;MPNTSALL;N;  5;  0;SE Messwerte erhalten;
-FEL;NET;NET;MPNTSERR;N;  5;  0;SE Messwerte gestˆrt ;
+FEL;NET;NET;MPNTSERR;N;  5;  0;SE Messwerte gest√∂rt ;
 FEL;NET;NET;MPNTSBAD;N;  5;  0;SE Messwerte ausgeschieden;
 FEL;NET;NET;MPNTSGOOD;N;  5;  0;SE Messwerte verwendet;
 FEL;NET;NET;MPNTSGOODT;N;  5;  0;SE M.Temperaturwerte verwendet;
@@ -509,22 +509,22 @@ FEL;NET;NET;VIOLATX;N;  7;  0;Grenzwertverletzungen (ausser Druck);
 FEL;NET;NET;REGTOL;N;  4;  1;Vorherrschende Reglertoleranz;%
 FEL;NET;NET;TASILEN;N;  7;  2;TASI Simulationsdauer;HH:MM
 FEL;NET;NET;TASISAVSUB;C;  1;  0;TASI Zwischenergebnisse abspeichern;[J/N]
-FEL;NET;NET;WINDKLASSE;N;  2;  0;Vorherrschende Profilauspr‰gung;
-FEL;NET;NET;QUALDCFLDS;C; 32;  0;Qualit‰t-Abfall anwenden auf (n, n, ...);
-FEL;NET;NET;QUALSET100;C;  1;  0;Qualit‰t an Einspeisern auf 100% Setzen;[J/N]
+FEL;NET;NET;WINDKLASSE;N;  2;  0;Vorherrschende Profilauspr√§gung;
+FEL;NET;NET;QUALDCFLDS;C; 32;  0;Qualit√§t-Abfall anwenden auf (n, n, ...);
+FEL;NET;NET;QUALSET100;C;  1;  0;Qualit√§t an Einspeisern auf 100% Setzen;[J/N]
 FEL;NET;NET;MAXRESTSUB;N;  3;  0;Max. Neuberechnungen Teilnetz;
 FEL;NET;NET;MAXRESTALL;N;  3;  0;Max. Neuberechnungen Gesamtnetz;
 FEL;NET;NET;DQGERG88;C;  1;  0;D.Q. GERG88 aktivieren;[J/N]
 FEL;NET;NET;DQAGANX19;C;  1;  0;D.Q. AGANX19 aktivieren;[J/N]
 FEL;NET;NET;MYBE;N;  6;  4;Impuls-Beiwert;
-FEL;NET;NET;MYKO;N;  6;  4;Kontinuit‰ts-Beiwert;
+FEL;NET;NET;MYKO;N;  6;  4;Kontinuit√§ts-Beiwert;
 FEL;NET;NET;DREP;N;  6;  4;Report-Zeitschritt;
 FEL;NET;NET;ZETA;N;  8;  3;Vorherrschender Verlustfaktor;
-FEL;NET;NET;TASCLSTART;C;  1;  0;Anfangszustand TASI GAS station‰r berechnen;[J/N]
+FEL;NET;NET;TASCLSTART;C;  1;  0;Anfangszustand TASI GAS station√§r berechnen;[J/N]
 FEL;NET;NET;TASCLVOL;C;  1;  0;Anfangszustand TASI GAS Volumenbestimmung;[J/N]
 FEL;NET;NET;RKCONST;N;  6;  4;K-Konstantwert;
-FEL;NET;NET;QUALDECAY;N;  8;  2;Qualit‰t-Abfallzeit;Stunden
-FEL;NET;NET;QUALFINAL;N; 12;  4;Qualit‰t-Endwert;
+FEL;NET;NET;QUALDECAY;N;  8;  2;Qualit√§t-Abfallzeit;Stunden
+FEL;NET;NET;QUALFINAL;N; 12;  4;Qualit√§t-Endwert;
 FEL;NET;NET;OBJECTVALU;N; 16;  2;Optimalwert;
 FEL;NET;NET;OPTGEN;N;  8;  0;Optimale Generation;
 FEL;NET;NET;OPTPENALPM;N;  5;  3;Penalty p.uncovered meter;
@@ -534,25 +534,25 @@ FEL;NET;NET;TASKFIELDS;N; 12;  0;Aktivierte Feldgruppen 1-32;
 FEL;NET;NET;TASKFIELD2;N; 12;  0;Aktivierte Feldgruppen 33-64;
 FEL;NET;NET;ROOMTEMP;N;  5;  1;Raumtemperatur;Celsius
 FEL;NET;NET;ROOMHFAK;N; 12; 10;Aufheiz-Faktor;Kelvin/Wsec
-FEL;NET;NET;ROOMCTIME;N;  6;  2;Ausk¸hl-Zeit;Stunden
+FEL;NET;NET;ROOMCTIME;N;  6;  2;Ausk√ºhl-Zeit;Stunden
 FEL;NET;NET;STYLEGRPS;C;128;  0;Attributlegenden: Aktive Gruppen;
 FEL;NET;NET;QUALLOFAC;N;  4;  1;D.Q. Allokationsfaktor;
-FEL;NET;NET;AGRELEVDIF;N;  3;  0;Aggregate Knotenhˆhendiff. zu groﬂ Warnung ab;m
+FEL;NET;NET;AGRELEVDIF;N;  3;  0;Aggregate Knotenh√∂hendiff. zu gro√ü Warnung ab;m
 FEL;NET;NET;TASITODISK;C;  1;  0;TASI Ergebnisse nicht im Hauptspeicher;[J/N]
-FEL;NET;NET;TASIRESACT;C;  1;  0;TASI Ergebnisse nur f¸r aktive Elemente;[J/N]
-FEL;NET;NET;GASWITHKWH;C;  1;  0;Feld 'Einheit kW' aktivieren in Abn./HA-Z‰hlern;[J/N]
-FEL;NET;NET;H0TOLPCNT;N;  5;  1;Sim. kW wiederholen wenn Brennwert‰nderung >;%
+FEL;NET;NET;TASIRESACT;C;  1;  0;TASI Ergebnisse nur f√ºr aktive Elemente;[J/N]
+FEL;NET;NET;GASWITHKWH;C;  1;  0;Feld 'Einheit kW' aktivieren in Abn./HA-Z√§hlern;[J/N]
+FEL;NET;NET;H0TOLPCNT;N;  5;  1;Sim. kW wiederholen wenn Brennwert√§nderung >;%
 FEL;NET;NET;TUMTO60M;C;  1;  0;TUM Profilschritte gelten 00:01-01:00;[J/N]
 FEL;NET;NET;LAMGEXPF;N;  7;  5;Gen.Fluss-Exponent;
 FEL;NET;NET;LAMGEXPD;N;  7;  5;Gen.Durchmesser-Exponent;
 FEL;NET;NET;PIPEVOL;N; 11;  1;Rohrvolumen;m3
-FEL;NET;NET;AUX1;N;  7;  3;~AUX1 - F¸r interne Testzwecke;
-FEL;NET;NET;AUX2;N;  7;  3;~AUX2 - F¸r interne Testzwecke;
-FEL;NET;NET;AUX3;N;  7;  3;~AUX3 - F¸r interne Testzwecke;
+FEL;NET;NET;AUX1;N;  7;  3;~AUX1 - F√ºr interne Testzwecke;
+FEL;NET;NET;AUX2;N;  7;  3;~AUX2 - F√ºr interne Testzwecke;
+FEL;NET;NET;AUX3;N;  7;  3;~AUX3 - F√ºr interne Testzwecke;
 FEL;NET;NET;TASINEXTH;C;  1;  0;TASINEXTH;
 FEL;NET;NET;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;NET;NET;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;NET;NET;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;NET;NET;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;NET;NET;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;NET;NET;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen Logdatei
@@ -566,8 +566,8 @@ FEL;LOG;LOG;FUNKTION;C;  8;  0;Funktion;
 FEL;LOG;LOG;VERSION;C; 24;  0;Prog. Version;
 FEL;LOG;LOG;MACHINE;C; 24;  0;Computer Name;
 FEL;LOG;LOG;ISACTIVE;C;  1;  0;Aktiv f.Berechnung;
-FEL;LOG;LOG;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;LOG;LOG;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;LOG;LOG;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;LOG;LOG;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;LOG;LOG;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen HA Verbindungen
@@ -579,13 +579,13 @@ FEL;CON;CON;STANETID;C; 24;  0;STANET-ID;
 FEL;CON;CON;AUX1;C;  3;  0;Aux1;
 FEL;CON;CON;XRECHTS;N; 14;  5;Koordinate x;m
 FEL;CON;CON;YHOCH;N; 14;  5;Koordinate y;m
-FEL;CON;CON;GEOH;N;  7;  2;Hˆhe;mNN
-FEL;CON;CON;CALCGEOH;N;  7;  2;Hˆhe Interpol.;mNN
+FEL;CON;CON;GEOH;N;  7;  2;H√∂he;mNN
+FEL;CON;CON;CALCGEOH;N;  7;  2;H√∂he Interpol.;mNN
 FEL;CON;CON;PRECH;N;  8;  4;Ber.Druck;bar
 FEL;CON;CON;TEMP;N;  6;  1;Temperatur;C
 FEL;CON;CON;FEUCHTE;N;  6;  2;Feuchte;%
 FEL;CON;CON;KONDENSAT;N;  9;  3;Kondensat;t/h
-FEL;CON;CON;LASTMODI;N; 19;  0;Letzte ƒnderung;
+FEL;CON;CON;LASTMODI;N; 19;  0;Letzte √Ñnderung;
 FEL;CON;CON;USERNAME;C; 16;  0;Letzter Benutzer;
 FEL;CON;CON;CLIENTID;C; 24;  0;Verbindung 1;
 FEL;CON;CON;CLIENTTYP;N;  3;  0;Verbdg.1 Klasse;
@@ -599,11 +599,11 @@ FEL;CON;CON;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
 FEL;CON;CON;ONSTRPOSX;N; 12;  3;Koord. errechnet x;m
 FEL;CON;CON;ONSTRPOSY;N; 12;  3;Koord. errechnet y;m
 FEL;CON;CON;CONNECTED;N;  1;  0;Verbunden;
-FEL;CON;CON;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;CON;CON;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;CON;CON;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;CON;CON;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;CON;CON;!RECNO;N;  8;  0;Satz No*;
 
-REM Feldbeschreibungen HA Z‰hler
+REM Feldbeschreibungen HA Z√§hler
 FEL;ZAE;ZAE;XRECHTS;N; 14;  5;Koordinate x;m
 FEL;ZAE;ZAE;YHOCH;N; 14;  5;Koordinate y;m
 FEL;ZAE;ZAE;X_SCHEMA;N; 14;  5;Schemakoor.x;m
@@ -613,12 +613,12 @@ FEL;ZAE;ZAE;NAME;C; 24;  0;Kundenname;
 FEL;ZAE;ZAE;VERBRAUCH;N; 16;  2;Verbrauch/Jahr;Nm3
 FEL;ZAE;ZAE;PROFIL;C;  8;  0;Profil;
 FEL;ZAE;ZAE;ZUFLUSS;N; 14;  4;Zufluss (nach Profil);Nm3/h
-FEL;ZAE;ZAE;GEOH;N;  7;  2;Hˆhe;mNN
+FEL;ZAE;ZAE;GEOH;N;  7;  2;H√∂he;mNN
 FEL;ZAE;ZAE;PRECH;N;  8;  4;Ber.Druck;bar
 FEL;ZAE;ZAE;HO;N;  8;  4;Vorgegebener Brennwert;kWh/m3
 FEL;ZAE;ZAE;FEUCHTE;N;  6;  2;Feuchte;%
 FEL;ZAE;ZAE;KONDENSAT;N;  9;  3;Kondensat;t/h
-FEL;ZAE;ZAE;LASTMODI;N; 19;  0;Letzte ƒnderung;
+FEL;ZAE;ZAE;LASTMODI;N; 19;  0;Letzte √Ñnderung;
 FEL;ZAE;ZAE;KNONUM;N;  7;  0;Knoten-Nr.;
 FEL;ZAE;ZAE;KNAM;C; 10;  0;Knotenname;
 FEL;ZAE;ZAE;DATE1;C; 10;  0;Jahresmenge Von;TT.MM.JJJJ
@@ -631,22 +631,22 @@ FEL;ZAE;ZAE;HAUSID;C; 24;  0;Haus-ID;
 FEL;ZAE;ZAE;HAUSIDUSED;C; 24;  0;Haus-ID verwendet;
 FEL;ZAE;ZAE;ABSTAND;N; 14;  5;Abstand;
 FEL;ZAE;ZAE;ORT;C; 32;  0;Ort;
-FEL;ZAE;ZAE;ZAEHLERNO;C; 24;  0;Z‰hler Nr.;
+FEL;ZAE;ZAE;ZAEHLERNO;C; 24;  0;Z√§hler Nr.;
 FEL;ZAE;ZAE;STRASSE;C; 21;  0;Strassenname;
 FEL;ZAE;ZAE;KUNDENNO;C; 12;  0;Kundennummer;
 FEL;ZAE;ZAE;MAXLAST;N; 12;  4;Max.Abnahme;
 FEL;ZAE;ZAE;GEMEINDE;C; 24;  0;Gemeinde;
 FEL;ZAE;ZAE;GEBIET;C;  8;  0;Gebiet;
-FEL;ZAE;ZAE;TAU;N;  5;  2;Temp.abh‰ngigkeit;%/C
+FEL;ZAE;ZAE;TAU;N;  5;  2;Temp.abh√§ngigkeit;%/C
 FEL;ZAE;ZAE;GRUNDLAST;C;  1;  0;Temp ua.Grundlast;[J/N]
 FEL;ZAE;ZAE;RUNHOURS;N;  5;  0;Benutzungstunden;h/Jahr
 FEL;ZAE;ZAE;NORMFLUSS;N; 13;  4;Verbrauch Norm;Nm3/h
 FEL;ZAE;ZAE;ISKW;C;  1;  0;Einheit kW;[J/N]
-FEL;ZAE;ZAE;TU;N;  6;  1;Temp.Soll R¸cklauf;C
+FEL;ZAE;ZAE;TU;N;  6;  1;Temp.Soll R√ºcklauf;C
 FEL;ZAE;ZAE;GLVAL;N; 13;  4;Grundlast;Nm3/h
 FEL;ZAE;ZAE;PZONE;C;  4;  0;Druckklasse;
 FEL;ZAE;ZAE;DATASRC;C;  3;  0;Datenquelle;[N/Y/H]
-FEL;ZAE;ZAE;PASTESTATE;C;  1;  0;Einf¸gen Status;[I/U/D/K]
+FEL;ZAE;ZAE;PASTESTATE;C;  1;  0;Einf√ºgen Status;[I/U/D/K]
 FEL;ZAE;ZAE;IMEXSTATE;C;  1;  0;Import Status;[I/U/M]
 FEL;ZAE;ZAE;CLIENTID;C; 24;  0;Verbindung 1;
 FEL;ZAE;ZAE;CLIENTTYP;N;  3;  0;Verbdg.1 Klasse;
@@ -657,17 +657,17 @@ FEL;ZAE;ZAE;HCONNO;N;  6;  0;HA-Verbindung Nr.;
 FEL;ZAE;ZAE;JAHRWAERM;N; 16;  4;JAHRWAERM;
 FEL;ZAE;ZAE;USERNAME;C; 12;  0;Letzter Benutzer;
 FEL;ZAE;ZAE;LAYER;C;  5;  0;Layer;
-FEL;ZAE;ZAE;WINDKLASSE;N;  2;  0;Profilauspr‰gung;
+FEL;ZAE;ZAE;WINDKLASSE;N;  2;  0;Profilauspr√§gung;
 FEL;ZAE;ZAE;BUNDESLAND;C;  2;  0;Bundesland;
 FEL;ZAE;ZAE;STROTEIL;C; 32;  0;Ortsteil;
 FEL;ZAE;ZAE;AREACODE;C;  8;  0;PLZ;
-FEL;ZAE;ZAE;GEOQUALITY;C; 24;  0;Geocode Qualit‰t;
+FEL;ZAE;ZAE;GEOQUALITY;C; 24;  0;Geocode Qualit√§t;
 FEL;ZAE;ZAE;STANETID;C; 24;  0;STANET-ID;
 FEL;ZAE;ZAE;TEMP;N;  6;  1;Temperatur;C
 FEL;ZAE;ZAE;CLIENT2NO;N;  7;  0;Verbdg.2 Satznr.;
 FEL;ZAE;ZAE;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;ZAE;ZAE;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;ZAE;ZAE;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;ZAE;ZAE;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;ZAE;ZAE;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;ZAE;ZAE;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen HA Leitungen
@@ -678,12 +678,12 @@ FEL;HLE;HLE;ENDNR;N;  7;  0;End.Nr.;
 FEL;HLE;HLE;PARALLEL;N;  1;  0;Parallel;
 FEL;HLE;HLE;STANETID;C; 24;  0;STANET-ID;
 FEL;HLE;HLE;AUX1;C;  3;  0;Aux1;
-FEL;HLE;HLE;RORL;N;  8;  1;L‰nge;m
+FEL;HLE;HLE;RORL;N;  8;  1;L√§nge;m
 FEL;HLE;HLE;DM;N;  6;  1;Innendurchm.;mm
 FEL;HLE;HLE;RAU;N;  7;  3;Rauhigkeit;mm
 FEL;HLE;HLE;FLUSS;N; 10;  3;Durchfluss;Nm3/h
 FEL;HLE;HLE;ROHRTYP;C; 21;  0;Rohrtyp;
-FEL;HLE;HLE;LASTMODI;N; 19;  0;Letzte ƒnderung;
+FEL;HLE;HLE;LASTMODI;N; 19;  0;Letzte √Ñnderung;
 FEL;HLE;HLE;CLIENTID;C; 24;  0;Verbindung 1;
 FEL;HLE;HLE;CLIENTTYP;N;  3;  0;Verbdg.1 Klasse;
 FEL;HLE;HLE;CLIENTNO;N;  7;  0;Verbdg.1 Satznr.;
@@ -704,7 +704,7 @@ FEL;HLE;HLE;XRECHTS2;N; 14;  5;Endkoordinate x;m
 FEL;HLE;HLE;YHOCH2;N; 14;  5;Endkoordinate y;m
 FEL;HLE;HLE;PN;C;  6;  0;Druckstufe;bar
 FEL;HLE;HLE;BAUJAHR;N;  4;  0;Baujahr;
-FEL;HLE;HLE;PASTESTATE;C;  1;  0;Einf¸gen Status;[I/U/D/K]
+FEL;HLE;HLE;PASTESTATE;C;  1;  0;Einf√ºgen Status;[I/U/D/K]
 FEL;HLE;HLE;IMEXSTATE;C;  1;  0;Import Status;[I/U/M]
 FEL;HLE;HLE;WANDDICKE;N;  5;  1;Wanddicke;mm
 FEL;HLE;HLE;OUTERDM;N;  6;  1;Aussendurchmessser;mm
@@ -716,10 +716,10 @@ FEL;HLE;HLE;GEBIET;C;  2;  0;Gebiet;
 FEL;HLE;HLE;STRORT;C; 28;  0;Ort;
 FEL;HLE;HLE;STROTEIL;C; 22;  0;Ortsteil;
 FEL;HLE;HLE;AREACODE;C;  8;  0;PLZ;
-FEL;HLE;HLE;GEOQUALITY;C; 24;  0;Geocode Qualit‰t;
+FEL;HLE;HLE;GEOQUALITY;C; 24;  0;Geocode Qualit√§t;
 FEL;HLE;HLE;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;HLE;HLE;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;HLE;HLE;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;HLE;HLE;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;HLE;HLE;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;HLE;HLE;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen Ergebnisse Knoten
@@ -742,8 +742,8 @@ FEL;NOD;NOD;SIMOBJID;C; 24;  0;Simuliertes Element;
 FEL;NOD;NOD;SIMOBJTYP;N;  3;  0;Simuliertes Element Klasse;
 FEL;NOD;NOD;SIMOBJNO;N;  7;  0;Simuliertes Element Satznr.;
 FEL;NOD;NOD;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;NOD;NOD;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;NOD;NOD;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;NOD;NOD;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;NOD;NOD;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;NOD;NOD;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen Ergebnisse Leitungen
@@ -753,10 +753,10 @@ FEL;PIP;PIP;CLIENTTYP;N;  3;  0;Verbdg.1 Klasse;
 FEL;PIP;PIP;FLUSS;N; 12;  3;Durchfluss;Nm3/h
 FEL;PIP;PIP;VM;N;  8;  4;Geschw.;m/s
 FEL;PIP;PIP;TIME;C; 19;  0;Datum/Zeit;MESZ
-FEL;PIP;PIP;WAERMEMENG;N; 11;  3;W‰rmeverl.leist.;kW
+FEL;PIP;PIP;WAERMEMENG;N; 11;  3;W√§rmeverl.leist.;kW
 FEL;PIP;PIP;SIGMAFLOW;N; 12;  3;Streuung Durchf.;Nm3/h
 FEL;PIP;PIP;SIGMAVM;N;  7;  3;Streuung Geschw.;m/s
-FEL;PIP;PIP;SIGMAW;N; 11;  3;Streuung W‰rmevl.;kW
+FEL;PIP;PIP;SIGMAW;N; 11;  3;Streuung W√§rmevl.;kW
 FEL;PIP;PIP;ZETA;N; 14;  3;Verlustfaktor;
 FEL;PIP;PIP;NETZNR;N;  4;  0;Teilnetz;
 FEL;PIP;PIP;RE;N; 10;  0;Reynoldszahl;
@@ -768,15 +768,15 @@ FEL;PIP;PIP;SIMOBJID;C; 24;  0;Simuliertes Element;
 FEL;PIP;PIP;SIMOBJTYP;N;  3;  0;Simuliertes Element Klasse;
 FEL;PIP;PIP;SIMOBJNO;N;  7;  0;Simuliertes Element Satznr.;
 FEL;PIP;PIP;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;PIP;PIP;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;PIP;PIP;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;PIP;PIP;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;PIP;PIP;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;PIP;PIP;!RECNO;N;  8;  0;Satz No*;
 
 REM Feldbeschreibungen Ergebnisse Netzparameter
 FEL;NE1;NE1;ZEIT;N; 10;  1;Rechenzeit;Sekunden
 FEL;NE1;NE1;EXSTARTEVT;C;  1;  0;Anfangszustand aus Ereignissen bilden;[J/N]
 FEL;NE1;NE1;BUNDESLAND;C;  2;  0;Vorherrschende Bundesland;
-FEL;NE1;NE1;MAXPIPRAIS;N;  3;  0;Leitungsgef‰lle zu groﬂ Warnung ab;0/00
+FEL;NE1;NE1;MAXPIPRAIS;N;  3;  0;Leitungsgef√§lle zu gro√ü Warnung ab;0/00
 FEL;NE1;NE1;RULELOOPS;N;  2;  0;Max. Wiederholung f.Steuerungen;
 FEL;NE1;NE1;VOLU;N; 11;  1;Netzvolumen (Ende);Nm3
 FEL;NE1;NE1;REMI;N; 11;  1;Minimale Reynoldszahl im Netz;
@@ -788,37 +788,37 @@ FEL;NE1;NE1;GESMENGE;N; 12;  2;Gesamtabgabe;Nm3/h
 FEL;NE1;NE1;VOLUSTART;N; 11;  1;Netzvolumen Anfang;Nm3
 FEL;NE1;NE1;SUMZUFLUSS;N; 12;  2;Gesamtzufluss;Nm3/h
 FEL;NE1;NE1;GESABNRLM;N; 12;  2;Gesamtabgabe Abnehmer;Nm3/h
-FEL;NE1;NE1;GESABNSLP;N; 12;  2;Gesamtabgabe HA Z‰hler;Nm3/h
+FEL;NE1;NE1;GESABNSLP;N; 12;  2;Gesamtabgabe HA Z√§hler;Nm3/h
 FEL;NE1;NE1;LASTERRNO;N;  8;  0;Fehlercode;
 FEL;NE1;NE1;VOLUFEHL;N; 11;  1;Netzvolumen-Diff.;Nm3
 FEL;NE1;NE1;VOLUFELREL;N;  6;  2;Netzvol.Diff Rel.;%
-FEL;NE1;NE1;SUMLEN;N;  9;  2;Netzl‰nge;km
+FEL;NE1;NE1;SUMLEN;N;  9;  2;Netzl√§nge;km
 FEL;NE1;NE1;REDMSGFAIL;C;  1;  0;In Batch/TASI Sim. mit Fehler nicht verwenden;[J/N]
-FEL;NE1;NE1;NOHAUPDATE;C;  1;  0;Bei HA-Sim.vorh.HA-Zuweisung nicht ver‰ndern;[J/N]
-FEL;NE1;NE1;MINRAISLEN;N;  4;  1;Leitungsgef‰lle pr¸fen ab Leitungsl‰nge;m
+FEL;NE1;NE1;NOHAUPDATE;C;  1;  0;Bei HA-Sim.vorh.HA-Zuweisung nicht ver√§ndern;[J/N]
+FEL;NE1;NE1;MINRAISLEN;N;  4;  1;Leitungsgef√§lle pr√ºfen ab Leitungsl√§nge;m
 FEL;NE1;NE1;TASISUMIN;N; 12;  2;Gesamtzufluss TASI;Nm3
 FEL;NE1;NE1;TASISUMOUT;N; 12;  2;Gesamtabgabe TASI;Nm3
 FEL;NE1;NE1;CURTIME;N;  5;  2;Aktueller Simulationszeitpunkt;HH:MM
 FEL;NE1;NE1;VIOLATP;N;  7;  0;Grenzwertverletzungen Druck;
 FEL;NE1;NE1;VIOLATX;N;  7;  0;Grenzwertverletzungen (ausser Druck);
 FEL;NE1;NE1;REGTOL;N;  4;  1;Vorherrschende Reglertoleranz;%
-FEL;NE1;NE1;WINDKLASSE;N;  2;  0;Vorherrschende Profilauspr‰gung;
-FEL;NE1;NE1;QUALDCFLDS;C; 32;  0;Qualit‰t-Abfall anwenden auf (n, n, ...);
-FEL;NE1;NE1;QUALSET100;C;  1;  0;Qualit‰t an Einspeisern auf 100% Setzen;[J/N]
-FEL;NE1;NE1;TASCLSTART;C;  1;  0;Anfangszustand TASI GAS station‰r berechnen;[J/N]
+FEL;NE1;NE1;WINDKLASSE;N;  2;  0;Vorherrschende Profilauspr√§gung;
+FEL;NE1;NE1;QUALDCFLDS;C; 32;  0;Qualit√§t-Abfall anwenden auf (n, n, ...);
+FEL;NE1;NE1;QUALSET100;C;  1;  0;Qualit√§t an Einspeisern auf 100% Setzen;[J/N]
+FEL;NE1;NE1;TASCLSTART;C;  1;  0;Anfangszustand TASI GAS station√§r berechnen;[J/N]
 FEL;NE1;NE1;RKCONST;N;  6;  4;K-Konstantwert;
 FEL;NE1;NE1;OBJECTVALU;N; 16;  2;Optimalwert;
 FEL;NE1;NE1;OPTGEN;N;  8;  0;Optimale Generation;
-FEL;NE1;NE1;AGRELEVDIF;N;  3;  0;Aggregate Knotenhˆhendiff. zu groﬂ Warnung ab;m
+FEL;NE1;NE1;AGRELEVDIF;N;  3;  0;Aggregate Knotenh√∂hendiff. zu gro√ü Warnung ab;m
 FEL;NE1;NE1;TASITODISK;C;  1;  0;TASI Ergebnisse nicht im Hauptspeicher;[J/N]
 FEL;NE1;NE1;TIME;C; 19;  0;Datum/Zeit;MESZ
 FEL;NE1;NE1;ISACTIVE;N;  1;  0;Aktiv f.Berechnung;
-FEL;NE1;NE1;!RECCOUNT;N;  8;  0;Anzahl S‰tze*;
-FEL;NE1;NE1;!DELETED;C;  1;  0;Gelˆscht*;*
+FEL;NE1;NE1;!RECCOUNT;N;  8;  0;Anzahl S√§tze*;
+FEL;NE1;NE1;!DELETED;C;  1;  0;Gel√∂scht*;*
 FEL;NE1;NE1;!RECNO;N;  8;  0;Satz No*;
 
 REM Knotendaten
-REM;Koordinate x;Koordinate y;Schemakoor.x;Schemakoor.y;Aux1;Knotenname;Zufluss;Fluss-Status;Messdruck;Druck-Status;Temperatur;Hˆhe;Ber.Druck;Abs.Druck;Diff.Druck;Qualit‰t 1;Feuchte;Druckhˆhe;Symbol-Nr.;Abg‰nge;Teilnetz;Letzte ƒnderung;Ort;Sohlhˆhe;Letzter Benutzer;Minimale Laufzeit;Maximale Laufzeit;Betriebsdichte;Medium-Z‰higkeit;Qualit‰t 2;Qualit‰t 3;Messtemp.;Trennt;Text Abstand x;Text Abstand y;Ergebnisdiagramm;Einf¸gen Status;Import Status;Normdichte;Mittlere Laufzeit;Anzahl Abnehmer;Sim. Status;Text Abst.Schema.x;Text Abst.Schema.y;Verbindungsfehler;Streuung Druck;Streuung Durchf.;Streuung Temp.;Streuung W‰rme;Streuung Feuchte;Streuung Qual.1;Streuung Qual.2;Streuung Qual.3;Streuung min.Lauf;Streuung max.Lauf;Streuung Kond.;Drucklimit unten;Drucklimit oben;Status Berechnung;SIGMAPMESS;SIGMATMESS;SIGMAFMESS;K-Faktor;Max.Leistung;Reserveleistung;Fehler QMax.;Brennwert;Qualit‰t Messwert 2;Qualit‰t Messwert 3;Batchergebniss Ablegen;In L‰ngsschnitt nicht ausblenden;Text in L‰ngsschnitt ausgeben;CO2-Gehalt;H2-Gehalt;N2-Gehalt;Gebiet;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Koordinate x;Koordinate y;Schemakoor.x;Schemakoor.y;Aux1;Knotenname;Zufluss;Fluss-Status;Messdruck;Druck-Status;Temperatur;H√∂he;Ber.Druck;Abs.Druck;Diff.Druck;Qualit√§t 1;Feuchte;Druckh√∂he;Symbol-Nr.;Abg√§nge;Teilnetz;Letzte √Ñnderung;Ort;Sohlh√∂he;Letzter Benutzer;Minimale Laufzeit;Maximale Laufzeit;Betriebsdichte;Medium-Z√§higkeit;Qualit√§t 2;Qualit√§t 3;Messtemp.;Trennt;Text Abstand x;Text Abstand y;Ergebnisdiagramm;Einf√ºgen Status;Import Status;Normdichte;Mittlere Laufzeit;Anzahl Abnehmer;Sim. Status;Text Abst.Schema.x;Text Abst.Schema.y;Verbindungsfehler;Streuung Druck;Streuung Durchf.;Streuung Temp.;Streuung W√§rme;Streuung Feuchte;Streuung Qual.1;Streuung Qual.2;Streuung Qual.3;Streuung min.Lauf;Streuung max.Lauf;Streuung Kond.;Drucklimit unten;Drucklimit oben;Status Berechnung;SIGMAPMESS;SIGMATMESS;SIGMAFMESS;K-Faktor;Max.Leistung;Reserveleistung;Fehler QMax.;Brennwert;Qualit√§t Messwert 2;Qualit√§t Messwert 3;Batchergebniss Ablegen;In L√§ngsschnitt nicht ausblenden;Text in L√§ngsschnitt ausgeben;CO2-Gehalt;H2-Gehalt;N2-Gehalt;Gebiet;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;m;m;m;m;;;Nm3/h;?;bar;!;C;mNN;bar;bar;bar;;%;m;;;;;;mNN;;h;h;kg/m3;E-6kg/ms;;;C;[J/N];;;[+];[I/U/D/K];[I/U/M];kg/m3;h;;;;;[J/N];bar;Nm3/h;C;kW;%;;;;s;s;Nm3/h;bar;bar;;;;;;Nm3/h;Nm3/h;;kWh/m3;;;[J/N];[J/N];[J/N];mol-%;mol-%;mol-%;;;;*;
 REM FLDNAM KNO;XRECHTS;YHOCH;X_SCHEMA;Y_SCHEMA;AUX1;KNAM;ZUFLUSS;FSTATUS;PMESS;DSTATUS;TEMP;GEOH;PRECH;PABS;DP;HO;FEUCHTE;HP;SYMBOL;ABGAENGE;NETZNR;LASTMODI;LOCATION;INVERT;USERNAME;TMIN;TMAX;RHO;ETA;QUALI2;QUALI3;TMESS;DISCONNECT;FLAGOFFX;FLAGOFFY;SWMMPRINT;PASTESTATE;IMEXSTATE;RHON;TMED;ABNCOUNT;CALCBAD;FLAGSCOFFX;FLAGSCOFFY;LINKERR;SIGMAP;SIGMAFLOW;SIGMATEMP;SIGMAW;SIGMAHUMID;SIGMAQUA1;SIGMAQUA2;SIGMAQUA3;SIGMATMIN;SIGMATMAX;SIGMACONDE;PLIMITLOW;PLIMITHIGH;BERSTATUS;SIGMAPMESS;SIGMATMESS;SIGMAFMESS;KFAK;QMAX;QRESERV;QMAXERR;H0;QUALM2;QUALM3;TORESULT;NOHIDECHRT;CHRTSHOWTX;CO2;H2;N2;GEBIET;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 KNO; 3416947.62300; 5369956.61400;       0.00000;       0.00000;;K1073;     0.000;;  0.0000;;  10.0; 147.97;  1.0000;  1.9949;  0.0000;  0.0000;  0.00;   158.167;  0;  2;   1;     20190520155249;;   0.00;user1;       0.00;       0.00;    1.60;   11.93;      0.0000;      0.0000;   0.0;;     0;     0;;;I;     0.8400;       0.00; 0;0;     0;     0;N;  0.0000;       0.000;  0.00;      0.000;  0.00;      0.0000;      0.0000;      0.0000;       0.00;       0.00;    0.000;  0.0000;  0.0000; 0;  0.0000;  0.00;       0.00;0.99561;       0.00;       0.00;;   0.000;      0.0000;      0.0000;;;;  0.0000;  0.0000;  0.0000;;1;      16;;       1;
@@ -839,12 +839,12 @@ KNO; 3416969.83400; 5369989.13100;       0.00000;       0.00000;;K1289;    25.02
 KNO; 3416954.21900; 5369966.33900;       0.00000;       0.00000;;K1290;     0.000;;  0.0000;;  10.0; 147.73;  1.0000;  1.9950;  0.0000;  0.0000;  0.00;   157.927;  0;  2;   1;     20190520155249;;   0.00;user1;       0.00;       0.00;    1.60;   11.93;      0.0000;      0.0000;   0.0;;     0;     0;;;I;     0.8400;       0.00; 0;0;     0;     0;N;  0.0000;       0.000;  0.00;      0.000;  0.00;      0.0000;      0.0000;      0.0000;       0.00;       0.00;    0.000;  0.0000;  0.0000; 0;  0.0000;  0.00;       0.00;0.99561;       0.00;       0.00;;   0.000;      0.0000;      0.0000;;;;  0.0000;  0.0000;  0.0000;;1;      16;;      16;
 
 REM Leitungsdaten
-REM;Anfang;Ende;Anf.Nr.;End.Nr.;Parallel;STANET-ID;WD-Zahl;L‰nge;Innendurchm.;Aux1;Rauhigkeit;Durchfluss;Geschw.;Delta p;Teilnetz;Verlustfaktor;Strassenname;Material;Strassennummer;Baujahr;Reibungsverl./km;Rohrtyp;StrangNo;Druckhˆhendiff.;Nennweite;Letzte ƒnderung;Temp.Soll (ext. Einfluss);Optimieren;Verlegepreis konst.;Verlegepreis/mm;Rohrpreis;Wiederbeschaf.wert;Last/m;Last;Koordinate x Anfang;Koordinate y Anfang;Koordinate x Ende;Koordinate y Ende;Verlegeart;Freileitung;Textfahne;Letzter Benutzer;W‰rmeverl.leist.;Gef‰lle;Druckstufe;Ergebnisdiagramm;Druckklasse;Einf¸gen Status;Import Status;Rauheitsklasse;Ort;Ortsteil;PLZ;Geocode Qualit‰t;Widerstandszahl;Reynoldszahl;Text Abstand x;Text Abstand y;Reibungsverlust;Routing Mengenanteil;Wanddicke;Aussendurchmessser;Batches (DQ);Layer;Rohrvolumen;Reduziert zu ID;Trassennummer;Verlustleistung;Unterversorgt Menge (bei Ausfall);Unterversorgt Anzahl (bei Ausfall);Unversorgt Menge (bei Ausfall);Unversorgt Anzahl (bei Ausfall);Unterversorgt Sond.Menge (bei Ausfall);Unterversorgt Sond.Anzahl(bei Ausfall);Unversorgt Sond.Menge (bei Ausfall);Unversorgt Sond.Anzahl (bei Ausfall);Direkt betr.HA Menge (bei Ausfall);Direkt betr.HA Anzahl (bei Ausfall);Betroffene Abnehmer Anzahl (bei Ausfall);Betroffene HA-Z‰hler Anzahl (bei Ausfall);Status (bei Ausfall);Gruppe Schieberbereich;Sim. Status;Text Abst.Schema.x;Text Abst.Schema.y;Delta p^2/km;Gasvolumen;Geschw.Max.;Streuung Durchf.;Streuung Geschw.;Streuung W‰rmevl.;Streuung Kond.;Rauh. Nominal;Rauh. Streuung;Verl. Nominal;Rauh. Diskret;Verl. Diskret;Fehlersumme Diskret;Durchm. Alt;Sanierung verboten;Einzug verboten;Erneuerungsart;Erneuerungspreis;Prognostizierte Schadensrate;Eintrittswahrscheinlichkeit;Schadensausmaﬂ;Risiko;Qualit‰ts-Abfallzeit;Qualit‰t-Endwert;In L‰ngsschnitt nicht ausblenden;Text in L‰ngsschnitt ausgeben;Batchergebniss Ablegen;Rel.Druckabfall;E(t) Verkehrslast;E(t) Max. Druck/Ruhedruck;E(t) Boden/Bettung/GW;E(t) Anzahl Sch‰den;E(t) Weitere Zustandsdaten;SA Gef.Geb‰ude/Infrastr;SA Folgekosten;SA Bruchpotenzial;SA Erosionsradius;SA Druck;SA Menge;SA Besondere Anforderung;SA Tr¸bungsgrad;Brownfield Benutzer 1;Brownfield Benutzer 2;Anlagenklasse;Rehabilitationsjahr;Gebiet;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
-REM;;;;;;;W/K*m2;m;mm;;mm;Nm3/h;m/s;bar;;;;;;;mbar/km;;;m;;;C;?;Ä/m;Ä/m/mm;Ä/m;Ä;Nm3/(h*m);Nm3/h;;;;;;[J/N];[0-6];;kW;0/00;bar;[+];;[I/U/D/K];[I/U/M];;;;;;;;;;bar;%;mm;mm;;;m3;;;kW;Nm3/h;#;Nm3/h;#;Nm3/h;#;Nm3/h;#;Nm3/h;#;#;#;;;;;;bar^2/km;Nm3;m/s;Nm3/h;m/s;kW;Nm3/h;mm;mm;;mm;;;mm;[J/N];[J/N];;;#/km/Jahr;;;;;;[J/N];[J/N];[J/N];mBar/Nm3/h;S1;S2;S3;S4 [S/m];S5;G1;G2;BP;ER [m]/PW;VS1;VS2;V3;TR [NTU];U1;U2;;;;;;*;
+REM;Anfang;Ende;Anf.Nr.;End.Nr.;Parallel;STANET-ID;WD-Zahl;L√§nge;Innendurchm.;Aux1;Rauhigkeit;Durchfluss;Geschw.;Delta p;Teilnetz;Verlustfaktor;Strassenname;Material;Strassennummer;Baujahr;Reibungsverl./km;Rohrtyp;StrangNo;Druckh√∂hendiff.;Nennweite;Letzte √Ñnderung;Temp.Soll (ext. Einfluss);Optimieren;Verlegepreis konst.;Verlegepreis/mm;Rohrpreis;Wiederbeschaf.wert;Last/m;Last;Koordinate x Anfang;Koordinate y Anfang;Koordinate x Ende;Koordinate y Ende;Verlegeart;Freileitung;Textfahne;Letzter Benutzer;W√§rmeverl.leist.;Gef√§lle;Druckstufe;Ergebnisdiagramm;Druckklasse;Einf√ºgen Status;Import Status;Rauheitsklasse;Ort;Ortsteil;PLZ;Geocode Qualit√§t;Widerstandszahl;Reynoldszahl;Text Abstand x;Text Abstand y;Reibungsverlust;Routing Mengenanteil;Wanddicke;Aussendurchmessser;Batches (DQ);Layer;Rohrvolumen;Reduziert zu ID;Trassennummer;Verlustleistung;Unterversorgt Menge (bei Ausfall);Unterversorgt Anzahl (bei Ausfall);Unversorgt Menge (bei Ausfall);Unversorgt Anzahl (bei Ausfall);Unterversorgt Sond.Menge (bei Ausfall);Unterversorgt Sond.Anzahl(bei Ausfall);Unversorgt Sond.Menge (bei Ausfall);Unversorgt Sond.Anzahl (bei Ausfall);Direkt betr.HA Menge (bei Ausfall);Direkt betr.HA Anzahl (bei Ausfall);Betroffene Abnehmer Anzahl (bei Ausfall);Betroffene HA-Z√§hler Anzahl (bei Ausfall);Status (bei Ausfall);Gruppe Schieberbereich;Sim. Status;Text Abst.Schema.x;Text Abst.Schema.y;Delta p^2/km;Gasvolumen;Geschw.Max.;Streuung Durchf.;Streuung Geschw.;Streuung W√§rmevl.;Streuung Kond.;Rauh. Nominal;Rauh. Streuung;Verl. Nominal;Rauh. Diskret;Verl. Diskret;Fehlersumme Diskret;Durchm. Alt;Sanierung verboten;Einzug verboten;Erneuerungsart;Erneuerungspreis;Prognostizierte Schadensrate;Eintrittswahrscheinlichkeit;Schadensausma√ü;Risiko;Qualit√§ts-Abfallzeit;Qualit√§t-Endwert;In L√§ngsschnitt nicht ausblenden;Text in L√§ngsschnitt ausgeben;Batchergebniss Ablegen;Rel.Druckabfall;E(t) Verkehrslast;E(t) Max. Druck/Ruhedruck;E(t) Boden/Bettung/GW;E(t) Anzahl Sch√§den;E(t) Weitere Zustandsdaten;SA Gef.Geb√§ude/Infrastr;SA Folgekosten;SA Bruchpotenzial;SA Erosionsradius;SA Druck;SA Menge;SA Besondere Anforderung;SA Tr√ºbungsgrad;Brownfield Benutzer 1;Brownfield Benutzer 2;Anlagenklasse;Rehabilitationsjahr;Gebiet;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
+REM;;;;;;;W/K*m2;m;mm;;mm;Nm3/h;m/s;bar;;;;;;;mbar/km;;;m;;;C;?;‚Ç¨/m;‚Ç¨/m/mm;‚Ç¨/m;‚Ç¨;Nm3/(h*m);Nm3/h;;;;;;[J/N];[0-6];;kW;0/00;bar;[+];;[I/U/D/K];[I/U/M];;;;;;;;;;bar;%;mm;mm;;;m3;;;kW;Nm3/h;#;Nm3/h;#;Nm3/h;#;Nm3/h;#;Nm3/h;#;#;#;;;;;;bar^2/km;Nm3;m/s;Nm3/h;m/s;kW;Nm3/h;mm;mm;;mm;;;mm;[J/N];[J/N];;;#/km/Jahr;;;;;;[J/N];[J/N];[J/N];mBar/Nm3/h;S1;S2;S3;S4 [S/m];S5;G1;G2;BP;ER [m]/PW;VS1;VS2;V3;TR [NTU];U1;U2;;;;;;*;
 REM FLDNAM LEI;ANFNAM;ENDNAM;ANFNR;ENDNR;PARALLEL;STANETID;WDZAHL;RORL;DM;AUX1;RAU;FLUSS;VM;DP;NETZNR;ZETA;STRASSE;MATERIAL;STRANUM;BAUJAHR;DPREL;ROHRTYP;STRANGNR;DPM;DN;LASTMODI;TU;DIASTATUS;CONPRICE;DIAPRICE;PIPEPRICE;WBWERT;LOADPERMET;STATICLOAD;XRA;YHA;XRB;YHB;VERLEGEART;OVRHEADLIN;TXROTATE;USERNAME;WAERMEMENG;RAISE;PN;SWMMPRINT;PZONE;PASTESTATE;IMEXSTATE;RAUZONE;STRORT;STROTEIL;AREACODE;GEOQUALITY;LAMBDA;RE;FLAGOFFX;FLAGOFFY;PLOSS;PATHPART;WANDDICKE;OUTERDM;BATCHES;LAYER;PIPEVOL;NEWID;TRASSE;MECHANLOSS;CRITICHYD;CRITICHNO;CRITICTSM;CRITICTOP;CRITSOHYD;CRITSOHNO;CRITSOTSM;CRITSOTOP;CRITHAUAMT;CRITHAUCNT;CRITABNCNT;CRITMTRCNT;CRITISTAT;HYSGROUP;CALCBAD;FLAGSCOFFX;FLAGSCOFFY;DP2KM;GASVOL;VMAX;SIGMAFLOW;SIGMAVM;SIGMAW;SIGMACONDE;RAUNOMI;RAUVARI;ZETANOMI;RAUDISC;ZETADISC;ERRSUM;DMOLD;NORESTAUR;NORELINE;RSTAURTYP;BROWNPRICE;BROWNST;VIRTAGE;BROWNRISK;BFRISKALL;QUALDECAY;QUALFINAL;NOHIDECHRT;CHRTSHOWTX;TORESULT;PDECLINE;BFPROBS1;BFPROBS2;BFPROBS3;BFPROBS4;BFPROBS5;BFRISKG1;BFRISKG2;BFRISKBP;BFRISKER;BFRISKVS1;BFRISKVS2;BFRISKV3;BFRISKTR;BFUSERU1;BFUSERU2;ANKLASSE;REHAJAHR;GEBIET;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
-LEI;K1073;K1074;      1;      7;0;LEI00002E5B3B8EB77F07;   0.00;   186.8; 147.2;;   0.1000;     0.000;  0.0000;  0.0000;   0;         0.000;Blumenstraﬂe;PE 100;1533031667_11;   0;          0.00;180 PE 100 SDR 11;;     0.000;180;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3416947.62300; 5369956.61400; 3417114.52800; 5369874.18500;;;0;user1;      0.000;   0.53536;;;;;I;  0;Exampelonia;;12345;RANGE_INTERPOLATED; 0.0179;      3355;     0;     0;      0.0000;  0.0;  16.4; 180.0;     0;$PIPE_0;     0.000;;    0;      0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.000;       0.000;  0.00;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       1;
-LEI;K1075;K1076;      2;      3;0;LEI0000305B3B8EBA6F1C;   0.00;    56.9; 102.2;;   0.1000;     0.000;  0.0000;  0.0000;   0;         0.000;Blumenstraﬂe;PE 100;1533031667_11;   0;          0.00;125 PE 100 SDR 11;;     0.000;125;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3417223.53000; 5369825.25400; 3417278.95200; 5369812.50700;;;0;user1;      0.000;  -2.98793;;;;;I;  0;Exampelonia;;12345;ROOFTOP; 0.0195;      2256;     0;     0;      0.0000;  0.0;  11.4; 125.0;     0;$PIPE_0;     0.000;;    0;     -0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.000;       0.000;  0.00;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       2;
-LEI;K1074;K1075;      7;      2;0;LEI00002F5B3B8EB9C00A_A;   0.00;   118.8; 102.2;;   0.1000;     0.000;  0.0000;  0.0000;   0;         0.000;Blumenstraﬂe;PE 100;1533031667_11;   0;          0.00;125 PE 100 SDR 11;K1001_L;     0.000;125;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3417116.68100; 5369873.89100; 3417223.53000; 5369825.25400;;;0;user1;      0.000;   4.46127;;;;;I;  0;Exampelonia;;12345;ROOFTOP; 0.0195;      2485;     0;     0;      0.0000;  0.0;  11.4; 125.0;     0;$PIPE_0;     0.000;;    0;      0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.000;       0.000;  0.00;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       3;
+LEI;K1073;K1074;      1;      7;0;LEI00002E5B3B8EB77F07;   0.00;   186.8; 147.2;;   0.1000;     0.000;  0.0000;  0.0000;   0;         0.000;Blumenstra√üe;PE 100;1533031667_11;   0;          0.00;180 PE 100 SDR 11;;     0.000;180;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3416947.62300; 5369956.61400; 3417114.52800; 5369874.18500;;;0;user1;      0.000;   0.53536;;;;;I;  0;Exampelonia;;12345;RANGE_INTERPOLATED; 0.0179;      3355;     0;     0;      0.0000;  0.0;  16.4; 180.0;     0;$PIPE_0;     0.000;;    0;      0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.000;       0.000;  0.00;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       1;
+LEI;K1075;K1076;      2;      3;0;LEI0000305B3B8EBA6F1C;   0.00;    56.9; 102.2;;   0.1000;     0.000;  0.0000;  0.0000;   0;         0.000;Blumenstra√üe;PE 100;1533031667_11;   0;          0.00;125 PE 100 SDR 11;;     0.000;125;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3417223.53000; 5369825.25400; 3417278.95200; 5369812.50700;;;0;user1;      0.000;  -2.98793;;;;;I;  0;Exampelonia;;12345;ROOFTOP; 0.0195;      2256;     0;     0;      0.0000;  0.0;  11.4; 125.0;     0;$PIPE_0;     0.000;;    0;     -0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.000;       0.000;  0.00;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       2;
+LEI;K1074;K1075;      7;      2;0;LEI00002F5B3B8EB9C00A_A;   0.00;   118.8; 102.2;;   0.1000;     0.000;  0.0000;  0.0000;   0;         0.000;Blumenstra√üe;PE 100;1533031667_11;   0;          0.00;125 PE 100 SDR 11;K1001_L;     0.000;125;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3417116.68100; 5369873.89100; 3417223.53000; 5369825.25400;;;0;user1;      0.000;   4.46127;;;;;I;  0;Exampelonia;;12345;ROOFTOP; 0.0195;      2485;     0;     0;      0.0000;  0.0;  11.4; 125.0;     0;$PIPE_0;     0.000;;    0;      0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.000;       0.000;  0.00;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       3;
 LEI;K1128;K1127;      5;      4;0;LEI0000555B3CF658CF97;   0.00;    41.0; 147.2;;   0.1000;     0.000;  0.0000;  0.0000;   0;         0.000;Am Dachsrain;PE 100;1532532220_11;   0;          0.00;180 PE 100 SDR 11;;     0.000;180;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3417089.08200; 5369819.30500; 3417106.90800; 5369856.24400;;;0;user1;      0.000;  -7.31678;;;;;I;  0;Exampelonia;;12345;GEOMETRIC_CENTER; 0.0179;       171;     0;     0;      0.0000;  0.0;  16.4; 180.0;     0;$PIPE_0;     0.000;;    0;     -0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.000;       0.000;  0.00;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       4;
 LEI;K1129;K1128;      6;      5;0;LEI0000565B3CF6588EFD;   0.00;     9.2; 147.2;;   0.1000;     1.010;  0.0086;  0.0000;   1;         0.000;Am Dachsrain;PE 100;1533031667_18;   0;          0.00;180 PE 100 SDR 11;;     0.000;180;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3417106.90800; 5369856.24400; 3417111.06100; 5369864.42000;;;0;user1;     -0.000;  17.39004;;;;;I;  0;Exampelonia;;12345;ROOFTOP; 0.0179;       171;     0;     0;      0.0000;  0.0;  16.4; 180.0;     0;$PIPE_0;     0.157;;    0;      0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.011;       0.299;  0.01;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       5;
 LEI;K1074;K1129;      7;      6;0;LEI0000585B3CF665C9B2;   0.00;    12.7; 147.2;;   0.1000;     1.010;  0.0086;  0.0000;   1;         0.000;Am Dachsrain;PE 100;1533031667_18;   0;          0.00;180 PE 100 SDR 11;;     0.000;180;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3417115.36600; 5369874.13000; 3417111.06100; 5369864.42000;;;0;user1;     -0.000;  -3.93725;;;;;I;  0;Exampelonia;;12345;ROOFTOP; 0.0179;       171;     0;     0;      0.0000;  0.0;  16.4; 180.0;     0;$PIPE_0;     0.216;;    0;      0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;    -0.002;       0.412;  0.01;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;       6;
@@ -859,7 +859,7 @@ LEI;K1289;K1290;     15;     16;0;LEI0000F65B3CFD16EBD5;   0.00;    27.6; 147.2;
 LEI;K1290;K1073;     16;      1;0;LEI0000F75B3CFD1A9759;   0.00;    11.8; 147.2;;   0.1000;    20.985;  0.1795;  0.0000;   1;         0.000;;PE 100;;   0;          0.07;180 PE 100 SDR 11;;     0.000;180;     20180800000000;   0.0;?;   0.00000;   0.00000;   0.00000;       0.00;        0.00000;     0.000; 3416947.62300; 5369956.61400; 3416954.21900; 5369966.33900;;;0;user1;     -0.000;  20.33945;;;;;I;  0;Exampelonia;;12345;; 0.0179;      3550;     0;     0;      0.0000;  0.0;  16.4; 180.0;     0;$PIPE_0;     0.201;;    0;      0.0000;       0.0000;     0;       0.0000;     0;       0.0000;     0;     0.0000;     0;       0.00;     0;     0;     0;;     0;0;     0;     0;     0.013;       0.383;  0.18;       0.000;  0.000;      0.000;    0.000; 0.000; 0.000;     0.000;   0.0000;   0.000;    0.0000;   0.0;;;;      0.00;  0.00000;   0.000;  0.00;  0.00;    0.00;      0.0000;;;;        0.000000;;;;;;;;;;;;;;;;;   0;;1;      15;;      15;
 
 REM Hausdaten
-REM;Koordinate x;Koordinate y;Schemakoor.x;Schemakoor.y;Aux1;Strassennummer;Hausnummer;Hausnr. Zusatz;Ges.Menge;Grˆsste Menge;Tarif;Z‰hler-Nr.;Z‰hler-Anz;Geschosse;Haus-ID;Abstand;Knoten;Knoten-Nr.;Bezeichnung;Letzte ƒnderung;Letzter Benutzer;Ber.Druck;Einf¸gen Status;Import Status;Leitungs-Nr.;Strassenname;Verbindung 1;Verbdg.1 Klasse;Verbindung 2;Verbdg.2 Klasse;HA-Verbindung Nr.;Layer;Ort;Ortsteil;PLZ;Geocode Qualit‰t;Gebiet;STANET-ID;Abg‰nge;Verbdg.2 Satznr.;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Koordinate x;Koordinate y;Schemakoor.x;Schemakoor.y;Aux1;Strassennummer;Hausnummer;Hausnr. Zusatz;Ges.Menge;Gr√∂sste Menge;Tarif;Z√§hler-Nr.;Z√§hler-Anz;Geschosse;Haus-ID;Abstand;Knoten;Knoten-Nr.;Bezeichnung;Letzte √Ñnderung;Letzter Benutzer;Ber.Druck;Einf√ºgen Status;Import Status;Leitungs-Nr.;Strassenname;Verbindung 1;Verbdg.1 Klasse;Verbindung 2;Verbdg.2 Klasse;HA-Verbindung Nr.;Layer;Ort;Ortsteil;PLZ;Geocode Qualit√§t;Gebiet;STANET-ID;Abg√§nge;Verbdg.2 Satznr.;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;m;m;m;m;;;;;;Nm3/h;;;;;;;;;;;;bar;[I/U/D/K];[I/U/M];;;;;;;;;;;;;;;;;;;*;
 REM FLDNAM HAU;XRECHTS;YHOCH;X_SCHEMA;Y_SCHEMA;AUX1;STRANUM;HAUSNUM;HAUSNOZUS;MENGE;ZAEHLERMEN;ZAEHLERTAR;ZAEHLERNO;ZAEHLERANZ;GESCHOSSE;HAUSID;ABSTAND;KNOTENNAME;KNONUM;BEZEICHNG;LASTMODI;USERNAME;PRECH;PASTESTATE;IMEXSTATE;PIPENO;STRASSE;CLIENTID;CLIENTTYP;CLIENT2ID;CLIENT2TYP;HCONNO;LAYER;STRORT;STROTEIL;AREACODE;GEOQUALITY;GEBIET;STANETID;ABGAENGE;CLIENT2NO;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 HAU; 3417312.04400; 5369664.34200;       0.00000;       0.00000;;;15;;     -0.26857;     0.00000;;;   1; 0;w33082798;       0.00000;K1251;      8;;     20221205130150;user1;  0.9999;;M;     7;Strasse;LEI0000D05B3CFC31F24B;  2;CON0005845C5AD7E4B111; 35;   107;$HOUSE_0;Exampelonia;;12345;;;HAU0000055B73EDB1A49A;  1;      0;1;      94;;       1;
@@ -955,14 +955,14 @@ HAU; 3417038.80000; 5369926.64100;       0.00000;       0.00000;;;0;;     -0.219
 HAU; 3417136.26800; 5370015.45000;       0.00000;       0.00000;;;0;;     -0.51609;     0.00000;;;   1; 0;ne_520;       0.00000;K1287;     13;;     20221205130150;user1;  1.0000;;M;    11;Strasse;LEI0000F35B3CFD10AB7B;  2;CON0007FC5C5AD852526E; 35;   158;$HOUSE_0;Exampelonia;;12345;;;HAU0005A65B73EDB21E25;  1;      0;1;      94;;      94;
 
 REM Netzparameterdaten
-REM;Netz-Kurzname;Netzbezeichnung;(Obsolet);Lastfall;Netzmedium;Vorherrschende L‰nge;Belastungsfaktor Zu-/Abfluss;Steuerparameter Testausschriebe;Maximale Iterationszahl;Rechenzeit;Simulationsschritte TASI;Simulation Wiederholung Steuerungen;SP;SQ;Name des Bearbeiters;x-Koord. Start Katasterbl‰tt.;y-Koord. Start Katasterbl‰tt.;Katasterblattl‰nge x;Katasterblattl‰nge y;Anzahl Katasterbl‰tter je Zeile;Gegenkathedenl‰nge Kata.drehung;Hypotenusenl‰nge Kata.drehung;Beginnzeitpunkt der Rechnung;Maximale Anzahl Teilnetze;Weltkoordinaten Masseinheit Meter;Netz drehen Hypotenuse;Netzt drehen Gegenkathedenl‰nge;Ergebnisse ung¸ltig;Ergebnisse HA ung¸ltig;Hinweis zu Ergebnisse G¸ltig;STANET Version;Verbrauchsermittl. auf Strassen vor Simulation;Messwerte als Vorgaben verwenden;Messwerte aus Onlinesystem (anstatt Tabelle);STANET 8.2 Layer verwenden;Koordinatensystem Onlinekartographie (Bis 9.1);Koordinatensystem Onlinekartographie 10.0;Meridianstreifen/UTM Zone;Meridianstreifen voranstellen auch bei WGS84;Startdatum der Simulation;Datum/Zeit der Simulation;Anfangszustand aus Ereignissen bilden;Vorherrschende Bundesland;Dateien kompaktiert (UPDATE ignorieren);Max. Zeitabstand Messdaten zu Sim.Zeit;Leitungsgef‰lle zu groﬂ Warnung ab;Max. Wiederholung f.Steuerungen;Zeitschritt TASI;Vorherrschende Rauhigkeit;Vorherrschender Durchmesser;Dynamische Z‰higkeit;Dichte des Mediums;Luftdruck;Geod‰t. Hˆhe Luftdruckmessung;Vorherrschende Mediumtemperatur;Druckfaktor Kompressibilit‰t;KTOL;RTOL;Widerstandsgesetz;Neuberechnung von Null;Netzvolumen (Ende);Eliminationsbereich-Faktor;Minimale Reynoldszahl im Netz;Maximale Reynoldszahl im Netz;Endgenauigkeit Druckabfall;Endgenauigkeit Knotenfluss;Brennwert;Z‰higkeitsbeiwert TA;Z‰higkeitsbeiwert TB;Sutherlandkonstante Z‰higkeit;Z‰higkeits-Bezugstemperatur;Kondensation berechnen;Dampfdichte;Verdampfungsw‰rme Kondensat;W‰rmekapazit‰t Medium;W‰rmekapazit‰t Kondensat;W‰rmekapazit‰t Dampf;Vorherrsch. W‰rmedurchgangszahl;Bodentemperatur;Vorherrschende Feuchte;Vorherrschende Ventill‰nge;Max. Druckfehler in Strecke;Max. Flussfehler in Knoten;Qualit‰ts-Verfolgung rechnen;Individuelle Normdichte;Temperatur berechnen;Optimierung aktiviert;GA Aktivieren (Genetischer Algorithmus);Individueller Durchmesser;GA Anzahl Generationen;GA Populationsgrˆsse;GA MICROGA;GA Jump Mutation Probability (0 = auto);GA Crossover Probability;GA Creep Mutation;GA Creep Mutation Probability (0 = auto);GA Uniform Crossover (recommended);GA Niching (Experimental);GA Elitism;GA Childs per pair;IRESTART;Population Number for test;Last Population Number for test;Abrechnungszeitraum aus Datum;Default Abrechnungszeitraum;Lufttemperatur;Mittlere Tagestemperatur;Grenztemperatur;Benutzungsstunden (obsolet);Durchmesser-Opt. mit Routing;Durchmesser-Opt. mit LP;Gesamtabgabe;Netzvolumen Anfang;Gesamtzufluss;Gesamtabgabe Abnehmer;Gesamtabgabe HA Z‰hler;Fehlercode;Netzvolumen-Diff.;Netzvol.Diff Rel.;Relaxationsfaktor Druck;Relaxationsfaktor Fluss;Relaxationsfaktor Temperatur;Widerstandsfaktor;Max. Anzahl Reglerumschaltungen;Netzl‰nge;Mindestl‰nge;Regularisierungs-Faktor Kalibrierung;D.Q. Qualitaeten berechnen;D.Q. Geschwindigkeits-Schwellwert;D.Q. Zeitschritt;D.Q. Laufzeit ermitteln;D.Q. Temperatur ermitteln;D.Q. Einspeise.Anteile ermitteln;In Batch/TASI Sim. mit Fehler nicht verwenden;Bei HA-Sim.vorh.HA-Zuweisung nicht ver‰ndern;Leitungsgef‰lle pr¸fen ab Leitungsl‰nge;Qualit‰tsberechnung zyklisch mit Kreisfluss;Anzahl Startiterationen GANESI;Vorherrschender Co2-Gehalt;Vorherrschender H2-Gehalt;Vorherrschender N2-Gehalt;Formel K-Faktor;SE Strg Streuungen berechnen;SE Strg Rauhigkeiten berechnen;SE Strg Messdatenabtastzeit;SE Strg Untersetzungsfaktor Mittelwert;SE Strg Untersetzungsfaktor Rechenschritt;SE Strg Erster Zeitschritt Qualitaetsrechn.;SE Strg Erster Zeitschritt Vergleich;SE Strg Letzter Zeitschritt Druckanpassung;SE Strg Letzter Zeitschritt Rauhigkeitsber.;SE Strg Testausschriebe PQ-Berechnung;SE Strg Testausschriebe Qualitaet;SE Strg Testausschriebe f¸r Knoten;SE Strg Testauschriebe f¸r Leitungen;SE Umgb Waermeleitzahl Boden;SE Umgb Verlegetiefe;SE Qual Regelparameter Rauhigkeit;SE Qual Glaettungsfaktor Fehlfluesse;SE Qual Skalierung Gleichungsfehler;SE Qual Glaettungsfaktor Druckbias 1;SE Qual Glaettungsfaktor Druckbias 2;SE Qual Glaettungfaktor Meﬂdruck;SE Qual Toleranz Messdruck-Rechendruck;SE Qual Toleranz Temperatur;SE Qual Toleranz Qualit‰t;SE Qual Toleranz Qualit‰t2;SE Qual Toleranz Qualit‰t3;SE Qual Zeitfaktor Qualit‰t;SE Mess Streuung Druck;SE Mess Streuung Fluss;SE Mess Streuung Ersatzwert Fluss;SE Mess Streuung Temperatur;SE Mess Streuung W‰rmeleistung;SE Mess Streuung Feuchte;SE Mess Streuung Qualit‰t 1;SE Mess Streuung Qualit‰t 2;SE Mess Streuung Qualit‰t 3;SE Mess Streuung Normdichte;SE Mess Streuung FWA-Auflˆsung 8 Bit;SE Mess Streuung geod‰tische Hˆhe;SE Mess Streuung K-Faktor;SE Mess Streuung dyn. Z‰higkeit;SE Mess Streuung Rohrl‰nge;SE Mess Streuung Durchmesser;SE Mess Streuung Rauhigkeit;SE Mess Streuung CP-Wert;SE Mess Streuung Verlustbeiwert ZETA;SE Mess Streuung Widerstandszahl;SE Archivierungspfad;Windgeschwindigkeit;SE Messfehlergrenze Druck;SE Messfehlergrenze Fluss;SE Limit-Schwelle P;SE Limit-Schwelle Q;SE Messwerte erhalten;SE Messwerte gestˆrt ;SE Messwerte ausgeschieden;SE Messwerte verwendet;SE M.Temperaturwerte verwendet;SE M.Druckwerte verwendet;SE M.Flusswerte verwendet;SE Q-Ausgleich;SE PQ-Ausgleich;SE Dichtekorrektur;SE Bilanzkorrektur;SE Unausgeglichen;BDFACTOR;Diagrammdaten sind aus Archiv;SE Connect: Anzahl verzichtbare Messwerte;SE Connect: Wartezeit auf Messwerte;SE Bilanzfehler Max.;SE Bilanzfehler Teilnetz;SEDIRTY;SE Minimale Rauhigkeit;SE Maximale Rauhigkeit;SE Fehlende Mengen errechnen;SE Nur Messwerte (Keine Vorgabew.);D.Q. Zeit-Reserve;D.Q. Temperatur-Reserve;D.Q. Qualitaets-Reserve;Minimaler Zeitschritt TASI (0 = default 300!);Gesamtzufluss TASI;Gesamtabgabe TASI;Aktueller Simulationszeitpunkt;Einheitlicher Rohrtyp pro Trasse;Grenzwertverletzungen Druck;Grenzwertverletzungen (ausser Druck);Vorherrschende Reglertoleranz;TASI Simulationsdauer;TASI Zwischenergebnisse abspeichern;Vorherrschende Profilauspr‰gung;Qualit‰t-Abfall anwenden auf (n, n, ...);Qualit‰t an Einspeisern auf 100% Setzen;Max. Neuberechnungen Teilnetz;Max. Neuberechnungen Gesamtnetz;D.Q. GERG88 aktivieren;D.Q. AGANX19 aktivieren;Impuls-Beiwert;Kontinuit‰ts-Beiwert;Report-Zeitschritt;Vorherrschender Verlustfaktor;Anfangszustand TASI GAS station‰r berechnen;Anfangszustand TASI GAS Volumenbestimmung;K-Konstantwert;Qualit‰t-Abfallzeit;Qualit‰t-Endwert;Optimalwert;Optimale Generation;Penalty p.uncovered meter;Penalty p.uncovered Volume m3;OPTDEADEND;Aktivierte Feldgruppen 1-32;Aktivierte Feldgruppen 33-64;Raumtemperatur;Aufheiz-Faktor;Ausk¸hl-Zeit;Attributlegenden: Aktive Gruppen;D.Q. Allokationsfaktor;Aggregate Knotenhˆhendiff. zu groﬂ Warnung ab;TASI Ergebnisse nicht im Hauptspeicher;TASI Ergebnisse nur f¸r aktive Elemente;Feld 'Einheit kW' aktivieren in Abn./HA-Z‰hlern;Sim. kW wiederholen wenn Brennwert‰nderung >;TUM Profilschritte gelten 00:01-01:00;Gen.Fluss-Exponent;Gen.Durchmesser-Exponent;Rohrvolumen;~AUX1 - F¸r interne Testzwecke;~AUX2 - F¸r interne Testzwecke;~AUX3 - F¸r interne Testzwecke;TASINEXTH;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Netz-Kurzname;Netzbezeichnung;(Obsolet);Lastfall;Netzmedium;Vorherrschende L√§nge;Belastungsfaktor Zu-/Abfluss;Steuerparameter Testausschriebe;Maximale Iterationszahl;Rechenzeit;Simulationsschritte TASI;Simulation Wiederholung Steuerungen;SP;SQ;Name des Bearbeiters;x-Koord. Start Katasterbl√§tt.;y-Koord. Start Katasterbl√§tt.;Katasterblattl√§nge x;Katasterblattl√§nge y;Anzahl Katasterbl√§tter je Zeile;Gegenkathedenl√§nge Kata.drehung;Hypotenusenl√§nge Kata.drehung;Beginnzeitpunkt der Rechnung;Maximale Anzahl Teilnetze;Weltkoordinaten Masseinheit Meter;Netz drehen Hypotenuse;Netzt drehen Gegenkathedenl√§nge;Ergebnisse ung√ºltig;Ergebnisse HA ung√ºltig;Hinweis zu Ergebnisse G√ºltig;STANET Version;Verbrauchsermittl. auf Strassen vor Simulation;Messwerte als Vorgaben verwenden;Messwerte aus Onlinesystem (anstatt Tabelle);STANET 8.2 Layer verwenden;Koordinatensystem Onlinekartographie (Bis 9.1);Koordinatensystem Onlinekartographie 10.0;Meridianstreifen/UTM Zone;Meridianstreifen voranstellen auch bei WGS84;Startdatum der Simulation;Datum/Zeit der Simulation;Anfangszustand aus Ereignissen bilden;Vorherrschende Bundesland;Dateien kompaktiert (UPDATE ignorieren);Max. Zeitabstand Messdaten zu Sim.Zeit;Leitungsgef√§lle zu gro√ü Warnung ab;Max. Wiederholung f.Steuerungen;Zeitschritt TASI;Vorherrschende Rauhigkeit;Vorherrschender Durchmesser;Dynamische Z√§higkeit;Dichte des Mediums;Luftdruck;Geod√§t. H√∂he Luftdruckmessung;Vorherrschende Mediumtemperatur;Druckfaktor Kompressibilit√§t;KTOL;RTOL;Widerstandsgesetz;Neuberechnung von Null;Netzvolumen (Ende);Eliminationsbereich-Faktor;Minimale Reynoldszahl im Netz;Maximale Reynoldszahl im Netz;Endgenauigkeit Druckabfall;Endgenauigkeit Knotenfluss;Brennwert;Z√§higkeitsbeiwert TA;Z√§higkeitsbeiwert TB;Sutherlandkonstante Z√§higkeit;Z√§higkeits-Bezugstemperatur;Kondensation berechnen;Dampfdichte;Verdampfungsw√§rme Kondensat;W√§rmekapazit√§t Medium;W√§rmekapazit√§t Kondensat;W√§rmekapazit√§t Dampf;Vorherrsch. W√§rmedurchgangszahl;Bodentemperatur;Vorherrschende Feuchte;Vorherrschende Ventill√§nge;Max. Druckfehler in Strecke;Max. Flussfehler in Knoten;Qualit√§ts-Verfolgung rechnen;Individuelle Normdichte;Temperatur berechnen;Optimierung aktiviert;GA Aktivieren (Genetischer Algorithmus);Individueller Durchmesser;GA Anzahl Generationen;GA Populationsgr√∂sse;GA MICROGA;GA Jump Mutation Probability (0 = auto);GA Crossover Probability;GA Creep Mutation;GA Creep Mutation Probability (0 = auto);GA Uniform Crossover (recommended);GA Niching (Experimental);GA Elitism;GA Childs per pair;IRESTART;Population Number for test;Last Population Number for test;Abrechnungszeitraum aus Datum;Default Abrechnungszeitraum;Lufttemperatur;Mittlere Tagestemperatur;Grenztemperatur;Benutzungsstunden (obsolet);Durchmesser-Opt. mit Routing;Durchmesser-Opt. mit LP;Gesamtabgabe;Netzvolumen Anfang;Gesamtzufluss;Gesamtabgabe Abnehmer;Gesamtabgabe HA Z√§hler;Fehlercode;Netzvolumen-Diff.;Netzvol.Diff Rel.;Relaxationsfaktor Druck;Relaxationsfaktor Fluss;Relaxationsfaktor Temperatur;Widerstandsfaktor;Max. Anzahl Reglerumschaltungen;Netzl√§nge;Mindestl√§nge;Regularisierungs-Faktor Kalibrierung;D.Q. Qualitaeten berechnen;D.Q. Geschwindigkeits-Schwellwert;D.Q. Zeitschritt;D.Q. Laufzeit ermitteln;D.Q. Temperatur ermitteln;D.Q. Einspeise.Anteile ermitteln;In Batch/TASI Sim. mit Fehler nicht verwenden;Bei HA-Sim.vorh.HA-Zuweisung nicht ver√§ndern;Leitungsgef√§lle pr√ºfen ab Leitungsl√§nge;Qualit√§tsberechnung zyklisch mit Kreisfluss;Anzahl Startiterationen GANESI;Vorherrschender Co2-Gehalt;Vorherrschender H2-Gehalt;Vorherrschender N2-Gehalt;Formel K-Faktor;SE Strg Streuungen berechnen;SE Strg Rauhigkeiten berechnen;SE Strg Messdatenabtastzeit;SE Strg Untersetzungsfaktor Mittelwert;SE Strg Untersetzungsfaktor Rechenschritt;SE Strg Erster Zeitschritt Qualitaetsrechn.;SE Strg Erster Zeitschritt Vergleich;SE Strg Letzter Zeitschritt Druckanpassung;SE Strg Letzter Zeitschritt Rauhigkeitsber.;SE Strg Testausschriebe PQ-Berechnung;SE Strg Testausschriebe Qualitaet;SE Strg Testausschriebe f√ºr Knoten;SE Strg Testauschriebe f√ºr Leitungen;SE Umgb Waermeleitzahl Boden;SE Umgb Verlegetiefe;SE Qual Regelparameter Rauhigkeit;SE Qual Glaettungsfaktor Fehlfluesse;SE Qual Skalierung Gleichungsfehler;SE Qual Glaettungsfaktor Druckbias 1;SE Qual Glaettungsfaktor Druckbias 2;SE Qual Glaettungfaktor Me√üdruck;SE Qual Toleranz Messdruck-Rechendruck;SE Qual Toleranz Temperatur;SE Qual Toleranz Qualit√§t;SE Qual Toleranz Qualit√§t2;SE Qual Toleranz Qualit√§t3;SE Qual Zeitfaktor Qualit√§t;SE Mess Streuung Druck;SE Mess Streuung Fluss;SE Mess Streuung Ersatzwert Fluss;SE Mess Streuung Temperatur;SE Mess Streuung W√§rmeleistung;SE Mess Streuung Feuchte;SE Mess Streuung Qualit√§t 1;SE Mess Streuung Qualit√§t 2;SE Mess Streuung Qualit√§t 3;SE Mess Streuung Normdichte;SE Mess Streuung FWA-Aufl√∂sung 8 Bit;SE Mess Streuung geod√§tische H√∂he;SE Mess Streuung K-Faktor;SE Mess Streuung dyn. Z√§higkeit;SE Mess Streuung Rohrl√§nge;SE Mess Streuung Durchmesser;SE Mess Streuung Rauhigkeit;SE Mess Streuung CP-Wert;SE Mess Streuung Verlustbeiwert ZETA;SE Mess Streuung Widerstandszahl;SE Archivierungspfad;Windgeschwindigkeit;SE Messfehlergrenze Druck;SE Messfehlergrenze Fluss;SE Limit-Schwelle P;SE Limit-Schwelle Q;SE Messwerte erhalten;SE Messwerte gest√∂rt ;SE Messwerte ausgeschieden;SE Messwerte verwendet;SE M.Temperaturwerte verwendet;SE M.Druckwerte verwendet;SE M.Flusswerte verwendet;SE Q-Ausgleich;SE PQ-Ausgleich;SE Dichtekorrektur;SE Bilanzkorrektur;SE Unausgeglichen;BDFACTOR;Diagrammdaten sind aus Archiv;SE Connect: Anzahl verzichtbare Messwerte;SE Connect: Wartezeit auf Messwerte;SE Bilanzfehler Max.;SE Bilanzfehler Teilnetz;SEDIRTY;SE Minimale Rauhigkeit;SE Maximale Rauhigkeit;SE Fehlende Mengen errechnen;SE Nur Messwerte (Keine Vorgabew.);D.Q. Zeit-Reserve;D.Q. Temperatur-Reserve;D.Q. Qualitaets-Reserve;Minimaler Zeitschritt TASI (0 = default 300!);Gesamtzufluss TASI;Gesamtabgabe TASI;Aktueller Simulationszeitpunkt;Einheitlicher Rohrtyp pro Trasse;Grenzwertverletzungen Druck;Grenzwertverletzungen (ausser Druck);Vorherrschende Reglertoleranz;TASI Simulationsdauer;TASI Zwischenergebnisse abspeichern;Vorherrschende Profilauspr√§gung;Qualit√§t-Abfall anwenden auf (n, n, ...);Qualit√§t an Einspeisern auf 100% Setzen;Max. Neuberechnungen Teilnetz;Max. Neuberechnungen Gesamtnetz;D.Q. GERG88 aktivieren;D.Q. AGANX19 aktivieren;Impuls-Beiwert;Kontinuit√§ts-Beiwert;Report-Zeitschritt;Vorherrschender Verlustfaktor;Anfangszustand TASI GAS station√§r berechnen;Anfangszustand TASI GAS Volumenbestimmung;K-Konstantwert;Qualit√§t-Abfallzeit;Qualit√§t-Endwert;Optimalwert;Optimale Generation;Penalty p.uncovered meter;Penalty p.uncovered Volume m3;OPTDEADEND;Aktivierte Feldgruppen 1-32;Aktivierte Feldgruppen 33-64;Raumtemperatur;Aufheiz-Faktor;Ausk√ºhl-Zeit;Attributlegenden: Aktive Gruppen;D.Q. Allokationsfaktor;Aggregate Knotenh√∂hendiff. zu gro√ü Warnung ab;TASI Ergebnisse nicht im Hauptspeicher;TASI Ergebnisse nur f√ºr aktive Elemente;Feld 'Einheit kW' aktivieren in Abn./HA-Z√§hlern;Sim. kW wiederholen wenn Brennwert√§nderung >;TUM Profilschritte gelten 00:01-01:00;Gen.Fluss-Exponent;Gen.Durchmesser-Exponent;Rohrvolumen;~AUX1 - F√ºr interne Testzwecke;~AUX2 - F√ºr interne Testzwecke;~AUX3 - F√ºr interne Testzwecke;TASINEXTH;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;;;;;;m;;;;Sekunden;;;;;;;;;;;;;HH:MM;;[J/N];;;;;;;[ /J/N];[J/N];[J/N];[J/N];1-4;;;[J/N];;;[J/N];;[J/N];mm.ss;0/00;;mm.ss;mm;mm;E-6kg/ms;kg/m3;bar;m;Grd. C.;1/bar;;;[1-5];[J/N];Nm3;z.B.3;;;bar;m3/h, L/s;kWh/m3;Grd. K;Grd. K;Grd. K;Grd. K;[J/N];kg/m3;kJ/kg;kJ/kg*K;kJ/kg*K;kJ/kg*K;W/(K*m2);Celsius;Prozent;m;bar;m3/h, L/s;[J/N];[J/N];[J/N];[J/N];[J/N];[J/N];;;[J/N];0...1;0.5...0.7;[J/N];0...1;[J/N];[J/N];[J/N];1/2;;;;[J/N];Tage;Celsius;Celsius;Celsius;h;[J/N];[J/N];Nm3/h;Nm3;Nm3/h;Nm3/h;Nm3/h;;Nm3;%;[0...1];[0...1];[0...1];;;km;m;;[J/N];m/s;Sekunden;[J/N];[J/N];[J/N];[J/N];[J/N];m;[J/N];;;;;[0-4];[J/N];[J/N];sec;;;;;;;;;;;kJ/(m*h*K);m;;0<x<1;;;;0<x<1;bar;Grad Kelvin;;;;norm.=1 RCM<0;;;;;;;;;;;;;;;;;;;;;;m/s;;;bar;Nm3/h;;;;;;;;[J/N];[J/N];[J/N];[J/N];[0/1];;;;Sek;%;;;;;[J/N];[J/N];%;%;%;Sec;Nm3;Nm3;HH:MM;[J/N];;;%;HH:MM;[J/N];;;[J/N];;;[J/N];[J/N];;;;;[J/N];[J/N];;Stunden;;;;;;;;;Celsius;Kelvin/Wsec;Stunden;;;m;[J/N];[J/N];[J/N];%;[J/N];;;m3;;;;;;;*;
 REM FLDNAM NET;NETZNAME;KTEX;NETPATH;LASTFALL;MEDI;RORL;QFAK;IPR;IMAX;ZEIT;TSIM;SIMREPEAT;SP;SQ;BEARBEITER;KATA_X0;KATA_Y0;KATA_DELTX;KATA_DELTY;BLAETTER_R;KATA_X1;KATA_Y1;ZEITVON;NETMAX;OPTNMETER;ROTATEHYP;ROTATEANKA;CALCDIRTY;HCALCDIRTY;CLCDRTYMSG;STANETVERS;RUNVERBRA3;USEMESSDAT;MEASONLINE;NEWLAYER;COORDSYS;COORDSYS4;UTMZONE;ZONEPREFIX;SETIMEDATE;SIMTIMDATE;EXSTARTEVT;BUNDESLAND;COMPACT;MAXMEASAGE;MAXPIPRAIS;RULELOOPS;TASISTEP;RAU;DM;ETA;RHON;PATM;GEOH;TEMP;KPAR;KTOL;RTOL;LAM;NEUSTART;VOLU;NLEI;REMI;REMA;TOLP;TOLQ;HO;TA;TB;TS;T0;KOND_AUS;RHODAMPF;RW;CG;CW;CD;WDZAHL;TU;FEUCHTE;VENL;DPMAX;DQMAX;QUALI;MIXRHO;TEMPCALC;OPTIDIA;GENETIC;DIFFDIA;MAXGEN;POPSIZE;MICROGA;PMUTATE;PCROSS;ICREEP;PCREEP;IUNIFORM;INICHE;IELITE;NCHILD;IRESTART;ISKIP;IEND;METERDATE;METERDAYS;AIRTEMP;MAINTEMP;TRESHTEMP;RUNHOURS;DIAROUTING;DIALINPRO;GESMENGE;VOLUSTART;SUMZUFLUSS;GESABNRLM;GESABNSLP;LASTERRNO;VOLUFEHL;VOLUFELREL;RELAXNEWP;RELAXNEWQ;RELAXNEWT;RESIFACT;REGSWITCH;SUMLEN;MINLEN;KALIBREGF;QUABER;VTOL;DQTIMSTEP;DQGETTIME;DQGETTEMP;DQGETINFLW;REDMSGFAIL;NOHAUPDATE;MINRAISLEN;QUALICYC;KANF;CONTCO2;CONTH2;CONTN2;KFAKT;SIGMABER;RAUBER;MESSCYCLE;NMITT;NRECH;MTQUA;MTDIF;MTBIA;MTRAU;TESTPQ;TESTQUA;TESTK;TESTL;WLZ;VT;RAUREG;GF;SKALG;GFP1;GFP2;GPM;DPTOL;TOLT;TOLQ1;TOLQ2;TOLQ3;ZEIFAK;SIGMAP;SIGMAFLOW;SIGMAFMAN;SIGMATEMP;SIGMAW;SIGMAHUMID;SIGMAQUA1;SIGMAQUA2;SIGMAQUA3;SIGMARHO;SIGMAFWA;SIGMAGEO;SIGMAKOMP;SIGMAETA;SIGMAROL;SIGMADI;SIGMARAU;SIGMACP;SIGMAZETA;SIGMALAM;ARCHPATH;WINDSPEED;MAXRESPFAK;MAXRESQFAK;THYST;PHYST;MPNTSALL;MPNTSERR;MPNTSBAD;MPNTSGOOD;MPNTSGOODT;MPNTSGOODP;MPNTSGOODQ;QESTIMATE;PQESTIMATE;DENSCORR;BLNCECORR;UNBALANCED;BDFACTOR;ARCHRESULT;MISSVALS;CONTIMEOUT;MAXQSUMERR;QSUMERRNET;SEDIRTY;MINRAU;MAXRAU;SECALCFLOW;SEONLYMESS;DQRESVTIME;DQRESVTEMP;DQRESVQUAL;MINTASTEP;TASISUMIN;TASISUMOUT;CURTIME;DIATRASS;VIOLATP;VIOLATX;REGTOL;TASILEN;TASISAVSUB;WINDKLASSE;QUALDCFLDS;QUALSET100;MAXRESTSUB;MAXRESTALL;DQGERG88;DQAGANX19;MYBE;MYKO;DREP;ZETA;TASCLSTART;TASCLVOL;RKCONST;QUALDECAY;QUALFINAL;OBJECTVALU;OPTGEN;OPTPENALPM;OPTPENALM3;OPTDEADEND;TASKFIELDS;TASKFIELD2;ROOMTEMP;ROOMHFAK;ROOMCTIME;STYLEGRPS;QUALLOFAC;AGRELEVDIF;TASITODISK;TASIRESACT;GASWITHKWH;H0TOLPCNT;TUMTO60M;LAMGEXPF;LAMGEXPD;PIPEVOL;AUX1;AUX2;AUX3;TASINEXTH;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 NET;Schutte;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,;;;G;     0.0; 1.000000; 1; 25;       0.1;    0;    0;      0.0000;       0.000;,,,,,,,,,,,,,,,,;       0.00000;      50.00000;       5.00000;       5.00000; 10;       0.00000;       0.00000;10.00; 99;J;       0.00000;       0.00000;0;0;;10.2.33 64-Bit;;N;;J;0;EPSG:3146*;  3;N;00:00;00.01.1900 10:00;J;;N; 90.00;200; 5;  15.00; 0.1000;   0.0;  11.93;     0.8400;1.013;   0.0;  10.0;-0.00220;99;0.00;3;J;       50.9;    0;        0.0;     3581.5; 0.000100;   0.00100;  0.0000;   0.0;   0.0;   0.0;   0.0;N;   0.804;2499.520;  2.1600;  4.1868;  1.9259;   0.00;  8.0;  0.00;     1.0;      0.000000;      0.000000;N;;N;N;;;    0;     0;1;0.0000;0.0000;1;0.0000;0;0;1;2;1;     0;     0;0; 365;-12.0;   9.0;  16.0;    0;;;       25.02;       50.9;       25.02;        0.00;       25.02;       0;        0.0;  0.00;      0.00;      0.00;      0.00;      0.00; 0;     0.80;  0.0;  0.000;N;  0.00;  0.000;;;;;N; 5.0;; 0;      0.00;      0.00;      0.00;0;;N;    0;     0;    0;    0;    0;     0;     0; 0; 0;      0;      0;  0.0000;0.000; 0.000; 0.000; 0.000; 0.000; 0.000; 0.000;  0.0000;  0.00;      0.0000;      0.0000;      0.0000;0.0;  0.0000;       0.00;       0.00;  0.00;      0.000;  0.00;      0.0000;      0.0000;      0.0000;       0.00;       0.00;       0.00;       0.00;       0.00;       0.00;       0.00;       0.00;       0.00;       0.00;    0.000;;  0.0; 0.000; 0.000; 0.000;0.0000;    0;    0;    0;    0;    0;    0;    0;;;;;0;0.0;0;   0;   0;       0.0000;  0;1; 0.0000; 0.0000;;;  0.0;  0.0;  0.0;   0;        0.00;        0.00;10.00;;      0;      0; 2.0;  24.00;J; 0;;;  0;  0;;;0.0000;0.0000;0.0000;   0.000;J;;1.0000;    0.00;      0.0000;            0.00;       0;0.100;1.000;;     1048618;           0;  0.0;0.0000000000;  0.00;; 0.0;  0;;;;  2.0;;0.00000;0.00000;        1.8;  0.000;  0.000;  0.000;;0;       1;;       1;
 LOG;;;Exampleonia;20.05.2019;17:52:39;user1;Install;10.0.20 64;PC-user2;;      10;;       1;
 
 REM HA Verbindungsdaten
-REM;Anfang;Ende;Parallel;SatzNr. Leitung;STANET-ID;Aux1;Koordinate x;Koordinate y;Hˆhe;Hˆhe Interpol.;Ber.Druck;Temperatur;Feuchte;Kondensat;Letzte ƒnderung;Letzter Benutzer;Verbindung 1;Verbdg.1 Klasse;Verbdg.1 Satznr.;Layer;Fluss von A);Fluss nach B);Geschw. von A);Geschw. nach B);Aktiv f.Berechnung;Koord. errechnet x;Koord. errechnet y;Verbunden;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Anfang;Ende;Parallel;SatzNr. Leitung;STANET-ID;Aux1;Koordinate x;Koordinate y;H√∂he;H√∂he Interpol.;Ber.Druck;Temperatur;Feuchte;Kondensat;Letzte √Ñnderung;Letzter Benutzer;Verbindung 1;Verbdg.1 Klasse;Verbdg.1 Satznr.;Layer;Fluss von A);Fluss nach B);Geschw. von A);Geschw. nach B);Aktiv f.Berechnung;Koord. errechnet x;Koord. errechnet y;Verbunden;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;;;;;;;m;m;mNN;mNN;bar;C;%;t/h;;;;;;;Nm3/h;Nm3/h;m/s;m/s;;m;m;;;*;
 REM FLDNAM CON;ANFNAM;ENDNAM;PARALLEL;SNUM;STANETID;AUX1;XRECHTS;YHOCH;GEOH;CALCGEOH;PRECH;TEMP;FEUCHTE;KONDENSAT;LASTMODI;USERNAME;CLIENTID;CLIENTTYP;CLIENTNO;LAYER;FLUSSA;FLUSSB;VMA;VMB;ISACTIVE;ONSTRPOSX;ONSTRPOSY;CONNECTED;!RECCOUNT;!DELETED;!RECNO
 CON;K1251;K1252;0;      7;CON0000255B6057620ED7;; 3417267.85000; 5369739.59900; 148.74; 148.74;  0.9999;  10.0;  0.00;    0.000;     20180800000000;user1;LEI0000D05B3CFC31F24B;  2;      7;$PIPECON_0;     3.198;     3.198;  0.06;  0.06;1; 3417267.850; 5369739.599;1;     262;;       1;
@@ -1228,8 +1228,8 @@ CON;K1128;K1127;0;      4;CON0009955C5AD8DAE0BE;; 3417094.60300; 5369830.74600; 
 CON;K1073;K1074;0;      1;CON000DBB5C5ADAC9A77B;; 3417033.49900; 5369915.55400; 148.02; 148.02;  1.0000;  10.0;  0.00;    0.000;     20190200000000;user1;LEI00002E5B3B8EB77F07;  2;      1;$PIPECON_0;    18.503;    18.503;  0.16;  0.16;1; 3417033.499; 5369915.554;1;     262;;     261;
 CON;K1287;K1286;0;     11;CON000DBD5C5ADAC9D3BD;; 3417060.76300; 5370093.99800; 148.35; 148.35;  1.0000;  10.0;  0.00;    0.000;     20190200000000;user1;LEI0000F35B3CFD10AB7B;  2;     11;$PIPECON_0;     1.933;     1.933;  0.03;  0.03;1; 3417060.763; 5370093.998;1;     262;;     262;
 
-REM HA Z‰hlerdaten
-REM;Koordinate x;Koordinate y;Schemakoor.x;Schemakoor.y;Aux1;Kundenname;Verbrauch/Jahr;Profil;Zufluss (nach Profil);Hˆhe;Ber.Druck;Vorgegebener Brennwert;Feuchte;Kondensat;Letzte ƒnderung;Knoten-Nr.;Knotenname;Jahresmenge Von;Jahresmenge Bis;Strassennummer;Hausnummer;Hausnr. Zusatz;Haus SatzNo;Haus-ID;Haus-ID verwendet;Abstand;Ort;Z‰hler Nr.;Strassenname;Kundennummer;Max.Abnahme;Gemeinde;Gebiet;Temp.abh‰ngigkeit;Temp ua.Grundlast;Benutzungstunden;Verbrauch Norm;Einheit kW;Temp.Soll R¸cklauf;Grundlast;Druckklasse;Datenquelle;Einf¸gen Status;Import Status;Verbindung 1;Verbdg.1 Klasse;Leitungs-Nr.;Verbindung 2;Verbdg.2 Klasse;HA-Verbindung Nr.;JAHRWAERM;Letzter Benutzer;Layer;Profilauspr‰gung;Bundesland;Ortsteil;PLZ;Geocode Qualit‰t;STANET-ID;Temperatur;Verbdg.2 Satznr.;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM HA Z√§hlerdaten
+REM;Koordinate x;Koordinate y;Schemakoor.x;Schemakoor.y;Aux1;Kundenname;Verbrauch/Jahr;Profil;Zufluss (nach Profil);H√∂he;Ber.Druck;Vorgegebener Brennwert;Feuchte;Kondensat;Letzte √Ñnderung;Knoten-Nr.;Knotenname;Jahresmenge Von;Jahresmenge Bis;Strassennummer;Hausnummer;Hausnr. Zusatz;Haus SatzNo;Haus-ID;Haus-ID verwendet;Abstand;Ort;Z√§hler Nr.;Strassenname;Kundennummer;Max.Abnahme;Gemeinde;Gebiet;Temp.abh√§ngigkeit;Temp ua.Grundlast;Benutzungstunden;Verbrauch Norm;Einheit kW;Temp.Soll R√ºcklauf;Grundlast;Druckklasse;Datenquelle;Einf√ºgen Status;Import Status;Verbindung 1;Verbdg.1 Klasse;Leitungs-Nr.;Verbindung 2;Verbdg.2 Klasse;HA-Verbindung Nr.;JAHRWAERM;Letzter Benutzer;Layer;Profilauspr√§gung;Bundesland;Ortsteil;PLZ;Geocode Qualit√§t;STANET-ID;Temperatur;Verbdg.2 Satznr.;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;m;m;m;m;;;Nm3;;Nm3/h;mNN;bar;kWh/m3;%;t/h;;;;TT.MM.JJJJ;TT.MM.JJJJ;;;;;;;;;;;;;;;%/C;[J/N];h/Jahr;Nm3/h;[J/N];C;Nm3/h;;[N/Y/H];[I/U/D/K];[I/U/M];;;;;;;;;;;;;;;;C;;;;*;
 REM FLDNAM ZAE;XRECHTS;YHOCH;X_SCHEMA;Y_SCHEMA;AUX1;NAME;VERBRAUCH;PROFIL;ZUFLUSS;GEOH;PRECH;HO;FEUCHTE;KONDENSAT;LASTMODI;KNONUM;KNAM;DATE1;DATE2;STRANUM;HAUSNUM;HAUSNOZUS;HAUSINDEX;HAUSID;HAUSIDUSED;ABSTAND;ORT;ZAEHLERNO;STRASSE;KUNDENNO;MAXLAST;GEMEINDE;GEBIET;TAU;GRUNDLAST;RUNHOURS;NORMFLUSS;ISKW;TU;GLVAL;PZONE;DATASRC;PASTESTATE;IMEXSTATE;CLIENTID;CLIENTTYP;PIPENO;CLIENT2ID;CLIENT2TYP;HCONNO;JAHRWAERM;USERNAME;LAYER;WINDKLASSE;BUNDESLAND;STROTEIL;AREACODE;GEOQUALITY;STANETID;TEMP;CLIENT2NO;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 ZAE; 3417312.04400; 5369664.34200;       0.00000;       0.00000;;;         2352.65;KON;       -0.2686; 149.13;  0.9999;  0.0000;  0.00;    0.000;     20190520155252;      8;K1251;;;;;;     1;w33082798;w33082798;       0.00000;;;;;      0.0000;;; 0.00;;    0;       0.2686;;   0.0;       0.0000;;(Y);;I;LEI0000D05B3CFC31F24B;  2;     7;CON0005845C5AD7E4B111; 35;   107;          0.0000;user1;$CONSMETER_0; 0;;;;;ZAE0000055B73EDD2CB16;   0.0;      0;1;      94;;       1;
@@ -1325,7 +1325,7 @@ ZAE; 3417038.80000; 5369926.64100;       0.00000;       0.00000;;;         1924.
 ZAE; 3417136.26800; 5370015.45000;       0.00000;       0.00000;;;         4520.96;KON;       -0.5161; 148.47;  1.0000;  0.0000;  0.00;    0.000;     20190520155253;     13;K1287;;;;;;    94;ne_520;ne_520;       0.00000;;;;;      0.0000;;; 0.00;;    0;       0.5161;;   0.0;       0.0000;;(Y);;I;LEI0000F35B3CFD10AB7B;  2;    11;CON0007FC5C5AD852526E; 35;   158;          0.0000;user1;$CONSMETER_0; 0;;;;;ZAE0005A65B73EDD260C9;   0.0;      0;1;      94;;      94;
 
 REM HA Leitungsdaten
-REM;Anfang;Ende;Anf.Nr.;End.Nr.;Parallel;STANET-ID;Aux1;L‰nge;Innendurchm.;Rauhigkeit;Durchfluss;Rohrtyp;Letzte ƒnderung;Verbindung 1;Verbdg.1 Klasse;Verbdg.1 Satznr.;Verbindung 2;Verbdg.2 Klasse;Verbdg.2 Satznr.;Geschw.;VMAX;Verlustfaktor;WD-Zahl;Kondensat;Material;Nenndurchm.;Letzter Benutzer;Koordinate x;Koordinate y;Endkoordinate x;Endkoordinate y;Druckstufe;Baujahr;Einf¸gen Status;Import Status;Wanddicke;Aussendurchmessser;Layer;Knoten-Ort;Strassenname;Strassennummer;Gebiet;Ort;Ortsteil;PLZ;Geocode Qualit‰t;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Anfang;Ende;Anf.Nr.;End.Nr.;Parallel;STANET-ID;Aux1;L√§nge;Innendurchm.;Rauhigkeit;Durchfluss;Rohrtyp;Letzte √Ñnderung;Verbindung 1;Verbdg.1 Klasse;Verbdg.1 Satznr.;Verbindung 2;Verbdg.2 Klasse;Verbdg.2 Satznr.;Geschw.;VMAX;Verlustfaktor;WD-Zahl;Kondensat;Material;Nenndurchm.;Letzter Benutzer;Koordinate x;Koordinate y;Endkoordinate x;Endkoordinate y;Druckstufe;Baujahr;Einf√ºgen Status;Import Status;Wanddicke;Aussendurchmessser;Layer;Knoten-Ort;Strassenname;Strassennummer;Gebiet;Ort;Ortsteil;PLZ;Geocode Qualit√§t;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;;;;;;;;m;mm;mm;Nm3/h;;;;;;;;;m/s;;;W/K*m2;t/h;;mm;;m;m;m;m;bar;;[I/U/D/K];[I/U/M];mm;mm;;;;;;;;;;;;*;
 REM FLDNAM HLE;ANFNAM;ENDNAM;ANFNR;ENDNR;PARALLEL;STANETID;AUX1;RORL;DM;RAU;FLUSS;ROHRTYP;LASTMODI;CLIENTID;CLIENTTYP;CLIENTNO;CLIENT2ID;CLIENT2TYP;CLIENT2NO;VM;VMAX;ZETA;WDZAHL;KONDENSAT;MATERIAL;DN;USERNAME;XRECHTS;YHOCH;XRECHTS2;YHOCH2;PN;BAUJAHR;PASTESTATE;IMEXSTATE;WANDDICKE;OUTERDM;LAYER;ORT;STRASSE;STRANUM;GEBIET;STRORT;STROTEIL;AREACODE;GEOQUALITY;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 HLE;;;      0;      0;0;HLE0000205B73EDF67646;;    49.8;  26.2;  0.100;     0.261;32 PE 100 SDR 11;     20190520155253;CON0002565B73EDF6760A; 35;     54;HAU00002F5B73EDB1A81A;  8;      4;  0.0705;  0.00;         0.00000;   0.00;    0.000;PE 100;32;user1; 3416682.71700; 5367886.28300; 3416682.71700; 5367886.28300;;   0;;I;  2.9;  32.0;$HOUSEPIPE_0;;;;;;;;;1;      91;;       1;
@@ -1421,7 +1421,7 @@ HLE;;;      0;      0;0;HLE0003DE5C5AD7F20314;;   119.9; 100.0;  0.100;     0.52
 HLE;;;      0;      0;0;HLE0005C75C5AD85253AE;;   109.0; 100.0;  0.100;     0.516;;     20190520155254;CON0007FC5C5AD852526E; 35;    158;HAU0005A65B73EDB21E25;  8;     94;  0.0096;  0.00;         0.00000;   0.00;    0.000;;;user1; 3415225.25200; 5364966.23600; 3415225.25200; 5364966.23600;;   0;;I;  0.0;   0.0;$HOUSEPIPE_0;;;;;;;;;1;      91;;      91;
 
 REM Ergebnisse Knotendaten
-REM;Verbindung 1;Verbdg.1 Satznr.;Verbdg.1 Klasse;Zufluss;Ber.Druck;Datum/Zeit;Temperatur;Medium-Dichte;Streuung Druck;Streuung Temp.;Teilnetz;Feuchte;Kondensat;Streuung Feuchte;Streuung Kond.;Simuliertes Element;Simuliertes Element Klasse;Simuliertes Element Satznr.;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Verbindung 1;Verbdg.1 Satznr.;Verbdg.1 Klasse;Zufluss;Ber.Druck;Datum/Zeit;Temperatur;Medium-Dichte;Streuung Druck;Streuung Temp.;Teilnetz;Feuchte;Kondensat;Streuung Feuchte;Streuung Kond.;Simuliertes Element;Simuliertes Element Klasse;Simuliertes Element Satznr.;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;;;;Nm3/h;bar;MESZ;C;kg/m3;bar;C;;%;t/h;%;Nm3/h;;;;;;*;
 REM FLDNAM NOD;CLIENTID;CLIENTNO;CLIENTTYP;ZUFLUSS;PRECH;TIME;TEMP;RHO;SIGMAP;SIGMATEMP;NETZNR;FEUCHTE;KONDENSAT;SIGMAHUMID;SIGMACONDE;SIMOBJID;SIMOBJTYP;SIMOBJNO;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 NOD;NODE K1073;      1;  1;      -5.9540;  0.9954;11.01.2009 00:00;  10.0;    0.00;  0.0000;  0.00;   0;  0.00;    0.0000;  0.00;    0.000;;  0;      0;0;    1552;;       1;
@@ -2978,7 +2978,7 @@ NOD;NODE K1289;     15;  1;    1323.1870;  1.0000;12.01.2009 00:00;  10.0;    0.
 NOD;NODE K1290;     16;  1;       0.0000;  0.9966;12.01.2009 00:00;  10.0;    0.00;  0.0000;  0.00;   0;  0.00;    0.0000;  0.00;    0.000;;  0;      0;0;    1552;;    1552;
 
 REM Ergebnisse Leitungendaten
-REM;Verbindung 1;Verbdg.1 Satznr.;Verbdg.1 Klasse;Durchfluss;Geschw.;Datum/Zeit;W‰rmeverl.leist.;Streuung Durchf.;Streuung Geschw.;Streuung W‰rmevl.;Verlustfaktor;Teilnetz;Reynoldszahl;Rauhigkeit;Kondensat;Streuung Kond.;DSIM-Status;Simuliertes Element;Simuliertes Element Klasse;Simuliertes Element Satznr.;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Verbindung 1;Verbdg.1 Satznr.;Verbdg.1 Klasse;Durchfluss;Geschw.;Datum/Zeit;W√§rmeverl.leist.;Streuung Durchf.;Streuung Geschw.;Streuung W√§rmevl.;Verlustfaktor;Teilnetz;Reynoldszahl;Rauhigkeit;Kondensat;Streuung Kond.;DSIM-Status;Simuliertes Element;Simuliertes Element Klasse;Simuliertes Element Satznr.;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;;;;Nm3/h;m/s;MESZ;kW;Nm3/h;m/s;kW;;;;mm;t/h;Nm3/h;;;;;;;*;
 REM FLDNAM PIP;CLIENTID;CLIENTNO;CLIENTTYP;FLUSS;VM;TIME;WAERMEMENG;SIGMAFLOW;SIGMAVM;SIGMAW;ZETA;NETZNR;RE;RAU;KONDENSAT;SIGMACONDE;DSIMSTATUS;SIMOBJID;SIMOBJTYP;SIMOBJNO;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 PIP;LEI00002E5B3B8EB77F07;      1;  2;    1256.849; 10.8376;11.01.2009 00:00;      0.000;       0.000;  0.000;      0.000;         0.000;   0;         0;   0.1000;    0.0000;    0.000;0;;  0;      0;0;    1455;;       1;
@@ -4438,7 +4438,7 @@ PIP;LEI0000F65B3CFD16EBD5;     14;  2;    1305.066; 11.1759;12.01.2009 00:00;   
 PIP;LEI0000F75B3CFD1A9759;     15;  2;    1305.067; 11.1897;12.01.2009 00:00;      0.000;       0.000;  0.000;      0.000;         0.000;   0;         0;   0.1000;    0.0000;    0.000;0;;  0;      0;0;    1455;;    1455;
 
 REM Ergebnisse Netzparameterdaten
-REM;Rechenzeit;Anfangszustand aus Ereignissen bilden;Vorherrschende Bundesland;Leitungsgef‰lle zu groﬂ Warnung ab;Max. Wiederholung f.Steuerungen;Netzvolumen (Ende);Minimale Reynoldszahl im Netz;Maximale Reynoldszahl im Netz;Max. Druckfehler in Strecke;Max. Flussfehler in Knoten;Lufttemperatur;Gesamtabgabe;Netzvolumen Anfang;Gesamtzufluss;Gesamtabgabe Abnehmer;Gesamtabgabe HA Z‰hler;Fehlercode;Netzvolumen-Diff.;Netzvol.Diff Rel.;Netzl‰nge;In Batch/TASI Sim. mit Fehler nicht verwenden;Bei HA-Sim.vorh.HA-Zuweisung nicht ver‰ndern;Leitungsgef‰lle pr¸fen ab Leitungsl‰nge;Gesamtzufluss TASI;Gesamtabgabe TASI;Aktueller Simulationszeitpunkt;Grenzwertverletzungen Druck;Grenzwertverletzungen (ausser Druck);Vorherrschende Reglertoleranz;Vorherrschende Profilauspr‰gung;Qualit‰t-Abfall anwenden auf (n, n, ...);Qualit‰t an Einspeisern auf 100% Setzen;Anfangszustand TASI GAS station‰r berechnen;K-Konstantwert;Optimalwert;Optimale Generation;Aggregate Knotenhˆhendiff. zu groﬂ Warnung ab;TASI Ergebnisse nicht im Hauptspeicher;Datum/Zeit;Aktiv f.Berechnung;Anzahl S‰tze*;Gelˆscht*;Satz No*
+REM;Rechenzeit;Anfangszustand aus Ereignissen bilden;Vorherrschende Bundesland;Leitungsgef√§lle zu gro√ü Warnung ab;Max. Wiederholung f.Steuerungen;Netzvolumen (Ende);Minimale Reynoldszahl im Netz;Maximale Reynoldszahl im Netz;Max. Druckfehler in Strecke;Max. Flussfehler in Knoten;Lufttemperatur;Gesamtabgabe;Netzvolumen Anfang;Gesamtzufluss;Gesamtabgabe Abnehmer;Gesamtabgabe HA Z√§hler;Fehlercode;Netzvolumen-Diff.;Netzvol.Diff Rel.;Netzl√§nge;In Batch/TASI Sim. mit Fehler nicht verwenden;Bei HA-Sim.vorh.HA-Zuweisung nicht ver√§ndern;Leitungsgef√§lle pr√ºfen ab Leitungsl√§nge;Gesamtzufluss TASI;Gesamtabgabe TASI;Aktueller Simulationszeitpunkt;Grenzwertverletzungen Druck;Grenzwertverletzungen (ausser Druck);Vorherrschende Reglertoleranz;Vorherrschende Profilauspr√§gung;Qualit√§t-Abfall anwenden auf (n, n, ...);Qualit√§t an Einspeisern auf 100% Setzen;Anfangszustand TASI GAS station√§r berechnen;K-Konstantwert;Optimalwert;Optimale Generation;Aggregate Knotenh√∂hendiff. zu gro√ü Warnung ab;TASI Ergebnisse nicht im Hauptspeicher;Datum/Zeit;Aktiv f.Berechnung;Anzahl S√§tze*;Gel√∂scht*;Satz No*
 REM;Sekunden;[J/N];;0/00;;Nm3;;;bar;m3/h, L/s;Celsius;Nm3/h;Nm3;Nm3/h;Nm3/h;Nm3/h;;Nm3;%;km;[J/N];[J/N];m;Nm3;Nm3;HH:MM;;;%;;;[J/N];[J/N];;;;m;[J/N];MESZ;;;*;
 REM FLDNAM NE1;ZEIT;EXSTARTEVT;BUNDESLAND;MAXPIPRAIS;RULELOOPS;VOLU;REMI;REMA;DPMAX;DQMAX;AIRTEMP;GESMENGE;VOLUSTART;SUMZUFLUSS;GESABNRLM;GESABNSLP;LASTERRNO;VOLUFEHL;VOLUFELREL;SUMLEN;REDMSGFAIL;NOHAUPDATE;MINRAISLEN;TASISUMIN;TASISUMOUT;CURTIME;VIOLATP;VIOLATX;REGTOL;WINDKLASSE;QUALDCFLDS;QUALSET100;TASCLSTART;RKCONST;OBJECTVALU;OPTGEN;AGRELEVDIF;TASITODISK;TIME;ISACTIVE;!RECCOUNT;!DELETED;!RECNO
 NE1;      50.8;J;;200; 5;      172.9;        0.0;   220082.5;      0.000006;      0.000011;-12.0;     1311.60;      172.9;     1318.87;        0.00;     1344.77;       0;        7.3;  0.49;     0.00;;N; 5.0;    11778.64;    11779.05; 0.00;      0;      0; 2.0; 0;;;J;1.0000;            0.00;       0;  0;;11.01.2009 00:00;0;      97;;       1;
