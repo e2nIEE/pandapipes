@@ -28,6 +28,8 @@ test_file_folder = os.path.join(test_path, "converter", "converter_test_files")
 def test_mini_exampelonia():
     """Test a mini version of the Schutterwald network"""
     mininet_path = os.path.join(test_file_folder, "Exampelonia_mini.csv")
+    assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
+
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
     pandapipes.pipeflow(net)
 
@@ -49,8 +51,9 @@ def test_mini_exampelonia():
 def test_mini_exampelonia_not_stanetlike():
     """Test a mini version of the Schutterwald network enhanced with valves.
     Convert valve pipes to separate valves and pipes."""
-    mininet_path = os.path.join(test_file_folder,
-                                     "Exampelonia_mini_with_2valvepipe.csv")
+    mininet_path = os.path.join(test_file_folder, "Exampelonia_mini_with_2valvepipe.csv")
+    assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
+
     net = stanet_to_pandapipes(mininet_path, stanet_like_valves=False)
     pandapipes.pipeflow(net)
 
@@ -60,8 +63,9 @@ def test_mini_exampelonia_not_stanetlike():
 def test_mini_exampelonia_stanetlike():
     """Test a mini version of the Schutterwald network enhanced with valves.
     Test with valve_pipes."""
-    mininet_path = os.path.join(test_file_folder,
-                                     "Exampelonia_mini_with_2valvepipe.csv")
+    mininet_path = os.path.join(test_file_folder, "Exampelonia_mini_with_2valvepipe.csv")
+    assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
+
     net = stanet_to_pandapipes(mininet_path, stanet_like_valves=True, add_layers=False)
     pandapipes.pipeflow(net)
 
@@ -71,8 +75,9 @@ def test_mini_exampelonia_stanetlike():
 def test_mini_exampelonia_sliders_open():
     """Test a mini version of the Schutterwald network enhanced with sliders.
     Test with open sliders"""
-    mininet_path = os.path.join(test_file_folder,
-                                     "Exampelonia_mini_with_valve_2sliders_open.csv")
+    mininet_path = os.path.join(test_file_folder, "Exampelonia_mini_with_valve_2sliders_open.csv")
+    assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
+
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
     pandapipes.pipeflow(net)
 
@@ -82,8 +87,9 @@ def test_mini_exampelonia_sliders_open():
 def test_mini_exampelonia_sliders_closed():
     """Test a mini version of the Schutterwald network enhanced with sliders.
     Test with closed sliders."""
-    mininet_path = os.path.join(test_file_folder,
-                                     "Exampelonia_mini_with_valve_2sliders_closed.csv")
+    mininet_path = os.path.join(test_file_folder, "Exampelonia_mini_with_valve_2sliders_closed.csv")
+    assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
+
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
     pandapipes.pipeflow(net)
 
