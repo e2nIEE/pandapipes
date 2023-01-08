@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[0.8.2] - 2023-01-08
+-------------------------------
+- [FIXED] failing tutorial tests on pypi
+
 [0.8.1] - 2023-01-08
 -------------------------------
 - [ADDED] shapely as additional requirement (due to the stanet2pandapipes converter)
