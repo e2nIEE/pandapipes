@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest python-igraph pytest-split numba shapely
+          python -m pip install pytest python-igraph pytest-split numba
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@master#egg=pandapower
           pip install .
@@ -92,7 +92,7 @@ jobs:
           pre-build-command: "apt-get update -y && apt-get install -y git;
                               git --version;
                               python -m pip install --upgrade pip;
-                              python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower;
+                              python -m pip install git+https://github.com/e2nIEE/pandapower@master#egg=pandapower;
                               python -m pip install ."
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
