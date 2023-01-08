@@ -1,9 +1,11 @@
 Change Log
 =============
 
-[0.8.1] - 2023-01-..
+[0.8.1] - 2023-01-08
 -------------------------------
 - [ADDED] shapely as additional requirement (due to the stanet2pandapipes converter)
+- [ADDED] missing components in collection docu were added
+- [FIXED] undetected failing tests fixed
 
 [0.8.0] - 2023-01-05
 -------------------------------

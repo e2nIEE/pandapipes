@@ -446,7 +446,8 @@ def create_flow_control_collection(net, flow_controllers=None, size=5., junction
     """
     Creates a matplotlib patch collection of pandapipes flow control components.
 
-    They are plotted in the center between two junctions and look like a valve with a T on top.
+    They are plotted in the center between two junctions and look like a valve with a T on top,
+    if the flow control is active and an I on top, if the flow control is not active.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -510,9 +511,7 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
                            infofunc=None, picker=False, fj_col="from_junction",
                            tj_col="to_junction", **kwargs):
     """
-    Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
-    plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
-    between the junctions as well.
+    Creates a matplotlib patch collection of pandapipes pumps.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -568,16 +567,14 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
 def create_pressure_control_collection(net, pcs=None, table_name='press_control',
                                        size=5., junction_geodata=None,
                                        color='k', infofunc=None, picker=False, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
-    plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
-    between the junctions as well.
+    """Creates a matplotlib patch collection of pandapipes pressure controllers.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
-    :param valves: The valves for which the collections are created. If None, all valves which have\
-        entries in the respective junction geodata will be plotted.
-    :type valves: list, default None
+    :param pcs: The pressure controllers for which the collections are created. If None,
+                all pressure controllers which have entries in the respective junction geodata
+                will be plotted.
+    :type pcs: list, default None
     :param size: Patch size
     :type size: float, default 5.
     :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
@@ -589,9 +586,6 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
     :type infofunc: function, default None
     :param picker: Picker argument passed to the patch collection
     :type picker: bool, default False
-    :param fill_closed: If True, valves with parameter opened == False will be filled and those\
-        with opened == True will have a white facecolor. Vice versa if False.
-    :type fill_closed: bool, default True
     :param kwargs: Keyword arguments are passed to the patch function
     :return: lc - line collection, pc - patch collection
 
