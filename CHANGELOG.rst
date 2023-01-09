@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[0.8.3] - 2023-01-09
+-------------------------------
+- [FIXED] inconsistency between testpypi and pypi
+
 [0.8.2] - 2023-01-08
 -------------------------------
 - [FIXED] failing tutorial tests on pypi
