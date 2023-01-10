@@ -202,7 +202,7 @@ def heat_transfer(net):
     while not get_net_option(net, "converged") and niter <= max_iter:
         logger.debug("niter %d" % niter)
 
-        # solve_hydraulics is where the calculation takes place
+        # solve_temperature is where the calculation takes place
         t_out, t_out_old, t_init, t_init_old, epsilon = solve_temperature(net)
 
         # Error estimation & convergence plot
