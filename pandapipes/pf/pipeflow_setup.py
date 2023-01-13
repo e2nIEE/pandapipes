@@ -285,7 +285,7 @@ def init_options(net, local_parameters):
     if "user_pf_options" in net and len(net.user_pf_options) > 0:
         net["_options"].update(net.user_pf_options)
 
-    # the last layer is the layer of passeed parameters by the user, it is defined as the local
+    # the last layer is the layer of passed parameters by the user, it is defined as the local
     # existing parameters during the pipeflow call which diverges from the default parameters of the
     # function definition in the second layer
     params = dict()

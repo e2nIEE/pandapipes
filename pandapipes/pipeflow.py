@@ -89,7 +89,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     calculate_heat = calculation_mode in ["heat", "all"]
 
     # TODO: This is not necessary in every time step, but we need the result! The result of the
-    #       connectivity check is curnetly not saved anywhere!
+    #       connectivity check is currently not saved anywhere!
     if get_net_option(net, "check_connectivity"):
         nodes_connected, branches_connected = check_connectivity(
             net, branch_pit, node_pit, check_heat=calculate_heat)
@@ -142,6 +142,19 @@ def hydraulics(net):
     error_v, error_p, residual_norm = [], [], None
 
     # This loop is left as soon as the solver converged
+    # Assumes this loop is the Newton-Raphson iteration loop
+    # 1: ODE -> integrate to get function y(0)
+    # 2: Build Jacobian matrix df1/dx1, df1/dx2 etc. (this means take derivative of each variable x1,x2,x3...)
+    # 3: Consider initial guess for x1,x2,x3,... this is a vector x(0) = [x1,x2,x3,x4,]
+    # 4: Compute value of Jacobian at these guesses x(0) above
+    # 5: Take inverse of Jacobian (not always able to thus LU decomposition, spsolve...)
+    # 6: Evaluate function from step 1 at the initial guesses from step 3
+    # 7 The first iteration is the: initial_guess_vector - Jacobian@initial_guess * function vector@initial_guess
+    #                            x(1)   = x(0) - J^-1(x(0) *F(0)
+    # The repeat from step 3 again until error convergence
+    #                            x(2)   = x(1) - J^-1(x(1) *F(1)
+    # note: Jacobian equations don't change, just the X values subbed in at each iteration which
+    # makes the jacobian different
     while not get_net_option(net, "converged") and niter <= max_iter:
         logger.debug("niter %d" % niter)
 
@@ -214,7 +227,7 @@ def heat_transfer(net):
         error_t_out.append(linalg.norm(delta_t_out) / (len(delta_t_out)))
 
         finalize_iteration(net, niter, error_t, error_t_out, residual_norm, nonlinear_method, tol_t,
-                           tol_t, tol_res, t_init_old, t_out_old, hyraulic_mode=True)
+                           tol_t, tol_res, t_init_old, t_out_old, hydraulic_mode=True)
         logger.debug("F: %s" % epsilon.round(4))
         logger.debug("T_init_: %s" % t_init.round(4))
         logger.debug("T_out_: %s" % t_out.round(4))
@@ -227,7 +240,7 @@ def heat_transfer(net):
 
     converged = get_net_option(net, "converged")
     net['converged'] = converged
-    log_final_results(net, converged, niter, residual_norm, hyraulic_mode=False)
+    log_final_results(net, converged, niter, residual_norm, hydraulic_mode=False)
 
     return converged, niter
 
@@ -342,8 +355,8 @@ def set_damping_factor(net, niter, error):
 
 
 def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_method, tol_1, tol_2,
-                       tol_res, vals_1_old, vals_2_old, hyraulic_mode=True):
-    col1, col2 = (PINIT, VINIT) if hyraulic_mode else (TINIT, T_OUT)
+                       tol_res, vals_1_old, vals_2_old, hydraulic_mode=True):
+    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, T_OUT)
 
     # Control of damping factor
     if nonlinear_method == "automatic":
@@ -363,7 +376,7 @@ def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_me
         elif get_net_option(net, "alpha") == 1:
             set_net_option(net, "converged", True)
 
-    if hyraulic_mode:
+    if hydraulic_mode:
         logger.debug("errorv: %s" % error_1[niter])
         logger.debug("errorp: %s" % error_2[niter])
         logger.debug("alpha: %s" % get_net_option(net, "alpha"))
@@ -372,8 +385,8 @@ def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_me
         logger.debug("alpha: %s" % get_net_option(net, "alpha"))
 
 
-def log_final_results(net, converged, niter, residual_norm, hyraulic_mode=True):
-    if hyraulic_mode:
+def log_final_results(net, converged, niter, residual_norm, hydraulic_mode=True):
+    if hydraulic_mode:
         solver = "hydraulics"
         outputs = ["tol_p", "tol_v"]
     else:

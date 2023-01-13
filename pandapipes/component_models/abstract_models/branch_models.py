@@ -129,7 +129,7 @@ class BranchComponent(Component):
 
         transient = get_net_option(net, "transient")
 
-        tvor = branch_pit[:, T_OUT_OLD]
+        tvor = branch_component_pit[:, T_OUT_OLD]
 
         delta_t = get_net_option(net, "dt")
 
