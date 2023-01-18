@@ -66,10 +66,10 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI }}
           TWINE_REPOSITORY: pypi
 
-      - name: Sleep for 300s to make release available
+      - name: Sleep for 3s to make release available
         uses: juliangruber/sleep-action@v1
         with:
-          time: 300s
+          time: 3s
 
   build:
 
@@ -80,6 +80,7 @@ jobs:
         python-version: ['3.7', '3.8', '3.9', '3.10']
         os:  [ ubuntu-latest, windows-latest ]
     steps:
+      - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
