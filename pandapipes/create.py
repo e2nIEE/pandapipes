@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
+    HeatExchanger, Valve, DynamicValve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
     Compressor
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
@@ -504,8 +504,64 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
     return index
 
 
+def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m, Kv, r_td= 25.0,
+                         actual_pos=10.00, desired_mv= None, in_service=True, name=None, index=None,
+                         type='i', **kwargs):
+    """
+    Creates a valve element in net["valve"] from valve parameters.
+
+    :param net: The net for which this valve should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the valve will be connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the valve will be connected with
+    :type to_junction: int
+    :param diameter_m: The valve diameter in [m]
+    :type diameter_m: float
+    :param Kv: Max Dynamic_Valve coefficient in terms of water flow (m3/h.bar) at a constant pressure drop of 1 Bar
+    :type Kv: float
+    :param actual_pos: Dynamic_Valve opened percentage, provides the initial valve status
+    :type actual_pos: float, default 10.0 %
+    :param std_type: There are currently three different std_types. This std_types are Kv1, Kv2, Kv3.\
+            Each of them describes a specific valve flow characteristics related to equal, linear and quick opening
+            valves.
+    :type std_type: string, default None
+    :param name: A name tag for this valve
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param type: An identifier for special types
+    :type type: str, default None
+    :param in_service: True for in_service or False for out of service
+    :type in_service: bool, default True
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+            net["valve"] table
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    :Example:
+        >>> create_valve(net, 0, 1, diameter_m=4e-3, name="valve1", Kv= 5, r_td= 25.0, actual_pos=44.44, type= "fo")
+
+    """
+    add_new_component(net, DynamicValve)
+
+    index = _get_index_with_check(net, "dynamic_valve", index)
+    check_branch(net, "DynamicValve", index, from_junction, to_junction)
+
+    _check_std_type(net, std_type, "dynamic_valve", "create_dynamic_valve")
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "diameter_m": diameter_m, "actual_pos": actual_pos, "desired_mv": desired_mv, "Kv": Kv, "r_td": r_td, "std_type": std_type,
+         "type": type, "in_service": in_service}
+    _set_entries(net, "dynamic_valve", index, **v, **kwargs)
+
+    DynamicValve.set_function(net)
+
+    return index
+
+
 def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True,
-                type="pump", **kwargs):
+                actual_pos=70.00, desired_mv=None, type="pump", **kwargs):
     """
     Adds one pump in table net["pump"].
 
@@ -536,6 +592,8 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
 
     EXAMPLE:
         >>> create_pump(net, 0, 1, std_type="P1")
+        >>> create_pump(net, from_junction=junction0, to_junction=junction1, std_type= "CRE_36_AAAEHQQE_Pump_curves",
+                                        type="dynamic_pump")
 
     """
     add_new_component(net, Pump)
@@ -543,10 +601,13 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     index = _get_index_with_check(net, "pump", index)
     check_branch(net, "Pump", index, from_junction, to_junction)
 
-    _check_std_type(net, std_type, "pump", "create_pump")
+    _check_std_type(net, std_type, type, "create_pump")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": std_type, "in_service": bool(in_service), "type": type}
+         "std_type": std_type, "in_service": bool(in_service), "type": type, "actual_pos": actual_pos,
+         "desired_mv": desired_mv,}
     _set_entries(net, "pump", index, **v, **kwargs)
+
+    Pump.set_function(net, type)
 
     return index
 

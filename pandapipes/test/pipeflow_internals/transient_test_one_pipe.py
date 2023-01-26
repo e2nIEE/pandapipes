@@ -79,7 +79,7 @@ pp.create_pipe_from_parameters(net, j1, j2, length, 75e-3, k_mm=.0472, sections=
 
 # read in csv files for control of sources/sinks
 
-profiles_source = pd.read_csv(os.path.join('../../../../files',
+profiles_source = pd.read_csv(os.path.join('pandapipes/files',
                                            'heat_flow_source_timesteps.csv'),
                               index_col=0)
 
@@ -94,7 +94,7 @@ const_source = control.ConstControl(net, element='ext_grid', variable='t_k',
 dt = 5
 time_steps = range(ds_source.df.shape[0])
 ow = _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-run_timeseries(net, time_steps, mode="all",transient=transient_transfer, iter=30, dt=dt)
+run_timeseries(net, time_steps, mode="all", transient=transient_transfer, iter=30, dt=dt)
 
 if transient_transfer:
     res_T = ow.np_results["res_internal.t_k"]
@@ -134,6 +134,6 @@ if transient_transfer:
 else:
     plt.legend(["Junction 0", "Junction 1"])
 plt.grid()
-plt.savefig("files/output/temperature_step_transient.png")
+plt.savefig("files/output/one_pipe_temperature_step_transient.png")
 plt.show()
 plt.close()

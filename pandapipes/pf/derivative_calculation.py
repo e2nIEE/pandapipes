@@ -23,7 +23,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     fluid = get_fluid(net)
     gas_mode = fluid.is_gas
     friction_model = options["friction_model"]
-
+    # Darcy Friction factor: lambda
     lambda_, re = calc_lambda(
         branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO], branch_pit[:, D],
         branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options)
@@ -134,7 +134,7 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, lengths, options):
                 "argument to the pipeflow.")
         return lambda_colebrook, re
     elif friction_model == "swamee-jain":
-        lambda_swamee_jain = 0.25 / ((np.log10(k/(3.7*d) + 5.74/(re**0.9)))**2)
+        lambda_swamee_jain = 1.325 / ((np.log10(k/(3.7*d) + 5.74/(re**0.9)))**2)
         return lambda_swamee_jain, re
     else:
         # lambda_tot = np.where(re > 2300, lambda_laminar + lambda_nikuradse, lambda_laminar)
