@@ -504,9 +504,9 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
     return index
 
 
-def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m, Kv, r_td= 25.0,
-                         actual_pos=10.00, desired_mv= None, in_service=True, name=None, index=None,
-                         type='i', **kwargs):
+def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m, Kv_max,
+                         actual_pos=50.00, desired_mv=None, in_service=True, name=None, index=None,
+                         type='dyn_valve', **kwargs):
     """
     Creates a valve element in net["valve"] from valve parameters.
 
@@ -518,8 +518,8 @@ def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m,
     :type to_junction: int
     :param diameter_m: The valve diameter in [m]
     :type diameter_m: float
-    :param Kv: Max Dynamic_Valve coefficient in terms of water flow (m3/h.bar) at a constant pressure drop of 1 Bar
-    :type Kv: float
+    :param Kv_max: Max Dynamic_Valve coefficient in terms of water flow (m3/h.bar) at a constant pressure drop of 1 Bar
+    :type Kv_max: float
     :param actual_pos: Dynamic_Valve opened percentage, provides the initial valve status
     :type actual_pos: float, default 10.0 %
     :param std_type: There are currently three different std_types. This std_types are Kv1, Kv2, Kv3.\
@@ -541,9 +541,12 @@ def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m,
     :rtype: int
 
     :Example:
-        >>> create_valve(net, 0, 1, diameter_m=4e-3, name="valve1", Kv= 5, r_td= 25.0, actual_pos=44.44, type= "fo")
+        >>> create_valve(net, 0, 1, diameter_m=4e-3, name="valve1", Kv_max= 5, actual_pos=44.44)
 
     """
+
+    #DynamicValve(net, **kwargs)
+
     add_new_component(net, DynamicValve)
 
     index = _get_index_with_check(net, "dynamic_valve", index)
@@ -551,11 +554,11 @@ def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m,
 
     _check_std_type(net, std_type, "dynamic_valve", "create_dynamic_valve")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "actual_pos": actual_pos, "desired_mv": desired_mv, "Kv": Kv, "r_td": r_td, "std_type": std_type,
+         "diameter_m": diameter_m, "actual_pos": actual_pos, "desired_mv": desired_mv, "Kv_max": Kv_max, "std_type": std_type,
          "type": type, "in_service": in_service}
     _set_entries(net, "dynamic_valve", index, **v, **kwargs)
 
-    DynamicValve.set_function(net)
+    DynamicValve.set_function(net, actual_pos, **kwargs)
 
     return index
 

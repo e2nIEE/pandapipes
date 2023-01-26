@@ -5,13 +5,14 @@
 import numpy as np
 from numpy import dtype
 from operator import itemgetter
-
+from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
+from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE, NODE_TYPE, P, ACTIVE as ACTIVE_ND, LOAD
-from pandapipes.idx_branch import D, AREA, TL, KV, ACTUAL_POS, STD_TYPE, R_TD, FROM_NODE, TO_NODE, \
-    VINIT, RHO, PL, LOSS_COEFFICIENT as LC, DESIRED_MV, ACTIVE
+from pandapipes.idx_branch import D, AREA, TL, Kv_max, ACTUAL_POS, STD_TYPE, FROM_NODE, TO_NODE, \
+    VINIT, RHO, PL, LOSS_COEFFICIENT as LC, DESIRED_MV, ACTIVE, LOAD_VEC_NODES
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
 
@@ -22,16 +23,26 @@ class DynamicValve(BranchWZeroLengthComponent):
     They have a length of 0, but can introduce a lumped pressure loss.
     The equation is based on the standard valve dynamics: q = Kv(h) * sqrt(Delta_P).
     """
+    # class attributes
     fcts = None
+    prev_mvlag = 0
+    kwargs = None
+    prev_act_pos = 0
+    time_step = 0
+
 
     @classmethod
-    def set_function(cls, net):
+    def set_function(cls, net, actual_pos, **kwargs):
         std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
         std_types = np.array(list(net.std_types['dynamic_valve'].keys()))[pos]
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_valve'])
         cls.fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+
+        # Initial config
+        cls.prev_act_pos = actual_pos
+        cls.kwargs = kwargs
 
     @classmethod
     def from_to_node_cols(cls):
@@ -49,6 +60,7 @@ class DynamicValve(BranchWZeroLengthComponent):
     def get_connected_node_type(cls):
         return Junction
 
+
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
         """
@@ -64,10 +76,10 @@ class DynamicValve(BranchWZeroLengthComponent):
         valve_pit = super().create_pit_branch_entries(net, branch_pit)
         valve_pit[:, D] = net[cls.table_name()].diameter_m.values
         valve_pit[:, AREA] = valve_pit[:, D] ** 2 * np.pi / 4
-        valve_pit[:, KV] = net[cls.table_name()].Kv.values
+        valve_pit[:, Kv_max] = net[cls.table_name()].Kv_max.values
         valve_pit[:, ACTUAL_POS] = net[cls.table_name()].actual_pos.values
         valve_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
-        valve_pit[:, R_TD] = net[cls.table_name()].r_td.values
+
 
         # Update in_service status if valve actual position becomes 0%
         if valve_pit[:, ACTUAL_POS] > 0:
@@ -82,39 +94,101 @@ class DynamicValve(BranchWZeroLengthComponent):
         valve_pit[pos, STD_TYPE] = std_type
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        # calculation of valve flow via
+    def plant_dynamics(cls, dt, desired_mv):
+        """
+        Takes in the desired valve position (MV value) and computes the actual output depending on
+        equipment lag parameters.
+        Returns Actual valve position
+        """
 
-        #  we need to know which element is fixed, i.e Dynamic_Valve P_out, Dynamic_Valve P_in, Dynamic_Valve Flow_rate
+        if cls.kwargs.__contains__("act_dynamics"):
+            typ = cls.kwargs['act_dynamics']
+        else:
+            # default to instantaneous
+            return desired_mv
+
+        # linear
+        if typ == "l":
+
+            # TODO: equation for linear
+            actual_pos = desired_mv
+
+        # first order
+        elif typ == "fo":
+
+            a = np.divide(dt, cls.kwargs['time_const_s'] + dt)
+            actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
+
+            cls.prev_act_pos = actual_pos
+
+        # second order
+        elif typ == "so":
+            # TODO: equation for second order
+            actual_pos = desired_mv
+
+        else:
+            # instantaneous - when incorrect option selected
+            actual_pos = desired_mv
+
+        return actual_pos
+
+    @classmethod
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        timseries = False
         f, t = idx_lookups[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
         area = valve_pit[:, AREA]
-        #idx = valve_pit[:, STD_TYPE].astype(int)
-        #std_types = np.array(list(net.std_types['dynamic_valve'].keys()))[idx]
+        dt = options['dt']
         from_nodes = valve_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
         p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+        desired_mv = valve_pit[:, DESIRED_MV]
+        #initial_run = getattr(net['controller']["object"].at[0], 'initial_run')
 
-        # look up travel (TODO: maybe a quick check if travel has changed instead of calling poly function each cycle?
-        #fcts = itemgetter(*std_types)(net['std_types']['dynamic_valve'])
-        #fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+        if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step: # a controller timeseries is running
+            actual_pos = cls.plant_dynamics(dt, desired_mv)
+            valve_pit[:, ACTUAL_POS] = actual_pos
+            cls.time_step+= 1
 
-        lift = np.divide(valve_pit[:, ACTUAL_POS], 100)
+
+        else: # Steady state analysis
+            actual_pos = valve_pit[:, ACTUAL_POS]
+
+        lift = np.divide(actual_pos, 100)
         relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), cls.fcts, lift)))
 
-        kv_at_travel = relative_flow * valve_pit[:, KV] # m3/h.Bar
+        kv_at_travel = relative_flow * valve_pit[:, Kv_max] # m3/h.Bar
         delta_p = p_from - p_to  # bar
         q_m3_h = kv_at_travel * np.sqrt(delta_p)
         q_m3_s = np.divide(q_m3_h, 3600)
         v_mps = np.divide(q_m3_s, area)
-        #v_mps = valve_pit[:, VINIT]
         rho = valve_pit[:, RHO]
-        #rho = 1004
         zeta = np.divide(q_m3_h**2 * 2 * 100000, kv_at_travel**2 * rho * v_mps**2)
         valve_pit[:, LC] = zeta
-        #node_pit[:, LOAD] = q_m3_s * RHO # mdot_kg_per_s # we can not change the velocity nor load here!!
-        #valve_pit[:, VINIT] = v_mps
+
+
+    '''
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+
+        # see if node pit types either side are 'pressure reference nodes' i.e col:3 == 1
+        f, t = idx_lookups[cls.table_name()]
+        valve_pit = branch_pit[f:t, :]
+        from_nodes = valve_pit[:, FROM_NODE].astype(np.int32)
+        to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
+
+        if (node_pit[from_nodes, NODE_TYPE].astype(np.int32) == 1 & node_pit[to_nodes, NODE_TYPE].astype(np.int32) == 1): #pressure fixed
+            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+            lift = np.divide(valve_pit[:, ACTUAL_POS], 100)
+            relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), cls.fcts, lift)))
+            kv_at_travel = relative_flow * valve_pit[:, KV]  # m3/h.Bar
+            delta_p = p_from - p_to # bar
+            q_m3_h = kv_at_travel * np.sqrt(delta_p)
+            q_kg_s = np.divide(q_m3_h * valve_pit[:, RHO], 3600)
+            valve_pit[:, LOAD_VEC_NODES] =  q_kg_s # mass_flow (kg_s)
+    '''
 
     @classmethod
     def calculate_temperature_lift(cls, net, valve_pit, node_pit):
@@ -144,8 +218,7 @@ class DynamicValve(BranchWZeroLengthComponent):
                 ("diameter_m", "f8"),
                 ("actual_pos", "f8"),
                 ("std_type", dtype(object)),
-                ("Kv", "f8"),
-                ("r_td", "f8"),
+                ("Kv_max", "f8"),
                 ("type", dtype(object))]
 
     @classmethod

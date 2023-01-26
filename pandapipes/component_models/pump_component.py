@@ -105,6 +105,7 @@ class Pump(BranchWZeroLengthComponent):
         # no longer required as function preset on class initialisation
         #fcts = itemgetter(*std_types)(net['std_types']['pump'])
         #fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+        #TODO mask pump number
         if net[cls.table_name()]['type'].values == 'pump':
             pl = np.array(list(map(lambda x, y: x.get_pressure(y), cls.fcts, vol)))
         else: # type is dynamic pump

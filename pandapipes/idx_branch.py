@@ -43,8 +43,8 @@ TL = 37  # Temperature lift [K]
 BRANCH_TYPE = 38  # branch type relevant for the pressure controller
 PRESSURE_RATIO = 39  # boost ratio for compressors with proportional pressure lift
 T_OUT_OLD = 40
-KV= 41  # dynamic valve flow characteristics
+Kv_max= 41  # dynamic valve flow characteristics
 DESIRED_MV= 42 # Final Control Element (FCE) Desired Manipulated Value percentage opened
 ACTUAL_POS= 43  # Final Control Element (FCE) Actual Position Value percentage opened
-R_TD= 44 # Dynamic valve ratio-turndown
-branch_cols = 45
+
+branch_cols = 44
