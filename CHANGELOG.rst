@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[upcoming release] - 2023-..-..
+-------------------------------
+- [ADDED] support Python 3.11 (now included in test pipeline)
+
 [0.8.3] - 2023-01-09
 -------------------------------
 - [FIXED] inconsistency between testpypi and pypi
