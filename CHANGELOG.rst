@@ -1,9 +1,10 @@
 Change Log
 =============
 
-[x.x.x] - ...
+[upcoming release] - 2023-..-..
 -------------------------------
 - [ADDED] multiple creation of heat pumps
+- [ADDED] support Python 3.11 (now included in test pipeline)
 
 [0.8.3] - 2023-01-09
 -------------------------------
