@@ -1,0 +1,5 @@
+Name,junction,m_dot
+source1,4,0.001
+source2,5,0.001
+source3,10,0.001
+

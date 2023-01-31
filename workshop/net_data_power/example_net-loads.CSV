@@ -1,0 +1,9 @@
+Name,bus,P_kW,Q_kVar
+load1,5,60,20
+load2,6,60,20
+load3,11,60,20
+load4,13,60,20
+load5,23,60,20
+load6,24,60,20
+load7,29,60,20
+load8,30,60,20

@@ -1,0 +1,5 @@
+Name,bus,P_kW,Q_kVar
+solar_pv1,5,30,0
+solar_pv2,13,30,0
+solar_pv3,23,30,0
+solar_pv4,30,30,0
