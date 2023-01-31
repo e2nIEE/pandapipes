@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[x.x.x] - ...
+-------------------------------
+- [ADDED] multiple creation of heat pumps
+
 [0.8.3] - 2023-01-09
 -------------------------------
 - [FIXED] inconsistency between testpypi and pypi
