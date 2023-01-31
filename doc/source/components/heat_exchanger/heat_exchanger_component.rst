@@ -7,8 +7,14 @@ Create Function
 
 .. _create_heat_exchanger:
 
+For creating a single heat exchanger unit:
 
 .. autofunction:: pandapipes.create_heat_exchanger
+
+For creating multiple heat exchangers at once:
+
+.. autofunction:: pandapipes.create_heat_exchangers
+
 
 Component Table Data
 ====================
