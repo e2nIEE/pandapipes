@@ -3,7 +3,7 @@ Change Log
 
 [x.x.x] - ...
 -------------------------------
-- [ADDED] multiple creation of heat pumps
+- [ADDED] multiple creation of heat exchanger
 
 [0.8.3] - 2023-01-09
 -------------------------------
