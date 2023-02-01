@@ -108,13 +108,14 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     else:
         mg = nx.Graph()
 
-    branch_params = {k: v for k, v in kwargs.items() if any(
-        k.startswith(par) for par in ["include", "respect_status", "weighting"])}
+    branch_kw = ["include", "respect_status", "weighting"]
+    branch_params = {k: v for k, v in kwargs.items() if any(k.startswith(par) for par in branch_kw)}
     loc = locals()
-    branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc))
-                          for par in ["include", "respect_status", "weighting"]
+    branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc)) for par in branch_kw
                           for bc in ["pipes", "valves", "pumps", "press_controls",
-                                     "mass_circ_pumps", "press_circ_pumps", "valve_pipes"]})
+                                     "mass_circ_pumps", "press_circ_pumps", "valve_pipes",
+                                     "flow_controls"]})
+
     for comp in net.component_list:
         if not issubclass(comp, BranchComponent):
             continue
