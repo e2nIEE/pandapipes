@@ -8,6 +8,7 @@ from pandapower.plotting import draw_collections
 
 from pandapower.timeseries.run_time_series import run_timeseries as run_timeseries_pp
 from pandapipes.timeseries.run_time_series import run_timeseries as run_timeseries_pps
+from pandapipes.multinet.timeseries.run_time_series_multinet import run_timeseries as run_timeseries_mn
 from pandapower.timeseries import DFData
 from pandapower.timeseries import OutputWriter
 
@@ -29,9 +30,7 @@ def prepare_data_gas(n_timesteps=10):
 
 def prepare_data_multinet(n_timesteps=10):
     profiles = pd.DataFrame()
-    profiles['wind farm'] = np.random.random(n_timesteps) * 300
-    profiles['power to gas consumption'] = np.random.random(n_timesteps) * 200
-    profiles['gas to power consumption'] = [3.6187] * n_timesteps
+    profiles['power to gas consumption'] = np.random.random(n_timesteps) * 0.2
     return profiles
 
     # profiles, ds = create_data_source(10)
@@ -51,7 +50,6 @@ def time_series_simulation_power(net):
     ConstControl(net, 'load', 'p_mw', net.load.index, profs_ho_p, DFData(data_source_p))
     ConstControl(net, 'load', 'q_mvar', net.load.index, profs_ho_q, DFData(data_source_q))
     ConstControl(net, 'sgen', 'p_mw', net.sgen.index, profs_pv, DFData(data_source_pv))
-    ConstControl(net, 'load', 'p_mw', 30, profs_ho_p[0], DFData(data_source_p))
 
     log_variables = [('res_bus', 'vm_pu'),
                      ('res_line', 'loading_percent'),
@@ -68,7 +66,7 @@ def time_series_simulation_power(net):
 def time_series_simulation_gas(net):
     profiles = prepare_data_gas()
 
-    ConstControl(net, 'source', 'mdot_kg_per_s', 30, 'electrolyser', DFData(profiles))
+    ConstControl(net, 'source', 'mdot_kg_per_s', 3, 'electrolyser', DFData(profiles))
 
     log_variables = [('res_source', 'mdot_kg_per_s'),
                      ('res_pipe', 'v_mean_m_per_s'),
@@ -79,9 +77,36 @@ def time_series_simulation_gas(net):
     run_timeseries_pps(net, profiles.index, iter=100)
 
 
+def time_series_sumulation_multinet(multinet):
+    profiles = prepare_data_multinet(10)
+
+    enet = multinet['nets']['power']
+    gnet = multinet['nets']['gas']
+
+    ConstControl(enet, 'load', 'p_mw', 8, 'power to gas consumption', DFData(profiles))
+
+    log_variables = [('res_bus', 'vm_pu'),
+                     ('res_line', 'loading_percent'),
+                     ('res_trafo', 'loading_percent'),
+                     ('res_load', 'p_mw')]
+
+    OutputWriter(enet, profiles.index, r'workshop/results', output_file_type='.csv',
+                 log_variables=log_variables)
+
+    log_variables = [('res_source', 'mdot_kg_per_s'),
+                     ('res_pipe', 'v_mean_m_per_s'),
+                     ('res_junction', 'p_bar')]
+
+    OutputWriter(gnet, profiles.index, r'workshop/results', output_file_type='.csv',
+                 log_variables=log_variables)
+    run_timeseries_mn(multinet, profiles.index, iter=100)
+
+
+
 if __name__ == '__main__':
     enet = pp.from_json('workshop/pp/net.json')
     time_series_simulation_power(enet)
     multinet = ps.from_json('workshop/multinet.json')
     gnet = multinet['nets']['gas']
     time_series_simulation_gas(gnet)
+    time_series_sumulation_multinet(multinet)
