@@ -6,6 +6,7 @@ Change Log
 - [FIXED] added flow control to nxgraph
 - [FIXED] in case of multiple pumps, there was a bug when calculating pressure
 - [FIXED] if all pumps are out of service, the pipeflow did not converge
+- [FIXED] remove unnecessary checkout in release.yml and tutorial tests
 
 [0.8.3] - 2023-01-09
 -------------------------------
