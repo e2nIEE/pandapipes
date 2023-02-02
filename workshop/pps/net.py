@@ -79,12 +79,12 @@ def heat_net_example():
     ps.create_fluid_from_lib(net, 'water')
 
     ps.create_circ_pump_const_pressure(net, 4, 9, 7, 3, t_flow_k=335)
-    ps.create_circ_pump_const_mass_flow(net, 22, 28, 10, 0.1, t_flow_k=330)
+    ps.create_circ_pump_const_mass_flow(net, 22, 28, 10, 1, t_flow_k=330)
 
     js = ps.create_junctions(net, 6, 1, 283.15, geodata=in_ijs[['lon', 'lat']].values)
 
-    ps.create_flow_controls(net, [5, 11, 14, 18, 23, 30, ], js, 2, 0.05)
-    ps.create_heat_exchangers(net, js, [6, 13, 19, 29, 24, 27], 0.1, 2000)
+    ps.create_flow_controls(net, [5, 11, 14, 18, 23, 30, ], js, 0.5, 0.05)
+    ps.create_heat_exchangers(net, js, [6, 13, 19, 29, 24, 27], 0.1, 20000)
 
     ps.pipeflow(net)
     print_results(net, True)

@@ -83,7 +83,7 @@ def plot_heat_results(net, junction_results='t_k'):
     vc = plot.create_pipe_collection(net, linewidths=1,
                                      cmap=cmap_v, norm=norm_v,
                                      z=net.res_pipe.v_mean_m_per_s.abs(),
-                                     cbar_title="mean gas velocity [m/s]")
+                                     cbar_title="mean water velocity [m/s]")
     if junction_results == 't_k':
         # color map for temperature
         cmap_list_t = [(300, "blue"), (320, "yellow"), (340, "green")]
