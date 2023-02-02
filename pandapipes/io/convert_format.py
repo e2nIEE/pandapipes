@@ -1,11 +1,13 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from packaging import version
 
-from pandapipes import __version__
+from pandapipes import __format_version__, __version__
 from pandapipes.pandapipes_net import add_default_components
+from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
+from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 
 try:
     import pandaplan.core.pplog as logging
@@ -20,15 +22,18 @@ def convert_format(net):
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
     add_default_components(net, overwrite=False)
-    current_version = version.parse(__version__)
+    format_version = version.parse(__format_version__)
     # For possible problems with this line of code, please check out
     # https://github.com/e2nIEE/pandapipes/issues/320
-    if isinstance(net.version, str) and version.parse(net.version) >= current_version:
+    if not hasattr(net, 'format_version'):
+        net.format_version = net.version
+    if version.parse(net.format_version) >= format_version:
         return net
     _rename_columns(net)
     _add_missing_columns(net)
     _rename_attributes(net)
     net.version = __version__
+    net.format_version = __format_version__
     return net
 
 
@@ -40,6 +45,15 @@ def _rename_columns(net):
             else:
                 net['controller'].drop('controller', inplace=True, axis=1)
         net["controller"].rename(columns={"controller": "object"}, inplace=True)
+    for comp in [CirculationPumpMass, CirculationPumpPressure]:
+        cp_tbl = comp.table_name()
+        if cp_tbl in net:
+            old_cols = ["to_junction", "from_junction", "mdot_kg_per_s", "p_bar", "t_k"]
+            new_cols = list(comp.from_to_node_cols()) + ["mdot_flow_kg_per_s", "p_flow_bar",
+                                                         "t_flow_k"]
+            for old_col, new_col in list(zip(old_cols, new_cols)):
+                if old_col in net[cp_tbl].columns and new_col not in net[cp_tbl].columns:
+                    net[cp_tbl].rename(columns={old_col: new_col}, inplace=True)
 
 
 def _add_missing_columns(net):

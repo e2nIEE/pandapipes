@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -95,8 +95,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         nodes_connected, branches_connected = check_connectivity(
             net, branch_pit, node_pit, check_heat=calculate_heat)
     else:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
+        nodes_connected = node_pit[:, ACTIVE_ND].astype(bool)
+        branches_connected = branch_pit[:, ACTIVE_BR].astype(bool)
 
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 

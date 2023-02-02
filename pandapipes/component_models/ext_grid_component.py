@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,11 +6,9 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LOAD_VEC_NODES
-from pandapipes.idx_node import PINIT, LOAD, TINIT, NODE_TYPE, NODE_TYPE_T, P, T, \
-    EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T
-from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries, \
+    get_mass_flow_at_nodes
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 try:
     import pandaplan.core.pplog as logging
@@ -39,6 +37,10 @@ class ExtGrid(NodeElementComponent):
         return Junction
 
     @classmethod
+    def active_identifier(cls):
+        return "in_service"
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
@@ -50,34 +52,13 @@ class ExtGrid(NodeElementComponent):
         :return: No Output.
         """
         ext_grids = net[cls.table_name()]
-        ext_grids = ext_grids[ext_grids.in_service.values]
+        ext_grids = ext_grids[ext_grids[cls.active_identifier()].values]
 
-        p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
-        press = ext_grids.p_bar.values[p_mask]
-        junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        junction = cls.get_connected_junction(net)
-        juncts_p, press_sum, number = _sum_by_group(
-            get_net_option(net, "use_numba"), junction.values[p_mask], press,
-            np.ones_like(press, dtype=np.int32))
-        index_p = junction_idx_lookups[juncts_p]
-        node_pit[index_p, PINIT] = press_sum / number
-        node_pit[index_p, NODE_TYPE] = P
-        node_pit[index_p, EXT_GRID_OCCURENCE] += number
+        junction = ext_grids[cls.get_node_col()].values
+        press = ext_grids.p_bar.values
+        set_fixed_node_entries(net, node_pit, junction, ext_grids.type.values, press,
+                               ext_grids.t_k.values, cls.get_connected_node_type())
 
-        t_mask = np.where(np.isin(ext_grids.type.values, ["t", "pt"]))
-        t_k = ext_grids.t_k.values[t_mask]
-        juncts_t, t_sum, number = _sum_by_group(get_net_option(net, "use_numba"),
-                                                junction.values[t_mask], t_k,
-                                                np.ones_like(t_k, dtype=np.int32))
-        index = junction_idx_lookups[juncts_t]
-        node_pit[index, TINIT] = t_sum / number
-        node_pit[index, NODE_TYPE_T] = T
-        node_pit[index, EXT_GRID_OCCURENCE_T] += number
-
-        net["_lookups"]["ext_grid"] = \
-            np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
-            "ext_grid" in net['_lookups'] else index_p
         return ext_grids, press
 
     @classmethod
@@ -108,33 +89,27 @@ class ExtGrid(NodeElementComponent):
         node_pit = net["_pit"]["node"]
 
         p_grids = np.isin(ext_grids.type.values, ["p", "pt"]) & ext_grids.in_service.values
-        junction = cls.get_connected_junction(net)
+        junction = cls.get_connected_junction(net).values
+        # get indices in internal structure for junctions in ext_grid tables which are "active"
         eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
-            np.array(junction.values[p_grids])]
-        node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True,
-                                                    return_inverse=True)
-        eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)
-        eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
-        from_nodes = branch_pit[eg_from_branches, FROM_NODE]
-        to_nodes = branch_pit[eg_to_branches, TO_NODE]
-        mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES]
-        mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES]
-        loads = node_pit[node_uni, LOAD]
-        all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
-        all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
-        nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes,
-                                              all_mass_flows)
+            junction[p_grids]]
+        sum_mass_flows, inverse_nodes, counts = get_mass_flow_at_nodes(net, node_pit, branch_pit,
+                                                                       eg_nodes, cls)
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)
         res_table["mdot_kg_per_s"].values[p_grids] = \
             cls.sign() * (sum_mass_flows / counts)[inverse_nodes]
-        return res_table, ext_grids, node_uni, node_pit, branch_pit
+        return res_table, ext_grids, node_pit, branch_pit
 
     @classmethod
     def get_connected_junction(cls, net):
         junction = net[cls.table_name()].junction
         return junction
+
+    @classmethod
+    def get_node_col(cls):
+        return "junction"
 
     @classmethod
     def get_component_input(cls):

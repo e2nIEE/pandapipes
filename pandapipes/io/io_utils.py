@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -67,7 +67,9 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
-            net = pandapipesNet(get_basic_net_entries())
+            entries = get_basic_net_entries()
+            entries =  {k: entries[k] for k in entries if k in self.obj}
+            net = pandapipesNet(entries)
             net.update(self.obj)
             return net
 
@@ -86,7 +88,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
                                       object_hook=partial(pp_hook,
                                                           registry_class=FromSerializableRegistryPpipe))
-                                                          # backwards compatibility
+                # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]
             return class_.from_dict(self.obj)

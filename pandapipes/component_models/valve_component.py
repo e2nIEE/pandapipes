@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -52,19 +52,19 @@ class Valve(BranchWZeroLengthComponent):
         valve_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
 
     @classmethod
-    def calculate_temperature_lift(cls, net, valve_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param valve_pit:
-        :type valve_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
         :rtype:
         """
-        valve_pit[:, TL] = 0
+        branch_component_pit[:, TL] = 0
 
     @classmethod
     def get_component_input(cls):
