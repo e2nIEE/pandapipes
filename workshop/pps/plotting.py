@@ -31,8 +31,8 @@ def create_annotations(net):
 
     # tuples of all junction coords
     collections += [jic]
-    plot.draw_collections(collections)
-    plt.show()
+    #plot.draw_collections(collections)
+    #plt.show()
     return collections
 
 
@@ -43,8 +43,8 @@ def create_gas_net_collections(net):
     soc = plot.create_source_collection(net, color=colors[4], size=20)
     ec = plot.create_ext_grid_collection(net, color=colors[5], size=20)
     collections += [sc, soc, ec]
-    plot.draw_collections(collections)
-    plt.show()
+    #plot.draw_collections(collections)
+    #plt.show()
     return collections
 
 
@@ -54,8 +54,8 @@ def create_gas_net_collections2(net):
     vc = plot.create_valve_collection(net, color='grey', size=5)
     pc = plot.create_pump_collection(net, color='grey', size=20)
     collections += [pcc, vc, pc]
-    plot.draw_collections(collections)
-    plt.show()
+    #plot.draw_collections(collections)
+    #plt.show()
     return collections
 
 

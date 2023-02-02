@@ -13,9 +13,7 @@
         "type": "object",
         "zone": "object",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "load": {
       "_module": "pandas.core.frame",
@@ -33,9 +31,7 @@
         "scaling": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "sgen": {
       "_module": "pandas.core.frame",
@@ -53,9 +49,7 @@
         "type": "object",
         "current_source": "bool",
         "generator_type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "motor": {
       "_module": "pandas.core.frame",
@@ -76,9 +70,7 @@
         "scaling": "float64",
         "in_service": "bool",
         "rx": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "asymmetric_load": {
       "_module": "pandas.core.frame",
@@ -98,9 +90,7 @@
         "scaling": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "asymmetric_sgen": {
       "_module": "pandas.core.frame",
@@ -121,9 +111,7 @@
         "in_service": "bool",
         "type": "object",
         "current_source": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "storage": {
       "_module": "pandas.core.frame",
@@ -142,9 +130,7 @@
         "scaling": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "gen": {
       "_module": "pandas.core.frame",
@@ -164,9 +150,7 @@
         "in_service": "bool",
         "slack_weight": "float64",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "switch": {
       "_module": "pandas.core.frame",
@@ -182,9 +166,7 @@
         "name": "object",
         "z_ohm": "float64",
         "in_ka": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "shunt": {
       "_module": "pandas.core.frame",
@@ -200,9 +182,7 @@
         "step": "uint32",
         "max_step": "uint32",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "ext_grid": {
       "_module": "pandas.core.frame",
@@ -216,9 +196,7 @@
         "va_degree": "float64",
         "slack_weight": "float64",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "line": {
       "_module": "pandas.core.frame",
@@ -240,9 +218,7 @@
         "parallel": "uint32",
         "type": "object",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "trafo": {
       "_module": "pandas.core.frame",
@@ -273,9 +249,7 @@
         "parallel": "uint32",
         "df": "float64",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "trafo3w": {
       "_module": "pandas.core.frame",
@@ -313,9 +287,7 @@
         "tap_pos": "int32",
         "tap_at_star_point": "bool",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "impedance": {
       "_module": "pandas.core.frame",
@@ -332,9 +304,7 @@
         "xtf_pu": "float64",
         "sn_mva": "float64",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "dcline": {
       "_module": "pandas.core.frame",
@@ -356,9 +326,7 @@
         "max_q_from_mvar": "float64",
         "max_q_to_mvar": "float64",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "ward": {
       "_module": "pandas.core.frame",
@@ -373,9 +341,7 @@
         "qz_mvar": "float64",
         "pz_mw": "float64",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "xward": {
       "_module": "pandas.core.frame",
@@ -394,9 +360,7 @@
         "vm_pu": "float64",
         "slack_weight": "float64",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "measurement": {
       "_module": "pandas.core.frame",
@@ -411,9 +375,7 @@
         "value": "float64",
         "std_dev": "float64",
         "side": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "pwl_cost": {
       "_module": "pandas.core.frame",
@@ -425,9 +387,7 @@
         "element": "uint32",
         "et": "object",
         "points": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "poly_cost": {
       "_module": "pandas.core.frame",
@@ -443,9 +403,7 @@
         "cq0_eur": "float64",
         "cq1_eur_per_mvar": "float64",
         "cq2_eur_per_mvar2": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "characteristic": {
       "_module": "pandas.core.frame",
@@ -454,9 +412,7 @@
       "orient": "split",
       "dtype": {
         "object": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "controller": {
       "_module": "pandas.core.frame",
@@ -470,9 +426,7 @@
         "level": "object",
         "initial_run": "bool",
         "recycle": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "group": {
       "_module": "pandas.core.frame",
@@ -484,9 +438,7 @@
         "element_type": "object",
         "element": "object",
         "reference_column": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "line_geodata": {
       "_module": "pandas.core.frame",
@@ -495,9 +447,7 @@
       "orient": "split",
       "dtype": {
         "coords": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "bus_geodata": {
       "_module": "pandas.core.frame",
@@ -508,9 +458,7 @@
         "x": "float64",
         "y": "float64",
         "coords": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "version": "2.11.1",
     "format_version": "2.10.1.post1",
@@ -1296,9 +1244,7 @@
         "va_degree": "float64",
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_line": {
       "_module": "pandas.core.frame",
@@ -1320,9 +1266,7 @@
         "vm_to_pu": "float64",
         "va_to_degree": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_trafo": {
       "_module": "pandas.core.frame",
@@ -1343,9 +1287,7 @@
         "vm_lv_pu": "float64",
         "va_lv_degree": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_trafo3w": {
       "_module": "pandas.core.frame",
@@ -1373,9 +1315,7 @@
         "va_internal_degree": "float64",
         "vm_internal_pu": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_impedance": {
       "_module": "pandas.core.frame",
@@ -1391,9 +1331,7 @@
         "ql_mvar": "float64",
         "i_from_ka": "float64",
         "i_to_ka": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_ext_grid": {
       "_module": "pandas.core.frame",
@@ -1403,9 +1341,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_load": {
       "_module": "pandas.core.frame",
@@ -1415,9 +1351,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_motor": {
       "_module": "pandas.core.frame",
@@ -1427,9 +1361,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_sgen": {
       "_module": "pandas.core.frame",
@@ -1439,9 +1371,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_storage": {
       "_module": "pandas.core.frame",
@@ -1451,9 +1381,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_shunt": {
       "_module": "pandas.core.frame",
@@ -1464,9 +1392,7 @@
         "p_mw": "float64",
         "q_mvar": "float64",
         "vm_pu": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_gen": {
       "_module": "pandas.core.frame",
@@ -1478,9 +1404,7 @@
         "q_mvar": "float64",
         "va_degree": "float64",
         "vm_pu": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_ward": {
       "_module": "pandas.core.frame",
@@ -1491,9 +1415,7 @@
         "p_mw": "float64",
         "q_mvar": "float64",
         "vm_pu": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_xward": {
       "_module": "pandas.core.frame",
@@ -1506,9 +1428,7 @@
         "vm_pu": "float64",
         "va_internal_degree": "float64",
         "vm_internal_pu": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_dcline": {
       "_module": "pandas.core.frame",
@@ -1525,9 +1445,7 @@
         "va_from_degree": "float64",
         "vm_to_pu": "float64",
         "va_to_degree": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_asymmetric_load": {
       "_module": "pandas.core.frame",
@@ -1537,9 +1455,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_asymmetric_sgen": {
       "_module": "pandas.core.frame",
@@ -1549,9 +1465,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_switch": {
       "_module": "pandas.core.frame",
@@ -1561,9 +1475,7 @@
       "dtype": {
         "i_ka": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_bus_est": {
       "_module": "pandas.core.frame",
@@ -1575,9 +1487,7 @@
         "va_degree": "float64",
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_line_est": {
       "_module": "pandas.core.frame",
@@ -1599,9 +1509,7 @@
         "vm_to_pu": "float64",
         "va_to_degree": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_trafo_est": {
       "_module": "pandas.core.frame",
@@ -1622,9 +1530,7 @@
         "vm_lv_pu": "float64",
         "va_lv_degree": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_trafo3w_est": {
       "_module": "pandas.core.frame",
@@ -1652,9 +1558,7 @@
         "va_internal_degree": "float64",
         "vm_internal_pu": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_impedance_est": {
       "_module": "pandas.core.frame",
@@ -1670,9 +1574,7 @@
         "ql_mvar": "float64",
         "i_from_ka": "float64",
         "i_to_ka": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_switch_est": {
       "_module": "pandas.core.frame",
@@ -1682,73 +1584,55 @@
       "dtype": {
         "i_ka": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_bus_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_line_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_trafo_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_trafo3w_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_ext_grid_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_gen_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_sgen_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_switch_sc": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_bus_3ph": {
       "_module": "pandas.core.frame",
@@ -1768,9 +1652,7 @@
         "q_b_mvar": "float64",
         "p_c_mw": "float64",
         "q_c_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_line_3ph": {
       "_module": "pandas.core.frame",
@@ -1810,9 +1692,7 @@
         "loading_a_percent": "float64",
         "loading_b_percent": "float64",
         "loading_c_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_trafo_3ph": {
       "_module": "pandas.core.frame",
@@ -1848,9 +1728,7 @@
         "loading_b_percent": "float64",
         "loading_c_percent": "float64",
         "loading_percent": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_ext_grid_3ph": {
       "_module": "pandas.core.frame",
@@ -1864,17 +1742,13 @@
         "q_b_mvar": "float64",
         "p_c_mw": "float64",
         "q_c_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_shunt_3ph": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
       "_object": "{\"columns\":[],\"index\":[],\"data\":[]}",
-      "orient": "split",
-      "is_multiindex": false,
-      "is_multicolumn": false
+      "orient": "split"
     },
     "res_load_3ph": {
       "_module": "pandas.core.frame",
@@ -1884,9 +1758,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_sgen_3ph": {
       "_module": "pandas.core.frame",
@@ -1896,9 +1768,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_storage_3ph": {
       "_module": "pandas.core.frame",
@@ -1908,9 +1778,7 @@
       "dtype": {
         "p_mw": "float64",
         "q_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_asymmetric_load_3ph": {
       "_module": "pandas.core.frame",
@@ -1924,9 +1792,7 @@
         "q_b_mvar": "float64",
         "p_c_mw": "float64",
         "q_c_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_asymmetric_sgen_3ph": {
       "_module": "pandas.core.frame",
@@ -1940,9 +1806,7 @@
         "q_b_mvar": "float64",
         "p_c_mw": "float64",
         "q_c_mvar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "user_pf_options": {}
   }

@@ -15,7 +15,7 @@ from pandapower.plotting import create_annotation_collection
 
 
 def couple_two_nets(enet, gnet, offset=0):
-    mn = create_empty_multinet('coupled_networks')
+    mn = create_empty_multinet('coupled_nets')
     add_net_to_multinet(mn, enet, 'power')
     add_net_to_multinet(mn, gnet, 'gas')
 
@@ -23,7 +23,7 @@ def couple_two_nets(enet, gnet, offset=0):
     p2g_junction = 30
 
     p2g_load = pp.create_load(enet, bus=p2g_bus, p_mw=0.2, name='P2G unit')
-    p2g_source = ps.create_source(gnet, junction=p2g_junction, mdot_kg_per_s=0, name='P2G unit')
+    p2g_source = ps.create_source(gnet, junction=p2g_junction, mdot_kg_per_s=0.001, name='P2G unit')
 
     P2GControlMultiEnergy(mn, p2g_load, p2g_source, efficiency=0.7,
                           name_power_net='power', name_gas_net='gas')
