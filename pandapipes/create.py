@@ -204,6 +204,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
 
     return index
 
+
 def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_stored_kg=0.,
                         max_m_stored_kg=np.inf, scaling=1., name=None, index=None,
                         in_service=True, type="mass_storage", **kwargs):
@@ -1502,7 +1503,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
     controlled_elsewhere = (controlled_junctions != from_junctions) \
-        & (controlled_junctions != to_junctions)
+                           & (controlled_junctions != to_junctions)
     if np.any(controlled_elsewhere):
         controllers_warn = index[controlled_elsewhere]
         logger.warning("The pressure controllers %s control the pressure at junctions that they are"
@@ -1568,6 +1569,59 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
                "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "diameter_m": diameter_m,
                "control_active": control_active, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "flow_control", index, **entries, **kwargs)
+
+    return index
+
+
+def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w, loss_coefficient=0,
+                           name=None, index=None, in_service=True, type="heat_exchanger", **kwargs):
+    """
+    Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
+    and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
+    same length or single values.
+
+    :param net: The net for which the heat exchangers should be created
+    :type net: pandapipesNet
+    :param from_junctions: ID of the junctions on one side the heat exchangers will be\
+            connected with
+    :type from_junctions: Iterable(int)
+    :param to_junctions: ID of the junctions on the other side the heat exchangers will be\
+            connected with
+    :type to_junctions: Iterable(int)
+    :param diameter_m: The heat exchangers inner diameter in [m]
+    :type diameter_m: Iterable(float) or float
+    :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
+            negative, heat is being fed into the network from a heat source.
+    :type qext_w: Iterable(float) or float
+    :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
+    :type loss_coefficient: Iterable(float) or float
+    :param name: The name of the heat exchangers
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: Iterable(str) or str, default None
+    :param in_service: True if the heat exchangers are in service or False if they are out of service
+    :type in_service: Iterable(bool) or bool, default True
+    :param type: Not used yet
+    :type type: Iterable(str) or str, default "heat exchanger"
+    :param kwargs: Additional keyword arguments will be added as further columns to the\
+                    net["heat_exchanger"] table
+    :return: index - The unique IDs of the created heat exchangers
+    :rtype: Iterable(int), default None
+
+    :Example:
+        >>> create_heat_exchangers(net, from_junctions=[0,1], to_junctions=[2,3],
+        >>>                       diameter_m=40e-3, qext_w=2000)
+    """
+    add_new_component(net, HeatExchanger)
+
+    index = _get_multiple_index_with_check(net, "heat_exchanger", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
+               "in_service": bool(in_service), "type": type}
+    _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
     return index
 

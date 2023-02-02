@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[upcoming release] - 2023-..-..
+-------------------------------
+- [ADDED] multiple creation of heat exchanger
+- [ADDED] support Python 3.11 (now included in test pipeline)
+
 [0.8.4] - 2023-02-02
 -------------------------------
 - [FIXED] added flow control to nxgraph
