@@ -31,15 +31,20 @@ class Pump(BranchWZeroLengthComponent):
     """
 
     fcts = None # Sets the std_type_class for lookup function
+    kwargs = None
 
     @classmethod
-    def set_function(cls, net, type):
-        std_types_lookup = np.array(list(net.std_types[type].keys()))
+    def set_function(cls, net, actual_pos, **kwargs):
+        std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
-        std_types = np.array(list(net.std_types[type].keys()))[pos]
-        fcts = itemgetter(*std_types)(net['std_types'][type])
+        std_types = np.array(list(net.std_types['pump'].keys()))[pos]
+        fcts = itemgetter(*std_types)(net['std_types']['pump'])
         cls.fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+
+        # Initial config
+        cls.prev_act_pos = actual_pos
+        cls.kwargs = kwargs
 
     @classmethod
     def from_to_node_cols(cls):
@@ -85,13 +90,12 @@ class Pump(BranchWZeroLengthComponent):
         f, t = idx_lookups[cls.table_name()]
         pump_pit = branch_pit[f:t, :]
         area = pump_pit[:, AREA]
-        #idx = pump_pit[:, STD_TYPE].astype(int)
-        #std_types = np.array(list(net.std_types['pump'].keys()))[idx]
+
         from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
-        ## to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
+
         fluid = get_fluid(net)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-        ## p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+
         numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
         v_mps = pump_pit[:, VINIT]
         if fluid.is_gas:
@@ -102,16 +106,21 @@ class Pump(BranchWZeroLengthComponent):
         else:
             v_mean = v_mps
         vol = v_mean * area
-        # no longer required as function preset on class initialisation
+
+        #std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
+        #std_type, pos = np.where(net[cls.table_name()]['std_type'].values
+        #                         == std_types_lookup[:, np.newaxis])
+        #std_types = np.array(list(net.std_types['pump'].keys()))[pos]
         #fcts = itemgetter(*std_types)(net['std_types']['pump'])
-        #fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-        #TODO mask pump number
-        if net[cls.table_name()]['type'].values == 'pump':
-            pl = np.array(list(map(lambda x, y: x.get_pressure(y), cls.fcts, vol)))
-        else: # type is dynamic pump
+        # TODO: mask pump like above
+        if net[cls.table_name()]['type'].values == 'dynamic_pump':
+            # type is dynamic pump
             speed = pump_pit[:, ACTUAL_POS]
             hl = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), cls.fcts, vol, speed)))
-            pl = np.divide((pump_pit[:, RHO] * GRAVITATION_CONSTANT * hl), P_CONVERSION) # bar
+            pl = np.divide((pump_pit[:, RHO] * GRAVITATION_CONSTANT * hl), P_CONVERSION)  # bar
+        else:
+            # pump is standard
+            pl = np.array(list(map(lambda x, y: x.get_pressure(y), cls.fcts, vol)))
         pump_pit[:, PL] = pl
 
     @classmethod

@@ -39,7 +39,7 @@ def create_std_type(net, component, std_type_name, typedata, overwrite=False, ch
         if component == "pipe":
             required = ["inner_diameter_mm"]
         else:
-            if component in ["pump", "dynamic_pump", "dynamic_valve"]:
+            if component in ["pump", "dynamic_pump", "dynamic_valve", "dyn_circ_pump"]:
                 required = []
             else:
                 raise ValueError("Unknown component type %s" % component)

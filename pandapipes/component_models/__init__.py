@@ -6,6 +6,7 @@ from pandapipes.component_models.junction_component import *
 from pandapipes.component_models.pipe_component import *
 from pandapipes.component_models.valve_component import *
 from pandapipes.component_models.dynamic_valve_component import *
+from pandapipes.component_models.dynamic_circulation_pump_component import *
 from pandapipes.component_models.ext_grid_component import *
 from pandapipes.component_models.sink_component import *
 from pandapipes.component_models.source_component import *

@@ -65,7 +65,7 @@ print(pipe_results["TINIT"])
 #_____________________________________________________________________
 
 #Load profile for mass flow
-profiles_mass_flow = pd.read_csv('mass_flow_pump.csv',index_col=0)
+profiles_mass_flow = pd.read_csv('mass_flow_pump.csv', index_col=0)
 print(profiles_mass_flow)
 #digital_df = pd.DataFrame({'0': [20,20,20,50,50,50,60,20,20,20]})
 #print(digital_df)

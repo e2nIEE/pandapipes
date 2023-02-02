@@ -446,7 +446,7 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
         external grids to that node.
       - Perform a breadth first order search to identify all nodes that are reachable from the \
         added external grid node.
-      - Create masks for exisiting nodes and branches to show if they are reachable from an \
+      - Create masks for existing nodes and branches to show if they are reachable from an \
         external grid.
       - Compare the reachable nodes with the initial in_service nodes.\n
         - If nodes are reachable that were set out of service by the user, they are either set \

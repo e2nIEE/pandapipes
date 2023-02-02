@@ -158,15 +158,29 @@ class DynamicValve(BranchWZeroLengthComponent):
         lift = np.divide(actual_pos, 100)
         relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), cls.fcts, lift)))
 
+
         kv_at_travel = relative_flow * valve_pit[:, Kv_max] # m3/h.Bar
+
         delta_p = p_from - p_to  # bar
         q_m3_h = kv_at_travel * np.sqrt(delta_p)
         q_m3_s = np.divide(q_m3_h, 3600)
         v_mps = np.divide(q_m3_s, area)
         rho = valve_pit[:, RHO]
         zeta = np.divide(q_m3_h**2 * 2 * 100000, kv_at_travel**2 * rho * v_mps**2)
+        # Issue with 1st loop initialisation, when delta_p == 0, zeta remains 0 for entire iteration
+        if delta_p == 0:
+                zeta= 0.1
         valve_pit[:, LC] = zeta
 
+        '''
+
+        ### For pressure Lift calculation ''
+        v_mps = valve_pit[:, VINIT]
+        vol_m3_s = v_mps * area # m3_s
+        vol_m3_h = vol_m3_s * 3600
+        delta_p = np.divide(vol_m3_h**2, kv_at_travel**2) # bar
+        valve_pit[:, PL] = delta_p
+        '''
 
     '''
     @classmethod

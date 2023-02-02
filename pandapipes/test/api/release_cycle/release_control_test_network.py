@@ -89,8 +89,8 @@ def release_control_test_network():
 
     # valves
     pp.create_valve(net, from_junction=8, to_junction=9, diameter_m=0.1, opened=True, loss_coefficient=0,
-                    name="Valve 0", index=None, type="valve")
-    pp.create_valve(net, 9, 4, diameter_m=0.05, opened=True, name="Valve 1")
+                    name="Dynamic_Valve 0", index=None, type="valve")
+    pp.create_valve(net, 9, 4, diameter_m=0.05, opened=True, name="Dynamic_Valve 1")
 
     # pump
     pp.create_pump_from_parameters(net, from_junction=8, to_junction=3, new_std_type_name="Pump",

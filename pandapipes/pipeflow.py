@@ -266,7 +266,8 @@ def solve_hydraulics(net):
     for comp in net['component_list']:
         comp.adaption_before_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
-    calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
+    calculate_derivatives_hydraulic(net,
+                                    branch_pit, node_pit, options)
     for comp in net['component_list']:
         comp.adaption_after_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
