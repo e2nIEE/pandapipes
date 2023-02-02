@@ -3,9 +3,13 @@ import pandapower as pp
 import numpy as np
 from matplotlib import pyplot as plt
 from pandapower.plotting import draw_collections
+try:
+    from workshop.pp.plotting import create_power_net_collections
+    from workshop.pps.plotting import create_gas_net_collections2
+except ModuleNotFoundError:
+    from pp.plotting import create_power_net_collections
+    from pps.plotting import create_gas_net_collections2
 
-from workshop.pp.plotting import create_power_net_collections
-from workshop.pps.plotting import create_gas_net_collections2
 
 from pandapipes.multinet.control.controller.multinet_control import P2GControlMultiEnergy
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_net_to_multinet

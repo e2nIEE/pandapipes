@@ -6,8 +6,10 @@ import pandapipes.plotting as plot
 from pandapipes.plotting import simple_plot
 from pandapower.plotting import cmap_continuous, create_annotation_collection
 
-from workshop.pps.net import pipe_net_example, gas_net_example, gas_net_example2, heat_net_example
-
+try:
+    from workshop.pps.net import pipe_net_example, gas_net_example, gas_net_example2, heat_net_example
+except ModuleNotFoundError:
+    from pps.net import pipe_net_example, gas_net_example, gas_net_example2, heat_net_example
 
 def create_simple_plot(net):
     simple_plot(net)

@@ -1,7 +1,10 @@
 import seaborn
 import pandapower.plotting as ppplot
 from pandapower.plotting import simple_plot
-from workshop.pp.net import power_net_example
+try:
+    from workshop.pp.net import power_net_example
+except ModuleNotFoundError:
+    from pp.net import power_net_example
 import numpy as np
 import matplotlib.pyplot as plt
 
