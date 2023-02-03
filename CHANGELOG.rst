@@ -6,6 +6,13 @@ Change Log
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
 
+[0.8.4] - 2023-02-02
+-------------------------------
+- [FIXED] added flow control to nxgraph
+- [FIXED] in case of multiple pumps, there was a bug when calculating pressure
+- [FIXED] if all pumps are out of service, the pipeflow did not converge
+- [FIXED] remove unnecessary checkout in release.yml and tutorial tests
+
 [0.8.3] - 2023-01-09
 -------------------------------
 - [FIXED] inconsistency between testpypi and pypi
