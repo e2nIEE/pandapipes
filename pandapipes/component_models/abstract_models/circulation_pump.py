@@ -8,7 +8,7 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
     BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.idx_branch import D, AREA, VINIT, CP, FROM_NODE_T, TO_NODE_T, \
-    LOAD_VEC_BRANCHES_T
+    LOAD_VEC_BRANCHES_T, RHO
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -57,11 +57,11 @@ class CirculationPump(BranchWZeroLengthComponent):
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
-                      "normfactor_to"]
+                      "normfactor_to", "qext_w"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
-                      "lambda"]
+                      "lambda", "qext_w"]
         return output, True
 
     @classmethod
@@ -152,4 +152,4 @@ class CirculationPump(BranchWZeroLengthComponent):
         t_from = node_pit[from_nodes, TINIT]
         t_to = node_pit[to_nodes, TINIT]
         res_table['qext_w'].values[:] = circ_pump_pit[:, CP] * circ_pump_pit[:, VINIT] * circ_pump_pit[:, AREA] * \
-                                        (t_to - t_from)
+                                        circ_pump_pit[:, RHO] * (t_to - t_from) * 1000
