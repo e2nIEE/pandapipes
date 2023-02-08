@@ -30,7 +30,7 @@ JAC_DERIV_DT = 24
 JAC_DERIV_DT1 = 25
 LOAD_VEC_BRANCHES_T = 26
 T_OUT = 27  # Internal slot for outlet pipe temperature
-JAC_DERIV_DT_NODE = 28  # Slot for the derivative fpr T for the nodes connected to branch
+JAC_DERIV_DT_NODE_B = 28  # Slot for the derivative fpr T for the nodes connected to branch
 LOAD_VEC_NODES_T = 29
 VINIT_T = 30
 FROM_NODE_T = 31
@@ -42,5 +42,6 @@ PL = 36
 TL = 37  # Temperature lift [K]
 BRANCH_TYPE = 38  # branch type relevant for the pressure controller
 PRESSURE_RATIO = 39  # boost ratio for compressors with proportional pressure lift
+JAC_DERIV_DT_NODE_N = 40
 
-branch_cols = 40
+branch_cols = 41

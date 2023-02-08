@@ -6,9 +6,9 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
 from pandapipes.idx_branch import LENGTH, D, AREA, RHO, VINIT, ALPHA, QEXT, TEXT, branch_cols, \
-    T_OUT, CP, VINIT_T, FROM_NODE_T, TL, \
-    JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T
-from pandapipes.idx_node import TINIT as TINIT_NODE
+    T_OUT, CP, VINIT_T, FROM_NODE_T, TL, TO_NODE_T, \
+    JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE_B, JAC_DERIV_DT_NODE_N, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T
+from pandapipes.idx_node import TINIT as TINIT_NODE, CP as CP_NODE
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
 
 try:
@@ -119,6 +119,9 @@ class BranchComponent(Component):
         from_nodes = branch_component_pit[:, FROM_NODE_T].astype(np.int32)
         t_init_i = node_pit[from_nodes, TINIT_NODE]
         t_init_i1 = branch_component_pit[:, T_OUT]
+        to_nodes = branch_component_pit[:, TO_NODE_T].astype(np.int32)
+        t_init_n = node_pit[to_nodes, TINIT_NODE]
+        cp_n = node_pit[to_nodes, CP_NODE]
         t_amb = branch_component_pit[:, TEXT]
         area = branch_component_pit[:, AREA]
         length = branch_component_pit[:, LENGTH]
@@ -135,9 +138,11 @@ class BranchComponent(Component):
         branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
         branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
 
-        branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
-        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] \
-                                                    * t_init_i1
+        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] * cp * t_init_i1 - \
+            rho * v_init * branch_component_pit[:, AREA] * cp_n * t_init_n
+        branch_component_pit[:, JAC_DERIV_DT_NODE_B] = - rho * v_init * branch_component_pit[:, AREA] * cp
+        branch_component_pit[:, JAC_DERIV_DT_NODE_N] = rho * v_init * branch_component_pit[:, AREA] * cp_n
+
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
