@@ -280,7 +280,7 @@ def add_basic_std_types(net):
     """
     pump_files = os.listdir(os.path.join(pp_dir, "std_types", "library", "Pump"))
     dyn_valve_files = os.listdir(os.path.join(pp_dir, "std_types", "library", "Dynamic_Valve"))
-    dyn_pump_folder = os.listdir(os.path.join(pp_dir, "std_types", "library", "Dynamic_Pump"))
+    dyn_pump_folders = os.listdir(os.path.join(pp_dir, "std_types", "library", "Dynamic_Pump"))
 
     for pump_file in pump_files:
         pump_name = str(pump_file.split(".")[0])
@@ -288,11 +288,11 @@ def add_basic_std_types(net):
                                                              pump_file))
         create_pump_std_type(net, pump_name, pump, True)
 
-    for dyn_pump_name in dyn_pump_folder:
-        dyn_pump = DynPumpStdType.from_folder(dyn_pump_name, os.path.join(pp_dir, "std_types", "library",
-                                                                       "Dynamic_Pump", dyn_pump_name))
+    for dyn_pump_folder in dyn_pump_folders:
+        dyn_pump = DynPumpStdType.from_folder(dyn_pump_folder, os.path.join(pp_dir, "std_types", "library",
+                                                                       "Dynamic_Pump", dyn_pump_folder))
         if dyn_pump is not None:
-            create_dynamic_pump_std_type(net, dyn_pump_name, dyn_pump, True)
+            create_dynamic_pump_std_type(net, dyn_pump_folder, dyn_pump, True)
 
     for dyn_valve_file in dyn_valve_files:
         dyn_valve_name = str(dyn_valve_file.split(".")[0])

@@ -271,11 +271,14 @@ def solve_hydraulics(net):
     for comp in net['component_list']:
         comp.adaption_after_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
+    # epsilon is our function evaluated at x(0) ?
+    # jacobian is the derivatives
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
     v_init_old = branch_pit[:, VINIT].copy()
     p_init_old = node_pit[:, PINIT].copy()
 
+    # x is next step pressures and velocity
     x = spsolve(jacobian, epsilon)
     branch_pit[:, VINIT] += x[len(node_pit):]
     node_pit[:, PINIT] += x[:len(node_pit)] * options["alpha"]

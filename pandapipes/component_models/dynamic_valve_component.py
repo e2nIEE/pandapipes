@@ -31,18 +31,6 @@ class DynamicValve(BranchWZeroLengthComponent):
     time_step = 0
 
 
-    @classmethod
-    def set_function(cls, net, actual_pos, **kwargs):
-        std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
-        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                                 == std_types_lookup[:, np.newaxis])
-        std_types = np.array(list(net.std_types['dynamic_valve'].keys()))[pos]
-        fcts = itemgetter(*std_types)(net['std_types']['dynamic_valve'])
-        cls.fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-
-        # Initial config
-        cls.prev_act_pos = actual_pos
-        cls.kwargs = kwargs
 
     @classmethod
     def from_to_node_cols(cls):
@@ -87,7 +75,6 @@ class DynamicValve(BranchWZeroLengthComponent):
         else:
             valve_pit[:, ACTIVE] = False
 
-        # TODO: is this std_types necessary here when we have already set the look up function?
         std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
@@ -138,25 +125,29 @@ class DynamicValve(BranchWZeroLengthComponent):
         f, t = idx_lookups[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
         area = valve_pit[:, AREA]
+        idx = valve_pit[:, STD_TYPE].astype(int)
+        std_types = np.array(list(net.std_types['dynamic_valve'].keys()))[idx]
         dt = options['dt']
         from_nodes = valve_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
         p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
         desired_mv = valve_pit[:, DESIRED_MV]
-        #initial_run = getattr(net['controller']["object"].at[0], 'initial_run')
 
-        if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step: # a controller timeseries is running
+        if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
+            # a controller timeseries is running
             actual_pos = cls.plant_dynamics(dt, desired_mv)
             valve_pit[:, ACTUAL_POS] = actual_pos
             cls.time_step+= 1
 
-
         else: # Steady state analysis
             actual_pos = valve_pit[:, ACTUAL_POS]
 
+        fcts = itemgetter(*std_types)(net['std_types']['dynamic_valve'])
+        fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+
         lift = np.divide(actual_pos, 100)
-        relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), cls.fcts, lift)))
+        relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), fcts, lift)))
 
 
         kv_at_travel = relative_flow * valve_pit[:, Kv_max] # m3/h.Bar
@@ -181,28 +172,6 @@ class DynamicValve(BranchWZeroLengthComponent):
         delta_p = np.divide(vol_m3_h**2, kv_at_travel**2) # bar
         valve_pit[:, PL] = delta_p
         '''
-
-    '''
-    @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-
-        # see if node pit types either side are 'pressure reference nodes' i.e col:3 == 1
-        f, t = idx_lookups[cls.table_name()]
-        valve_pit = branch_pit[f:t, :]
-        from_nodes = valve_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
-
-        if (node_pit[from_nodes, NODE_TYPE].astype(np.int32) == 1 & node_pit[to_nodes, NODE_TYPE].astype(np.int32) == 1): #pressure fixed
-            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
-            lift = np.divide(valve_pit[:, ACTUAL_POS], 100)
-            relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), cls.fcts, lift)))
-            kv_at_travel = relative_flow * valve_pit[:, KV]  # m3/h.Bar
-            delta_p = p_from - p_to # bar
-            q_m3_h = kv_at_travel * np.sqrt(delta_p)
-            q_kg_s = np.divide(q_m3_h * valve_pit[:, RHO], 3600)
-            valve_pit[:, LOAD_VEC_NODES] =  q_kg_s # mass_flow (kg_s)
-    '''
 
     @classmethod
     def calculate_temperature_lift(cls, net, valve_pit, node_pit):

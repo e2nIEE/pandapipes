@@ -83,7 +83,6 @@ class PidControl(Controller):
         self.prev_diff_out = 0
         self.auto = auto
 
-
         super().set_recycle(net)
 
     def pid_control(self, error_value):
@@ -96,7 +95,7 @@ class PidControl(Controller):
         diff_component = np.divide(self.Td, self.Td + self.dt * self.diffgain)
         self.diff_out = diff_component * (self.prev_diff_out + self.diffgain * (error_value - self.prev_error))
 
-        G_ain = (error_value * (1 + self.diff_out)) * self.gain_effective
+        _gain = (error_value * (1 + self.diff_out)) * self.gain_effective
 
         a_pid = np.divide(self.dt, self.Ti + self.dt)
 
@@ -104,7 +103,7 @@ class PidControl(Controller):
 
         mv_lag = np.clip(mv_lag, self.MV_min, self.MV_max)
 
-        mv = G_ain + mv_lag
+        mv = _gain + mv_lag
 
         # MV Saturation
         mv = np.clip(mv, self.MV_min, self.MV_max)

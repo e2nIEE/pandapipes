@@ -10,9 +10,9 @@ from numpy import dtype
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION, GRAVITATION_CONSTANT
+from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, LOSS_COEFFICIENT as LC, FROM_NODE, \
-    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO
+    TINIT, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -27,24 +27,7 @@ logger = logging.getLogger(__name__)
 
 class Pump(BranchWZeroLengthComponent):
     """
-
     """
-
-    fcts = None # Sets the std_type_class for lookup function
-    kwargs = None
-
-    @classmethod
-    def set_function(cls, net, actual_pos, **kwargs):
-        std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
-        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                                 == std_types_lookup[:, np.newaxis])
-        std_types = np.array(list(net.std_types['pump'].keys()))[pos]
-        fcts = itemgetter(*std_types)(net['std_types']['pump'])
-        cls.fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-
-        # Initial config
-        cls.prev_act_pos = actual_pos
-        cls.kwargs = kwargs
 
     @classmethod
     def from_to_node_cols(cls):
@@ -66,7 +49,6 @@ class Pump(BranchWZeroLengthComponent):
     def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
-
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param branch_pit:
@@ -81,8 +63,6 @@ class Pump(BranchWZeroLengthComponent):
         pump_pit[:, D] = 0.1
         pump_pit[:, AREA] = pump_pit[:, D] ** 2 * np.pi / 4
         pump_pit[:, LC] = 0
-        pump_pit[:, ACTUAL_POS] = net[cls.table_name()].actual_pos.values
-        pump_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -90,12 +70,13 @@ class Pump(BranchWZeroLengthComponent):
         f, t = idx_lookups[cls.table_name()]
         pump_pit = branch_pit[f:t, :]
         area = pump_pit[:, AREA]
-
+        idx = pump_pit[:, STD_TYPE].astype(int)
+        std_types = np.array(list(net.std_types['pump'].keys()))[idx]
         from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
-
+        # to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-
+        # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
         numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
         v_mps = pump_pit[:, VINIT]
         if fluid.is_gas:
@@ -106,27 +87,15 @@ class Pump(BranchWZeroLengthComponent):
         else:
             v_mean = v_mps
         vol = v_mean * area
-
-        #std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
-        #std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-        #                         == std_types_lookup[:, np.newaxis])
-        #std_types = np.array(list(net.std_types['pump'].keys()))[pos]
-        #fcts = itemgetter(*std_types)(net['std_types']['pump'])
-        # TODO: mask pump like above
-        if net[cls.table_name()]['type'].values == 'dynamic_pump':
-            # type is dynamic pump
-            speed = pump_pit[:, ACTUAL_POS]
-            hl = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), cls.fcts, vol, speed)))
-            pl = np.divide((pump_pit[:, RHO] * GRAVITATION_CONSTANT * hl), P_CONVERSION)  # bar
-        else:
-            # pump is standard
-            pl = np.array(list(map(lambda x, y: x.get_pressure(y), cls.fcts, vol)))
-        pump_pit[:, PL] = pl
+        if len(std_types):
+            fcts = itemgetter(*std_types)(net['std_types']['pump'])
+            fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+            pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
+            pump_pit[:, PL] = pl
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
-
         :param net:
         :type net:
         :param branch_component_pit:
@@ -142,7 +111,6 @@ class Pump(BranchWZeroLengthComponent):
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
-
         :param nodes_connected:
         :type nodes_connected:
         :param branches_connected:
@@ -207,9 +175,7 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_component_input(cls):
         """
-
         Get component input.
-
         :return:
         :rtype:
         """
@@ -223,9 +189,7 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_result_table(cls, net):
         """
-
         Gets the result table.
-
         :param net: The pandapipes network
         :type net: pandapipesNet
         :return: (columns, all_float) - the column names and whether they are all float type. Only

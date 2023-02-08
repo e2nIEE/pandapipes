@@ -7,12 +7,12 @@ from numpy import dtype
 from operator import itemgetter
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries, update_fixed_node_entries
 from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
-from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, \
-    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO
-from pandapipes.idx_node import PINIT, PAMB, HEIGHT
+from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, ACTIVE, LOSS_COEFFICIENT as LC, FROM_NODE, \
+    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO, TO_NODE
+from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE, HEIGHT
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, P_CONVERSION, GRAVITATION_CONSTANT
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.component_models.component_toolbox import p_correction_height_air
@@ -28,27 +28,12 @@ logger = logging.getLogger(__name__)
 class DynamicCirculationPump(CirculationPump):
 
     # class attributes
-    fcts = None
     prev_mvlag = 0
     kwargs = None
     prev_act_pos = 0
     time_step = 0
     sink_index_p= None
     source_index_p = None
-
-    @classmethod
-    def set_function(cls, net, actual_pos, **kwargs):
-        std_types_lookup = np.array(list(net.std_types['dynamic_pump'].keys()))
-        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                                 == std_types_lookup[:, np.newaxis])
-        std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[pos]
-        fcts = itemgetter(*std_types)(net['std_types']['dynamic_pump'])
-        cls.fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-
-        # Initial config
-        cls.prev_act_pos = actual_pos
-        cls.kwargs = kwargs
-
 
     @classmethod
     def table_name(cls):
@@ -58,36 +43,10 @@ class DynamicCirculationPump(CirculationPump):
     def get_connected_node_type(cls):
         return Junction
 
+
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        """
-        Function which creates pit node entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :return: No Output.
-        """
-        # Sets Source (discharge pressure), temp and junction types
-        circ_pump, press = super().create_pit_node_entries(net, node_pit)
-
-        junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-
-        # Calculates the suction pressure from: (source minus p_lift)  and indicates which junction node to set this value
-        juncts_p, press_sum, number = _sum_by_group(get_net_option(net, "use_numba"), circ_pump.to_junction.values,
-            p_correction_height_air(node_pit[:, HEIGHT]), np.ones_like(press, dtype=np.int32))
-
-        # Sets sink (suction pressure) pressure and type values
-        cls.sink_index_p = junction_idx_lookups[juncts_p]
-        node_pit[cls.sink_index_p, PINIT] = press_sum / number
-        node_pit[cls.sink_index_p, NODE_TYPE] = P
-        node_pit[cls.sink_index_p, EXT_GRID_OCCURENCE] += number
-
-        net["_lookups"]["ext_grid"] = \
-            np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], cls.sink_index_p]))))
-
+    def active_identifier(cls):
+        return "in_service"
 
     @classmethod
     def plant_dynamics(cls, dt, desired_mv):
@@ -130,34 +89,65 @@ class DynamicCirculationPump(CirculationPump):
 
 
     @classmethod
+    def create_pit_node_entries(cls, net, node_pit):
+        """
+        Function which creates pit node entries.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param node_pit:
+        :type node_pit:
+        :return: No Output.
+        """
+        # Sets the discharge pressure, otherwise known as the starting node in the system
+        dyn_circ_pump, press = super().create_pit_node_entries(net, node_pit)
+
+        # SET SUCTION PRESSURE
+        junction = dyn_circ_pump[cls.from_to_node_cols()[0]].values
+        p_in = dyn_circ_pump.p_static_circuit.values
+        set_fixed_node_entries(net, node_pit, junction, dyn_circ_pump.type.values, p_in, None,
+                               cls.get_connected_node_type(), "p")
+
+
+    @classmethod
+    def create_pit_branch_entries(cls, net, branch_pit):
+        """
+        Function which creates pit branch entries with a specific table.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_pit:
+        :type branch_pit:
+        :return: No Output.
+        """
+        dyn_circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
+        dyn_circ_pump_pit[:, ACTIVE] = True
+        dyn_circ_pump_pit[:, LC] = 0
+        dyn_circ_pump_pit[:, ACTUAL_POS] = net[cls.table_name()].actual_pos.values
+        dyn_circ_pump_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
+
+        std_types_lookup = np.array(list(net.std_types['dynamic_pump'].keys()))
+        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
+                                 == std_types_lookup[:, np.newaxis])
+        dyn_circ_pump_pit[pos, STD_TYPE] = std_type
+
+    @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+
         # calculation of pressure lift
         f, t = idx_lookups[cls.table_name()]
-        pump_pit = branch_pit[f:t, :]
+        dyn_circ_pump_pit = branch_pit[f:t, :]
         dt = options['dt']
-
-        desired_mv = net[cls.table_name()].desired_mv.values
-
-        D = 0.1
-        area = D ** 2 * np.pi / 4
-
-        from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
+        area = dyn_circ_pump_pit[:, AREA]
+        idx = dyn_circ_pump_pit[:, STD_TYPE].astype(int)
+        std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[idx]
+        from_nodes = dyn_circ_pump_pit[:, FROM_NODE].astype(np.int32)
+        to_nodes = dyn_circ_pump_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
-
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-
-        numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
-        v_mps = pump_pit[:, VINIT]
-
-        if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step: # a controller timeseries is running
-            actual_pos = cls.plant_dynamics(dt, desired_mv)
-            valve_pit[:, ACTUAL_POS] = actual_pos
-            cls.time_step+= 1
-
-
-        else: # Steady state analysis
-            actual_pos = valve_pit[:, ACTUAL_POS]
-
+        p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+        numerator = NORMAL_PRESSURE * dyn_circ_pump_pit[:, TINIT]
+        v_mps = dyn_circ_pump_pit[:, VINIT]
+        desired_mv = dyn_circ_pump_pit[:, DESIRED_MV]
 
         if fluid.is_gas:
             # consider volume flow at inlet
@@ -168,28 +158,41 @@ class DynamicCirculationPump(CirculationPump):
             v_mean = v_mps
         vol = v_mean * area
 
-        speed = net[cls.table_name()].actual_pos.values
-        hl = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), cls.fcts, vol, speed)))
-        pl = np.divide((pump_pit[:, RHO] * GRAVITATION_CONSTANT * hl), P_CONVERSION)  # bar
+        if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
+            # a controller timeseries is running
+            actual_pos = cls.plant_dynamics(dt, desired_mv)
+            dyn_circ_pump_pit[:, ACTUAL_POS] = actual_pos
+            cls.time_step+= 1
+
+        else: # Steady state analysis
+            actual_pos = dyn_circ_pump_pit[:, ACTUAL_POS]
+
+        fcts = itemgetter(*std_types)(net['std_types']['dynamic_pump'])
+        fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+
+        hl = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol, actual_pos)))
+        pl = np.divide((dyn_circ_pump_pit[:, RHO] * GRAVITATION_CONSTANT * hl), P_CONVERSION)[0] # bar
 
 
-        ##### Add Pressure Lift To Extgrid Node  ########
-        ext_grids = net[cls.table_name()]
-        ext_grids = ext_grids[ext_grids.in_service.values]
 
-        p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
-        press = pl #ext_grids.p_bar.values[p_mask]
-        junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        junction = cls.get_connected_junction(net)
-        juncts_p, press_sum, number = _sum_by_group(
-            get_net_option(net, "use_numba"), junction.values[p_mask], press,
-            np.ones_like(press, dtype=np.int32))
-        index_p = junction_idx_lookups[juncts_p]
+        # Now: Update the Discharge pressure node (Also known as the starting PT node)
+        # And the discharge temperature from the suction temperature (neglecting pump temp)
+        circ_pump_tbl = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
 
-        node_pit[index_p, PINIT] = press_sum / number
-        #node_pit[index_p, NODE_TYPE] = P
-        #node_pit[index_p, EXT_GRID_OCCURENCE] += number
+        dyn_circ_pump_pit[:, PL] = pl # -(pl - circ_pump_tbl.p_static_circuit)
+
+        junction = net[cls.table_name()][cls.from_to_node_cols()[1]].values
+
+        # TODO: there should be a warning, if any p_bar value is not given or any of the types does
+        #       not contain "p", as this should not be allowed for this component
+        press = pl
+
+        t_flow_k = node_pit[from_nodes, TINIT_NODE]
+        p_static = node_pit[from_nodes, PINIT]
+
+        # update the 'FROM' node
+        update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press + p_static,
+                                  t_flow_k, cls.get_connected_node_type())
 
 
     @classmethod
@@ -200,12 +203,16 @@ class DynamicCirculationPump(CirculationPump):
         :rtype:
         """
         return [("name", dtype(object)),
-                ("from_junction", "u4"),
-                ("to_junction", "u4"),
-                ("p_bar", "f8"),
-                ("t_k", "f8"),
-                ("plift_bar", "f8"),
+                ("return_junction", "u4"),
+                ("flow_junction", "u4"),
+                ("p_flow_bar", "f8"),
+                ("t_flow_k", "f8"),
+                ("p_static_circuit", "f8"),
                 ("actual_pos", "f8"),
-                ("std_type", dtype(object)),
                 ("in_service", 'bool'),
+                ("std_type", dtype(object)),
                 ("type", dtype(object))]
+
+    @classmethod
+    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+        pass
