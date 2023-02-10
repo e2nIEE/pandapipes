@@ -138,10 +138,10 @@ class BranchComponent(Component):
         branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
         branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
 
-        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] * cp * t_init_i1 - \
-            rho * v_init * branch_component_pit[:, AREA] * cp_n * t_init_n
-        branch_component_pit[:, JAC_DERIV_DT_NODE_B] = - rho * v_init * branch_component_pit[:, AREA] * cp
-        branch_component_pit[:, JAC_DERIV_DT_NODE_N] = rho * v_init * branch_component_pit[:, AREA] * cp_n
+        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] * t_init_i1 - \
+            rho * v_init * branch_component_pit[:, AREA] * t_init_n
+        branch_component_pit[:, JAC_DERIV_DT_NODE_B] = - rho * v_init * branch_component_pit[:, AREA]# * cp
+        branch_component_pit[:, JAC_DERIV_DT_NODE_N] = rho * v_init * branch_component_pit[:, AREA]# * cp_n
 
 
     @classmethod

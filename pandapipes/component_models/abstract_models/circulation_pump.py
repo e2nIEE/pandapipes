@@ -8,7 +8,7 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
     BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.idx_branch import D, AREA, VINIT, CP, FROM_NODE_T, TO_NODE_T, \
-    LOAD_VEC_BRANCHES_T, RHO
+    LOAD_VEC_BRANCHES_T, RHO, CIRC, PUMP_TYPE
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -110,6 +110,7 @@ class CirculationPump(BranchWZeroLengthComponent):
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
         circ_pump_pit[:, D] = 0.1
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
+        circ_pump_pit[:, PUMP_TYPE] = CIRC
         return circ_pump_pit
 
     @classmethod

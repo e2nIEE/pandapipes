@@ -43,5 +43,9 @@ TL = 37  # Temperature lift [K]
 BRANCH_TYPE = 38  # branch type relevant for the pressure controller
 PRESSURE_RATIO = 39  # boost ratio for compressors with proportional pressure lift
 JAC_DERIV_DT_NODE_N = 40
+PUMP_TYPE = 41
 
-branch_cols = 41
+branch_cols = 42
+
+#branch types
+CIRC = 30
