@@ -1,0 +1,9 @@
+Name,junction,m_dot
+sink1,5,0.001
+sink2,6,0.001
+sink3,11,0.001
+sink4,13,0.001
+sink5,23,0.001
+sink6,24,0.001
+sink7,29,0.001
+sink8,30,0.001

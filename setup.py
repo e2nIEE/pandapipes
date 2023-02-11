@@ -43,7 +43,7 @@ setup(
 	long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.11.1", "matplotlib", "shapely"],
+    install_requires=["pandapower>=2.11.1", "matplotlib", "shapely", "seaborn", "openpyxl"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "python-igraph"],
                     "test": ["pytest", "pytest-xdist", "nbmake"],
