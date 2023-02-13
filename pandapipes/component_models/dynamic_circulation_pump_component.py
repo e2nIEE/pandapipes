@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
 from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, ACTIVE, LOSS_COEFFICIENT as LC, FROM_NODE, \
-    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO, TO_NODE
+    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO, TO_NODE, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE, HEIGHT
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, P_CONVERSION, GRAVITATION_CONSTANT
 from pandapipes.properties.fluids import get_fluid
@@ -194,6 +194,15 @@ class DynamicCirculationPump(CirculationPump):
         update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press + p_static,
                                   t_flow_k, cls.get_connected_node_type())
 
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # set all PC branches to derivatives to 0
+        f, t = idx_lookups[cls.table_name()]
+        dyn_circ_pump_pit = branch_pit[f:t, :]
+        #c_branch = dyn_circ_pump_pit[:, BRANCH_TYPE] == PC
+        #press_pit[pc_branch, JAC_DERIV_DP] = 0
+        #ress_pit[pc_branch, JAC_DERIV_DP1] = 0
+        #dyn_circ_pump_pit[:, JAC_DERIV_DV] = -1
 
     @classmethod
     def get_component_input(cls):
