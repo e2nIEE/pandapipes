@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
 from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
 from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, ACTIVE, LOSS_COEFFICIENT as LC, FROM_NODE, \
-    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO, TO_NODE, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV
+    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO, TO_NODE, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, LOAD_VEC_BRANCHES
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE, HEIGHT
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, P_CONVERSION, GRAVITATION_CONSTANT
 from pandapipes.properties.fluids import get_fluid
@@ -129,6 +129,7 @@ class DynamicCirculationPump(CirculationPump):
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
         dyn_circ_pump_pit[pos, STD_TYPE] = std_type
+        dyn_circ_pump_pit[:, VINIT] = 0#.1 #0.1
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -170,7 +171,7 @@ class DynamicCirculationPump(CirculationPump):
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
 
-        hl = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol, actual_pos)))
+        hl = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol, actual_pos))) # m head
         pl = np.divide((dyn_circ_pump_pit[:, RHO] * GRAVITATION_CONSTANT * hl), P_CONVERSION)[0] # bar
 
 
@@ -185,13 +186,12 @@ class DynamicCirculationPump(CirculationPump):
 
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
-        press = pl
 
         t_flow_k = node_pit[from_nodes, TINIT_NODE]
         p_static = node_pit[from_nodes, PINIT]
 
-        # update the 'FROM' node
-        update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press + p_static,
+        # update the 'FROM' node i.e: discharge node
+        update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, pl + p_static,
                                   t_flow_k, cls.get_connected_node_type())
 
     @classmethod
@@ -199,10 +199,21 @@ class DynamicCirculationPump(CirculationPump):
         # set all PC branches to derivatives to 0
         f, t = idx_lookups[cls.table_name()]
         dyn_circ_pump_pit = branch_pit[f:t, :]
-        #c_branch = dyn_circ_pump_pit[:, BRANCH_TYPE] == PC
-        #press_pit[pc_branch, JAC_DERIV_DP] = 0
-        #ress_pit[pc_branch, JAC_DERIV_DP1] = 0
-        #dyn_circ_pump_pit[:, JAC_DERIV_DV] = -1
+        v_mps = dyn_circ_pump_pit[:, VINIT]
+        area = dyn_circ_pump_pit[:, AREA]
+        # function at 100% speed hardcoded
+        P_const = np.divide((dyn_circ_pump_pit[:, RHO] * GRAVITATION_CONSTANT), P_CONVERSION)[0]
+        df_dv = - P_const * (2 * v_mps * -1.2028 * area**2 + 0.2417 * area)
+        dyn_circ_pump_pit[:, JAC_DERIV_DV] = df_dv
+
+        from_nodes = dyn_circ_pump_pit[:, FROM_NODE].astype(np.int32)
+        to_nodes = dyn_circ_pump_pit[:, TO_NODE].astype(np.int32)
+        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+        p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+        pl = P_const * (-1.2028 * v_mps**2 ** area**2 + 0.2417 * v_mps * area + 49.252)
+        pl = dyn_circ_pump_pit[:, PL]
+        load_vec = p_to - p_from - pl
+        dyn_circ_pump_pit[:, LOAD_VEC_BRANCHES] = load_vec
 
     @classmethod
     def get_component_input(cls):
