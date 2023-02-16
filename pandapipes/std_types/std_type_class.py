@@ -211,9 +211,9 @@ class DynPumpStdType(RegressionStdType):
                 "x": {"show": True, "start": 1.5, "end": 2, "size": 0.04, "color": "white"},
                 "z": {"show": True, "start": 0.5, "end": 0.8, "size": 0.05}
             },
-            x=self._flowrate_list,
+            x=self._x_values,
             y=self._speed_list,
-            z=self._head_list))
+            z=self._y_values))
         fig.update_xaxes = 'flow'
         fig.update_yaxes = 'speed'
         fig.update_layout(scene=dict(
@@ -221,7 +221,7 @@ class DynPumpStdType(RegressionStdType):
             yaxis_title='y: Speed (%)',
             zaxis_title='z: Head (m)'),
             title='Pump Curve', autosize=False,
-            width=1000, height=1000,
+            width=400, height=400,
         )
         #fig.show()
 

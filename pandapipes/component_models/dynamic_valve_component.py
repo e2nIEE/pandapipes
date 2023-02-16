@@ -69,11 +69,11 @@ class DynamicValve(BranchWZeroLengthComponent):
         valve_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
 
 
-        # Update in_service status if valve actual position becomes 0%
-        if valve_pit[:, ACTUAL_POS] > 0:
-            valve_pit[:, ACTIVE] = True
-        else:
-            valve_pit[:, ACTIVE] = False
+        # # Update in_service status if valve actual position becomes 0%
+        # if valve_pit[:, ACTUAL_POS] > 0:
+        #     valve_pit[:, ACTIVE] = True
+        # else:
+        #     valve_pit[:, ACTIVE] = False
 
         std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
@@ -138,7 +138,7 @@ class DynamicValve(BranchWZeroLengthComponent):
             # a controller timeseries is running
             actual_pos = cls.plant_dynamics(dt, desired_mv)
             valve_pit[:, ACTUAL_POS] = actual_pos
-            cls.time_step+= 1
+            cls.time_step += 1
 
         else: # Steady state analysis
             actual_pos = valve_pit[:, ACTUAL_POS]
@@ -157,7 +157,10 @@ class DynamicValve(BranchWZeroLengthComponent):
         q_m3_s = np.divide(q_m3_h, 3600)
         v_mps = np.divide(q_m3_s, area)
         rho = valve_pit[:, RHO]
-        zeta = np.divide(q_m3_h**2 * 2 * 100000, kv_at_travel**2 * rho * v_mps**2)
+        if v_mps == 0:
+            zeta = 0
+        else:
+            zeta = np.divide(q_m3_h**2 * 2 * 100000, kv_at_travel**2 * rho * v_mps**2)
         # Issue with 1st loop initialisation, when delta_p == 0, zeta remains 0 for entire iteration
         if delta_p == 0:
                 zeta= 0.1
