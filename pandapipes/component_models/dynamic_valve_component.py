@@ -124,7 +124,7 @@ class DynamicValve(BranchWZeroLengthComponent):
         area = valve_pit[:, AREA]
         idx = valve_pit[:, STD_TYPE].astype(int)
         std_types = np.array(list(net.std_types['dynamic_valve'].keys()))[idx]
-        dt = options['dt']
+        dt = 1 #options['dt']
         from_nodes = valve_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]

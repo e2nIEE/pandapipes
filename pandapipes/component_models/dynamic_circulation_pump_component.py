@@ -182,7 +182,7 @@ class DynamicCirculationPump(CirculationPump):
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
 
-        t_flow_k = node_pit[return_node, TINIT] #circ_pump_tbl.t_flow_k.values
+        t_flow_k = node_pit[return_node, TINIT_NODE] #circ_pump_tbl.t_flow_k.values
         p_static = circ_pump_tbl.p_static_circuit.values
 
         # update the 'FROM' node i.e: discharge node

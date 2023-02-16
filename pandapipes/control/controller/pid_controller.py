@@ -23,7 +23,7 @@ class PidControl(Controller):
 
     def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, auto=True, dir_reversed=False,
                  process_variable=None, process_element=None, process_element_index=None, cv_scaler=1,
-                 kp=1, Ti= 5, Td=0, mv_max=100.00, mv_min=20.00, profile_name=None,
+                 Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, profile_name=None,
                  data_source=None, scale_factor=1.0, in_service=True, recycle=True, order=-1, level=-1,
                  drop_same_existing_ctrl=False, matching_params=None,
                  initial_run=False, **kwargs):
@@ -54,7 +54,7 @@ class PidControl(Controller):
         self.set_recycle(net)
 
         # PID config
-        self.Kp = kp
+        self.Kp = Kp
         self.Ti = Ti
         self.Td = Td
         self.MV_max = mv_max
@@ -67,7 +67,7 @@ class PidControl(Controller):
         self.prev_error = 0
         self.dt = 1
         self.dir_reversed = dir_reversed
-        self.gain_effective = ((self.MV_max-self.MV_min)/(self.PV_max - self.PV_min)) * self.Kp
+        self.gain_effective = ((self.MV_max-self.MV_min)/(self.PV_max - self.PV_min)) * Kp
         # selected pv value
         self.process_element = process_element
         self.process_variable = process_variable
@@ -77,9 +77,9 @@ class PidControl(Controller):
         self.sp = 0
         self.prev_sp = 0
         self.prev_cv = net[self.process_element][self.process_variable].loc[self.process_element_index]
-
+        self.ctrl_typ = 'std'
         self.diffgain = 1 # must be between 1 and 10
-        self.diff_out= 0
+        self.diff_part= 0
         self.prev_diff_out = 0
         self.auto = auto
 
@@ -93,22 +93,22 @@ class PidControl(Controller):
         # External Reset PID
 
         diff_component = np.divide(self.Td, self.Td + self.dt * self.diffgain)
-        self.diff_out = diff_component * (self.prev_diff_out + self.diffgain * (error_value - self.prev_error))
+        self.diff_part = diff_component * (self.prev_diff_out + self.diffgain * (error_value - self.prev_error))
 
-        _gain = (error_value * (1 + self.diff_out)) * self.gain_effective
+        g_ain = (error_value * (1 + self.diff_part)) * self.gain_effective
 
-        a_pid = np.divide(self.dt, self.Ti + self.dt)
+        a = np.divide(self.dt, self.Ti + self.dt)
 
-        mv_lag = (1 - a_pid) * self.prev_mvlag + a_pid * self.prev_mv
+        mv_lag = (1 - a) * self.prev_mvlag + a * self.prev_mv
 
         mv_lag = np.clip(mv_lag, self.MV_min, self.MV_max)
 
-        mv = _gain + mv_lag
+        mv = g_ain + mv_lag
 
         # MV Saturation
         mv = np.clip(mv, self.MV_min, self.MV_max)
 
-        self.prev_diff_out = self.diff_out
+        self.prev_diff_out = self.diff_part
         self.prev_error = error_value
         self.prev_mvlag = mv_lag
         self.prev_mv = mv
