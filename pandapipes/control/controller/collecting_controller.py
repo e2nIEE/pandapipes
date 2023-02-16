@@ -21,8 +21,8 @@ class CollectorController:
 
     """
 
-    #controller_mv_table = pd.DataFrame(data=[], columns=['fc_element', 'fc_index', 'fc_variable',
-   #                                                      'ctrl_values', 'logic_typ', 'write_flag'])
+    controller_mv_table = pd.DataFrame(data=[], columns=['fc_element', 'fc_index', 'fc_variable',
+                                                         'ctrl_values', 'logic_typ', 'write_flag'])
 
     @classmethod
     def write_to_ctrl_collector(cls, net, ctrl_element, ctrl_index, ctrl_variable, ctrl_values, logic_typ, write_flag):

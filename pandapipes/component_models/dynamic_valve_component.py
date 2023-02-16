@@ -24,13 +24,10 @@ class DynamicValve(BranchWZeroLengthComponent):
     The equation is based on the standard valve dynamics: q = Kv(h) * sqrt(Delta_P).
     """
     # class attributes
-    fcts = None
     prev_mvlag = 0
     kwargs = None
-    prev_act_pos = 0
+    prev_act_pos = None
     time_step = 0
-
-
 
     @classmethod
     def from_to_node_cols(cls):
@@ -163,7 +160,7 @@ class DynamicValve(BranchWZeroLengthComponent):
             zeta = np.divide(q_m3_h**2 * 2 * 100000, kv_at_travel**2 * rho * v_mps**2)
         # Issue with 1st loop initialisation, when delta_p == 0, zeta remains 0 for entire iteration
         if delta_p == 0:
-                zeta= 0.1
+                zeta = 0.1
         valve_pit[:, LC] = zeta
 
         '''

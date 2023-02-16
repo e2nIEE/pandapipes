@@ -125,7 +125,7 @@ class PidControl(Controller):
         preserving the initial net state.
         """
         self.applied = False
-        self.dt = net['_options']['dt']
+        self.dt = 1 #net['_options']['dt']
         pv = net[self.process_element][self.process_variable].loc[self.process_element_index]
 
         self.cv = pv * self.cv_scaler
