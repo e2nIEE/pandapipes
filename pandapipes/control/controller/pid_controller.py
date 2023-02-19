@@ -23,7 +23,7 @@ class PidControl(Controller):
 
     def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, auto=True, dir_reversed=False,
                  process_variable=None, process_element=None, process_element_index=None, cv_scaler=1,
-                 Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, profile_name=None,
+                 Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, profile_name=None, ctrl_typ='std',
                  data_source=None, scale_factor=1.0, in_service=True, recycle=True, order=-1, level=-1,
                  drop_same_existing_ctrl=False, matching_params=None,
                  initial_run=False, **kwargs):
@@ -77,9 +77,9 @@ class PidControl(Controller):
         self.sp = 0
         self.prev_sp = 0
         self.prev_cv = net[self.process_element][self.process_variable].loc[self.process_element_index]
-        self.ctrl_typ = 'std'
+        self.ctrl_typ = ctrl_typ
         self.diffgain = 1 # must be between 1 and 10
-        self.diff_part= 0
+        self.diff_part = 0
         self.prev_diff_out = 0
         self.auto = auto
 
@@ -116,7 +116,6 @@ class PidControl(Controller):
         return mv
 
 
-
     def time_step(self, net, time):
         """
         Get the values of the element from data source
@@ -134,7 +133,7 @@ class PidControl(Controller):
                                                        scale_factor=self.scale_factor)
 
         if self.auto:
-            # Di
+            # PID is in Automatic Mode
             # self.values is the set point we wish to make the output
             if not self.dir_reversed:
                 # error= SP-PV
@@ -146,7 +145,6 @@ class PidControl(Controller):
             # TODO: hysteresis band
             # if error < 0.01 : error = 0
             desired_mv = self.pid_control(error_value.values)
-
 
         else:
             # Write data source directly to controlled variable
@@ -164,12 +162,12 @@ class PidControl(Controller):
                 # write_to_net(net, self.ctrl_element, self.ctrl_element_index, self.ctrl_variable,
                 # self.ctrl_values, self.write_flag)
                 # Write the desired MV value to results for future plotting
-                write_to_net(net, self.fc_element, self.fc_element_index, "desired_mv", self.ctrl_values,
+                write_to_net(net, self.fc_element, self.fc_element_index, self.fc_variable, self.ctrl_values,
                              self.write_flag)
 
         else:
             # Assume standard External Reset PID controller
-            write_to_net(net, self.fc_element, self.fc_element_index, "desired_mv", self.ctrl_values,
+            write_to_net(net, self.fc_element, self.fc_element_index, self.fc_variable, self.ctrl_values,
                          self.write_flag)
 
 

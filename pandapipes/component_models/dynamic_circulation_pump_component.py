@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 class DynamicCirculationPump(CirculationPump):
 
     # class attributes
-    prev_mvlag = 0
     kwargs = None
     prev_act_pos = None
     time_step = 0
@@ -81,15 +80,7 @@ class DynamicCirculationPump(CirculationPump):
         """
         dyn_circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
         dyn_circ_pump_pit[:, ACTIVE] = False
-        # dyn_circ_pump_pit[:, LC] = 0
-        # dyn_circ_pump_pit[:, ACTUAL_POS] = net[cls.table_name()].actual_pos.values
-        # dyn_circ_pump_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
-        #
-        # std_types_lookup = np.array(list(net.std_types['dynamic_pump'].keys()))
-        # std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-        #                          == std_types_lookup[:, np.newaxis])
-        # dyn_circ_pump_pit[pos, STD_TYPE] = std_type
-        #dyn_circ_pump_pit[:, VINIT] = 0.1
+
     @classmethod
     def plant_dynamics(cls, dt, desired_mv):
         """
@@ -131,7 +122,7 @@ class DynamicCirculationPump(CirculationPump):
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        dt = 1
+        dt = 1 #net['_options']['dt']
         circ_pump_tbl = net[cls.table_name()]
         junction_lookup = get_lookup(net, "node", "index")[ cls.get_connected_node_type().table_name()]
         fn_col, tn_col = cls.from_to_node_cols()
@@ -174,41 +165,17 @@ class DynamicCirculationPump(CirculationPump):
         # And the discharge temperature from the suction temperature (neglecting pump temp)
         circ_pump_tbl = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
 
-        #dyn_circ_pump_pit[:, PL] = pl # -(pl - circ_pump_tbl.p_static_circuit)
-
-
         junction = net[cls.table_name()][cls.from_to_node_cols()[1]].values
 
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
 
-        t_flow_k = node_pit[return_node, TINIT_NODE] #circ_pump_tbl.t_flow_k.values
+        t_flow_k = node_pit[return_node, TINIT_NODE]
         p_static = circ_pump_tbl.p_static_circuit.values
 
-        # update the 'FROM' node i.e: discharge node
+        # update the 'FROM' node i.e: discharge node temperature and pressure lift
         update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, prsr_lift + p_static,
                                   t_flow_k, cls.get_connected_node_type())
-
-
-    # @classmethod
-    # def get_result_table(cls, net):
-    #     """
-    #
-    #     :param net: The pandapipes network
-    #     :type net: pandapipesNet
-    #     :return: (columns, all_float) - the column names and whether they are all float type. Only
-    #             if False, returns columns as tuples also specifying the dtypes
-    #     :rtype: (list, bool)
-    #     """
-    #     if get_fluid(net).is_gas:
-    #         output = ["v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
-    #                   "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-    #                   "vdot_norm_m3_per_s", "normfactor_from",
-    #                   "normfactor_to", "desired_mv", "actual_pos"]
-    #     else:
-    #         output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-    #                   "vdot_norm_m3_per_s",  "desired_mv", "actual_pos", "p_lift", "m_head"]
-    #     return output, True
 
     @classmethod
     def get_result_table(cls, net):
@@ -268,23 +235,6 @@ class DynamicCirculationPump(CirculationPump):
 
         if len(circ_pump_tbl) == 0:
             return
-
-        # required_results = [
-        #     ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
-        #     ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
-        #     ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl")
-        # ]
-        #
-        # if get_fluid(net).is_gas:
-        #     required_results.extend([
-        #         ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-        #         ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
-        #     ])
-        # else:
-        #     required_results.extend([("v_mean_m_per_s", "v_mps")])
-        #
-        # extract_branch_results_without_internals(net, branch_results, required_results,
-        #                                          cls.table_name(), branches_connected)
 
         res_table = net["res_" + cls.table_name()]
 
