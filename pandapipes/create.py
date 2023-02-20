@@ -380,7 +380,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
                 sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
-    Creates a pipe element in net["pipe"] from pipe parameters.
+    Creates a pipe element in net["pipe"] based on standard types.
 
     :param net: The net for which this pipe should be created
     :type net: pandapipesNet
@@ -1227,7 +1227,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
                  loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0.,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
-    Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    Convenience function for creating many pipes at once based on standard types. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values. In any case the line parameters are defined through a single \
     standard type, so all pipes have the same standard type.
@@ -1309,7 +1309,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
                                  qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                  type="pipe", **kwargs):
     """
-    Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    Convenience function for creating many pipes at once from parameters. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values.
 
