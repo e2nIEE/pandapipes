@@ -24,3 +24,14 @@ This is used to read the data from a DataSource and write it to a network.
 .. _ConstControl:
 .. autoclass:: pandapower.control.controller.const_control.ConstControl
     :members:
+
+NonReturnValveController
+========================
+
+The NonReturnValveController makes it possible to implement a valve
+which only allows flow in the connection direction. In the backward
+direction the valve can be regarded as ideally closed.
+
+.. _NonReturnValveController:
+.. autoclass:: pandapipes.control.controller.non_return_valve_controller.NonReturnValveController
+    :members:
