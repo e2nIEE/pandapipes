@@ -23,7 +23,7 @@ class PidControl(Controller):
 
     def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, auto=True, dir_reversed=False,
                  process_variable=None, process_element=None, process_element_index=None, cv_scaler=1,
-                 kp=1, Ti= 5, Td=0, mv_max=100.00, mv_min=20.00, profile_name=None,
+                 Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, profile_name=None, ctrl_typ='std',
                  data_source=None, scale_factor=1.0, in_service=True, recycle=True, order=-1, level=-1,
                  drop_same_existing_ctrl=False, matching_params=None,
                  initial_run=False, **kwargs):
@@ -54,7 +54,7 @@ class PidControl(Controller):
         self.set_recycle(net)
 
         # PID config
-        self.Kp = kp
+        self.Kp = Kp
         self.Ti = Ti
         self.Td = Td
         self.MV_max = mv_max
@@ -67,7 +67,7 @@ class PidControl(Controller):
         self.prev_error = 0
         self.dt = 1
         self.dir_reversed = dir_reversed
-        self.gain_effective = ((self.MV_max-self.MV_min)/(self.PV_max - self.PV_min)) * self.Kp
+        self.gain_effective = ((self.MV_max-self.MV_min)/(self.PV_max - self.PV_min)) * Kp
         # selected pv value
         self.process_element = process_element
         self.process_variable = process_variable
@@ -75,11 +75,12 @@ class PidControl(Controller):
         self.cv_scaler = cv_scaler
         self.cv = net[self.process_element][self.process_variable].loc[self.process_element_index]
         self.sp = 0
+        self.pv = 0
         self.prev_sp = 0
         self.prev_cv = net[self.process_element][self.process_variable].loc[self.process_element_index]
-
+        self.ctrl_typ = ctrl_typ
         self.diffgain = 1 # must be between 1 and 10
-        self.diff_out= 0
+        self.diff_part = 0
         self.prev_diff_out = 0
         self.auto = auto
 
@@ -93,28 +94,27 @@ class PidControl(Controller):
         # External Reset PID
 
         diff_component = np.divide(self.Td, self.Td + self.dt * self.diffgain)
-        self.diff_out = diff_component * (self.prev_diff_out + self.diffgain * (error_value - self.prev_error))
+        self.diff_part = diff_component * (self.prev_diff_out + self.diffgain * (error_value - self.prev_error))
 
-        _gain = (error_value * (1 + self.diff_out)) * self.gain_effective
+        g_ain = (error_value * (1 + self.diff_part)) * self.gain_effective
 
-        a_pid = np.divide(self.dt, self.Ti + self.dt)
+        a = np.divide(self.dt, self.Ti + self.dt)
 
-        mv_lag = (1 - a_pid) * self.prev_mvlag + a_pid * self.prev_mv
+        mv_lag = (1 - a) * self.prev_mvlag + a * self.prev_mv
 
         mv_lag = np.clip(mv_lag, self.MV_min, self.MV_max)
 
-        mv = _gain + mv_lag
+        mv = g_ain + mv_lag
 
         # MV Saturation
         mv = np.clip(mv, self.MV_min, self.MV_max)
 
-        self.prev_diff_out = self.diff_out
+        self.prev_diff_out = self.diff_part
         self.prev_error = error_value
         self.prev_mvlag = mv_lag
         self.prev_mv = mv
 
         return mv
-
 
 
     def time_step(self, net, time):
@@ -125,16 +125,18 @@ class PidControl(Controller):
         preserving the initial net state.
         """
         self.applied = False
-        self.dt = net['_options']['dt']
-        pv = net[self.process_element][self.process_variable].loc[self.process_element_index]
+        self.dt = 1 #net['_options']['dt']
 
-        self.cv = pv * self.cv_scaler
+
+        self.pv = net[self.process_element][self.process_variable].loc[self.process_element_index]
+
+        self.cv = self.pv * self.cv_scaler
         self.sp = self.data_source.get_time_step_value(time_step=time,
                                                        profile_name=self.profile_name,
                                                        scale_factor=self.scale_factor)
 
         if self.auto:
-            # Di
+            # PID is in Automatic Mode
             # self.values is the set point we wish to make the output
             if not self.dir_reversed:
                 # error= SP-PV
@@ -146,7 +148,6 @@ class PidControl(Controller):
             # TODO: hysteresis band
             # if error < 0.01 : error = 0
             desired_mv = self.pid_control(error_value.values)
-
 
         else:
             # Write data source directly to controlled variable
@@ -164,12 +165,12 @@ class PidControl(Controller):
                 # write_to_net(net, self.ctrl_element, self.ctrl_element_index, self.ctrl_variable,
                 # self.ctrl_values, self.write_flag)
                 # Write the desired MV value to results for future plotting
-                write_to_net(net, self.fc_element, self.fc_element_index, "desired_mv", self.ctrl_values,
+                write_to_net(net, self.fc_element, self.fc_element_index, self.fc_variable, self.ctrl_values,
                              self.write_flag)
 
         else:
             # Assume standard External Reset PID controller
-            write_to_net(net, self.fc_element, self.fc_element_index, "desired_mv", self.ctrl_values,
+            write_to_net(net, self.fc_element, self.fc_element_index, self.fc_variable, self.ctrl_values,
                          self.write_flag)
 
 

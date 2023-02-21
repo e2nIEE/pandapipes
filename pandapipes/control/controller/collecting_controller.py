@@ -21,8 +21,9 @@ class CollectorController:
 
     """
 
-    #controller_mv_table = pd.DataFrame(data=[], columns=['fc_element', 'fc_index', 'fc_variable',
-   #                                                      'ctrl_values', 'logic_typ', 'write_flag'])
+    controller_mv_table = pd.DataFrame(data=[], columns=['fc_element', 'fc_index', 'fc_variable',
+                                                         'ctrl_values', 'logic_typ', 'write_flag'])
+    collect_ctrl_active = None
 
     @classmethod
     def write_to_ctrl_collector(cls, net, ctrl_element, ctrl_index, ctrl_variable, ctrl_values, logic_typ, write_flag):
@@ -38,6 +39,8 @@ class CollectorController:
             idx = get_free_id(cls.controller_mv_table)
             cls.controller_mv_table.loc[idx] = \
                 [ctrl_element, ctrl_index, ctrl_variable, [ctrl_values.item()], [logic_typ], [write_flag]]
+
+            cls.collect_ctrl_active = True
 
         else:
             r_idx = int(cls.controller_mv_table[(cls.controller_mv_table.fc_element == ctrl_element) &
@@ -73,4 +76,4 @@ class CollectorController:
                                " at " + str(fc_element) + ', ' + str(fc_index) + ', ' + str(fc_variable))
 
         cls.controller_mv_table.drop(cls.controller_mv_table.index, inplace=True)
-
+        cls.collect_ctrl_active = False

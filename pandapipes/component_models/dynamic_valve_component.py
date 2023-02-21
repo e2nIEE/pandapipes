@@ -24,13 +24,9 @@ class DynamicValve(BranchWZeroLengthComponent):
     The equation is based on the standard valve dynamics: q = Kv(h) * sqrt(Delta_P).
     """
     # class attributes
-    fcts = None
-    prev_mvlag = 0
     kwargs = None
-    prev_act_pos = 0
+    prev_act_pos = None
     time_step = 0
-
-
 
     @classmethod
     def from_to_node_cols(cls):
@@ -121,13 +117,13 @@ class DynamicValve(BranchWZeroLengthComponent):
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        timseries = False
+        dt = 1 #net['_options']['dt']
         f, t = idx_lookups[cls.table_name()]
+        dyn_valve_tbl = net[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
         area = valve_pit[:, AREA]
         idx = valve_pit[:, STD_TYPE].astype(int)
         std_types = np.array(list(net.std_types['dynamic_valve'].keys()))[idx]
-        dt = options['dt']
         from_nodes = valve_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
@@ -138,6 +134,7 @@ class DynamicValve(BranchWZeroLengthComponent):
             # a controller timeseries is running
             actual_pos = cls.plant_dynamics(dt, desired_mv)
             valve_pit[:, ACTUAL_POS] = actual_pos
+            dyn_valve_tbl.actual_pos = actual_pos
             cls.time_step += 1
 
         else: # Steady state analysis
@@ -152,7 +149,7 @@ class DynamicValve(BranchWZeroLengthComponent):
 
         kv_at_travel = relative_flow * valve_pit[:, Kv_max] # m3/h.Bar
 
-        delta_p = p_from - p_to  # bar
+        delta_p = np.abs(p_from - p_to)  # bar
         q_m3_h = kv_at_travel * np.sqrt(delta_p)
         q_m3_s = np.divide(q_m3_h, 3600)
         v_mps = np.divide(q_m3_s, area)
@@ -162,8 +159,8 @@ class DynamicValve(BranchWZeroLengthComponent):
         else:
             zeta = np.divide(q_m3_h**2 * 2 * 100000, kv_at_travel**2 * rho * v_mps**2)
         # Issue with 1st loop initialisation, when delta_p == 0, zeta remains 0 for entire iteration
-        if delta_p == 0:
-                zeta= 0.1
+        if np.isnan(v_mps):
+            zeta = 0.1
         valve_pit[:, LC] = zeta
 
         '''

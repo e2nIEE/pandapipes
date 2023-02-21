@@ -609,7 +609,7 @@ def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m,
     :rtype: int
 
     :Example:
-        >>> create_valve(net, 0, 1, diameter_m=4e-3, name="valve1", Kv_max= 5, actual_pos=44.44)
+        >>> create_dynamic_valve(net, 0, 1, diameter_m=4e-3, name="valve1", Kv_max= 5, actual_pos=44.44)
 
     """
 
@@ -623,6 +623,9 @@ def create_dynamic_valve(net, from_junction, to_junction, std_type,  diameter_m,
          "diameter_m": diameter_m, "actual_pos": actual_pos, "desired_mv": desired_mv, "Kv_max": Kv_max,
          "std_type": std_type, "type": type, "in_service": in_service}
     _set_entries(net, "dynamic_valve", index, **v, **kwargs)
+
+    setattr(DynamicValve, 'kwargs', kwargs)
+    setattr(DynamicValve, 'prev_act_pos', actual_pos)
 
     return index
 
@@ -755,8 +758,8 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
 
 
 def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_bar, p_static_circuit, std_type,
-                                    actual_pos=50.00, desired_mv=None,t_flow_k=None, type="auto",  name=None, index=None,
-                                    in_service=True, **kwargs):
+                                  actual_pos=50.00, desired_mv=None, t_flow_k=None, type="auto",  name=None,
+                                  index=None, in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -804,7 +807,7 @@ def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_ba
 
     :Example:
         >>> create_dyn_circ_pump_pressure(net, 0, 1, p_flow_bar=5, p_static_circuit=2, std_type= 'P1',
-        >>>                                 t_flow_k=350, type="p")
+        >>>                                 t_flow_k=350, type="p", actual_pos=50)
 
     """
 
@@ -823,6 +826,9 @@ def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_ba
          "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "p_static_circuit": p_static_circuit, "std_type": std_type,
          "actual_pos": actual_pos, "desired_mv": desired_mv, "type": type, "in_service": bool(in_service)}
     _set_entries(net, "dyn_circ_pump", index, **v, **kwargs)
+
+    setattr(DynamicCirculationPump, 'kwargs', kwargs)
+    setattr(DynamicCirculationPump, 'prev_act_pos', actual_pos)
 
     return index
 
@@ -892,6 +898,8 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
          "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "plift_bar": plift_bar, "type": type,
          "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_pressure", index, **v, **kwargs)
+
+
 
     return index
 
