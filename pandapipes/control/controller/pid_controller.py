@@ -75,6 +75,7 @@ class PidControl(Controller):
         self.cv_scaler = cv_scaler
         self.cv = net[self.process_element][self.process_variable].loc[self.process_element_index]
         self.sp = 0
+        self.pv = 0
         self.prev_sp = 0
         self.prev_cv = net[self.process_element][self.process_variable].loc[self.process_element_index]
         self.ctrl_typ = ctrl_typ
@@ -125,9 +126,11 @@ class PidControl(Controller):
         """
         self.applied = False
         self.dt = 1 #net['_options']['dt']
-        pv = net[self.process_element][self.process_variable].loc[self.process_element_index]
 
-        self.cv = pv * self.cv_scaler
+
+        self.pv = net[self.process_element][self.process_variable].loc[self.process_element_index]
+
+        self.cv = self.pv * self.cv_scaler
         self.sp = self.data_source.get_time_step_value(time_step=time,
                                                        profile_name=self.profile_name,
                                                        scale_factor=self.scale_factor)

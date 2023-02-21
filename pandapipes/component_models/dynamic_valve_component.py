@@ -119,6 +119,7 @@ class DynamicValve(BranchWZeroLengthComponent):
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         dt = 1 #net['_options']['dt']
         f, t = idx_lookups[cls.table_name()]
+        dyn_valve_tbl = net[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
         area = valve_pit[:, AREA]
         idx = valve_pit[:, STD_TYPE].astype(int)
@@ -133,6 +134,7 @@ class DynamicValve(BranchWZeroLengthComponent):
             # a controller timeseries is running
             actual_pos = cls.plant_dynamics(dt, desired_mv)
             valve_pit[:, ACTUAL_POS] = actual_pos
+            dyn_valve_tbl.actual_pos = actual_pos
             cls.time_step += 1
 
         else: # Steady state analysis

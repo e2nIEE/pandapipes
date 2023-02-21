@@ -24,8 +24,8 @@ LOAD_VEC_BRANCHES = 18  # Slot for the load vector for the branches : pressure d
 JAC_DERIV_DV_NODE = 19  # Slot for the derivative by velocity for the nodes connected to branch #df_dv_nodes
 LOAD_VEC_NODES = 20  # Slot for the load vector of the nodes connected to branch : mass_flow (kg_s) # load_vec_nodes
 LOSS_COEFFICIENT = 21
-CP = 22  # Slot for fluid heat capacity values
-ALPHA = 23  # Slot for heat transfer coefficient
+CP = 22  # Slot for fluid heat capacity at constant pressure : cp = (J/kg.K)
+ALPHA = 23  # Slot for heat transfer coefficient: U = (W/m2.K)
 JAC_DERIV_DT = 24 # Slot for the derivative by temperature from_node # df_dt
 JAC_DERIV_DT1 = 25 # Slot for the derivative by temperature to_node # df_dt1
 LOAD_VEC_BRANCHES_T = 26
