@@ -84,7 +84,7 @@ time_steps = range(100)
 dt = 60
 iterations = 20
 ow = _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-run_timeseries(net, time_steps, transient=transient_transfer, mode="all", dt=dt,
+run_timeseries(net, time_steps, dynamic_sim=True, transient=transient_transfer, mode="all", dt=dt,
                reuse_internal_data=True, iter=iterations)
 
 res_T = ow.np_results["res_internal.t_k"]

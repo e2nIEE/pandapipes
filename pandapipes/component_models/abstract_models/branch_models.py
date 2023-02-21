@@ -140,7 +140,7 @@ class BranchComponent(Component):
             branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
                 -(rho * area * cp * (t_m - tvor) * (1 / delta_t) * length + rho * area * cp * v_init * (
                             -t_init_i + t_init_i1 - tl)
-                  - alpha * (t_amb - t_m) * length + qext * length)
+                  - alpha * (t_amb - t_m) * length + qext)
 
             branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha * length\
                                                     + rho * area * cp / delta_t * length

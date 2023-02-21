@@ -24,7 +24,7 @@ class OutputWriterTransient(OutputWriter):
     def _init_log_variable(self, net, table, variable, index=None, eval_function=None,
                            eval_name=None):
         if table == "res_internal":
-            index = np.arange(net.pipe.sections.sum() + 1)  # np.arange(sections + len(net.pipe) * (sections-1))
+            index = np.arange(len(net.junction) + len(net.pipe) * (sections-1))
         return super()._init_log_variable(net, table, variable, index, eval_function, eval_name)
 
 
@@ -66,7 +66,7 @@ ext_grid = pp.create_ext_grid(net, junction=j1, p_bar=5, t_k=330, name="Grid Con
 sink = pp.create_sink(net, junction=j2, mdot_kg_per_s=2, name="Sink")
 
 # create branch elements
-sections = 36
+sections = 74
 nodes = 2
 length = 1
 pp.create_pipe_from_parameters(net, j1, j2, length, 75e-3, k_mm=.0472, sections=sections,
@@ -76,9 +76,9 @@ pp.create_pipe_from_parameters(net, j1, j2, length, 75e-3, k_mm=.0472, sections=
 
 time_steps = range(100)
 dt = 60
-iterations = 20
+iterations = 3000
 ow = _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-run_timeseries(net, time_steps, transient=transient_transfer, mode="all", dt=dt,
+run_timeseries(net, time_steps, dynamic_sim=True, transient=transient_transfer, mode="all", dt=dt,
                reuse_internal_data=True, iter=iterations)
 
 if transient_transfer:
@@ -117,3 +117,5 @@ ax.set_ylim((280, 335))
 ax.legend()
 fig.canvas.draw()
 plt.show()
+
+print(net.res_internal)
