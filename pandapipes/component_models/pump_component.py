@@ -89,10 +89,11 @@ class Pump(BranchWZeroLengthComponent):
         else:
             v_mean = v_mps
         vol = v_mean * area
-        fcts = itemgetter(*std_types)(net['std_types']['pump'])
-        fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-        pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
-        pump_pit[:, PL] = pl
+        if len(std_types):
+            fcts = itemgetter(*std_types)(net['std_types']['pump'])
+            fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+            pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
+            pump_pit[:, PL] = pl
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
