@@ -66,10 +66,10 @@ class DynamicValve(BranchWZeroLengthComponent):
 
 
         # # Update in_service status if valve actual position becomes 0%
-        # if valve_pit[:, ACTUAL_POS] > 0:
-        #     valve_pit[:, ACTIVE] = True
-        # else:
-        #     valve_pit[:, ACTIVE] = False
+        if valve_pit[:, ACTUAL_POS] > 0:
+            valve_pit[:, ACTIVE] = True
+        else:
+            valve_pit[:, ACTIVE] = False
 
         std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
@@ -145,7 +145,6 @@ class DynamicValve(BranchWZeroLengthComponent):
 
         lift = np.divide(actual_pos, 100)
         relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), fcts, lift)))
-
 
         kv_at_travel = relative_flow * valve_pit[:, Kv_max] # m3/h.Bar
 
