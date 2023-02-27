@@ -1,20 +1,24 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
 
 import numpy as np
-import pandapipes
 import pandas as pd
 import pytest
-from pandapipes.component_models import Pipe, Junction
-from pandapipes.idx_node import PINIT, TINIT
-from pandapipes.pipeflow_setup import get_lookup
-from pandapipes.test.pipeflow_internals import internals_data_path
-from pandapipes.properties.fluids import _add_fluid_to_net
 
-def test_gas_internal_nodes():
+import pandapipes
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.component_models.pipe_component import Pipe
+from pandapipes.idx_node import PINIT, TINIT
+from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.properties.fluids import _add_fluid_to_net
+from pandapipes.test.pipeflow_internals import internals_data_path
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_gas_internal_nodes(use_numba):
     """
 
     :return:
@@ -32,7 +36,8 @@ def test_gas_internal_nodes():
         compressibility=1, der_compressibility=0, density=0.82752
     ))
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4)
+                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
+                        use_numba=use_numba)
 
     pipe_results = Pipe.get_internal_results(net, [0])
 
@@ -67,10 +72,8 @@ def test_gas_internal_nodes():
     assert np.all(v_diff < 0.4)
 
 
-
-
-
-def test_temperature_internal_nodes_single_pipe():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_temperature_internal_nodes_single_pipe(use_numba):
     """
 
     :return:
@@ -88,7 +91,7 @@ def test_temperature_internal_nodes_single_pipe():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     pipe_results = Pipe.get_internal_results(net, [0])
 
@@ -115,7 +118,8 @@ def test_temperature_internal_nodes_single_pipe():
     assert np.all(temp_diff < 0.01)
 
 
-def test_temperature_internal_nodes_tee_2ab_1zu():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_temperature_internal_nodes_tee_2ab_1zu(use_numba):
     """
 
     :return:
@@ -139,7 +143,7 @@ def test_temperature_internal_nodes_tee_2ab_1zu():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "Temperature_tee_2ab_1zu_an.csv"),
                        sep=';', header=0, keep_default_na=False)
@@ -151,7 +155,8 @@ def test_temperature_internal_nodes_tee_2ab_1zu():
     assert np.all(temp_diff < 0.01)
 
 
-def test_temperature_internal_nodes_tee_2zu_1ab():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     """
 
     :return:
@@ -178,7 +183,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "Temperature_tee_2zu_1ab_an.csv"),
                        sep=';', header=0, keep_default_na=False)
@@ -190,7 +195,8 @@ def test_temperature_internal_nodes_tee_2zu_1ab():
     assert np.all(temp_diff < 0.01)
 
 
-def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     """
 
     :return:
@@ -217,7 +223,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "Temperature_tee_2zu_1ab_an.csv"),
                        sep=';', header=0, keep_default_na=False)
@@ -229,7 +235,8 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed():
     assert np.all(temp_diff < 0.01)
 
 
-def test_temperature_internal_nodes_2zu_2ab():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_temperature_internal_nodes_2zu_2ab(use_numba):
     """
 
     :return:
@@ -256,7 +263,7 @@ def test_temperature_internal_nodes_2zu_2ab():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "Temperature_2zu_2ab_an.csv"), sep=';',
                        header=0, keep_default_na=False)
@@ -268,7 +275,8 @@ def test_temperature_internal_nodes_2zu_2ab():
     assert np.all(temp_diff < 0.01)
 
 
-def test_temperature_internal_nodes_masche_1load():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_temperature_internal_nodes_masche_1load(use_numba):
     """
 
     :return:
@@ -297,7 +305,7 @@ def test_temperature_internal_nodes_masche_1load():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "Temperature_masche_1load_an.csv"),
                        sep=';', header=0, keep_default_na=False)
@@ -309,7 +317,8 @@ def test_temperature_internal_nodes_masche_1load():
     assert np.all(temp_diff < 0.01)
 
 
-def test_temperature_internal_nodes_masche_1load_changed_direction():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     """
 
     :return:
@@ -335,7 +344,7 @@ def test_temperature_internal_nodes_masche_1load_changed_direction():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path,
                                     "Temperature_masche_1load_direction_an.csv"),

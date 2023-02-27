@@ -1,15 +1,18 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+import os
+
+import numpy as np
+import pandas as pd
+import pytest
 
 import pandapipes
-import pandas as pd
-import os
 from pandapipes.test.pipeflow_internals import internals_data_path
-import numpy as np
 
 
-def test_heat_exchanger():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_heat_exchanger(use_numba):
     """
 
         :return:
@@ -28,7 +31,7 @@ def test_heat_exchanger():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4)
+                        tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "heat_exchanger_test.csv"), sep=';',
                        header=0, keep_default_na=False)

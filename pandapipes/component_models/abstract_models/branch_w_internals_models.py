@@ -1,22 +1,18 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import set_entry_check_repeat
-from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.idx_branch import ACTIVE
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TINIT, RHO, ETA, \
-    VINIT, RE, LAMBDA, CP, ELEMENT_IDX
-from pandapipes.idx_node import L, node_cols
-from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
-from pandapipes.internals_toolbox import _sum_by_group
-from pandapipes.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
+from pandapipes.component_models.component_toolbox import set_entry_check_repeat
+from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, TINIT, RHO, ETA, CP, ELEMENT_IDX
+from pandapipes.idx_node import L, node_cols, TINIT as TINIT_NODE
+from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -29,15 +25,23 @@ class BranchWInternalsComponent(BranchComponent):
     """
 
     @classmethod
+    def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
     def active_identifier(cls):
         raise NotImplementedError
 
     @classmethod
-    def calculate_pressure_lift(cls, net, pipe_pit, node_pit):
-        raise NotImplementedError
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         raise NotImplementedError
 
     @classmethod
@@ -46,7 +50,16 @@ class BranchWInternalsComponent(BranchComponent):
 
     @classmethod
     def internal_node_name(cls):
-        return NotImplementedError
+        """
+
+        :return: internal_node_name - name of the internal nodes for this class
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
+        raise NotImplementedError
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
@@ -81,7 +94,8 @@ class BranchWInternalsComponent(BranchComponent):
             end = current_start + int_nodes_num
             add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
             ft_lookups[cls.internal_node_name()] = (current_start, end)
-            return end, current_table + 1, internal_nodes, internal_pipes, int_nodes_num, int_pipes_num
+            return end, current_table + 1, internal_nodes, internal_pipes, int_nodes_num, \
+                int_pipes_num
         else:
             return end, current_table + 1, 0, 0, 0, 0
 
@@ -112,7 +126,7 @@ class BranchWInternalsComponent(BranchComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -135,30 +149,33 @@ class BranchWInternalsComponent(BranchComponent):
 
         int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
 
-        f_junction, t_junction = ft_lookup[node_name]
+        junction_table_name = cls.get_connected_node_type().table_name()
+        fj_name, tj_name = "from_" + junction_table_name, "to_" + junction_table_name
+        f_junction, t_junction = ft_lookup[junction_table_name]
         junction_pit = node_pit[f_junction:t_junction, :]
-        from_junctions = net[cls.table_name()].from_junction.values.astype(np.int32)
-        to_junctions = net[cls.table_name()].to_junction.values.astype(np.int32)
-        return table_nr, int_node_number, int_node_pit, junction_pit, from_junctions, to_junctions
+        from_junctions = net[cls.table_name()][fj_name].values.astype(np.int32)
+        to_junctions = net[cls.table_name()][tj_name].values.astype(np.int32)
+        junction_indices = get_lookup(net, "node", "index")[junction_table_name]
+        fj_nodes = junction_indices[from_junctions]
+        tj_nodes = junction_indices[to_junctions]
+        return table_nr, int_node_number, int_node_pit, junction_pit, fj_nodes, tj_nodes
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_winternals_pit, node_name):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_winternals_pit:
-        :type branch_winternals_pit:
-        :param node_name:
-        :type node_name:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        branch_winternals_pit, node_pit, from_nodes, to_nodes \
-            = super().create_pit_branch_entries(net, branch_winternals_pit, node_name)
+        branch_w_internals_pit, node_pit, from_nodes, to_nodes \
+            = super().create_pit_branch_entries(net, branch_pit)
 
-        if not len(branch_winternals_pit):
-            return branch_winternals_pit, np.array([], dtype=np.int32)
+        if not len(branch_w_internals_pit):
+            return branch_w_internals_pit, np.array([], dtype=np.int32)
 
         internal_pipe_number = cls.get_internal_pipe_number(net).astype(np.int32)
         node_ft_lookups = get_lookup(net, "node", "from_to")
@@ -172,53 +189,21 @@ class BranchWInternalsComponent(BranchComponent):
             to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
 
         set_entry_check_repeat(
-            branch_winternals_pit, ELEMENT_IDX, net[cls.table_name()].index.values,
+            branch_w_internals_pit, ELEMENT_IDX, net[cls.table_name()].index.values,
             internal_pipe_number, has_internals)
         set_entry_check_repeat(
-            branch_winternals_pit, ACTIVE, net[cls.table_name()][cls.active_identifier()].values,
+            branch_w_internals_pit, ACTIVE, net[cls.table_name()][cls.active_identifier()].values,
             internal_pipe_number, has_internals)
-        branch_winternals_pit[:, FROM_NODE] = from_nodes
-        branch_winternals_pit[:, TO_NODE] = to_nodes
-        branch_winternals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
+        branch_w_internals_pit[:, FROM_NODE] = from_nodes
+        branch_w_internals_pit[:, TO_NODE] = to_nodes
+        branch_w_internals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
             to_nodes, TINIT_NODE]) / 2
         fluid = get_fluid(net)
-        branch_winternals_pit[:, RHO] = fluid.get_density(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, ETA] = fluid.get_viscosity(branch_winternals_pit[:, TINIT])
-        branch_winternals_pit[:, CP] = fluid.get_heat_capacity(branch_winternals_pit[:, TINIT])
+        branch_w_internals_pit[:, RHO] = fluid.get_density(branch_w_internals_pit[:, TINIT])
+        branch_w_internals_pit[:, ETA] = fluid.get_viscosity(branch_w_internals_pit[:, TINIT])
+        branch_w_internals_pit[:, CP] = fluid.get_heat_capacity(branch_w_internals_pit[:, TINIT])
 
-        return branch_winternals_pit, internal_pipe_number
-
-    @classmethod
-    def extract_results(cls, net, options, node_name):
-        placement_table, res_table, branch_pit, node_pit = super().extract_results(net, options, node_name)
-        fluid = get_fluid(net)
-
-        idx_active = branch_pit[:, ELEMENT_IDX]
-        v_mps = branch_pit[:, VINIT]
-        _, v_sum, internal_pipes = _sum_by_group(idx_active, v_mps, np.ones_like(idx_active))
-        idx_pit = branch_pit[:, ELEMENT_IDX]
-        _, lambda_sum, reynolds_sum, = \
-            _sum_by_group(idx_pit, branch_pit[:, LAMBDA], branch_pit[:, RE])
-        if fluid.is_gas:
-            from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-            to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-            numerator = NORMAL_PRESSURE * branch_pit[:, TINIT]
-            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-            p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
-            mask = ~np.isclose(p_from, p_to)
-            p_mean = np.empty_like(p_to)
-            p_mean[~mask] = p_from[~mask]
-            p_mean[mask] = 2 / 3 * (p_from[mask] ** 3 - p_to[mask] ** 3) \
-                           / (p_from[mask] ** 2 - p_to[mask] ** 2)
-            normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
-                              / (p_mean * NORMAL_TEMPERATURE)
-            v_gas_mean = v_mps * normfactor_mean
-            _, v_gas_mean_sum = _sum_by_group(idx_active, v_gas_mean)
-            res_table["v_mean_m_per_s"].values[placement_table] = v_gas_mean_sum / internal_pipes
-        else:
-            res_table["v_mean_m_per_s"].values[placement_table] = v_sum / internal_pipes
-        res_table["lambda"].values[placement_table] = lambda_sum / internal_pipes
-        res_table["reynolds"].values[placement_table] = reynolds_sum / internal_pipes
+        return branch_w_internals_pit, internal_pipe_number
 
     @classmethod
     def get_internal_pipe_number(cls, net):
@@ -232,13 +217,17 @@ class BranchWInternalsComponent(BranchComponent):
         return np.array(net[cls.table_name()].sections.values)
 
     @classmethod
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+        raise NotImplementedError
+
+    @classmethod
     def get_internal_results(cls, net, branch):
         """
 
         :param net:
         :type net:
-        :param pipe:
-        :type pipe:
+        :param branch:
+        :type branch:
         :return:
         :rtype:
         """

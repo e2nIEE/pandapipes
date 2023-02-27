@@ -1,23 +1,23 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import importlib
 import json
+from copy import deepcopy
 from functools import partial
 from inspect import isclass
 
-from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
-from pandapipes.component_models.abstract_models import Component
-from pandapipes.create import create_empty_network
-from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
-from copy import deepcopy
+
+from pandapipes.component_models.abstract_models.branch_models import Component
+from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -64,10 +64,12 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     @from_serializable.register(class_name='pandapipesNet', module_name='pandapipes.pandapipes_net')
     def pandapipesNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from pandapipes import from_json_string
+            from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
-            net = pandapipesNet(get_basic_net_entries())
+            entries = get_basic_net_entries()
+            entries =  {k: entries[k] for k in entries if k in self.obj}
+            net = pandapipesNet(entries)
             net.update(self.obj)
             return net
 
@@ -86,7 +88,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 self.obj = json.loads(self.obj, cls=PPJSONDecoder,
                                       object_hook=partial(pp_hook,
                                                           registry_class=FromSerializableRegistryPpipe))
-                                                          # backwards compatibility
+                # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]
             return class_.from_dict(self.obj)
@@ -99,7 +101,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     @from_serializable.register(class_name='MultiNet')
     def MultiNet(self):
         if isinstance(self.obj, str):  # backwards compatibility
-            from pandapipes import from_json_string
+            from pandapipes.io.file_io import from_json_string
             return from_json_string(self.obj)
         else:
             net = create_empty_multinet()

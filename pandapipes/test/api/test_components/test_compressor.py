@@ -1,18 +1,16 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import pandapipes
-import os
-import pytest
 import numpy as np
-import pandas as pd
+import pytest
 
-from pandapipes.component_models import p_correction_height_air
-from pandapipes.test.pipeflow_internals import internals_data_path
+import pandapipes
+from pandapipes.component_models.component_toolbox import p_correction_height_air
 
 
-def test_compressor_pressure_ratio():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_compressor_pressure_ratio(use_numba):
 
     net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="hgas")
 
@@ -30,9 +28,9 @@ def test_compressor_pressure_ratio():
     c2 = pandapipes.create_compressor(net, j5, j4, pressure_ratio=br1)  # reverse flow -> bypass
     c3 = pandapipes.create_compressor(net, j5, j6, pressure_ratio=br3)
 
-    pandapipes.pipeflow(net)
+    pandapipes.pipeflow(net, use_numba=use_numba)
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \
-                                         p_correction_height_air(net.junction.height_m)
+                                    p_correction_height_air(net.junction.height_m)
 
     assert np.isclose(net.res_junction.at[j3, "abs_p_bar"],
                       br1 * net.res_junction.at[j2, "abs_p_bar"])
@@ -47,7 +45,7 @@ def test_compressor_pressure_ratio():
     assert np.isclose(net.res_compressor.at[c3, "deltap_bar"],
                       net.res_junction.at[j5, "abs_p_bar"] * (br3 - 1))
     assert np.isclose(net.res_compressor.at[c2, "deltap_bar"], 0.0), \
-       "pressure lift on rev. flow should be 0"
+        "pressure lift on rev. flow should be 0"
 
     br_new = 1.3
     net.compressor.loc[c1, "pressure_ratio"] = br_new
@@ -56,7 +54,8 @@ def test_compressor_pressure_ratio():
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \
                                     p_correction_height_air(net.junction.height_m)
 
-    assert np.isclose(net.res_junction.at[j3, "abs_p_bar"], br_new * net.res_junction.at[j2, "abs_p_bar"])
+    assert np.isclose(net.res_junction.at[j3, "abs_p_bar"],
+                      br_new * net.res_junction.at[j2, "abs_p_bar"])
     assert np.isclose(net.res_compressor.at[c1, "deltap_bar"],
                       net.res_junction.at[j2, "abs_p_bar"] * (br_new - 1))
     assert np.isclose(net.res_junction.at[j5, "abs_p_bar"], net.res_junction.at[j4, "abs_p_bar"])

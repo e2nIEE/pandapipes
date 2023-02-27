@@ -1,17 +1,18 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-import pandapipes as pp
-import pandas as pd
 import statistics as st
-from pandapipes.plotting import simple_plot
+
+import numpy as np
+import pandas as pd
+
+import pandapipes as pp
+from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.component_models import Pipe
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -19,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='colebrook',
-                                     mode='hydraulics', only_update_hydraulic_matrix=False):
+                                     mode='hydraulics', only_update_hydraulic_matrix=False,
+                                     use_numba=True):
     """
         Comparison of the calculations of OpenModelica and pandapipes.
 
@@ -33,11 +35,14 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
         :type mode: str, "nomral"
         :param only_update_hydraulic_matrix:
         :type only_update_hydraulic_matrix: bool, False
+        :param use_numba: whether to use numba for pipeflow calculations
+        :type use_numba: bool, True
         :return: p_diff, v_diff_abs
         :rtype: one-dimensional ndarray with axis labels
     """
-    pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7, friction_model=friction_model,
-                mode=mode, only_update_hydraulic_matrix=only_update_hydraulic_matrix)
+    pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7,
+                friction_model=friction_model, mode=mode, use_numba=use_numba,
+                only_update_hydraulic_matrix=only_update_hydraulic_matrix)
 
     logger.debug(net.res_junction)
     logger.debug(net.res_pipe)
@@ -49,7 +54,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
     if get_fluid(net).is_gas:
         if 'pipe' in net:
             v_diff_from_pipe, v_diff_to_pipe, v_diff_mean_pipe, v_diff_abs_pipe, \
-            v_mean_pandapipes_pipe, v_om_pipe = retrieve_velocity_gas(net, 'pipe')
+                v_mean_pandapipes_pipe, v_om_pipe = retrieve_velocity_gas(net, 'pipe')
         else:
             v_diff_abs_pipe = pd.Series(dtype='float64')
             v_om_pipe = pd.Series(dtype='float64')
@@ -64,7 +69,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
 
         if 'valve' in net:
             v_diff_from_valve, v_diff_to_valve, v_diff_mean_valve, v_diff_abs_valve, \
-            v_mean_pandapipes_valve, v_om_valve = retrieve_velocity_gas(net, 'valve')
+                v_mean_pandapipes_valve, v_om_valve = retrieve_velocity_gas(net, 'valve')
         else:
             v_diff_abs_valve = pd.Series(dtype='float64')
             v_om_valve = pd.Series(dtype='float64')
@@ -248,8 +253,8 @@ def retrieve_temperature_liquid(net):
         T_mean_om[i] = st.mean(T_om[i])
 
     for j in range(num_of_pipes):
-        pipe_res = Pipe.get_internal_results(net,[j])
-        T_mean_pandapipes[j] = st.mean(pipe_res["TINIT"][:,1])
+        pipe_res = Pipe.get_internal_results(net, [j])
+        T_mean_pandapipes[j] = st.mean(pipe_res["TINIT"][:, 1])
 
     T_diff_mean = np.abs(1 - T_mean_pandapipes / T_mean_om)
     T_diff_abs = np.abs(T_mean_om - T_mean_pandapipes)

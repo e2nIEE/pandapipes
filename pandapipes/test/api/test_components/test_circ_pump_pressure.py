@@ -1,15 +1,18 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
-import pandapipes
 import os
+
 import numpy as np
 import pandas as pd
+import pytest
+
+import pandapipes
 from pandapipes.test.pipeflow_internals import internals_data_path
 
 
-def test_circulation_pump_constant_pressure():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_circulation_pump_constant_pressure(use_numba):
     """
         :return:
         :rtype:
@@ -21,9 +24,11 @@ def test_circulation_pump_constant_pressure():
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380, diameter_m=0.1022)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370, diameter_m=0.1022)
-    pandapipes.create_circ_pump_const_pressure(net, j1, j4, 5, 2, 300, type='pt')
+    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380,
+                                           diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370,
+                                           diameter_m=0.1022)
+    pandapipes.create_circ_pump_const_pressure(net, j4, j1, 5, 2, 300, type='pt')
     pandapipes.create_heat_exchanger(net, j2, j3, 0.1, qext_w=200000)
     pandapipes.create_sink(net, j1, 2)
     pandapipes.create_source(net, j4, 2)
@@ -32,7 +37,7 @@ def test_circulation_pump_constant_pressure():
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4)
+                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(internals_data_path, "test_circ_pump_pressure.csv"), sep=';')
 
@@ -43,7 +48,7 @@ def test_circulation_pump_constant_pressure():
     p_diff = np.abs(1 - res_junction.p_bar.values / data['p'].dropna().values)
     t_diff = np.abs(1 - res_junction.t_k.values / data['t'].dropna().values)
     v_diff = np.abs(1 - res_pipe / data['v'].dropna().values)
-    mdot_diff = np.abs(1 - res_pump['mdot_kg_per_s'].values / data['mdot'].dropna().values)
+    mdot_diff = np.abs(1 - res_pump['mdot_flow_kg_per_s'].values / data['mdot'].dropna().values)
     deltap_diff = np.abs(1 - res_pump['deltap_bar'].values / data['deltap'].dropna().values)
 
     assert np.all(p_diff < 0.01)

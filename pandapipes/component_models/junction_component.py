@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,11 +6,11 @@ from warnings import warn
 
 import numpy as np
 from numpy import dtype
-from pandapipes.component_models.abstract_models import NodeComponent
-from pandapipes.component_models.auxiliaries.component_toolbox import p_correction_height_air
+from pandapipes.component_models.abstract_models.node_models import NodeComponent
+from pandapipes.component_models.component_toolbox import p_correction_height_air
 from pandapipes.idx_node import L, ELEMENT_IDX, RHO, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
     ACTIVE as ACTIVE_ND
-from pandapipes.pipeflow_setup import add_table_lookup, get_table_number, \
+from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
 from pandapipes.properties.fluids import get_fluid
 
@@ -61,7 +61,7 @@ class Junction(NodeComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit, node_name):
+    def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -69,8 +69,6 @@ class Junction(NodeComponent):
         :type net: pandapipesNet
         :param node_pit:
         :type node_pit:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
         ft_lookup = get_lookup(net, "node", "from_to")
@@ -90,19 +88,23 @@ class Junction(NodeComponent):
         junction_pit[:, ACTIVE_ND] = junctions.in_service.values
 
     @classmethod
-    def extract_results(cls, net, options, node_name):
+    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
 
+        :param nodes_connected:
+        :type nodes_connected:
+        :param branches_connected:
+        :type branches_connected:
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
         :return: No Output.
         """
-        res_table = super().extract_results(net, options, node_name)
+        res_table = net["res_" + cls.table_name()]
 
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]
@@ -111,7 +113,7 @@ class Junction(NodeComponent):
         junctions_active = get_lookup(net, "node", "active")[f:t]
 
         if np.any(junction_pit[:, PINIT] < 0):
-            warn(UserWarning('Pipeflow converged, however, the results are phyisically incorrect '
+            warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
                              'as pressure is negative at nodes %s'
                              % junction_pit[junction_pit[:, PINIT] < 0, ELEMENT_IDX]))
 

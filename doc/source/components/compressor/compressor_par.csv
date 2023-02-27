@@ -1,0 +1,8 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+net;pandapipesNet;;pandapipes net to which the compressor will be added
+from_junction;integer;:math:`>` 0;index of junction at the inlet
+to_junction;integer;:math:`>` 0;index of junction at the outlet
+pressure_ratio;float;:math:`>` 0;relative pressure ratio
+name;string;;name of the compressor
+index;int;> 0;Force a specified ID if it is available
+in_service;boolean;True/ False;True for in service or False for out of service
