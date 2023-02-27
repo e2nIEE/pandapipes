@@ -543,7 +543,7 @@ def check_pressure_controllability(net, to_junction, controlled_junction):
 #     logger.info("dropped %d %s elements with %d switches" % (len(trafos), table, num_switches))
 
 
-def split_pipe(net, pipe_idx, position_along_pipe=0.5, new_pipe_prefix="split_"):
+def split_pipe(net, pipe_idx, position_along_pipe=0.5, new_pipe_prefix="split"):
     """Splits a pipe into two pipes by inserting a new junction.
 
     The new junction is located in a relative distance of `position_along_pipe` to the
@@ -559,10 +559,12 @@ def split_pipe(net, pipe_idx, position_along_pipe=0.5, new_pipe_prefix="split_")
                                 the from_junction (0 = at the from_junction, 1 = at the to_junction)
     :type position_along_pipe: float
     :param new_pipe_prefix: prefix for the new junction and new pipe names
-    :type new_pipe_prefix: str, default "split_"
+    :type new_pipe_prefix: str, default "split"
     :return: id of newly created pipe and id of new junction
     :rtype: int, int
     """
+    if new_pipe_prefix is not None and len(new_pipe_prefix):
+        new_pipe_prefix = new_pipe_prefix + "_"
 
     # 1. insert new junction and interpolate values
     old_fj = int(net.pipe.loc[pipe_idx, "from_junction"])
