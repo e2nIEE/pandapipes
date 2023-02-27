@@ -56,6 +56,8 @@ Topology Modification
 
 .. autofunction:: pandapipes.drop_pipes
 
+.. autofunction:: pandapipes.split_pipe
+
 ====================================
 pandapower toolbox functions
 ====================================

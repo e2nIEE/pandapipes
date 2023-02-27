@@ -543,6 +543,66 @@ def check_pressure_controllability(net, to_junction, controlled_junction):
 #     logger.info("dropped %d %s elements with %d switches" % (len(trafos), table, num_switches))
 
 
+def split_pipe(net, pipe_idx, position_along_pipe=0.5, new_pipe_prefix="split_"):
+    """Splits a pipe into two pipes by inserting a new junction.
+
+    The new junction is located in a relative distance of `position_along_pipe` to the
+    from_junction. The length of the old (long) pipe is modified accordingly.
+    The new pipe segment is inserted between the newly created junction and the
+    to_junction. The initial pressure, height and coordinates of the new junction are interpolated.
+
+    :param net: pandapipes net that contains the pipe that will be split
+    :type net: pandapipesNet
+    :param pipe_idx: index of the pipe that will be split
+    :type pipe_idx: int
+    :param position_along_pipe: (>=0, <= 1), position where the pipe will be split, seen from
+                                the from_junction (0 = at the from_junction, 1 = at the to_junction)
+    :type position_along_pipe: float
+    :param new_pipe_prefix: prefix for the new junction and new pipe names
+    :type new_pipe_prefix: str, default "split_"
+    :return: id of newly created pipe and id of new junction
+    :rtype: int, int
+    """
+
+    # 1. insert new junction and interpolate values
+    old_fj = int(net.pipe.loc[pipe_idx, "from_junction"])
+    old_tj = int(net.pipe.loc[pipe_idx, "to_junction"])
+    p = position_along_pipe
+    assert (position_along_pipe >= 0) & (position_along_pipe <= 1), \
+        "Position along pipe is relative. It has to be >= 0 and <= 1."
+
+    param = ["pn_bar", "tfluid_k", "height_m"]
+    new_junction_parameters = (net.junction.loc[old_fj, param] * (1 - p)
+                               + net.junction.loc[old_tj, param] * p).to_dict()
+    new_junction_parameters["name"] = new_pipe_prefix + str(pipe_idx)
+
+    if not any(net.junction_geodata.loc[[old_fj, old_tj]].isna()): # if all coordinates exist
+        # interpolate coordinates
+        new_junction_parameters["geodata"] = ((net.junction_geodata.loc[old_fj, "x"] * (1-p) +
+                                              net.junction_geodata.loc[old_tj, "x"] * p),
+                                              (net.junction_geodata.loc[old_fj, "y"] * (1 - p) +
+                                               net.junction_geodata.loc[old_tj, "y"] * p))
+
+    nj = pandapipes.create_junction(net, **new_junction_parameters)
+
+    # 2. add new pipe between old junction and new junction
+    pipe_parameters = net.pipe.loc[pipe_idx].to_dict()
+    pipe_parameters = {k: pipe_parameters[k] for k in pipe_parameters.keys()
+                       if k not in ["name", "from_junction", "to_junction", "std_type"]}
+    pipe_parameters["length_km"] *= (1 - p)
+
+    new_pipe_idx = pandapipes.create_pipe_from_parameters(net, from_junction=nj,
+                                                          to_junction=old_tj,
+                                                          name=new_pipe_prefix + str(pipe_idx),
+                                                          **pipe_parameters)
+
+    # 3. reroute old pipe to new junction and adjust parameters
+    net.pipe.loc[pipe_idx, "to_junction"] = nj
+    net.pipe.loc[pipe_idx, "length_km"] *= p
+
+    return new_pipe_idx, nj
+
+
 node_pit_indices = {
     TABLE_IDX_NODE: "TABLE_IDX",
     ELEMENT_IDX_NODE: "ELEMENT_IDX",
