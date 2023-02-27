@@ -74,14 +74,12 @@ def pipeflow(net, sol_vec=None, **kwargs):
     if get_net_option(net, "dynamic_sim"):
         if get_net_option(net, "time_step") is None:
             set_net_option(net, "time_step", 0)
-    #if get_net_option(net, "transient") and get_net_option(net, "time_step") != 0:
-        #branch_pit = net["_active_pit"]["branch"]
-        #node_pit = net["_active_pit"]["node"]
-        #create_lookups(net)
-        #node_pit, branch_pit = initialize_pit(net)
-    #else:
-    create_lookups(net)
-    node_pit, branch_pit = initialize_pit(net)
+    if get_net_option(net, "transient") and get_net_option(net, "time_step") != 0:
+        branch_pit = net["_pit"]["branch"]
+        node_pit = net["_pit"]["node"]
+    else:
+        create_lookups(net)
+        node_pit, branch_pit = initialize_pit(net)
 
     if (len(node_pit) == 0) & (len(branch_pit) == 0):
         logger.warning("There are no node and branch entries defined. This might mean that your net"
