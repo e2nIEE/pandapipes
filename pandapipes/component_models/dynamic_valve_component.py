@@ -58,7 +58,7 @@ class DynamicValve(BranchWZeroLengthComponent):
         """
         valve_grids = net[cls.table_name()]
         valve_pit = super().create_pit_branch_entries(net, branch_pit)
-        valve_pit[:, D] = net[cls.table_name()].diameter_m.values
+        valve_pit[:, D] = 0.1 #net[cls.table_name()].diameter_m.values
         valve_pit[:, AREA] = valve_pit[:, D] ** 2 * np.pi / 4
         valve_pit[:, Kv_max] = net[cls.table_name()].Kv_max.values
         valve_pit[:, ACTUAL_POS] = net[cls.table_name()].actual_pos.values
@@ -117,7 +117,7 @@ class DynamicValve(BranchWZeroLengthComponent):
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        dt = 1 #net['_options']['dt']
+        dt = net['_options']['dt']
         f, t = idx_lookups[cls.table_name()]
         dyn_valve_tbl = net[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
@@ -128,6 +128,7 @@ class DynamicValve(BranchWZeroLengthComponent):
         to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
         p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+        valve_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
         desired_mv = valve_pit[:, DESIRED_MV]
 
         if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:

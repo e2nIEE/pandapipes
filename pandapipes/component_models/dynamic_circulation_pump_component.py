@@ -122,7 +122,7 @@ class DynamicCirculationPump(CirculationPump):
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        dt = 1 #net['_options']['dt']
+        dt = net['_options']['dt']
         circ_pump_tbl = net[cls.table_name()]
         junction_lookup = get_lookup(net, "node", "index")[ cls.get_connected_node_type().table_name()]
         fn_col, tn_col = cls.from_to_node_cols()

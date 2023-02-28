@@ -103,6 +103,7 @@ class DifferentialControl(PidControl):
         preserving the initial net state.
         """
         self.applied = False
+        self.dt = net['_options']['dt']
         # Differential calculation
         pv_1 = net[self.process_element_1][self.process_variable_1].loc[self.process_element_index_1]
         pv_2 = net[self.process_element_2][self.process_variable_2].loc[self.process_element_index_2]
