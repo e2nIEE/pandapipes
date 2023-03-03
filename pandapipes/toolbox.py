@@ -588,15 +588,17 @@ def split_pipe(net, pipe_idx, position_along_pipe=0.5, new_pipe_prefix="split"):
 
     # 2. add new pipe between old junction and new junction
     pipe_parameters = net.pipe.loc[pipe_idx].to_dict()
-    pipe_parameters = {k: pipe_parameters[k] for k in pipe_parameters.keys()
-                       if k not in ["name", "from_junction", "to_junction", "std_type"]}
+    for rmv in ["name", "from_junction", "to_junction", "std_type"]:
+        pipe_parameters.pop(rmv)
     pipe_parameters["length_km"] *= (1 - p)
 
-    new_pipe_idx = pandapipes.create_pipe_from_parameters(net, from_junction=nj,
+    new_pipe_idx = pandapipes.create_pipe_from_parameters(net, 
+                                                          from_junction=nj,
                                                           to_junction=old_tj,
                                                           name=new_pipe_prefix + str(pipe_idx),
                                                           **pipe_parameters)
-
+    net.pipe.loc[new_pipe_idx, "std_type"] = net.pipe.loc[pipe_idx, "std_type"]
+    
     # 3. reroute old pipe to new junction and adjust parameters
     net.pipe.loc[pipe_idx, "to_junction"] = nj
     net.pipe.loc[pipe_idx, "length_km"] *= p
