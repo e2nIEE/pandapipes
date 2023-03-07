@@ -122,7 +122,7 @@ class DynamicCirculationPump(CirculationPump):
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        dt = net['_options']['dt']
+        dt = 1 #net['_options']['dt']
         circ_pump_tbl = net[cls.table_name()]
         junction_lookup = get_lookup(net, "node", "index")[ cls.get_connected_node_type().table_name()]
         fn_col, tn_col = cls.from_to_node_cols()
@@ -139,6 +139,7 @@ class DynamicCirculationPump(CirculationPump):
                                                                        flow_nodes[p_grids], cls)
         q_kg_s = - (sum_mass_flows / counts)[inverse_nodes]
         vol_m3_s = np.divide(q_kg_s, rho)
+        vol_ms_h = vol_m3_s * 3600
         desired_mv = circ_pump_tbl.desired_mv.values
 
         if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
@@ -173,10 +174,27 @@ class DynamicCirculationPump(CirculationPump):
         t_flow_k = node_pit[return_node, TINIT_NODE]
         p_static = circ_pump_tbl.p_static_circuit.values
 
-        # update the 'FROM' node i.e: discharge node temperature and pressure lift
-        update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, prsr_lift + p_static,
-                                  t_flow_k, cls.get_connected_node_type())
+        # update the 'FROM' node i.e: discharge node temperature and pressure lift updates
+        update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, (prsr_lift + p_static), t_flow_k,
+                                  cls.get_connected_node_type(), "pt")
 
+# we can't update temp here or else each newton iteration will update the temp!!
+    # @classmethod
+    # def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+    #
+    #     super().calculate_derivatives_thermal(net, branch_pit, node_pit, idx_lookups, options)
+    #     fn_col, tn_col = cls.from_to_node_cols()
+    #     circ_pump_tbl = net[cls.table_name()]
+    #     return_junctions = circ_pump_tbl[fn_col].values
+    #     junction_lookup = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
+    #     return_node = junction_lookup[return_junctions]
+    #
+    #     junction = net[cls.table_name()][cls.from_to_node_cols()[1]].values
+    #     t_flow_k = node_pit[return_node, TINIT_NODE]
+    #
+    #     # update the 'FROM' node i.e: discharge node temperature and pressure lift updates
+    #     update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, None, t_flow_k,
+    #                               cls.get_connected_node_type(), "t")
     @classmethod
     def get_result_table(cls, net):
         """

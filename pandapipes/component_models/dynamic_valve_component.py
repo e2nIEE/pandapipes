@@ -65,11 +65,11 @@ class DynamicValve(BranchWZeroLengthComponent):
         valve_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
 
 
-        # # Update in_service status if valve actual position becomes 0%
-        if valve_pit[:, ACTUAL_POS] > 0:
-            valve_pit[:, ACTIVE] = True
-        else:
-            valve_pit[:, ACTIVE] = False
+        # # # Update in_service status if valve actual position becomes 0%
+        # if valve_pit[:, ACTUAL_POS] > 0:
+        #     valve_pit[:, ACTIVE] = True
+        # else:
+        #     valve_pit[:, ACTIVE] = False
 
         std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
@@ -117,7 +117,7 @@ class DynamicValve(BranchWZeroLengthComponent):
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        dt = net['_options']['dt']
+        dt = 1 #net['_options']['dt']
         f, t = idx_lookups[cls.table_name()]
         dyn_valve_tbl = net[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
@@ -130,15 +130,19 @@ class DynamicValve(BranchWZeroLengthComponent):
         p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
         valve_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
         desired_mv = valve_pit[:, DESIRED_MV]
+        cur_actual_pos = valve_pit[:, ACTUAL_POS]
 
-        if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
+        if get_net_option(net, "time_step") == cls.time_step:
             # a controller timeseries is running
             actual_pos = cls.plant_dynamics(dt, desired_mv)
+            # Account for nan's when FCE are in manual
+            update_pos = np.where(np.isnan(actual_pos))
+            actual_pos[update_pos] = cur_actual_pos[update_pos]
             valve_pit[:, ACTUAL_POS] = actual_pos
             dyn_valve_tbl.actual_pos = actual_pos
             cls.time_step += 1
 
-        else: # Steady state analysis
+        else: # Steady state analysis - recycle for Newton-Raphson loop
             actual_pos = valve_pit[:, ACTUAL_POS]
 
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_valve'])
@@ -150,28 +154,29 @@ class DynamicValve(BranchWZeroLengthComponent):
         kv_at_travel = relative_flow * valve_pit[:, Kv_max] # m3/h.Bar
 
         delta_p = np.abs(p_from - p_to)  # bar
+        #if get_net_option(net, "time_step") == None or get_net_option(net, "time_step") == cls.time_step:
+            # On first loop initialise delta P to 0.1 if delta is zero
+            #delta_p = np.where(delta_p == 0, 0.1, delta_p)
+        #delta_p = np.where(np.ma.masked_where(delta_p == 0, lift == 1.0).mask, 0.1, delta_p)
+        positions_delta_p = np.where(delta_p == 0.0)
+        positions_lift = np.where(lift != 1.0)
+        # get common element positions
+        intersect = np.intersect1d(positions_delta_p, positions_lift)
+        # Set delta_p equal to 0.1 where lift is not 1
+        delta_p[intersect] = 0.1
+
         q_m3_h = kv_at_travel * np.sqrt(delta_p)
         q_m3_s = np.divide(q_m3_h, 3600)
         v_mps = np.divide(q_m3_s, area)
         rho = valve_pit[:, RHO]
-        if v_mps == 0:
-            zeta = 0
-        else:
-            zeta = np.divide(q_m3_h**2 * 2 * 100000, kv_at_travel**2 * rho * v_mps**2)
-        # Issue with 1st loop initialisation, when delta_p == 0, zeta remains 0 for entire iteration
-        if np.isnan(v_mps):
-            zeta = 0.1
+        # only calculate at valid entries of v_mps, else error handling is required
+        update_pos = np.where(v_mps != 0)
+        valid_zetas = np.divide(q_m3_h[update_pos] ** 2 * 2 * 100000, kv_at_travel[update_pos] ** 2 * \
+                                rho[update_pos] * v_mps[update_pos] ** 2)
+        zeta = np.zeros_like(v_mps)
+        zeta[update_pos] = valid_zetas
+
         valve_pit[:, LC] = zeta
-
-        '''
-
-        ### For pressure Lift calculation ''
-        v_mps = valve_pit[:, VINIT]
-        vol_m3_s = v_mps * area # m3_s
-        vol_m3_h = vol_m3_s * 3600
-        delta_p = np.divide(vol_m3_h**2, kv_at_travel**2) # bar
-        valve_pit[:, PL] = delta_p
-        '''
 
     @classmethod
     def calculate_temperature_lift(cls, net, valve_pit, node_pit):
@@ -210,7 +215,7 @@ class DynamicValve(BranchWZeroLengthComponent):
             ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
             ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
             ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds"), ("desired_mv", "desired_mv"),
-            ("actual_pos", "actual_pos")
+            ("actual_pos", "actual_pos"), ("LC", "LC")
         ]
 
         if get_fluid(net).is_gas:
@@ -243,5 +248,5 @@ class DynamicValve(BranchWZeroLengthComponent):
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
-                      "lambda", "desired_mv", "actual_pos"]
+                      "lambda", "desired_mv", "actual_pos", "LC"]
         return output, True

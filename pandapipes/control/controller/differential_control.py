@@ -7,7 +7,6 @@ from pandapipes.control.controller.pid_controller import PidControl
 from pandapower.toolbox import _detect_read_write_flag, write_to_net
 from pandapipes.control.controller.collecting_controller import CollectorController
 
-
 try:
     import pandaplan.core.pplog as logging
 except ImportError:
@@ -63,9 +62,9 @@ class DifferentialControl(PidControl):
         self.MV_min = mv_min
         self.PV_max = pv_max
         self.PV_min = pv_min
-        self.prev_mv = net[fc_element].actual_pos.values
-        self.prev_mvlag = net[fc_element].actual_pos.values
-        self.prev_act_pos = net[fc_element].actual_pos.values
+        self.prev_mv = net[fc_element].loc[fc_element_index, 'actual_pos']
+        self.prev_mvlag = net[fc_element].loc[fc_element_index, 'actual_pos']
+        self.prev_act_pos = net[fc_element].loc[fc_element_index, 'actual_pos']
         self.prev_error = 0
         self.dt = 1
         self.dir_reversed = dir_reversed
@@ -103,16 +102,21 @@ class DifferentialControl(PidControl):
         preserving the initial net state.
         """
         self.applied = False
-        self.dt = net['_options']['dt']
+        self.dt = 1 #net['_options']['dt']
         # Differential calculation
         pv_1 = net[self.process_element_1][self.process_variable_1].loc[self.process_element_index_1]
         pv_2 = net[self.process_element_2][self.process_variable_2].loc[self.process_element_index_2]
         self.pv = pv_1 - pv_2
 
         self.cv = self.pv * self.cv_scaler
-        self.sp = self.data_source.get_time_step_value(time_step=time,
-                                                       profile_name=self.profile_name,
-                                                       scale_factor=self.scale_factor)
+
+        if type(self.data_source) is float:
+            self.sp = self.data_source
+        else:
+            self.sp = self.data_source.get_time_step_value(time_step=time,
+                                                           profile_name=self.profile_name,
+                                                           scale_factor=self.scale_factor)
+
 
         if self.auto:
             # PID is in Automatic Mode

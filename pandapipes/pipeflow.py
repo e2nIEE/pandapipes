@@ -77,6 +77,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     if get_net_option(net, "transient") and get_net_option(net, "time_step") != 0:
         branch_pit = net["_pit"]["branch"]
         node_pit = net["_pit"]["node"]
+        # _active_pit
     else:
         create_lookups(net)
         node_pit, branch_pit = initialize_pit(net)

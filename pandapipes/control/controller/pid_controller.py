@@ -61,9 +61,9 @@ class PidControl(Controller):
         self.MV_min = mv_min
         self.PV_max = pv_max
         self.PV_min = pv_min
-        self.prev_mv = net[fc_element].actual_pos.values
-        self.prev_mvlag = net[fc_element].actual_pos.values
-        self.prev_act_pos = net[fc_element].actual_pos.values
+        self.prev_mv = net[fc_element].actual_pos.loc[fc_element_index]
+        self.prev_mvlag = net[fc_element].actual_pos.loc[fc_element_index]
+        self.prev_act_pos = net[fc_element].actual_pos.loc[fc_element_index]
         self.prev_error = 0
         self.dt = 1
         self.dir_reversed = dir_reversed
@@ -125,15 +125,20 @@ class PidControl(Controller):
         preserving the initial net state.
         """
         self.applied = False
-        self.dt = net['_options']['dt']
+        self.dt = 1 #net['_options']['dt']
 
 
         self.pv = net[self.process_element][self.process_variable].loc[self.process_element_index]
 
         self.cv = self.pv * self.cv_scaler
-        self.sp = self.data_source.get_time_step_value(time_step=time,
-                                                       profile_name=self.profile_name,
-                                                       scale_factor=self.scale_factor)
+
+        if type(self.data_source) is float:
+            self.sp = self.data_source
+        else:
+            self.sp = self.data_source.get_time_step_value(time_step=time,
+                                                           profile_name=self.profile_name,
+                                                           scale_factor=self.scale_factor)
+
 
         if self.auto:
             # PID is in Automatic Mode
@@ -147,7 +152,7 @@ class PidControl(Controller):
 
             # TODO: hysteresis band
             # if error < 0.01 : error = 0
-            desired_mv = self.pid_control(error_value.values)
+            desired_mv = self.pid_control(error_value)
 
         else:
             # Write data source directly to controlled variable
