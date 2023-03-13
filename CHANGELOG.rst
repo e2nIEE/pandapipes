@@ -5,6 +5,7 @@ Change Log
 -------------------------------
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
+- [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
 
 [0.8.4] - 2023-02-02
 -------------------------------
