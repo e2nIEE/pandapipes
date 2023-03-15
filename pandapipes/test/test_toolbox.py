@@ -299,6 +299,16 @@ def test_pit_extraction():
                     ))
 
 
+def test_split_pipe():
+    net = nw.simple_gas_networks.gas_tcross1()
+    net_org = net.deepcopy()
+    split_id = 0
+    p = 0.3
+    new_pipe, new_junc = pandapipes.split_pipe(net, split_id, p)
+    assert net.pipe.at[new_pipe, "length_km"] == net_org.pipe.at[split_id, "length_km"] * (1 - p)
+    assert net.pipe.at[split_id, "length_km"] == net_org.pipe.at[split_id, "length_km"] * p
+
+
 def runpp_with_mark(net, **kwargs):
     pandapower.runpp(net, **kwargs)
     net['mark'] = "runpp"
