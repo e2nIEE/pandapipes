@@ -574,7 +574,7 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
 
 
 def create_dynamic_valve(net, from_junction, to_junction, std_type, Kv_max,
-                         actual_pos=50.00, desired_mv=None, in_service=True, name=None, index=None,
+                         actual_pos=50.00, in_service=True, name=None, index=None,
                          type='dyn_valve', **kwargs):
     """
     Creates a valve element in net["valve"] from valve parameters.
@@ -612,7 +612,7 @@ def create_dynamic_valve(net, from_junction, to_junction, std_type, Kv_max,
         >>> create_dynamic_valve(net, 0, 1, diameter_m=4e-3, name="valve1", Kv_max= 5, actual_pos=44.44)
 
     """
-
+    desired_mv = actual_pos
     add_new_component(net, DynamicValve)
 
     index = _get_index_with_check(net, "dynamic_valve", index)
@@ -676,7 +676,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
 
     return index
 
-def create_dyn_pump(net, from_junction, to_junction, std_type, name=None, actual_pos=50.00, desired_mv=None,
+def create_dyn_pump(net, from_junction, to_junction, std_type, name=None, actual_pos=50.00,
                     index=None, in_service=True, type="dynamic_pump", **kwargs):
     """
     Adds one pump in table net["pump"].
@@ -710,6 +710,7 @@ def create_dyn_pump(net, from_junction, to_junction, std_type, name=None, actual
         >>> create_dyn_pump(net, 0, 1, std_type="P1")
 
     """
+    desired_mv = actual_pos
     add_new_component(net, DynamicPump)
 
     # index = _get_index_with_check(net, "pump", index)
@@ -818,7 +819,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
 
 
 def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_bar, p_static_circuit, std_type,
-                                  actual_pos=50.00, desired_mv=None, t_flow_k=None, type="auto",  name=None,
+                                  actual_pos=50.00, t_flow_k=None, type="auto",  name=None,
                                   index=None, in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
@@ -870,7 +871,7 @@ def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_ba
         >>>                                 t_flow_k=350, type="p", actual_pos=50)
 
     """
-
+    desired_mv = actual_pos
     add_new_component(net, DynamicCirculationPump)
 
     index = _get_index_with_check(net, "dyn_circ_pump", index,

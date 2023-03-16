@@ -66,10 +66,10 @@ class DynamicValve(BranchWZeroLengthComponent):
 
 
         # # # Update in_service status if valve actual position becomes 0%
-        # if valve_pit[:, ACTUAL_POS] > 0:
-        #     valve_pit[:, ACTIVE] = True
-        # else:
-        #     valve_pit[:, ACTIVE] = False
+        # vlv_status = valve_pit[:, ACTIVE]
+        # in_active_pos = np.where(valve_pit[:, ACTUAL_POS] == 0)
+        # vlv_status[in_active_pos] = 0
+        # valve_pit[:, ACTIVE] = vlv_status
 
         std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
@@ -117,7 +117,7 @@ class DynamicValve(BranchWZeroLengthComponent):
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        dt = 1 #net['_options']['dt']
+        dt = net['_options']['dt']
         f, t = idx_lookups[cls.table_name()]
         dyn_valve_tbl = net[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
@@ -160,9 +160,9 @@ class DynamicValve(BranchWZeroLengthComponent):
         #delta_p = np.where(np.ma.masked_where(delta_p == 0, lift == 1.0).mask, 0.1, delta_p)
         positions_delta_p = np.where(delta_p == 0.0)
         positions_lift = np.where(lift != 1.0)
-        # get common element positions
+        # get common element values (indexes that appear in both position arrays)
         intersect = np.intersect1d(positions_delta_p, positions_lift)
-        # Set delta_p equal to 0.1 where lift is not 1
+        # Set delta_p equal to 0.1 where lift is not equal 1 and delta-p equals zero
         delta_p[intersect] = 0.1
 
         q_m3_h = kv_at_travel * np.sqrt(delta_p)
@@ -175,7 +175,10 @@ class DynamicValve(BranchWZeroLengthComponent):
                                 rho[update_pos] * v_mps[update_pos] ** 2)
         zeta = np.zeros_like(v_mps)
         zeta[update_pos] = valid_zetas
-
+        zeta_reset_1 = np.where(lift == 1.0)
+        zeta[zeta_reset_1] = 0
+        zeta_reset_2 = np.where(lift == 0.0)
+        zeta[zeta_reset_2] = 20e+20
         valve_pit[:, LC] = zeta
 
     @classmethod

@@ -62,9 +62,9 @@ class DifferentialControl(PidControl):
         self.MV_min = mv_min
         self.PV_max = pv_max
         self.PV_min = pv_min
-        self.prev_mv = net[fc_element].loc[fc_element_index, 'actual_pos']
-        self.prev_mvlag = net[fc_element].loc[fc_element_index, 'actual_pos']
-        self.prev_act_pos = net[fc_element].loc[fc_element_index, 'actual_pos']
+        self.prev_mv = net[fc_element][fc_variable].loc[fc_element_index]
+        self.prev_mvlag = net[fc_element][fc_variable].loc[fc_element_index]
+        self.prev_act_pos = net[fc_element][fc_variable].loc[fc_element_index]
         self.prev_error = 0
         self.dt = 1
         self.dir_reversed = dir_reversed
@@ -102,7 +102,7 @@ class DifferentialControl(PidControl):
         preserving the initial net state.
         """
         self.applied = False
-        self.dt = 1 #net['_options']['dt']
+        self.dt = net['_options']['dt']
         # Differential calculation
         pv_1 = net[self.process_element_1][self.process_variable_1].loc[self.process_element_index_1]
         pv_2 = net[self.process_element_2][self.process_variable_2].loc[self.process_element_index_2]
@@ -140,24 +140,20 @@ class DifferentialControl(PidControl):
         self.ctrl_values = desired_mv
 
         # Write desired_mv to the network
-        if hasattr(self, "ctrl_typ"):
-            if self.ctrl_typ == "over_ride":
-                CollectorController.write_to_ctrl_collector(net, self.fc_element, self.fc_element_index,
-                                                            self.fc_variable, self.ctrl_values, self.selector_typ,
-                                                            self.write_flag)
-            else:  # self.ctrl_typ == "std":
-                # write_to_net(net, self.ctrl_element, self.ctrl_element_index, self.ctrl_variable,
-                # self.ctrl_values, self.write_flag)
-                # Write the desired MV value to results for future plotting
-                write_to_net(net, self.fc_element, self.fc_element_index, self.fc_variable, self.ctrl_values,
-                             self.write_flag)
-
-        else:
-            # Assume standard External Reset PID controller
+        if self.ctrl_typ == "over_ride":
+            CollectorController.write_to_ctrl_collector(net, self.fc_element, self.fc_element_index,
+                                                        self.fc_variable, self.ctrl_values, self.selector_typ,
+                                                        self.write_flag)
+        else:  # self.ctrl_typ == "std":
+            # write_to_net(net, self.ctrl_element, self.ctrl_element_index, self.ctrl_variable,
+            # self.ctrl_values, self.write_flag)
+            # Write the desired MV value to results for future plotting
             write_to_net(net, self.fc_element, self.fc_element_index, self.fc_variable, self.ctrl_values,
                          self.write_flag)
 
+
+
     def __str__(self):
-        return super().__str__() + " [%s.%s]" % (self.element, self.variable)
+        return super().__str__() + " [%s.%s]" % (self.fc_element, self.fc_variable)
 
 
