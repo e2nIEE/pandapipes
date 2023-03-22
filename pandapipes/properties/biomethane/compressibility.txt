@@ -1,0 +1,3 @@
+# source: linear approximation based on CoolProp (http://www.coolprop.org/)
+# slope in 1/bar, offset for linear property
+-0.0019303630399938587 0.9958350401842455

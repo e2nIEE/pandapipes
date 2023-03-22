@@ -1,0 +1,9 @@
+source: Arbeitsblatt DVGW G 260(A)
+
+Gas composition (molar fraction):
+methane: 96.15 %
+nitrogen: 0.75 %
+carbon dioxide: 2.9 %
+oxygen: 0.2 %
+
+Wobbe-Index (normal conditions) : 13.9 KWh/m³
