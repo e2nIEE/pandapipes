@@ -3,6 +3,7 @@ methane; 96.15% ;  90.94%
 nitrogen; 0.75 % ;0.69 %
 carbon dioxide; 2.9 % ;2.68 %
 oxygen; 0.2 % ; 0.19 %
-propane; 0 ; 5 %
-butane;  0 ;  0.5 %
+propane; 0 % ; 5 %
+butane;  0 %;  0.5 %
 Wobbe-Index (normal conditions) :math:`[\frac{KWh}{m^3}]` ; 13.9 ; 14.9
+HHV  (normal conditions) :math:`[\frac{KWh}{m^3}]`; 10.6 ; 11.6
