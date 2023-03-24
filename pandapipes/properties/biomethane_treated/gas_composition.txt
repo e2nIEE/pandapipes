@@ -10,3 +10,4 @@ butane: 0.5 %
 
 
 Wobbe-Index (normal conditions) : 14.9 KWh/m³
+HHV (normal conditions) : 11.6 KWh/m³
