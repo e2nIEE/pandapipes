@@ -102,7 +102,7 @@ class PidControl(Controller):
 
         mv_lag = (1 - a) * self.prev_mvlag + a * self.prev_mv
 
-        mv_lag = np.clip(mv_lag, self.MV_min, self.MV_max)
+        #mv_lag = np.clip(mv_lag, self.MV_min, self.MV_max)
 
         mv = g_ain + mv_lag
 

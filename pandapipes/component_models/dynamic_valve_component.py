@@ -58,7 +58,7 @@ class DynamicValve(BranchWZeroLengthComponent):
         """
         valve_grids = net[cls.table_name()]
         valve_pit = super().create_pit_branch_entries(net, branch_pit)
-        valve_pit[:, D] = 0.1 #net[cls.table_name()].diameter_m.values
+        valve_pit[:, D] = 0.05 #0.1 #net[cls.table_name()].diameter_m.values
         valve_pit[:, AREA] = valve_pit[:, D] ** 2 * np.pi / 4
         valve_pit[:, Kv_max] = net[cls.table_name()].Kv_max.values
         valve_pit[:, ACTUAL_POS] = net[cls.table_name()].actual_pos.values
@@ -77,43 +77,51 @@ class DynamicValve(BranchWZeroLengthComponent):
         valve_pit[pos, STD_TYPE] = std_type
 
     @classmethod
-    def plant_dynamics(cls, dt, desired_mv):
+    def plant_dynamics(cls, dt, desired_mv, dyn_valve_tbl):
         """
         Takes in the desired valve position (MV value) and computes the actual output depending on
         equipment lag parameters.
         Returns Actual valve position
         """
 
-        if cls.kwargs.__contains__("act_dynamics"):
-            typ = cls.kwargs['act_dynamics']
-        else:
-            # default to instantaneous
-            return desired_mv
-
-        # linear
-        if typ == "l":
-
-            # TODO: equation for linear
-            actual_pos = desired_mv
-
-        # first order
-        elif typ == "fo":
-
-            a = np.divide(dt, cls.kwargs['time_const_s'] + dt)
-            actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
-
-            cls.prev_act_pos = actual_pos
-
-        # second order
-        elif typ == "so":
-            # TODO: equation for second order
-            actual_pos = desired_mv
-
-        else:
-            # instantaneous - when incorrect option selected
-            actual_pos = desired_mv
+        time_const_s = dyn_valve_tbl.time_const_s.values
+        a = np.divide(dt, time_const_s + dt)
+        actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
+        cls.prev_act_pos = actual_pos
 
         return actual_pos
+
+        # Issue with getting array values for different types of valves!! Assume all First Order!
+        # if cls.kwargs.__contains__("act_dynamics"):
+        #     typ = cls.kwargs['act_dynamics']
+        # else:
+        #     # default to instantaneous
+        #     return desired_mv
+        #
+        # # linear
+        # if typ == "l":
+        #
+        #     # TODO: equation for linear
+        #     actual_pos = desired_mv
+        #
+        # # first order
+        # elif typ == "fo":
+        #
+        #     a = np.divide(dt, cls.kwargs['time_const_s'] + dt)
+        #     actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
+        #
+        #     cls.prev_act_pos = actual_pos
+        #
+        # # second order
+        # elif typ == "so":
+        #     # TODO: equation for second order
+        #     actual_pos = desired_mv
+        #
+        # else:
+        #     # instantaneous - when incorrect option selected
+        #     actual_pos = desired_mv
+        #
+        # return actual_pos
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -132,9 +140,10 @@ class DynamicValve(BranchWZeroLengthComponent):
         desired_mv = valve_pit[:, DESIRED_MV]
         cur_actual_pos = valve_pit[:, ACTUAL_POS]
 
+
         if get_net_option(net, "time_step") == cls.time_step:
             # a controller timeseries is running
-            actual_pos = cls.plant_dynamics(dt, desired_mv)
+            actual_pos = cls.plant_dynamics(dt, desired_mv, dyn_valve_tbl)
             # Account for nan's when FCE are in manual
             update_pos = np.where(np.isnan(actual_pos))
             actual_pos[update_pos] = cur_actual_pos[update_pos]
@@ -175,8 +184,8 @@ class DynamicValve(BranchWZeroLengthComponent):
                                 rho[update_pos] * v_mps[update_pos] ** 2)
         zeta = np.zeros_like(v_mps)
         zeta[update_pos] = valid_zetas
-        zeta_reset_1 = np.where(lift == 1.0)
-        zeta[zeta_reset_1] = 0
+        #zeta_reset_1 = np.where(lift == 1.0)
+        #zeta[zeta_reset_1] = 0
         zeta_reset_2 = np.where(lift == 0.0)
         zeta[zeta_reset_2] = 20e+20
         valve_pit[:, LC] = zeta

@@ -82,43 +82,57 @@ class DynamicCirculationPump(CirculationPump):
         dyn_circ_pump_pit[:, ACTIVE] = False
 
     @classmethod
-    def plant_dynamics(cls, dt, desired_mv):
+    def plant_dynamics(cls, dt, desired_mv, dyn_pump_tbl):
         """
         Takes in the desired valve position (MV value) and computes the actual output depending on
         equipment lag parameters.
         Returns Actual valve position
         """
 
-        if cls.kwargs.__contains__("act_dynamics"):
-            typ = cls.kwargs['act_dynamics']
-        else:
-            # default to instantaneous
-            return desired_mv
+        """
+        Takes in the desired valve position (MV value) and computes the actual output depending on
+        equipment lag parameters.
+        Returns Actual valve position
+        """
 
-        # linear
-        if typ == "l":
-
-            # TODO: equation for linear
-            actual_pos = desired_mv
-
-        # first order
-        elif typ == "fo":
-
-            a = np.divide(dt, cls.kwargs['time_const_s'] + dt)
-            actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
-
-            cls.prev_act_pos = actual_pos
-
-        # second order
-        elif typ == "so":
-            # TODO: equation for second order
-            actual_pos = desired_mv
-
-        else:
-            # instantaneous - when incorrect option selected
-            actual_pos = desired_mv
+        time_const_s = dyn_pump_tbl.time_const_s.values
+        a = np.divide(dt, time_const_s + dt)
+        actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
+        cls.prev_act_pos = actual_pos
 
         return actual_pos
+
+        # Issue with getting array values for different types of valves!! Assume all First Order!
+        # if cls.kwargs.__contains__("act_dynamics"):
+        #     typ = cls.kwargs['act_dynamics']
+        # else:
+        #     # default to instantaneous
+        #     return desired_mv
+        #
+        # # linear
+        # if typ == "l":
+        #
+        #     # TODO: equation for linear
+        #     actual_pos = desired_mv
+        #
+        # # first order
+        # elif typ == "fo":
+        #
+        #     a = np.divide(dt, cls.kwargs['time_const_s'] + dt)
+        #     actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
+        #
+        #     cls.prev_act_pos = actual_pos
+        #
+        # # second order
+        # elif typ == "so":
+        #     # TODO: equation for second order
+        #     actual_pos = desired_mv
+        #
+        # else:
+        #     # instantaneous - when incorrect option selected
+        #     actual_pos = desired_mv
+        #
+        # return actual_pos
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -139,13 +153,17 @@ class DynamicCirculationPump(CirculationPump):
                                                                        flow_nodes[p_grids], cls)
         q_kg_s = - (sum_mass_flows / counts)[inverse_nodes]
         vol_m3_s = np.divide(q_kg_s, rho)
-        vol_ms_h = vol_m3_s * 3600
+        vol_m3_h = vol_m3_s * 3600
         desired_mv = circ_pump_tbl.desired_mv.values
+        cur_actual_pos = circ_pump_tbl.actual_pos.values
 
         #if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
         if get_net_option(net, "time_step") == cls.time_step:
             # a controller timeseries is running
-            actual_pos = cls.plant_dynamics(dt, desired_mv)
+            actual_pos = cls.plant_dynamics(dt, desired_mv, circ_pump_tbl)
+            # Account for nan's when FCE are in manual
+            update_pos = np.where(np.isnan(actual_pos))
+            actual_pos[update_pos] = cur_actual_pos[update_pos]
             circ_pump_tbl.actual_pos = actual_pos
             cls.time_step += 1
 
@@ -179,23 +197,7 @@ class DynamicCirculationPump(CirculationPump):
         update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, (prsr_lift + p_static), t_flow_k,
                                   cls.get_connected_node_type(), "pt")
 
-# we can't update temp here or else each newton iteration will update the temp!!
-    # @classmethod
-    # def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-    #
-    #     super().calculate_derivatives_thermal(net, branch_pit, node_pit, idx_lookups, options)
-    #     fn_col, tn_col = cls.from_to_node_cols()
-    #     circ_pump_tbl = net[cls.table_name()]
-    #     return_junctions = circ_pump_tbl[fn_col].values
-    #     junction_lookup = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
-    #     return_node = junction_lookup[return_junctions]
-    #
-    #     junction = net[cls.table_name()][cls.from_to_node_cols()[1]].values
-    #     t_flow_k = node_pit[return_node, TINIT_NODE]
-    #
-    #     # update the 'FROM' node i.e: discharge node temperature and pressure lift updates
-    #     update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, None, t_flow_k,
-    #                               cls.get_connected_node_type(), "t")
+
     @classmethod
     def get_result_table(cls, net):
         """

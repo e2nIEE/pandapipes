@@ -72,54 +72,61 @@ class DynamicPump(BranchWZeroLengthComponent):
         pump_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
 
     @classmethod
-    def plant_dynamics(cls, dt, desired_mv):
+    def plant_dynamics(cls, dt, desired_mv, dyn_pump_tbl):
         """
         Takes in the desired valve position (MV value) and computes the actual output depending on
         equipment lag parameters.
-        Returns Actual valve position
+        Returns Actual pump position
         """
 
-        if cls.kwargs.__contains__("act_dynamics"):
-            typ = cls.kwargs['act_dynamics']
-        else:
-            # default to instantaneous
-            return desired_mv
-
-        # linear
-        if typ == "l":
-
-            # TODO: equation for linear
-            actual_pos = desired_mv
-
-        # first order
-        elif typ == "fo":
-
-            a = np.divide(dt, cls.kwargs['time_const_s'] + dt)
-            actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
-
-            cls.prev_act_pos = actual_pos
-
-        # second order
-        elif typ == "so":
-            # TODO: equation for second order
-            actual_pos = desired_mv
-
-        else:
-            # instantaneous - when incorrect option selected
-            actual_pos = desired_mv
+        time_const_s = dyn_pump_tbl.time_const_s.values
+        a = np.divide(dt, time_const_s + dt)
+        actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
+        cls.prev_act_pos = actual_pos
 
         return actual_pos
+
+        # if cls.kwargs.__contains__("act_dynamics"):
+        #     typ = cls.kwargs['act_dynamics']
+        # else:
+        #     # default to instantaneous
+        #     return desired_mv
+        #
+        # # linear
+        # if typ == "l":
+        #
+        #     # TODO: equation for linear
+        #     actual_pos = desired_mv
+        #
+        # # first order
+        # elif typ == "fo":
+        #
+        #     a = np.divide(dt, cls.kwargs['time_const_s'] + dt)
+        #     actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
+        #
+        #     cls.prev_act_pos = actual_pos
+        #
+        # # second order
+        # elif typ == "so":
+        #     # TODO: equation for second order
+        #     actual_pos = desired_mv
+        #
+        # else:
+        #     # instantaneous - when incorrect option selected
+        #     actual_pos = desired_mv
+        #
+        # return actual_pos
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         # calculation of pressure lift
-        dt = 1  # net['_options']['dt']
+        dt = net['_options']['dt']
         f, t = idx_lookups[cls.table_name()]
         dyn_pump_tbl = net[cls.table_name()]
         pump_pit = branch_pit[f:t, :]
         area = pump_pit[:, AREA]
         idx = pump_pit[:, STD_TYPE].astype(int)
-        std_types = np.array(list(net.std_types['pump'].keys()))[idx]
+        std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[idx]
         from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
         # to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
@@ -128,30 +135,25 @@ class DynamicPump(BranchWZeroLengthComponent):
         numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
         v_mps = pump_pit[:, VINIT]
         desired_mv = dyn_pump_tbl.desired_mv.values
+        cur_actual_pos = dyn_pump_tbl.actual_pos.values
+        pump_pit[:, DESIRED_MV] = dyn_pump_tbl.desired_mv.values
+        vol_m3_s = v_mps * area
+        vol_m3_h = vol_m3_s * 3600
 
-        if fluid.is_gas:
-            # consider volume flow at inlet
-            normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
-                              / (p_from * NORMAL_TEMPERATURE)
-            v_mean = v_mps * normfactor_from
-        else:
-            v_mean = v_mps
-
-        vol_m3_s = v_mean * area
-
-        if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
+        if get_net_option(net, "time_step") == cls.time_step:
             # a controller timeseries is running
-            actual_pos = cls.plant_dynamics(dt, desired_mv)
+            actual_pos = cls.plant_dynamics(dt, desired_mv, dyn_pump_tbl)
+            # Account for nan's when FCE are in manual
+            update_pos = np.where(np.isnan(actual_pos))
+            actual_pos[update_pos] = cur_actual_pos[update_pos]
+            pump_pit[:, ACTUAL_POS] = actual_pos
             dyn_pump_tbl.actual_pos = actual_pos
             cls.time_step += 1
 
         else:  # Steady state analysis
             actual_pos = dyn_pump_tbl.actual_pos.values
 
-        std_types_lookup = np.array(list(net.std_types['dynamic_pump'].keys()))
-        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                                 == std_types_lookup[:, np.newaxis])
-        std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[pos]
+
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
         m_head = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol_m3_s, actual_pos)))  # m head
