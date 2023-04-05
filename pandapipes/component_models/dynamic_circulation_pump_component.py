@@ -63,7 +63,7 @@ class DynamicCirculationPump(CirculationPump):
 
         # SET SUCTION PRESSURE
         junction = dyn_circ_pump[cls.from_to_node_cols()[0]].values
-        p_in = dyn_circ_pump.p_static_circuit.values
+        p_in = dyn_circ_pump.p_static_bar.values
         set_fixed_node_entries(net, node_pit, junction, dyn_circ_pump.type.values, p_in, None,
                                cls.get_connected_node_type(), "p")
 
@@ -95,7 +95,12 @@ class DynamicCirculationPump(CirculationPump):
         Returns Actual valve position
         """
 
-        time_const_s = dyn_pump_tbl.time_const_s.values
+        if dyn_pump_tbl.__contains__("time_const_s"):
+            time_const_s = dyn_pump_tbl.time_const_s.values
+        else:
+            print("No actuator time constant set, default lag is now 5s.")
+            time_const_s = 5
+
         a = np.divide(dt, time_const_s + dt)
         actual_pos = (1 - a) * cls.prev_act_pos + a * desired_mv
         cls.prev_act_pos = actual_pos
@@ -173,7 +178,7 @@ class DynamicCirculationPump(CirculationPump):
         std_types_lookup = np.array(list(net.std_types['dynamic_pump'].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
-        std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[pos]
+        std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[std_type]
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
         m_head = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol_m3_s, actual_pos))) # m head
@@ -191,7 +196,7 @@ class DynamicCirculationPump(CirculationPump):
         #       not contain "p", as this should not be allowed for this component
 
         t_flow_k = node_pit[return_node, TINIT_NODE]
-        p_static = circ_pump_tbl.p_static_circuit.values
+        p_static = circ_pump_tbl.p_static_bar.values
 
         # update the 'FROM' node i.e: discharge node temperature and pressure lift updates
         update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, (prsr_lift + p_static), t_flow_k,
@@ -208,7 +213,8 @@ class DynamicCirculationPump(CirculationPump):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        return ["mdot_flow_kg_per_s", "deltap_bar", "desired_mv", "actual_pos", "p_lift", "m_head"], True
+        return ["mdot_flow_kg_per_s", "deltap_bar", "desired_mv", "actual_pos", "p_lift", "m_head", "rho", "t_from_k",
+                "t_to_k", "p_static_bar", "p_flow_bar"], True
 
     @classmethod
     def get_component_input(cls):
@@ -224,7 +230,7 @@ class DynamicCirculationPump(CirculationPump):
                 ("t_flow_k", "f8"),
                 ("p_lift", "f8"),
                 ('m_head', "f8"),
-                ("p_static_circuit", "f8"),
+                ("p_static_bar", "f8"),
                 ("actual_pos", "f8"),
                 ("in_service", 'bool'),
                 ("std_type", dtype(object)),
@@ -280,7 +286,7 @@ class DynamicCirculationPump(CirculationPump):
 
         return_junctions = circ_pump_tbl[fn_col].values
         return_node = junction_lookup[return_junctions]
-        rho = node_pit[return_node, RHO_node]
+
 
         #res_table["vdot_norm_m3_per_s"] = np.divide(- (sum_mass_flows / counts)[inverse_nodes], rho)
 
@@ -288,8 +294,12 @@ class DynamicCirculationPump(CirculationPump):
         return_nodes = junction_lookup[return_junctions]
 
         deltap_bar = node_pit[flow_nodes, PINIT] - node_pit[return_nodes, PINIT]
+        res_table["p_static_bar"].values[in_service] = circ_pump_tbl.p_static_bar.values
+        res_table["p_flow_bar"].values[in_service] = node_pit[flow_nodes, PINIT]
         res_table["deltap_bar"].values[in_service] = deltap_bar[in_service]
-
+        res_table["t_from_k"].values[p_grids] = node_pit[return_node, TINIT]
+        res_table["t_to_k"].values[p_grids] = node_pit[flow_nodes, TINIT]
+        res_table["rho"].values[p_grids] = node_pit[return_node, RHO_node]
         res_table["p_lift"].values[p_grids] = circ_pump_tbl.p_lift.values
         res_table["m_head"].values[p_grids] = circ_pump_tbl.m_head.values
         res_table["actual_pos"].values[p_grids] = circ_pump_tbl.actual_pos.values

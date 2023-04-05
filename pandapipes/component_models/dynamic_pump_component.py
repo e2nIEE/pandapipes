@@ -8,6 +8,7 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.junction_component import Junction
+from pandapipes.component_models.pump_component import Pump
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION, \

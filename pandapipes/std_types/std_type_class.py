@@ -235,6 +235,7 @@ class DynPumpStdType(RegressionStdType):
         # Compile dictionary of dataframes from file path
         x_flow_max = 0
         speed_list = []
+        degree = []
 
         for file_name in os.listdir(dyn_path):
             key_name = file_name[0:file_name.find('.')]
@@ -252,6 +253,7 @@ class DynPumpStdType(RegressionStdType):
                 # create individual poly equations for each curve and append to (z)_head_list
                 reg_par = np.polyfit(individual_curves[key].Vdot_m3ph.values, individual_curves[key].Head_m.values,
                                      individual_curves[key].degree.values[0])
+                degree.append(individual_curves[key].degree.values[0])
                 n = np.arange(len(reg_par), 0, -1)
                 head_list[idx::] = [max(0, sum(reg_par * x ** (n - 1))) for x in flow_list]
 
@@ -265,7 +267,12 @@ class DynPumpStdType(RegressionStdType):
 
 
             # interpolate 2d function to determine head (m) from specified flow and speed variables
-            interp2d_fct = interp2d(flow_list, speed_list, head_list, kind='cubic', fill_value='0')
+            if min(degree) == 0:
+                interpolate_kind = 'linear'
+            else:
+                interpolate_kind = 'cubic'
+
+            interp2d_fct = interp2d(flow_list, speed_list, head_list, kind=interpolate_kind, fill_value='0')
 
             pump_st = cls(name, interp2d_fct)
             pump_st._x_values = flow_list
@@ -481,6 +488,8 @@ def get_data(path, std_type_category):
     """
     if std_type_category == 'pump':
         return PumpStdType.load_data(path)
+    elif std_type_category == 'dynamic_valve':
+        return ValveStdType.load_data(path)
     elif std_type_category == 'pipe':
         return pd.read_csv(path, sep=';', index_col=0).T
     else:

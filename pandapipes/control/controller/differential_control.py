@@ -6,7 +6,7 @@
 from pandapipes.control.controller.pid_controller import PidControl
 from pandapower.toolbox import _detect_read_write_flag, write_to_net
 from pandapipes.control.controller.collecting_controller import CollectorController
-
+import numpy as np
 try:
     import pandaplan.core.pplog as logging
 except ImportError:
@@ -24,8 +24,8 @@ class DifferentialControl(PidControl):
     def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, auto=True, dir_reversed=False,
                  process_variable_1=None, process_element_1=None, process_element_index_1=None,
                  process_variable_2=None, process_element_2=None, process_element_index_2=None,
-                 cv_scaler=1, Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, profile_name=None, ctrl_typ='std',
-                 data_source=None, scale_factor=1.0, in_service=True, recycle=True, order=-1, level=-1,
+                 cv_scaler=1, Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, sp_profile_name=None, man_profile_name=None,
+                 ctrl_typ='std',  data_source=None, sp_scale_factor=1.0, in_service=True, recycle=True, order=-1, level=-1,
                  drop_same_existing_ctrl=False, matching_params=None,
                  initial_run=False, **kwargs):
         # just calling init of the parent
@@ -48,8 +48,9 @@ class DifferentialControl(PidControl):
         self.fc_element = fc_element
         self.ctrl_values = None
 
-        self.profile_name = profile_name
-        self.scale_factor = scale_factor
+        self.sp_profile_name = sp_profile_name
+        self.sp_scale_factor = sp_scale_factor
+        self.man_profile_name = man_profile_name
         self.applied = False
         self.write_flag, self.fc_variable = _detect_read_write_flag(net, fc_element, fc_element_index, fc_variable)
         self.set_recycle(net)
@@ -81,6 +82,7 @@ class DifferentialControl(PidControl):
         self.cv = (net[self.process_element_1][self.process_variable_1].loc[self.process_element_index_1] - \
                   net[self.process_element_2][self.process_variable_2].loc[self.process_element_index_2]) * self.cv_scaler
         self.sp = 0
+        self.man_sp = 0
         self.pv = 0
         self.prev_sp = 0
         self.prev_cv = (net[self.process_element_1][self.process_variable_1].loc[self.process_element_index_1]
@@ -110,15 +112,16 @@ class DifferentialControl(PidControl):
 
         self.cv = self.pv * self.cv_scaler
 
-        if type(self.data_source) is float:
-            self.sp = self.data_source
-        else:
-            self.sp = self.data_source.get_time_step_value(time_step=time,
-                                                           profile_name=self.profile_name,
-                                                           scale_factor=self.scale_factor)
-
 
         if self.auto:
+            # PID is in Automatic Mode
+            if type(self.sp_data_source) is float:
+                self.sp = self.sp_data_source
+            else:
+                self.sp = self.sp_data_source.get_time_step_value(time_step=time,
+                                                               profile_name=self.sp_profile_name,
+                                                               scale_factor=self.sp_scale_factor)
+
             # PID is in Automatic Mode
             # self.values is the set point we wish to make the output
             if not self.dir_reversed:
@@ -130,12 +133,17 @@ class DifferentialControl(PidControl):
 
             #TODO: hysteresis band
             # if error < 0.01 : error = 0
-
-            desired_mv = PidControl.pid_control(self, error_value)
+            desired_mv = PidControl.pidConR_control(self, error_value)
 
         else:
-            # Write data source directly to controlled variable
-            desired_mv = self.sp
+            # Get Manual set point from data source:
+            if type(self.man_data_source) is float:
+                self.man_sp = self.man_data_source
+            else:
+                self.man_sp = self.man_data_source.get_time_step_value(time_step=time,
+                                                                       profile_name=self.man_profile_name,
+                                                                       scale_factor=1)
+            desired_mv = np.clip(self.man_sp, self.MV_min, self.MV_max)
 
         self.ctrl_values = desired_mv
 
@@ -145,13 +153,9 @@ class DifferentialControl(PidControl):
                                                         self.fc_variable, self.ctrl_values, self.selector_typ,
                                                         self.write_flag)
         else:  # self.ctrl_typ == "std":
-            # write_to_net(net, self.ctrl_element, self.ctrl_element_index, self.ctrl_variable,
-            # self.ctrl_values, self.write_flag)
             # Write the desired MV value to results for future plotting
             write_to_net(net, self.fc_element, self.fc_element_index, self.fc_variable, self.ctrl_values,
                          self.write_flag)
-
-
 
     def __str__(self):
         return super().__str__() + " [%s.%s]" % (self.fc_element, self.fc_variable)

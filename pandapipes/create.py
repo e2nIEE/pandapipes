@@ -818,7 +818,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     return index
 
 
-def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_bar, p_static_circuit, std_type,
+def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_bar, p_static_bar, std_type,
                                   actual_pos=50.00, t_flow_k=None, type="auto",  name=None,
                                   index=None, in_service=True, **kwargs):
     """
@@ -838,8 +838,8 @@ def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_ba
     :type flow_junction: int
     :param p_flow_bar: Pressure set point at the flow junction
     :type p_flow_bar: float
-    :param p_static_circuit: Suction Pressure static circuit pressure
-    :type p_static_circuit: float
+    :param p_static_bar: Suction Pressure static circuit pressure
+    :type p_static_bar: float
     :type std_type: string, default None
     :param name: A name tag for this pump
     :param t_flow_k: Temperature set point at the flow junction
@@ -867,7 +867,7 @@ def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_ba
     :rtype: int
 
     :Example:
-        >>> create_dyn_circ_pump_pressure(net, 0, 1, p_flow_bar=5, p_static_circuit=2, std_type= 'P1',
+        >>> create_dyn_circ_pump_pressure(net, 0, 1, p_flow_bar=5, p_static_bar=2, std_type= 'P1',
         >>>                                 t_flow_k=350, type="p", actual_pos=50)
 
     """
@@ -884,7 +884,7 @@ def create_dyn_circ_pump_pressure(net, return_junction, flow_junction, p_flow_ba
     type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, DynamicCirculationPump)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "p_static_circuit": p_static_circuit, "std_type": std_type,
+         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "p_static_bar": p_static_bar, "std_type": std_type,
          "actual_pos": actual_pos, "desired_mv": desired_mv, "type": type, "in_service": bool(in_service)}
     _set_entries(net, "dyn_circ_pump", index, **v, **kwargs)
 
