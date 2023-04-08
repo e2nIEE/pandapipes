@@ -21,8 +21,8 @@ class PidControl(Controller):
 
     """
 
-    def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, auto=True, dir_reversed=False,
-                 process_variable=None, process_element=None, process_element_index=None, cv_scaler=1,
+    def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, sp_max, sp_min, auto=True,
+                 direct_acting=False, process_variable=None, process_element=None, process_element_index=None, cv_scaler=1,
                  Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, sp_profile_name=None, man_profile_name=None, ctrl_typ='std',
                  sp_data_source=None, sp_scale_factor=1.0, man_data_source=None, in_service=True, recycle=True, order=-1, level=-1,
                  drop_same_existing_ctrl=False, matching_params=None,
@@ -50,11 +50,15 @@ class PidControl(Controller):
 
         self.sp_profile_name = sp_profile_name
         self.sp_scale_factor = sp_scale_factor
+        self.SP_max = sp_max
+        self.SP_min = sp_min
         self.man_profile_name = man_profile_name
         self.applied = False
         self.write_flag, self.fc_variable = _detect_read_write_flag(net, fc_element, fc_element_index, fc_variable)
         self.set_recycle(net)
-
+        # self.logic_element = logic_element
+        # self.logic_variable = logic_variable
+        # self.logic_element_index = logic_variable
         # PID config
         self.Kp = Kp
         self.Ti = Ti
@@ -68,7 +72,7 @@ class PidControl(Controller):
         self.prev_act_pos = net[fc_element][fc_variable].loc[fc_element_index]
         self.prev_error = 0
         self.dt = 1
-        self.dir_reversed = dir_reversed
+        self.direct_acting = direct_acting
         self.gain_effective = ((self.MV_max-self.MV_min)/(self.PV_max - self.PV_min)) * Kp
         # selected pv value
         self.process_element = process_element
@@ -147,12 +151,17 @@ class PidControl(Controller):
                 self.sp = self.sp_data_source.get_time_step_value(time_step=time,
                                                                   profile_name=self.sp_profile_name,
                                                                   scale_factor=self.sp_scale_factor)
+                # Clip set point and ensure within allowed operation ranges
+                self.sp = np.clip(self.sp, self.SP_min, self.SP_max)
+
             # PID Controller Action:
-            if not self.dir_reversed:
-                # error= SP-PV
+            if not self.direct_acting:
+                # Reverse acting
+                # positive error which increases output
                 error_value = self.sp - self.cv
             else:
-                # error= SP-PV
+                # Direct acting
+                # negative error that decreases output
                 error_value = self.cv - self.sp
 
             # TODO: hysteresis band
@@ -171,8 +180,15 @@ class PidControl(Controller):
 
         self.ctrl_values = desired_mv
 
+        # Write desired_mv to the logic controller
+        if hasattr(self, "logic_element"):
+            if self.logic_element is not None:  #
+                self.logic_element_index.__setattr__(self.logic_variable, self.ctrl_values)
+            else:
+                raise NotImplementedError("logic_element for " + str(self.logic_element_index) +
+                                          ' is not set correctly')
         # Write desired_mv to the network
-        if self.ctrl_typ == "over_ride":
+        elif self.ctrl_typ == "over_ride":
             CollectorController.write_to_ctrl_collector(net, self.fc_element, self.fc_element_index,
                                                         self.fc_variable, self.ctrl_values, self.selector_typ,
                                                         self.write_flag)
