@@ -184,8 +184,6 @@ class DynamicValve(BranchWZeroLengthComponent):
                                 rho[update_pos] * v_mps[update_pos] ** 2)
         zeta = np.zeros_like(v_mps)
         zeta[update_pos] = valid_zetas
-        #zeta_reset_1 = np.where(lift == 1.0)
-        #zeta[zeta_reset_1] = 0
         zeta_reset_2 = np.where(lift == 0.0)
         zeta[zeta_reset_2] = 20e+20
         valve_pit[:, LC] = zeta
@@ -227,7 +225,7 @@ class DynamicValve(BranchWZeroLengthComponent):
             ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
             ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
             ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds"), ("desired_mv", "desired_mv"),
-            ("actual_pos", "actual_pos"), ("LC", "LC")
+            ("actual_pos", "actual_pos"), ("LC", "LC"),
         ]
 
         if get_fluid(net).is_gas:

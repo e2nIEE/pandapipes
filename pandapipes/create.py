@@ -677,7 +677,7 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     return index
 
 def create_dyn_pump(net, from_junction, to_junction, std_type, name=None, actual_pos=50.00,
-                    index=None, in_service=True, type="dynamic_pump", **kwargs):
+                    index=None, in_service=True, type="dynamic_pump", **kwargs) -> object:
     """
     Adds one pump in table net["pump"].
 

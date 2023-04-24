@@ -21,10 +21,11 @@ class PidControl(Controller):
 
     """
 
-    def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, sp_max, sp_min, auto=True,
-                 direct_acting=False, process_variable=None, process_element=None, process_element_index=None, cv_scaler=1,
-                 Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, sp_profile_name=None, man_profile_name=None, ctrl_typ='std',
-                 sp_data_source=None, sp_scale_factor=1.0, man_data_source=None, in_service=True, recycle=True, order=-1, level=-1,
+    def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, sp_max, sp_min, direct_acting,
+                 auto=True, process_variable=None, process_element=None, process_element_index=None, cv_scaler=1,
+                 Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, diff_gain= 1, sp_profile_name=None,
+                 man_profile_name=None, ctrl_typ='std', sp_data_source=None, sp_scale_factor=1.0,
+                 man_data_source=None, in_service=True, recycle=True, order=-1, level=-1,
                  drop_same_existing_ctrl=False, matching_params=None,
                  initial_run=False, **kwargs):
         # just calling init of the parent
@@ -86,7 +87,7 @@ class PidControl(Controller):
         self.prev_sp = 0
         self.prev_cv = net[self.process_element][self.process_variable].loc[self.process_element_index] * cv_scaler
         self.ctrl_typ = ctrl_typ
-        self.diffgain = 1 # must be between 1 and 10
+        self.diffgain = diff_gain # must be between 1 and 10
         self.diff_part = 0
         self.prev_diff_out = 0
         self.auto = auto
@@ -147,12 +148,14 @@ class PidControl(Controller):
             # PID is in Automatic Mode
             if type(self.sp_data_source) is float:
                 self.sp = self.sp_data_source
+            elif type(self.sp_data_source) is int:
+                self.sp = np.float64(self.sp_data_source)
             else:
                 self.sp = self.sp_data_source.get_time_step_value(time_step=time,
                                                                   profile_name=self.sp_profile_name,
                                                                   scale_factor=self.sp_scale_factor)
-                # Clip set point and ensure within allowed operation ranges
-                self.sp = np.clip(self.sp, self.SP_min, self.SP_max)
+            # Clip set point and ensure within allowed operation ranges
+            self.sp = np.clip(self.sp, self.SP_min, self.SP_max)
 
             # PID Controller Action:
             if not self.direct_acting:

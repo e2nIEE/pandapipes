@@ -21,10 +21,11 @@ class DifferentialControl(PidControl):
 
     """
 
-    def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, auto=True, dir_reversed=False,
+    def __init__(self, net, fc_element, fc_variable, fc_element_index, pv_max, pv_min, sp_max, sp_min, auto=True,
+                 direct_acting=False,
                  process_variable_1=None, process_element_1=None, process_element_index_1=None,
                  process_variable_2=None, process_element_2=None, process_element_index_2=None,
-                 cv_scaler=1, Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, sp_profile_name=None, man_profile_name=None,
+                 cv_scaler=1, Kp=1, Ti=5, Td=0, mv_max=100.00, mv_min=20.00, diff_gain= 1, sp_profile_name=None, man_profile_name=None,
                  ctrl_typ='std',  data_source=None, sp_scale_factor=1.0, in_service=True, recycle=True, order=-1, level=-1,
                  drop_same_existing_ctrl=False, matching_params=None,
                  initial_run=False, **kwargs):
@@ -50,6 +51,8 @@ class DifferentialControl(PidControl):
 
         self.sp_profile_name = sp_profile_name
         self.sp_scale_factor = sp_scale_factor
+        self.SP_max = sp_max
+        self.SP_min = sp_min
         self.man_profile_name = man_profile_name
         self.applied = False
         self.write_flag, self.fc_variable = _detect_read_write_flag(net, fc_element, fc_element_index, fc_variable)
@@ -68,7 +71,7 @@ class DifferentialControl(PidControl):
         self.prev_act_pos = net[fc_element][fc_variable].loc[fc_element_index]
         self.prev_error = 0
         self.dt = 1
-        self.dir_reversed = dir_reversed
+        self.direct_acting = direct_acting
         self.gain_effective = ((self.MV_max-self.MV_min)/(self.PV_max - self.PV_min)) * Kp
         # selected pv value
         # selected pv value
@@ -89,7 +92,7 @@ class DifferentialControl(PidControl):
                         - net[self.process_element_2][self.process_variable_2].loc[self.process_element_index_2]) \
                        * self.cv_scaler
         self.ctrl_typ = ctrl_typ
-        self.diffgain = 1 # must be between 1 and 10
+        self.diffgain = diff_gain # must be between 1 and 10
         self.diff_part = 0
         self.prev_diff_out = 0
         self.auto = auto
@@ -117,23 +120,28 @@ class DifferentialControl(PidControl):
             # PID is in Automatic Mode
             if type(self.sp_data_source) is float:
                 self.sp = self.sp_data_source
+            elif type(self.sp_data_source) is int:
+                self.sp = np.float64(self.sp_data_source)
             else:
                 self.sp = self.sp_data_source.get_time_step_value(time_step=time,
                                                                profile_name=self.sp_profile_name,
                                                                scale_factor=self.sp_scale_factor)
+            # Clip set point and ensure within allowed operation ranges
+            self.sp = np.clip(self.sp, self.SP_min, self.SP_max)
 
-            # PID is in Automatic Mode
-            # self.values is the set point we wish to make the output
-            if not self.dir_reversed:
-                # error= SP-PV
+            # PID Controller Action:
+            if not self.direct_acting:
+                # Reverse acting
+                # positive error which increases output
                 error_value = self.sp - self.cv
             else:
-                # error= SP-PV
+                # Direct acting
+                # negative error that decreases output
                 error_value = self.cv - self.sp
 
-            #TODO: hysteresis band
+            # TODO: hysteresis band
             # if error < 0.01 : error = 0
-            desired_mv = PidControl.pidConR_control(self, error_value)
+            desired_mv = self.pidConR_control(error_value)
 
         else:
             # Get Manual set point from data source:
@@ -147,8 +155,15 @@ class DifferentialControl(PidControl):
 
         self.ctrl_values = desired_mv
 
+        # Write desired_mv to the logic controller
+        if hasattr(self, "logic_element"):
+            if self.logic_element is not None:  #
+                self.logic_element_index.__setattr__(self.logic_variable, self.ctrl_values)
+            else:
+                raise NotImplementedError("logic_element for " + str(self.logic_element_index) +
+                                          ' is not set correctly')
         # Write desired_mv to the network
-        if self.ctrl_typ == "over_ride":
+        elif self.ctrl_typ == "over_ride":
             CollectorController.write_to_ctrl_collector(net, self.fc_element, self.fc_element_index,
                                                         self.fc_variable, self.ctrl_values, self.selector_typ,
                                                         self.write_flag)
