@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -54,16 +54,16 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         :type branch_pit:
         :return: No Output.
         """
-        branch_wizerolength_pit = \
+        branch_wzerolength_pit = \
             super().create_pit_branch_entries(net, branch_pit)
-        branch_wizerolength_pit[:, LENGTH] = 0
-        branch_wizerolength_pit[:, K] = 1000
-        return branch_wizerolength_pit
+        branch_wzerolength_pit[:, LENGTH] = 0
+        branch_wzerolength_pit[:, K] = 1000
+        return branch_wzerolength_pit
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         raise NotImplementedError

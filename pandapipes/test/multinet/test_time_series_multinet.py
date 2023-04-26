@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -117,12 +117,12 @@ def test_time_series_p2g_control_run_parameter(get_gas_example, get_power_exampl
     log_variables = [('res_source', 'mdot_kg_per_s'),
                      ('res_sink', 'mdot_kg_per_s')]
 
-    ow_gas = OutputWriter(net_gas, range(10), log_variables=log_variables)
+    OutputWriter(net_gas, range(10), log_variables=log_variables)
 
     log_variables = [('res_load', 'p_mw'),
                      ('res_sgen', 'p_mw')]
 
-    ow_power = OutputWriter(net_power, range(10), log_variables=log_variables)
+    OutputWriter(net_power, range(10), log_variables=log_variables)
     run_timeseries(mn, range(1), run={"power": runpp_with_mark, "gas": pipeflow_with_mark})
 
     assert net_power.mark == "runpp"

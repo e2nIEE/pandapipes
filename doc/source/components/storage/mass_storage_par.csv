@@ -1,0 +1,12 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+net;pandapipesNet;;The pandapipes net object in whose :code:`mass_storage` table the new unit will be added
+junction;integer;> 0;Index of connected junction
+mdot_kg_per_s;float;> 0: charging,< 0: discharging;Mass flow in stationary pipeflow calculation [kg/s]
+init_m_stored_kg;float;\greq 0;The initially stored mass in the storage in kg.
+min_m_stored_kg;float;\greq 0;Minimum amount of fluid that can be stored in the storage unit. (To be used with controllers)
+max_m_stored_kg;float;> 0;Maximum amount of fluid that can be stored in the storage unit. (To be used with controllers)
+scaling;float;> 0;An optional scaling factor to be set customly (default 1.0). Factor will be applied on :code:`mdot_kg_per_s`.
+name;string;;Name of the mass storage unit
+index;integer;> 0;Force a specified ID if it is available. Default None, i.e. the index one higher than the highest already existing index is selected.
+in_service;boolean;True / False;Specifies if the mass storage is in service.
+type;string;;Component type (default 'mass_storage'), can be used to distinguish between different kinds of mass storage. Not considered by pandapipes' calculations.

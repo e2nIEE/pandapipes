@@ -1,0 +1,10 @@
+**Parameter**;**Datatype**;**Explanation**
+v_mean_m_per_s;float;The mean velocity of fluid in the flow control unit [m/s]
+p_from_bar;float;Pressure at "from"-junction [bar]
+p_to_bar;float;Pressure  at "to"-junction [bar]
+t_from_k;float;Temperature at "from"-junction [K]
+t_to_k;float;Temperature at "to"-junction [K]
+mdot_from_kg_per_s;float;Mass flow into flow control unit [kg/s]
+mdot_to_kg_per_s;float;Mass flow out of flow control unit [kg/s]
+vdot_norm_m3_per_s;float;Norm volume flow [m^3/s]
+reynolds;float;Average Reynolds number
