@@ -130,26 +130,23 @@ class BranchComponent(Component):
 
         transient = get_net_option(net, "transient")
 
-        tvor = branch_pit[:, T_OUT_OLD]
+        tvor = branch_component_pit[:, T_OUT_OLD]
 
         delta_t = get_net_option(net, "dt")
 
         if transient:
             t_m = t_init_i1  # (t_init_i1 + t_init_i) / 2
+
             branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
-                -(rho * area * cp * (t_m - tvor) * (1 / delta_t) + rho * area * cp * v_init * (
-                            -t_init_i + t_init_i1 - tl) / length
-                  - alpha * (t_amb - t_m) + qext)
+                -(rho * area * cp * (t_m - tvor) * (1 / delta_t) * length + rho * area * cp * v_init * (
+                            -t_init_i + t_init_i1 - tl)
+                  - alpha * (t_amb - t_m) * length + qext)
 
-            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init / length + alpha \
-                                                    + rho * area * cp / delta_t
-            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init / length + 0 * alpha \
-                                                     + rho * area * cp / delta_t
+            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init
 
-            branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init \
-                                                         * branch_component_pit[:, AREA]
-            branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init \
-                                                        * branch_component_pit[:, AREA] * t_init_i1
+            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp / delta_t * length \
+                                                     + rho * area * cp * v_init + alpha * length
+
         else:
             t_m = (t_init_i1 + t_init_i) / 2
             branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \

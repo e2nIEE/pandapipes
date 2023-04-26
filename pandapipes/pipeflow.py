@@ -215,9 +215,6 @@ def heat_transfer(net):
 
         finalize_iteration(net, niter, error_t, error_t_out, residual_norm, nonlinear_method, tol_t,
                            tol_t, tol_res, t_init_old, t_out_old, hyraulic_mode=True)
-        logger.debug("F: %s" % epsilon.round(4))
-        logger.debug("T_init_: %s" % t_init.round(4))
-        logger.debug("T_out_: %s" % t_out.round(4))
         niter += 1
 
     node_pit[:, TINIT_OLD] = node_pit[:, TINIT]
