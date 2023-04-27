@@ -123,38 +123,33 @@ class BranchComponent(Component):
         t_amb = branch_component_pit[:, TEXT]
         area = branch_component_pit[:, AREA]
         length = branch_component_pit[:, LENGTH]
-        alpha = branch_component_pit[:, ALPHA] * np.pi * branch_component_pit[:, D]
+        alpha = branch_component_pit[:, ALPHA] * np.pi * branch_component_pit[:, D] * length
         cls.calculate_temperature_lift(net, branch_component_pit, node_pit)
         tl = branch_component_pit[:, TL]
         qext = branch_component_pit[:, QEXT]
+        spec_heat = rho * area * cp
 
-        transient = get_net_option(net, "transient")
-
-        tvor = branch_component_pit[:, T_OUT_OLD]
-
-        delta_t = get_net_option(net, "dt")
-
-        if transient:
-            t_m = t_init_i1  # (t_init_i1 + t_init_i) / 2
+        if get_net_option(net, "transient"):
+            tvor = branch_component_pit[:, T_OUT_OLD]
+            delta_t = get_net_option(net, "dt")
 
             branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
-                -(rho * area * cp * (t_m - tvor) * (1 / delta_t) * length + rho * area * cp * v_init * (
-                            -t_init_i + t_init_i1 - tl)
-                  - alpha * (t_amb - t_m) * length + qext)
+                -(spec_heat * (t_init_i1 - tvor) * (1 / delta_t) * length
+                  + spec_heat * v_init * (-t_init_i + t_init_i1 - tl)
+                  - alpha * (t_amb - t_init_i1) + qext)
 
-            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init
-
-            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp / delta_t * length \
-                                                     + rho * area * cp * v_init + alpha * length
+            branch_component_pit[:, JAC_DERIV_DT] = - spec_heat * v_init
+            branch_component_pit[:, JAC_DERIV_DT1] = spec_heat / delta_t * length \
+                                                     + spec_heat * v_init + alpha
 
         else:
             t_m = (t_init_i1 + t_init_i) / 2
             branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
-                -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
-                  - alpha * (t_amb - t_m) * length + qext)
+                -(spec_heat * v_init * (-t_init_i + t_init_i1 - tl)
+                  - alpha * (t_amb - t_m) + qext)
 
-            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
-            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
+            branch_component_pit[:, JAC_DERIV_DT] = - spec_heat * v_init + alpha / 2
+            branch_component_pit[:, JAC_DERIV_DT1] = spec_heat * v_init + alpha / 2
 
         branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
         branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init \
