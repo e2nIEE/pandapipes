@@ -22,7 +22,7 @@ class OutputWriterTransient(OutputWriter):
     def _init_log_variable(self, net, table, variable, index=None, eval_function=None,
                            eval_name=None):
         if table == "res_internal":
-            index = np.arange(net.pipe.sections.sum() + 1)
+            index = np.arange(len(net.junction) + net.pipe.sections.sum() - len(net.pipe))
         return super()._init_log_variable(net, table, variable, index, eval_function, eval_name)
 
 
