@@ -44,7 +44,7 @@ class LogicControl(Controller):
 
     def __init__(self, net, element, variable, element_index, input_1=None, input_2=None, logic_type='Low',
                  scale_factor=1.0, in_service=True, recycle=True, order=-1, level=-1,
-                 drop_same_existing_ctrl=False, matching_params=None,
+                 drop_same_existing_ctrl=False, matching_params=None, name=None,
                  initial_run=False, **kwargs):
         # just calling init of the parent
         if matching_params is None:
@@ -67,6 +67,7 @@ class LogicControl(Controller):
         self.applied = False
         self.write_flag, self.variable = _detect_read_write_flag(net, element, element_index, variable)
         self.set_recycle(net)
+        self.name = name
 
     def time_step(self, net, time):
         """
@@ -82,12 +83,24 @@ class LogicControl(Controller):
         if self.input_2 is None:
             logger.warning("Logic input variable 2 is not initialised, or controller order is incorrect!")
 
-        if self.logic_type == 'low':
-            write_to_net(net, self.element, self.element_index, self.variable, min(self.input_1, self.input_2), self.write_flag)
-        elif self.logic_type == 'high':
-            write_to_net(net, self.element, self.element_index, self.variable, max(self.input_1, self.input_2), self.write_flag)
+        if isinstance(self.element_index, LogicControl):
+            # element output is to a logic block controller, thus requires setting attribute of the controller
+            if self.logic_type == 'min':
+                self.element_index.__setattr__(self.variable, min(self.input_1, self.input_2))
+            elif self.logic_type == 'max':
+                self.element_index.__setattr__(self.variable, max(self.input_1, self.input_2))
+            else:
+                raise NotImplementedError("Sorry, logic type not implemented yet")
         else:
-            raise NotImplementedError("Sorry, logic type not implemented yet")
+            # element index belongs to a standard control component - pump/valve etc.
+            if self.logic_type == 'max':
+                write_to_net(net, self.element, self.element_index, self.variable, max(self.input_1, self.input_2),
+                         self.write_flag)
+            elif self.logic_type == 'min':
+                write_to_net(net, self.element, self.element_index, self.variable, min(self.input_1, self.input_2),
+                         self.write_flag)
+            else:
+                raise NotImplementedError("Sorry, logic type not implemented yet")
 
     def is_converged(self, net):
         """
