@@ -28,7 +28,9 @@ Component Table Data
 Physical Model
 ==============
 
-Coming soon!
+The circulation pump is a component that controls the flow in a looped network. At its outlet (the flow side),
+it induces a pressure and temperature level just like an external grid. At the inlet (the return side), it induces
+a mass flow which should be the same as the mass flow into the system.
 
 
 Result Table Data

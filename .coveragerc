@@ -13,3 +13,4 @@ exclude_lines =
 omit =
     pandapipes/test/*
     pandapipes/plotting/geo.py
+    pandapipes/converter/stanet/data_cleaning.py

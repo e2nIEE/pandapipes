@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -54,7 +54,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
     if get_fluid(net).is_gas:
         if 'pipe' in net:
             v_diff_from_pipe, v_diff_to_pipe, v_diff_mean_pipe, v_diff_abs_pipe, \
-            v_mean_pandapipes_pipe, v_om_pipe = retrieve_velocity_gas(net, 'pipe')
+                v_mean_pandapipes_pipe, v_om_pipe = retrieve_velocity_gas(net, 'pipe')
         else:
             v_diff_abs_pipe = pd.Series(dtype='float64')
             v_om_pipe = pd.Series(dtype='float64')
@@ -69,7 +69,7 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
 
         if 'valve' in net:
             v_diff_from_valve, v_diff_to_valve, v_diff_mean_valve, v_diff_abs_valve, \
-            v_mean_pandapipes_valve, v_om_valve = retrieve_velocity_gas(net, 'valve')
+                v_mean_pandapipes_valve, v_om_valve = retrieve_velocity_gas(net, 'valve')
         else:
             v_diff_abs_valve = pd.Series(dtype='float64')
             v_om_valve = pd.Series(dtype='float64')
@@ -253,8 +253,8 @@ def retrieve_temperature_liquid(net):
         T_mean_om[i] = st.mean(T_om[i])
 
     for j in range(num_of_pipes):
-        pipe_res = Pipe.get_internal_results(net,[j])
-        T_mean_pandapipes[j] = st.mean(pipe_res["TINIT"][:,1])
+        pipe_res = Pipe.get_internal_results(net, [j])
+        T_mean_pandapipes[j] = st.mean(pipe_res["TINIT"][:, 1])
 
     T_diff_mean = np.abs(1 - T_mean_pandapipes / T_mean_om)
     T_diff_abs = np.abs(T_mean_om - T_mean_pandapipes)

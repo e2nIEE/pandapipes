@@ -71,7 +71,7 @@ the help of the `scipy csgraph functionalities
 connectivity check disconnected network areas can be set out of service automatically, reducing the
 error-proneness of the calculation process.
 
-.. autofunction:: pandapipes.pipeflow_setup.check_connectivity
+.. autofunction:: pandapipes.pf.pipeflow_setup.check_connectivity
 
 
 .. _internal_matrix:
@@ -96,9 +96,9 @@ found in net["_active_pit"].
 
 The functions used to create the internal pit and extract results back from it are:
 
-.. autofunction:: pandapipes.pipeflow_setup.reduce_pit
+.. autofunction:: pandapipes.pf.pipeflow_setup.reduce_pit
 
-.. autofunction:: pandapipes.pipeflow_setup.extract_results_active_pit
+.. autofunction:: pandapipes.pf.result_extraction.extract_results_active_pit
 
 
 .. _jacobian:
@@ -186,6 +186,6 @@ is the load vector.
           expressed as a sparse matrix. More information can also be found in :cite:`Ferziger2002`.
 
 
-.. autofunction:: pandapipes.component_models.auxiliaries.build_system_matrix.build_system_matrix
+.. autofunction:: pandapipes.pf.build_system_matrix.build_system_matrix
 
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -94,8 +94,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         nodes_connected, branches_connected = check_connectivity(
             net, branch_pit, node_pit, check_heat=calculate_heat)
     else:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
+        nodes_connected = node_pit[:, ACTIVE_ND].astype(bool)
+        branches_connected = branch_pit[:, ACTIVE_BR].astype(bool)
 
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
@@ -215,9 +215,6 @@ def heat_transfer(net):
 
         finalize_iteration(net, niter, error_t, error_t_out, residual_norm, nonlinear_method, tol_t,
                            tol_t, tol_res, t_init_old, t_out_old, hyraulic_mode=True)
-        logger.debug("F: %s" % epsilon.round(4))
-        logger.debug("T_init_: %s" % t_init.round(4))
-        logger.debug("T_out_: %s" % t_out.round(4))
         niter += 1
 
     node_pit[:, TINIT_OLD] = node_pit[:, TINIT]

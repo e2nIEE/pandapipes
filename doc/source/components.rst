@@ -20,8 +20,8 @@ and types of included elements and the fluid. Further explanation, also on addit
 is stored in the pandapipesNet, can be found in the `pandapipes-paper <https://doi.org/10.3390/su12239899>`_
 :cite:`Lohmeier2020`.
 
-pandapipes provides thermo-hydraulic models for 9 elements, for each of which you can find
-detailed information about the definition and interpretation of the parameters in the
+pandapipes provides thermo-hydraulic models for several component types, for each of which you can
+find detailed information about the definition and interpretation of the parameters in the
 following documentation:
 
 
@@ -34,8 +34,12 @@ following documentation:
     components/valve/valve_component
     components/sink/sink_component
     components/source/source_component
+    components/storage/storage_component
     components/ext_grid/ext_grid_component
+    components/heat_exchanger/heat_exchanger_component
     components/pump/pump_component
     components/circulation_pump_mass/circ_pump_mass_component
     components/circulation_pump_pressure/circ_pump_pressure_component
-    components/heat_exchanger/heat_exchanger_component
+    components/compressor/compressor_component
+    components/press_control/press_control_component
+    components/flow_control/flow_control_component
