@@ -84,7 +84,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
     :type pipe_color: str, tuple, default "silver"
     :param ext_grid_color: External grid color
     :type ext_grid_color: str, tuple, default "orange"
-    :param valve_color: Valve Color.
+    :param valve_color: Dynamic_Valve Color.
     :type valve_color: str, tuple, default "silver"
     :param pump_color: Pump Color.
     :type pump_color: str, tuple, default "silver"
@@ -204,7 +204,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :type pipe_color: str, tuple, default "silver"
     :param ext_grid_color: External Grid Color.
     :type ext_grid_color: str, tuple, default "orange"
-    :param valve_color: Valve Color.
+    :param valve_color: Dynamic_Valve Color.
     :type valve_color: str, tuple, default "silver"
     :param pump_color: Pump Color.
     :type pump_color: str, tuple, default "silver"

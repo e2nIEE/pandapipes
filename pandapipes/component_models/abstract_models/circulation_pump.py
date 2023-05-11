@@ -92,6 +92,8 @@ class CirculationPump(BranchWZeroLengthComponent):
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
         circ_pump_pit[:, ACTIVE] = False
 
+        return circ_pump_pit
+
     @classmethod
     def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
         raise NotImplementedError

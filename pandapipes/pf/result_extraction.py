@@ -2,7 +2,7 @@ import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, LOAD_VEC_NODES, VINIT, RE, \
-    LAMBDA, TINIT, FROM_NODE_T, TO_NODE_T, PL
+    LAMBDA, TINIT, FROM_NODE_T, TO_NODE_T, PL, DESIRED_MV, ACTUAL_POS, QEXT, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
@@ -26,12 +26,13 @@ def extract_all_results(net, nodes_connected, branches_connected):
     """
     branch_pit = net["_pit"]["branch"]
     node_pit = net["_pit"]["node"]
-    v_mps, mf, vf, from_nodes, to_nodes, temp_from, temp_to, reynolds, _lambda, p_from, p_to, pl = \
-        get_basic_branch_results(net, branch_pit, node_pit)
+    v_mps, mf, vf, from_nodes, to_nodes, temp_from, temp_to, reynolds, _lambda, p_from, p_to, pl, desired_mv, \
+    actual_pos, qext_w, LC = get_basic_branch_results(net, branch_pit, node_pit)
     branch_results = {"v_mps": v_mps, "mf_from": mf, "mf_to": -mf, "vf": vf, "p_from": p_from,
                       "p_to": p_to, "from_nodes": from_nodes, "to_nodes": to_nodes,
                       "temp_from": temp_from, "temp_to": temp_to, "reynolds": reynolds,
-                      "lambda": _lambda, "pl": pl}
+                      "lambda": _lambda, "pl": pl, "actual_pos": actual_pos, "desired_mv": desired_mv, \
+                      "qext_w": qext_w, "LC": LC}
     if get_fluid(net).is_gas:
         if get_net_option(net, "use_numba"):
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
@@ -63,7 +64,8 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     vf = mf / get_fluid(net).get_density((t0 + t1) / 2)
     return branch_pit[:, VINIT], mf, vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
         branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
-        branch_pit[:, PL]
+        branch_pit[:, PL],  branch_pit[:, DESIRED_MV], branch_pit[:, ACTUAL_POS], branch_pit[:, QEXT], \
+        branch_pit[:, LC]
 
 
 def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):

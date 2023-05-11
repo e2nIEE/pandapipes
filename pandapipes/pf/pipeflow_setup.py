@@ -36,7 +36,7 @@ default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1
                    "check_connectivity": True, "use_numba": True, "max_iter_colebrook": 100,
                    "only_update_hydraulic_matrix": False, "reuse_internal_data": False,
                    "quit_on_inconsistency_connectivity": False, "calc_compression_power": True,
-                   "transient": False, "time_step": None, "dt": 60}
+                   "transient": False, "dynamic_sim": False, "time_step": None, "dt": 60}
 
 
 def get_net_option(net, option_name):
@@ -285,7 +285,7 @@ def init_options(net, local_parameters):
     if "user_pf_options" in net and len(net.user_pf_options) > 0:
         net["_options"].update(net.user_pf_options)
 
-    # the last layer is the layer of passeed parameters by the user, it is defined as the local
+    # the last layer is the layer of passed parameters by the user, it is defined as the local
     # existing parameters during the pipeflow call which diverges from the default parameters of the
     # function definition in the second layer
     params = dict()
@@ -446,7 +446,7 @@ def check_connectivity(net, branch_pit, node_pit, check_heat):
         external grids to that node.
       - Perform a breadth first order search to identify all nodes that are reachable from the \
         added external grid node.
-      - Create masks for exisiting nodes and branches to show if they are reachable from an \
+      - Create masks for existing nodes and branches to show if they are reachable from an \
         external grid.
       - Compare the reachable nodes with the initial in_service nodes.\n
         - If nodes are reachable that were set out of service by the user, they are either set \

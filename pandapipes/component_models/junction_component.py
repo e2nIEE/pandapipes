@@ -113,7 +113,7 @@ class Junction(NodeComponent):
             # output, all_float = cls.get_result_table(net)
             if "res_internal" not in net:
                 net["res_internal"] = pd.DataFrame(
-                    np.NAN, columns=["t_k"], index=np.arange(len(net["_active_pit"]["node"][:, 8])),
+                    np.NAN, columns=["t_k"], index=np.arange(len(net["_active_pit"]["node"][:, TINIT])),
                     dtype=np.float64
                 )
             net["res_internal"]["t_k"] = net["_active_pit"]["node"][:, TINIT]
