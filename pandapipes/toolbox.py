@@ -7,8 +7,7 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 from networkx import has_path
-from pandapower.auxiliary import get_indices
-from pandapower.toolbox import dataframes_equal, clear_result_tables
+from pandapower import get_indices, dataframes_equal, clear_result_tables
 
 import pandapipes
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent

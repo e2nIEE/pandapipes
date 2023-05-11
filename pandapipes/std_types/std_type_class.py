@@ -398,7 +398,8 @@ class PumpStdType(RegressionStdType):
                              "Bypassing without pressure change is assumed" % str(self.name))
             mask = vdot_m3_per_s >= 0
             # no negative pressure lift - bypassing always allowed:
-            results[mask] = np.where(mask, sum(self.reg_par * (vdot_m3_per_s[mask] * 3600) ** (n - 1)), 0)
+            results[mask] = \
+                np.where(mask, np.sum(self.reg_par * (vdot_m3_per_s[mask][:, None] * 3600) ** (n - 1), axis=1), 0)
         else:
             if vdot_m3_per_s < 0:
                 logger.debug("Reverse flow observed in a %s pump. "

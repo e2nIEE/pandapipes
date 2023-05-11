@@ -77,7 +77,6 @@ def pipeflow(net, sol_vec=None, **kwargs):
     if get_net_option(net, "transient") and get_net_option(net, "time_step") != 0:
         branch_pit = net["_pit"]["branch"]
         node_pit = net["_pit"]["node"]
-        # _active_pit
     else:
         create_lookups(net)
         node_pit, branch_pit = initialize_pit(net)
@@ -231,10 +230,7 @@ def heat_transfer(net):
         error_t_out.append(linalg.norm(delta_t_out) / (len(delta_t_out)))
 
         finalize_iteration(net, niter, error_t, error_t_out, residual_norm, nonlinear_method, tol_t,
-                           tol_t, tol_res, t_init_old, t_out_old, hydraulic_mode=True)
-        logger.debug("F: %s" % epsilon.round(4))
-        logger.debug("T_init_: %s" % t_init.round(4))
-        logger.debug("T_out_: %s" % t_out.round(4))
+                           tol_t, tol_res, t_init_old, t_out_old, hyraulic_mode=True)
         niter += 1
 
     node_pit[:, TINIT_OLD] = node_pit[:, TINIT]
@@ -268,8 +264,7 @@ def solve_hydraulics(net):
     for comp in net['component_list']:
         comp.adaption_before_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
-    calculate_derivatives_hydraulic(net,
-                                    branch_pit, node_pit, options)
+    calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
     for comp in net['component_list']:
         comp.adaption_after_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
