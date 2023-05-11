@@ -3,10 +3,12 @@
 # Copyright (c) 2016-2022 by University of Kassel and Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 
+import numpy as np
+from pandapower.auxiliary import _detect_read_write_flag, write_to_net
 from pandapower.control.basic_controller import Controller
-from pandapower.toolbox import _detect_read_write_flag, write_to_net
+
 from pandapipes.control.controller.collecting_controller import CollectorController
-import math, numpy as np
+
 try:
     import pandaplan.core.pplog as logging
 except ImportError:

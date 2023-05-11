@@ -230,7 +230,7 @@ def heat_transfer(net):
         error_t_out.append(linalg.norm(delta_t_out) / (len(delta_t_out)))
 
         finalize_iteration(net, niter, error_t, error_t_out, residual_norm, nonlinear_method, tol_t,
-                           tol_t, tol_res, t_init_old, t_out_old, hyraulic_mode=True)
+                           tol_t, tol_res, t_init_old, t_out_old, hydraulic_mode=True)
         niter += 1
 
     node_pit[:, TINIT_OLD] = node_pit[:, TINIT]

@@ -3,10 +3,12 @@
 # Copyright (c) 2016-2022 by University of Kassel and Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 
-from pandapipes.control.controller.pid_controller import PidControl
-from pandapower.toolbox import _detect_read_write_flag, write_to_net
-from pandapipes.control.controller.collecting_controller import CollectorController
 import numpy as np
+from pandapower.auxiliary import _detect_read_write_flag, write_to_net
+
+from pandapipes.control.controller.collecting_controller import CollectorController
+from pandapipes.control.controller.pid_controller import PidControl
+
 try:
     import pandaplan.core.pplog as logging
 except ImportError:

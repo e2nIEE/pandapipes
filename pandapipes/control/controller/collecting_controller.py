@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) 2016-2022 by University of Kassel and Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
-import pandas as pd
+
 import numpy as np
-from pandapower.toolbox import _detect_read_write_flag, write_to_net
-from pandapower.auxiliary import pandapowerNet, get_free_id
+import pandas as pd
+from pandapower.auxiliary import get_free_id, write_to_net
 
 try:
     import pandaplan.core.pplog as logging
