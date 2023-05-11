@@ -105,17 +105,6 @@ pipe2[1:-1, :] = np.transpose(
 pipe3[1:-1, :] = np.transpose(
     copy.deepcopy(res_T[:, nodes + (2 * (sections - 1)):nodes + (3 * (sections - 1))]))
 
-# datap1 = pd.read_csv(os.path.join(os.getcwd(), 'pandapipes', 'pandapipes', 'files', 'Temperature.csv'),
-#                                   sep=';',
-#                                   header=1, nrows=5, keep_default_na=False)
-# datap2 = pd.read_csv(os.path.join(os.getcwd(), 'pandapipes', 'pandapipes', 'files', 'Temperature.csv'),
-#                                   sep=';',
-#                                   header=8, nrows=5, keep_default_na=False)
-# datap3 = pd.read_csv(os.path.join(os.getcwd(), 'pandapipes', 'pandapipes', 'files', 'Temperature.csv'),
-#                                   sep=';',
-#                                   header=15, nrows=5, keep_default_na=False)
-
-from IPython.display import clear_output
 
 plt.ion()
 
@@ -156,10 +145,20 @@ line32, = ax2.plot(np.arange(0, sections + 1, 1) * length * 1000 / sections, pip
                    marker="+", linestyle="dashdot")
 
 
-if sections == 4:
-    d1 = ax.plot(np.arange(0, sections + 1, 1) * 1000 / sections, datap1["T"], color="black")
-    d2 = ax1.plot(np.arange(0, sections + 1, 1) * 1000 / sections, datap2["T"], color="black")
-    d3 = ax2.plot(np.arange(0, sections + 1, 1) * 1000 / sections, datap3["T"], color="black")
+# if sections == 4:
+#     datap1 = pd.read_csv(os.path.join(os.getcwd(), 'pandapipes', 'pandapipes', 'files', 'Temperature.csv'),
+#                                       sep=';',
+#                                       header=1, nrows=5, keep_default_na=False)
+#     datap2 = pd.read_csv(os.path.join(os.getcwd(), 'pandapipes', 'pandapipes', 'files', 'Temperature.csv'),
+#                                       sep=';',
+#                                       header=8, nrows=5, keep_default_na=False)
+#     datap3 = pd.read_csv(os.path.join(os.getcwd(), 'pandapipes', 'pandapipes', 'files', 'Temperature.csv'),
+#                                       sep=';',
+#                                       header=15, nrows=5, keep_default_na=False)
+#
+#     d1 = ax.plot(np.arange(0, sections + 1, 1) * 1000 / sections, datap1["T"], color="black")
+#     d2 = ax1.plot(np.arange(0, sections + 1, 1) * 1000 / sections, datap2["T"], color="black")
+#     d3 = ax2.plot(np.arange(0, sections + 1, 1) * 1000 / sections, datap3["T"], color="black")
 
 ax.set_ylim((280, 335))
 ax1.set_ylim((280, 335))
