@@ -11,7 +11,12 @@ from scipy.interpolate import interp1d
 from pandapipes import logger
 from pandapower.io_utils import JSONSerializableClass
 from scipy.interpolate import interp2d
-import plotly.graph_objects as go
+
+try:
+    import plotly.graph_objects as go
+    PLOTLY_INSTALLED = True
+except ImportError:
+    PLOTLY_INSTALLED = False
 
 
 class StdType(JSONSerializableClass):
@@ -205,7 +210,8 @@ class DynPumpStdType(RegressionStdType):
         return m_head
 
     def plot_pump_curve(self):
-
+        if not PLOTLY_INSTALLED:
+            logger.error("You need to install plotly to plot the pump curve.")
         fig = go.Figure(go.Surface(
             contours={
                 "x": {"show": True, "start": 1.5, "end": 2, "size": 0.04, "color": "white"},
@@ -223,9 +229,7 @@ class DynPumpStdType(RegressionStdType):
             title='Pump Curve', autosize=False,
             width=400, height=400,
         )
-        #fig.show()
-
-        return fig #self._flowrate_list, self._speed_list, self._head_list
+        return fig
 
 
     @classmethod
