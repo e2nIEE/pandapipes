@@ -170,28 +170,32 @@ class Pipe(BranchWInternalsComponent):
         branch_component_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
-        res_nodes_from = [("p_from_bar", "p_from"), ("t_from_k", "temp_from"),
-                          ("mdot_from_kg_per_s", "mf_from")]
-        res_nodes_to = [("p_to_bar", "p_to"), ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to")]
-        res_mean = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")]
+    def extract_results(cls, net, options, branch_results, mode):
+        res_nodes_from = [("p_from_bar", "p_from", False), ("t_from_k", "temp_from", True),
+                          ("mdot_from_kg_per_s", "mf_from", False)]
+        res_nodes_to = [("p_to_bar", "p_to", False), ("t_to_k", "temp_to", True),
+                        ("mdot_to_kg_per_s", "mf_to", False)]
+        res_mean = [("vdot_norm_m3_per_s", "vf", False), ("lambda", "lambda", False),
+                    ("reynolds", "reynolds", False)]
 
         if get_fluid(net).is_gas:
             res_nodes_from.extend(
-                [("v_from_m_per_s", "v_gas_from"), ("normfactor_from", "normfactor_from")])
-            res_nodes_to.extend([("v_to_m_per_s", "v_gas_to"), ("normfactor_to", "normfactor_to")])
-            res_mean.extend([("v_mean_m_per_s", "v_gas_mean")])
+                [("v_from_m_per_s", "v_gas_from", False),
+                 ("normfactor_from", "normfactor_from", False)])
+            res_nodes_to.extend([("v_to_m_per_s", "v_gas_to", False),
+                                 ("normfactor_to", "normfactor_to", False)])
+            res_mean.extend([("v_mean_m_per_s", "v_gas_mean", False)])
         else:
-            res_mean.extend([("v_mean_m_per_s", "v_mps")])
+            res_mean.extend([("v_mean_m_per_s", "v_mps", False)])
 
         if np.any(cls.get_internal_pipe_number(net) > 1):
             extract_branch_results_with_internals(
                 net, branch_results, cls.table_name(), res_nodes_from, res_nodes_to, res_mean,
-                cls.get_connected_node_type().table_name(), branches_connected)
+                cls.get_connected_node_type().table_name(), mode)
         else:
             required_results = res_nodes_from + res_nodes_to + res_mean
             extract_branch_results_without_internals(net, branch_results, required_results,
-                                                     cls.table_name(), branches_connected)
+                                                     cls.table_name(), mode)
 
     @classmethod
     def get_internal_results(cls, net, pipe):

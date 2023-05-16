@@ -5,8 +5,8 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
+from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
     RHO, LOAD_VEC_BRANCHES, ELEMENT_IDX
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -83,24 +83,28 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         branch_component_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         required_results = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
-            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
+            ("p_from_bar", "p_from", False), ("p_to_bar", "p_to", False),
+            ("t_from_k", "temp_from", True), ("t_to_k", "temp_to", True),
+            ("mdot_to_kg_per_s", "mf_to", False), ("mdot_from_kg_per_s", "mf_from", False),
+            ("vdot_norm_m3_per_s", "vf", False), ("lambda", "lambda", False),
+            ("reynolds", "reynolds", False)
         ]
 
         if get_fluid(net).is_gas:
             required_results.extend([
-                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
-                ("normfactor_to", "normfactor_to")
+                ("v_from_m_per_s", "v_gas_from", False),
+                ("v_to_m_per_s", "v_gas_to", False),
+                ("v_mean_m_per_s", "v_gas_mean", False),
+                ("normfactor_from", "normfactor_from", False),
+                ("normfactor_to", "normfactor_to", False)
             ])
         else:
-            required_results.extend([("v_mean_m_per_s", "v_mps")])
+            required_results.extend([("v_mean_m_per_s", "v_mps", False)])
 
         extract_branch_results_without_internals(net, branch_results, required_results,
-                                                 cls.table_name(), branches_connected)
+                                                 cls.table_name(), mode)
 
     @classmethod
     def get_component_input(cls):
