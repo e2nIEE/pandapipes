@@ -155,7 +155,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
     placement_table = np.argsort(net[table_name].index.values)
     idx_pit = branch_pit[f:t, ELEMENT_IDX]
     comp_connected_hyd = get_lookup(net, "branch", "active_hydraulics")[f:t]
-    comp_connected_ht = None
+    comp_connected_ht = comp_connected_hyd
     if consider_heat(mode):
         comp_connected_ht = get_lookup(net, "branch", "active_heat_transfer")[f:t]
 
