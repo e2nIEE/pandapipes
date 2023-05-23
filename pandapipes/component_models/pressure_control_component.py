@@ -111,7 +111,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         """
         required_results = [
             ("p_from_bar", "p_from", False), ("p_to_bar", "p_to", False),
-            ("t_from_k", "temp_from", True), ("t_to_k", "temp_to"),
+            ("t_from_k", "temp_from", True), ("t_to_k", "temp_to", True),
             ("mdot_to_kg_per_s", "mf_to", False), ("mdot_from_kg_per_s", "mf_from", False),
             ("vdot_norm_m3_per_s", "vf", False)
         ]

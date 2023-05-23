@@ -192,7 +192,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
         use_numba = get_net_option(net, "use_numba")
         res = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
                             comp_connected_hyd.astype(np.int32), comp_connected_ht.astype(np.int32),
-                            *[branch_results[rn[1]][f:t] for rn in res_mean if rn[2]])
+                            *[branch_results[rn[1]][f:t] for rn in res_mean])
         connected_ind_hyd = res[2] > 0.99
         num_internals_hyd = res[1][connected_ind_hyd]
         connected_ind_ht = res[3] > 0.99
