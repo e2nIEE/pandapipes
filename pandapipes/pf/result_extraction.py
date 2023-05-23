@@ -211,11 +211,11 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
 
         for i, (res_name, entry, use_ht_con) in enumerate(res_mean):
             if also_heat and use_ht_con:
-                res_table[res_name].values[placement_table_hyd] = res_hyd[i + 3][connected_ind_hyd]\
-                                                                  / num_internals_hyd
-            else:
                 res_table[res_name].values[placement_table_ht] = res_ht[i + 3][connected_ind_ht] \
                                                                  / num_internals_ht
+            else:
+                res_table[res_name].values[placement_table_hyd] = res_hyd[i + 3][connected_ind_hyd]\
+                                                                  / num_internals_hyd
 
 
 def extract_branch_results_without_internals(net, branch_results, required_results, table_name,
