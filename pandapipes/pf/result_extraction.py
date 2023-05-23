@@ -190,32 +190,24 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
         # results that relate to the whole branch and shall be averaged (by summing up all values
         # and dividing by number of internal sections)
         use_numba = get_net_option(net, "use_numba")
-        res_hyd = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
-                            comp_connected_hyd.astype(np.int32),
+        res = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
+                            comp_connected_hyd.astype(np.int32), comp_connected_ht.astype(np.int32),
                             *[branch_results[rn[1]][f:t] for rn in res_mean if rn[2]])
-        connected_ind_hyd = res_hyd[2] > 0.99
-        num_internals_hyd = res_hyd[1][connected_ind_hyd]
+        connected_ind_hyd = res[2] > 0.99
+        num_internals_hyd = res[1][connected_ind_hyd]
+        connected_ind_ht = res[3] > 0.99
+        num_internals_ht = res[1][connected_ind_ht]
+
         # hint: idx_pit[placement_table] should result in the indices as ordered in the table
         placement_table_hyd = placement_table[connected_ind_hyd]
+        placement_table_ht = placement_table[connected_ind_ht]
 
         also_heat = consider_heat(mode, res_mean)
-        res_ht, connected_ind_ht, num_internals_ht, placement_table_ht = None, None, None, None
-        if also_heat:
-            res_ht = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
-                                    comp_connected_hyd.astype(np.int32),
-                                    *[branch_results[rn[1]][f:t] for rn in res_mean if not rn[2]])
-            connected_ind_ht = res_ht[2] > 0.99
-            num_internals_ht = res_ht[1][connected_ind_ht]
-            # hint: idx_pit[placement_table] should result in the indices as ordered in the table
-            placement_table_ht = placement_table[connected_ind_ht]
-
         for i, (res_name, entry, use_ht_con) in enumerate(res_mean):
-            if also_heat and use_ht_con:
-                res_table[res_name].values[placement_table_ht] = res_ht[i + 3][connected_ind_ht] \
-                                                                 / num_internals_ht
-            else:
-                res_table[res_name].values[placement_table_hyd] = res_hyd[i + 3][connected_ind_hyd]\
-                                                                  / num_internals_hyd
+            connected_ind = connected_ind_ht if also_heat and use_ht_con else connected_ind_hyd
+            num_internals = num_internals_ht if also_heat and use_ht_con else num_internals_hyd
+            pt = placement_table_ht if also_heat and use_ht_con else placement_table_hyd
+            res_table[res_name].values[pt] = res[i + 4][connected_ind] / num_internals
 
 
 def extract_branch_results_without_internals(net, branch_results, required_results, table_name,
