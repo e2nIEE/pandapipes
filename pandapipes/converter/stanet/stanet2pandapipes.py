@@ -92,7 +92,8 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
     create_pipes_from_remaining_pipe_table(net, stored_data, connections, index_mapping,
                                            pipe_geodata, add_layers)
 
-    create_heat_exchangers(net, stored_data, connections, index_mapping, add_layers)
+    create_heat_exchangers(net, stored_data, index_mapping, add_layers,
+                           add_flow=kwargs.pop("add_heat_exchanger_flow", False))
 
     # valves always have a length in STANET, therefore, they are created as valve with pipe in
     # pandapipes

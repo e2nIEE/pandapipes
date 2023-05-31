@@ -65,7 +65,8 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
     add_info = {"stanet_id": node_table.STANETID.astype(str).values
                 if "STANETID" in node_table.columns else knams,
                 "p_stanet": node_table.PRECH.values.astype(np.float64),
-                "stanet_valid": ~node_table.CALCBAD.values.astype(np.bool_)}
+                "stanet_valid": ~node_table.CALCBAD.values.astype(np.bool_),
+                "t_stanet": node_table.TEMP.values.astype(np.float64)}
     if hasattr(node_table, "KFAK"):
         add_info["K_stanet"] = node_table.KFAK.values.astype(np.float64)
     if add_layers:
@@ -574,27 +575,26 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     )
 
 
-def create_heat_exchangers(net, stored_data, connection_table, index_mapping, add_layers):
+def create_heat_exchangers(net, stored_data, index_mapping, add_layers, add_flow=False):
     """
     Creates pandapipes heat exchangers from STANET connections.
     :param net:
     :type net:
     :param stored_data:
     :type stored_data:
-    :param connection_table:
-    :type connection_table:
     :param index_mapping:
     :type index_mapping:
     :param add_layers:
     :type add_layers:
+    :param add_flow:
+    :type add_flow:
     :return:
     :rtype:
     """
     if "heat_exchangers" not in stored_data:
         return
-    heat_ex_table = stored_data["heat_exchangers"]
+    heat_exchanger = stored_data["heat_exchangers"]
     logger.info("Creating all heat exchangers.")
-    heat_exchanger = heat_ex_table.loc[~heat_ex_table.RECNO.isin(connection_table.SNUM.values)]
     node_mapping = index_mapping["nodes"]
 
     for row in heat_exchanger.itertuples():
@@ -616,9 +616,14 @@ def create_heat_exchangers(net, stored_data, connection_table, index_mapping, ad
         add_info = dict()
         if add_layers:
             add_info["stanet_layer"] = str(row.LAYER)
+        if add_flow:
+            add_info["flow_stanet"] = row.FLUSS
+        qext = 0
+        if hasattr(row, "WAERMECALC"):
+            qext = getattr(row, "WAERMECALC") * (-1000)
         # TODO: there is no qext given!!!
         pandapipes.create_heat_exchanger(
-            net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=0,
+            net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=qext,
             diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA, std_type=row.ROHRTYP,
             in_service=bool(row.ISACTIVE), name="heat_exchanger_%s_%s" % (row.ANFNAM, row.ENDNAM),
             stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=row.VM,
