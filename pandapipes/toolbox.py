@@ -2,6 +2,7 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 import copy
+import os
 from collections.abc import Iterable
 
 import numpy as np
@@ -13,27 +14,8 @@ import pandapipes
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.create import create_empty_network
-from pandapipes.idx_branch import TABLE_IDX as TABLE_IDX_BRANCH, ELEMENT_IDX as ELEMENT_IDX_BRANCH, \
-    FROM_NODE as FROM_NODE_BRANCH, TO_NODE as TO_NODE_BRANCH, ACTIVE as ACTIVE_BRANCH, \
-    LENGTH as LENGTH_BRANCH, D as D_BRANCH, AREA as AREA_BRANCH, RHO as RHO_BRANCH, \
-    ETA as ETA_BRANCH, K as K_BRANCH, TINIT as TINIT_BRANCH, VINIT as VINIT_BRANCH, \
-    RE as RE_BRANCH, LAMBDA as LAMBDA_BRANCH, JAC_DERIV_DV as JAC_DERIV_DV_BRANCH, \
-    JAC_DERIV_DP as JAC_DERIV_DP_BRANCH, JAC_DERIV_DP1 as JAC_DERIV_DP1_BRANCH, \
-    LOAD_VEC_BRANCHES as LOAD_VEC_BRANCHES_BRANCH, JAC_DERIV_DV_NODE as JAC_DERIV_DV_NODE_BRANCH, \
-    LOAD_VEC_NODES as LOAD_VEC_NODES_BRANCH, LOSS_COEFFICIENT as LOSS_COEFFICIENT_BRANCH, \
-    CP as CP_BRANCH, ALPHA as ALPHA_BRANCH, JAC_DERIV_DT as JAC_DERIV_DT_BRANCH, \
-    JAC_DERIV_DT1 as JAC_DERIV_DT1_BRANCH, LOAD_VEC_BRANCHES_T as LOAD_VEC_BRANCHES_T_BRANCH, \
-    T_OUT as T_OUT_BRANCH, JAC_DERIV_DT_NODE as JAC_DERIV_DT_NODE_BRANCH, \
-    LOAD_VEC_NODES_T as LOAD_VEC_NODES_T_BRANCH, VINIT_T as VINIT_T_BRANCH, \
-    FROM_NODE_T as FROM_NODE_T_BRANCH, TO_NODE_T as TO_NODE_T_BRANCH, QEXT as QEXT_BRANCH, \
-    TEXT as TEXT_BRANCH, STD_TYPE as STD_TYPE_BRANCH, PL as PL_BRANCH, TL as TL_BRANCH, \
-    BRANCH_TYPE as BRANCH_TYPE_BRANCH, PRESSURE_RATIO as PRESSURE_RATIO_BRANCH, branch_cols
-from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, ELEMENT_IDX as ELEMENT_IDX_NODE, \
-    NODE_TYPE as NODE_TYPE_NODE, ACTIVE as ACTIVE_NODE, RHO as RHO_NODE, PINIT as PINIT_NODE, \
-    LOAD as LOAD_NODE, HEIGHT as HEIGHT_NODE, TINIT as TINIT_NODE, PAMB as PAMB_NODE, \
-    LOAD_T as LOAD_T_NODE, NODE_TYPE_T as NODE_TYPE_T_NODE, \
-    EXT_GRID_OCCURENCE as EXT_GRID_OCCURENCE_NODE, \
-    EXT_GRID_OCCURENCE_T as EXT_GRID_OCCURENCE_T_NODE, node_cols, \
+from pandapipes.idx_branch import branch_cols
+from pandapipes.idx_node import node_cols, \
     T as TYPE_T, P as TYPE_P, PC as TYPE_PC, NONE as TYPE_NONE, L as TYPE_L
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
@@ -542,76 +524,49 @@ def check_pressure_controllability(net, to_junction, controlled_junction):
 #     logger.info("dropped %d %s elements with %d switches" % (len(trafos), table, num_switches))
 
 
-node_pit_indices = {
-    TABLE_IDX_NODE: "TABLE_IDX",
-    ELEMENT_IDX_NODE: "ELEMENT_IDX",
-    NODE_TYPE_NODE: "NODE_TYPE",
-    ACTIVE_NODE: "ACTIVE",
-    RHO_NODE: "RHO",
-    PINIT_NODE: "PINIT",
-    LOAD_NODE: "LOAD",
-    HEIGHT_NODE: "HEIGHT",
-    TINIT_NODE: "TINIT",
-    PAMB_NODE: "PAMB",
-    LOAD_T_NODE: "LOAD_T",
-    NODE_TYPE_T_NODE: "NODE_TYPE_T",
-    EXT_GRID_OCCURENCE_NODE: "EXT_GRID_OCCURENCE",
-    EXT_GRID_OCCURENCE_T_NODE: "EXT_GRID_OCCURENCE_T",
-}
-
-branch_pit_indices = {
-    TABLE_IDX_BRANCH: "TABLE_IDX",
-    ELEMENT_IDX_BRANCH: "ELEMENT_IDX",
-    FROM_NODE_BRANCH: "FROM_NODE",
-    TO_NODE_BRANCH: "TO_NODE",
-    ACTIVE_BRANCH: "ACTIVE",
-    LENGTH_BRANCH: "LENGTH",
-    D_BRANCH: "D",
-    AREA_BRANCH: "AREA",
-    RHO_BRANCH: "RHO",
-    ETA_BRANCH: "ETA",
-    K_BRANCH: "K",
-    TINIT_BRANCH: "TINIT",
-    VINIT_BRANCH: "VINIT",
-    RE_BRANCH: "RE",
-    LAMBDA_BRANCH: "LAMBDA",
-    JAC_DERIV_DV_BRANCH: "JAC_DERIV_DV",
-    JAC_DERIV_DP_BRANCH: "JAC_DERIV_DP",
-    JAC_DERIV_DP1_BRANCH: "JAC_DERIV_DP1",
-    LOAD_VEC_BRANCHES_BRANCH: "LOAD_VEC_BRANCHES",
-    JAC_DERIV_DV_NODE_BRANCH: "JAC_DERIV_DV_NODE",
-    LOAD_VEC_NODES_BRANCH: "LOAD_VEC_NODES",
-    LOSS_COEFFICIENT_BRANCH: "LOSS_COEFFICIENT",
-    CP_BRANCH: "CP",
-    ALPHA_BRANCH: "ALPHA",
-    JAC_DERIV_DT_BRANCH: "JAC_DERIV_DT",
-    JAC_DERIV_DT1_BRANCH: "JAC_DERIV_DT1",
-    LOAD_VEC_BRANCHES_T_BRANCH: "LOAD_VEC_BRANCHES_T",
-    T_OUT_BRANCH: "T_OUT",
-    JAC_DERIV_DT_NODE_BRANCH: "JAC_DERIV_DT_NODE",
-    LOAD_VEC_NODES_T_BRANCH: "LOAD_VEC_NODES_T",
-    VINIT_T_BRANCH: "VINIT_T",
-    FROM_NODE_T_BRANCH: "FROM_NODE_T",
-    TO_NODE_T_BRANCH: "TO_NODE_T",
-    QEXT_BRANCH: "QEXT",
-    TEXT_BRANCH: "TEXT",
-    STD_TYPE_BRANCH: "STD_TYPE",
-    PL_BRANCH: "PL",
-    TL_BRANCH: "TL",
-    BRANCH_TYPE_BRANCH: "BRANCH_TYPE",
-    PRESSURE_RATIO_BRANCH: "PRESSURE_RATIO",
-}
-
-
 pit_types = {TYPE_P: "P", TYPE_L: "L", TYPE_NONE: "NONE", TYPE_T: "T", TYPE_PC: "PC", 0: "NONE"}
+int_cols = ["FROM_NODE", "TO_NODE", "ELEMENT_IDX", "EXT_GRID_OCCURENCE", "EXT_GRID_OCCURENCE_T"]
+bool_cols = ["ACTIVE"]
 
 
-def get_internal_tables_pandas(net):
+def get_pit_lookup(pit_type="node"):
+    """
+    Retrieve a lookup for "indices" and "types" from the idx_branch or idx_node files.
+
+    :param pit_type:
+    :type pit_type:
+    :param lookup_type:
+    :type lookup_type:
+    :return:
+    :rtype:
+    """
+    idx_lookup = {"indices": dict(), "types": dict()}
+    with open(os.path.join(pandapipes.pp_dir, f"idx_{pit_type}.py")) as f:
+        lookup_type = None
+        for ln in f.readlines():
+            if ln.strip().startswith("#"):
+                if "indices" in ln:
+                    lookup_type = "indices"
+                elif "types" in ln:
+                    lookup_type = "types"
+            if lookup_type is None:
+                continue
+            txt = ln.split("#")[0]
+            if "=" not in txt:
+                continue
+            part1, part2 = txt.split("=")
+            idx_lookup[lookup_type][int(part2.strip())] = part1.strip()
+    return idx_lookup
+
+
+def get_internal_tables_pandas(net, convert_types=True):
     """
     Convert the internal structure (pit) for nodes and branches into readable pandas DataFrames.
 
     :param net: pandapipes network
     :type net: pandapipesNet
+    :param convert_types: if True, convert some columns into a more readable form
+    :type convert_types: bool, default True
     :return: node_table, branch_table
     :rtype: pandas.DataFrame
     """
@@ -632,17 +587,32 @@ def get_internal_tables_pandas(net):
         logger.warning("%d branch pit entries are missing. Please verify the correctness of the "
                        "table." % missing_branches)
 
+    node_lookup = get_pit_lookup("node")
+    branch_lookup = get_pit_lookup("branch")
+
     node_table_lookup = pandapipes.get_lookup(net, "node", "table")
     node_table = pd.DataFrame(node_pit)
-    node_table.rename(columns=node_pit_indices, inplace=True)
-    node_table["NODE_TYPE"].replace(pit_types, inplace=True)
-    node_table["NODE_TYPE_T"].replace(pit_types, inplace=True)
-    node_table["TABLE_IDX"].replace(node_table_lookup["n2t"], inplace=True)
+    node_table.rename(columns=node_lookup["indices"], inplace=True)
 
     branch_table_lookup = pandapipes.get_lookup(net, "branch", "table")
     branch_table = pd.DataFrame(branch_pit)
-    branch_table.rename(columns=branch_pit_indices, inplace=True)
-    branch_table["BRANCH_TYPE"].replace(pit_types, inplace=True)
-    branch_table["TABLE_IDX"].replace(branch_table_lookup["n2t"], inplace=True)
+    branch_table.rename(columns=branch_lookup["indices"], inplace=True)
+
+    if convert_types:
+        # TODO: replace types with a version retrieved from get_pit_lookup, but before, the types
+        #       need to be defined properly inside the files!
+        node_table["NODE_TYPE"].replace(pit_types, inplace=True)
+        node_table["NODE_TYPE_T"].replace(pit_types, inplace=True)
+        node_table["TABLE_IDX"].replace(node_table_lookup["n2t"], inplace=True)
+
+        branch_table["BRANCH_TYPE"].replace(pit_types, inplace=True)
+        branch_table["TABLE_IDX"].replace(branch_table_lookup["n2t"], inplace=True)
+
+        for col in int_cols + bool_cols:
+            for tbl in (node_table, branch_table):
+                if col in tbl.columns:
+                    tbl[col] = tbl[col].astype(np.int32)
+                    if col in bool_cols:
+                        tbl[col] = tbl[col].astype(np.bool_)
 
     return node_table, branch_table
