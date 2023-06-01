@@ -689,6 +689,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
+        alpha_w_per_m2k=p_tbl.WDZAHL.values.astype(np.float64),
         name=["pipe_%s_%s" % (anf, end) for anf, end in zip(from_names[valid], to_names[valid])],
         stanet_nr=p_tbl.RECNO.values.astype(np.int32),
         stanet_id=p_tbl.STANETID.values.astype(str), v_stanet=p_tbl.VM.values, geodata=geodata,
