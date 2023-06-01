@@ -157,6 +157,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
                 net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
                 diameter_m=float(row.DM / 1000), k_mm=row.RAU, loss_coefficient=row.ZETA,
                 name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
+                text_k=row.TU + 273.15, alpha_w_per_m2k=row.WDZAHL,
                 in_service=bool(row.ISACTIVE), stanet_nr=-999,
                 stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
                 stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info
@@ -564,6 +565,8 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
         pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values,
+        text_k=pipes.TU.values.astype(np.float64) + 273.15,
+        alpha_w_per_m2k=pipes.WDZAHL.values.astype(np.float64),
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             pipes.ANFNAM.values, pipes.ENDNAM.values, pipe_sections.section_no.values)],
         stanet_nr=pipes.RECNO.values, stanet_id=pipes.STANETID.values,
@@ -690,6 +693,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
         alpha_w_per_m2k=p_tbl.WDZAHL.values.astype(np.float64),
+        text_k=p_tbl.TU.values.astype(np.float64) + 273.15,
         name=["pipe_%s_%s" % (anf, end) for anf, end in zip(from_names[valid], to_names[valid])],
         stanet_nr=p_tbl.RECNO.values.astype(np.int32),
         stanet_id=p_tbl.STANETID.values.astype(str), v_stanet=p_tbl.VM.values, geodata=geodata,
@@ -1001,6 +1005,8 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
         hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
         stanet_std_type=hp_data.ROHRTYP.values,
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False,
+        text_k=hp_data.TU.values.astype(np.float64) + 273.15,
+        alpha_w_per_m2k=hp_data.WDZAHL.values.astype(np.float64),
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             hp_data.CLIENTID.values, hp_data.CLIENT2ID.values, hp_data.section_no.values)],
         stanet_nr=hp_data.RECNO.values, stanet_id=hp_data.STANETID.values,
