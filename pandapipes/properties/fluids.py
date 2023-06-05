@@ -182,6 +182,9 @@ class Fluid(JSONSerializableClass):
     def get_higher_heating_value(self):
         return self.get_property("hhv")
 
+    def get_critical_data(self):
+        return self.get_property("critical_data")
+
 
 class FluidProperty(JSONSerializableClass):
     """
