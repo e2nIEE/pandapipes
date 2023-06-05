@@ -42,8 +42,9 @@ class compressibility_SRK:
         return (1 + self.m_i() * ( 1 - self.T_red(T)**0.5))**2
 
     def a_mixture(self, p, T, m, molar_fractions : np.ndarray, t_crit: np.ndarray, p_crit: np.ndarray):
-        value = 0.42747 * p / (T ** 2) * sum(molar_fractions *  alpha(m, T) ** 0.5 / self.p_crit ** 0.5
-        return value
+        factor = 0.42747 * p / (T ** 2)
+        sum = sum(molar_fractions * self.T_crit * alpha(T) ** 0.5 / self.p_crit ** 0.5)**2
+        return factor * sum
 
     def b_mixture(self, p, T, molar_fractions):
         factor = 0.08664 * p / T
