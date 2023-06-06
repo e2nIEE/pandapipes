@@ -45,10 +45,6 @@ def _calculate_A_B(a_molar_fraction, a_p, a_T, a_p_crit, a_T_crit, a_acent_fact)
 
     # shape = np.shape(a_molar_fraction)
     # com_array = np.empty([shape[0], 3], dtype=np.float64)
-    #
-    # a_acent_fact = np.array([0.01142, -0.219]) #array
-    # p_crit = np.array([4599200.0, 1296400.0]) #array
-    # T_crit = np.array([190.564, 33.145]) #array
 
     T_red = a_T / a_T_crit
     p_red = a_p / a_p_crit
