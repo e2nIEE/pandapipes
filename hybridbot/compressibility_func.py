@@ -4,7 +4,7 @@ from scipy.optimize import newton
 
 #ToDo: 1. Make function work; 2. Put Parameters in arrays; 3. Make function work for n_nodes>1(2-dimensional array)
 T = 283.15
-p = 6*1e5
+p = 50*1e5
 p_n = 101325
 T_n = 273.15
 # methane
@@ -37,7 +37,7 @@ molar_fraction = np.array([0.11, 0.89])
 molar_fraction_real = np.array([[0.11, 0.89], [0.6, 0.4]])
 
 
-def _calculate_A_B(a_molar_fraction, a_p, a_T, a_p_crit, a_T_crit, a_acent_fact):
+def _calculate_A_B(a_p, a_T, a_molar_fraction,  a_p_crit, a_T_crit, a_acent_fact):
     """
     calculate initially for one node:
 
@@ -70,21 +70,19 @@ def _calculate_A_B(a_molar_fraction, a_p, a_T, a_p_crit, a_T_crit, a_acent_fact)
     return A_mixture, B_mixture
 
 def _func_of_Z(Z, a_p, a_T):
-    A_mixture, B_mixture = _calculate_A_B(molar_fraction, a_p, a_T, p_crit, T_crit, acent_fact)
+    A_mixture, B_mixture = _calculate_A_B(a_p, a_T, molar_fraction, p_crit, T_crit, acent_fact)
     return Z ** 3 - Z ** 2 + Z *(A_mixture - B_mixture - B_mixture ** 2) - A_mixture * B_mixture
 
 def _der_func_of_Z(Z, a_p, a_T):
-    A_mixture, B_mixture = _calculate_A_B(molar_fraction, a_p, a_T, p_crit, T_crit, acent_fact)
+    A_mixture, B_mixture = _calculate_A_B(a_p, a_T, molar_fraction, p_crit, T_crit, acent_fact)
     return  3 * Z **2 - 2 * Z + (A_mixture - B_mixture - B_mixture **2)
 
 def calculate_mixture_compressibility_draft():
     res_comp = newton(_func_of_Z, 0.9, fprime=_der_func_of_Z, args=(p, T))
     res_comp_norm = newton(_func_of_Z, 0.9, fprime=_der_func_of_Z, args=(p_n, T_n))
-    res = res_comp / res_comp_norm
-    return res
-
-    def return_results(self):
-        return
+    res_comp / res_comp_norm
+    return res_comp, res_comp_norm
 
 
-compr_mixture = calculate_mixture_compressibility_draft()
+
+compr_mixture, compr_mixture_norm = calculate_mixture_compressibility_draft()
