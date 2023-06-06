@@ -578,7 +578,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     )
 
 
-def create_heat_exchangers(net, stored_data, index_mapping, add_layers, add_flow=False):
+def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, add_flow=False):
     """
     Creates pandapipes heat exchangers from STANET connections.
     :param net:
