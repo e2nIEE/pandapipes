@@ -4,7 +4,7 @@ from scipy.optimize import newton
 
 #ToDo: 1. Make function work; 2. Put Parameters in arrays; 3. Make function work for n_nodes>1(2-dimensional array)
 T = 283.15
-p = 5*1e5
+p = 6*1e5
 p_n = 101325
 T_n = 273.15
 # methane
