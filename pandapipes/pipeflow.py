@@ -15,7 +15,7 @@ from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
     initialize_pit, check_connectivity, reduce_pit, \
-    set_user_pf_options, init_all_result_tables, connectivity_check_heat
+    set_user_pf_options, init_all_result_tables, connectivity_check_heat, get_active_nodes_branches
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 
 try:
@@ -79,12 +79,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
-    if get_net_option(net, "check_connectivity"):
-        nodes_connected, branches_connected = check_connectivity(
-            net, branch_pit, node_pit)
-    else:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(bool)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(bool)
+    nodes_connected, branches_connected = get_active_nodes_branches(net, branch_pit, node_pit)
 
     if calculation_mode == "heat":
         if not net.user_pf_options["hyd_flag"]:
@@ -104,8 +99,9 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     if calculate_heat:
         node_pit, branch_pit = net["_pit"]["node"], net["_pit"]["branch"]
-        nodes_connected, branches_connected = connectivity_check_heat(
-            net, branch_pit, node_pit, nodes_connected, branches_connected)
+        nodes_connected, branches_connected = get_active_nodes_branches(
+            net, branch_pit, node_pit, False
+        )
         # active_node_pit = net["_active_pit"]["node"]
         # active_branch_pit = net["_active_pit"]["branch"]
         reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected,

@@ -12,6 +12,7 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
     ACTIVE as ACTIVE_BR, VINIT
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
+from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -436,6 +437,36 @@ def create_lookups(net):
                        "internal_nodes_lookup": internal_nodes_lookup}
 
 
+def get_active_nodes_branches(net, branch_pit, node_pit, hydraulic=True):
+    if hydraulic:
+        if get_net_option(net, "check_connectivity"):
+            return check_connectivity(net, branch_pit, node_pit)
+        else:
+            return node_pit[:, ACTIVE_ND].astype(bool), branch_pit[:, ACTIVE_BR].astype(bool)
+    branches_with_flow = branches_connected_flow(branch_pit)
+    nodes_connected_hyd = net["_lookups"]["node_active_hydraulic"]
+    branches_connected_hyd = net["_lookups"]["branch_active_hydraulic"]
+    if get_net_option(net, "check_connectivity"):
+        return connectivity_check_heat(net, branch_pit, node_pit, nodes_connected_hyd,
+                                       branches_connected_hyd, branches_with_flow)
+    else:
+        branches_connected = branches_connected_hyd & branches_with_flow
+        fn = branch_pit[:, FROM_NODE].astype(np.int32)
+        tn = branch_pit[:, TO_NODE].astype(np.int32)
+        fn_tn, flow = _sum_by_group(
+            get_net_option(net, "use_numba"), np.concatenate([fn, tn]),
+            np.concatenate([branches_connected, branches_connected]).astype(np.int32)
+        )
+        nodes_connected = np.copy(nodes_connected_hyd)
+        nodes_connected[fn_tn] = nodes_connected[fn_tn] & flow
+
+
+def branches_connected_flow(branch_pit):
+    # TODO: is this formulation correct or could there be any caveats?
+    return ~np.isnan(branch_pit[:, VINIT]) \
+        & ~np.isclose(branch_pit[:, VINIT], 0, rtol=1e-10, atol=1e-10)
+
+
 def check_connectivity(net, branch_pit, node_pit):
     """
     Perform a connectivity check which means that network nodes are identified that don't have any
@@ -477,11 +508,9 @@ def check_connectivity(net, branch_pit, node_pit):
         mode="hydraulics")
 
 
-def connectivity_check_heat(net, branch_pit, node_pit, nodes_connected_hyd, branches_connected_hyd):
-    # TODO: is this formulation correct or could there be any caveats?
-    branches_connect = ~np.isnan(branch_pit[:, VINIT]) & \
-                       ~np.isclose(branch_pit[:, VINIT], 0, rtol=1e-10, atol=1e-10) \
-                       & branches_connected_hyd
+def connectivity_check_heat(net, branch_pit, node_pit, nodes_connected_hyd, branches_connected_hyd,
+                            branches_with_flow):
+    branches_connect = branches_with_flow & branches_connected_hyd
     active_node_lookup = node_pit[:, ACTIVE_ND].astype(bool) & nodes_connected_hyd
 
     heat_slacks = np.where((node_pit[:, NODE_TYPE_T] == T) & active_node_lookup)[0]
