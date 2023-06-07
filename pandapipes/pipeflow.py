@@ -88,6 +88,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         else:
             net["_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
             net["_pit"]["branch"][:, VINIT] = sol_vec[len(node_pit):]
+            reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected,
+                       mode="hydraulics")
 
     if calculate_hydraulics:
         reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected,

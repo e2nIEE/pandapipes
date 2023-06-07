@@ -439,17 +439,26 @@ def create_lookups(net):
 
 def get_active_nodes_branches(net, branch_pit, node_pit, hydraulic=True):
     if hydraulic:
+        # connectivity check for hydraulic simulation
         if get_net_option(net, "check_connectivity"):
             return check_connectivity(net, branch_pit, node_pit)
         else:
+            # if connectivity check is switched off, still consider oos elements
             return node_pit[:, ACTIVE_ND].astype(bool), branch_pit[:, ACTIVE_BR].astype(bool)
+
+    # connectivity check for heat simulation (needs to consider branches with 0 velocity as well)
+    # check for branches that are not flown through (for temperature calculation, this means that
+    # they are "out of service")
     branches_with_flow = branches_connected_flow(branch_pit)
-    nodes_connected_hyd = net["_lookups"]["node_active_hydraulic"]
-    branches_connected_hyd = net["_lookups"]["branch_active_hydraulic"]
+    nodes_connected_hyd = net["_lookups"]["node_active_hydraulics"]
+    branches_connected_hyd = net["_lookups"]["branch_active_hydraulics"]
     if get_net_option(net, "check_connectivity"):
+        # full connectivity check for hydraulic simulation
         return connectivity_check_heat(net, branch_pit, node_pit, nodes_connected_hyd,
                                        branches_connected_hyd, branches_with_flow)
     else:
+        # if no full connectivity check is performed, all nodes that are not connected to the rest
+        # of the network wrt. flow can be identified by a more performant sum_by_group_call
         branches_connected = branches_connected_hyd & branches_with_flow
         fn = branch_pit[:, FROM_NODE].astype(np.int32)
         tn = branch_pit[:, TO_NODE].astype(np.int32)
@@ -458,7 +467,10 @@ def get_active_nodes_branches(net, branch_pit, node_pit, hydraulic=True):
             np.concatenate([branches_connected, branches_connected]).astype(np.int32)
         )
         nodes_connected = np.copy(nodes_connected_hyd)
-        nodes_connected[fn_tn] = nodes_connected[fn_tn] & flow
+        # set nodes oos that are not connected to any branches with flow > 0 (0.1 is arbitrary
+        # here, any value between 0 and 1 should work, excluding 0 and 1)
+        nodes_connected[fn_tn] = nodes_connected[fn_tn] & (flow > 0.1)
+        return nodes_connected, branches_connected
 
 
 def branches_connected_flow(branch_pit):
