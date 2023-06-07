@@ -14,7 +14,7 @@ except ImportError:
     from pandapower.pf.no_numba import jit
 
 
-def extract_all_results(net, nodes_connected, branches_connected):
+def extract_all_results(net):
     """
     Extract results from branch pit and node pit and write them to the different tables of the net,\
     as defined by the component models.
@@ -228,24 +228,20 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
                 branch_results[entry][f:t][comp_connected_hyd]
 
 
-def extract_results_active_pit(net, nodes_connected, branches_connected, mode="hydraulics"):
+def extract_results_active_pit(net,  mode="hydraulics"):
     """
     Extract the pipeflow results from the internal pit structure ("_active_pit") to the general pit
     structure.
 
     :param net: The pandapipes net that the internal structure belongs to
     :type net: pandapipesNet
-    :param nodes_connected: A mask array stating which nodes are actually connected to the rest of\
-            the net
-    :type nodes_connected: np.array
-    :param branches_connected: A mask array stating which branches are actually connected to the \
-             rest of the net
-    :type branches_connected: np.array
     :param mode: defines whether results from hydraulic or temperature calculation are transferred
     :type mode: str, default "hydraulics"
     :return: No output
 
     """
+    nodes_connected = get_lookup(net, "node", "active_" + mode)
+    branches_connected = get_lookup(net, "branch", "active_" + mode)
     result_node_col = PINIT if mode == "hydraulics" else TINIT_NODE
     not_affected_node_col = TINIT_NODE if mode == "hydraulics" else PINIT
     copied_node_cols = np.array([i for i in range(net["_pit"]["node"].shape[1])

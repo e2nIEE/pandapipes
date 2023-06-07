@@ -7,15 +7,14 @@ from numpy import linalg
 from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
-    TO_NODE_T, VINIT, T_OUT, VINIT_T
-from pandapipes.idx_node import PINIT, TINIT, ACTIVE as ACTIVE_ND
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, T_OUT, VINIT_T
+from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
-    initialize_pit, check_connectivity, reduce_pit, \
-    set_user_pf_options, init_all_result_tables, connectivity_check_heat, get_active_nodes_branches
+    initialize_pit, reduce_pit, set_user_pf_options, init_all_result_tables, \
+    identify_active_nodes_branches
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 
 try:
@@ -79,7 +78,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
-    nodes_connected, branches_connected = get_active_nodes_branches(net, branch_pit, node_pit)
+    identify_active_nodes_branches(net, branch_pit, node_pit)
 
     if calculation_mode == "heat":
         if not net.user_pf_options["hyd_flag"]:
@@ -88,35 +87,27 @@ def pipeflow(net, sol_vec=None, **kwargs):
         else:
             net["_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
             net["_pit"]["branch"][:, VINIT] = sol_vec[len(node_pit):]
-            reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected,
-                       mode="hydraulics")
 
     if calculate_hydraulics:
-        reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected,
-                   mode="hydraulics")
+        reduce_pit(net, node_pit, branch_pit, mode="hydraulics")
         converged, _ = hydraulics(net)
         if not converged:
             raise PipeflowNotConverged("The hydraulic calculation did not converge to a solution.")
-        extract_results_active_pit(net, nodes_connected, branches_connected, mode="hydraulics")
+        extract_results_active_pit(net, mode="hydraulics")
 
     if calculate_heat:
         node_pit, branch_pit = net["_pit"]["node"], net["_pit"]["branch"]
-        nodes_connected, branches_connected = get_active_nodes_branches(
-            net, branch_pit, node_pit, False
-        )
-        # active_node_pit = net["_active_pit"]["node"]
-        # active_branch_pit = net["_active_pit"]["branch"]
-        reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected,
-                   mode="heat_transfer")
+        identify_active_nodes_branches(net, branch_pit, node_pit, False)
+        reduce_pit(net, node_pit, branch_pit, mode="heat_transfer")
         converged, _ = heat_transfer(net)
         if not converged:
             raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
                                        "solution.")
-        extract_results_active_pit(net, nodes_connected, branches_connected, mode="heat_transfer")
+        extract_results_active_pit(net, mode="heat_transfer")
     elif not calculate_hydraulics:
         raise UserWarning("No proper calculation mode chosen.")
 
-    extract_all_results(net, nodes_connected, branches_connected)
+    extract_all_results(net)
 
 
 def hydraulics(net):
