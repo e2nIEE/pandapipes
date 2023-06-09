@@ -5,8 +5,10 @@
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, PL, BRANCH_TYPE
+from pandapipes.idx_node import PC, PINIT
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 try:
     import pandaplan.core.pplog as logging
@@ -57,12 +59,27 @@ class CirculationPumpPressure(CirculationPump):
         :type node_pit:
         :return: No Output.
         """
-        circ_pump, press = super().create_pit_node_entries(net, node_pit)
+        super().create_pit_node_entries(net, node_pit)
+        circ_pumps = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
 
-        junction = circ_pump[cls.from_to_node_cols()[0]].values
-        p_in = press - circ_pump.plift_bar.values
-        set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_in, None,
-                               cls.get_connected_node_type(), "p")
+        junction = circ_pumps[cls.from_to_node_cols()[0]].values
+
+        p_in = circ_pumps.p_flow_bar.values - circ_pumps.plift_bar.values
+        junction_idx_lookups = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
+        index_pc = junction_idx_lookups[junction]
+        node_pit[index_pc, PINIT] = p_in
+
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
+        # of velocity is allowed during the pipeflow iteration
+        f, t = idx_lookups[cls.table_name()]
+        circ_pump_pit = branch_pit[f:t, :]
+        circ_pump_pit[:, JAC_DERIV_DP] = 1
+        circ_pump_pit[:, JAC_DERIV_DP1] = -1
+        circ_pump_pit[:, PL] = net[cls.table_name()]['plift_bar'].values
+        circ_pump_pit[:, BRANCH_TYPE] = PC
 
     @classmethod
     def calculate_temperature_lift(cls, net, pipe_pit, node_pit):

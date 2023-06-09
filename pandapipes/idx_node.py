@@ -24,5 +24,6 @@ LOAD_T = 10  # Heat power drawn in [W]
 NODE_TYPE_T = 11
 EXT_GRID_OCCURENCE = 12
 EXT_GRID_OCCURENCE_T = 13
+CP = 14
 
-node_cols = 14
+node_cols = 15

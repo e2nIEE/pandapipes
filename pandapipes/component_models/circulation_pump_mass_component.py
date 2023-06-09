@@ -2,15 +2,12 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.idx_node import LOAD
-from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pf.pipeflow_setup import get_net_option
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_branch import AREA, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
+    RHO, LOAD_VEC_BRANCHES
 
 try:
     import pandaplan.core.pplog as logging
@@ -51,26 +48,21 @@ class CirculationPumpMass(CirculationPump):
         return "in_service"
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        """
-        Function which creates pit node entries.
+    def create_pit_branch_entries(cls, net, branch_pit):
+        circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
+        circ_pump_pit[:, VINIT] = net[cls.table_name()].mdot_flow_kg_per_s.values / \
+                                  (circ_pump_pit[:, AREA] * circ_pump_pit[:, RHO])
 
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :return: No Output.
-        """
-        circ_pump, _ = super().create_pit_node_entries(net, node_pit)
-
-        mf = np.nan_to_num(circ_pump.mdot_flow_kg_per_s.values)
-        mass_flow_loads = mf * circ_pump.in_service.values
-        juncts, loads_sum = _sum_by_group(get_net_option(net, "use_numba"),
-                                          circ_pump.return_junction.values, mass_flow_loads)
-        junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        index = junction_idx_lookups[juncts]
-        node_pit[index, LOAD] += loads_sum
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
+        # of velocity is allowed during the pipeflow iteration
+        f, t = idx_lookups[cls.table_name()]
+        circ_pump_pit = branch_pit[f:t, :]
+        circ_pump_pit[:, JAC_DERIV_DP] = 0
+        circ_pump_pit[:, JAC_DERIV_DP1] = 0
+        circ_pump_pit[:, JAC_DERIV_DV] = 1
+        circ_pump_pit[:, LOAD_VEC_BRANCHES] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
