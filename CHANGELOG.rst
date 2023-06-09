@@ -6,6 +6,7 @@ Change Log
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
+- [CHANGED] connectivity check now separated by hydraulics and heat_transfer calculation, so that also results can differ in some rows (NaN or not)
 
 [0.8.4] - 2023-02-02
 -------------------------------
