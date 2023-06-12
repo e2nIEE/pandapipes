@@ -57,31 +57,37 @@ def _calculate_A_B(a_p, a_T, a_molar_fraction,  a_p_crit, a_T_crit, a_acent_fact
     # shape = np.shape(a_molar_fraction)
     # com_array = np.empty([shape[0], 3], dtype=np.float64)
     shape = np.shape(a_p)
-    fluid_length = 2
-    T_red = np.zeros([len(a_p),len(a_p_crit)])
-    p_red = np.zeros([len(a_p), len(a_p_crit)])
-
-
-
-    for node in range(len(a_p)):
-        T_red[node][0] = a_T[node] / a_T_crit[0]
-        T_red[node][1] = a_T[node] / a_T_crit[1]
-        p_red[node][0] = a_p[node] / a_p_crit[0]
-        p_red[node][1] = a_p[node] / a_p_crit[1]
-
-
-
-
-    m_val = 0.480 + 1.574 * a_acent_fact - 0.176 * a_acent_fact**2
+    m_val = 0.480 + 1.574 * a_acent_fact - 0.176 * a_acent_fact ** 2
     m = m_val
-    for node in range(shape[0]-1): m = np.vstack([m, m_val])
+    fluid_length = 2
+    if isinstance(a_p, int)==True:
+        T_red = a_T / a_T_crit
+        p_red = a_p / a_p_crit
+
+    else:
+        T_red = np.zeros([len(a_p),len(a_p_crit)])
+        p_red = np.zeros([len(a_p), len(a_p_crit)])
+
+
+
+        for node in range(len(a_p)):
+            T_red[node][0] = a_T[node] / a_T_crit[0]
+            T_red[node][1] = a_T[node] / a_T_crit[1]
+            p_red[node][0] = a_p[node] / a_p_crit[0]
+            p_red[node][1] = a_p[node] / a_p_crit[1]
+        for node in range(shape[0] - 1): m = np.vstack([m, m_val])
+
+
+
+
+
 
     sqrt_alpha = (1 + m * (1 - T_red ** 0.5))
 
     # def A_mixture(self, a_p, a_T, m, a_molar_fraction : np.ndarray, t_crit: np.ndarray, p_crit: np.ndarray):
     factor_a = 0.42747 * a_p / (a_T ** 2)
 
-    if shape[0] == 1:
+    if isinstance(a_p, int)==True:
         sum_a = (a_molar_fraction * a_T_crit * sqrt_alpha / a_p_crit ** 0.5).sum() ** 2
         A_mixture = factor_a * sum_a
 
