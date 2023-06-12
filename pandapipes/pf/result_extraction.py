@@ -14,13 +14,15 @@ except ImportError:
     from pandapower.pf.no_numba import jit
 
 
-def extract_all_results(net):
+def extract_all_results(net, calculation_mode):
     """
     Extract results from branch pit and node pit and write them to the different tables of the net,\
     as defined by the component models.
 
     :param net: pandapipes net for which to extract results into net.res_xy
     :type net: pandapipesNet
+    :param net: mode of the simulation (e.g. "hydraulics" or "heat" or "all")
+    :type net: str
     :return: No output
 
     """
@@ -49,7 +51,7 @@ def extract_all_results(net):
         }
         branch_results.update(gas_branch_results)
     for comp in net['component_list']:
-        comp.extract_results(net, net["_options"], branch_results, mode)
+        comp.extract_results(net, net["_options"], branch_results, calculation_mode)
 
 
 def get_basic_branch_results(net, branch_pit, node_pit):
