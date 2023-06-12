@@ -49,7 +49,7 @@ def extract_all_results(net):
         }
         branch_results.update(gas_branch_results)
     for comp in net['component_list']:
-        comp.extract_results(net, net["_options"], branch_results, "hydraulics")
+        comp.extract_results(net, net["_options"], branch_results, mode)
 
 
 def get_basic_branch_results(net, branch_pit, node_pit):
