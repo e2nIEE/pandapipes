@@ -60,7 +60,7 @@ def _calculate_A_B(a_p, a_T, a_molar_fraction,  a_p_crit, a_T_crit, a_acent_fact
     m_val = 0.480 + 1.574 * a_acent_fact - 0.176 * a_acent_fact ** 2
     m = m_val
     fluid_length = 2
-    if isinstance(a_p, int)==True:
+    if isinstance(a_p, int):
         T_red = a_T / a_T_crit
         p_red = a_p / a_p_crit
 
@@ -71,6 +71,7 @@ def _calculate_A_B(a_p, a_T, a_molar_fraction,  a_p_crit, a_T_crit, a_acent_fact
 
 
         for node in range(len(a_p)):
+            #ToDo:works only for 2 fluids, needs to be generalized
             T_red[node][0] = a_T[node] / a_T_crit[0]
             T_red[node][1] = a_T[node] / a_T_crit[1]
             p_red[node][0] = a_p[node] / a_p_crit[0]

@@ -746,7 +746,8 @@ def get_mixture_heat_capacity(net, temperature, mass_fraction):
 
 def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
     compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
-    compressibility_list_new, compressibility_list_new_norm = compressibility_func.calculate_mixture_compressibility_draft(mass_fraction, pressure, temperature)
+    molar_fraction = mass_fraction
+    compressibility_list_new, compressibility_list_new_norm = compressibility_func.calculate_mixture_compressibility_draft(molar_fraction, pressure, temperature)
     return calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
 
 def get_mixture_der_cmpressibility(net, pressure, mass_fraction):
