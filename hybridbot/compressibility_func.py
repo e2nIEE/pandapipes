@@ -10,9 +10,9 @@ temperature_list = get_temperature()
 pressure_list = get_pressure()
 """
 
-T = np.array([283.15, 283.15])
+T = np.array([283.15, 283.15, 283.15])
 #T = 283.15
-p = np.array([50*1e5, 50*1e5])
+p = np.array([1*1e5, 25*1e5, 50*1e5])
 #p = 45*1e5
 p_n = 101325
 T_n = 273.15
@@ -40,100 +40,72 @@ acent_fact = np.array([acent_fact_meth, acent_fact_h2])
 #molar_fraction = np.array([0.6, 0.4])
 
 # Ziel
-molar_fraction = np.array([[0.11, 0.89], [0.6, 0.4]])
+molar_fraction = np.array([[0.11, 0.89], [0.6, 0.4], [.9, .1]])
 
-shape = np.shape(molar_fraction)
 
-def _calculate_A_B(a_p, a_T, a_molar_fraction,  a_p_crit, a_T_crit, a_acent_fact):
+def _calculate_A_B(a_p, a_T, a_mf,  a_p_crit, a_T_crit, a_acent_fact):
     """
     calculate initially for one node:
 
-    a_molar_fraction: x-d_array
+    a_mf: molar fractions : (n * f)-d_array. n : number of nodes, f number of fluids.
     p_crit : 1d-array
     T_crit : 1d-array
     a_acent_fact : 1d-array
     """
 
-    # shape = np.shape(a_molar_fraction)
-    # com_array = np.empty([shape[0], 3], dtype=np.float64)
-    shape = np.shape(a_p)
-    m_val = 0.480 + 1.574 * a_acent_fact - 0.176 * a_acent_fact ** 2
-    m = m_val
-    fluid_length = 2
-    if isinstance(a_p, int):
-        T_red = a_T / a_T_crit
-        p_red = a_p / a_p_crit
+    summation_axis = 0
 
+    factor_a = 0.42747 * a_p / (a_T ** 2)
+    factor_b = 0.08664 * a_p / a_T
+
+    if a_mf.ndim == 1:
+        nbr_fluid =  np.shape(molar_fraction)[0]
     else:
-        T_red = np.zeros([len(a_p),len(a_p_crit)])
-        p_red = np.zeros([len(a_p), len(a_p_crit)])
+        nbr_node = np.shape(molar_fraction)[0]
+        nbr_fluid = np.shape(molar_fraction)[1]
 
+        a_T = np.tile(a_T, (nbr_fluid, 1)).T  # duplicate a_T horizontally and then transpose it
+        a_p = np.tile(a_p, (nbr_fluid, 1)).T
 
+        summation_axis = 1
 
-        for node in range(len(a_p)):
-            #ToDo:works only for 2 fluids, needs to be generalized
-            T_red[node][0] = a_T[node] / a_T_crit[0]
-            T_red[node][1] = a_T[node] / a_T_crit[1]
-            p_red[node][0] = a_p[node] / a_p_crit[0]
-            p_red[node][1] = a_p[node] / a_p_crit[1]
-        for node in range(shape[0] - 1): m = np.vstack([m, m_val])
+    m = 0.480 + 1.574 * a_acent_fact - 0.176 * a_acent_fact ** 2
 
-
-
-
-
+    T_red = a_T / T_crit
+    p_red = a_p / p_crit
 
     sqrt_alpha = (1 + m * (1 - T_red ** 0.5))
 
-    # def A_mixture(self, a_p, a_T, m, a_molar_fraction : np.ndarray, t_crit: np.ndarray, p_crit: np.ndarray):
-    factor_a = 0.42747 * a_p / (a_T ** 2)
+    sum_a = (a_mf * a_T_crit * sqrt_alpha / a_p_crit ** 0.5).sum(axis=summation_axis) ** 2
+    A_mixture = factor_a * sum_a
 
-    if isinstance(a_p, int)==True:
-        sum_a = (a_molar_fraction * a_T_crit * sqrt_alpha / a_p_crit ** 0.5).sum() ** 2
-        A_mixture = factor_a * sum_a
+    sum_b = (a_mf * a_T_crit / a_p_crit).sum(axis=summation_axis)
+    B_mixture = factor_b * sum_b
 
-        # B_mixture(self, a_p, a_T, a_molar_fraction):
-        factor_b = 0.08664 * a_p / a_T
-        sum_b = (a_molar_fraction * a_T_crit / a_p_crit).sum()
-        B_mixture = factor_b * sum_b
-
-        return A_mixture, B_mixture
-    else:
-        sum_a = (a_molar_fraction * a_T_crit * sqrt_alpha / a_p_crit ** 0.5).sum(axis=1) ** 2
-        A_mixture = factor_a * sum_a
-
-        # B_mixture(self, a_p, a_T, a_molar_fraction):
-        factor_b = 0.08664 * a_p / a_T
-        sum_b = (a_molar_fraction * a_T_crit / a_p_crit).sum(axis=1)
-        B_mixture = factor_b * sum_b
-
-        return A_mixture, B_mixture
-
+    return A_mixture, B_mixture
 
 
 def _func_of_Z(Z, a_p, a_T, a_mf):
     A_mixture, B_mixture = _calculate_A_B(a_p, a_T, a_mf, p_crit, T_crit, acent_fact)
     return Z ** 3 - Z ** 2 + Z *(A_mixture - B_mixture - B_mixture ** 2) - A_mixture * B_mixture
 
+
 def _der_func_of_Z(Z, a_p, a_T, a_mf):
     A_mixture, B_mixture = _calculate_A_B(a_p, a_T,a_mf, p_crit, T_crit, acent_fact)
     return  3 * Z **2 - 2 * Z + (A_mixture - B_mixture - B_mixture **2)
 
-def calculate_mixture_compressibility_draft(mf, p, T):
-    shape = np.shape(mf)
-    T = np.array([283.15, 283.15, 283.15])
+
+def calculate_mixture_compressibility_draft(a_mf, a_p, a_T):
+
+    nbr_node = np.shape(a_mf)[0]
+    #Todo: if function ?
     start_value = 0.9
-    start_value_vec = np.array([list([start_value]) * shape[0]])[0]
+    start_value = np.array([list([start_value]) * nbr_node])[0]
 
-
-    p_n = 101325
-    T_n = 273.15
-
-    res_comp = newton(_func_of_Z, start_value_vec, fprime=_der_func_of_Z, args=(p, T, mf))
-    # ToDo:check args of res_comp_norm (mf?)
-    res_comp_norm = newton(_func_of_Z, start_value_vec, fprime=_der_func_of_Z, args=(p_n, T_n, mf))
+    res_comp = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(a_p, a_T, a_mf))
+    res_comp_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, a_mf))
     res_comp / res_comp_norm
     return res_comp, res_comp_norm
 
 
-#compr_mixture, compr_mixture_norm = calculate_mixture_compressibility_draft()
+compr_mixture, compr_mixture_norm = calculate_mixture_compressibility_draft(molar_fraction, p, T)
