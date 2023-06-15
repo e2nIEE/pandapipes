@@ -750,6 +750,7 @@ def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
     # todo: get critical pressure and temperature and acentric factors for the fluid, similar to previous line, Khalil
 
     # todo: pass temperature in all relevant components, junction component already done, Erik
+    # ToDo: what are comp from and to and mean for and can they be calulated with branch pit temperatures?
     # todo: compare calculate_mixture_compressibility(compressibility_list, mass_fraction.T) format with return value of calculate_mixture_compressibility_draft, Khalil
 
 

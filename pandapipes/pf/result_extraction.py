@@ -113,9 +113,10 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
     else:
         w = get_lookup(net, 'branch', 'w')
         mass_fract = branch_pit[:, w]
-        comp_from = get_mixture_compressibility(net, p_abs_from, mass_fract)
-        comp_to = get_mixture_compressibility(net, p_abs_to, mass_fract)
-        comp_mean = get_mixture_compressibility(net, p_abs_mean, mass_fract)
+
+        comp_from = get_mixture_compressibility(net, p_abs_from, mass_fract, branch_pit[:, pit_cols[0]])
+        comp_to = get_mixture_compressibility(net, p_abs_to, mass_fract, branch_pit[:, pit_cols[0]])
+        comp_mean = get_mixture_compressibility(net, p_abs_mean, mass_fract, branch_pit[:, pit_cols[0]])
 
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         get_gas_vel_numba(pit_cols[0], branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,
