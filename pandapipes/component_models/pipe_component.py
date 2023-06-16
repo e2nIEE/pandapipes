@@ -267,11 +267,11 @@ class Pipe(BranchWInternalsComponent):
                 else:
                     w = get_lookup(net, 'branch', 'w')
                     mass_fraction = pipe_pit[:, w]
-                    normfactor_mean = numerator * get_mixture_compressibility(net, p_mean, mass_fraction) \
+                    normfactor_mean = numerator * get_mixture_compressibility(net, p_mean, mass_fraction, pipe_pit[:, net['_idx_branch']['TINIT']]) \
                                       / (p_mean * NORMAL_TEMPERATURE)
-                    normfactor_from = numerator * get_mixture_compressibility(net, p_from, mass_fraction) \
+                    normfactor_from = numerator * get_mixture_compressibility(net, p_from, mass_fraction, node_pit[from_nodes, net['_idx_node']['TINIT']]) \
                                       / (p_from * NORMAL_TEMPERATURE)
-                    normfactor_to = numerator * get_mixture_compressibility(net, p_to, mass_fraction) \
+                    normfactor_to = numerator * get_mixture_compressibility(net, p_to, mass_fraction, node_pit[to_nodes, net['_idx_node']['TINIT']]) \
                                     / (p_to * NORMAL_TEMPERATURE)
 
                 v_pipe_data_mean = v_pipe_data * normfactor_mean

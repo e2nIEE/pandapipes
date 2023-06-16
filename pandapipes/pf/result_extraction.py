@@ -88,9 +88,9 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
     else:
         w = get_lookup(net, 'branch', 'w')
         mass_fract = branch_pit[:, w]
-        normfactor_from = numerator * get_mixture_compressibility(net, p_abs_from, mass_fract) / p_abs_from
-        normfactor_to = numerator * get_mixture_compressibility(net, p_abs_to, mass_fract) / p_abs_to
-        normfactor_mean = numerator * get_mixture_compressibility(net, p_abs_mean, mass_fract) / p_abs_mean
+        normfactor_from = numerator * get_mixture_compressibility(net, p_abs_from, mass_fract, node_pit[from_nodes, net['_idx_node']['TINIT']]) / p_abs_from
+        normfactor_to = numerator * get_mixture_compressibility(net, p_abs_to, mass_fract, node_pit[to_nodes, net['_idx_node']['TINIT']]) / p_abs_to
+        normfactor_mean = numerator * get_mixture_compressibility(net, p_abs_mean, mass_fract, branch_pit[:, net['_idx_branch']['TINIT']]) / p_abs_mean
 
     v_gas_from = v_mps * normfactor_from
     v_gas_to = v_mps * normfactor_to
@@ -114,8 +114,8 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
         w = get_lookup(net, 'branch', 'w')
         mass_fract = branch_pit[:, w]
 
-        comp_from = get_mixture_compressibility(net, p_abs_from, mass_fract, branch_pit[:, pit_cols[0]])
-        comp_to = get_mixture_compressibility(net, p_abs_to, mass_fract, branch_pit[:, pit_cols[0]])
+        comp_from = get_mixture_compressibility(net, p_abs_from, mass_fract,  node_pit[from_nodes, net['_idx_node']['TINIT']])
+        comp_to = get_mixture_compressibility(net, p_abs_to, mass_fract,  node_pit[to_nodes, net['_idx_node']['TINIT']])
         comp_mean = get_mixture_compressibility(net, p_abs_mean, mass_fract, branch_pit[:, pit_cols[0]])
 
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \

@@ -9,10 +9,10 @@ from pandapipes.plotting import simple_plot
 net = pp.create_empty_network("net", "methane")
 
 # create junction
-j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 1")
-j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 2")
-j3 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 3")
-j4 = pp.create_junction(net, pn_bar=1.05, tfluid_k=293.15, name="Junction 4")
+j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 1")
+j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 2")
+j3 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 3")
+j4 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 4")
 
 # create junction elements
 ext_grid = pp.create_ext_grid(net, fluid="methane", junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
