@@ -150,8 +150,8 @@ class Pump(BranchWZeroLengthComponent):
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
             res_table = net["res_" + cls.table_name()]
             if net.fluid.is_gas:
-                p_from = branch_results["p_from"][f:t]
-                p_to = branch_results["p_to"][f:t]
+                p_from = net._pit["node"][f][PAMB] + branch_results["p_from"][f:t]
+                p_to = net._pit["node"][t][PAMB] + branch_results["p_to"][f:t]
                 from_nodes = branch_results["from_nodes"][f:t]
                 t0 = net["_pit"]["node"][from_nodes, TINIT_NODE]
                 mf_sum_int = branch_results["mf_from"][f:t]

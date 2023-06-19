@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[0.8.5] - 2023-06-19
+-------------------------------
+- [FIXED] consider ambient pressure in calculation of compression power for pumps/compressors
+
 [0.8.4] - 2023-02-02
 -------------------------------
 - [FIXED] added flow control to nxgraph
