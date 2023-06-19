@@ -4,6 +4,7 @@ Change Log
 [0.8.5] - 2023-06-19
 -------------------------------
 - [FIXED] consider ambient pressure in calculation of compression power for pumps/compressors
+- [ADDED] gas specific calculation of heat capacity ration kappa = cp/cv (for pumps/compressors)
 
 [0.8.4] - 2023-02-02
 -------------------------------

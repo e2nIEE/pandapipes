@@ -165,8 +165,9 @@ class Pump(BranchWZeroLengthComponent):
                                  ' defined')
                 else:
                     r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
-                    # 'kappa' heat capacity ratio:
-                    k = 1.4  # TODO: implement proper calculation of kappa
+                    cp = net.fluid.get_heat_capacity(t0)
+                    cv = cp - r_spec
+                    k = cp/cv  # 'kappa' heat capacity ratio:
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                     (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
                     res_table['compr_power_mw'].values[:] = \
