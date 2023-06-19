@@ -156,7 +156,7 @@ class Pump(BranchWZeroLengthComponent):
                 t0 = net["_pit"]["node"][from_nodes, TINIT_NODE]
                 mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
-                compr = get_fluid(net).get_property("compressibility", p_from)
+                compr = get_fluid(net).get_property("compressibility", p_from - net._pit["node"][f][PAMB])
                 try:
                     molar_mass = net.fluid.get_molar_mass()  # [g/mol]
                 except UserWarning:
