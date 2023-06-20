@@ -3,4 +3,4 @@
 # critical pressure [Bar]
 45.99
 # ascentric factor []
-0,011
+0.011
