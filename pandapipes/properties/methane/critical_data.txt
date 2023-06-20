@@ -1,6 +1,6 @@
 # critical temperature [K]
 190.56
-# critical pressure [Bar]
-45.99
+# critical pressure [Pa]
+4599000.0
 # ascentric factor []
 0.011

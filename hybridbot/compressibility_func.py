@@ -32,9 +32,9 @@ p_crit_h2 = 13e5
 # acentric factor - dimensionless
 acent_fact_h2 = -0.219
 
-T_crit = np.array([T_crit_meth, T_crit_h2])
-p_crit = np.array([p_crit_meth, p_crit_h2])
-acent_fact = np.array([acent_fact_meth, acent_fact_h2])
+T_crit2 = np.array([T_crit_meth, T_crit_h2])
+p_crit2 = np.array([p_crit_meth, p_crit_h2])
+acent_fact2 = np.array([acent_fact_meth, acent_fact_h2])
 
 # Zum Testen'
 #molar_fraction = np.array([0.6, 0.4])
@@ -70,16 +70,20 @@ def _calculate_A_B(a_p, a_T, a_mf,  a_p_crit, a_T_crit, a_acent_fact):
         summation_axis = 1
 
     m = 0.480 + 1.574 * a_acent_fact - 0.176 * a_acent_fact ** 2
+    #m = 0.480 + 1.574 * acent_fact2 - 0.176 * acent_fact2 ** 2
 
-    T_red = a_T / T_crit
-    p_red = a_p / p_crit
+    T_red = a_T / a_T_crit
+    #T_red = a_T / T_crit2
+    p_red = a_p / a_p_crit
 
     sqrt_alpha = (1 + m * (1 - T_red ** 0.5))
 
     sum_a = (a_mf * a_T_crit * sqrt_alpha / a_p_crit ** 0.5).sum(axis=summation_axis) ** 2
+    #sum_a = (a_mf * T_crit2 * sqrt_alpha / p_crit2 ** 0.5).sum(axis=summation_axis) ** 2
     A_mixture = factor_a * sum_a
 
     sum_b = (a_mf * a_T_crit / a_p_crit).sum(axis=summation_axis)
+    #sum_b = (a_mf * T_crit2 / p_crit2).sum(axis=summation_axis)
     B_mixture = factor_b * sum_b
 
     return A_mixture, B_mixture

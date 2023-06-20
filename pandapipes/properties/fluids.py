@@ -761,10 +761,9 @@ def get_mixture_heat_capacity(net, temperature, mass_fraction):
 def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
     compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
 
-    # todo: add and complete critical data for all fluids
     critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
 
-
+    #todo: add source of critical data
     # todo: compare calculate_mixture_compressibility(compressibility_list, mass_fraction.T) format with return value of calculate_mixture_compressibility_draft, Khalil
 
 
