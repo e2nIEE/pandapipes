@@ -85,27 +85,33 @@ def _calculate_A_B(a_p, a_T, a_mf,  a_p_crit, a_T_crit, a_acent_fact):
     return A_mixture, B_mixture
 
 
-def _func_of_Z(Z, a_p, a_T, a_mf):
+def _func_of_Z(Z, a_p, a_T, a_mf, critical_data):
+    p_crit = np.array([item[1] for item in critical_data])
+    T_crit = np.array([item[0] for item in critical_data])
+    acent_fact = np.array([item[2] for item in critical_data])
     A_mixture, B_mixture = _calculate_A_B(a_p, a_T, a_mf, p_crit, T_crit, acent_fact)
     return Z ** 3 - Z ** 2 + Z *(A_mixture - B_mixture - B_mixture ** 2) - A_mixture * B_mixture
 
 
-def _der_func_of_Z(Z, a_p, a_T, a_mf):
+def _der_func_of_Z(Z, a_p, a_T, a_mf, critical_data):
+    p_crit = np.array([item[1] for item in critical_data])
+    T_crit = np.array([item[0] for item in critical_data])
+    acent_fact = np.array([item[2] for item in critical_data])
     A_mixture, B_mixture = _calculate_A_B(a_p, a_T,a_mf, p_crit, T_crit, acent_fact)
     return  3 * Z **2 - 2 * Z + (A_mixture - B_mixture - B_mixture **2)
 
 
-def calculate_mixture_compressibility_draft(a_mf, a_p, a_T):
-
+def calculate_mixture_compressibility_draft(a_mf, a_p, a_T, critical_data):
+    critical_data_list = [item[0] for item in critical_data]
     nbr_node = np.shape(a_mf)[0]
     #Todo: if function ?
     start_value = 0.9
     start_value = np.array([list([start_value]) * nbr_node])[0]
 
-    res_comp = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(a_p, a_T, a_mf))
-    res_comp_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, a_mf))
+    res_comp = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(a_p, a_T, a_mf, critical_data_list))
+    res_comp_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, a_mf, critical_data_list))
     res_comp / res_comp_norm
     return res_comp, res_comp_norm
 
 
-compr_mixture, compr_mixture_norm = calculate_mixture_compressibility_draft(molar_fraction, p, T)
+#compr_mixture, compr_mixture_norm = calculate_mixture_compressibility_draft(molar_fraction, p, T, critical_data)

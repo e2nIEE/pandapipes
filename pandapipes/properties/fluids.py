@@ -763,14 +763,14 @@ def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
 
     # todo: add and complete critical data for all fluids
     critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
-    # todo: give critical data as an argument to calc_mixture or net and get in the function
+
 
     # todo: compare calculate_mixture_compressibility(compressibility_list, mass_fraction.T) format with return value of calculate_mixture_compressibility_draft, Khalil
 
 
     molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
     molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
-    compressibility_list_new, compressibility_list_new_norm = compressibility_func.calculate_mixture_compressibility_draft(molar_fraction.T, pressure, temperature)
+    compressibility_list_new, compressibility_list_new_norm = compressibility_func.calculate_mixture_compressibility_draft(molar_fraction.T, pressure, temperature, critical_data_list)
     return calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
 
 def get_mixture_der_cmpressibility(net, pressure, mass_fraction):
