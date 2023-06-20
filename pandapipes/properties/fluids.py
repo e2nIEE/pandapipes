@@ -158,9 +158,9 @@ class Fluid(JSONSerializableClass):
 
     def get_critical_data(self):
         """
-        This function returns the molar mass.
+        This function returns the critical data: critical temperature, critical pressure, ascentric factor.
 
-        :return: molar mass
+        :return: critical_data
 
         """
 
@@ -194,8 +194,7 @@ class Fluid(JSONSerializableClass):
     def get_higher_heating_value(self):
         return self.get_property("hhv")
 
-    def get_critical_data(self):
-        return self.get_property("critical_data")
+
 
 
 class FluidProperty(JSONSerializableClass):
