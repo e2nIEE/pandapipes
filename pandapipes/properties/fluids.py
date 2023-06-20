@@ -156,6 +156,16 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("molar_mass")
 
+    def get_critical_data(self):
+        """
+        This function returns the molar mass.
+
+        :return: molar mass
+
+        """
+
+        return self.get_property("critical_data")
+
     def get_compressibility(self, p_bar):
         """
         This function returns the compressibility at a certain pressure.
@@ -384,7 +394,11 @@ class FluidPropertyConstant(FluidProperty):
         :return:
         :rtype:
         """
-        value = np.loadtxt(path).item()
+        #if query for critical data cause more than one item is read
+        if "critical" in path:
+            value = np.loadtxt(path)
+        else:
+            value = np.loadtxt(path).item()
         return cls(value)
 
     @classmethod
@@ -654,6 +668,7 @@ def call_lib(fluid_name):
     molar_mass = constant_property("molar_mass")
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
+    crit = constant_property("critical_data")
 
     if (phase == 'gas'):
         lhv = constant_property("lower_heating_value")
@@ -661,7 +676,7 @@ def call_lib(fluid_name):
 
         return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass,
-                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
+                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv, critical_data=crit)
     else:
         return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
@@ -747,10 +762,10 @@ def get_mixture_heat_capacity(net, temperature, mass_fraction):
 def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
     compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
 
-    # todo: get critical pressure and temperature and acentric factors for the fluid, similar to previous line, Khalil
+    # todo: add and complete critical data for all fluids
+    critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
+    # todo: give critical data as an argument to calc_mixture or net and get in the function
 
-    # todo: pass temperature in all relevant components, junction component already done, Erik
-    # ToDo: what are comp from and to and mean for and can they be calulated with branch pit temperatures? - At the moment temperature is assumed to have the same value in the whole grid for gas
     # todo: compare calculate_mixture_compressibility(compressibility_list, mass_fraction.T) format with return value of calculate_mixture_compressibility_draft, Khalil
 
 
