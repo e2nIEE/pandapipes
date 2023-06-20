@@ -1,3 +1,4 @@
+#Verein deutscher Ingenieure VDI e.V., ed. (2019), VDI-Wärmeatlas , Springer , Berlin Heidelberg
 # critical temperature [K]
 201.4
 # critical pressure [Bar]
