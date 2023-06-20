@@ -6,8 +6,8 @@ from pandapipes.networks.simple_gas_networks import gas_3parallel, gas_meshed_de
 from pandapipes.plotting import simple_plot
 #from pandapipes.plotting.plotly.simple_plotly import simple_plotly
 
-net = pp.create_empty_network("net", "methane")
-
+net = pp.create_empty_network("net")
+#net = pp.create_empty_network("net", "methane")
 # create junction
 j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 1")
 j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 2")
