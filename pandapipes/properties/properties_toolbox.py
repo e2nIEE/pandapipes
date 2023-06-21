@@ -185,8 +185,9 @@ def calculate_molar_fraction_from_mass_fraction(component_mass_proportions, comp
         com_array = np.empty([shape[0], shape[1], 4], dtype=np.float64)
         com_array[:, :, 0] = component_mass_proportions
         com_array[:, :, 1] = np.reshape(component_molar_mass.repeat(shape[1]), shape)
-        com_array[:, :, 2] = com_array[:, :, 0] / com_array[:, :, 1]
-        com_array[:, :, 3] = com_array[:, :, 2] / com_array[:, :, 2].sum()
+        com_array[:, :, 2] = com_array[:, :, 0] / com_array[:, :, 1] # molar fraction of each component divided by its
+        # respective molar mass
+        com_array[:, :, 3] = com_array[:, :, 2] / com_array[:, :, 2].sum(axis=0)
         res = com_array[:, :, 3]
     return res
 
