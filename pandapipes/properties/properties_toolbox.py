@@ -174,6 +174,8 @@ def calculate_molar_fraction_from_mass_fraction(component_mass_proportions, comp
     :rtype:
     """
     shape = np.shape(component_mass_proportions)
+
+    # todo: check the one-fluid case
     if len(shape) == 1:
         com_array = np.empty([len(component_mass_proportions), 4], dtype=np.float64)
         com_array[:, 0] = component_mass_proportions
