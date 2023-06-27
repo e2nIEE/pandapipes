@@ -16,9 +16,9 @@ j3 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 3")
 j4 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 4")
 
 # create junction elements
-ext_grid = pp.create_ext_grid(net, fluid="methane", junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
+ext_grid = pp.create_ext_grid(net, fluid="hgas", junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
 sink = pp.create_sink(net, junction=j3, mdot_kg_per_s=0.045, name="Sink")
-source = pp.create_source(net, junction=j4, mdot_kg_per_s=0.005, name="Source", fluid="hydrogen")
+source = pp.create_source(net, junction=j4, mdot_kg_per_s=0.01, name="Source", fluid="lgas")
 # create branch element
 pipe = pp.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=0.1, diameter_m=0.05,
                                       name="Pipe 1")

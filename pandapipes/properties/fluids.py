@@ -764,6 +764,7 @@ def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
     critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
 
     # todo: final test compare with SRK for different compositions - Khalil
+    # todo: check if and correct input pressure to absolute pressure instead of operating pressure
 
     molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
     molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
