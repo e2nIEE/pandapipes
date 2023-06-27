@@ -763,7 +763,6 @@ def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
 
     critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
 
-    # todo: add source of critical data - Erik
     # todo: final test compare with SRK for different compositions - Khalil
 
     molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]

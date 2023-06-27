@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import newton
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, P_CONVERSION
 
-p_n = NORMAL_PRESSURE * P_CONVERSION
+p_n = NORMAL_PRESSURE
 T_n = NORMAL_TEMPERATURE
 
 
@@ -41,10 +41,10 @@ def _calculate_A_B(_p, _T, _mf,  _p_crit, _T_crit, _acent_fact):
 
     sqrt_alpha = (1 + m * (1 - T_red ** 0.5))
 
-    sum_a = (_mf * _T_crit * sqrt_alpha / _p_in_pa ** 0.5).sum(axis=summation_axis) ** 2
+    sum_a = (_mf * _T_crit * sqrt_alpha / _p_crit_in_pa ** 0.5).sum(axis=summation_axis) ** 2
     A_mixture = factor_a * sum_a
 
-    sum_b = (_mf * _T_crit / _p_in_pa).sum(axis=summation_axis)
+    sum_b = (_mf * _T_crit / _p_crit_in_pa).sum(axis=summation_axis)
     B_mixture = factor_b * sum_b
 
     return A_mixture, B_mixture
