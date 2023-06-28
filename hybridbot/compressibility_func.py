@@ -8,13 +8,24 @@ T_n = NORMAL_TEMPERATURE
 
 def _calculate_A_B(_p, _T, _mf,  _p_crit, _T_crit, _acent_fact):
     """
-    calculate initially for one node:
-
-    _mf: molar fractions : (n * f)-d_array. n : number of nodes, f number of fluids.
-    p_crit : 1d-array
-    T_crit : 1d-array
-    _acent_fact : 1d-array
+    Calculates the A-mixture and B-mixture of the Redlich-Kwong equation
+    :param _p: pressure
+    :type _p: array
+    :param _T: temperature
+    :type _T: array
+    :param _mf: molar fractions of the gases
+    :type _mf: array
+    :param _p_crit: critical pressure of the gases
+    :type _p_crit: array
+    :param _T_crit: critical temperature of the gases
+    :type _T_crit: array
+    :param _acent_fact: acentric factor of the gases
+    :type _acent_fact: array
+    :return: A-mixture and B-mixture
+    :rtype: array
     """
+
+
 
     summation_axis = 0
 
@@ -51,7 +62,21 @@ def _calculate_A_B(_p, _T, _mf,  _p_crit, _T_crit, _acent_fact):
 
 
 def _func_of_Z(Z, _p, _T, _mf, critical_data):
-
+    """
+    Extracts the critical data, calls calculate_A_B and returns the Redlich-Kwong equation
+    :param Z:
+    :type Z:
+    :param _p:
+    :type _p:
+    :param _T:
+    :type _T:
+    :param _mf:
+    :type _mf:
+    :param critical_data:
+    :type critical_data:
+    :return:
+    :rtype:
+    """
     p_crit = np.array([item[1] for item in critical_data])
     T_crit = np.array([item[0] for item in critical_data])
     acent_fact = np.array([item[2] for item in critical_data])
@@ -61,7 +86,21 @@ def _func_of_Z(Z, _p, _T, _mf, critical_data):
 
 
 def _der_func_of_Z(Z, _p, _T, _mf, critical_data):
+    """
 
+    :param Z:
+    :type Z:
+    :param _p:
+    :type _p:
+    :param _T:
+    :type _T:
+    :param _mf:
+    :type _mf:
+    :param critical_data:
+    :type critical_data:
+    :return:
+    :rtype:
+    """
     p_crit = np.array([item[1] for item in critical_data])
     T_crit = np.array([item[0] for item in critical_data])
     acent_fact = np.array([item[2] for item in critical_data])
@@ -71,6 +110,19 @@ def _der_func_of_Z(Z, _p, _T, _mf, critical_data):
 
 
 def calculate_mixture_compressibility_draft(_mf, _p, _T, critical_data):
+    """
+
+    :param _mf:
+    :type _mf:
+    :param _p:
+    :type _p:
+    :param _T:
+    :type _T:
+    :param critical_data:
+    :type critical_data:
+    :return:
+    :rtype:
+    """
     critical_data_list = [item[0] for item in critical_data]
     nbr_node = np.shape(_mf)[0]
     #Todo: if function ?
