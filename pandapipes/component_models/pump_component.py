@@ -86,7 +86,7 @@ class Pump(BranchWZeroLengthComponent):
             else:
                 w = get_lookup(net, 'branch', 'w')
                 mass_fraction = pump_pit[:, w]
-                normfactor_from = numerator * get_mixture_compressibility(net, p_from, mass_fraction, node_pit[from_nodes, net['_idx_node']['PINIT']]) \
+                normfactor_from = numerator * get_mixture_compressibility(net, p_from, mass_fraction, node_pit[from_nodes, net['_idx_node']['TINIT']]) \
                                   / (p_from * NORMAL_TEMPERATURE)
             v_mean = v_mps * normfactor_from
         else:
@@ -174,7 +174,7 @@ class Pump(BranchWZeroLengthComponent):
                     node_pit = net["_active_pit"]["node"]
                     w = get_lookup(net, 'node', 'w')
                     mass_fraction = node_pit[:, w]
-                    compr = get_mixture_compressibility(net, p_from, mass_fraction, node_pit[from_nodes, net['_idx_node']['PINIT']])
+                    compr = get_mixture_compressibility(net, p_from, mass_fraction, node_pit[from_nodes, net['_idx_node']['TINIT']])
                     try:
                         molar_mass = get_mixture_molar_mass(net, mass_fraction)  # [g/mol]
                     except UserWarning:
