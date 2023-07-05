@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -16,6 +16,13 @@ from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, LOSS_COEFFICIENT
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+
+try:
+    import pandaplan.core.pplog as logging
+except ImportError:
+    import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Pump(BranchWZeroLengthComponent):
@@ -82,25 +89,26 @@ class Pump(BranchWZeroLengthComponent):
         else:
             v_mean = v_mps
         vol = v_mean * area
-        fcts = itemgetter(*std_types)(net['std_types']['pump'])
-        fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-        pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
-        pump_pit[:, PL] = pl
+        if len(std_types):
+            fcts = itemgetter(*std_types)(net['std_types']['pump'])
+            fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+            pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
+            pump_pit[:, PL] = pl
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pump_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param pump_pit:
-        :type pump_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
         :rtype:
         """
-        pump_pit[:, TL] = 0
+        branch_component_pit[:, TL] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
@@ -149,13 +157,20 @@ class Pump(BranchWZeroLengthComponent):
                 mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
                 compr = get_fluid(net).get_property("compressibility", p_from)
-                molar_mass = net.fluid.get_molar_mass()  # [g/mol]
-                r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
-                # 'kappa' heat capacity ratio:
-                k = 1.4  # TODO: implement proper calculation of kappa
-                w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
-                                (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-                res_table['compr_power_mw'].values[:] = w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
+                try:
+                    molar_mass = net.fluid.get_molar_mass()  # [g/mol]
+                except UserWarning:
+                    logger.error('Molar mass is missing in your fluid. Before you are able to '
+                                 'retrieve the compression power make sure that the molar mass is'
+                                 ' defined')
+                else:
+                    r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
+                    # 'kappa' heat capacity ratio:
+                    k = 1.4  # TODO: implement proper calculation of kappa
+                    w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
+                                    (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
+                    res_table['compr_power_mw'].values[:] = \
+                        w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
             else:
                 vf_sum_int = branch_results["vf"][f:t]
                 pl = branch_results["pl"][f:t]

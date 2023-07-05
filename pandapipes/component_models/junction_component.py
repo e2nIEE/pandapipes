@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -112,7 +112,7 @@ class Junction(NodeComponent):
         junctions_active = get_lookup(net, "node", "active")[f:t]
 
         if np.any(junction_pit[:, PINIT] < 0):
-            warn(UserWarning('Pipeflow converged, however, the results are phyisically incorrect '
+            warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
                              'as pressure is negative at nodes %s'
                              % junction_pit[junction_pit[:, PINIT] < 0, ELEMENT_IDX]))
 

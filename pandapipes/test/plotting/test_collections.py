@@ -1,15 +1,18 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import copy
 
 import numpy as np
-import pandapipes
-import pandapipes.plotting as plot
 import pytest
 from matplotlib.collections import PatchCollection, LineCollection
-from pandapipes.test.test_toolbox import net_plotting
+
+import pandapipes
+import pandapipes.plotting as plot
+from pandapipes.converter.stanet.valve_pipe_component.create_valve_pipe import create_valve_pipe_from_parameters
+from pandapipes.converter.stanet.valve_pipe_component.valve_pipe_plotting import create_valve_pipe_collection
+from pandapipes.test.test_toolbox import base_net_is_with_pumps
 
 
 def test_collection_lengths():
@@ -25,6 +28,8 @@ def test_collection_lengths():
     j7 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(8, 0))
     j8 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(10, 0))
     j9 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(12, 0))
+    j10 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(14, 0))
+    j11 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(14, -2))
 
     pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=293.15)
     pandapipes.create_sink(net, j5, mdot_kg_per_s=0.5)
@@ -45,6 +50,8 @@ def test_collection_lengths():
     pandapipes.create_heat_exchanger(net, j6, j7, d, qext_w=20000)
     pandapipes.create_pump_from_parameters(net, j7, j8, 'P1')
     pandapipes.create_pressure_control(net, j8, j9, j9, 10.)
+    pandapipes.create_flow_control(net, j9, j10, 0.5, 0.1)
+    pandapipes.create_flow_control(net, j9, j11, 0.5, 0.1, control_active=False)
 
     pipe_coll_direct = plot.create_pipe_collection(net, use_junction_geodata=True)
     pipe_coll_real = plot.create_pipe_collection(net)
@@ -76,10 +83,13 @@ def test_collection_lengths():
     assert len(pc_coll_patches.get_paths()) == len(net.press_control)
     assert len(pc_coll_lines.get_paths()) == 4 * len(net.press_control)
 
+    fc_coll_patches, fc_coll_lines = plot.create_flow_control_collection(net)
+    assert len(fc_coll_patches.get_paths()) == 3 * len(net.flow_control)
+    assert len(fc_coll_lines.get_paths()) == 2 * len(net.flow_control)
 
 
-def test_collections2(net_plotting):
-    net = copy.deepcopy(net_plotting)
+def test_collections2(base_net_is_with_pumps):
+    net = copy.deepcopy(base_net_is_with_pumps)
 
     pipe_coll_direct = plot.create_pipe_collection(net, use_junction_geodata=True)
     pipe_coll_real = plot.create_pipe_collection(net)
@@ -154,6 +164,24 @@ def test_collections2(net_plotting):
     assert pu2 is None
     pc2 = plot.create_pressure_control_collection(net, [])
     assert pc2 is None
+
+
+def test_collection_valve_pipe():
+    net = pandapipes.create_empty_network(add_stdtypes=False)
+    d = 40e-3
+
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(0, 0))
+    j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(2, 0))
+
+    create_valve_pipe_from_parameters(net, j1, j2, 0.1, diameter_m=d, opened=True, loss_coefficient=5e3)
+
+    vp_coll_patches, vp_coll_lines = create_valve_pipe_collection(net)
+
+    assert len(vp_coll_patches.get_paths()) == 2 * len(net.valve_pipe)
+    assert len(vp_coll_lines.get_paths()) == 2 * len(net.valve_pipe)
+
+    vp2 = create_valve_pipe_collection(net, [])
+    assert vp2 is None
 
 
 if __name__ == '__main__':

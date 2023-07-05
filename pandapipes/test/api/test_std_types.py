@@ -1,12 +1,12 @@
-# Copyright (c) 2020-2021 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-import pandapipes.networks as nw
 import pytest
 
 import pandapipes
+
 
 # "std_type";"nominal_width_mm";"outer_diameter_mm";"inner_diameter_mm";"standard_dimension_ratio";"material"
 # 80_GGG;80;98.0;86.0;16.33;GGG

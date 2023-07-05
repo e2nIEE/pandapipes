@@ -1,24 +1,18 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.constants import NORMAL_PRESSURE, GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, \
-    P_CONVERSION
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, TINIT, AREA, K, RHO, ETA, \
-    VINIT, RE, LAMBDA, LOAD_VEC_NODES, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, branch_cols, \
-    T_OUT, CP, VINIT_T, FROM_NODE_T, PL, TL, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, JAC_DERIV_DV, \
-    JAC_DERIV_DV_NODE, LOAD_VEC_BRANCHES, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T
-from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB
-from pandapipes.pf.derivative_calculation import calc_lambda, calc_der_lambda
+from pandapipes.idx_branch import LENGTH, D, AREA, RHO, VINIT, ALPHA, QEXT, TEXT, branch_cols, \
+    T_OUT, CP, VINIT_T, FROM_NODE_T, TL, \
+    JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T
+from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
-from pandapipes.properties.fluids import get_fluid
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -93,8 +87,9 @@ class BranchComponent(Component):
 
         junction_idx_lookup = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
-        from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
-        to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
+        fn_col, tn_col = cls.from_to_node_cols()
+        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+        to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
         branch_component_pit[:, VINIT] = 0.1
         return branch_component_pit, node_pit, from_nodes, to_nodes
@@ -142,20 +137,20 @@ class BranchComponent(Component):
 
         branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
         branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] \
-            * t_init_i1
+                                                    * t_init_i1
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
     @classmethod
-    def calculate_temperature_lift(cls, net, branch_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param branch_pit:
-        :type branch_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:

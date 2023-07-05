@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,15 +6,9 @@ import numpy as np
 import logging
 try:
     from numba import jit
-    from numba import int32, float64, int64
-    from numba.core.types.scalars import Integer
-    from numba.core.types.containers import Tuple
-    from numba import typeof
     numba_installed = True
 except ImportError:
     from pandapower.pf.no_numba import jit
-    from numpy import int32, float64, int64, int as Integer
-    from builtins import tuple as Tuple
     numba_installed = False
 
 
@@ -105,7 +99,7 @@ def _sum_by_group(use_numba, indices, *values):
     ind_dt = indices.dtype
     indices = indices.astype(np.int32)
     max_ind = max_nb(indices)
-    if max_ind < 1e5 and max_ind < 10 * len(indices):
+    if (max_ind < 1e5 or max_ind < 2 * len(indices)) and max_ind < 10 * len(indices):
         dtypes = [v.dtype for v in values]
         val_arr = np.array(list(values), dtype=np.float64).transpose()
         new_ind, new_arr = _sum_values_by_index(indices, val_arr, max_ind, len(indices),
@@ -143,7 +137,7 @@ def select_from_pit(table_index_array, input_array, data):
     return data[indices]
 
 
-@jit((int32[:], float64[:, :], int32, int64, int64), nopython=True)
+@jit(nopython=True)
 def _sum_values_by_index(indices, value_arr, max_ind, le, n_vals):
     ind1 = indices + 1
     new_indices = np.zeros(max_ind + 2, dtype=np.int32)
@@ -157,6 +151,6 @@ def _sum_values_by_index(indices, value_arr, max_ind, le, n_vals):
     return new_indices, summed_values
 
 
-@jit(int64(int32[:]), nopython=True)
+@jit(nopython=True)
 def max_nb(arr):
     return np.max(arr)

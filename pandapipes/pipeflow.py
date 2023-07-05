@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -19,7 +19,7 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_ne
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -54,7 +54,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     :return: No output
 
     :Example:
-        >>> pipeflow(net, mode="hydraulic")
+        >>> pipeflow(net, mode="hydraulics")
 
     """
     local_params = dict(locals())
@@ -83,8 +83,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         nodes_connected, branches_connected = check_connectivity(
             net, branch_pit, node_pit, check_heat=calculate_heat)
     else:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
+        nodes_connected = node_pit[:, ACTIVE_ND].astype(bool)
+        branches_connected = branch_pit[:, ACTIVE_BR].astype(bool)
 
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 

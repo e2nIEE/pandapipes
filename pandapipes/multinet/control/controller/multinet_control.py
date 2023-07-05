@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -88,11 +88,14 @@ class P2GControlMultiEnergy(Controller):
 
     def control_step(self, multinet):
         try:
-            power_load = multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'p_mw'] \
-                         * multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'scaling']
+            power_load = \
+                multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'p_mw'] \
+                * multinet['nets'][self.name_net_power].load.at[self.elm_idx_power, 'scaling']
         except (ValueError, TypeError, InvalidIndexError):
-            power_load = multinet['nets'][self.name_net_power].load.loc[self.elm_idx_power, 'p_mw'].values \
-                         * multinet['nets'][self.name_net_power].load.loc[self.elm_idx_power, 'scaling'].values
+            power_load = \
+                multinet['nets'][self.name_net_power].load.loc[self.elm_idx_power, 'p_mw'].values \
+                * multinet['nets'][self.name_net_power].load.loc[self.elm_idx_power,
+                                                                 'scaling'].values
         self.mdot_kg_per_s = power_load * self.conversion_factor_mw_to_kgps() * self.efficiency
         self.write_to_net(multinet)
         self.applied = True
@@ -151,7 +154,8 @@ class G2PControlMultiEnergy(Controller):
     :type name_power_net: str
     :param name_gas_net: Key name to find the gas net in multinet['nets']
     :type name_gas_net: str
-    :param element_type_power: type of the corresponding power generation units, either 'sgen' or 'gen'
+    :param element_type_power: type of the corresponding power generation units, either 'sgen' or \
+        'gen'
     :type element_type_power: str
     :param in_service: Indicates if the controllers are currently in_service
     :type in_service: bool
@@ -168,9 +172,10 @@ class G2PControlMultiEnergy(Controller):
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
     :type initial_run: bool
-    :param calc_gas_from_power: (default: False) If False, the power output will be calculated on the
-                                basis of the sink's gas consumption. If True, the gas consumption
-                                will be calculated on the basis of the generator's power output.
+    :param calc_gas_from_power: (default: False) If False, the power output will be calculated on
+                                the basis of the sink's gas consumption. If True, the gas
+                                consumption will be calculated on the basis of the generator's power
+                                output.
     :type calc_gas_from_power: bool
     :param kwargs: optional additional controller arguments that were implemented by users
     :type kwargs: any
@@ -223,14 +228,15 @@ class G2PControlMultiEnergy(Controller):
 
         else:
             try:
-                gas_sink = multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'mdot_kg_per_s'] \
-                           *multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'scaling']
+                gas_sink = \
+                    multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'mdot_kg_per_s'] \
+                    * multinet['nets'][self.name_net_gas].sink.at[self.elm_idx_gas, 'scaling']
 
             except (ValueError, TypeError, InvalidIndexError):
                 gas_sink = multinet['nets'][self.name_net_gas].sink.loc[self.elm_idx_gas,
                                                                         'mdot_kg_per_s'].values[:] \
                            * multinet['nets'][self.name_net_gas].sink.loc[self.elm_idx_gas,
-                                                                                'scaling'].values[:]
+                                                                          'scaling'].values[:]
 
             self.power_gen = gas_sink * self.conversion_factor_kgps_to_mw() * self.efficiency
 
@@ -282,8 +288,8 @@ class GasToGasConversion(Controller):
     :param element_index_from: Index of one or more sink elements in the name_gas_net_from from \
                                which the gas consumption will be read
     :type element_index_from: int or iterable of integers
-    :param element_index_to: Index of one or more source elements in the name_gas_net_to to which the \
-                             calculated mass flow will be written
+    :param element_index_to: Index of one or more source elements in the name_gas_net_to to which \
+                             the calculated mass flow will be written
     :type element_index_to: int or iterable of integers
     :param efficiency: constant efficiency factor (default: based on HHV)
     :type efficiency: float
@@ -327,8 +333,10 @@ class GasToGasConversion(Controller):
         self.name_net_from = name_gas_net_from
         self.name_net_to = name_gas_net_to
         self.efficiency = efficiency
-        self.gas1_calorific_value = get_fluid(multinet['nets'][name_gas_net_from]).get_property('hhv')
-        self.gas2_calorific_value = get_fluid(multinet['nets'][name_gas_net_to]).get_property('hhv')
+        self.gas1_calorific_value = get_fluid(
+            multinet['nets'][name_gas_net_from]).get_property('hhv')
+        self.gas2_calorific_value = get_fluid(
+            multinet['nets'][name_gas_net_to]).get_property('hhv')
         self.applied = False
 
     def initialize_control(self, multinet):
@@ -339,12 +347,16 @@ class GasToGasConversion(Controller):
 
     def control_step(self, multinet):
         try:
-            gas_in = multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'mdot_kg_per_s'] \
-                     * multinet['nets'][self.name_net_from].sink.at[self.element_index_from, 'scaling']
+            gas_in = multinet['nets'][self.name_net_from].sink.at[self.element_index_from,
+                                                                  'mdot_kg_per_s'] \
+                     * multinet['nets'][self.name_net_from].sink.at[self.element_index_from,
+                                                                    'scaling']
 
         except (ValueError, TypeError, InvalidIndexError):
-            gas_in = multinet['nets'][self.name_net_from].sink.loc[self.element_index_from, 'mdot_kg_per_s'].values \
-                     * multinet['nets'][self.name_net_from].sink.loc[self.element_index_from, 'scaling'].values
+            gas_in = multinet['nets'][self.name_net_from].sink.loc[self.element_index_from,
+                                                                   'mdot_kg_per_s'].values \
+                     * multinet['nets'][self.name_net_from].sink.loc[self.element_index_from,
+                                                                     'scaling'].values
 
         self.mdot_kg_per_s_out = gas_in * self.conversion_factor_gas1_to_gas2() * self.efficiency
         self.write_to_net(multinet)
@@ -419,7 +431,8 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
     :type drop_same_existing_ctrl: bool
-    :param matching_params: is required to check if same controller already exists (dropping or logging)
+    :param matching_params: is required to check if same controller already exists (dropping or \
+        logging)
     :type matching_params: dict
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not
@@ -448,9 +461,10 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
 
 def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, g2p_efficiency=0.6,
                               name_power_net='power', name_gas_net='gas', element_type_power="sgen",
-                              profile_name=None, data_source=None, scale_factor=1.0, power_led=False,
-                              in_service=True, order=(0, 1), level=0, drop_same_existing_ctrl=False,
-                              matching_params=None, initial_run=False, **kwargs):
+                              profile_name=None, data_source=None, scale_factor=1.0,
+                              power_led=False, in_service=True, order=(0, 1), level=0,
+                              drop_same_existing_ctrl=False, matching_params=None,
+                              initial_run=False, **kwargs):
     """
     Creates a ConstController (gas consumption) and a G2P Controller (corresponding power output).
 
@@ -480,7 +494,8 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
     :type name_power_net: str
     :param name_gas_net: Key name to find the gas net in multinet['nets']
     :type name_gas_net: str
-    :param element_type_power: type of the corresponding power generation units, either 'sgen' or 'gen'
+    :param element_type_power: type of the corresponding power generation units, either 'sgen' or \
+        'gen'
     :type element_type_power: str
     :param profile_name: The profile names of the elements in the data source
     :type profile_name: str
@@ -501,7 +516,8 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
                                     with the same matching parameters (e.g. at same element) should
                                     be dropped
     :type drop_same_existing_ctrl: bool
-    :param matching_params: is required to check if same controller already exists (dropping or logging)
+    :param matching_params: is required to check if same controller already exists (dropping or \
+        logging)
     :type matching_params: dict
     :param initial_run: Whether a power and pipe flow should be run before the control step is
                         applied or not

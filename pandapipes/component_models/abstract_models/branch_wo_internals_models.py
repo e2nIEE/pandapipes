@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,7 @@ from pandapipes.pf.pipeflow_setup import add_table_lookup
 from pandapipes.properties.fluids import get_fluid
 
 try:
-    import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -96,7 +96,7 @@ class BranchWOInternalsComponent(BranchComponent):
         return branch_wo_internals_pit
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         raise NotImplementedError
 
     @classmethod

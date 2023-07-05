@@ -167,7 +167,7 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
     """
 
     # TODO: check if some formulas with constants can be shortened
-    v_corr = np.where(v == 0, 0.00001, v)
+    v_corr = np.where(np.abs(v) < 0.00001, 0.00001, v)
 
     if friction_model == "colebrook":
         b_term = 2.51 * eta / (rho * d * np.sqrt(lambda_pipe) * v_corr) + k / (3.71 * d)
