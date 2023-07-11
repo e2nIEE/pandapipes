@@ -128,11 +128,9 @@ def calculate_mixture_compressibility_draft(_mf, _p, _T, critical_data):
     #Todo: if function ?
     start_value = 0.9
     start_value = np.array([list([start_value]) * nbr_node])[0]
-    mf = np.array([[0.5,0.5],
-       [0.5,0.5],
-       [0.5,0.5]])
-    res_comp = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(_p, _T, mf, critical_data_list))
-    res_comp_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, mf, critical_data_list))
+
+    res_comp = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(_p, _T, _mf, critical_data_list))
+    res_comp_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, _mf, critical_data_list))
     res_comp / res_comp_norm
     return res_comp, res_comp_norm
 
