@@ -25,8 +25,6 @@ def _calculate_A_B(_p, _T, _mf,  _p_crit, _T_crit, _acent_fact):
     :rtype: array
     """
 
-
-
     summation_axis = 0
 
     _p_in_pa = P_CONVERSION * _p
@@ -106,10 +104,32 @@ def _der_func_of_Z(Z, _p, _T, _mf, critical_data):
     acent_fact = np.array([item[2] for item in critical_data])
 
     A_mixture, B_mixture = _calculate_A_B(_p, _T,_mf, p_crit, T_crit, acent_fact)
-    return  3 * Z **2 - 2 * Z + (A_mixture - B_mixture - B_mixture **2)
+    return 3 * Z **2 - 2 * Z + (A_mixture - B_mixture - B_mixture **2)
 
+def _second_der_func_of_Z(Z, _p, _T, _mf, critical_data):
+    """
 
-def calculate_mixture_compressibility_draft(_mf, _p, _T, critical_data):
+    :param Z:
+    :type Z:
+    :param _p:
+    :type _p:
+    :param _T:
+    :type _T:
+    :param _mf:
+    :type _mf:
+    :param critical_data:
+    :type critical_data:
+    :return:
+    :rtype:
+    """
+    p_crit = np.array([item[1] for item in critical_data])
+    T_crit = np.array([item[0] for item in critical_data])
+    acent_fact = np.array([item[2] for item in critical_data])
+
+    A_mixture, B_mixture = _calculate_A_B(_p, _T,_mf, p_crit, T_crit, acent_fact)
+    return 6 * Z - 2
+
+def calculate_mixture_compressibility_fact(_mf, _p, _T, critical_data):
     """
 
     :param _mf:
@@ -129,10 +149,33 @@ def calculate_mixture_compressibility_draft(_mf, _p, _T, critical_data):
     start_value = 0.9
     start_value = np.array([list([start_value]) * nbr_node])[0]
 
-    res_comp = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(_p, _T, _mf, critical_data_list))
-    res_comp_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, _mf, critical_data_list))
-    res_comp / res_comp_norm
-    return res_comp, res_comp_norm
+    comp_fact = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(_p, _T, _mf, critical_data_list))
+    comp_fact_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, _mf, critical_data_list))
+    return comp_fact, comp_fact_norm
 
+
+def calculate_der_mixture_compressibility_fact(_mf, _p, _T, critical_data):
+    """
+
+    :param _mf:
+    :type _mf:
+    :param _p:
+    :type _p:
+    :param _T:
+    :type _T:
+    :param critical_data:
+    :type critical_data:
+    :return:
+    :rtype:
+    """
+    critical_data_list = [item[0] for item in critical_data]
+    nbr_node = np.shape(_mf)[0]
+    #Todo: if function ?
+    start_value = 0.9
+    start_value = np.array([list([start_value]) * nbr_node])[0]
+
+    der_comp_fact = newton(_der_func_of_Z, start_value, fprime=_second_der_func_of_Z, args=(_p, _T, _mf, critical_data_list))
+    der_comp_fact_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, _mf, critical_data_list))
+    return der_comp_fact, der_comp_fact_norm
 
 #compr_mixture, compr_mixture_norm = calculate_mixture_compressibility_draft(molar_fraction, p, T, critical_data)

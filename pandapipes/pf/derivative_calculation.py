@@ -83,7 +83,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
             w = get_lookup(net, 'branch', 'w')
             mf = branch_pit[:, w]
             comp_fact = get_mixture_compressibility(net, p_m, mf, branch_pit[:, net['_idx_branch']['TINIT']])
-            der_comp_fact = get_mixture_der_cmpressibility(net, p_m, mf)
+            der_comp_fact = get_mixture_der_cmpressibility(net, p_m, mf, branch_pit[:, net['_idx_branch']['TINIT']])
             der_comp = der_comp_fact * der_p_m
             der_comp1 = der_comp_fact * der_p_m1
         # TODO: this might not be required
