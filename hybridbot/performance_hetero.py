@@ -4,39 +4,49 @@ import os
 from pandapipes import pp_dir
 import pandas as pd
 from jedi.plugins import pytest
-
+import numpy as np
 from pandapipes import pipeflow, from_json
 from pandapipes.networks.simple_gas_networks import gas_3parallel, gas_meshed_delta, schutterwald
 from pandapipes.plotting import simple_plot
+from pandapipes.properties.properties_toolbox import calculate_molar_fraction_from_mass_fraction
+from hybridbot.compressibility_func import calculate_mixture_compressibility_fact
 #from pandapipes.plotting.plotly.simple_plotly import simple_plotly
 
 
-##%
-# net = pp.create_empty_network("net")
-# #net = pp.create_empty_network("net", "methane")
-# # create junction
-# j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 1")
-# j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 2")
-# j3 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 3")
-# j4 = pp.create_junction(net, pn_bar=1.05, tfluid_k=280, name="Junction 4")
-#
-# # create junction elements
-# ext_grid = pp.create_ext_grid(net, fluid="hgas", junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
-# sink = pp.create_sink(net, junction=j3, mdot_kg_per_s=0.045, name="Sink")
-# source = pp.create_source(net, junction=j4, mdot_kg_per_s=0.01, name="Source", fluid="lgas")
-# # create branch element
-# pipe = pp.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=0.1, diameter_m=0.05,
-#                                       name="Pipe 1")
-# pipe1 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.1, diameter_m=0.05,
-#                                        name="Pipe 2")
-# pipe2 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=0.1, diameter_m=0.05,
-#                                        name="Pipe 3")
-#
-#
-# pipeflow(net)
-# simple_plot(net)
 
-##%
+net = pp.create_empty_network("net")
+# create junction
+j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=283.15, name="Junction 1")
+j2 = pp.create_junction(net, pn_bar=1.05, tfluid_k=283.15, name="Junction 2")
+j3 = pp.create_junction(net, pn_bar=1.05, tfluid_k=283.15, name="Junction 3")
+j4 = pp.create_junction(net, pn_bar=1.05, tfluid_k=283.15, name="Junction 4")
+# create junction elements
+ext_grid = pp.create_ext_grid(net, fluid="methane", junction=j1, p_bar=20, t_k=283.15, name="Grid Connection")
+sink = pp.create_sink(net, junction=j3, mdot_kg_per_s=0.045, name="Sink")
+source = pp.create_source(net, junction=j4, mdot_kg_per_s=0.01, name="Source", fluid="hydrogen")
+# create branch element
+pipe = pp.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=0.1, diameter_m=0.05,
+                                      name="Pipe 1")
+pipe1 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.1, diameter_m=0.05,
+                                       name="Pipe 2")
+pipe2 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=0.1, diameter_m=0.05,
+                                       name="Pipe 3")
+
+
+pipeflow(net)
+simple_plot(net)
+
+mass_fraction = net.res_junction[['w_hydrogen','w_methane']].values
+pressure = net.res_junction['p_bar']
+temperature = net.res_junction['t_k']
+
+critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
+molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
+molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
+compressibility_fact, compressibility_fact_norm = calculate_mixture_compressibility_fact(molar_fraction.T, pressure, temperature, critical_data_list)
+
+np.all(np.isclose(compressibility_fact,
+                             (0.95926, 1.00264,1.00263,1.01068), rtol=1.e-4, atol=1.e-4))
 # from pp import networks as nets_pps
 #
 # net = nets_pps.schutterwald()
@@ -44,30 +54,7 @@ from pandapipes.plotting import simple_plot
 # pp.pipeflow(net, iter=100)
 #
 
-##%
 
-a = 1
-net = pp.create_empty_network()
-j1 = pp.create_junction(net, 1, 273)
-j2 = pp.create_junction(net, 1, 273)
-j3 = pp.create_junction(net, 1, 273)
-j4 = pp.create_junction(net, 1, 273)
-pp.create_ext_grid(net, j1, 1, 273, 'hgas')
-pp.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
-pp.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
-pp.create_pipe_from_parameters(net, j2, j4, 1, 0.1, 0.1)
-pp.create_sink(net, j3, 0.01)
-pp.create_sink(net, j4, a * 0.02)
-pp.create_source(net, j3,  0.01, 'hgas')
-pp.create_source(net, j4,   0.01, 'hydrogen')
-# _ = simple_plotly(net)
-pp.pipeflow(net, iter=400, use_numba=True)
-# plot.create_junction_collection(net)
-# collection = plot.create_junction_collection(net, junctions=[3], patch_type="circle", size=0.1,
-#                                             color="orange", zorder=200)
-simple_collections = plot.create_simple_collections(net, as_dict=False)
-# coll_junction = create_node_collection
-# plot.simple_plot(net, plot_sinks=True, plot_sources=True)
 
 node_column_names = ['TABLE_IDX','ELEMENT_IDX',
                     'NODE_TYPE','ACTIVE',
@@ -121,7 +108,7 @@ def branch_pit_to_pd(arr):
 
 node_pit_df = node_pit_to_pd(net["_pit"]['node'])
 branch_pit_df = branch_pit_to_pd(net["_pit"]['branch'])
-##%
+
 
 # def p_mean(p_from, p_to):
 #     p_m = 2/3 * (p_from**3 - p_to**3) / (p_from**2 - p_to**2)

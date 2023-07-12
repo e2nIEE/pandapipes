@@ -13,6 +13,8 @@ from pandapipes.create import create_empty_network, create_junction, create_ext_
     create_pipe_from_parameters, create_valve
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 from pandapipes.properties.fluids import FluidPropertyConstant, Fluid, _add_fluid_to_net
+from pandapipes.properties.properties_toolbox import calculate_molar_fraction_from_mass_fraction
+from hybridbot.compressibility_func import calculate_mixture_compressibility_fact
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_one_node_net(use_numba):
@@ -566,6 +568,46 @@ def test_t_cross_mixture():
     pandapipes.create_source(net, j3, 0.02, 'lgas')
     pandapipes.create_source(net, j4, 0.03, 'hydrogen')
     pandapipes.pipeflow(net, iter=100, use_numba=False)
+
+
+def test_compressibility():
+    """
+    test to check the validity of the mixture compressibility factor calculation. The hard coded compressibility factor
+     values in the Assert statment are calculated using CoolProp for the corresponding pressures, temperatture and
+      molar fractions.
+
+    """
+    net = pp.create_empty_network("net")
+    # create junction
+    j1 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 1")
+    j2 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 2")
+    j3 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 3")
+    j4 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 4")
+    # create junction elements
+    ext_grid = pp.create_ext_grid(net, fluid="methane", junction=j1, p_bar=20, t_k=283.15, name="Grid Connection")
+    sink = pp.create_sink(net, junction=j3, mdot_kg_per_s=0.045, name="Sink")
+    source = pp.create_source(net, junction=j4, mdot_kg_per_s=0.01, name="Source", fluid="hydrogen")
+    # create branch element
+    pipe = pp.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=0.1, diameter_m=0.05,
+                      name="Pipe 1")
+    pipe1 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.1, diameter_m=0.05,
+                       name="Pipe 2")
+    pipe2 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=0.1, diameter_m=0.05,
+                       name="Pipe 3")
+    pp.pipeflow(net)
+
+    mass_fraction = net.res_junction[['w_hydrogen','w_methane']].values
+    pressure = net.res_junction['p_bar']
+    temperature = net.res_junction['t_k']
+
+    critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
+    molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
+    molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
+    compressibility_fact, compressibility_fact_norm = calculate_mixture_compressibility_fact(molar_fraction.T, pressure, temperature, critical_data_list)
+
+    assert np.all(np.isclose(compressibility_fact,
+                      (0.95926, 1.00264, 1.00263, 1.01068), rtol=1.e-4, atol=1.e-4))
+
 
 if __name__ == "__main__":
     pytest.main([r'pandapipes/test/api/test_special_networks.py'])
