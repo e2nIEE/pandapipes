@@ -83,8 +83,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         nodes_connected, branches_connected = check_connectivity(
             net, branch_pit, node_pit, check_heat=calculate_heat)
     else:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool)
+        nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool_)
+        branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool_)
 
     reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
 
