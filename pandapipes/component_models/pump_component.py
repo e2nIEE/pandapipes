@@ -148,11 +148,12 @@ class Pump(BranchWZeroLengthComponent):
 
         if calc_compr_pow:
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+            from_nodes = branch_results["from_nodes"][f:t]
+
             res_table = net["res_" + cls.table_name()]
             if net.fluid.is_gas:
-                p_from = net._pit["node"][f][PAMB] + branch_results["p_from"][f:t]
-                p_to = net._pit["node"][t][PAMB] + branch_results["p_to"][f:t]
-                from_nodes = branch_results["from_nodes"][f:t]
+                p_from = branch_results["p_abs_from"][f:t]
+                p_to = branch_results["p_abs_to"][f:t]
                 t0 = net["_pit"]["node"][from_nodes, TINIT_NODE]
                 mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
@@ -167,7 +168,7 @@ class Pump(BranchWZeroLengthComponent):
                     r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                     cp = net.fluid.get_heat_capacity(t0)
                     cv = cp - r_spec
-                    k = cp/cv  # 'kappa' heat capacity ratio:
+                    k = cp/cv  # 'kappa' heat capacity ratio
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                     (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
                     res_table['compr_power_mw'].values[:] = \
