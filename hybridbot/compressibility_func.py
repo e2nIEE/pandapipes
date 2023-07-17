@@ -175,7 +175,7 @@ def calculate_der_mixture_compressibility_fact(_mf, _p, _T, critical_data):
     start_value = np.array([list([start_value]) * nbr_node])[0]
 
     der_comp_fact = newton(_der_func_of_Z, start_value, fprime=_second_der_func_of_Z, args=(_p, _T, _mf, critical_data_list))
-    der_comp_fact_norm = newton(_func_of_Z, start_value, fprime=_der_func_of_Z, args=(p_n, T_n, _mf, critical_data_list))
+    der_comp_fact_norm = newton(_func_of_Z, start_value, fprime=_second_der_func_of_Z, args=(p_n, T_n, _mf, critical_data_list))
     return der_comp_fact, der_comp_fact_norm
 
 #compr_mixture, compr_mixture_norm = calculate_mixture_compressibility_draft(molar_fraction, p, T, critical_data)

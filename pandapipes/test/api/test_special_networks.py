@@ -577,24 +577,24 @@ def test_compressibility():
       molar fractions.
 
     """
-    net = pp.create_empty_network("net")
+    net = pandapipes.create_empty_network("net")
     # create junction
-    j1 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 1")
-    j2 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 2")
-    j3 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 3")
-    j4 = pp.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 4")
+    j1 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 1")
+    j2 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 2")
+    j3 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 3")
+    j4 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 4")
     # create junction elements
-    ext_grid = pp.create_ext_grid(net, fluid="methane", junction=j1, p_bar=20, t_k=283.15, name="Grid Connection")
-    sink = pp.create_sink(net, junction=j3, mdot_kg_per_s=0.045, name="Sink")
-    source = pp.create_source(net, junction=j4, mdot_kg_per_s=0.01, name="Source", fluid="hydrogen")
+    ext_grid = pandapipes.create_ext_grid(net, fluid="methane", junction=j1, p_bar=20, t_k=283.15, name="Grid Connection")
+    sink = pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.045, name="Sink")
+    source = pandapipes.create_source(net, junction=j4, mdot_kg_per_s=0.01, name="Source", fluid="hydrogen")
     # create branch element
-    pipe = pp.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=0.1, diameter_m=0.05,
+    pipe = pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=0.1, diameter_m=0.05,
                       name="Pipe 1")
-    pipe1 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.1, diameter_m=0.05,
+    pipe1 = pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.1, diameter_m=0.05,
                        name="Pipe 2")
-    pipe2 = pp.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=0.1, diameter_m=0.05,
+    pipe2 = pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=0.1, diameter_m=0.05,
                        name="Pipe 3")
-    pp.pipeflow(net)
+    pandapipes.pipeflow(net)
 
     mass_fraction = net.res_junction[['w_hydrogen','w_methane']].values
     pressure = net.res_junction['p_bar']
