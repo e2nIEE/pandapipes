@@ -1,3 +1,8 @@
+
+####### This file is not supposed to be included in the final PR #######
+####### This file is not supposed to be included in the final PR #######
+####### This file is not supposed to be included in the final PR #######
+
 ##%
 
 from pandapipes.plotting.plotly.simple_plotly import simple_plotly
@@ -18,7 +23,7 @@ from pandapipes.test.api.test_special_networks import simple_fluid, same_fluid_t
     test_four_fluids_grid_simple, \
     test_two_fluids_two_pipes_grid_simple
 
-#from pandapipes.hybridbot.plot_tool import annotated_plot
+#from pandapipes.tests_gas_mix.plot_tool import annotated_plot
 
 import pandapipes
 
@@ -44,22 +49,20 @@ test_two_node_net_with_two_different_fluids(use_numba=True)
 
 
 ##%
-if 0:
-    from pandapipes.test.api.test_special_networks import test_multiple_fluids_sink_source
+from pandapipes.test.api.test_special_networks import test_multiple_fluids_sink_source
 
-    test_multiple_fluids_sink_source(use_numba=True)
+test_multiple_fluids_sink_source(use_numba=True)
 
 ##%
-if 0:
-    # from pandapipes.test.api.test_special_networks import test_schutterwald_hydrogen
-    from pandapipes import networks as nets_pps
+# from pandapipes.test.api.test_special_networks import test_schutterwald_hydrogen
+from pandapipes import networks as nets_pps
 
-    def test_schutterwald_hydrogen():
-        net = nets_pps.schutterwald()
-        pandapipes.create_sources(net, [5, 168, 193], 6.6e-3, 'hydrogen')
-        pandapipes.pipeflow(net, iter=100)
+def test_schutterwald_hydrogen():
+    net = nets_pps.schutterwald()
+    pandapipes.create_sources(net, [5, 168, 193], 6.6e-3, 'hydrogen')
+    pandapipes.pipeflow(net, iter=100)
 
-    test_schutterwald_hydrogen()
+test_schutterwald_hydrogen()
 
 ##%
 # original test
@@ -140,9 +143,9 @@ def t_cross_mixture():
     pandapipes.create_source(net, j8, 0.03, 'hydrogen')
     pandapipes.pipeflow(net, iter=100, use_numba=False)
 
-test_t_cross_mixture()
+t_cross_mixture()
 
-##
+## converges but returns unreasonable results
 # case 4.a
 def test_t_cross_mixture():
     factor = 1
@@ -162,33 +165,4 @@ def test_t_cross_mixture():
     pandapipes.pipeflow(net, iter=100, use_numba=False)
     return net
 
-net = test_t_cross_mixture()
-
-##
-
-import matplotlib.pyplot as plt
-from pandapower.plotting.collections import create_annotation_collection, create_line_collection
-import numpy as np
-import pandapipes.plotting as plot
-
-def annotated_plot(net):
-    plt.figure()
-
-    f = 0.5
-    simple_collections = plot.create_simple_collections(net, pipe_width=f*1.8, junction_size=f*0.8, plot_sinks=True,
-                                                        plot_sources=True, sink_size=f, source_size=f, ext_grid_size=f*0.6,
-                                                        junction_color="r", pipe_color="k",linewidths=8.5,
-                                                        linestyle_pipes="solid", as_dict=False,zorder=10)
-    nc0 = plot.create_junction_collection(net, size=80,color="r", zorder=100, label='junction')
-    simple_collections.append(nc0)
-
-    coords = net.junction_geodata.values
-    jic = create_annotation_collection(size=350, texts=np.char.mod('%.0f', net.junction.index), coords=coords, zorder=200,
-                                       color='k')
-    simple_collections.append(jic)
-
-    axeddin = plot.draw_collections(simple_collections, figsize=(12, 12))
-    #ncc = plot.draw_collections(nc0, figsize=(12, 12))
-
-    plt.legend()
-    plt.show()
+test_t_cross_mixture()

@@ -8,12 +8,12 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 
-from hybridbot import compressibility_func
 
 from pandapipes import pp_dir
 from pandapipes.properties.properties_toolbox import calculate_mixture_density, calculate_mixture_viscosity, \
     calculate_mixture_molar_mass, calculate_molar_fraction_from_mass_fraction, calculate_mixture_heat_capacity, \
-    calculate_mixture_compressibility, calculate_mixture_calorific_values, calculate_mass_fraction_from_molar_fraction
+    calculate_mixture_compressibility, calculate_mixture_calorific_values, calculate_mass_fraction_from_molar_fraction,\
+    calculate_mixture_compressibility_fact, calculate_der_mixture_compressibility_fact
 from pandapower.io_utils import JSONSerializableClass
 
 try:
@@ -760,6 +760,7 @@ def get_mixture_heat_capacity(net, temperature, mass_fraction):
 
 def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
     """
+    Returns the Gas law deviation coefficient: K = Z / Z_n.
 
     Nomenclature :
 
@@ -770,41 +771,44 @@ def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
     Z: Compressibility factor <-> Realgasfaktor
     K: Gas law deviation coefficient <-> Kompressibilitätszahl
 
-    In pandapipes
+    In this function:
     Z: compressibility_fact
-    K: compressibility
-
+    K: compressibility_fact / compressibility_fact_norm
 
     """
-    # #old implementation
-    # compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
-    # old = calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
-
-
-    # todo: final test compare with SRK for different compositions - Khalil
-    # todo: check if and correct input pressure to absolute pressure instead of operating pressure
 
     critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
     molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
     molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
-    compressibility_fact, compressibility_fact_norm = compressibility_func.\
-        calculate_mixture_compressibility_fact(molar_fraction.T, pressure, temperature, critical_data_list)
-    return compressibility_fact / compressibility_fact_norm # K = Z / Z_n
+    compressibility_fact, compressibility_fact_norm = calculate_mixture_compressibility_fact(molar_fraction.T,
+                                                                             pressure, temperature, critical_data_list)
+    return compressibility_fact / compressibility_fact_norm  # K = Z / Z_n
 
 
 def get_mixture_der_cmpressibility(net, pressure, mass_fraction, temperature):
+    """
+    Returns the derivative relative to the pressure of the Gas law deviation coefficient: dK /dp = dZ/dp * 1/Z_n.
 
-    # # old implementation
-    # der_compressibility_list = [net.fluid[fluid].get_property('der_compressibility', pressure) for fluid in net._fluid]
-    # old = calculate_mixture_compressibility(der_compressibility_list, mass_fraction.T)
+    Nomenclature :
 
+    In the literature:
+    pv = ZRT
+    K = Z / Z_n
+
+    Z: Compressibility factor <-> Realgasfaktor
+    K: Gas law deviation coefficient <-> Kompressibilitätszahl
+
+    In this function:
+    Z: compressibility_fact
+    dK / dp : der_compressibility_fact / compressibility_fact_norm
+
+    """
     critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
     molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
     molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
-    der_compressibility_fact, compressibility_fact_norm = compressibility_func.\
-        calculate_der_mixture_compressibility_fact(molar_fraction.T, pressure, temperature, critical_data_list)
-
-    return der_compressibility_fact / compressibility_fact_norm
+    der_compressibility_fact, compressibility_fact_norm = calculate_der_mixture_compressibility_fact(molar_fraction.T,
+                                                                            pressure, temperature, critical_data_list)
+    return der_compressibility_fact / compressibility_fact_norm  # dK /dp = dZ/dp * 1/Z_n.
 
 
 def get_mixture_higher_heating_value(net, mass_fraction):

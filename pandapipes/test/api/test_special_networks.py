@@ -13,8 +13,9 @@ from pandapipes.create import create_empty_network, create_junction, create_ext_
     create_pipe_from_parameters, create_valve
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 from pandapipes.properties.fluids import FluidPropertyConstant, Fluid, _add_fluid_to_net
-from pandapipes.properties.properties_toolbox import calculate_molar_fraction_from_mass_fraction
-from hybridbot.compressibility_func import calculate_mixture_compressibility_fact
+from pandapipes.properties.properties_toolbox import calculate_molar_fraction_from_mass_fraction, \
+    calculate_mixture_compressibility_fact
+
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_one_node_net(use_numba):
