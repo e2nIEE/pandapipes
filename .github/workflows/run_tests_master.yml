@@ -70,7 +70,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pytest nbmake pytest-xdist pytest-split python-igraph numba 
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if ${{ matrix.python-version == '3.7' }}; 
+          then pip install pandapower==2.11.1; 
+          else 
           python -m pip install git+https://github.com/e2nIEE/pandapower@master#egg=pandapower
+          fi
           pip install .
       - name: List all installed packages
         run: |
