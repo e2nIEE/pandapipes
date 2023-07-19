@@ -45,10 +45,10 @@ setup(
     license='BSD',
     install_requires=["pandapower>=2.11.1", "matplotlib", "shapely"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
-                    "plotting": ["plotly", "python-igraph"],
+                    "plotting": ["plotly", "igraph"],
                     "test": ["pytest", "pytest-xdist", "nbmake"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-                            "plotly", "python-igraph", "pytest", "pytest-xdist", "nbmake"]},
+                            "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"]},
     packages=find_packages(),
     include_package_data=True,
     classifiers=classifiers
