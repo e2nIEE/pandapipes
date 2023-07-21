@@ -9,5 +9,5 @@ License
 
 pandapipes is published under the following 3-clause BSD license:
 
-    .. literalinclude:: ../../LICENSE
+    .. literalinclude:: ../../../LICENSE
 
