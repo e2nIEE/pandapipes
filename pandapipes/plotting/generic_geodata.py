@@ -39,9 +39,9 @@ def build_igraph_from_ppipes(net, junctions=None):
     try:
         import igraph as ig
     except (DeprecationWarning, ImportError):
-        raise ImportError("Please install python-igraph with "
-                          "`pip install python-igraph` or "
-                          "`conda install python-igraph` "
+        raise ImportError("Please install igraph with "
+                          "`pip install igraph` or "
+                          "`conda install igraph` "
                           "or from https://www.lfd.uci.edu/~gohlke/pythonlibs")
     g = ig.Graph(directed=True)
     junction_index = net.junction.index if junctions is None else np.array(junctions)

@@ -7,6 +7,13 @@ Change Log
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
 
+[0.8.5] - 2023-06-19
+-------------------------------
+- [FIXED] consider ambient pressure in calculation of compression power for pumps/compressors
+- [FIXED] np.bool error in pipeflow calculation due to deprecation of np.bool
+- [FIXED] use igraph package instead of python-igraph (has been renamed)
+- [ADDED] gas specific calculation of heat capacity ration kappa = cp/cv (for pumps/compressors)
+
 [0.8.4] - 2023-02-02
 -------------------------------
 - [FIXED] added flow control to nxgraph
