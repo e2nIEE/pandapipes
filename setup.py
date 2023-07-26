@@ -34,7 +34,7 @@ long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.8.4',
+    version='0.8.5',
     author='Simon Ruben Drauz-Mauel, Daniel Lohmeier, Jolando Marius Kisse',
     author_email='simon.ruben.drauz-mauel@iee.fraunhofer.de, daniel.lohmeier@retoflow.de, '
                  'jolando.kisse@uni-kassel.de',
@@ -45,10 +45,10 @@ setup(
     license='BSD',
     install_requires=["pandapower>=2.11.1", "matplotlib", "shapely"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
-                    "plotting": ["plotly", "python-igraph"],
+                    "plotting": ["plotly", "igraph"],
                     "test": ["pytest", "pytest-xdist", "nbmake"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-                            "plotly", "python-igraph", "pytest", "pytest-xdist", "nbmake"]},
+                            "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"]},
     packages=find_packages(),
     include_package_data=True,
     classifiers=classifiers

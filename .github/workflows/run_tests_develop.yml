@@ -28,9 +28,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest python-igraph pytest-split numba
+          python -m pip install pytest igraph pytest-split numba
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if ${{ matrix.python-version == '3.7' }}; 
+          then pip install pandapower==2.11.1; 
+          else 
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
+          fi
           pip install .
       - name: List all installed packages
         run: |
@@ -96,9 +100,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest nbmake pytest-xdist pytest-split python-igraph numba 
+          python -m pip install pytest nbmake pytest-xdist pytest-split igraph numba 
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if ${{ matrix.python-version == '3.7' }}; 
+          then pip install pandapower==2.11.1; 
+          else 
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
+          fi
           pip install .
       - name: List all installed packages
         run: |
