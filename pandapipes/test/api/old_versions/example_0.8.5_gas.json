@@ -75,9 +75,7 @@
         "height_m": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "junction_geodata": {
       "_module": "pandas.core.frame",
@@ -87,9 +85,7 @@
       "dtype": {
         "x": "float64",
         "y": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "pipe": {
       "_module": "pandas.core.frame",
@@ -111,9 +107,7 @@
         "sections": "uint32",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "pipe_geodata": {
       "_module": "pandas.core.frame",
@@ -122,9 +116,7 @@
       "orient": "split",
       "dtype": {
         "coords": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "ext_grid": {
       "_module": "pandas.core.frame",
@@ -138,14 +130,12 @@
         "t_k": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "controller": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"object\",\"in_service\",\"order\",\"level\",\"initial_run\",\"recycle\"],\"index\":[0,1],\"data\":[[{\"_module\":\"pandapower.control.controller.const_control\",\"_class\":\"ConstControl\",\"_object\":\"{\\\"index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, \\\"matching_params\\\": {\\\"element\\\": \\\"sink\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 3}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 4}], \\\"dtype\\\": \\\"int64\\\"}}, \\\"data_source\\\": {\\\"_module\\\": \\\"pandapower.timeseries.data_sources.frame_data\\\", \\\"_class\\\": \\\"DFData\\\", \\\"_object\\\": \\\"{\\\\\\\"df\\\\\\\": {\\\\\\\"_module\\\\\\\": \\\\\\\"pandas.core.frame\\\\\\\", \\\\\\\"_class\\\\\\\": \\\\\\\"DataFrame\\\\\\\", \\\\\\\"_object\\\\\\\": \\\\\\\"{\\\\\\\\\\\\\\\"columns\\\\\\\\\\\\\\\":[\\\\\\\\\\\\\\\"0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"1\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"2\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"3\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"4\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"5\\\\\\\\\\\\\\\"],\\\\\\\\\\\\\\\"index\\\\\\\\\\\\\\\":[0,1,2,3],\\\\\\\\\\\\\\\"data\\\\\\\\\\\\\\\":[[0.2,0.1,0.5,0.07,0.09,0.1],[0.3,0.2,0.6,0.08,0.1,0.2],[0.4,0.3,0.7,0.09,0.11,0.3],[0.5,0.4,0.8,0.1,0.12,0.4]]}\\\\\\\", \\\\\\\"orient\\\\\\\": \\\\\\\"split\\\\\\\", \\\\\\\"dtype\\\\\\\": {\\\\\\\"0\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"1\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"2\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"3\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"4\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"5\\\\\\\": \\\\\\\"float64\\\\\\\"}, \\\\\\\"is_multiindex\\\\\\\": false, \\\\\\\"is_multicolumn\\\\\\\": false}}\\\"}, \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 3}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 4}], \\\"dtype\\\": \\\"int64\\\"}, \\\"element\\\": \\\"sink\\\", \\\"values\\\": null, \\\"profile_name\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [\\\"0\\\", \\\"1\\\", \\\"2\\\", \\\"3\\\", \\\"4\\\"], \\\"dtype\\\": \\\"<U21\\\"}, \\\"scale_factor\\\": 1.0, \\\"applied\\\": false, \\\"write_flag\\\": \\\"loc\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"initial_run\\\": false}\"},true,-1.0,-1,false,false],[{\"_module\":\"pandapower.control.controller.const_control\",\"_class\":\"ConstControl\",\"_object\":\"{\\\"index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, \\\"matching_params\\\": {\\\"element\\\": \\\"source\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}], \\\"dtype\\\": \\\"int64\\\"}}, \\\"data_source\\\": {\\\"_module\\\": \\\"pandapower.timeseries.data_sources.frame_data\\\", \\\"_class\\\": \\\"DFData\\\", \\\"_object\\\": \\\"{\\\\\\\"df\\\\\\\": {\\\\\\\"_module\\\\\\\": \\\\\\\"pandas.core.frame\\\\\\\", \\\\\\\"_class\\\\\\\": \\\\\\\"DataFrame\\\\\\\", \\\\\\\"_object\\\\\\\": \\\\\\\"{\\\\\\\\\\\\\\\"columns\\\\\\\\\\\\\\\":[\\\\\\\\\\\\\\\"0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"1\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"2\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"3\\\\\\\\\\\\\\\"],\\\\\\\\\\\\\\\"index\\\\\\\\\\\\\\\":[0,1,2,3],\\\\\\\\\\\\\\\"data\\\\\\\\\\\\\\\":[[0.1,0.03,0.04,0.09],[0.2,0.04,0.05,0.1],[0.3,0.05,0.06,0.11],[0.4,0.06,0.07,0.12]]}\\\\\\\", \\\\\\\"orient\\\\\\\": \\\\\\\"split\\\\\\\", \\\\\\\"dtype\\\\\\\": {\\\\\\\"0\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"1\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"2\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"3\\\\\\\": \\\\\\\"float64\\\\\\\"}, \\\\\\\"is_multiindex\\\\\\\": false, \\\\\\\"is_multicolumn\\\\\\\": false}}\\\"}, \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}], \\\"dtype\\\": \\\"int64\\\"}, \\\"element\\\": \\\"source\\\", \\\"values\\\": null, \\\"profile_name\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [\\\"0\\\", \\\"1\\\", \\\"2\\\"], \\\"dtype\\\": \\\"<U21\\\"}, \\\"scale_factor\\\": 1.0, \\\"applied\\\": false, \\\"write_flag\\\": \\\"loc\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"initial_run\\\": false}\"},true,-1.0,-1,false,false]]}",
+      "_object": "{\"columns\":[\"object\",\"in_service\",\"order\",\"level\",\"initial_run\",\"recycle\"],\"index\":[0,1],\"data\":[[{\"_module\":\"pandapower.control.controller.const_control\",\"_class\":\"ConstControl\",\"_object\":\"{\\\"index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, \\\"matching_params\\\": {\\\"element\\\": \\\"sink\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 3}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 4}], \\\"dtype\\\": \\\"int64\\\"}}, \\\"data_source\\\": {\\\"_module\\\": \\\"pandapower.timeseries.data_sources.frame_data\\\", \\\"_class\\\": \\\"DFData\\\", \\\"_object\\\": \\\"{\\\\\\\"df\\\\\\\": {\\\\\\\"_module\\\\\\\": \\\\\\\"pandas.core.frame\\\\\\\", \\\\\\\"_class\\\\\\\": \\\\\\\"DataFrame\\\\\\\", \\\\\\\"_object\\\\\\\": \\\\\\\"{\\\\\\\\\\\\\\\"columns\\\\\\\\\\\\\\\":[\\\\\\\\\\\\\\\"0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"1\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"2\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"3\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"4\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"5\\\\\\\\\\\\\\\"],\\\\\\\\\\\\\\\"index\\\\\\\\\\\\\\\":[0,1,2,3],\\\\\\\\\\\\\\\"data\\\\\\\\\\\\\\\":[[0.2,0.1,0.5,0.07,0.09,0.1],[0.3,0.2,0.6,0.08,0.1,0.2],[0.4,0.3,0.7,0.09,0.11,0.3],[0.5,0.4,0.8,0.1,0.12,0.4]]}\\\\\\\", \\\\\\\"orient\\\\\\\": \\\\\\\"split\\\\\\\", \\\\\\\"dtype\\\\\\\": {\\\\\\\"0\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"1\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"2\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"3\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"4\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"5\\\\\\\": \\\\\\\"float64\\\\\\\"}}}\\\"}, \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 3}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 4}], \\\"dtype\\\": \\\"int64\\\"}, \\\"element\\\": \\\"sink\\\", \\\"values\\\": null, \\\"profile_name\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [\\\"0\\\", \\\"1\\\", \\\"2\\\", \\\"3\\\", \\\"4\\\"], \\\"dtype\\\": \\\"<U21\\\"}, \\\"scale_factor\\\": 1.0, \\\"applied\\\": false, \\\"write_flag\\\": \\\"loc\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"initial_run\\\": false}\"},true,-1.0,-1,false,false],[{\"_module\":\"pandapower.control.controller.const_control\",\"_class\":\"ConstControl\",\"_object\":\"{\\\"index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, \\\"matching_params\\\": {\\\"element\\\": \\\"source\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}], \\\"dtype\\\": \\\"int64\\\"}}, \\\"data_source\\\": {\\\"_module\\\": \\\"pandapower.timeseries.data_sources.frame_data\\\", \\\"_class\\\": \\\"DFData\\\", \\\"_object\\\": \\\"{\\\\\\\"df\\\\\\\": {\\\\\\\"_module\\\\\\\": \\\\\\\"pandas.core.frame\\\\\\\", \\\\\\\"_class\\\\\\\": \\\\\\\"DataFrame\\\\\\\", \\\\\\\"_object\\\\\\\": \\\\\\\"{\\\\\\\\\\\\\\\"columns\\\\\\\\\\\\\\\":[\\\\\\\\\\\\\\\"0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"1\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"2\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"3\\\\\\\\\\\\\\\"],\\\\\\\\\\\\\\\"index\\\\\\\\\\\\\\\":[0,1,2,3],\\\\\\\\\\\\\\\"data\\\\\\\\\\\\\\\":[[0.1,0.03,0.04,0.09],[0.2,0.04,0.05,0.1],[0.3,0.05,0.06,0.11],[0.4,0.06,0.07,0.12]]}\\\\\\\", \\\\\\\"orient\\\\\\\": \\\\\\\"split\\\\\\\", \\\\\\\"dtype\\\\\\\": {\\\\\\\"0\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"1\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"2\\\\\\\": \\\\\\\"float64\\\\\\\", \\\\\\\"3\\\\\\\": \\\\\\\"float64\\\\\\\"}}}\\\"}, \\\"element_index\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [{\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 0}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 1}, {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"int64\\\", \\\"_object\\\": 2}], \\\"dtype\\\": \\\"int64\\\"}, \\\"element\\\": \\\"source\\\", \\\"values\\\": null, \\\"profile_name\\\": {\\\"_module\\\": \\\"numpy\\\", \\\"_class\\\": \\\"array\\\", \\\"_object\\\": [\\\"0\\\", \\\"1\\\", \\\"2\\\"], \\\"dtype\\\": \\\"<U21\\\"}, \\\"scale_factor\\\": 1.0, \\\"applied\\\": false, \\\"write_flag\\\": \\\"loc\\\", \\\"variable\\\": \\\"mdot_kg_per_s\\\", \\\"initial_run\\\": false}\"},true,-1.0,-1,false,false]]}",
       "orient": "split",
       "dtype": {
         "object": "object",
@@ -154,9 +144,7 @@
         "level": "object",
         "initial_run": "bool",
         "recycle": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "sink": {
       "_module": "pandas.core.frame",
@@ -170,9 +158,7 @@
         "scaling": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "source": {
       "_module": "pandas.core.frame",
@@ -186,9 +172,7 @@
         "scaling": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "mass_storage": {
       "_module": "pandas.core.frame",
@@ -205,9 +189,7 @@
         "max_m_stored_kg": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "valve": {
       "_module": "pandas.core.frame",
@@ -222,9 +204,7 @@
         "opened": "bool",
         "loss_coefficient": "float64",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "flow_control": {
       "_module": "pandas.core.frame",
@@ -240,9 +220,7 @@
         "control_active": "bool",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "press_control": {
       "_module": "pandas.core.frame",
@@ -259,9 +237,7 @@
         "loss_coefficient": "float64",
         "in_service": "bool",
         "type": "object"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "compressor": {
       "_module": "pandas.core.frame",
@@ -274,9 +250,7 @@
         "to_junction": "uint32",
         "pressure_ratio": "float64",
         "in_service": "bool"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_junction": {
       "_module": "pandas.core.frame",
@@ -286,9 +260,7 @@
       "dtype": {
         "p_bar": "float64",
         "t_k": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_pipe": {
       "_module": "pandas.core.frame",
@@ -310,9 +282,7 @@
         "lambda": "float64",
         "normfactor_from": "float64",
         "normfactor_to": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_ext_grid": {
       "_module": "pandas.core.frame",
@@ -321,9 +291,7 @@
       "orient": "split",
       "dtype": {
         "mdot_kg_per_s": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_sink": {
       "_module": "pandas.core.frame",
@@ -332,9 +300,7 @@
       "orient": "split",
       "dtype": {
         "mdot_kg_per_s": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_source": {
       "_module": "pandas.core.frame",
@@ -343,9 +309,7 @@
       "orient": "split",
       "dtype": {
         "mdot_kg_per_s": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_mass_storage": {
       "_module": "pandas.core.frame",
@@ -354,9 +318,7 @@
       "orient": "split",
       "dtype": {
         "mdot_kg_per_s": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_valve": {
       "_module": "pandas.core.frame",
@@ -378,9 +340,7 @@
         "lambda": "float64",
         "normfactor_from": "float64",
         "normfactor_to": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_flow_control": {
       "_module": "pandas.core.frame",
@@ -402,9 +362,7 @@
         "lambda": "float64",
         "normfactor_from": "float64",
         "normfactor_to": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_press_control": {
       "_module": "pandas.core.frame",
@@ -424,9 +382,7 @@
         "normfactor_from": "float64",
         "normfactor_to": "float64",
         "deltap_bar": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "res_compressor": {
       "_module": "pandas.core.frame",
@@ -447,9 +403,7 @@
         "normfactor_from": "float64",
         "normfactor_to": "float64",
         "compr_power_mw": "float64"
-      },
-      "is_multiindex": false,
-      "is_multicolumn": false
+      }
     },
     "user_pf_options": {
       "hyd_flag": true
