@@ -26,7 +26,7 @@ classifiers = [
 
 with open('.github/workflows/run_tests_master.yml', 'rb') as f:
     lines = f.read().decode('utf-8')
-    versions = set(re.findall('3.[7-9]', lines)) | set(re.findall('3.1[0-9]', lines))
+    versions = set(re.findall('3.[8-9]', lines)) | set(re.findall('3.1[0-9]', lines))
     for version in versions:
         classifiers.append('Programming Language :: Python :: %s' % version)
 
