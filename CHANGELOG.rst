@@ -7,6 +7,7 @@ Change Log
 - [FIXED] np.bool error in pipeflow calculation due to deprecation of np.bool
 - [FIXED] use igraph package instead of python-igraph (has been renamed)
 - [ADDED] gas specific calculation of heat capacity ration kappa = cp/cv (for pumps/compressors)
+- [REMOVED] Python 3.7 removed from test pipeline due to inconsistencies with pandapower
 
 [0.8.4] - 2023-02-02
 -------------------------------
