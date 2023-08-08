@@ -7,6 +7,7 @@ Change Log
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
 - [REMOVED] broken travis badge removed from readme
+- [CHANGED] dynamic creation of lookups for getting pit as pandas tables
 
 [0.8.5] - 2023-06-19
 -------------------------------
