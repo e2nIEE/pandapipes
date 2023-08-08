@@ -6,8 +6,9 @@ Change Log
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
-- [REMOVED] broken travis badge removed from readme
+- [CHANGED] dynamic creation of lookups for getting pit as pandas tables
 - [FIXED] in STANET converter: bug fix for heat exchanger creation and external temperatures of pipes added
+- [REMOVED] broken travis badge removed from readme
 
 [0.8.5] - 2023-06-19
 -------------------------------
