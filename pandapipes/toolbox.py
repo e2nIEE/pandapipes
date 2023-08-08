@@ -533,12 +533,11 @@ def get_pit_lookup(pit_type="node"):
     """
     Retrieve a lookup for "indices" and "types" from the idx_branch or idx_node files.
 
-    :param pit_type:
-    :type pit_type:
-    :param lookup_type:
-    :type lookup_type:
-    :return:
-    :rtype:
+    :param pit_type: the pit for which the lookup is generated ("branch" or "node")
+    :type pit_type: str, default "node"
+    :return: idx_lookup: dictionary of structure {column: name} derived from idx_node.py or \
+        idx_branch.py to describe the structure of the pit
+    :rtype: dict
     """
     idx_lookup = {"indices": dict(), "types": dict()}
     with open(os.path.join(pandapipes.pp_dir, f"idx_{pit_type}.py")) as f:
