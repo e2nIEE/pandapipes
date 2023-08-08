@@ -85,7 +85,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest python-igraph pytest-split
+          python -m pip install pytest igraph pytest-split
           if ${{ matrix.python-version != '3.11' }}; then python -m pip install numba; fi
       - name: Install pandapipes from TestPyPI
         if: ${{ inputs.upload_server == 'testpypi'}}
