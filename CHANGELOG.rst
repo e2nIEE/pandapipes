@@ -7,6 +7,8 @@ Change Log
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
 - [CHANGED] connectivity check now separated by hydraulics and heat_transfer calculation, so that also results can differ in some rows (NaN or not)
+- [CHANGED] dynamic creation of lookups for getting pit as pandas tables
+- [FIXED] in STANET converter: bug fix for heat exchanger creation and external temperatures of pipes added
 - [REMOVED] broken travis badge removed from readme
 
 [0.8.5] - 2023-06-19

@@ -151,7 +151,9 @@ class Pipe(BranchWInternalsComponent):
         set_entry_check_repeat(
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
-        pipe_pit[:, T_OUT] = 293
+        node_pit = net["_pit"]["node"]
+        to_nodes = pipe_pit[:, TO_NODE].astype(np.int32)
+        pipe_pit[:, T_OUT] = node_pit[to_nodes, TINIT_NODE]
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
 
     @classmethod
