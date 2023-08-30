@@ -142,8 +142,11 @@ def get_gas_vel_numba(branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_a
     return v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean
 
 
-def extract_branch_results_with_internals(net, branch_results, table_name, res_nodes_from,
-                                          res_nodes_to, res_mean, node_name, mode):
+def extract_branch_results_with_internals(net, branch_results, table_name,
+                                          res_nodes_from_hydraulics, res_nodes_from_heat,
+                                          res_nodes_to_hydraulics, res_nodes_to_heat,
+                                          res_mean_hydraulics, res_mean_heat, node_name,
+                                          simulation_mode):
     # the result table to write results to
     res_table = net["res_" + table_name]
 
@@ -156,78 +159,98 @@ def extract_branch_results_with_internals(net, branch_results, table_name, res_n
     # respective table), the placement of the indices mus be known to allocate the values correctly
     placement_table = np.argsort(net[table_name].index.values)
     idx_pit = branch_pit[f:t, ELEMENT_IDX]
-    comp_connected_hyd = get_lookup(net, "branch", "active_hydraulics")[f:t]
-    comp_connected_ht = comp_connected_hyd
-    if consider_heat(mode):
-        comp_connected_ht = get_lookup(net, "branch", "active_heat_transfer")[f:t]
 
     node_pit = net["_pit"]["node"]
 
     # the id of the external node table inside the node_pit (mostly this is "junction": 0)
     ext_node_tbl_idx = get_table_number(get_lookup(net, "node", "table"), node_name)
 
-    for (res_ext, node_name) in ((res_nodes_from, "from_nodes"), (res_nodes_to, "to_nodes")):
-        if len(res_ext) > 0:
+    for (result_mode, res_nodes_from, res_nodes_to, res_mean) in [
+        ("hydraulics", res_nodes_from_hydraulics, res_nodes_to_hydraulics, res_mean_hydraulics),
+        ("heat", res_nodes_from_heat, res_nodes_to_heat, res_mean_heat)
+    ]:
+        if simulation_mode == "heat" and result_mode == "hydraulics":
+            continue
+        lookup_name = "hydraulics"
+        if result_mode == "heat" and simulation_mode in ["heat", "all"]:
+            lookup_name = "heat_transfer"
+        comp_connected = get_lookup(net, "branch", "active_" + lookup_name)[f:t]
+        for (res_ext, node_name) in ((res_nodes_from, "from_nodes"), (res_nodes_to, "to_nodes")):
+            if len(res_ext) == 0:
+                continue
             # results that relate to the from_node --> in case of many internal nodes, only the
             # single from_node that is the exterior node (e.g. junction vs. internal pipe_node)
             # result has to be extracted from the node_pit
             end_nodes = branch_results[node_name][f:t]
             end_nodes_external = node_pit[end_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
-            considered_hyd = end_nodes_external & comp_connected_hyd
-            external_active_hyd = comp_connected_hyd[end_nodes_external]
-            considered_ht, external_active_ht = None, None
-            also_heat = consider_heat(mode, res_ext)
-            if also_heat:
-                considered_ht = end_nodes_external & comp_connected_ht
-                external_active_ht = comp_connected_ht[end_nodes_external]
-            for res_name, entry, use_ht_con in res_ext:
-                if also_heat and use_ht_con:
-                    res_table[res_name].values[external_active_ht] = \
-                        branch_results[entry][f:t][considered_ht]
-                else:
-                    res_table[res_name].values[external_active_hyd] = \
-                        branch_results[entry][f:t][considered_hyd]
+            considered = end_nodes_external & comp_connected
+            external_active = comp_connected[end_nodes_external]
+            for res_name, entry in res_ext:
+                res_table[res_name].values[external_active] = branch_results[entry][f:t][considered]
+        if len(res_mean) > 0:
+            # results that relate to the whole branch and shall be averaged (by summing up all
+            # values and dividing by number of internal sections)
+            use_numba = get_net_option(net, "use_numba")
+            res = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
+                                comp_connected.astype(np.int32),
+                                *[branch_results[rn[1]][f:t] for rn in res_mean])
+            connected_ind = res[2] > 0.99
+            num_internals = res[1][connected_ind]
 
-    if len(res_mean) > 0:
-        # results that relate to the whole branch and shall be averaged (by summing up all values
-        # and dividing by number of internal sections)
-        use_numba = get_net_option(net, "use_numba")
-        res = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
-                            comp_connected_hyd.astype(np.int32), comp_connected_ht.astype(np.int32),
-                            *[branch_results[rn[1]][f:t] for rn in res_mean])
-        connected_ind_hyd = res[2] > 0.99
-        num_internals_hyd = res[1][connected_ind_hyd]
-        connected_ind_ht = res[3] > 0.99
-        num_internals_ht = res[1][connected_ind_ht]
+            # hint: idx_pit[placement_table] should result in the indices as ordered in the table
+            pt = placement_table[connected_ind]
 
-        # hint: idx_pit[placement_table] should result in the indices as ordered in the table
-        placement_table_hyd = placement_table[connected_ind_hyd]
-        placement_table_ht = placement_table[connected_ind_ht]
-
-        also_heat = consider_heat(mode, res_mean)
-        for i, (res_name, entry, use_ht_con) in enumerate(res_mean):
-            connected_ind = connected_ind_ht if also_heat and use_ht_con else connected_ind_hyd
-            num_internals = num_internals_ht if also_heat and use_ht_con else num_internals_hyd
-            pt = placement_table_ht if also_heat and use_ht_con else placement_table_hyd
-            res_table[res_name].values[pt] = res[i + 4][connected_ind] / num_internals
+            for i, (res_name, entry) in enumerate(res_mean_hydraulics):
+                res_table[res_name].values[pt] = res[i + 3][connected_ind] / num_internals
 
 
-def extract_branch_results_without_internals(net, branch_results, required_results, table_name,
-                                             mode):
+def extract_branch_results_without_internals(net, branch_results, required_results_hydraulic,
+                                             required_results_heat, table_name, simulation_mode):
+    """
+    Extract the results from the branch result array derived from the pit to the result table of the
+    net (only for branch components without internal nodes). Here, we need to consider which results
+    exist for hydraulic calculation and for heat transfer calculation (wrt. connectivity).
+
+    :param net: The pandapipes net that the internal structure belongs to
+    :type net: pandapipesNet
+    :param branch_results: Important branch results from the internal pit structure
+    :type branch_results: dict[np.ndarray]
+    :param required_results_hydraulic: The entries that should be extracted for the respective \
+        component for hydraulic calculation
+    :type required_results_hydraulic: list[tuple]
+    :param required_results_heat: The entries that should be extracted for the respective \
+        component for heat transfer calculation
+    :type required_results_heat: list[tuple]
+    :param table_name: The name of the table that the results should be written to
+    :type table_name: str
+    :param simulation_mode: simulation mode (e.g. "hydraulics", "heat", "all"); defines whether results from \
+        hydraulic or temperature calculation are transferred
+    :type simulation_mode: str
+    :return: No output
+    :rtype: None
+    """
     res_table = net["res_" + table_name]
     f, t = get_lookup(net, "branch", "from_to")[table_name]
-    comp_connected_hyd = get_lookup(net, "branch", "active_hydraulics")[f:t]
-    comp_connected_ht = None
-    if mode in ["heat", "all"]:
-        comp_connected_ht = get_lookup(net, "branch", "active_heat_transfer")[f:t]
 
-    for res_name, entry, use_ht_con in required_results:
-        if mode in ["heat", "all"] and use_ht_con:
-            res_table[res_name].values[:][comp_connected_ht] = \
-                branch_results[entry][f:t][comp_connected_ht]
-        else:
+    # extract hydraulic results
+    if simulation_mode in ["hydraulics", "all"]:
+        # lookup for connected branch elements (hydraulic results)
+        comp_connected_hyd = get_lookup(net, "branch", "active_hydraulics")[f:t]
+        for res_name, entry in required_results_hydraulic:
             res_table[res_name].values[:][comp_connected_hyd] = \
                 branch_results[entry][f:t][comp_connected_hyd]
+        if simulation_mode == "hydraulics":
+            for res_name, entry in required_results_heat:
+                res_table[res_name].values[:][comp_connected_hyd] = \
+                    branch_results[entry][f:t][comp_connected_hyd]
+
+    # extract heat transfer results
+    if simulation_mode in ["heat", "all"]:
+        # lookup for connected branch elements (heat transfer results)
+        comp_connected_ht = get_lookup(net, "branch", "active_heat_transfer")[f:t]
+        for res_name, entry in required_results_heat:
+            res_table[res_name].values[:][comp_connected_ht] = \
+                branch_results[entry][f:t][comp_connected_ht]
 
 
 def extract_results_active_pit(net,  mode="hydraulics"):

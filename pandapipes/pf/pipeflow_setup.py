@@ -241,7 +241,7 @@ def init_options(net, local_parameters):
                  automatically with respect to the convergence behaviour.
 
         - **mode** (str): "hydraulics" - Define the calculation mode: what shall be calculated - \
-                solely hydraulics ('hydraulic'), solely heat transfer('heat') or both combined \
+                solely hydraulics ('hydraulics'), solely heat transfer('heat') or both combined \
                 ('all').
 
         - **only_update_hydraulic_matrix** (bool): False - If True, the system matrix is not \

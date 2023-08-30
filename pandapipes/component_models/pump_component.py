@@ -127,24 +127,22 @@ class Pump(BranchWZeroLengthComponent):
         """
         calc_compr_pow = options['calc_compression_power']
 
-        required_results = [
-            ("p_from_bar", "p_from", False), ("p_to_bar", "p_to", False),
-            ("t_from_k", "temp_from", True), ("t_to_k", "temp_to", True),
-            ("mdot_to_kg_per_s", "mf_to", False), ("mdot_from_kg_per_s", "mf_from", False),
-            ("vdot_norm_m3_per_s", "vf", False), ("deltap_bar", "pl", False)
+        required_results_hyd = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
+            ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl"),
         ]
+        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
 
         if get_fluid(net).is_gas:
-            required_results.extend([
-                ("v_from_m_per_s", "v_gas_from", False), ("v_to_m_per_s", "v_gas_to", False),
-                ("normfactor_from", "normfactor_from", False),
-                ("normfactor_to", "normfactor_to", False)
+            required_results_hyd.extend([
+                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
+                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
             ])
         else:
-            required_results.extend([("v_mean_m_per_s", "v_mps", False)])
+            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
 
-        extract_branch_results_without_internals(net, branch_results, required_results,
-                                                 cls.table_name(), mode)
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd,
+                                                 required_results_ht, cls.table_name(), mode)
 
         if calc_compr_pow:
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
