@@ -268,6 +268,10 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
     assert not np.all(np.isnan(net.res_pipe.values))
     assert np.any(np.isnan(net.res_junction.loc[[7, 8, 10, 11], :].values))
 
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+                            use_numba=use_numba, check_connectivity=False)
+
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
@@ -372,6 +376,26 @@ def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
     pandapipes.pipeflow(net2, mode="all", check_connectivity=False, use_numba=use_numba)
 
     assert pandapipes.nets_equal(net, net2, check_only_results=True)
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
+    net = copy.deepcopy(complex_heat_connectivity_grid)
+    net.pipe.in_service.loc[[7, 8]] = True
+
+    j_from, j_to = pandapipes.create_junctions(net, 2, 1, 320.15)
+
+    pandapipes.create_pipe_from_parameters(net, j_from, j_to, 0.1, 0.1, alpha_w_per_m2k=5)
+    pandapipes.create_sink(net, j_to, 0.1)
+    pandapipes.create_ext_grid(net, j_from, 1, 320.15)
+
+    net.ext_grid.loc[2, 'in_service'] = False
+    net.ext_grid.loc[1, 'type'] = 'p'
+
+    pandapipes.pipeflow(net, check_connectivity=True, mode='all', use_numba=use_numba)
+
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, check_connectivity=False, mode='all', use_numba=use_numba)
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
