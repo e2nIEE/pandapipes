@@ -266,7 +266,7 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
 
     assert not np.all(np.isnan(net.res_junction.p_bar.loc[[0, 1, 2, 3, 4, 5, 9]].values))
     assert not np.all(np.isnan(net.res_pipe.values))
-    assert np.any(np.isnan(net.res_junction.loc[[7, 8, 10, 11], :].values))
+    assert np.all(np.isnan(net.res_junction.p_bar.loc[[7, 8, 10, 11]].values))
 
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
@@ -280,6 +280,8 @@ def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
 
     oos_juncs_hyd = {4, 5, 6, 7}
     oos_pipe_hyd = {5, 7, 8, 9}
+    oos_sink_hyd = {4, 5}
+    oos_source_hyd = {7}
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) == \
            set(net.junction.index) - oos_juncs_hyd
@@ -293,12 +295,13 @@ def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
     assert set(net.res_valve.loc[net.res_valve.v_mean_m_per_s.isnull()].index) \
            == set(net.valve.index)
 
-    assert set(net.res_sink.loc[net.res_sink.mdot_kg_per_s.isnull()].index) == {4, 5}
+    assert set(net.res_sink.loc[net.res_sink.mdot_kg_per_s.isnull()].index) == oos_sink_hyd
     assert set(net.res_sink.loc[net.res_sink.mdot_kg_per_s.notnull()].index) == \
-           set(net.sink.index) - {4, 5}
+           set(net.sink.index) - oos_sink_hyd
 
-    assert set(net.res_source.loc[net.res_source.mdot_kg_per_s.isnull()].index) == {7}
-    assert set(net.res_source.loc[net.res_source.mdot_kg_per_s.notnull()].index) == {2}
+    assert set(net.res_source.loc[net.res_source.mdot_kg_per_s.isnull()].index) == oos_source_hyd
+    assert (set(net.res_source.loc[net.res_source.mdot_kg_per_s.notnull()].index) ==
+            set(net.source.index) - oos_source_hyd)
 
     assert np.allclose(net.res_ext_grid.mdot_kg_per_s.sum(),
                        -net.res_sink.mdot_kg_per_s.sum() + net.res_source.mdot_kg_per_s.sum(),
