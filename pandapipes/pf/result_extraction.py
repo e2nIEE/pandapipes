@@ -169,7 +169,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
         ("hydraulics", res_nodes_from_hydraulics, res_nodes_to_hydraulics, res_mean_hydraulics),
         ("heat", res_nodes_from_heat, res_nodes_to_heat, res_mean_heat)
     ]:
-        if simulation_mode == "heat" and result_mode == "hydraulics":
+        if result_mode == "hydraulics" and simulation_mode == "heat":
             continue
         lookup_name = "hydraulics"
         if result_mode == "heat" and simulation_mode in ["heat", "all"]:
