@@ -5,6 +5,7 @@
 import numpy as np
 import pandas as pd
 
+from pandapipes import get_fluid
 from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
     HEIGHT_EXPONENT
 from pandapipes.idx_branch import LOAD_VEC_NODES, FROM_NODE, TO_NODE
@@ -177,3 +178,23 @@ def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
         raise UserWarning("In component %s: Something went wrong with the mass flow balance. "
                           "Please report this error at github." % comp.__name__)
     return sum_mass_flows, inverse_nodes, counts
+
+
+def standard_branch_wo_internals_result_lookup(net):
+    required_results_hyd = [
+        ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
+        ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
+        ("reynolds", "reynolds")
+    ]
+    required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
+
+    if get_fluid(net).is_gas:
+        required_results_hyd.extend([
+            ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
+            ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
+            ("normfactor_to", "normfactor_to")
+        ])
+    else:
+        required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
+
+    return required_results_hyd, required_results_ht
