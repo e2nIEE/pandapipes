@@ -13,6 +13,7 @@ from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtG
     Compressor, MassStorage
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.component_models.flow_control_component import FlowControlComponent
+from pandapipes.component_models.heat_consumer_component import HeatConsumer
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
@@ -1015,6 +1016,74 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
                  to_junction=to_junction, controlled_mdot_kg_per_s=controlled_mdot_kg_per_s,
                  diameter_m=diameter_m, control_active=bool(control_active),
                  in_service=bool(in_service), type=type, **kwargs)
+
+    return index
+
+
+def create_heat_consumer(net, from_junction, to_junction, diameter_m, controlled_mdot_kg_per_s=None,
+                         qext_w=None, deltat_k=None, treturn_k=None, name=None, index=None,
+                         in_service=True, type="heat_consumer", **kwargs):
+    """
+    Creates a heat consumer element in net["heat_consumer"] from heat consumer parameters.
+
+    :param net: The net for which this heat consumer should be created
+    :type net:
+    :param from_junction: ID of the junction on one side which the heat consumer will be connected \
+        with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the heat consumer will be \
+        connected with
+    :type to_junction: int
+    :param diameter_m: The heat consumer inner diameter in [m] - only for result calculation
+    :type diameter_m: float
+    :param controlled_mdot_kg_per_s: Mass flow set point in [kg/s].
+    :type controlled_mdot_kg_per_s: float, default None
+    :param qext_w: External heat flux in [W]. If positive, heat is extracted from the network. If \
+        negative, heat is being fed into the network from a heat source.
+    :type qext_w: float, default None
+    :param deltat_k: Temperature difference set point between flow and return in [K].
+    :type deltat_k: float, default None
+    :param treturn_k: Return temperature set point in [K].
+    :type treturn_k: float, default None
+    :param name: Name of the heat consumer element
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+        highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True if heat consumer is in service or False if it is out of service
+    :type in_service: bool, default True
+    :param type: Currently not used - possibility to specify a certain type of heat consumer
+    :type type: str, default "heat_consumer"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+        net["heat_consumer"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created heat consumer
+    :rtype: int
+
+    :Example:
+        >>> create_heat_consumer(net,from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=2000)
+    """
+    if deltat_k is not None or treturn_k is not None:
+        raise NotImplementedError("The models for consumers with fixed temperature difference or "
+                                  "fixed return temperature are not implemented yet.")
+    if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None)
+            + (treturn_k is None) !=2):
+        raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
+                             r"'qext_w' and 'deltat_k' or 'treturn_k' different from None")
+    if deltat_k is not None and treturn_k is not None:
+        raise AttributeError(r"It is not possible to set both 'deltat_k' and 'treturn_k', as the "
+                             r"flow temperature is independent of the heat consumer model.")
+
+    add_new_component(net, HeatConsumer)
+
+    index = _get_index_with_check(net, "heat_consumer", index, "heat consumer")
+    _check_branch(net, "Heat consumer", index, from_junction, to_junction)
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "diameter_m": diameter_m, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s,
+         "qext_w": qext_w, "deltat_k": deltat_k, "treturn_k": treturn_k,
+         "in_service": bool(in_service), "type": type}
+    _set_entries(net, "heat_consumer", index, **v, **kwargs)
 
     return index
 
