@@ -181,9 +181,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
                 ("controlled_mdot_kg_per_s", "f8"),
                 ("qext_w", 'f8'),
                 ("deltat_k", 'f8'),
-                ("t_retrun_k", 'f8'),
+                ("treturn_k", 'f8'),
                 ("diameter_m", "f8"),
-                ("control_active", "bool"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
