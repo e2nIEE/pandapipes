@@ -352,6 +352,7 @@ def initialize_pit(net):
     for comp in net['component_list']:
         comp.create_pit_node_entries(net, pit["node"])
         comp.create_pit_branch_entries(net, pit["branch"])
+        comp.create_component_array(net, pit["components"])
     return pit["node"], pit["branch"]
 
 
@@ -375,7 +376,8 @@ def create_empty_pit(net):
     branch_length = get_lookup(net, "branch", "length")
     # init empty pit
     pit = {"node": np.empty((node_length, node_cols), dtype=np.float64),
-           "branch": np.empty((branch_length, branch_cols), dtype=np.float64)}
+           "branch": np.empty((branch_length, branch_cols), dtype=np.float64),
+           "components": {}}
     net["_pit"] = pit
     return pit
 

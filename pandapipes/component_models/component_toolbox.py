@@ -198,3 +198,23 @@ def standard_branch_wo_internals_result_lookup(net):
         required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
 
     return required_results_hyd, required_results_ht
+
+
+def get_component_array(net, component_name, internal=True):
+    """
+    Returns the internal array of a component.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param component_name: Table name of the component for which to extract internal array
+    :type component_name: str
+    :param internal: If True, only return entries of active elements (included in _active_pit)
+    :type internal: bool
+    :return: component_array - internal array of the component
+    :rtype: numpy.ndarray
+    """
+    f_all, t_all = get_lookup(net, "branch", "from_to")[component_name]
+    if not internal:
+        return net["_pit"]["components"][component_name]
+    in_service_elm = get_lookup(net, "branch", "active_hydraulics")[f_all:t_all]
+    return net["_pit"]["components"][component_name][in_service_elm]
