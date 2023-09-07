@@ -51,14 +51,12 @@ class ConstFlow(NodeElementComponent):
         node_pit[index, LOAD] += loads_sum
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
+        :param mode:
+        :type mode:
         :param branch_results:
         :type branch_results:
         :param net: The pandapipes network
@@ -74,8 +72,8 @@ class ConstFlow(NodeElementComponent):
         is_loads = loads.in_service.values
         fj, tj = get_lookup(net, "node", "from_to")[cls.get_connected_node_type().table_name()]
         junct_pit = net["_pit"]["node"][fj:tj, :]
-        nodes_connected = get_lookup(net, "node", "active")[fj:tj]
-        is_juncts = np.isin(loads.junction.values, junct_pit[nodes_connected, ELEMENT_IDX])
+        nodes_connected_hyd = get_lookup(net, "node", "active_hydraulics")[fj:tj]
+        is_juncts = np.isin(loads.junction.values, junct_pit[nodes_connected_hyd, ELEMENT_IDX])
 
         is_calc = is_loads & is_juncts
         res_table["mdot_kg_per_s"].values[is_calc] = loads.mdot_kg_per_s.values[is_calc] \

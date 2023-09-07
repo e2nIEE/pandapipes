@@ -191,5 +191,48 @@ def test_pump_bypass_high_vdot(use_numba):
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
 
 
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_compression_power(use_numba):
+    # based on example by "oporras"
+    from pandapipes.component_models import R_UNIVERSAL
+    from pandapipes.idx_node import PAMB
+
+    height_asl_m = 2842
+    net = pandapipes.create_empty_network(fluid="methane")
+
+    j0 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, height_m=height_asl_m)
+    j1 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, height_m=height_asl_m)
+    j2 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, height_m=height_asl_m+10)
+    j3 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, height_m=height_asl_m+10)
+
+    _ = pandapipes.create_pipe_from_parameters(net, from_junction=j0, to_junction=j1, length_km=0.1,
+                                            diameter_m=0.05)
+    _ = pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.5,
+                                            diameter_m=0.05)
+
+    _ = pandapipes.create_pump(net, from_junction=j1, to_junction=j2, std_type="P2", name="Pump1")
+
+    _ = pandapipes.create_ext_grid(net, junction=j0, p_bar=4, t_k=293.15)
+    _ = pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.05)
+
+    pandapipes.pipeflow(net, use_numba=use_numba)
+
+    # Local ambiental (atmospheric) pressure
+    p_amb_bar_j1 = net["_pit"]['node'][1][PAMB]
+    p_amb_bar_j2 = net["_pit"]['node'][2][PAMB]
+
+    # Isentropic power for the compression
+    R_spec = R_UNIVERSAL * 1e3 / pandapipes.get_fluid(net).get_molar_mass()
+    cp = pandapipes.get_fluid(net).get_heat_capacity(293.15)
+    cv = cp - R_spec
+    k = cp/cv
+    pressure_ratio = ((net.res_pump.p_to_bar[0] + p_amb_bar_j2) /
+                      (net.res_pump.p_from_bar[0] + p_amb_bar_j1))
+    compr = pandapipes.get_fluid(net).get_compressibility(net.res_pump.p_from_bar[0] + + p_amb_bar_j1)
+    pow_pump_MW = (net.res_pump.mdot_from_kg_per_s[0] * (k / (k - 1)) * R_spec *
+                   compr * net.res_pump.t_from_k[0] * (pressure_ratio ** ((k - 1) / k) - 1) / 1e6)
+    assert np.isclose(pow_pump_MW[0], net.res_pump.compr_power_mw[0])
+
+
 if __name__ == '__main__':
     n = pytest.main(["test_pump.py"])

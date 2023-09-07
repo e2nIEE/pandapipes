@@ -151,7 +151,9 @@ class Pipe(BranchWInternalsComponent):
         set_entry_check_repeat(
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
-        pipe_pit[:, T_OUT] = 293
+        node_pit = net["_pit"]["node"]
+        to_nodes = pipe_pit[:, TO_NODE].astype(np.int32)
+        pipe_pit[:, T_OUT] = node_pit[to_nodes, TINIT_NODE]
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
 
     @classmethod
@@ -170,28 +172,35 @@ class Pipe(BranchWInternalsComponent):
         branch_component_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
-        res_nodes_from = [("p_from_bar", "p_from"), ("t_from_k", "temp_from"),
-                          ("mdot_from_kg_per_s", "mf_from")]
-        res_nodes_to = [("p_to_bar", "p_to"), ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to")]
-        res_mean = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")]
+    def extract_results(cls, net, options, branch_results, mode):
+        res_nodes_from_hyd = [("p_from_bar", "p_from"), ("mdot_from_kg_per_s", "mf_from")]
+        res_nodes_from_ht = [("t_from_k", "temp_from")]
+        res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
+        res_nodes_to_ht = [("t_to_k", "temp_to")]
+        res_mean_hyd = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
+                        ("reynolds", "reynolds")]
 
         if get_fluid(net).is_gas:
-            res_nodes_from.extend(
-                [("v_from_m_per_s", "v_gas_from"), ("normfactor_from", "normfactor_from")])
-            res_nodes_to.extend([("v_to_m_per_s", "v_gas_to"), ("normfactor_to", "normfactor_to")])
-            res_mean.extend([("v_mean_m_per_s", "v_gas_mean")])
+            res_nodes_from_hyd.extend([("v_from_m_per_s", "v_gas_from"),
+                                       ("normfactor_from", "normfactor_from")])
+            res_nodes_to_hyd.extend([("v_to_m_per_s", "v_gas_to"),
+                                     ("normfactor_to", "normfactor_to")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_gas_mean")])
         else:
-            res_mean.extend([("v_mean_m_per_s", "v_mps")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_mps")])
 
         if np.any(cls.get_internal_pipe_number(net) > 1):
             extract_branch_results_with_internals(
-                net, branch_results, cls.table_name(), res_nodes_from, res_nodes_to, res_mean,
-                cls.get_connected_node_type().table_name(), branches_connected)
+                net, branch_results, cls.table_name(), res_nodes_from_hyd, res_nodes_from_ht,
+                res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, [],
+                cls.get_connected_node_type().table_name(), mode)
         else:
-            required_results = res_nodes_from + res_nodes_to + res_mean
-            extract_branch_results_without_internals(net, branch_results, required_results,
-                                                     cls.table_name(), branches_connected)
+            required_results_hyd = res_nodes_from_hyd + res_nodes_to_hyd + res_mean_hyd
+            required_results_ht = res_nodes_from_ht + res_nodes_to_ht
+            extract_branch_results_without_internals(
+                net, branch_results, required_results_hyd, required_results_ht, cls.table_name(),
+                mode
+            )
 
     @classmethod
     def get_internal_results(cls, net, pipe):

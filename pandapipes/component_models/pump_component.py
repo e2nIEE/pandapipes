@@ -111,48 +111,47 @@ class Pump(BranchWZeroLengthComponent):
         branch_component_pit[:, TL] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
         :param branch_results:
         :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param mode:
+        :type mode:
         :return: No Output.
         """
         calc_compr_pow = options['calc_compression_power']
 
-        required_results = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
-            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl")
+        required_results_hyd = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
+            ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl"),
         ]
+        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
 
         if get_fluid(net).is_gas:
-            required_results.extend([
+            required_results_hyd.extend([
                 ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
                 ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
             ])
         else:
-            required_results.extend([("v_mean_m_per_s", "v_mps")])
+            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
 
-        extract_branch_results_without_internals(net, branch_results, required_results,
-                                                 cls.table_name(), branches_connected)
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd,
+                                                 required_results_ht, cls.table_name(), mode)
 
         if calc_compr_pow:
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+            from_nodes = branch_results["from_nodes"][f:t]
+
             res_table = net["res_" + cls.table_name()]
             if net.fluid.is_gas:
-                p_from = branch_results["p_from"][f:t]
-                p_to = branch_results["p_to"][f:t]
-                from_nodes = branch_results["from_nodes"][f:t]
+                p_from = branch_results["p_abs_from"][f:t]
+                p_to = branch_results["p_abs_to"][f:t]
                 t0 = net["_pit"]["node"][from_nodes, TINIT_NODE]
                 mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
@@ -165,8 +164,9 @@ class Pump(BranchWZeroLengthComponent):
                                  ' defined')
                 else:
                     r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
-                    # 'kappa' heat capacity ratio:
-                    k = 1.4  # TODO: implement proper calculation of kappa
+                    cp = net.fluid.get_heat_capacity(t0)
+                    cv = cp - r_spec
+                    k = cp/cv  # 'kappa' heat capacity ratio
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                     (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
                     res_table['compr_power_mw'].values[:] = \
