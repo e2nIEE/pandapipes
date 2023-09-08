@@ -3,7 +3,7 @@ from numpy import linalg
 
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
-from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, TINIT, \
+from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, TINIT_IN, \
     VINIT
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
@@ -64,11 +64,11 @@ def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_a
         p_sum = p_init_i_abs[i] + p_init_i1_abs[i]
         p_sum_div = np.divide(1, p_sum)
 
-        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][RHO] * branch_pit[i][TINIT],
+        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][RHO] * branch_pit[i][TINIT_IN],
                                  NORMAL_TEMPERATURE * P_CONVERSION)
         const_height = np.divide(
             branch_pit[i][RHO] * NORMAL_TEMPERATURE * GRAVITATION_CONSTANT * height_difference[i],
-            2 * NORMAL_PRESSURE * branch_pit[i][TINIT] * P_CONVERSION)
+            2 * NORMAL_PRESSURE * branch_pit[i][TINIT_IN] * P_CONVERSION)
         friction_term = np.divide(lambda_[i] * branch_pit[i][LENGTH],
                                   branch_pit[i][D]) + branch_pit[i][LC]
 
