@@ -6,10 +6,11 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
-from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
+from pandapipes.component_models.component_toolbox import \
+    standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
-    RHO, LOAD_VEC_BRANCHES, ELEMENT_IDX
+    RHO, LOAD_VEC_BRANCHES
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -17,6 +18,9 @@ class FlowControlComponent(BranchWZeroLengthComponent):
     """
 
     """
+    CONTROL_ACTIVE = 0
+
+    internal_cols = 1
 
     @classmethod
     def table_name(cls):
@@ -44,11 +48,29 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :type branch_pit:
         :return: No Output.
         """
-        fc_pit = super().create_pit_branch_entries(net, branch_pit)
-        fc_pit[:, D] = net[cls.table_name()].diameter_m.values
-        fc_pit[:, AREA] = fc_pit[:, D] ** 2 * np.pi / 4
-        fc_pit[:, VINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values / \
-            (fc_pit[:, AREA] * fc_pit[:, RHO])
+        fc_branch_pit = super().create_pit_branch_entries(net, branch_pit)
+        fc_branch_pit[:, D] = net[cls.table_name()].diameter_m.values
+        fc_branch_pit[:, AREA] = fc_branch_pit[:, D] ** 2 * np.pi / 4
+        fc_branch_pit[:, VINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values / \
+            (fc_branch_pit[:, AREA] * fc_branch_pit[:, RHO])
+
+    @classmethod
+    def create_component_array(cls, net, component_pits):
+        """
+        Function which creates an internal array of the component in analogy to the pit, but with
+        component specific entries, that are not needed in the pit.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param component_pits: dictionary of component specific arrays
+        :type component_pits: dict
+        :return:
+        :rtype:
+        """
+        tbl = net[cls.table_name()]
+        fc_pit = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+        fc_pit[:, cls.CONTROL_ACTIVE] = tbl.control_active.values
+        component_pits[cls.table_name()] = fc_pit
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -59,14 +81,13 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
         # of velocity is allowed during the pipeflow iteration
         f, t = idx_lookups[cls.table_name()]
-        fc_pit = branch_pit[f:t, :]
-        in_service_elm = np.isin(net[cls.table_name()].index.values,
-                                 fc_pit[:, ELEMENT_IDX].astype(np.int32))
-        active = net[cls.table_name()].control_active.values[in_service_elm]
-        fc_pit[active, JAC_DERIV_DP] = 0
-        fc_pit[active, JAC_DERIV_DP1] = 0
-        fc_pit[active, JAC_DERIV_DV] = 1
-        fc_pit[active, LOAD_VEC_BRANCHES] = 0
+        fc_branch_pit = branch_pit[f:t, :]
+        fc_array = get_component_array(net, cls.table_name())
+        active = fc_array[:, cls.CONTROL_ACTIVE].astype(np.bool_)
+        fc_branch_pit[active, JAC_DERIV_DP] = 0
+        fc_branch_pit[active, JAC_DERIV_DP1] = 0
+        fc_branch_pit[active, JAC_DERIV_DV] = 1
+        fc_branch_pit[active, LOAD_VEC_BRANCHES] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
