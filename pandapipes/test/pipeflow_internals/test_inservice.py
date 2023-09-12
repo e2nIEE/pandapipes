@@ -127,7 +127,7 @@ def create_mixed_indexing_grid():
 
 @pytest.fixture
 def create_net_wo_external_hydraulic_grid():
-    net = pp.create_empty_network("net", add_stdtypes=False)
+    net = pandapipes.create_empty_network("net", add_stdtypes=False)
     pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
     pandapipes.create_junction(net, index=3, pn_bar=16, tfluid_k=283, height_m=0,
                                name="Junction 3", in_service=True,
