@@ -498,6 +498,7 @@ def identify_active_nodes_branches(net, branch_pit, node_pit, hydraulic=True):
     mode = "hydraulics" if hydraulic else "heat_transfer"
     net["_lookups"]["node_active_" + mode] = nodes_connected
     net["_lookups"]["branch_active_" + mode] = branches_connected
+    return node_pit[nodes_connected], branch_pit[branches_connected]
 
 
 def branches_connected_flow(branch_pit):
