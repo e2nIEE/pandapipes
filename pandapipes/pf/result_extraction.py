@@ -2,7 +2,7 @@ import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, LOAD_VEC_NODES, VINIT, RE, \
-    LAMBDA, TINIT_IN, FROM_NODE_T, TO_NODE_T, PL, TINIT_OUT
+    LAMBDA, TINIT, FROM_NODE_T, TO_NODE_T, PL, T_OUT
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
@@ -77,7 +77,7 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
         / (p_abs_from[mask] ** 2 - p_abs_to[mask] ** 2)
 
     fluid = get_fluid(net)
-    numerator = NORMAL_PRESSURE * branch_pit[:, TINIT_IN] / NORMAL_TEMPERATURE
+    numerator = NORMAL_PRESSURE * branch_pit[:, TINIT] / NORMAL_TEMPERATURE
     normfactor_from = numerator * fluid.get_property("compressibility", p_abs_from) / p_abs_from
     normfactor_to = numerator * fluid.get_property("compressibility", p_abs_to) / p_abs_to
     normfactor_mean = numerator * fluid.get_property("compressibility", p_abs_mean) / p_abs_mean
@@ -131,7 +131,7 @@ def get_gas_vel_numba(branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_a
         [np.empty_like(v_mps) for _ in range(6)]
 
     for i in range(len(v_mps)):
-        numerator = np.divide(NORMAL_PRESSURE * branch_pit[i, TINIT_IN], NORMAL_TEMPERATURE)
+        numerator = np.divide(NORMAL_PRESSURE * branch_pit[i, TINIT], NORMAL_TEMPERATURE)
         normfactor_from[i] = np.divide(numerator * comp_from[i], p_abs_from[i])
         normfactor_to[i] = np.divide(numerator * comp_to[i], p_abs_to[i])
         normfactor_mean[i] = np.divide(numerator * comp_mean[i], p_abs_mean[i])
@@ -273,8 +273,8 @@ def extract_results_active_pit(net,  mode="hydraulics"):
                                  if i not in [not_affected_node_col]])
     rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
 
-    result_branch_col = VINIT if mode == "hydraulics" else TINIT_OUT
-    not_affected_branch_col = TINIT_OUT if mode == "hydraulics" else VINIT
+    result_branch_col = VINIT if mode == "hydraulics" else T_OUT
+    not_affected_branch_col = T_OUT if mode == "hydraulics" else VINIT
     copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
                                    if i not in [FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T,
                                                 not_affected_branch_col]])

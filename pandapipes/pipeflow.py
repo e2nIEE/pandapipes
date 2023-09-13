@@ -7,7 +7,7 @@ from numpy import linalg
 from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, TINIT_OUT, VINIT_T
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, T_OUT, VINIT_T
 from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic, calculate_derivatives_thermal
@@ -278,13 +278,13 @@ def solve_temperature(net):
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()
-    t_out_old = branch_pit[:, TINIT_OUT].copy()
+    t_out_old = branch_pit[:, T_OUT].copy()
 
     x = spsolve(jacobian, epsilon)
     node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
-    branch_pit[:, TINIT_OUT] += x[len(node_pit):]
+    branch_pit[:, T_OUT] += x[len(node_pit):]
 
-    return branch_pit[:, TINIT_OUT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
+    return branch_pit[:, T_OUT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
 
 
 def set_damping_factor(net, niter, error):
@@ -318,7 +318,7 @@ def set_damping_factor(net, niter, error):
 
 def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_method, tol_1, tol_2,
                        tol_res, vals_1_old, vals_2_old, hydraulic_mode=True):
-    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, TINIT_OUT)
+    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, T_OUT)
 
     # Control of damping factor
     if nonlinear_method == "automatic":

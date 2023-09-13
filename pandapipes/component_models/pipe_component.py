@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, TINIT_OUT
+    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT,
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
@@ -153,7 +153,7 @@ class Pipe(BranchWInternalsComponent):
 
         node_pit = net["_pit"]["node"]
         to_nodes = pipe_pit[:, TO_NODE].astype(np.int32)
-        pipe_pit[:, TINIT_OUT] = node_pit[to_nodes, TINIT_NODE]
+        pipe_pit[:, T_OUT] = node_pit[to_nodes, TINIT_NODE]
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
 
     @classmethod
@@ -206,7 +206,7 @@ class Pipe(BranchWInternalsComponent):
         v_pipe_idx = np.repeat(pipe, internal_sections[pipe])
         pipe_results = dict()
         pipe_results["PINIT"] = np.zeros((len(p_node_idx), 2), dtype=np.float64)
-        pipe_results["TINIT_IN"] = np.zeros((len(p_node_idx), 2), dtype=np.float64)
+        pipe_results["TINIT"] = np.zeros((len(p_node_idx), 2), dtype=np.float64)
         pipe_results["VINIT_FROM"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
         pipe_results["VINIT_TO"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
         pipe_results["VINIT_MEAN"] = np.zeros((len(v_pipe_idx), 2), dtype=np.float64)
@@ -272,8 +272,8 @@ class Pipe(BranchWInternalsComponent):
 
             pipe_results["PINIT"][:, 0] = p_node_idx
             pipe_results["PINIT"][:, 1] = p_node_data
-            pipe_results["TINIT_IN"][:, 0] = p_node_idx
-            pipe_results["TINIT_IN"][:, 1] = t_node_data
+            pipe_results["TINIT"][:, 0] = p_node_idx
+            pipe_results["TINIT"][:, 1] = t_node_data
 
         else:
             logger.warning("For at least one pipe no internal data is available.")
@@ -347,7 +347,7 @@ class Pipe(BranchWInternalsComponent):
         pipe_p_data_idx = np.where(pipe_results["PINIT"][:, 0] == pipe)
         pipe_v_data_idx = np.where(pipe_results["VINIT_MEAN"][:, 0] == pipe)
         pipe_p_data = pipe_results["PINIT"][pipe_p_data_idx, 1]
-        pipe_t_data = pipe_results["TINIT_IN"][pipe_p_data_idx, 1]
+        pipe_t_data = pipe_results["TINIT"][pipe_p_data_idx, 1]
         pipe_v_data = pipe_results["VINIT_MEAN"][pipe_v_data_idx, 1]
         node_pit = net["_pit"]["node"]
 

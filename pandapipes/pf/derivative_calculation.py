@@ -1,6 +1,6 @@
 import numpy as np
 
-from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, TINIT_IN, LOAD_VEC_BRANCHES, \
+from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, TINIT, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
     FROM_NODE, TO_NODE, CP, VINIT_T, FROM_NODE_T, TINIT_OUT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
     LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE
@@ -37,7 +37,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
     tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = \
         get_derived_values(node_pit, from_nodes, to_nodes, options["use_numba"])
-    branch_pit[:, TINIT_IN] = tinit_branch
+    branch_pit[:, TINIT] = tinit_branch
 
     if not gas_mode:
         if options["use_numba"]:

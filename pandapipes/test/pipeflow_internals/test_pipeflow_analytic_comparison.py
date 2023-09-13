@@ -99,8 +99,8 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
                        header=0, keep_default_na=False)
     temp_an = data["T"]
 
-    pipe_temp_data_idx = np.where(pipe_results["TINIT_IN"][:, 0] == 0)
-    pipe_temp_data = pipe_results["TINIT_IN"][pipe_temp_data_idx, 1]
+    pipe_temp_data_idx = np.where(pipe_results["TINIT"][:, 0] == 0)
+    pipe_temp_data = pipe_results["TINIT"][pipe_temp_data_idx, 1]
 
     node_pit = net["_pit"]["node"]
 
