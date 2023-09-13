@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT,
+    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
