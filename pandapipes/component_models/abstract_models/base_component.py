@@ -135,6 +135,21 @@ class Component:
         return current_start, current_table
 
     @classmethod
+    def create_component_array(cls, net, component_pits):
+        """
+        Function which creates an internal array of the component in analogy to the pit, but with
+        component specific entries, that are not needed in the pit.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param component_pits: dictionary of component specific arrays
+        :type component_pits: dict
+        :return:
+        :rtype:
+        """
+        pass
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit branch entries.

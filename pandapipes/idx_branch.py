@@ -41,10 +41,8 @@ FROM_NODE_T = 31
 TO_NODE_T = 32
 QEXT = 33  # heat input in [W]
 TEXT = 34
-STD_TYPE = 35
-PL = 36
-TL = 37  # Temperature lift [K]
-BRANCH_TYPE = 38  # branch type relevant for the pressure controller
-PRESSURE_RATIO = 39  # boost ratio for compressors with proportional pressure lift
+PL = 35
+TL = 36  # Temperature lift [K]
+BRANCH_TYPE = 37  # branch type relevant for the pressure controller
 
-branch_cols = 40
+branch_cols = 38
