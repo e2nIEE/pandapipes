@@ -9,6 +9,7 @@ Change Log
 - [CHANGED] connectivity check now separated by hydraulics and heat_transfer calculation, so that also results can differ in some rows (NaN or not)
 - [CHANGED] dynamic creation of lookups for getting pit as pandas tables
 - [CHANGED] components can have their own internal arrays for specific calculations (e.g. for compressor pressure ratio), so that the pit does not need to include such component specific entries
+- [CHANGED] .readthedocs.yml due to deprecation
 - [FIXED] in STANET converter: bug fix for heat exchanger creation and external temperatures of pipes added
 - [REMOVED] broken travis badge removed from readme
 
