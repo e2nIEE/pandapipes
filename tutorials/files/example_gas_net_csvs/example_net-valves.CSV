@@ -1,0 +1,4 @@
+name,from_junction,to_junction,diameter
+s1,4,16,0.05
+s2,9,17,0.05
+s3,22,28,0.05
