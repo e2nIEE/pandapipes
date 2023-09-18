@@ -65,7 +65,8 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
     add_info = {"stanet_id": node_table.STANETID.astype(str).values
                 if "STANETID" in node_table.columns else knams,
                 "p_stanet": node_table.PRECH.values.astype(np.float64),
-                "stanet_valid": ~node_table.CALCBAD.values.astype(np.bool_)}
+                "stanet_valid": ~node_table.CALCBAD.values.astype(np.bool_),
+                "t_stanet": node_table.TEMP.values.astype(np.float64)}
     if hasattr(node_table, "KFAK"):
         add_info["K_stanet"] = node_table.KFAK.values.astype(np.float64)
     if add_layers:
@@ -152,11 +153,14 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
                 stanet_nr=-999, stanet_id='aux_' + j_ref['stanet_id'], p_stanet=np.NaN,
                 stanet_active=bool(row.ISACTIVE), **add_info
             )
+            text_k = 293
+            if hasattr(row, "TU"):
+                text_k = row.TU + 273.15
             pandapipes.create_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
                 diameter_m=float(row.DM / 1000), k_mm=row.RAU, loss_coefficient=row.ZETA,
                 name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
-                in_service=bool(row.ISACTIVE), stanet_nr=-999,
+                text_k=text_k, in_service=bool(row.ISACTIVE), stanet_nr=-999,
                 stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
                 stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info
             )
@@ -559,10 +563,14 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     if add_layers:
         add_info["stanet_layer"] = pipes.LAYER.values.astype(str)
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
+    text_k = 293
+    if "TU" in pipes.columns:
+        text_k = pipes.TU.values.astype(np.float64) + 273.15
     pandapipes.create_pipes_from_parameters(
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
         pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
-        stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values,
+        stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
+        alpha_w_per_m2k=pipes.WDZAHL.values.astype(np.float64),
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             pipes.ANFNAM.values, pipes.ENDNAM.values, pipe_sections.section_no.values)],
         stanet_nr=pipes.RECNO.values, stanet_id=pipes.STANETID.values,
@@ -574,27 +582,26 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     )
 
 
-def create_heat_exchangers(net, stored_data, connection_table, index_mapping, add_layers):
+def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, add_flow=False):
     """
     Creates pandapipes heat exchangers from STANET connections.
     :param net:
     :type net:
     :param stored_data:
     :type stored_data:
-    :param connection_table:
-    :type connection_table:
     :param index_mapping:
     :type index_mapping:
     :param add_layers:
     :type add_layers:
+    :param add_flow:
+    :type add_flow:
     :return:
     :rtype:
     """
     if "heat_exchangers" not in stored_data:
         return
-    heat_ex_table = stored_data["heat_exchangers"]
+    heat_exchanger = stored_data["heat_exchangers"]
     logger.info("Creating all heat exchangers.")
-    heat_exchanger = heat_ex_table.loc[~heat_ex_table.RECNO.isin(connection_table.SNUM.values)]
     node_mapping = index_mapping["nodes"]
 
     for row in heat_exchanger.itertuples():
@@ -616,9 +623,14 @@ def create_heat_exchangers(net, stored_data, connection_table, index_mapping, ad
         add_info = dict()
         if add_layers:
             add_info["stanet_layer"] = str(row.LAYER)
+        if add_flow:
+            add_info["flow_stanet"] = row.FLUSS
+        qext = 0
+        if hasattr(row, "WAERMECALC"):
+            qext = getattr(row, "WAERMECALC") * (-1000)
         # TODO: there is no qext given!!!
         pandapipes.create_heat_exchanger(
-            net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=0,
+            net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=qext,
             diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA, std_type=row.ROHRTYP,
             in_service=bool(row.ISACTIVE), name="heat_exchanger_%s_%s" % (row.ANFNAM, row.ENDNAM),
             stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=row.VM,
@@ -679,11 +691,15 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = p_tbl.LAYER.values.astype(str)
+    text_k = 293
+    if "TU" in p_tbl.columns:
+        text_k = p_tbl.TU.values.astype(np.float64) + 273.15
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
         type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
+        alpha_w_per_m2k=p_tbl.WDZAHL.values.astype(np.float64), text_k=text_k,
         name=["pipe_%s_%s" % (anf, end) for anf, end in zip(from_names[valid], to_names[valid])],
         stanet_nr=p_tbl.RECNO.values.astype(np.int32),
         stanet_id=p_tbl.STANETID.values.astype(str), v_stanet=p_tbl.VM.values, geodata=geodata,
@@ -990,11 +1006,15 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     if add_layers:
         add_info["stanet_layer"] = hp_data.LAYER.values.astype(str)
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
+    text_k = 293
+    if "TU" in hp_data.columns:
+        text_k = hp_data.TU.values.astype(np.float64) + 273.15
     pandapipes.create_pipes_from_parameters(
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
         hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
         stanet_std_type=hp_data.ROHRTYP.values,
-        in_service=hp_data.ISACTIVE.values if houses_in_calculation else False,
+        in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
+        alpha_w_per_m2k=hp_data.WDZAHL.values.astype(np.float64),
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             hp_data.CLIENTID.values, hp_data.CLIENT2ID.values, hp_data.section_no.values)],
         stanet_nr=hp_data.RECNO.values, stanet_id=hp_data.STANETID.values,

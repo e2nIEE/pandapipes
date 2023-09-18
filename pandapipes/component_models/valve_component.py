@@ -5,6 +5,7 @@
 import numpy as np
 from numpy import dtype
 
+from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
@@ -82,24 +83,11 @@ class Valve(BranchWZeroLengthComponent):
                 ("type", dtype(object))]
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
-        required_results = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
-            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
-        ]
+    def extract_results(cls, net, options, branch_results, mode):
+        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
-        if get_fluid(net).is_gas:
-            required_results.extend([
-                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
-                ("normfactor_to", "normfactor_to")
-            ])
-        else:
-            required_results.extend([("v_mean_m_per_s", "v_mps")])
-
-        extract_branch_results_without_internals(net, branch_results, required_results,
-                                                 cls.table_name(), branches_connected)
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd,
+                                                 required_results_ht, cls.table_name(), mode)
 
     @classmethod
     def get_result_table(cls, net):
