@@ -10,8 +10,16 @@ Fluid from Library
 ==================
 
 In the fluid library some default fluids are already implemented. Currently it is
-possible to work with the default fluids high and low calorific natural
-gas (hgas and lgas), hydrogen, methane,  water and air. The values are loaded from txt-files in
+possible to work with the default fluids:
+
+- ``hgas`` and ``lgas`` (high and low calorific natural gas),
+- ``hydrogen``,
+- ``methane``,
+- ``water``,
+- ``biomethane_pure`` and ``biomathane_treated`` (see `here <https://pandapipes.readthedocs.io/en/latest/fluid_properties/fluids.html>`_ for the compositions),
+- ``air``.
+
+The values are loaded from txt-files in
 the 'pandapipes/properties/[fluid name]' folder.
 One of these default fluids can be created and added to an
 existing network by calling the following function.

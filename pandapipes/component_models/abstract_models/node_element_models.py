@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,7 +7,7 @@ from pandapipes.pf.pipeflow_setup import get_lookup, add_table_lookup, get_table
 import numpy as np
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -42,6 +42,10 @@ class NodeElementComponent(Component):
 
     @classmethod
     def get_result_table(cls, net):
+        raise NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
         raise NotImplementedError
 
     @classmethod
@@ -99,7 +103,5 @@ class NodeElementComponent(Component):
             return node_element_pit
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         raise NotImplementedError
-
-

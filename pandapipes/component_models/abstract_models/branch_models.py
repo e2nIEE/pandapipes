@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,7 @@ from pandapipes.pf.derivative_toolbox import \
     get_derivative_density_diff, get_derivative_density_same
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -87,8 +87,9 @@ class BranchComponent(Component):
 
         junction_idx_lookup = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
-        from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
-        to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
+        fn_col, tn_col = cls.from_to_node_cols()
+        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+        to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (net['_idx_branch']['branch_cols'] - 1))
         branch_component_pit[:, net['_idx_branch']['VINIT']] = 0.1
         return branch_component_pit, node_pit, from_nodes, to_nodes
@@ -168,13 +169,13 @@ class BranchComponent(Component):
             rho * v_init * branch_component_pit[:, net['_idx_branch']['AREA']] * t_init_i1
 
     @classmethod
-    def calculate_temperature_lift(cls, net, branch_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param branch_pit:
-        :type branch_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
@@ -183,7 +184,7 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         raise NotImplementedError
 
 

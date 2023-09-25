@@ -1,11 +1,11 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.component_toolbox import init_results_element
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -33,7 +33,7 @@ class Component:
         return res_table
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
@@ -43,10 +43,8 @@ class Component:
         :type options:
         :param branch_results:
         :type branch_results:
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
+        :param mode:
+        :type mode:
         :return: No Output.
         """
         raise NotImplementedError
@@ -73,11 +71,11 @@ class Component:
         raise NotImplementedError
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
     @classmethod
@@ -126,6 +124,21 @@ class Component:
         :return: No Output.
         """
         return current_start, current_table
+
+    @classmethod
+    def create_component_array(cls, net, component_pits):
+        """
+        Function which creates an internal array of the component in analogy to the pit, but with
+        component specific entries, that are not needed in the pit.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param component_pits: dictionary of component specific arrays
+        :type component_pits: dict
+        :return:
+        :rtype:
+        """
+        pass
 
     @classmethod
     def create_pit_node_entries(cls, net, node_pit):

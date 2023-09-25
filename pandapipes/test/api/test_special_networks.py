@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -15,6 +15,7 @@ from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 from pandapipes.properties.fluids import FluidPropertyConstant, Fluid, _add_fluid_to_net
 from pandapipes.properties.properties_toolbox import calculate_molar_fraction_from_mass_fraction, \
     calculate_mixture_compressibility_fact
+from pandapipes.test.test_toolbox import create_net_changed_indices
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -608,6 +609,14 @@ def test_compressibility():
 
     assert np.all(np.isclose(compressibility_fact,
                       (0.95926, 1.00264, 1.00263, 1.01068), rtol=1.e-4, atol=1.e-4))
+
+
+@pytest.mark.xfail(reason="The test net is not set up properly.")
+def test_wild_indexing(create_net_changed_indices):
+    net = copy.deepcopy(create_net_changed_indices)
+
+    pandapipes.pipeflow(net)
+    assert net["converged"]
 
 
 if __name__ == "__main__":

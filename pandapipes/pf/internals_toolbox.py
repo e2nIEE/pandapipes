@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -99,7 +99,7 @@ def _sum_by_group(use_numba, indices, *values):
     ind_dt = indices.dtype
     indices = indices.astype(np.int32)
     max_ind = max_nb(indices)
-    if max_ind < 1e5 and max_ind < 10 * len(indices):
+    if (max_ind < 1e5 or max_ind < 2 * len(indices)) and max_ind < 10 * len(indices):
         dtypes = [v.dtype for v in values]
         val_arr = np.array(list(values), dtype=np.float64).transpose()
         new_ind, new_arr = _sum_values_by_index(indices, val_arr, max_ind, len(indices),
