@@ -8,7 +8,7 @@ from numpy import linalg
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, \
-    VINIT, T_OUT, FROM_NODE
+    VINIT, TOUTINIT, FROM_NODE
 from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE
 
 
@@ -41,7 +41,7 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
     p_sum = p_init_i_abs + p_init_i1_abs
     p_sum_div = np.divide(1, p_sum)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    tm = (node_pit[from_nodes, TINIT_NODE] + branch_pit[:, T_OUT]) / 2
+    tm = (node_pit[from_nodes, TINIT_NODE] + branch_pit[:, TOUTINIT]) / 2
     const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[:, RHO] * tm,
                              NORMAL_TEMPERATURE * P_CONVERSION)
     const_height = np.divide(

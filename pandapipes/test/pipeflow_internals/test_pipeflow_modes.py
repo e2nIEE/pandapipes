@@ -94,8 +94,8 @@ def test_heat_only(use_numba):
     pandapipes.pipeflow(ntw, stop_condition="tol", iter=50, friction_model="nikuradse",
                         nonlinear_method="automatic", mode="hydraulics", use_numba=use_numba)
 
-    p = ntw._pit["node"][:, 5]
-    v = ntw._pit["branch"][:, 11]
+    p = ntw._pit["node"][:, PINIT]
+    v = ntw._pit["branch"][:, VINIT]
     u = np.concatenate((p, v))
 
     pandapipes.pipeflow(ntw, sol_vec=u, stop_condition="tol", iter=50, friction_model="nikuradse",

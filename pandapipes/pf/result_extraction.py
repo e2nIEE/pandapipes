@@ -2,7 +2,7 @@ import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, LOAD_VEC_NODES, VINIT, RE, \
-    LAMBDA, FROM_NODE_T, TO_NODE_T, PL, T_OUT
+    LAMBDA, FROM_NODE_T, TO_NODE_T, PL, TOUTINIT
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
@@ -78,7 +78,7 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
 
     fluid = get_fluid(net)
     t_from = node_pit[from_nodes, TINIT_NODE]
-    t_to = branch_pit[:, T_OUT]
+    t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
     numerator_from = NORMAL_PRESSURE * t_from / NORMAL_TEMPERATURE
     numerator_to = NORMAL_PRESSURE * t_to / NORMAL_TEMPERATURE
@@ -137,7 +137,7 @@ def get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     for i in range(len(v_mps)):
         t_from = node_pit[from_nodes[i], TINIT_NODE]
-        t_to = branch_pit[i, T_OUT]
+        t_to = branch_pit[i, TOUTINIT]
         tm = (t_from + t_to) / 2
         numerator_from = np.divide(NORMAL_PRESSURE * t_from, NORMAL_TEMPERATURE)
         numerator_to = np.divide(NORMAL_PRESSURE * t_to, NORMAL_TEMPERATURE)
@@ -283,8 +283,8 @@ def extract_results_active_pit(net,  mode="hydraulics"):
                                  if i not in [not_affected_node_col]])
     rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
 
-    result_branch_col = VINIT if mode == "hydraulics" else T_OUT
-    not_affected_branch_col = T_OUT if mode == "hydraulics" else VINIT
+    result_branch_col = VINIT if mode == "hydraulics" else TOUTINIT
+    not_affected_branch_col = TOUTINIT if mode == "hydraulics" else VINIT
     copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
                                    if i not in [FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T,
                                                 not_affected_branch_col]])

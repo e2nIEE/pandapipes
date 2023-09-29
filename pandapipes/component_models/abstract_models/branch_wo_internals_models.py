@@ -4,7 +4,7 @@
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, T_OUT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
 from pandapipes.idx_node import TINIT as TINIT_NODE
 
 from pandapipes.pf.pipeflow_setup import add_table_lookup
@@ -82,8 +82,8 @@ class BranchWOInternalsComponent(BranchComponent):
         branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
         branch_wo_internals_pit[:, FROM_NODE] = from_nodes
         branch_wo_internals_pit[:, TO_NODE] = to_nodes
-        branch_wo_internals_pit[:, T_OUT] = node_pit[to_nodes, TINIT_NODE]
-        tm = (node_pit[from_nodes, TINIT_NODE] + branch_wo_internals_pit[:, T_OUT]) / 2
+        branch_wo_internals_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
+        tm = (node_pit[from_nodes, TINIT_NODE] + branch_wo_internals_pit[:, TOUTINIT]) / 2
         fluid = get_fluid(net)
         branch_wo_internals_pit[:, RHO] = fluid.get_density(tm)
         branch_wo_internals_pit[:, ETA] = fluid.get_viscosity(tm)
