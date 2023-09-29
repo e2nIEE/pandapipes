@@ -90,7 +90,7 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
         stanet_active=node_table.ISACTIVE.values.astype(np.bool_),
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE], **add_info)
     for eg_junc, p_bar, t_k in zip(junction_indices[eg_ind], eg_press, eg_temps):
-        pandapipes.create_ext_grid(net, eg_junc, p_bar, t_k, type="pt",
+        pandapipes.create_ext_grid(net, eg_junc, 'STANET_fluid', p_bar, t_k, type="pt",
                                    stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE])
     index_mapping["nodes"] = dict(zip(stanet_nrs, junction_indices))
 

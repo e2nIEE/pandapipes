@@ -62,11 +62,10 @@ class Compressor(Pump):
         component_pits[cls.table_name()] = compr_array
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         """ absolute inlet pressure multiplied by the compressor's boost ratio.
         If the flow is reversed, the pressure lift is set to 0."""
-        super().adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups, options)
-        f, t = idx_lookups[cls.table_name()]
+        f, t = branch_lookups[cls.table_name()]
         compressor_branch_pit = branch_pit[f:t, :]
         compressor_array = get_component_array(net, cls.table_name())
 

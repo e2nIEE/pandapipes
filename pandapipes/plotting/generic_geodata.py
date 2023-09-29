@@ -52,7 +52,7 @@ def build_igraph_from_ppipes(net, junctions=None):
         g.add_edge(pp_junction_mapping[pipe.from_junction], pp_junction_mapping[pipe.to_junction],
                    weight=pipe.length_km)
 
-    for comp in np.concatenate([net.branch_list]):
+    for comp in net.branch_list:
         fjc, tjc = comp.from_to_node_cols()
         mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
         for comp_data in net[comp.table_name()][mask].itertuples():

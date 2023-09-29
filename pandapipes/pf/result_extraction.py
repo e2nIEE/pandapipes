@@ -286,8 +286,9 @@ def extract_results_active_pit(net,  mode="hydraulics"):
     """
     nodes_connected = get_lookup(net, "node", "active_" + mode)
     branches_connected = get_lookup(net, "branch", "active_" + mode)
-    result_node_col = net['_idx_nde']['PINIT'] if mode == "hydraulics" else net['_idx_nde']['TINIT']
-    not_affected_node_col = net['_idx_branch']['TINIT'] if mode == "hydraulics" else net['_idx_nde']['PINIT']
+    node_elements_connected = get_lookup(net, "node_element", "active_" + mode)
+    result_node_col = net['_idx_node']['PINIT'] if mode == "hydraulics" else net['_idx_node']['TINIT']
+    not_affected_node_col = net['_idx_branch']['TINIT'] if mode == "hydraulics" else net['_idx_node']['PINIT']
     copied_node_cols = np.array([i for i in range(net["_pit"]["node"].shape[1])
                                  if i not in [not_affected_node_col]])
     rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
@@ -302,12 +303,24 @@ def extract_results_active_pit(net,  mode="hydraulics"):
                                                 not_affected_branch_col]])
     rows_branches = np.arange(net["_pit"]["branch"].shape[0])[branches_connected]
 
+    result_node_element_col = net['_idx_node_element']['MINIT'] if mode == 'hydraulics' else None
+    not_affected_node_element_col = [] if mode == 'hydraulics' else net['_idx_node_element']['MINIT']
+    copied_node_element_cols = np.array([i for i in range(net["_pit"]["node_element"].shape[1])
+                                         if i not in [net['_idx_node_element']['JUNCTION'],
+                                                      not_affected_node_element_col]])
+    rows_node_elements = np.arange(net["_pit"]["node_element"].shape[0])[node_elements_connected]
+
+
     net["_pit"]["node"][~nodes_connected, result_node_col] = np.NaN
     net["_pit"]["node"][rows_nodes[:, np.newaxis], copied_node_cols[np.newaxis, :]] = \
         net["_active_pit"]["node"][:, copied_node_cols]
     net["_pit"]["branch"][~branches_connected, result_branch_col] = np.NaN
     net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
         net["_active_pit"]["branch"][:, copied_branch_cols]
+    if result_node_element_col is not None:
+        net["_pit"]["node_element"][~node_elements_connected, result_node_element_col] = np.NaN
+    net["_pit"]["node_element"][rows_node_elements[:, np.newaxis], copied_node_element_cols[np.newaxis, :]] = \
+        net["_active_pit"]["node_element"][:, copied_node_element_cols]
 
 
 def consider_heat(mode, results=None):

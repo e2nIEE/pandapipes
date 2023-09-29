@@ -325,7 +325,7 @@ def create_ext_grid(net, junction, fluid, p_bar=None, t_k=None, type="auto", nam
 
     type = _auto_ext_grid_type(p_bar, t_k, type, ExtGrid)
 
-    cols = ["name", "junction", "fluid", "p_bar", "t_k", "fluid", "in_service", "type"]
+    cols = ["name", "junction", "fluid", "p_bar", "t_k", "in_service", "type"]
 
     if isinstance(fluid, Fluid):
         _add_fluid_to_net(net, fluid, False)
@@ -779,17 +779,18 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
                   flow_junction)
 
     type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpPressure)
-    cols = ["name", "return_junction", "flow_junction", "fluid", "p_bar", "t_k", "plift_bar", "in_service", "type"]
+    cols = ["name", "return_junction", "flow_junction", "fluid",
+            "p_flow_bar", "t_flow_k", "plift_bar", "in_service", "type"]
 
     if isinstance(fluid, Fluid):
         net["fluid"][fluid.name] = fluid
-        vals = [name, return_junction, flow_junction, p_flow_bar, t_flow_k, plift_bar, fluid.name,
+        vals = [name, return_junction, flow_junction, fluid.name, p_flow_bar, t_flow_k, plift_bar,
                 bool(in_service), type]
         _set_entries(net, "circ_pump_pressure", index, **dict(zip(cols, vals)), **kwargs)
         return index
     elif isinstance(fluid, str):
         create_fluid_from_lib(net, fluid)
-        vals = [name, return_junction, flow_junction, p_flow_bar, t_flow_k, plift_bar, fluid,
+        vals = [name, return_junction, flow_junction, fluid, p_flow_bar, t_flow_k, plift_bar,
                 bool(in_service), type]
         _set_entries(net, "circ_pump_pressure", index, **dict(zip(cols, vals)), **kwargs)
         return index
@@ -864,15 +865,15 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
 
     if isinstance(fluid, Fluid):
         net["fluid"][fluid.name] = fluid
-        vals = [name, return_junction, flow_junction, p_flow_bar,
-                t_flow_k, mdot_flow_kg_per_s, fluid.name,
+        vals = [name, return_junction, flow_junction, fluid.name, p_flow_bar,
+                t_flow_k, mdot_flow_kg_per_s,
                 bool(in_service), type]
         _set_entries(net, "circ_pump_mass", index, **dict(zip(cols, vals)), **kwargs)
         return index
     elif isinstance(fluid, str):
         create_fluid_from_lib(net, fluid)
-        vals = [name, return_junction, flow_junction, p_flow_bar,
-                t_flow_k, mdot_flow_kg_per_s, fluid,
+        vals = [name, return_junction, flow_junction, fluid, p_flow_bar,
+                t_flow_k, mdot_flow_kg_per_s,
                 bool(in_service), type]
         _set_entries(net, "circ_pump_mass", index, **dict(zip(cols, vals)), **kwargs)
         return index
@@ -1285,21 +1286,24 @@ def create_ext_grids(net, junctions, fluid, p_bar, t_k, name=None, in_service=Tr
         _add_fluid_to_net(net, fluid, False)
         entries = {"junction": junctions, "fluid": fluid, "p_bar": p_bar, "t_k": t_k,
                    "in_service": in_service, "name": name, "type": type}
-        _set_multiple_entries(net, "source", index, **entries, **kwargs)
+        _set_multiple_entries(net, "ext_grid", index, **entries, **kwargs)
         return index
     elif isinstance(fluid, str):
         if fluid in net.fluid:
             entries = {"junction": junctions, "fluid": fluid, "p_bar": p_bar, "t_k": t_k,
                        "in_service": in_service, "name": name, "type": type}
-            _set_multiple_entries(net, "source", index, **entries, **kwargs)
+            _set_multiple_entries(net, "ext_grid", index, **entries, **kwargs)
             return index
         else:
             if fluid not in net.fluid:
                 create_fluid_from_lib(net, fluid)
             entries = {"junction": junctions, "fluid": fluid, "p_bar": p_bar, "t_k": t_k,
                        "in_service": in_service, "name": name, "type": type}
-            _set_multiple_entries(net, "source", index, **entries, **kwargs)
+            _set_multiple_entries(net, "ext_grid", index, **entries, **kwargs)
             return index
+    elif isinstance(fluid, list):
+        #TODO: implement passing fluid list
+        pass
     else:
         logger.warning("The fluid %s cannot be added to the net. Only fluids of type Fluid or "
                        "strings can be used." % fluid)

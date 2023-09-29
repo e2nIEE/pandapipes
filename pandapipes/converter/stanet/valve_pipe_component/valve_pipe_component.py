@@ -7,8 +7,7 @@ from numpy import dtype
 
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.idx_branch import LENGTH, K, D, AREA, LOSS_COEFFICIENT as LC
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.fluids import is_fluid_gas
 
 
 class ValvePipe(Pipe):
@@ -45,14 +44,14 @@ class ValvePipe(Pipe):
         :return:
         :rtype:
         """
-        comp_pit[:, LENGTH] = np.repeat(net[cls.table_name].length_km.values * 1000 /
-                                        internal_pipe_number, internal_pipe_number)
-        comp_pit[:, K] = np.repeat(net[cls.table_name].k_mm.values / 1000,
-                                   internal_pipe_number)
-        comp_pit[:, D] = np.repeat(net[cls.table_name].diameter_m.values, internal_pipe_number)
-        comp_pit[:, AREA] = comp_pit[:, D] ** 2 * np.pi / 4
-        comp_pit[:, LC] = np.repeat(net[cls.table_name].loss_coefficient.values,
-                                    internal_pipe_number)
+        comp_pit[:, net['_idx_branch']['LENGTH']] = np.repeat(net[cls.table_name].length_km.values * 1000 /
+                                                              internal_pipe_number, internal_pipe_number)
+        comp_pit[:, net['_idx_branch']['K']] = np.repeat(net[cls.table_name].k_mm.values / 1000,
+                                                         internal_pipe_number)
+        comp_pit[:, net['_idx_branch']['D']] = np.repeat(net[cls.table_name].diameter_m.values, internal_pipe_number)
+        comp_pit[:, net['_idx_branch']['AREA']] = comp_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
+        comp_pit[:, net['_idx_branch']['LOSS_COEFFICIENT']] = np.repeat(net[cls.table_name].loss_coefficient.values,
+                                                                        internal_pipe_number)
 
     @classmethod
     def get_component_input(cls):
@@ -85,7 +84,7 @@ class ValvePipe(Pipe):
 
     @classmethod
     def get_result_table(cls, net):
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             output = ["v_from_m_per_s",
                       "v_to_m_per_s",
                       "v_mean_m_per_s",

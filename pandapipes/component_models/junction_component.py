@@ -90,8 +90,8 @@ class Junction(NodeComponent):
 
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        f, t = idx_lookups[cls.table_name()]
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
+        f, t = node_lookups[cls.table_name()]
         junction_pit = node_pit[f:t, :]
         if len(net._fluid) == 1:
             junction_pit[:, net['_idx_node']['RHO']] = \
@@ -137,11 +137,11 @@ class Junction(NodeComponent):
         if mode in ["hydraulics", "all"]:
             junctions_connected_hydraulic = get_lookup(net, "node", "active_hydraulics")[f:t]
 
-        if np.any(junction_pit[junctions_connected_hydraulic, net['_idx_node']['PINIT']] < 0):
-            warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
-                             'as pressure is negative at nodes %s'
-                             % junction_pit[
-                                 junction_pit[:, net['_idx_node']['PINIT']] < 0, net['_idx_node']['ELEMENT_IDX']]))
+            if np.any(junction_pit[junctions_connected_hydraulic, net['_idx_node']['PINIT']] < 0):
+                warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
+                                 'as pressure is negative at nodes %s'
+                                 % junction_pit[
+                                     junction_pit[:, net['_idx_node']['PINIT']] < 0, net['_idx_node']['ELEMENT_IDX']]))
 
         res_table["p_bar"].values[:] = junction_pit[:, net['_idx_node']['PINIT']]
         res_table["t_k"].values[:] = junction_pit[:, net['_idx_node']['TINIT']]

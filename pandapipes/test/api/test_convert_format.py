@@ -21,8 +21,7 @@ test_params = list(product(found_versions, numba_usage))
 # as of version 0.8.0, water and gas grids were separately created for convert_format testing
 minimal_version_two_nets = "0.8.0"
 
-
-@pytest.mark.xfail()
+@pytest.mark.xfail
 @pytest.mark.slow
 @pytest.mark.parametrize("pp_version, use_numba", test_params)
 def test_convert_format(pp_version, use_numba):

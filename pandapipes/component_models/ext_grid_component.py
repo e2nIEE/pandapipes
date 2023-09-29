@@ -98,16 +98,13 @@ class ExtGrid(NodeElementComponent):
             return
 
         res_table = net["res_" + cls.table_name()]
-
+        #TODO: Check why pit and active pit lead to different results
         f, t = get_lookup(net, "node_element", "from_to")[cls.table_name()]
-        fa, ta = get_lookup(net, "node_element", "from_to_active")[cls.table_name()]
 
-        node_element_pit = net["_active_pit"]["node_element"][fa:ta, :]
-        node_elements_active = get_lookup(net, "node_element", "active")[f:t]
-
+        node_element_pit = net["_pit"]["node_element"][f:t]
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)
-        res_table["mdot_kg_per_s"].values[node_elements_active] = \
+        res_table["mdot_kg_per_s"].values[:] = \
             cls.sign() * node_element_pit[:, net['_idx_node_element']['MINIT']]
         return res_table, ext_grids
 

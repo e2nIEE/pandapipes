@@ -32,7 +32,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 default_options = {"friction_model": "nikuradse", "converged": False,
-                   "tol_p": 1e-4, "tol_v": 1e-4, "tol_m": 1e-4, "tol_w": 1e-4,
+                   "tol_p": 1e-4, "tol_v": 1e-4, "tol_m": 1e-6, "tol_w": 1e-4,
                    "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
@@ -509,8 +509,8 @@ def identify_active_nodes_branches(net, branch_pit, node_pit, node_element_pit, 
         # well)
         if get_net_option(net, "check_connectivity"):
             # full connectivity check for hydraulic simulation
-            nodes_connected, branches_connected, node = check_connectivity(net, branch_pit, node_pit, node_element_pit,
-                                                                     mode="heat_transfer")
+            nodes_connected, branches_connected, node_elements_connected = \
+                check_connectivity(net, branch_pit, node_pit, node_element_pit, mode="heat_transfer")
         else:
             # if no full connectivity check is performed, all nodes that are not connected to the
             # rest of the network wrt. flow can be identified by a more performant sum_by_group_call
@@ -528,10 +528,13 @@ def identify_active_nodes_branches(net, branch_pit, node_pit, node_element_pit, 
             # set nodes oos that are not connected to any branches with flow > 0 (0.1 is arbitrary
             # here, any value between 0 and 1 should work, excluding 0 and 1)
             nodes_connected[fn_tn] = nodes_connected[fn_tn] & (flow > 0.1)
+
+            node_elements_connected = node_element_pit[:, net['_idx_node_element']['JUNCTION']].astype(int)
+            node_elements_connected = np.isin(node_elements_connected, np.arange(len(nodes_connected))[nodes_connected])
     mode = "hydraulics" if hydraulic else "heat_transfer"
     net["_lookups"]["node_active_" + mode] = nodes_connected
     net["_lookups"]["branch_active_" + mode] = branches_connected
-    net["_lookups"]["node_elements_active_" + mode] = node_elements_connected
+    net["_lookups"]["node_element_active_" + mode] = node_elements_connected
 
 
 def branches_connected_flow(net, branch_pit):
@@ -706,7 +709,7 @@ def reduce_pit(net, node_pit, branch_pit, node_element_pit, mode="hydraulics"):
     reduced_node_lookup = None
     nodes_connected = get_lookup(net, "node", "active_" + mode)
     branches_connected = get_lookup(net, "branch", "active_" + mode)
-    node_elements_connected = get_lookup(net, "node_elements", "active_" + mode)
+    node_elements_connected = get_lookup(net, "node_element", "active_" + mode)
     if np.alltrue(nodes_connected):
         net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "node", "from_to"))
@@ -739,17 +742,18 @@ def reduce_pit(net, node_pit, branch_pit, node_element_pit, mode="hydraulics"):
             net["_lookups"]["branch_index_active_" + mode] = dict()
         els["branch"] = branches_connected
     if np.alltrue(node_elements_connected):
-        net["_lookups"]["node_element_from_to_active"] = copy.deepcopy(get_lookup(net, "node_element",
-                                                                            "from_to"))
+        net["_lookups"]["node_element_from_to_active_" + mode] = \
+            copy.deepcopy(get_lookup(net, "node_element", "from_to"))
         active_pit["node_element"] = np.copy(node_element_pit)
-        net["_lookups"]["node_element_index_active"] = copy.deepcopy(get_lookup(net, "node_element", "index"))
+        net["_lookups"]["node_element_index_active_" + mode] = \
+            copy.deepcopy(get_lookup(net, "node_element", "index"))
     else:
         active_pit["node_element"] = np.copy(node_element_pit[node_elements_connected, :])
         node_element_idx_lookup = get_lookup(net, "node_element", "index")
         if len(node_element_idx_lookup):
-            reduced_branch_lookup = np.cumsum(node_elements_connected) - 1
+            reduced_node_element_lookup = np.cumsum(node_elements_connected) - 1
             net["_lookups"]["node_element_index_active"] = {
-                tbl: reduced_branch_lookup[idx_lookup[idx_lookup != -1]]
+                tbl: reduced_node_element_lookup[idx_lookup[idx_lookup != -1]]
                 for tbl, idx_lookup in node_element_idx_lookup.items()}
         else:
             net["_lookups"]["node_element_index_active"] = dict()

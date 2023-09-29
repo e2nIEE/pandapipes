@@ -86,9 +86,9 @@ class CirculationPump(BranchWZeroLengthComponent):
         :return: No Output.
         """
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
-        circ_pump_pit[:, D] = 0.1
-        circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
-        circ_pump_pit[:, ACTIVE] = False
+        circ_pump_pit[:, net['_idx_branch']['D']] = 0.1
+        circ_pump_pit[:, net['_idx_branch']['AREA']] = circ_pump_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
+        circ_pump_pit[:, net['_idx_branch']['ACTIVE']] = False
 
     @classmethod
     def calculate_temperature_lift(cls, net, pipe_pit, node_pit):

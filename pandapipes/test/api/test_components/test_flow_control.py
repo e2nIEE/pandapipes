@@ -6,7 +6,7 @@ import pandapipes
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_flow_control_simple_heat(use_numba):
-    net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="water")
+    net = pandapipes.create_empty_network("net", add_stdtypes=True)
 
     j = pandapipes.create_junctions(net, 8, pn_bar=5, tfluid_k=360)
     j1, j2, j3, j4, j5, j6, j7, j8 = j
@@ -21,7 +21,7 @@ def test_flow_control_simple_heat(use_numba):
     pandapipes.create_flow_control(net, j2, j3, 2, 0.1)
     pandapipes.create_flow_control(net, j5, j6, 2, 0.1, control_active=False)
 
-    pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=360, type="pt")
+    pandapipes.create_ext_grid(net, j1, 'water', p_bar=5, t_k=360, type="pt")
 
     pandapipes.create_sink(net, j8, 3)
 
@@ -42,7 +42,7 @@ def test_flow_control_simple_heat(use_numba):
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_flow_control_simple_gas(use_numba):
-    net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="hgas")
+    net = pandapipes.create_empty_network("net", add_stdtypes=True)
 
     j = pandapipes.create_junctions(net, 8, pn_bar=1, tfluid_k=298)
     j1, j2, j3, j4, j5, j6, j7, j8 = j
@@ -52,7 +52,7 @@ def test_flow_control_simple_gas(use_numba):
 
     pandapipes.create_flow_controls(net, [j2, j3, j4], [j6, j5, j8], [0.03, 0.02, 0.03], 0.1)
 
-    pandapipes.create_ext_grid(net, j1, p_bar=1, t_k=298)
+    pandapipes.create_ext_grid(net, j1, 'hgas', p_bar=1, t_k=298)
 
     pandapipes.create_sinks(net, [j3, j4, j5, j7, j8], [0.02, 0.04, 0.03, 0.04, 0.02])
 
@@ -65,7 +65,7 @@ def test_flow_control_simple_gas(use_numba):
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_flow_control_simple_gas_two_eg(use_numba):
-    net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="hgas")
+    net = pandapipes.create_empty_network("net", add_stdtypes=True)
 
     j = pandapipes.create_junctions(net, 4, pn_bar=1, tfluid_k=298)
     j1, j2, j3, j4 = j
@@ -74,8 +74,8 @@ def test_flow_control_simple_gas_two_eg(use_numba):
 
     pandapipes.create_flow_control(net, j2, j3, 0.03, 0.1)
 
-    pandapipes.create_ext_grid(net, j1, p_bar=1, t_k=298)
-    pandapipes.create_ext_grid(net, j4, p_bar=0.95, t_k=298)
+    pandapipes.create_ext_grid(net, j1, 'hgas', p_bar=1, t_k=298)
+    pandapipes.create_ext_grid(net, j4, 'hgas', p_bar=0.95, t_k=298)
 
     pandapipes.create_sinks(net, [j2, j3], [0.02, 0.04])
 

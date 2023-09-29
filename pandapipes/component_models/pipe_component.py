@@ -156,7 +156,7 @@ class Pipe(BranchWInternalsComponent):
             has_internals)
 
         node_pit = net["_pit"]["node"]
-        to_nodes = pipe_pit[:,  net['_idx_node']['TO_NODE']].astype(np.int32)
+        to_nodes = pipe_pit[:,  net['_idx_branch']['TO_NODE']].astype(np.int32)
         pipe_pit[:, net['_idx_branch']['T_OUT']] = node_pit[to_nodes, net['_idx_node']['TINIT']]
         pipe_pit[:, net['_idx_branch']['AREA']] = pipe_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
 

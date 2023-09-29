@@ -545,6 +545,8 @@ def get_pit_lookup(pit_type="node"):
     with open(os.path.join(pandapipes.pp_dir, f"idx_{pit_type}.py")) as f:
         lookup_type = None
         for ln in f.readlines():
+            if ln.strip().startswith("counter"):
+                continue
             if ln.strip().startswith("#"):
                 if "indices" in ln:
                     lookup_type = "indices"
@@ -561,11 +563,11 @@ def get_pit_lookup(pit_type="node"):
 
 
 def get_internal_tables_pandas(net, convert_types=True):
-    pit_types = {net['_idx_node']['TYPE_P']: "P",
-                 net['_idx_node']['TYPE_L']: "L",
-                 net['_idx_node']['TYPE_NONE']: "NONE",
-                 net['_idx_node']['TYPE_T']: "T",
-                 net['_idx_node']['TYPE_PC']: "PC",
+    pit_types = {net['_idx_node']['P']: "P",
+                 net['_idx_node']['L']: "L",
+                 net['_idx_node']['NONE']: "NONE",
+                 net['_idx_node']['T']: "T",
+                 net['_idx_node']['PC']: "PC",
                  0: "NONE"}
     int_cols = ["FROM_NODE", "TO_NODE", "ELEMENT_IDX", "EXT_GRID_OCCURENCE", "EXT_GRID_OCCURENCE_T"]
     bool_cols = ["ACTIVE"]

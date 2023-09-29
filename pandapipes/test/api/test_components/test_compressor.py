@@ -19,7 +19,7 @@ def test_compressor_pressure_ratio(use_numba):
 
     pandapipes.create_pipe_from_parameters(net, j1, j2, length_km=0.43380, diameter_m=0.1022)
     pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=0.26370, diameter_m=0.1022)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid="hgas", type="p")
+    pandapipes.create_ext_grid(net, j1, "hgas", 5, 283.15, type="p")
     pandapipes.create_sink(net, j6, 0.02333)
 
     br1 = 1.5

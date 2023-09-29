@@ -86,10 +86,10 @@ class Pump(BranchWZeroLengthComponent):
         component_pits[cls.table_name()] = pump_array
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        super().adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups, options)
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
+        super().adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups, node_lookups, options)
         # calculation of pressure lift
-        f, t = idx_lookups[cls.table_name()]
+        f, t = branch_lookups[cls.table_name()]
         pump_branch_pit = branch_pit[f:t, :]
         area = pump_branch_pit[:, net['_idx_branch']['AREA']]
 
@@ -99,8 +99,7 @@ class Pump(BranchWZeroLengthComponent):
 
         from_nodes = pump_branch_pit[:, net['_idx_branch']['FROM_NODE']].astype(np.int32)
         # to_nodes = pump_branch_pit[:, TO_NODE].astype(np.int32)
-        fluid = get_fluid(net)
-        p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, PINIT]
+        p_from = node_pit[from_nodes, net['_idx_node']['PAMB']] + node_pit[from_nodes, net['_idx_node']['PINIT']]
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
         numerator = NORMAL_PRESSURE * pump_branch_pit[:, net['_idx_branch']['TINIT']]
         v_mps = pump_branch_pit[:, net['_idx_branch']['VINIT']]
@@ -112,7 +111,7 @@ class Pump(BranchWZeroLengthComponent):
                                   / (p_from * NORMAL_TEMPERATURE)
             else:
                 w = get_lookup(net, 'branch', 'w')
-                mass_fraction = pump_pit[:, w]
+                mass_fraction = pump_branch_pit[:, w]
                 normfactor_from = numerator * get_mixture_compressibility(net, p_from, mass_fraction, node_pit[from_nodes, net['_idx_node']['TINIT']]) \
                                   / (p_from * NORMAL_TEMPERATURE)
             v_mean = v_mps * normfactor_from
@@ -214,13 +213,12 @@ class Pump(BranchWZeroLengthComponent):
                     r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                     if len(net._fluid) == 1:
                         fluid = net._fluid[0]
-                        compr = get_fluid(net, fluid).get_heat_capacity(t0)
+                        cp = get_fluid(net, fluid).get_heat_capacity(t0)
                     else:
                         node_pit = net["_active_pit"]["node"]
                         w = get_lookup(net, 'node', 'w')
                         mass_fraction = node_pit[:, w]
-                        compr = get_mixture_heat_capacity(net, p_from, mass_fraction, t0)
-                    cp = net.fluid.get_heat_capacity(t0)
+                        cp = get_mixture_heat_capacity(net, p_from, mass_fraction, t0)
                     cv = cp - r_spec
                     k = cp/cv  # 'kappa' heat capacity ratio
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \

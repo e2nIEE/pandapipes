@@ -5,14 +5,12 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent, get_fluid
+from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
-    RHO, LOAD_VEC_BRANCHES
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
-
+from pandapipes.properties.fluids import is_fluid_gas
 
 class FlowControlComponent(BranchWZeroLengthComponent):
     """
@@ -49,10 +47,10 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         fc_branch_pit = super().create_pit_branch_entries(net, branch_pit)
-        fc_branch_pit[:, D] = net[cls.table_name()].diameter_m.values
-        fc_branch_pit[:, AREA] = fc_branch_pit[:, D] ** 2 * np.pi / 4
-        fc_branch_pit[:, VINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values / \
-            (fc_branch_pit[:, AREA] * fc_branch_pit[:, RHO])
+        fc_branch_pit[:, net['_idx_branch']['D']] = net[cls.table_name()].diameter_m.values
+        fc_branch_pit[:, net['_idx_branch']['AREA']] = fc_branch_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
+        fc_branch_pit[:, net['_idx_branch']['VINIT']] = net[cls.table_name()].controlled_mdot_kg_per_s.values / \
+            (fc_branch_pit[:, net['_idx_branch']['AREA']] * fc_branch_pit[:, net['_idx_branch']['RHO']])
 
     @classmethod
     def create_component_array(cls, net, component_pits):
@@ -73,21 +71,21 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         component_pits[cls.table_name()] = fc_pit
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         pass
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
         # of velocity is allowed during the pipeflow iteration
-        f, t = idx_lookups[cls.table_name()]
+        f, t = branch_lookups[cls.table_name()]
         fc_branch_pit = branch_pit[f:t, :]
         fc_array = get_component_array(net, cls.table_name())
         active = fc_array[:, cls.CONTROL_ACTIVE].astype(np.bool_)
-        fc_branch_pit[active, JAC_DERIV_DP] = 0
-        fc_branch_pit[active, JAC_DERIV_DP1] = 0
-        fc_branch_pit[active, JAC_DERIV_DV] = 1
-        fc_branch_pit[active, LOAD_VEC_BRANCHES] = 0
+        fc_branch_pit[active, net['_idx_branch']['JAC_DERIV_DP']] = 0
+        fc_branch_pit[active, net['_idx_branch']['JAC_DERIV_DP1']] = 0
+        fc_branch_pit[active, net['_idx_branch']['JAC_DERIV_DV']] = 1
+        fc_branch_pit[active, net['_idx_branch']['LOAD_VEC_BRANCHES']] = 0
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
@@ -102,7 +100,7 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        branch_component_pit[:, TL] = 0
+        branch_component_pit[:, net['_idx_branch']['TL']] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -141,7 +139,7 @@ class FlowControlComponent(BranchWZeroLengthComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        if get_fluid(net).is_gas:
+        if is_fluid_gas(net):
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",

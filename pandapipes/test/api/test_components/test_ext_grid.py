@@ -22,8 +22,7 @@ def test_ext_grid_sorting(use_numba):
     j5 = pandapipes.create_junction(net, 1, 293.15, index=6)
     j6 = pandapipes.create_junction(net, 1, 293.15, index=7)
 
-    pandapipes.create_ext_grids(net, [j2, j3, j5, j1, j1], p_bar=1, t_k=285.15,
-                                fluid = ['hgas','hgas', 'hgas', 'hgas', 'hgas'],
+    pandapipes.create_ext_grids(net, [j2, j3, j5, j1, j1], 'hgas', p_bar=1, t_k=285.15,
                                 type=["auto", "pt", "t", "pt", "tp"])
     assert np.all(net.ext_grid.type == ["pt", "pt", "t", "pt", "pt"])
 
@@ -85,7 +84,7 @@ def test_t_type_single_pipe(use_numba):
 
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=327.765863)
-    pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="pt")
+    pandapipes.create_ext_grid(net, j0, "water", 5, 645, type="pt")
     pandapipes.create_sink(net, j1, 1)
     pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
                                            alpha_w_per_m2k=5)
@@ -102,8 +101,8 @@ def test_t_type_single_pipe(use_numba):
 
     j0 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=645)
     j1 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283)
-    pandapipes.create_ext_grid(net2, j0, 5, 283, fluid="water", type="p")
-    pandapipes.create_ext_grid(net2, j1, 100, 327.765863, fluid="water", type="t")
+    pandapipes.create_ext_grid(net2, j0, "water", 5, 283, type="p")
+    pandapipes.create_ext_grid(net2, j1, "water", 100, 327.765863, type="t")
     pandapipes.create_sink(net2, j1, 1)
 
     pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
@@ -134,10 +133,10 @@ def test_t_type_tee(use_numba):
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=300)
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=300)
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=300)
-    pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="p")
+    pandapipes.create_ext_grid(net, j0, "water", 5, 645, type="p")
     pandapipes.create_sink(net, j2, 1)
     pandapipes.create_sink(net, j3, 1)
-    pandapipes.create_ext_grid(net, j2, 5, 310, fluid="water", type="t")
+    pandapipes.create_ext_grid(net, j2, "water", 5, 310, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
                                            alpha_w_per_m2k=5)
@@ -160,7 +159,7 @@ def test_t_type_tee(use_numba):
     j1 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
-    pandapipes.create_ext_grid(net2, j0, 5, 380.445, fluid="water", type="pt")
+    pandapipes.create_ext_grid(net2, j0, "water", 5, 380.445, type="pt")
     pandapipes.create_sink(net2, j2, 1)
     pandapipes.create_sink(net2, j3, 1)
 
@@ -198,12 +197,12 @@ def test_t_type_tee_2zu_2ab(use_numba):
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=300)
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=300)
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=300)
-    pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="p")
-    pandapipes.create_ext_grid(net, j1, 5, 645, fluid="water", type="p")
+    pandapipes.create_ext_grid(net, j0, "water", 5, 645, type="p")
+    pandapipes.create_ext_grid(net, j1, "water", 5, 645, type="p")
     pandapipes.create_sink(net, j3, 1)
     pandapipes.create_sink(net, j4, 1)
-    pandapipes.create_ext_grid(net, j1, 5, 645, fluid="water", type="t")
-    pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="t")
+    pandapipes.create_ext_grid(net, j1, "water", 5, 645, type="t")
+    pandapipes.create_ext_grid(net, j0, "water", 5, 645, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j2, 6, diameter_m=d, k_mm=.1, sections=1,
                                            alpha_w_per_m2k=5)
@@ -229,8 +228,8 @@ def test_t_type_tee_2zu_2ab(use_numba):
     j2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j4 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
-    pandapipes.create_ext_grid(net2, j0, 5, 645, fluid="water", type="pt")
-    pandapipes.create_ext_grid(net2, j1, 5, 645, fluid="water", type="pt")
+    pandapipes.create_ext_grid(net2, j0, "water", 5, 645, type="pt")
+    pandapipes.create_ext_grid(net2, j1, "water", 5, 645, type="pt")
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)
 
@@ -270,12 +269,12 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     j2 = pandapipes.create_junction(net, pn_bar=3, tfluid_k=300)
     j3 = pandapipes.create_junction(net, pn_bar=3, tfluid_k=300)
     j4 = pandapipes.create_junction(net, pn_bar=3, tfluid_k=300)
-    pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="p")
-    pandapipes.create_ext_grid(net, j1, 5, 645, fluid="water", type="p")
+    pandapipes.create_ext_grid(net, j0, "water", 5, 645, type="p")
+    pandapipes.create_ext_grid(net, j1, "water", 5, 645, type="p")
     pandapipes.create_sink(net, j3, 1)
     pandapipes.create_sink(net, j4, 1)
-    pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="t")
-    pandapipes.create_ext_grid(net, j4, 5, 378.83472, fluid="water", type="t")
+    pandapipes.create_ext_grid(net, j0, "water", 5, 645, type="t")
+    pandapipes.create_ext_grid(net, j4, "water", 5, 378.83472, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
                                            alpha_w_per_m2k=5)
@@ -301,8 +300,8 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     j2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j4 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
-    pandapipes.create_ext_grid(net2, j0, 5, 645, fluid="water", type="pt")
-    pandapipes.create_ext_grid(net2, j1, 5, 636.691232, fluid="water", type="pt")
+    pandapipes.create_ext_grid(net2, j0, "water", 5, 645, type="pt")
+    pandapipes.create_ext_grid(net2, j1, "water", 5, 636.691232, type="pt")
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)
 
@@ -342,12 +341,12 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     j2 = pandapipes.create_junction(net, pn_bar=3, tfluid_k=300)
     j3 = pandapipes.create_junction(net, pn_bar=3, tfluid_k=300)
     j4 = pandapipes.create_junction(net, pn_bar=3, tfluid_k=300)
-    pandapipes.create_ext_grid(net, j0, 5, 645, fluid="water", type="p")
-    pandapipes.create_ext_grid(net, j2, 5, 645, fluid="water", type="p")
+    pandapipes.create_ext_grid(net, j0, "water", 5, 645, type="p")
+    pandapipes.create_ext_grid(net, j2, "water", 5, 645, type="p")
     pandapipes.create_sink(net, j3, 1)
     pandapipes.create_sink(net, j4, 1)
-    pandapipes.create_ext_grid(net, j2, 5, 645, fluid="water", type="t")
-    pandapipes.create_ext_grid(net, j4, 5, 378.83472, fluid="water", type="t")
+    pandapipes.create_ext_grid(net, j2, "water", 5, 645, type="t")
+    pandapipes.create_ext_grid(net, j4, "water", 5, 378.83472, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
                                            alpha_w_per_m2k=5)
@@ -373,8 +372,8 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     j2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
     j4 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=300)
-    pandapipes.create_ext_grid(net2, j0, 5, 636.691232, fluid="water", type="pt")
-    pandapipes.create_ext_grid(net2, j2, 5, 645, fluid="water", type="pt")
+    pandapipes.create_ext_grid(net2, j0, "water", 5, 636.691232, type="pt")
+    pandapipes.create_ext_grid(net2, j2, "water", 5, 645, type="pt")
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)
 

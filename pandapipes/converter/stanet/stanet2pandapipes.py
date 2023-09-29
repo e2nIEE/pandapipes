@@ -193,8 +193,8 @@ def change_dtypes(net):
               "stanet_id": str,
               "stanet_status": str,
               "v_stanet": np.float64}
-
-    for comp in net.component_list:
+    comp_list = np.concatenate([net['node_list'], net['node_element_list'], net['branch_list']])
+    for comp in comp_list:
         table_name = comp.table_name()
         if table_name not in net:
             continue

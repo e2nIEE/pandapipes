@@ -63,9 +63,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
 
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, branch_lookups, node_lookups, options):
         # set all PC branches to derivatives to 0
-        f, t = idx_lookups[cls.table_name()]
+        f, t = branch_lookups[cls.table_name()]
         press_pit = branch_pit[f:t, :]
         pc_branch = press_pit[:, net['_idx_branch']['BRANCH_TYPE']] == net['_idx_node']['PC']
         press_pit[pc_branch, net['_idx_branch']['JAC_DERIV_DP']] = 0

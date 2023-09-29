@@ -46,6 +46,7 @@ def convert_format(net):
 
 
 def _change_component_list(net):
+    net.update({'branch_list': [], 'node_element_list': [], 'node_list': []})
     for component in net['component_list']:
         if issubclass(component, BranchComponent):
             net['branch_list'] += [component]

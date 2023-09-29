@@ -88,7 +88,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
-    identify_active_nodes_branches(net, branch_pit, node_pit)
+    identify_active_nodes_branches(net, branch_pit, node_pit, node_element_pit)
 
     if calculation_mode == "heat":
         if not net.user_pf_options["hyd_flag"]:
@@ -99,7 +99,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
             net["_pit"]["branch"][:,net['_idx_branch']['VINIT']] = sol_vec[len(node_pit):]
 
     if calculate_hydraulics:
-        reduce_pit(net, node_pit, branch_pit, mode="hydraulics")
+        reduce_pit(net, node_pit, branch_pit, node_element_pit, mode="hydraulics")
         converged, _ = hydraulics(net)
         if not converged:
             raise PipeflowNotConverged("The hydraulic calculation did not converge to a solution.")
@@ -107,8 +107,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     if calculate_heat:
         node_pit, branch_pit = net["_pit"]["node"], net["_pit"]["branch"]
-        identify_active_nodes_branches(net, branch_pit, node_pit, False)
-        reduce_pit(net, node_pit, branch_pit, mode="heat_transfer")
+        identify_active_nodes_branches(net, branch_pit, node_pit, node_element_pit, False)
+        reduce_pit(net, node_pit, branch_pit, node_element_pit, mode="heat_transfer")
         converged, _ = heat_transfer(net)
         if not converged:
             raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
@@ -225,7 +225,7 @@ def heat_transfer(net):
                            ['node', 'branch'],
                            residual_norm, nonlinear_method,
                            [tol_t, tol_t],
-                           tol_res, [t_init_old, t_out_old], hydraulic_mode=False)
+                           tol_res, [t_init_old, t_out_old])
         logger.debug("F: %s" % epsilon.round(4))
         logger.debug("T_init_: %s" % t_init.round(4))
         logger.debug("T_out_: %s" % t_out.round(4))
