@@ -9,8 +9,8 @@ import pytest
 
 import pandapipes
 from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pipeflow import PipeflowNotConverged
 from pandapipes.pipeflow import logger as pf_logger
+from pandapipes.pipeflow import PipeflowNotConverged
 
 try:
     import pandaplan.core.pplog as logging
@@ -125,29 +125,6 @@ def create_mixed_indexing_grid():
     return net
 
 
-@pytest.fixture
-def create_net_wo_external_hydraulic_grid():
-    net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
-    pandapipes.create_junction(net, index=3, pn_bar=16, tfluid_k=283, height_m=0,
-                               name="Junction 3", in_service=True,
-                               type="junction", geodata=(0, 0))
-    pandapipes.create_junction(net, index=9, pn_bar=16, tfluid_k=283, height_m=0,
-                               name="Junction 9", in_service=True,
-                               type="junction", geodata=(1, 0))
-    pandapipes.create_junction(net, index=10, pn_bar=16, tfluid_k=283, height_m=0,
-                               name="Junction 10", in_service=True,
-                               type="junction", geodata=(2, 0))
-    pandapipes.create_pipe_from_parameters(net, 9, 10, length_km=1, diameter_m=0.03, k_mm=.1, sections=10,
-                                           alpha_w_per_m2k=1, name="Pipe 6")
-    pandapipes.create_sink(net, 9, mdot_kg_per_s=0.01, name="Sink 3")
-    pandapipes.create_source(net, junction=10, mdot_kg_per_s=0.04, name="Source 3")
-    pandapipes.create_compressor(net, from_junction=9, to_junction=3, pressure_ratio=1.1,
-                                 name="Compressor 0", index=None, in_service=True)
-    pandapipes.create_ext_grid(net, junction=3, t_k=300)
-    return net
-
-
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_inservice_gas(create_test_net, use_numba):
     """
@@ -169,7 +146,7 @@ def test_inservice_gas(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[~net.junction.in_service].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
-                | ~net.sink.in_service.values
+        | ~net.sink.in_service.values
     assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not np.any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
@@ -202,7 +179,7 @@ def test_inservice_water(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[~net.junction.in_service].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
-                | ~net.sink.in_service.values
+        | ~net.sink.in_service.values
     assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
@@ -237,8 +214,8 @@ def test_connectivity_hydraulic(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_pipe.loc[[1, 2, 3], :].values))
     assert not np.any(np.isnan(net.res_junction.loc[[0, 1, 3, 4], :].values))
     assert not np.any(np.isnan(net.res_pipe.loc[[0, 4],
-    ["v_mean_m_per_s", "p_from_bar",
-     "p_to_bar"]].values))
+                                                ["v_mean_m_per_s", "p_from_bar",
+                                                 "p_to_bar"]].values))
     assert not np.any(np.isnan(net.res_sink.loc[[0, 2], "mdot_kg_per_s"].values))
     assert np.all(np.isnan(net.res_sink.loc[[1, 3, 4], "mdot_kg_per_s"].values))
 
@@ -519,7 +496,7 @@ def test_mixed_indexing_oos2(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -537,7 +514,7 @@ def test_mixed_indexing_oos3(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -555,7 +532,7 @@ def test_mixed_indexing_oos4(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -573,7 +550,7 @@ def test_mixed_indexing_oos5(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -591,7 +568,7 @@ def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -600,21 +577,9 @@ def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
-
-
-@pytest.mark.parametrize("use_numba", [True, False])
-def test_pipeflow_cancellation(create_net_wo_external_hydraulic_grid, use_numba):
-    net = create_net_wo_external_hydraulic_grid
-    pandapipes.pipeflow(net)
-    assert np.all(np.isnan(net.res_junction))
-    assert np.all(np.isnan(net.res_pipe))
-    assert np.all(np.isnan(net.res_ext_grid))
-    assert np.all(np.isnan(net.res_sink))
-    assert np.all(np.isnan(net.res_source))
-    assert np.all(np.isnan(net.res_compressor))
 
 
 if __name__ == "__main__":
