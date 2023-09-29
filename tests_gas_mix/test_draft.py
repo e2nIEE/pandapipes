@@ -5,7 +5,6 @@
 
 ##%
 
-from pandapipes.plotting.plotly.simple_plotly import simple_plotly
 import pandapipes.plotting as plot
 from pandapower.plotting.collections import create_annotation_collection, create_line_collection
 import numpy as np
