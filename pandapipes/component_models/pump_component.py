@@ -12,9 +12,10 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
 from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
+from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
-from pandapipes.properties.fluids import is_fluid_gas, get_mixture_molar_mass, get_mixture_compressibility, get_fluid
+from pandapipes.properties.fluids import is_fluid_gas, get_mixture_molar_mass, get_mixture_compressibility, get_fluid, \
+    get_mixture_heat_capacity
 
 try:
     import pandaplan.core.pplog as logging
