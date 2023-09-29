@@ -5,7 +5,7 @@
 import numpy as np
 from pandas.errors import InvalidIndexError
 
-from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.pf.pipeflow_setup import get_lookup, init_fluid
 from pandapipes.properties.fluids import get_fluid, get_mixture_higher_heating_value
 from pandapower.control import ConstControl
 from pandapower.control.basic_controller import Controller
@@ -88,6 +88,8 @@ class P2GControlMultiEnergy(Controller):
         return [self.name_net_power, self.name_net_gas]
 
     def control_step(self, multinet):
+        if '_fluid' not in multinet.nets[self.name_net_gas]:
+            init_fluid(multinet.nets[self.name_net_gas])
         if len(multinet.nets[self.name_net_gas]._fluid) != 1:
             net = multinet.nets[self.name_net_gas]
             w = get_lookup(net, 'node', 'w')

@@ -17,8 +17,7 @@ from pandapower.control.controller.const_control import ConstControl
 from pandapower.timeseries.data_sources.frame_data import DFData
 from pandapower.timeseries.output_writer import OutputWriter
 
-
-def test_time_series_p2g_control(get_gas_example, get_power_example_simple):
+def test_time_series_pg_control(get_gas_example, get_power_example_simple):
     net_gas = get_gas_example
     net_power = get_power_example_simple
 
@@ -76,7 +75,7 @@ def test_time_series_p2g_control(get_gas_example, get_power_example_simple):
     assert np.all(power_res['res_sgen.p_mw'] == data_const_sgen.values)
 
 
-def test_time_series_p2g_control_run_parameter(get_gas_example, get_power_example_simple):
+def test_time_series_pg_control_run_parameter(get_gas_example, get_power_example_simple):
     net_gas = get_gas_example
     net_power = get_power_example_simple
 
