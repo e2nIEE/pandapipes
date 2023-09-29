@@ -363,21 +363,18 @@ def test_connectivity_heat3(complex_heat_connectivity_grid, use_numba):
                        -net.res_sink.mdot_kg_per_s.sum() + net.res_source.mdot_kg_per_s.sum(),
                        rtol=1e-10, atol=0)
 
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
 
     net.pipe.in_service.loc[[7, 8]] = True
-    #net.ext_grid.in_service.at[2] = False
-    #net.ext_grid.type.at[5] = 'pt'
     j_new = pandapipes.create_junction(net, 1, 320.15)
     pandapipes.create_pipe_from_parameters(net, 8, j_new, 0.1, 0.1, alpha_w_per_m2k=5)
 
     net2 = copy.deepcopy(net)
 
     pandapipes.pipeflow(net, mode="all", check_connectivity=True, use_numba=use_numba)
-    #pandapipes.pipeflow(net2, mode="all", check_connectivity=False, use_numba=use_numba)
+    pandapipes.pipeflow(net2, mode="all", check_connectivity=False, use_numba=use_numba)
 
     assert pandapipes.nets_equal(net, net2, check_only_results=True)
 

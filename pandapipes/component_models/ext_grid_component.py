@@ -52,7 +52,8 @@ class ExtGrid(NodeElementComponent):
         t_mask = np.where(np.isin(ext_grids.type.values, ["t"]))
         ext_grid_pit[p_mask, net._idx_node_element['NODE_ELEMENT_TYPE']] = net._idx_node_element['P']
         ext_grid_pit[t_mask, net._idx_node_element['NODE_ELEMENT_TYPE']] = net._idx_node_element['T']
-        ext_grid_pit[:, net._idx_node_element['MINIT']] = 0.005
+        ext_grid_pit[p_mask, net._idx_node_element['MINIT']] = 0.005
+        ext_grid_pit[t_mask, net._idx_node_element['ACTIVE']] = False
         return ext_grid_pit
 
     @classmethod
