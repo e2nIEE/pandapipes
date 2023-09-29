@@ -394,9 +394,9 @@ class Pipe(BranchWInternalsComponent):
         p_values[-1] = node_pit[to_junction_nodes[pipe], net['_idx_node']['PINIT']]
 
         t_values = np.zeros(len(pipe_t_data[0]) + 2)
-        t_values[0] = node_pit[from_junction_nodes[pipe], net['_idx_node']['TINIT_NODE']]
+        t_values[0] = node_pit[from_junction_nodes[pipe], net['_idx_node']['TINIT']]
         t_values[1:-1] = pipe_t_data[:]
-        t_values[-1] = node_pit[to_junction_nodes[pipe], net['_idx_node']['TINIT_NODE']]
+        t_values[-1] = node_pit[to_junction_nodes[pipe], net['_idx_node']['TINIT']]
 
         v_values = pipe_v_data[0, :]
 
