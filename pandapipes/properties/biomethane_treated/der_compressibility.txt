@@ -1,0 +1,3 @@
+# source: own calculation based on CoolProp (http://www.coolprop.org/)
+# derivative (slope) of compressibility
+-0.0024789428559189412
