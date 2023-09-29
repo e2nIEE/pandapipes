@@ -789,7 +789,7 @@ def init_idx(net):
 
 def init_fluid(net):
     fluids = []
-    for comp in net.node_element_list:
+    for comp in np.concatenate([net.node_element_list, net.branch_list]):
         fluids += [net[comp.table_name()].fluid.values if 'fluid' in net[comp.table_name()] else []]
     fluids = np.concatenate(fluids)
     net['_fluid'] = np.unique(fluids)
