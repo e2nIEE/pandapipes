@@ -1,10 +1,10 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.0, source_size=1.0,
                          valve_size=2.0, pump_size=1.0, heat_exchanger_size=1.0,
-                         pressure_control_size=1.0, compressor_size=1.0):
+                         pressure_control_size=1.0, compressor_size=1.0, flow_control_size=1.0):
     """
     Calculates the size for most collection types according to the distance between min and max
     geocoord so that the collections fit the plot nicely
@@ -41,7 +41,8 @@ def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.
         "pump": pump_size * mean_distance_between_junctions * 8,
         "pressure_control": pressure_control_size * mean_distance_between_junctions * 8,
         "compressor": compressor_size * mean_distance_between_junctions * 8,
-
+        "flow_control": flow_control_size * mean_distance_between_junctions * 2,
     }
+
     return sizes
 

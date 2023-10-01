@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -12,8 +12,8 @@ from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, \
-    get_lookup, create_lookups, initialize_pit, check_connectivity, reduce_pit, \
-    init_all_result_tables, set_user_pf_options, init_idx
+    get_lookup, create_lookups, initialize_pit, reduce_pit, \
+    init_all_result_tables, set_user_pf_options, init_idx, identify_active_nodes_branches
 from pandapipes.pf.pipeflow_setup import init_fluid
 from pandapipes.properties.fluids import is_fluid_gas
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
@@ -88,39 +88,36 @@ def pipeflow(net, sol_vec=None, **kwargs):
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
-    if get_net_option(net, "check_connectivity"):
-        nodes_connected, branches_connected, node_elements_connected = check_connectivity(
-            net, branch_pit, node_pit, node_element_pit, check_heat=calculate_heat)
-    else:
-        nodes_connected = node_pit[:, net['_idx_node']['ACTIVE']].astype(bool)
-        branches_connected = branch_pit[:, net['_idx_branch']['ACTIVE']].astype(bool)
-        node_elements_connected = node_element_pit[:, net['_idx_node_element']['ACTIVE']].astype(bool)
+    identify_active_nodes_branches(net, branch_pit, node_pit, node_element_pit)
 
-    reduce_pit(net, node_pit, branch_pit, node_element_pit,
-               nodes_connected, branches_connected, node_elements_connected)
-
-    if calculation_mode == "heat" and not net.user_pf_options["hyd_flag"]:
-        raise UserWarning("Converged flag not set. Make sure that hydraulic calculation results "
-                          "are available.")
-    elif calculation_mode == "heat" and net.user_pf_options["hyd_flag"]:
-        net["_active_pit"]["node"][:, net['_idx_node']['PINIT']] = sol_vec[:len(node_pit)]
-        net["_active_pit"]["branch"][:, net['_idx_branch']['VINIT']] = sol_vec[len(node_pit):]
+    if calculation_mode == "heat":
+        if not net.user_pf_options["hyd_flag"]:
+            raise UserWarning("Converged flag not set. Make sure that hydraulic calculation "
+                              "results are available.")
+        else:
+            net["_pit"]["node"][:, net['_idx_node']['PINIT']] = sol_vec[:len(node_pit)]
+            net["_pit"]["branch"][:,net['_idx_branch']['VINIT']] = sol_vec[len(node_pit):]
 
     if calculate_hydraulics:
+        reduce_pit(net, node_pit, branch_pit, node_element_pit, mode="hydraulics")
         converged, _ = hydraulics(net)
         if not converged:
             raise PipeflowNotConverged("The hydraulic calculation did not converge to a solution.")
+        extract_results_active_pit(net, mode="hydraulics")
 
     if calculate_heat:
+        node_pit, branch_pit = net["_pit"]["node"], net["_pit"]["branch"]
+        identify_active_nodes_branches(net, branch_pit, node_pit, node_element_pit, False)
+        reduce_pit(net, node_pit, branch_pit, node_element_pit, mode="heat_transfer")
         converged, _ = heat_transfer(net)
         if not converged:
             raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
                                        "solution.")
+        extract_results_active_pit(net, mode="heat_transfer")
     elif not calculate_hydraulics:
         raise UserWarning("No proper calculation mode chosen.")
 
-    extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
-    extract_all_results(net, nodes_connected, branches_connected)
+    extract_all_results(net, calculation_mode)
 
 
 def hydraulics(net):
@@ -260,8 +257,8 @@ def solve_hydraulics(net, first_iter):
     node_pit = net["_active_pit"]["node"]
     node_element_pit = net['_active_pit']['node_element']
 
-    branch_lookups = get_lookup(net, "branch", "from_to_active")#
-    node_lookups = get_lookup(net, "node", "from_to_active")
+    branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")#
+    node_lookups = get_lookup(net, "node", "from_to_active_hydraulics")
     ne_mask = node_element_pit[:, net._idx_node_element['NODE_ELEMENT_TYPE']].astype(bool)
     comp_list = np.concatenate([net['node_element_list'], net['node_list'], net['branch_list']])
     for comp in comp_list:
@@ -322,7 +319,7 @@ def solve_temperature(net):
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
     node_element_pit = net['_active_pit']['node_element']
-    branch_lookups = get_lookup(net, "branch", "from_to_active")
+    branch_lookups = get_lookup(net, "branch", "from_to_active_heat_transfer")
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
     # to_node for temperature calculation

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -73,29 +73,27 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         press_pit[pc_branch, net['_idx_branch']['JAC_DERIV_DV']] = 0
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pc_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param pc_pit:
-        :type pc_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
         :rtype:
         """
-        pc_pit[:, net['_idx_branch']['TL']] = 0
+        branch_component_pit[:, net['_idx_branch']['TL']] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
+        :param mode:
+        :type mode:
         :param branch_results:
         :type branch_results:
         :param net: The pandapipes network
@@ -104,22 +102,22 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        required_results = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
-            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("vdot_norm_m3_per_s", "vf")
+        required_results_hyd = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_from_kg_per_s", "mf_from"),
+            ("mdot_to_kg_per_s", "mf_to"), ("vdot_norm_m3_per_s", "vf")
         ]
+        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
 
         if is_fluid_gas(net):
-            required_results.extend([
+            required_results_hyd.extend([
                 ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
                 ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
             ])
         else:
-            required_results.extend([("v_mean_m_per_s", "v_mps")])
+            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
 
-        extract_branch_results_without_internals(net, branch_results, required_results,
-                                                 cls.table_name(), branches_connected)
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd,
+                                                 required_results_ht, cls.table_name(), mode)
 
         res_table = net["res_" + cls.table_name()]
         f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]

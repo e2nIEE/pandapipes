@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -135,7 +135,7 @@ def from_json_string(json_string, convert=False, encryption_key=None):
 
     :param json_string: The JSON string representation of the network
     :type json_string: str
-    :param convert: whether or not to convert the format from earlier versions
+    :param convert: whether to convert the format from earlier versions
     :type convert: bool
     :param encryption_key: if given, key to decrypt an encrypted pandapower network
     :type encryption_key: str
@@ -150,8 +150,7 @@ def from_json_string(json_string, convert=False, encryption_key=None):
     if encryption_key is not None:
         json_string = decrypt_string(json_string, encryption_key)
 
-    net = json.loads(json_string, cls=PPJSONDecoder,
-                     object_hook=partial(pp_hook, registry_class=FromSerializableRegistryPpipe))
+    net = json.loads(json_string, cls=PPJSONDecoder, registry_class=FromSerializableRegistryPpipe)
 
     if convert and isinstance(net, pandapipesNet):
         convert_format(net)

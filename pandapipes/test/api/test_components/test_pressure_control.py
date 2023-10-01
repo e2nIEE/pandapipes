@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -30,7 +30,7 @@ def test_pressure_control_from_measurement_parameters(use_numba):
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=10.,
                                            diameter_m=0.1022)
     pandapipes.create_pressure_control(net, j1, j2, j4, 20.)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid='lgas', type="p")
+    pandapipes.create_ext_grid(net, j1, 'lgas', 5, 283.15, type="p")
     pandapipes.create_sink(net, j4, 0.5)
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)

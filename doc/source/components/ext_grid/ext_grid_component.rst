@@ -8,7 +8,14 @@ Create Function
 .. _create_ext_grid:
 
 
+For creating a single external grid:
+
 .. autofunction:: pandapipes.create_ext_grid
+
+For creating multiple external grids at once:
+
+.. autofunction:: pandapipes.create_ext_grids
+
 
 Component Table Data
 ====================

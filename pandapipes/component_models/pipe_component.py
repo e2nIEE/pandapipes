@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -12,12 +12,12 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.pf.pipeflow_setup import get_lookup, get_fluid
-from pandapipes.properties.fluids import get_mixture_density, is_fluid_gas, get_mixture_compressibility
+from pandapipes.properties.fluids import is_fluid_gas, get_mixture_compressibility
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -155,48 +155,56 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit, net['_idx_branch']['LOSS_COEFFICIENT'], net[tbl].loss_coefficient.values, internal_pipe_number,
             has_internals)
 
-        pipe_pit[:, net['_idx_branch']['T_OUT']] = 293
+        node_pit = net["_pit"]["node"]
+        to_nodes = pipe_pit[:,  net['_idx_branch']['TO_NODE']].astype(np.int32)
+        pipe_pit[:, net['_idx_branch']['T_OUT']] = node_pit[to_nodes, net['_idx_node']['TINIT']]
         pipe_pit[:, net['_idx_branch']['AREA']] = pipe_pit[:, net['_idx_branch']['D']] ** 2 * np.pi / 4
 
-
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param pipe_pit:
-        :type pipe_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
         :rtype:
         """
-        pipe_pit[:, net['_idx_branch']['TL']] = 0
+        branch_component_pit[:, net['_idx_branch']['TL']] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
-        res_nodes_from = [("p_from_bar", "p_from"), ("t_from_k", "temp_from"),
-                          ("mdot_from_kg_per_s", "mf_from")]
-        res_nodes_to = [("p_to_bar", "p_to"), ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to")]
-        res_mean = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")]
+    def extract_results(cls, net, options, branch_results, mode):
+        res_nodes_from_hyd = [("p_from_bar", "p_from"), ("mdot_from_kg_per_s", "mf_from")]
+        res_nodes_from_ht = [("t_from_k", "temp_from")]
+        res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
+        res_nodes_to_ht = [("t_to_k", "temp_to")]
+        res_mean_hyd = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
+                        ("reynolds", "reynolds")]
 
         if is_fluid_gas(net):
-            res_nodes_from.extend(
-                [("v_from_m_per_s", "v_gas_from"), ("normfactor_from", "normfactor_from")])
-            res_nodes_to.extend([("v_to_m_per_s", "v_gas_to"), ("normfactor_to", "normfactor_to")])
-            res_mean.extend([("v_mean_m_per_s", "v_gas_mean")])
+            res_nodes_from_hyd.extend([("v_from_m_per_s", "v_gas_from"),
+                                       ("normfactor_from", "normfactor_from")])
+            res_nodes_to_hyd.extend([("v_to_m_per_s", "v_gas_to"),
+                                     ("normfactor_to", "normfactor_to")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_gas_mean")])
         else:
-            res_mean.extend([("v_mean_m_per_s", "v_mps")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_mps")])
 
         if np.any(cls.get_internal_pipe_number(net) > 1):
             extract_branch_results_with_internals(
-                net, branch_results, cls.table_name(), res_nodes_from, res_nodes_to, res_mean,
-                cls.get_connected_node_type().table_name(), branches_connected)
+                net, branch_results, cls.table_name(), res_nodes_from_hyd, res_nodes_from_ht,
+                res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, [],
+                cls.get_connected_node_type().table_name(), mode)
         else:
-            required_results = res_nodes_from + res_nodes_to + res_mean
-            extract_branch_results_without_internals(net, branch_results, required_results,
-                                                     cls.table_name(), branches_connected)
+            required_results_hyd = res_nodes_from_hyd + res_nodes_to_hyd + res_mean_hyd
+            required_results_ht = res_nodes_from_ht + res_nodes_to_ht
+            extract_branch_results_without_internals(
+                net, branch_results, required_results_hyd, required_results_ht, cls.table_name(),
+                mode
+            )
 
     @classmethod
     def get_internal_results(cls, net, pipe):
@@ -386,9 +394,9 @@ class Pipe(BranchWInternalsComponent):
         p_values[-1] = node_pit[to_junction_nodes[pipe], net['_idx_node']['PINIT']]
 
         t_values = np.zeros(len(pipe_t_data[0]) + 2)
-        t_values[0] = node_pit[from_junction_nodes[pipe], net['_idx_node']['TINIT_NODE']]
+        t_values[0] = node_pit[from_junction_nodes[pipe], net['_idx_node']['TINIT']]
         t_values[1:-1] = pipe_t_data[:]
-        t_values[-1] = node_pit[to_junction_nodes[pipe], net['_idx_node']['TINIT_NODE']]
+        t_values[-1] = node_pit[to_junction_nodes[pipe], net['_idx_node']['TINIT']]
 
         v_values = pipe_v_data[0, :]
 

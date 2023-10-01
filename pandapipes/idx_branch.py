@@ -1,8 +1,12 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 def idx_branch(net):
+    # branch types
+    # no types defined
+
+    # branch indices
     idx_branch = dict()
     idx_branch['TABLE_IDX'] = 0  # number of the table that this branch belongs to
     idx_branch['ELEMENT_IDX'] = 1  # index of the element that this branch belongs to (within the given table)
@@ -37,18 +41,16 @@ def idx_branch(net):
     idx_branch['TO_NODE_T'] = 30
     idx_branch['QEXT'] = 31  # heat input in [W]
     idx_branch['TEXT'] = 32
-    idx_branch['STD_TYPE'] = 33
-    idx_branch['PL'] = 34
-    idx_branch['TL'] = 35  # Temperature lift [K]
-    idx_branch['BRANCH_TYPE'] = 36  # branch type relevant for the pressure controller
-    idx_branch['PRESSURE_RATIO'] = 37  # boost ratio for compressors with proportional pressure lift
+    idx_branch['PL'] = 33
+    idx_branch['TL'] = 34  # Temperature lift [K]
+    idx_branch['BRANCH_TYPE'] = 35  # branch type relevant for the pressure controller
 
-    idx_branch['RHO'] = 38  # Density in [kg/m^3
-    idx_branch['ETA'] = 39  # Dynamic viscosity in [Pas]
-    idx_branch['V_FROM_NODE'] = 40  # node the fluid is coming from
-    idx_branch['V_TO_NODE'] = 41  # node the fluid is going to
+    idx_branch['RHO'] = 36  # Density in [kg/m^3
+    idx_branch['ETA'] = 37  # Dynamic viscosity in [Pas]
+    idx_branch['V_FROM_NODE'] = 38  # node the fluid is coming from
+    idx_branch['V_TO_NODE'] = 39  # node the fluid is going to
 
-    counter = 41
+    counter = 39
 
     for key in net._fluid:
         counter += 1

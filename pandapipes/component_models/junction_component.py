@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -113,43 +113,43 @@ class Junction(NodeComponent):
 
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
-        :param branch_results:
-        :type branch_results:
+        :param mode:
+        :type mode:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param branch_results:
+        :type branch_results:
+        :param mode:
+        :type mode:
         :return: No Output.
         """
         res_table = net["res_" + cls.table_name()]
 
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
-        fa, ta = get_lookup(net, "node", "from_to_active")[cls.table_name()]
+        junction_pit = net["_pit"]["node"][f:t, :]
 
-        junction_pit = net["_active_pit"]["node"][fa:ta, :]
-        junctions_active = get_lookup(net, "node", "active")[f:t]
+        if mode in ["hydraulics", "all"]:
+            junctions_connected_hydraulic = get_lookup(net, "node", "active_hydraulics")[f:t]
 
-        if np.any(junction_pit[:, net['_idx_node']['PINIT']] < 0):
-            warn(UserWarning('Pipeflow converged, however, in your system there is underpressure '
-                             ' at nodes %s'
-                             % junction_pit[
-                                 junction_pit[:, net['_idx_node']['PINIT']] < 0, net['_idx_node']['ELEMENT_IDX']]))
+            if np.any(junction_pit[junctions_connected_hydraulic, net['_idx_node']['PINIT']] < 0):
+                warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
+                                 'as pressure is negative at nodes %s'
+                                 % junction_pit[
+                                     junction_pit[:, net['_idx_node']['PINIT']] < 0, net['_idx_node']['ELEMENT_IDX']]))
 
-        res_table["p_bar"].values[junctions_active] = junction_pit[:, net['_idx_node']['PINIT']]
-        res_table["t_k"].values[junctions_active] = junction_pit[:, net['_idx_node']['TINIT']]
+        res_table["p_bar"].values[:] = junction_pit[:, net['_idx_node']['PINIT']]
+        res_table["t_k"].values[:] = junction_pit[:, net['_idx_node']['TINIT']]
         numerator = NORMAL_PRESSURE * junction_pit[:, net['_idx_node']['TINIT']]
         if len(net._fluid) == 1:
             p = junction_pit[:, net['_idx_node']['PAMB']] + junction_pit[:, net['_idx_node']['PINIT']]
             normfactor = numerator * get_fluid(net, net._fluid[0]).get_compressibility(p) / (p * NORMAL_TEMPERATURE)
-            res_table["rho_kg_per_m3"].values[junctions_active] = junction_pit[:,
+            res_table["rho_kg_per_m3"].values[:] = junction_pit[:,
                                                                   net['_idx_node']['RHO']] / normfactor
         else:
             w = get_lookup(net, 'node', 'w')
@@ -159,13 +159,13 @@ class Junction(NodeComponent):
             normfactor = numerator * get_mixture_compressibility(
                 net, junction_pit[:, net['_idx_node']['PINIT']], mf, junction_pit[:, net['_idx_node']['TINIT']]) / (p * NORMAL_TEMPERATURE)
             rho = get_mixture_density(net, junction_pit[:, net['_idx_node']['TINIT']], mf) / normfactor
-            res_table["rho_kg_per_m3"].values[junctions_active] = rho
+            res_table["rho_kg_per_m3"].values[:] = rho
             for i, fluid in enumerate(net._fluid):
                 normfactor = numerator * get_fluid(net, fluid).get_compressibility(p) / (p * NORMAL_TEMPERATURE)
                 rho_fluid = get_fluid(net, fluid).get_density(junction_pit[:, net['_idx_node']['TINIT']]) / normfactor
 
-                res_table["rho_kg_per_m3_%s" % fluid].values[junctions_active] = rho_fluid
-                res_table["w_%s" % fluid].values[junctions_active] = np.round(junction_pit[:, w[i]], 6)
+                res_table["rho_kg_per_m3_%s" % fluid].values[:] = rho_fluid
+                res_table["w_%s" % fluid].values[:] = np.round(junction_pit[:, w[i]], 6)
 
     @classmethod
     def get_component_input(cls):
