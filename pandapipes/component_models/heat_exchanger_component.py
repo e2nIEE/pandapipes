@@ -5,6 +5,7 @@
 import numpy as np
 from numpy import dtype
 
+from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
@@ -60,24 +61,25 @@ class HeatExchanger(BranchWZeroLengthComponent):
         heat_exchanger_pit[:, T_OUT] = 307
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
-        required_results = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
-            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
-        ]
+    def extract_results(cls, net, options, branch_results, mode):
+        """
+        Class method to extract pipeflow results from the internal structure into the results table.
 
-        if get_fluid(net).is_gas:
-            required_results.extend([
-                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
-                ("normfactor_to", "normfactor_to")
-            ])
-        else:
-            required_results.extend([("v_mean_m_per_s", "v_mps")])
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param mode: simulation mode
+        :type mode: str
+        :return: No Output.
+        :rtype: None
+        """
+        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
-        extract_branch_results_without_internals(net, branch_results, required_results,
-                                                 cls.table_name(), branches_connected)
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd,
+                                                 required_results_ht, cls.table_name(), mode)
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):

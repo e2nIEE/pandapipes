@@ -6,6 +6,11 @@ Change Log
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
+- [CHANGED] connectivity check now separated by hydraulics and heat_transfer calculation, so that also results can differ in some rows (NaN or not)
+- [CHANGED] dynamic creation of lookups for getting pit as pandas tables
+- [CHANGED] components can have their own internal arrays for specific calculations (e.g. for compressor pressure ratio), so that the pit does not need to include such component specific entries
+- [CHANGED] .readthedocs.yml due to deprecation
+- [FIXED] in STANET converter: bug fix for heat exchanger creation and external temperatures of pipes added
 - [REMOVED] broken travis badge removed from readme
 
 [0.8.5] - 2023-06-19
