@@ -442,7 +442,6 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     if pipe_parameter['u_w/mk'] != 'None' and alpha_w_per_m2k == 0.0:
         pipe_parameter['u_w/mk'] = float(pipe_parameter['u_w/mk'])
         alpha_w_per_m2k = calculate_alpha(pipe_parameter['inner_diameter_mm'], pipe_parameter['u_w/mk'])
-        #alpha_w_per_m2k = pipe_parameter['u_w/mk'] / (pipe_parameter['inner_diameter_mm']/1000 * np.pi)
     elif pipe_parameter['u_w/mk'] !='None' and alpha_w_per_m2k != 0.0:
         alpha_w_per_m2k = alpha_w_per_m2k
         logger.warning('you have defined alpha which overwrites the heat_transfer value of the pipe standard type')
