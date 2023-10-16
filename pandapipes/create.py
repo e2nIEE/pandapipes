@@ -17,8 +17,9 @@ from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
-from pandapipes.std_types.std_types import add_basic_std_types, add_heating_std_types, create_pump_std_type, \
+from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, \
     load_std_type
+#from pandapipes.toolbox import calculate_alpha
 
 try:
     import pandaplan.core.pplog as logging
@@ -28,7 +29,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def create_empty_network(name="", fluid=None, type='generic', add_stdtypes=True):
+def create_empty_network(name="", fluid=None, add_stdtypes=True):
     """
     This function initializes the pandapipes datastructure.
 
@@ -39,8 +40,6 @@ def create_empty_network(name="", fluid=None, type='generic', add_stdtypes=True)
             fluid type used to call `create_fluid_from_lib`. A fluid is required for pipeflow\
             calculations, but can also be added later.
     :type fluid: Fluid or str, default None
-    :param type: network type : 'generic', 'gas', 'heating'
-    :type type: str
     :param add_stdtypes: Flag whether to add a dictionary of typical pump and pipe std types
     :type add_stdtypes: bool, default True
     :return: net - pandapipesNet with empty tables
@@ -55,10 +54,7 @@ def create_empty_network(name="", fluid=None, type='generic', add_stdtypes=True)
     add_default_components(net, True)
     net['name'] = name
     if add_stdtypes:
-        if type=='heating':
-            add_heating_std_types(net)
-        else:
-            add_basic_std_types(net)
+        add_basic_std_types(net)
 
     if fluid is not None:
         if isinstance(fluid, Fluid):
@@ -441,6 +437,16 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
+    if pipe_parameter['u_w/mk'] != None and alpha_w_per_m2k == None:
+        #alpha_w_per_m2k = calculate_alpha(pipe_parameter['inner_diameter_mm'], pipe_parameter['u_w/mk'])
+        alpha_w_per_m2k = pipe_parameter['u_w/mk'] / (pipe_parameter['inner_diameter_mm']/1000 * np.pi)
+    elif pipe_parameter['u_w/mk'] !=None and alpha_w_per_m2k != None:
+        alpha_w_per_m2k = alpha_w_per_m2k
+        #raise UserWarning('you have defined alpha which overwrites the heat_transfer value of the pipe standard type')
+    elif pipe_parameter['u_w/mk']==None and alpha_w_per_m2k == None:
+        return logger.error('No value for the heat transfer coefficient defined. Please define a value for variable "alpha_w_per_m2k" or choose a standard pipe')
+    else:
+        alpha_w_per_m2k = alpha_w_per_m2k
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "length_km": length_km,
          "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,

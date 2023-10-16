@@ -245,28 +245,3 @@ def add_basic_std_types(net):
     pipe_file = os.path.join(pp_dir, "std_types", "library", "Pipe.csv")
     data = get_data(pipe_file, "pipe").to_dict()
     create_std_types(net, "pipe", data, True)
-
-def add_heating_std_types(net):
-    """
-    Iterate through each subdictionary/pipe to calculate alpha from U values given from csv data. alpha = U / (diameter * Pi)
-    :param net: pandapipes network in which the standard types should be added
-    :type net: pandapipesNet
-
-    """
-    pump_files = os.listdir(os.path.join(pp_dir, "std_types", "library", "Pump"))
-    for pump_file in pump_files:
-        pump_name = str(pump_file.split(".")[0])
-        pump = PumpStdType.from_path(pump_name, os.path.join(pp_dir, "std_types", "library", "Pump",
-                                                             pump_file))
-        create_pump_std_type(net, pump_name, pump, True)
-
-    pipe_file = os.path.join(pp_dir, "std_types", "library", "heat_pipes.CSV")
-    data = get_data(pipe_file, "pipe").to_dict()
-
-    #Iterate through each subdictionary/pipe to calculate alpha from U values given from csv data. alpha = U / (diameter * Pi)
-    for key, subdict in data.items():
-        if 'U_W/mK' in subdict:
-            U = subdict.pop('U_W/mK')
-            d = subdict['inner_diameter_mm']/1000
-            subdict['alpha'] = U / (d * np.pi)
-    create_std_types(net, "pipe", data, True)

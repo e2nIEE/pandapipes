@@ -646,3 +646,6 @@ def get_internal_tables_pandas(net):
     branch_table["TABLE_IDX"].replace(branch_table_lookup["n2t"], inplace=True)
 
     return node_table, branch_table
+
+def calculate_alpha(d, u):
+    return u / (d/1000 * np.pi)
