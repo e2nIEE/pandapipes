@@ -430,6 +430,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
         >>>             std_type='315_PE_80_SDR_17', length_km=1)
 
     """
+    from pandapipes.toolbox import calculate_alpha
     add_new_component(net, Pipe)
 
     index = _get_index_with_check(net, "pipe", index)
@@ -437,14 +438,16 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
-    if pipe_parameter['u_w/mk'] != None and alpha_w_per_m2k == None:
-        #alpha_w_per_m2k = calculate_alpha(pipe_parameter['inner_diameter_mm'], pipe_parameter['u_w/mk'])
-        alpha_w_per_m2k = pipe_parameter['u_w/mk'] / (pipe_parameter['inner_diameter_mm']/1000 * np.pi)
-    elif pipe_parameter['u_w/mk'] !=None and alpha_w_per_m2k != None:
+
+    if pipe_parameter['u_w/mk'] != 'None' and alpha_w_per_m2k == 0.0:
+        pipe_parameter['u_w/mk'] = float(pipe_parameter['u_w/mk'])
+        alpha_w_per_m2k = calculate_alpha(pipe_parameter['inner_diameter_mm'], pipe_parameter['u_w/mk'])
+        #alpha_w_per_m2k = pipe_parameter['u_w/mk'] / (pipe_parameter['inner_diameter_mm']/1000 * np.pi)
+    elif pipe_parameter['u_w/mk'] !='None' and alpha_w_per_m2k != 0.0:
         alpha_w_per_m2k = alpha_w_per_m2k
-        #raise UserWarning('you have defined alpha which overwrites the heat_transfer value of the pipe standard type')
-    elif pipe_parameter['u_w/mk']==None and alpha_w_per_m2k == None:
-        return logger.error('No value for the heat transfer coefficient defined. Please define a value for variable "alpha_w_per_m2k" or choose a standard pipe')
+        logger.warning('you have defined alpha which overwrites the heat_transfer value of the pipe standard type')
+    elif pipe_parameter['u_w/mk']=='None' and alpha_w_per_m2k == 0.0:
+        raise UserWarning('No value for the heat transfer coefficient defined. Please define a value for variable "alpha_w_per_m2k" or choose a standard pipe')
     else:
         alpha_w_per_m2k = alpha_w_per_m2k
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
