@@ -439,14 +439,12 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
 
-    if pipe_parameter['u_w/mk'] != 'None' and alpha_w_per_m2k == 0.0:
+    if pd.notna(pipe_parameter['u_w/mk']) and alpha_w_per_m2k == 0.0:
         pipe_parameter['u_w/mk'] = float(pipe_parameter['u_w/mk'])
         alpha_w_per_m2k = calculate_alpha(pipe_parameter['inner_diameter_mm'], pipe_parameter['u_w/mk'])
-    elif pipe_parameter['u_w/mk'] !='None' and alpha_w_per_m2k != 0.0:
+    elif pd.notna(pipe_parameter['u_w/mk']) and alpha_w_per_m2k != 0.0:
         alpha_w_per_m2k = alpha_w_per_m2k
-        logger.warning('you have defined alpha which overwrites the heat_transfer value of the pipe standard type')
-    elif pipe_parameter['u_w/mk']=='None' and alpha_w_per_m2k == 0.0:
-        raise UserWarning('No value for the heat transfer coefficient defined. Please define a value for variable "alpha_w_per_m2k" or choose a standard pipe')
+        logger.warning('you have defined alpha which overwrites the heat_transfer coefficient of the pipe standard type')
     else:
         alpha_w_per_m2k = alpha_w_per_m2k
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
