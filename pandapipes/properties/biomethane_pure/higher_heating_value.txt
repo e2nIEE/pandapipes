@@ -1,0 +1,3 @@
+# source: Arbeitsblatt DVGW G 260(A)
+# higher heating value in kWh/kg (at normal conditions)
+13.96188746019903

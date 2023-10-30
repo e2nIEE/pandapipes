@@ -18,10 +18,6 @@
    :target: http://pandapipes.readthedocs.io/
    :alt: docs
 
-.. image:: https://travis-ci.org/e2nIEE/pandapipes.svg?branch=master
-   :target: https://travis-ci.org/e2nIEE/pandapipes/branches
-   :alt: travis
-
 .. image:: https://codecov.io/gh/e2nIEE/pandapipes/branch/master/graph/badge.svg
    :target: https://codecov.io/github/e2nIEE/pandapipes?branch=master
    :alt: codecov
