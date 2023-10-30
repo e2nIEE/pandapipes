@@ -1,10 +1,9 @@
 # Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
-
+import numpy as np
 import pytest
-
+import pandas as pd
 import pandapipes
 
 
@@ -305,15 +304,20 @@ def test_available_std_types():
     do = 99.5
     di = 87.5
     rat = 16.33
+    u = 0.2
     mat = "GGG"
 
     typdata = {"standard_dimension_ratio": rat, "material": mat, "inner_diameter_mm": di,
-               "outer_diameter_mm": do, "nominal_width_mm": w}
+               "outer_diameter_mm": do, "nominal_width_mm": w, "u_w/mk": u}
 
     typdatas = {"typ1": typdata, "typ2": typdata}
     pandapipes.create_std_types(net, component="pipe", type_dict=typdatas)
     av = pandapipes.available_std_types(net, component="pipe")
-    assert av.to_dict(orient="index") == net.std_types["pipe"]
+
+    pipe_df = pd.DataFrame(net.std_types["pipe"]).T
+    assert av.isnull().equals(pipe_df.isnull())
+    assert np.all((av==pipe_df) | av.isnull())
+
 
 
 if __name__ == "__main__":
