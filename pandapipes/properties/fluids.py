@@ -680,24 +680,22 @@ def call_lib(fluid_name):
 
     phase = "liquid" if fluid_name in _LIQUIDS else "gas"
 
-    density = interextra_property("density")
-    viscosity = interextra_property("viscosity")
-    heat_capacity = interextra_property("heat_capacity")
-    molar_mass = constant_property("molar_mass")
-    der_compr = constant_property("der_compressibility")
-    compr = linear_property("compressibility")
+    properties = dict()
+    properties["density"] = interextra_property("density")
+    properties["viscosity"] = interextra_property("viscosity")
+    properties["heat_capacity"] = interextra_property("heat_capacity")
+    properties["molar_mass"] = constant_property("molar_mass")
+    properties["der_compressibility"] = constant_property("der_compressibility")
+    properties["compressibility"] = linear_property("compressibility")
 
-    if (phase == 'gas') & (fluid_name != 'air'):
-        lhv = constant_property("lower_heating_value")
-        hhv = constant_property("higher_heating_value")
+    if phase == 'gas':
+        for entry, name in [("lhv", "lower_heating_value"), ("hhv", "higher_heating_value")]:
+            try:
+                properties[entry] = constant_property(name)
+            except FileNotFoundError:
+                pass
 
-        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
-                     heat_capacity=heat_capacity, molar_mass=molar_mass,
-                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
-    else:
-        return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
-                     heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
-                     der_compressibility=der_compr)
+    return Fluid(fluid_name, phase, **properties)
 
 
 def get_fluid(net):
