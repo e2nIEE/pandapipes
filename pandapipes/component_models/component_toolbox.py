@@ -200,7 +200,7 @@ def standard_branch_wo_internals_result_lookup(net):
     return required_results_hyd, required_results_ht
 
 
-def get_component_array(net, component_name, internal=True):
+def get_component_array(net, component_name, component_type="branch", only_active=True):
     """
     Returns the internal array of a component.
 
@@ -208,13 +208,15 @@ def get_component_array(net, component_name, internal=True):
     :type net: pandapipesNet
     :param component_name: Table name of the component for which to extract internal array
     :type component_name: str
-    :param internal: If True, only return entries of active elements (included in _active_pit)
-    :type internal: bool
+    :param component_type: Type of component that is considered ("branch" or "node")
+    :type component_type: str, default "branch"
+    :param only_active: If True, only return entries of active elements (included in _active_pit)
+    :type only_active: bool
     :return: component_array - internal array of the component
     :rtype: numpy.ndarray
     """
-    f_all, t_all = get_lookup(net, "branch", "from_to")[component_name]
-    if not internal:
+    f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
+    if not only_active:
         return net["_pit"]["components"][component_name]
-    in_service_elm = get_lookup(net, "branch", "active_hydraulics")[f_all:t_all]
+    in_service_elm = get_lookup(net, component_type, "active_hydraulics")[f_all:t_all]
     return net["_pit"]["components"][component_name][in_service_elm]
