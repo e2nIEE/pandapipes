@@ -18,6 +18,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+_LIQUIDS = ["water"]
+_GASES = ["air", "lgas", "hgas", "hydrogen", "methane", "biomethane_pure", "biomethane_treated"]
+
 
 class Fluid(JSONSerializableClass):
     """
@@ -668,17 +671,14 @@ def call_lib(fluid_name):
         return FluidPropertyLinear.from_path(
             os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
-    liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen", "methane", "biomethane_pure", "biomethane_treated"]
-
     if fluid_name == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
                      "(high- or low calorific natural gas)")
-    if fluid_name not in liquids and fluid_name not in gases:
+    if fluid_name not in _LIQUIDS and fluid_name not in _GASES:
         raise AttributeError("Fluid '%s' not found in the fluid library. It might not be "
                              "implemented yet." % fluid_name)
 
-    phase = "liquid" if fluid_name in liquids else "gas"
+    phase = "liquid" if fluid_name in _LIQUIDS else "gas"
 
     density = interextra_property("density")
     viscosity = interextra_property("viscosity")
