@@ -1,4 +1,4 @@
-std_type;nominal_width_mm;outer_diameter_mm;inner_diameter_mm;standard_dimension_ratio;material;u_w/mk
+std_type;nominal_width_mm;outer_diameter_mm;inner_diameter_mm;standard_dimension_ratio;material;u_w_per_m2k
 80_GGG;80;98;86;16.33;GGG;
 100_GGG;100;118;105.8;19.34;GGG;
 125_GGG;125;144;131.6;23.23;GGG;

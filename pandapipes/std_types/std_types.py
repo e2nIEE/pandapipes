@@ -5,7 +5,6 @@
 import os
 import warnings
 import re
-import numpy as np
 import pandas as pd
 from pandapipes import pp_dir
 from pandapipes.std_types.std_type_class import get_data, PumpStdType

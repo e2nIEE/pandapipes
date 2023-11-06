@@ -615,6 +615,3 @@ def get_internal_tables_pandas(net, convert_types=True):
                         tbl[col] = tbl[col].astype(np.bool_)
 
     return node_table, branch_table
-
-def calculate_alpha(d, u):
-    return u / (d/1000 * np.pi)

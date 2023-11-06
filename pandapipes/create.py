@@ -430,7 +430,6 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
         >>>             std_type='315_PE_80_SDR_17', length_km=1)
 
     """
-    from pandapipes.toolbox import calculate_alpha
     add_new_component(net, Pipe)
 
     index = _get_index_with_check(net, "pipe", index)
@@ -439,10 +438,10 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
 
-    if pd.notna(pipe_parameter['u_w/mk']) and alpha_w_per_m2k == 0.0:
-        pipe_parameter['u_w/mk'] = float(pipe_parameter['u_w/mk'])
-        alpha_w_per_m2k = calculate_alpha(pipe_parameter['inner_diameter_mm'], pipe_parameter['u_w/mk'])
-    elif pd.notna(pipe_parameter['u_w/mk']) and alpha_w_per_m2k != 0.0:
+    if pd.notna(pipe_parameter['u_w_per_m2k']) and alpha_w_per_m2k == 0.0:
+        pipe_parameter['u_w_per_m2k'] = float(pipe_parameter['u_w_per_m2k'])
+        alpha_w_per_m2k = pipe_parameter['u_w_per_mk']
+    elif pd.notna(pipe_parameter['u_w_per_m2k']) and alpha_w_per_m2k != 0.0:
         alpha_w_per_m2k = alpha_w_per_m2k
         logger.warning('you have defined alpha which overwrites the heat_transfer coefficient of the pipe standard type')
     else:
