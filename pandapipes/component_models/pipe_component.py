@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, T_OUT, TL
+    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
     RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
@@ -151,25 +151,7 @@ class Pipe(BranchWInternalsComponent):
         set_entry_check_repeat(
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
-        node_pit = net["_pit"]["node"]
-        to_nodes = pipe_pit[:, TO_NODE].astype(np.int32)
-        pipe_pit[:, T_OUT] = node_pit[to_nodes, TINIT_NODE]
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_component_pit:
-        :type branch_component_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        branch_component_pit[:, TL] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
