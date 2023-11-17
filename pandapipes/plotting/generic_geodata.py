@@ -50,11 +50,6 @@ def build_igraph_from_ppipes(net, junctions=None):
     g.vs["label"] = list(junction_index)
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
-    #mask = _get_element_mask_from_nodes(net, "pipe", ["from_junction", "to_junction"], junctions)
-    #for pipe in net.pipe[mask].itertuples():
-    #    g.add_edge(pp_junction_mapping[pipe.from_junction], pp_junction_mapping[pipe.to_junction],
-    #               weight=pipe.length_km)
-
     for comp in net['component_list']:
         if not issubclass(comp, BranchComponent):
             continue
