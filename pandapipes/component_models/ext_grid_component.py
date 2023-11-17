@@ -62,20 +62,18 @@ class ExtGrid(NodeElementComponent):
         return ext_grids, press
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
         :param branch_results:
         :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
+        :param mode:
+        :type mode:
         :return: No Output.
         """
         ext_grids = net[cls.table_name()]

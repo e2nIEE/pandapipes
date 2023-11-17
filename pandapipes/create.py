@@ -1629,8 +1629,8 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently, existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water",
-    "air".
+    Currently, existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water","biomethane_pure",
+    "biomethane_treated", "air".
 
     :param net: The net for which this fluid should be created
     :type net: pandapipesNet

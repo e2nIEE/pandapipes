@@ -5,10 +5,7 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.idx_branch import LENGTH, D, AREA, RHO, VINIT, ALPHA, QEXT, TEXT, branch_cols, \
-    T_OUT, CP, VINIT_T, FROM_NODE_T, TL, \
-    JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, LOAD_VEC_BRANCHES_T, LOAD_VEC_NODES_T
-from pandapipes.idx_node import TINIT as TINIT_NODE
+from pandapipes.idx_branch import VINIT, branch_cols
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
 
 try:
@@ -95,69 +92,5 @@ class BranchComponent(Component):
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
     @classmethod
-    def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-        """
-        Function which creates derivatives of the temperature.
-
-        :param net:
-        :type net:
-        :param branch_pit:
-        :type branch_pit:
-        :param node_pit:
-        :type node_pit:
-        :param idx_lookups:
-        :type idx_lookups:
-        :param options:
-        :type options:
-        :return: No Output.
-        """
-        f, t = idx_lookups[cls.table_name()]
-        branch_component_pit = branch_pit[f:t, :]
-        cp = branch_component_pit[:, CP]
-        rho = branch_component_pit[:, RHO]
-        v_init = branch_component_pit[:, VINIT_T]
-        from_nodes = branch_component_pit[:, FROM_NODE_T].astype(np.int32)
-        t_init_i = node_pit[from_nodes, TINIT_NODE]
-        t_init_i1 = branch_component_pit[:, T_OUT]
-        t_amb = branch_component_pit[:, TEXT]
-        area = branch_component_pit[:, AREA]
-        length = branch_component_pit[:, LENGTH]
-        alpha = branch_component_pit[:, ALPHA] * np.pi * branch_component_pit[:, D]
-        cls.calculate_temperature_lift(net, branch_component_pit, node_pit)
-        tl = branch_component_pit[:, TL]
-        qext = branch_component_pit[:, QEXT]
-        t_m = (t_init_i1 + t_init_i) / 2
-
-        branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
-            -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
-              - alpha * (t_amb - t_m) * length + qext)
-
-        branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
-        branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
-
-        branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
-        branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_component_pit[:, AREA] \
-                                                    * t_init_i1
-
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_component_pit:
-        :type branch_component_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         raise NotImplementedError
