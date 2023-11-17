@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def build_igraph_from_ppipes(net, junctions=None):
     """
     This function uses the igraph library to create an igraph graph for a given pandapipes network.
-    Pipes and valves are respected.
+    Any branch component is respected.
     Performance vs. networkx: https://graph-tool.skewed.de/performance
 
     :param net: The pandapipes network
@@ -50,19 +50,15 @@ def build_igraph_from_ppipes(net, junctions=None):
     g.vs["label"] = list(junction_index)
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
-    mask = _get_element_mask_from_nodes(net, "pipe", ["from_junction", "to_junction"], junctions)
-    for pipe in net.pipe[mask].itertuples():
-        g.add_edge(pp_junction_mapping[pipe.from_junction], pp_junction_mapping[pipe.to_junction],
-                   weight=pipe.length_km)
-
     for comp in net['component_list']:
-        if not isinstance(comp, BranchComponent):
+        if not issubclass(comp, BranchComponent):
             continue
         fjc, tjc = comp.from_to_node_cols()
         mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
         for comp_data in net[comp.table_name()][mask].itertuples():
-            g.add_edge(pp_junction_mapping[comp_data[fjc]], pp_junction_mapping[comp_data[tjc]],
-                       weight=0.001)
+            weight = 0.001 if 'length_km' not in dir(comp_data) else getattr(comp_data, 'length_km')
+            g.add_edge(pp_junction_mapping[getattr(comp_data, fjc)], pp_junction_mapping[getattr(comp_data, tjc)],
+                       weight=weight)
 
     meshed = _igraph_meshed(g)
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]
