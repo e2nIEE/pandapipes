@@ -9,7 +9,7 @@ from pandapipes.component_models.component_toolbox import standard_branch_wo_int
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, LOSS_COEFFICIENT as LC, TL
+from pandapipes.idx_branch import D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
 
@@ -51,21 +51,6 @@ class Valve(BranchWZeroLengthComponent):
         valve_pit[:, D] = net[cls.table_name()].diameter_m.values
         valve_pit[:, AREA] = valve_pit[:, D] ** 2 * np.pi / 4
         valve_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_component_pit:
-        :type branch_component_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        branch_component_pit[:, TL] = 0
 
     @classmethod
     def get_component_input(cls):

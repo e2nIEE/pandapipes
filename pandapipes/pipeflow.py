@@ -6,10 +6,10 @@ import numpy as np
 from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, T_OUT, VINIT_T
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, TOUTINIT, VINIT_T
 from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pf.build_system_matrix import build_system_matrix
-from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
+from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic, calculate_derivatives_thermal
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
     initialize_pit, reduce_pit, set_user_pf_options, init_all_result_tables, \
@@ -276,17 +276,22 @@ def solve_temperature(net):
     branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
 
     for comp in net['component_list']:
-        comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        comp.adaption_before_derivatives_thermal(
+            net, branch_pit, node_pit, branch_lookups, options)
+    calculate_derivatives_thermal(net, branch_pit, node_pit, options)
+    for comp in net['component_list']:
+        comp.adaption_after_derivatives_thermal(
+            net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()
-    t_out_old = branch_pit[:, T_OUT].copy()
+    t_out_old = branch_pit[:, TOUTINIT].copy()
 
     x = spsolve(jacobian, epsilon)
     node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
-    branch_pit[:, T_OUT] += x[len(node_pit):]
+    branch_pit[:, TOUTINIT] += x[len(node_pit):]
 
-    return branch_pit[:, T_OUT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
+    return branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
 
 
 def set_damping_factor(net, niter, error):
@@ -320,7 +325,7 @@ def set_damping_factor(net, niter, error):
 
 def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_method, tol_1, tol_2,
                        tol_res, vals_1_old, vals_2_old, hydraulic_mode=True):
-    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, T_OUT)
+    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, TOUTINIT)
 
     # Control of damping factor
     if nonlinear_method == "automatic":
