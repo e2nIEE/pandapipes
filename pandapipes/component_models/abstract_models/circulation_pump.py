@@ -93,10 +93,6 @@ class CirculationPump(BranchWZeroLengthComponent):
         circ_pump_pit[:, ACTIVE] = False
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
-        raise NotImplementedError
-
-    @classmethod
     def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
