@@ -12,7 +12,7 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
 from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import VINIT, D, AREA, TL, LOSS_COEFFICIENT as LC, FROM_NODE, TINIT, PL
+from pandapipes.idx_branch import VINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -102,36 +102,22 @@ class Pump(BranchWZeroLengthComponent):
         fluid = get_fluid(net)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
-        numerator = NORMAL_PRESSURE * pump_branch_pit[:, TINIT]
+        t_from = node_pit[from_nodes, TINIT_NODE]
+        numerator_from = NORMAL_PRESSURE * t_from
         v_mps = pump_branch_pit[:, VINIT]
         if fluid.is_gas:
             # consider volume flow at inlet
-            normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
+            normfactor_from = numerator_from * fluid.get_property("compressibility", p_from) \
                               / (p_from * NORMAL_TEMPERATURE)
-            v_mean = v_mps * normfactor_from
+            v_from = v_mps * normfactor_from
         else:
-            v_mean = v_mps
-        vol = v_mean * area
+            v_from = v_mps
+        vol = v_from * area
         if len(std_types):
             fcts = itemgetter(*std_types)(net['std_types']['pump'])
             fcts = [fcts] if not isinstance(fcts, tuple) else fcts
             pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
             pump_branch_pit[:, PL] = pl
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_component_pit:
-        :type branch_component_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        branch_component_pit[:, TL] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

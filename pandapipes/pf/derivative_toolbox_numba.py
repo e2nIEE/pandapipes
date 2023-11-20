@@ -3,8 +3,8 @@ from numpy import linalg
 
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
-from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, TINIT, \
-    VINIT
+from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, RHO, PL, AREA, \
+    VINIT, FROM_NODE, TO_NODE
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
 try:
@@ -43,9 +43,9 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
     return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1
 
 
-@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
+@jit((float64[:, :], float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
       float64[:], float64[:]), nopython=True, cache=False)
-def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
+def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
                                      height_difference, comp_fact, der_comp, der_comp1):
     le = lambda_.shape[0]
     load_vec = np.zeros_like(lambda_)
@@ -54,6 +54,8 @@ def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_a
     df_dp1 = np.zeros_like(lambda_) * (-1)
     load_vec_nodes = np.zeros_like(der_lambda)
     df_dv_nodes = np.zeros_like(der_lambda)
+    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
 
     # Formulas for gas pressure loss according to laminar version
     for i in range(le):
@@ -63,12 +65,15 @@ def derivatives_hydraulic_comp_numba(branch_pit, lambda_, der_lambda, p_init_i_a
         p_diff = p_init_i_abs[i] - p_init_i1_abs[i]
         p_sum = p_init_i_abs[i] + p_init_i1_abs[i]
         p_sum_div = np.divide(1, p_sum)
+        fn = from_nodes[i]
+        tn = to_nodes[i]
+        tm = (node_pit[fn, TINIT_NODE] + node_pit[tn, TINIT_NODE]) / 2
 
-        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][RHO] * branch_pit[i][TINIT],
+        const_lambda = np.divide(NORMAL_PRESSURE * branch_pit[i][RHO] * tm,
                                  NORMAL_TEMPERATURE * P_CONVERSION)
         const_height = np.divide(
             branch_pit[i][RHO] * NORMAL_TEMPERATURE * GRAVITATION_CONSTANT * height_difference[i],
-            2 * NORMAL_PRESSURE * branch_pit[i][TINIT] * P_CONVERSION)
+            2 * NORMAL_PRESSURE * tm * P_CONVERSION)
         friction_term = np.divide(lambda_[i] * branch_pit[i][LENGTH],
                                   branch_pit[i][D]) + branch_pit[i][LC]
 
