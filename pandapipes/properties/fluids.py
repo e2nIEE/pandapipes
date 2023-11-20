@@ -693,7 +693,10 @@ def call_lib(fluid_name):
             try:
                 properties[entry] = constant_property(name)
             except FileNotFoundError:
-                pass
+                logger.warning(
+                    f"Unable to find {' '.join([n.capitalize() for n in name.split('_')])} for "
+                    f"{fluid_name}"
+                )
 
     return Fluid(fluid_name, phase, **properties)
 
