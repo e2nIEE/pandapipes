@@ -45,6 +45,8 @@ def _rename_columns(net):
             else:
                 net['controller'].drop('controller', inplace=True, axis=1)
         net["controller"].rename(columns={"controller": "object"}, inplace=True)
+    if "pipe" in net:
+        net["pipe"].rename(columns={"alpha_w_per_m2k": "u_w_per_m2k"}, inplace=True)
     for comp in [CirculationPumpMass, CirculationPumpPressure]:
         cp_tbl = comp.table_name()
         if cp_tbl in net:
