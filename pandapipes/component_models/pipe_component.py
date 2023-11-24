@@ -12,8 +12,7 @@ from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
     VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
-from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
-    RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
+from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
@@ -115,7 +114,6 @@ class Pipe(BranchWInternalsComponent):
                                               junction_pit[tj_nodes, TINIT_NODE],
                                               int_node_number)
         int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
-        int_node_pit[:, RHO_NODES] = get_fluid(net).get_density(int_node_pit[:, TINIT_NODE])
         int_node_pit[:, ACTIVE_ND] = \
             np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
 
