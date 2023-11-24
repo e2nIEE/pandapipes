@@ -4,6 +4,11 @@
 
 import numpy as np
 
+from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
+from pandapipes.idx_branch import TOUTINIT, FROM_NODE, TO_NODE
+from pandapipes.idx_node import TINIT, PINIT
+from pandapipes.properties.fluids import get_fluid
+
 
 def calculate_mixture_viscosity(components_viscosities, components_molar_proportions,
                                 components_molar_mass):
@@ -142,3 +147,40 @@ def calculate_mass_fraction_from_molar_fraction(component_molar_proportions, com
     com_array[:, 2] = com_array[:, 0] * com_array[:, 1]
     com_array[:, 3] = com_array[:, 2] / com_array[:, 2].sum()
     return com_array[:, 3]
+
+
+def get_branch_density(net, fluid, node_pit, branch_pit):
+    from_nodes = branch_pit[:, FROM_NODE].astype(int)
+    t_from = node_pit[from_nodes, TINIT]
+    t_to = branch_pit[:, TOUTINIT]
+    if fluid.is_gas:
+        from_p = node_pit[from_nodes, PINIT]
+        to_nodes = branch_pit[:, TO_NODE].astype(int)
+        to_p = node_pit[to_nodes, PINIT]
+        normal_rho = fluid.get_density(NORMAL_TEMPERATURE)
+        from_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * from_p,
+                             t_from * NORMAL_PRESSURE * fluid.get_compressibility(from_p))
+        to_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * to_p,
+                           t_to * NORMAL_PRESSURE * fluid.get_compressibility(to_p))
+    else:
+        fluid = get_fluid(net)
+        from_rho = fluid.get_density(t_from)
+        to_rho = fluid.get_density(t_to)
+    rho = (from_rho + to_rho) / 2
+    return rho
+
+def get_branch_eta(net, fluid, node_pit, branch_pit):
+    from_nodes = branch_pit[:, FROM_NODE].astype(int)
+    t_from = node_pit[from_nodes, TINIT]
+    t_to = branch_pit[:, TOUTINIT]
+    tm = (t_from + t_to) / 2
+    eta = fluid.get_viscosity(tm)
+    return eta
+
+def get_branch_cp(net, fluid, node_pit, branch_pit):
+    from_nodes = branch_pit[:, FROM_NODE].astype(int)
+    t_from = node_pit[from_nodes, TINIT]
+    t_to = branch_pit[:, TOUTINIT]
+    tm = (t_from + t_to) / 2
+    cp = fluid.get_compressibility(tm)
+    return cp
