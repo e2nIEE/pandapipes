@@ -1,11 +1,13 @@
 import numpy as np
 
-from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
+from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
-    FROM_NODE, TO_NODE, CP, VINIT_T, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
+    FROM_NODE, TO_NODE, VINIT_T, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
     LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.constants import NORMAL_TEMPERATURE
+from pandapipes.properties.properties_toolbox import get_branch_density, get_branch_eta, get_branch_cp
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -25,11 +27,14 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     fluid = get_fluid(net)
     gas_mode = fluid.is_gas
     friction_model = options["friction_model"]
+    rho = get_branch_density(net, fluid, node_pit, branch_pit)
+    eta = get_branch_eta(net, fluid, node_pit, branch_pit)
+    rho_n = fluid.get_density([NORMAL_TEMPERATURE] * len(branch_pit))
 
     lambda_, re = calc_lambda(
-        branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO], branch_pit[:, D],
+        branch_pit[:, VINIT], eta, rho_n, branch_pit[:, D],
         branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options)
-    der_lambda = calc_der_lambda(branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO],
+    der_lambda = calc_der_lambda(branch_pit[:, VINIT], eta, rho_n,
                                  branch_pit[:, D], branch_pit[:, K], friction_model, lambda_)
     branch_pit[:, RE] = re
     branch_pit[:, LAMBDA] = lambda_
@@ -47,7 +52,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_incomp
 
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
-            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference)
+            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho, rho_n)
     else:
         if options["use_numba"]:
             from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
@@ -64,7 +69,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
         der_comp1 = fluid.get_der_compressibility() * der_p_m1
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_comp(
             node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
-            comp_fact, der_comp, der_comp1)
+            comp_fact, der_comp, der_comp1, rho, rho_n)
 
     branch_pit[:, LOAD_VEC_BRANCHES] = load_vec
     branch_pit[:, JAC_DERIV_DV] = df_dv
@@ -75,8 +80,9 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 
 
 def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
-    cp = branch_pit[:, CP]
-    rho = branch_pit[:, RHO]
+    fluid = get_fluid(net)
+    rho_n = fluid.get_density([NORMAL_TEMPERATURE] * len(branch_pit))
+    cp = get_branch_cp(net, fluid, node_pit, branch_pit)
     v_init = branch_pit[:, VINIT_T]
     from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
     t_init_i = node_pit[from_nodes, TINIT_NODE]
@@ -90,14 +96,14 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     t_m = (t_init_i1 + t_init_i) / 2
 
     branch_pit[:, LOAD_VEC_BRANCHES_T] = \
-        -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
+        -(rho_n * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
           - alpha * (t_amb - t_m) * length + qext)
 
-    branch_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
-    branch_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
+    branch_pit[:, JAC_DERIV_DT] = - rho_n * area * cp * v_init + alpha / 2 * length
+    branch_pit[:, JAC_DERIV_DT1] = rho_n * area * cp * v_init + alpha / 2 * length
 
-    branch_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_pit[:, AREA]
-    branch_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_pit[:, AREA] \
+    branch_pit[:, JAC_DERIV_DT_NODE] = rho_n * v_init * branch_pit[:, AREA]
+    branch_pit[:, LOAD_VEC_NODES_T] = rho_n * v_init * branch_pit[:, AREA] \
                                       * t_init_i1
 
 
