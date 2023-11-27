@@ -9,7 +9,7 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import D, AREA, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, BRANCH_TYPE, LOSS_COEFFICIENT as LC
+    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, BRANCH_TYPE, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -77,7 +77,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         pc_branch = press_pit[:, BRANCH_TYPE] == PC
         press_pit[pc_branch, JAC_DERIV_DP] = 0
         press_pit[pc_branch, JAC_DERIV_DP1] = 0
-        press_pit[pc_branch, JAC_DERIV_DV] = 0
+        press_pit[pc_branch, JAC_DERIV_DM] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

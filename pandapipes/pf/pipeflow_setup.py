@@ -9,7 +9,7 @@ import numpy as np
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
-    ACTIVE as ACTIVE_BR, VINIT
+    ACTIVE as ACTIVE_BR, MINIT
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
 from pandapipes.pf.internals_toolbox import _sum_by_group
@@ -31,7 +31,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1e-4, "tol_v": 1e-4,
+default_options = {"friction_model": "nikuradse", "converged": False, "tol_p": 1e-4, "tol_m": 1e-4,
                    "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
@@ -510,8 +510,8 @@ def branches_connected_flow(branch_pit):
     :rtype: np.array
     """
     # TODO: is this formulation correct or could there be any caveats?
-    return ~np.isnan(branch_pit[:, VINIT]) \
-        & ~np.isclose(branch_pit[:, VINIT], 0, rtol=1e-10, atol=1e-10)
+    return ~np.isnan(branch_pit[:, MINIT]) \
+        & ~np.isclose(branch_pit[:, MINIT], 0, rtol=1e-10, atol=1e-10)
 
 
 def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
