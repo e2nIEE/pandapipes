@@ -149,7 +149,6 @@ def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
     lambda_cb_old = np.empty_like(lambda_nikuradse)
     converged = False
     niter = 0
-    factor = np.log(10) * 2.51
 
     # Inner Newton-loop for calculation of lambda
     while not converged and niter < max_iter:
@@ -162,7 +161,7 @@ def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
 
             f = sqt_div + 2 * np.log10(2.51 * re_div * sqt_div + add_val)
             df_dlambda_cb = - 0.5 * sqt_div3 - 2.51 * re_div * sqt_div3 * np.divide(
-                re[i] * sqt + add_val, factor)
+                1, np.log(10) * (2.51 * re_div * sqt_div + add_val))
             x = - f / df_dlambda_cb
 
             lambda_cb_old[i] = lambda_cb[i]

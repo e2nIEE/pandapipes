@@ -79,7 +79,7 @@ def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
 def calc_lambda_nikuradse_comp_np(m, d, k, eta, area):
     m_abs = np.abs(m)
     m_abs[m_abs < 1e-6] = 1e-6
-    re = np.divide(m * d, eta * area)
+    re = np.divide(m_abs * d, eta * area)
     lambda_laminar = np.zeros_like(m)
     lambda_laminar[m != 0] = 64 / re[m != 0]
     lambda_nikuradse = np.divide(1, (2 * np.log10(d / k) + 1.14) ** 2)
@@ -138,8 +138,8 @@ def colebrook_np(re, d, k, lambda_nikuradse, dummy, max_iter):
     while not converged and niter < max_iter:
         f = lambda_cb ** (-1 / 2) + 2 * np.log10(2.51 / (re * np.sqrt(lambda_cb)) + k / (3.71 * d))
 
-        df_dlambda_cb = (-1 / 2 * lambda_cb ** (-3 / 2)) - (2.51 / re) * lambda_cb ** (-3 / 2) \
-                        / (np.log(10) * 2.51 / (re * np.sqrt(lambda_cb) + k / (3.71 * d)))
+        df_dlambda_cb = -1 / 2 * lambda_cb ** (-3 / 2) - (2.51 / re) * lambda_cb ** (-3 / 2) \
+                        / (np.log(10) * (2.51 / (re * np.sqrt(lambda_cb)) + k / (3.71 * d)))
 
         x = - f / df_dlambda_cb
 
