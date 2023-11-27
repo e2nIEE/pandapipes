@@ -6,7 +6,7 @@ import numpy as np
 
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import TOUTINIT, FROM_NODE, TO_NODE
-from pandapipes.idx_node import TINIT, PINIT
+from pandapipes.idx_node import TINIT, PINIT, PAMB
 from pandapipes.properties.fluids import get_fluid
 
 
@@ -154,9 +154,9 @@ def get_branch_density(net, fluid, node_pit, branch_pit):
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     if fluid.is_gas:
-        from_p = node_pit[from_nodes, PINIT]
+        from_p = node_pit[from_nodes, PINIT] + node_pit[from_nodes, PAMB]
         to_nodes = branch_pit[:, TO_NODE].astype(int)
-        to_p = node_pit[to_nodes, PINIT]
+        to_p = node_pit[to_nodes, PINIT] + node_pit[from_nodes, PAMB]
         normal_rho = fluid.get_density(NORMAL_TEMPERATURE)
         from_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * from_p,
                              t_from * NORMAL_PRESSURE * fluid.get_compressibility(from_p))
@@ -182,5 +182,5 @@ def get_branch_cp(net, fluid, node_pit, branch_pit):
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
-    cp = fluid.get_compressibility(tm)
+    cp = fluid.get_heat_capacity(tm)
     return cp
