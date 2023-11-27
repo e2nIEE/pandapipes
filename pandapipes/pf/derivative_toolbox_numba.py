@@ -71,7 +71,8 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         tm = (node_pit[fn, TINIT_NODE] + node_pit[tn, TINIT_NODE]) / 2
 
         const_height =  rho[i] * GRAVITATION_CONSTANT * height_difference[i] / P_CONVERSION
-        friction_term = np.divide(lambda_[i] * branch_pit[i][LENGTH], branch_pit[i][D]) + branch_pit[i][LC]
+        friction_term = np.divide(lambda_[i] * branch_pit[i][LENGTH], branch_pit[i][D]) + \
+                        branch_pit[i][LC]
         normal_term = np.divide(NORMAL_PRESSURE, NORMAL_TEMPERATURE * P_CONVERSION * rho_n[i] *
                                 branch_pit[i][AREA] ** 2)
 
@@ -83,7 +84,7 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         df_dp1[i] = 1. + const_term * p_sum_div * (der_comp1[i] - comp_fact[i] * p_sum_div)
 
         df_dm[i] = normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_init_abs * friction_term \
-            + np.divide(der_lambda[i] * branch_pit[i][LENGTH] * m_init2, p_sum * branch_pit[i][D]))
+            + np.divide(der_lambda[i] * branch_pit[i][LENGTH] * m_init2, branch_pit[i][D]))
 
         load_vec_nodes[i] = branch_pit[i][MINIT]
     return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
