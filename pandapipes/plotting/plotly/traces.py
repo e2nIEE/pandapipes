@@ -37,3 +37,52 @@ def create_pipe_trace(net, pipes=None, use_pipe_geodata=True, respect_valves=Fal
                                 cmap_vals=cmap_vals, cmin=cmin, cmax=cmax, cpos=cpos,
                                 branch_element=branch_element, separator_element=separator_element,
                                 node_element=node_element, cmap_vals_category="vmean_m_s")
+
+
+def create_valve_trace(net, valves=None, use_valve_geodata=False, size=1.0,
+                       color='black', infofunc=None, trace_name='valves', legendgroup='valves',
+                       dash="solid"):
+    branch_element = "valve"
+    node_element = "junction"
+    separator_element = "valve"
+    respect_valves = False
+    cmap = None
+    cbar_title = None
+    show_colorbar = True
+    cmap_vals = None
+    cmin = None
+    cmax = None
+    cpos = 1.1
+
+    return _create_branch_trace(net=net, branches=valves, use_branch_geodata=use_valve_geodata,
+                                respect_separators=respect_valves, width=size, color=color,
+                                infofunc=infofunc, trace_name=trace_name, legendgroup=legendgroup,
+                                cmap=cmap, cbar_title=cbar_title, show_colorbar=show_colorbar,
+                                cmap_vals=cmap_vals, cmin=cmin, cmax=cmax, cpos=cpos,
+                                branch_element=branch_element, separator_element=separator_element,
+                                node_element=node_element, cmap_vals_category="vmean_m_s",
+                                dash=dash)
+
+
+def create_compressor_trace(net, compressors=None, use_pipe_geodata=False, size=3.0,
+                            color='cyan', infofunc=None, trace_name='compressors',
+                            legendgroup='compressors'):
+    branch_element = "compressor"
+    node_element = "junction"
+    separator_element = "valve"
+    respect_valves = False
+    cmap = None
+    cbar_title = None
+    show_colorbar = True
+    cmap_vals = None
+    cmin = None
+    cmax = None
+    cpos = 1.1
+
+    return _create_branch_trace(net=net, branches=compressors, use_branch_geodata=use_pipe_geodata,
+                                respect_separators=respect_valves, width=size, color=color,
+                                infofunc=infofunc, trace_name=trace_name, legendgroup=legendgroup,
+                                cmap=cmap, cbar_title=cbar_title, show_colorbar=show_colorbar,
+                                cmap_vals=cmap_vals, cmin=cmin, cmax=cmax, cpos=cpos,
+                                branch_element=branch_element, separator_element=separator_element,
+                                node_element=node_element, cmap_vals_category="compr_power_mw")

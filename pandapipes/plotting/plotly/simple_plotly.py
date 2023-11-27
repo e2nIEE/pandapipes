@@ -4,7 +4,8 @@
 
 import pandas as pd
 
-from pandapipes.plotting.plotly.traces import create_junction_trace, create_pipe_trace
+from pandapipes.plotting.plotly.traces import create_junction_trace, create_pipe_trace, \
+    create_valve_trace, create_compressor_trace
 from pandapower.plotting.plotly.simple_plotly import _simple_plotly_generic, draw_traces
 
 try:
@@ -89,8 +90,10 @@ def get_hoverinfo(net, element, precision=3, sub_index=None):
 
 def simple_plotly(net, use_pipe_geodata=None, on_map=False,
                   projection=None, map_style='basic', figsize=1, aspectratio='auto', pipe_width=1,
-                  junction_size=10, ext_grid_size=20.0, junction_color="blue", pipe_color='grey',
-                  pressure_reg_color='green', ext_grid_color="yellow", filename='temp-plot.html',
+                  junction_size=10, ext_grid_size=20.0, valve_size=3.0, compressor_size=3,
+                  junction_color="blue", pipe_color='grey', pressure_reg_color='green',
+                  ext_grid_color="yellow", valve_color="black", compressor_color="cyan",
+                  filename='temp-plot.html',
                   auto_open=True, showlegend=True, additional_traces=None):
     respect_valves = False # TODO, not implemented yet
     node_element = "junction"
@@ -125,7 +128,16 @@ def simple_plotly(net, use_pipe_geodata=None, on_map=False,
                                               filename=filename,
                                               auto_open=auto_open,
                                               showlegend=showlegend)
+    if "valve" in net.keys() and len(net.valve) > 0:
+        traces.extend(create_valve_trace(net, valves=net.valve.loc[net.valve.opened].index,
+                                         size=valve_size, color=valve_color,
+                                         trace_name="open valves"))
+        traces.extend(create_valve_trace(net, valves=net.valve.loc[~net.valve.opened].index,
+                                         size=valve_size, color=valve_color, dash="dot",
+                                         trace_name="closed valves"))
 
+    if "compressor" in net.keys() and len(net.compressor) > 0:
+        traces.extend(create_compressor_trace(net, size=compressor_size, color=compressor_color))
     if additional_traces:
         if isinstance(additional_traces, dict):
             traces.append(additional_traces)
