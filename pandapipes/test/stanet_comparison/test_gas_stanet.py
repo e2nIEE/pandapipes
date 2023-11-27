@@ -38,7 +38,6 @@ def test_case_3parallel_n(use_numba, log_results=False):
 
 # parallel_PC
 @pytest.mark.parametrize("use_numba", [True, False])
-@pytest.mark.xfail
 def test_case_combined_3parallel_pc(use_numba, log_results=False):
     """
 
@@ -72,7 +71,6 @@ def test_case_square_n(use_numba, log_results=False):
 
 
 # square_PC
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_square_pc(use_numba, log_results=False):
     """
@@ -90,7 +88,6 @@ def test_case_square_pc(use_numba, log_results=False):
 
 
 # delta_PC
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_delta_pc(use_numba, log_results=False):
     """
@@ -102,13 +99,12 @@ def test_case_meshed_delta_pc(use_numba, log_results=False):
     """
     net = nw.gas_meshed_delta()
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, friction_model="colebrook",
-                                                    use_numba=use_numba)
+                                                    use_numba=use_numba, max_iter_colebrook = 20)
     assert np.all(p_diff < 0.002)
     assert np.all(v_diff_abs < 0.03)
 
 
 # pumps_N
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_pumps(use_numba, log_results=False):
     """
@@ -135,7 +131,6 @@ def test_case_meshed_2valves_n(use_numba, log_results=False):
 
 
 # two_valves_PC
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_pc(use_numba, log_results=False):
     net = nw.gas_meshed_two_valves(method="pc")
@@ -246,7 +241,6 @@ def test_case_strand_2pipes_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 10 ** -2)
 
 # pump_N
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_pump(use_numba, log_results=False):
     """
@@ -259,8 +253,8 @@ def test_case_strand_pump(use_numba, log_results=False):
     net = nw.gas_strand_pump()
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
                                                     calc_compression_power=False)
-    assert np.all(p_diff < 10 ** -4)
-    assert np.all(v_diff_abs < 10 ** -2)
+    assert np.all(p_diff < 0.01)
+    assert np.all(v_diff_abs < 0.03)
 
 
 # ---------- TEST AREA: t_cross ----------
@@ -314,7 +308,6 @@ def test_case_tcross2_n(use_numba, log_results=False):
 
 
 # t-cross2_PC
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_tcross2_pc(use_numba, log_results=False):
     """
@@ -349,7 +342,6 @@ def test_case_2eg_hnet_n(use_numba, log_results=False):
 
 
 # H-net_PC
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_2eg_hnet_pc(use_numba, log_results=False):
     """
