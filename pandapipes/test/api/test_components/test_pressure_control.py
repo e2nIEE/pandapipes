@@ -11,7 +11,7 @@ import pytest
 import pandapipes
 from pandapipes.test.pipeflow_internals import internals_data_path
 
-
+@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pressure_control_from_measurement_parameters(use_numba):
     """

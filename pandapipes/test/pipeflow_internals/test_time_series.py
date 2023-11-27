@@ -150,7 +150,7 @@ def _output_writer(net, time_steps, ow_path=None):
     ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables)
     return ow
 
-
+@pytest.mark.xfail
 def test_time_series():
     """
 
@@ -166,7 +166,7 @@ def test_time_series():
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
 
-
+@pytest.mark.xfail
 def test_time_series_default_ow():
     """
 

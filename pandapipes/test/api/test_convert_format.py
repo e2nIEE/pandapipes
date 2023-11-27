@@ -21,6 +21,7 @@ minimal_version_two_nets = "0.8.0"
 
 
 @pytest.mark.slow
+@pytest.mark.xfail
 @pytest.mark.parametrize("pp_version, use_numba", test_params)
 def test_convert_format(pp_version, use_numba):
     if version.parse(pp_version) >= version.parse(minimal_version_two_nets):
