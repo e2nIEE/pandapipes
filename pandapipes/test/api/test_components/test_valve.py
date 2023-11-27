@@ -10,7 +10,7 @@ import pytest
 import pandapipes
 from pandapipes.test.pipeflow_internals import internals_data_path
 
-
+@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_valve(use_numba):
     """

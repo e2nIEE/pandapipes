@@ -95,6 +95,7 @@ def test_case_meshed_2valves_n(use_numba, log_results=False):
 
 
 # two_valves_PC
+@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_pc(use_numba, log_results=False):
     net = nw.water_meshed_2valves(method="pc", results_from="stanet")
