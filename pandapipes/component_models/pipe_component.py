@@ -150,6 +150,7 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
+        pipe_pit[:, MINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
