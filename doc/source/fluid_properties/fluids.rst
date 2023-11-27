@@ -4,9 +4,29 @@ Fluid Properties in pandapipes
 
 The pipelines in the pandapipes network are run with a certain fluid. This can be
 chosen individually for the net from the fluid library or by own creation. The fluids
-are defined by certain properties. In the fluid library currently high and low calorific natural
-gas (hgas and lgas), hydrogen, methane, water and air are implemented with default properties.
+are defined by certain properties.
 
+The following fluids currently exist in the library:
+
+- ``hgas`` and ``lgas`` (high and low calorific natural gas),
+- ``hydrogen``,
+- ``methane``,
+- ``water``,
+- ``biomethane_pure`` and ``biomathane_treated`` (compositions below)
+- ``air``.
+
+
+.. Note::
+   **Biomethane(s)**:
+   A particularity of injecting biomethane in the gas grid in Germany is the addition of LPG to enhance
+   the Wobbe-Index and the heating value of the gas and thus make it equivalent to the (high-calorific) natural gas transported
+   in the grid. This addition is done in a gas treatment unit (Biogaseinspeiseanlage) upstream of the biomethane
+   feed-in junction. The properties of the biomethane(s) were computed based on the package `CoolProp <http://www.coolprop.org/)>`_.
+
+   .. csv-table::
+      :file: composition.csv
+      :delim: ;
+      :widths: 10, 10, 10
 
 The Fluid Class
 ===============

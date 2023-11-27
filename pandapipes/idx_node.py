@@ -1,15 +1,15 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-# define bus types
+# node types
 P = 1  # Reference node, pressure is fixed
 L = 2  # All other nodes
 T = 10  # Reference node with fixed temperature, otherwise 0
 PC = 20  # Controlled node with fixed pressure p
 NONE = 3  # None
 
-# define the indices
+# node indices
 TABLE_IDX = 0  # number of the table that this node belongs to
 ELEMENT_IDX = 1  # index of the element that this node belongs to (within the given table)
 NODE_TYPE = 2  # junction type

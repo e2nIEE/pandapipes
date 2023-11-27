@@ -1,14 +1,15 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 from numpy import dtype
 
+from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import TL, ALPHA, TEXT, QEXT, T_OUT, D, AREA, LOSS_COEFFICIENT as LC
+from pandapipes.idx_branch import ALPHA, TEXT, QEXT, D, AREA, LOSS_COEFFICIENT as LC, TOUTINIT
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -57,42 +58,29 @@ class HeatExchanger(BranchWZeroLengthComponent):
         heat_exchanger_pit[:, ALPHA] = 0
         heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
         heat_exchanger_pit[:, TEXT] = 293.15
-        heat_exchanger_pit[:, T_OUT] = 307
+        heat_exchanger_pit[:, TOUTINIT] = 307
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
-        required_results = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
-            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds")
-        ]
-
-        if get_fluid(net).is_gas:
-            required_results.extend([
-                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
-                ("normfactor_to", "normfactor_to")
-            ])
-        else:
-            required_results.extend([("v_mean_m_per_s", "v_mps")])
-
-        extract_branch_results_without_internals(net, branch_results, required_results,
-                                                 cls.table_name(), branches_connected)
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, he_pit, node_pit):
+    def extract_results(cls, net, options, branch_results, mode):
         """
+        Class method to extract pipeflow results from the internal structure into the results table.
 
-        :param net:
-        :type net:
-        :param he_pit:
-        :type he_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param mode: simulation mode
+        :type mode: str
+        :return: No Output.
+        :rtype: None
         """
-        he_pit[:, TL] = 0
+        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
+
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd,
+                                                 required_results_ht, cls.table_name(), mode)
+
 
     @classmethod
     def get_component_input(cls):

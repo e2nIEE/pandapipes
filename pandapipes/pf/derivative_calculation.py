@@ -1,8 +1,10 @@
 import numpy as np
 
-from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, TINIT, LOAD_VEC_BRANCHES, \
+from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
-    FROM_NODE, TO_NODE
+    FROM_NODE, TO_NODE, CP, VINIT_T, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
+    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE
+from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.properties.fluids import get_fluid
 
 
@@ -35,7 +37,6 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
     tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = \
         get_derived_values(node_pit, from_nodes, to_nodes, options["use_numba"])
-    branch_pit[:, TINIT] = tinit_branch
 
     if not gas_mode:
         if options["use_numba"]:
@@ -62,7 +63,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
         der_comp = fluid.get_der_compressibility() * der_p_m
         der_comp1 = fluid.get_der_compressibility() * der_p_m1
         load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1 = derivatives_hydraulic_comp(
-            branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
+            node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
             comp_fact, der_comp, der_comp1)
 
     branch_pit[:, LOAD_VEC_BRANCHES] = load_vec
@@ -71,6 +72,33 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DP1] = df_dp1
     branch_pit[:, LOAD_VEC_NODES] = load_vec_nodes
     branch_pit[:, JAC_DERIV_DV_NODE] = df_dv_nodes
+
+
+def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
+    cp = branch_pit[:, CP]
+    rho = branch_pit[:, RHO]
+    v_init = branch_pit[:, VINIT_T]
+    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
+    t_init_i = node_pit[from_nodes, TINIT_NODE]
+    t_init_i1 = branch_pit[:, TOUTINIT]
+    t_amb = branch_pit[:, TEXT]
+    area = branch_pit[:, AREA]
+    length = branch_pit[:, LENGTH]
+    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
+    tl = branch_pit[:, TL]
+    qext = branch_pit[:, QEXT]
+    t_m = (t_init_i1 + t_init_i) / 2
+
+    branch_pit[:, LOAD_VEC_BRANCHES_T] = \
+        -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
+          - alpha * (t_amb - t_m) * length + qext)
+
+    branch_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
+    branch_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
+
+    branch_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_pit[:, AREA]
+    branch_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_pit[:, AREA] \
+                                      * t_init_i1
 
 
 def get_derived_values(node_pit, from_nodes, to_nodes, use_numba):
@@ -110,11 +138,11 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, lengths, options):
     """
     if options["use_numba"]:
         from pandapipes.pf.derivative_toolbox_numba import calc_lambda_nikuradse_incomp_numba as \
-            calc_lambda_nikuradse_incomp, colebrook_numba as colebrook,\
+            calc_lambda_nikuradse_incomp, colebrook_numba as colebrook, \
             calc_lambda_nikuradse_comp_numba as calc_lambda_nikuradse_comp
     else:
         from pandapipes.pf.derivative_toolbox import calc_lambda_nikuradse_incomp_np as \
-            calc_lambda_nikuradse_incomp, colebrook_np as colebrook,\
+            calc_lambda_nikuradse_incomp, colebrook_np as colebrook, \
             calc_lambda_nikuradse_comp_np as calc_lambda_nikuradse_comp
     if gas_mode:
         re, lambda_laminar, lambda_nikuradse = calc_lambda_nikuradse_comp(v, d, k, eta, rho)
@@ -134,7 +162,7 @@ def calc_lambda(v, eta, rho, d, k, gas_mode, friction_model, lengths, options):
                 "argument to the pipeflow.")
         return lambda_colebrook, re
     elif friction_model == "swamee-jain":
-        lambda_swamee_jain = 0.25 / ((np.log10(k/(3.7*d) + 5.74/(re**0.9)))**2)
+        lambda_swamee_jain = 0.25 / ((np.log10(k / (3.7 * d) + 5.74 / (re ** 0.9))) ** 2)
         return lambda_swamee_jain, re
     else:
         # lambda_tot = np.where(re > 2300, lambda_laminar + lambda_nikuradse, lambda_laminar)
@@ -182,7 +210,7 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
 
         return lambda_colebrook_der
     elif friction_model == "swamee-jain":
-        param = k/(3.7*d) + 5.74 * (np.abs(eta))**0.9 / ((np.abs(rho*v_corr*d))**0.9)
+        param = k / (3.7 * d) + 5.74 * (np.abs(eta)) ** 0.9 / ((np.abs(rho * v_corr * d)) ** 0.9)
         # 0.5 / (log(10) * log(param)^3 * param) * 5.166 * abs(eta)^0.9  / (abs(rho * d)^0.9
         # * abs(v_corr)^1.9)
         lambda_swamee_jain_der = 0.5 / np.log(10) / (np.log(param) ** 3) / param * 5.166 \

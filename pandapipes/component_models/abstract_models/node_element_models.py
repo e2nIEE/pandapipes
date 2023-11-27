@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -34,6 +34,10 @@ class NodeElementComponent(Component):
         raise NotImplementedError
 
     @classmethod
+    def active_identifier(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         """
         Function that creates pit node entries.
@@ -47,5 +51,5 @@ class NodeElementComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         raise NotImplementedError

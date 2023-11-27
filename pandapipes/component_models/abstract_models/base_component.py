@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -33,7 +33,7 @@ class Component:
         return res_table
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
@@ -43,10 +43,8 @@ class Component:
         :type options:
         :param branch_results:
         :type branch_results:
-        :param nodes_connected:
-        :type nodes_connected:
-        :param branches_connected:
-        :type branches_connected:
+        :param mode:
+        :type mode:
         :return: No Output.
         """
         raise NotImplementedError
@@ -79,6 +77,15 @@ class Component:
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
+
+    @classmethod
+    def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+        pass
+
+    @classmethod
+    def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+        pass
+
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
@@ -128,6 +135,21 @@ class Component:
         return current_start, current_table
 
     @classmethod
+    def create_component_array(cls, net, component_pits):
+        """
+        Function which creates an internal array of the component in analogy to the pit, but with
+        component specific entries, that are not needed in the pit.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param component_pits: dictionary of component specific arrays
+        :type component_pits: dict
+        :return:
+        :rtype:
+        """
+        pass
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         """
         Function which creates pit branch entries.
@@ -153,40 +175,3 @@ class Component:
         """
         pass
 
-    @classmethod
-    def calculate_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        """
-        Function which creates derivatives.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :param node_pit:
-        :type node_pit:
-        :param idx_lookups:
-        :type idx_lookups:
-        :param options:
-        :type options:
-        :return: No Output.
-        """
-        pass
-
-    @classmethod
-    def calculate_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-        """
-        Function which creates derivatives.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :param node_pit:
-        :type node_pit:
-        :param idx_lookups:
-        :type idx_lookups:
-        :param options:
-        :type options:
-        :return: No Output.
-        """
-        pass

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -11,6 +11,7 @@ import pandapipes
 from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, \
     create_source
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
+from pandapipes.test.test_toolbox import create_net_changed_indices
 
 
 @pytest.mark.parametrize("use_numba", [True, False])

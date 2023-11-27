@@ -5,6 +5,7 @@ Simple Plot
 Creating a Simple Network Plot
 ==============================
 
+.. _simple_plot:
 .. autofunction:: pandapipes.plotting.simple_plot
 
 

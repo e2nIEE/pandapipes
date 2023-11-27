@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -22,11 +22,9 @@ def test_ext_grid_sorting(use_numba):
     j5 = pandapipes.create_junction(net, 1, 293.15, index=6)
     j6 = pandapipes.create_junction(net, 1, 293.15, index=7)
 
-    pandapipes.create_ext_grid(net, j2, 1, 285.15, type="pt")
-    pandapipes.create_ext_grid(net, j3, 1, 285.15, type="pt")
-    pandapipes.create_ext_grid(net, j5, 1, 285.15, type="t")
-    pandapipes.create_ext_grid(net, j1, 1, 285.15, type="pt")
-    pandapipes.create_ext_grid(net, j1, 1, 285.15, type="pt")
+    pandapipes.create_ext_grids(net, [j2, j3, j5, j1, j1], p_bar=1, t_k=285.15,
+                                type=["auto", "pt", "t", "pt", "tp"])
+    assert np.all(net.ext_grid.type == ["pt", "pt", "t", "pt", "pt"])
 
     pandapipes.create_pipe_from_parameters(net, j1, j4, 0.1, 0.1)
     pandapipes.create_pipe_from_parameters(net, j2, j5, 0.1, 0.1)

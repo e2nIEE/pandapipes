@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,8 +7,8 @@ import pandas as pd
 from pandapipes.topology.create_graph import create_nxgraph
 
 
-def calc_distance_to_junction(net, junction, notravjunctions=None,
-                              nogojunctions= None, weight="weight"):
+def calc_distance_to_junction(net, junction, notravjunctions=None, nogojunctions=None,
+                              weight="weight"):
     """
     Calculates the shortest distance between a source junction and all junctions connected to it.
 
@@ -40,10 +40,12 @@ def calc_distance_to_junction(net, junction, notravjunctions=None,
     dist = nx.single_source_dijkstra_path_length(g, junction, weight=weight)
     return pd.Series(dist)
 
-def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None,
-                              nogojunctions=None, weight="weight"):
+
+def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None, nogojunctions=None,
+                                       weight="weight"):
     """
-    Calculates the shortest distance between multiple source junctions and all junctions connected to it.
+    Calculates the shortest distance between multiple source junctions and all junctions connected \
+    to it.
 
      INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
@@ -74,6 +76,7 @@ def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None,
     junction = junctions.pop()
     mg.add_edges_from([(junction, y, {"weight": 0}) for y in junctions])
     return pd.Series(nx.single_source_dijkstra_path_length(mg, junction))
+
 
 if __name__ == '__main__':
     import pandapipes.networks as nw
