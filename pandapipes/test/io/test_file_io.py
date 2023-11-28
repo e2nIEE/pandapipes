@@ -34,15 +34,15 @@ def load_net():
 
     pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
 
-    pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=10, diameter_mm=0.05,
+    pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=10, diameter_mm=0.05 * 1000,
                                            name="Pipe 1", geodata=[(0, 0), (2, 0)])
-    pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=2, diameter_mm=0.05,
+    pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=2, diameter_mm=0.05 * 1000,
                                            name="Pipe 2", geodata=[(2, 0), (2, 4), (7, 4)])
-    pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=2.5, diameter_mm=0.05,
-                                           name="Pipe 3", geodata=[(2, 0), (2, -4), (7, -4)])
-    pandapipes.create_pipe_from_parameters(net, from_junction=j3, to_junction=j5, length_km=1, diameter_mm=0.05,
+    pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=2.5,
+                                           diameter_mm=0.05 * 1000, name="Pipe 3", geodata=[(2, 0), (2, -4), (7, -4)])
+    pandapipes.create_pipe_from_parameters(net, from_junction=j3, to_junction=j5, length_km=1, diameter_mm=0.05 * 1000,
                                            name="Pipe 4", geodata=[(7, 4), (7, 3), (5, 3)])
-    pandapipes.create_pipe_from_parameters(net, from_junction=j4, to_junction=j6, length_km=1, diameter_mm=0.05,
+    pandapipes.create_pipe_from_parameters(net, from_junction=j4, to_junction=j6, length_km=1, diameter_mm=0.05 * 1000,
                                            name="Pipe 5", geodata=[(7, -4), (7, -3), (5, -3)])
 
     pandapipes.create_valve(net, from_junction=j5, to_junction=j6, diameter_m=0.05,

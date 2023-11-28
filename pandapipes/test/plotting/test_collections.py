@@ -17,7 +17,7 @@ from pandapipes.test.test_toolbox import base_net_is_with_pumps
 
 def test_collection_lengths():
     net = pandapipes.create_empty_network(add_stdtypes=False)
-    d = 40e-3
+    d = 40
 
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(0, 0))
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(2, 0))

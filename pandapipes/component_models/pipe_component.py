@@ -140,24 +140,18 @@ class Pipe(BranchWInternalsComponent):
             internal_pipe_number, has_internals)
         set_entry_check_repeat(
             pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
-        #check if heat coefficient given in alpha or u
-        if hasattr(net[tbl], 'alpha_w_per_m2k'):
-            set_entry_check_repeat(
-                pipe_pit, ALPHA, net[tbl].alpha_w_per_m2k.values, internal_pipe_number, has_internals)
-        else:
-            set_entry_check_repeat(
-            pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
+
+        set_entry_check_repeat(
+        pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
+
         set_entry_check_repeat(
             pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
         set_entry_check_repeat(
             pipe_pit, TEXT, net[tbl].text_k.values, internal_pipe_number, has_internals)
-        #check if diameter given in mm or m
-        if hasattr(net[tbl], 'diameter_m'):
-            set_entry_check_repeat(
-                pipe_pit, D, net[tbl].diameter_m.values, internal_pipe_number, has_internals)
-        else:
-            set_entry_check_repeat(
-                pipe_pit, D, net[tbl].diameter_mm.values / 1000, internal_pipe_number, has_internals)
+
+        set_entry_check_repeat(
+            pipe_pit, D, net[tbl].diameter_mm.values / 1000, internal_pipe_number, has_internals)
+        
         set_entry_check_repeat(
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 

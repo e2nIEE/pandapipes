@@ -17,8 +17,8 @@ def test_compressor_pressure_ratio(use_numba):
     j = pandapipes.create_junctions(net, 6, pn_bar=5, tfluid_k=283.15)
     j1, j2, j3, j4, j5, j6 = j
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, length_km=0.43380, diameter_mm=0.1022)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=0.26370, diameter_mm=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, length_km=0.43380, diameter_mm=0.1022 * 1000)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=0.26370, diameter_mm=0.1022 * 1000)
     pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
     pandapipes.create_sink(net, j6, 0.02333)
 

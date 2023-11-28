@@ -31,12 +31,14 @@ def test_valve(use_numba):
 
     pandapipes.create_ext_grid(net, j0, 5, 283.15, type="p")
 
-    pandapipes.create_pipe_from_parameters(net, j0, j1, length_km=1., diameter_mm=.1, k_mm=1)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=.5, diameter_mm=.1, k_mm=1)
-    pandapipes.create_pipe_from_parameters(net, j2, j4, length_km=.5, diameter_mm=.1, k_mm=1)
-    pandapipes.create_pipe_from_parameters(net, j5, j4, length_km=.35, diameter_mm=.1, k_mm=1)
-    pandapipes.create_pipe_from_parameters(net, j1, j6, length_km=.1, diameter_mm=.1, k_mm=1, loss_coefficient=9000)
-    pandapipes.create_pipe_from_parameters(net, j1, j7, length_km=.1, diameter_mm=.1, k_mm=1, loss_coefficient=9000)
+    pandapipes.create_pipe_from_parameters(net, j0, j1, length_km=1., diameter_mm=.1 * 1000, k_mm=1)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=.5, diameter_mm=.1 * 1000, k_mm=1)
+    pandapipes.create_pipe_from_parameters(net, j2, j4, length_km=.5, diameter_mm=.1 * 1000, k_mm=1)
+    pandapipes.create_pipe_from_parameters(net, j5, j4, length_km=.35, diameter_mm=.1 * 1000, k_mm=1)
+    pandapipes.create_pipe_from_parameters(net, j1, j6, length_km=.1, diameter_mm=.1 * 1000, k_mm=1,
+                                           loss_coefficient=9000)
+    pandapipes.create_pipe_from_parameters(net, j1, j7, length_km=.1, diameter_mm=.1 * 1000, k_mm=1,
+                                           loss_coefficient=9000)
 
     pandapipes.create_valve(net, j6, j2, diameter_m=0.1, opened=False)
     pandapipes.create_valve(net, j7, j3, diameter_m=0.1, opened=True)

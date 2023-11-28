@@ -509,7 +509,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net,from_junction=0,to_junction=1,length_km=1,diameter_mm=40)
+        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1, diameter_mm=40)
 
     """
     add_new_component(net, Pipe)

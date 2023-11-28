@@ -139,7 +139,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         if stanet_like_valves:
             create_valve_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
-                length_km=row.RORL / 1000, diameter_m=float(row.DM / 1000), k_mm=row.RAU,
+                length_km=row.RORL / 1000, diameter_mm=float(row.DM), k_mm=row.RAU,
                 opened=row.AUF == 'J', loss_coefficient=row.ZETA,
                 name="valve_pipe_%s_%s" % (row.ANFNAM, row.ENDNAM), in_service=bool(row.ISACTIVE),
                 stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID),  v_stanet=row.VM, **add_info
@@ -157,14 +157,14 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
             if hasattr(row, "TU"):
                 text_k = row.TU + 273.15
             pandapipes.create_pipe_from_parameters(net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
-                                                   diameter_mm=float(row.DM / 1000), k_mm=row.RAU,
-                                                   loss_coefficient=row.ZETA, text_k=text_k,
+                                                   diameter_mm=float(row.DM), k_mm=row.RAU, loss_coefficient=row.ZETA,
+                                                   text_k=text_k,
                                                    name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
                                                    in_service=bool(row.ISACTIVE), stanet_nr=-999,
                                                    stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
                                                    stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info)
             pandapipes.create_valve(
-                net, j_aux, node_mapping[to_stanet_nr], diameter_m=float(row.DM / 1000),
+                net, j_aux, node_mapping[to_stanet_nr], diameter_mm=float(row.DM),
                 opened=row.AUF == 'J', loss_coefficient=0,
                 name="valve_%s_%s" % ('aux_' + str(row.ENDNAM), str(row.ENDNAM)),
                 stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=np.NaN,
@@ -221,7 +221,7 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers):
                        f"The diameter will be set to 1 m.")
         slider_valves.DM[slider_valves.DM == 0] = 1e3
     pandapipes.create_valves(
-        net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
+        net, from_junctions, to_junctions, slider_valves.DM.values,
         opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
         loss_coefficient=slider_valves.ZETA.values, name=slider_valves.STANETID.values,
         type="slider_valve_" + valve_system, stanet_nr=slider_valves.RECNO.values.astype(np.int32),
@@ -567,7 +567,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         text_k = pipes.TU.values.astype(np.float64) + 273.15
     pandapipes.create_pipes_from_parameters(
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
-        pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
+        pipes.DM.values, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
         alpha_w_per_m2k=pipes.WDZAHL.values.astype(np.float64),
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
@@ -630,7 +630,7 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
         # TODO: there is no qext given!!!
         pandapipes.create_heat_exchanger(
             net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=qext,
-            diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA, std_type=row.ROHRTYP,
+            diameter_mm=float(row.DM), loss_coefficient=row.ZETA, std_type=row.ROHRTYP,
             in_service=bool(row.ISACTIVE), name="heat_exchanger_%s_%s" % (row.ANFNAM, row.ENDNAM),
             stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=row.VM,
             stanet_active=bool(row.ISACTIVE), **add_info
@@ -695,7 +695,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         text_k = p_tbl.TU.values.astype(np.float64) + 273.15
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
-        type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
+        type="main_pipe", diameter_mm=p_tbl.DM.values.astype(np.float64),
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
         alpha_w_per_m2k=p_tbl.WDZAHL.values.astype(np.float64), text_k=text_k,
@@ -1010,7 +1010,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
         text_k = hp_data.TU.values.astype(np.float64) + 273.15
     pandapipes.create_pipes_from_parameters(
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
-        hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
+        hp_data.DM.values, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
         stanet_std_type=hp_data.ROHRTYP.values,
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
         alpha_w_per_m2k=hp_data.WDZAHL.values.astype(np.float64),

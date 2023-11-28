@@ -40,11 +40,11 @@ def create_test_net():
 
     pandapipes.create_ext_grid(net, j1, 1, 285.15, type="pt")
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, 0.1, sections=1, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j3, 0.1, 0.1, sections=2, in_service=False, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j4, j6, 0.1, 0.1, sections=2, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j6, j7, 0.1, 0.1, sections=1, in_service=False, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j5, 0.1, 0.1, sections=2, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, 0.1 * 1000, sections=1, u_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 0.1, 0.1 * 1000, sections=2, u_w_per_m2k=5, in_service=False)
+    pandapipes.create_pipe_from_parameters(net, j4, j6, 0.1, 0.1 * 1000, sections=2, u_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j6, j7, 0.1, 0.1 * 1000, sections=1, u_w_per_m2k=5, in_service=False)
+    pandapipes.create_pipe_from_parameters(net, j1, j5, 0.1, 0.1 * 1000, sections=2, u_w_per_m2k=5)
 
     pandapipes.create_valve(net, j1, j4, 0.1)
     pandapipes.create_valve(net, j4, j5, 0.1, opened=False)
@@ -78,14 +78,14 @@ def complex_heat_connectivity_grid():
     pandapipes.create_ext_grid(net, j7, 1, 320.15, type="t", index=2)
     pandapipes.create_ext_grid(net, j10, 1, 320.15, type="pt", index=1)
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, 0.1, index=3, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j3, 0.1, 0.1, index=4, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j4, 0.1, 0.1, index=5, in_service=False, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j3, j5, 0.1, 0.1, index=7, in_service=False, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j6, j7, 0.1, 0.1, index=9, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j5, j8, 0.1, 0.1, index=8, in_service=False, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j8, j10, 0.1, 0.1, index=1, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j9, j10, 0.1, 0.1, index=2, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=3)
+    pandapipes.create_pipe_from_parameters(net, j1, j3, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=4)
+    pandapipes.create_pipe_from_parameters(net, j2, j4, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=5, in_service=False)
+    pandapipes.create_pipe_from_parameters(net, j3, j5, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=7, in_service=False)
+    pandapipes.create_pipe_from_parameters(net, j6, j7, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=9)
+    pandapipes.create_pipe_from_parameters(net, j5, j8, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=8, in_service=False)
+    pandapipes.create_pipe_from_parameters(net, j8, j10, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=1)
+    pandapipes.create_pipe_from_parameters(net, j9, j10, 0.1, 0.1 * 1000, u_w_per_m2k=5, index=2)
 
     pandapipes.create_valve(net, j5, j6, 0.1, index=10)
     pandapipes.create_valve(net, j4, j5, 0.1, opened=False, index=12)
@@ -366,7 +366,7 @@ def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
 
     net.pipe.in_service.loc[[7, 8]] = True
     j_new = pandapipes.create_junction(net, 1, 320.15)
-    pandapipes.create_pipe_from_parameters(net, 8, j_new, 0.1, 0.1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, 8, j_new, 0.1, 0.1, u_w_per_m2k=5)
 
     net2 = copy.deepcopy(net)
 
@@ -383,7 +383,7 @@ def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
 
     j_from, j_to = pandapipes.create_junctions(net, 2, 1, 320.15)
 
-    pandapipes.create_pipe_from_parameters(net, j_from, j_to, 0.1, 0.1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j_from, j_to, 0.1, 0.1, u_w_per_m2k=5)
     pandapipes.create_sink(net, j_to, 0.1)
     pandapipes.create_ext_grid(net, j_from, 1, 320.15)
 
@@ -412,7 +412,8 @@ def test_exclude_unconnected_junction(use_numba):
 
     pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15)
     pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.045)
-    pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j3, length_km=0.1, diameter_mm=0.05)
+    pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j3, length_km=0.1,
+                                           diameter_mm=0.05 * 1000)
     pandapipes.pipeflow(net, use_numba=use_numba)
     assert net.converged
 
