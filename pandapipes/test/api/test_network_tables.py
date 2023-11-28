@@ -23,8 +23,7 @@ def test_default_input_tables():
     assert junction_input != junction_input_create, "Input equals create-table, but they shouldn't"
 
     pipe_input = list(copy.deepcopy(net.pipe.columns))
-    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, diameter_m=0.2, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, diameter_mm=0.2, k_mm=.1, sections=6, alpha_w_per_m2k=5)
     pipe_input_create = list(net.pipe.columns)
     assert pipe_input == pipe_input_create, "Input does not equal Table in create-function"
 

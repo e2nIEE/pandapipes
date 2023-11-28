@@ -25,10 +25,8 @@ def test_pressure_control_from_measurement_parameters(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
-    pandapipes.create_pipe_from_parameters(net, j2, j3, k_mm=1., length_km=5.,
-                                           diameter_m=0.1022)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=10.,
-                                           diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, length_km=5., diameter_mm=0.1022, k_mm=1.)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=10., diameter_mm=0.1022, k_mm=1.)
     pandapipes.create_pressure_control(net, j1, j2, j4, 20.)
     pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
     pandapipes.create_sink(net, j4, 0.5)
@@ -60,10 +58,8 @@ def test_2pressure_controller_controllability():
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
     j5 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
-    pandapipes.create_pipe_from_parameters(net, j2, j3, k_mm=1., length_km=5.,
-                                           diameter_m=0.1022)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=10.,
-                                           diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, length_km=5., diameter_mm=0.1022, k_mm=1.)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=10., diameter_mm=0.1022, k_mm=1.)
     pandapipes.create_pressure_control(net, j4, j5, j5, 20.)
     pandapipes.create_pressure_control(net, j1, j2, j5, 20.)
 

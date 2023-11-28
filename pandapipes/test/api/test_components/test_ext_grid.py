@@ -55,7 +55,7 @@ def test_p_type(use_numba):
     d = 75e-3
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15)
-    pandapipes.create_pipe_from_parameters(net, 0, 1, 10, diameter_m=d, k_mm=0.1, sections=1)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 10, diameter_mm=d, k_mm=0.1, sections=1)
     pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=285.15, type="p")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
     pandapipes.create_fluid_from_lib(net, name="water")
@@ -87,8 +87,7 @@ def test_t_type_single_pipe(use_numba):
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_ext_grid(net, j0, 5, 645, type="pt")
     pandapipes.create_sink(net, j1, 1)
-    pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
@@ -106,8 +105,7 @@ def test_t_type_single_pipe(use_numba):
     pandapipes.create_ext_grid(net2, j1, 100, 323.15, type="t")
     pandapipes.create_sink(net2, j1, 1)
 
-    pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=70, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
@@ -139,12 +137,9 @@ def test_t_type_tee(use_numba):
     pandapipes.create_sink(net, j3, 1)
     pandapipes.create_ext_grid(net, j2, 5, 310, type="t")
 
-    pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
@@ -164,12 +159,9 @@ def test_t_type_tee(use_numba):
     pandapipes.create_sink(net2, j2, 1)
     pandapipes.create_sink(net2, j3, 1)
 
-    pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j1, j3, 2.5, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=70, friction_model="nikuradse",
@@ -205,14 +197,10 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.create_ext_grid(net, j1, 5, 645, type="t")
     pandapipes.create_ext_grid(net, j0, 5, 645, type="t")
 
-    pandapipes.create_pipe_from_parameters(net, j0, j2, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j2, 6, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
@@ -234,14 +222,10 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)
 
-    pandapipes.create_pipe_from_parameters(net2, j0, j2, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j0, j2, 6, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j2, j3, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j2, j4, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=3, friction_model="nikuradse",
@@ -277,14 +261,10 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     pandapipes.create_ext_grid(net, j0, 5, 645, type="t")
     pandapipes.create_ext_grid(net, j4, 5, 378.83472, type="t")
 
-    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=20, friction_model="nikuradse",
@@ -306,14 +286,10 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)
 
-    pandapipes.create_pipe_from_parameters(net2, j0, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j0, j2, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j2, j3, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j2, j4, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=20, friction_model="nikuradse",
@@ -349,14 +325,10 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     pandapipes.create_ext_grid(net, j2, 5, 645, type="t")
     pandapipes.create_ext_grid(net, j4, 5, 378.83472, type="t")
 
-    pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j1, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j4, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
@@ -378,14 +350,10 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     pandapipes.create_sink(net2, j3, 1)
     pandapipes.create_sink(net2, j4, 1)
 
-    pandapipes.create_pipe_from_parameters(net2, j0, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j2, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net2, j1, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j0, j1, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j2, j1, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j1, j3, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net2, j1, j4, 2.5, diameter_mm=d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=10, friction_model="nikuradse",

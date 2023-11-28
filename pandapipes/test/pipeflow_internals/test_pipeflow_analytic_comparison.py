@@ -169,12 +169,9 @@ def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
 
-    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=3,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, sections=3,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, sections=3,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=3, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, sections=3, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, sections=3, alpha_w_per_m2k=5)
     pandapipes.create_ext_grid(net, j0, p_bar=5, t_k=350, type="pt")
     pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=350, type="pt")
     pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
@@ -212,12 +209,9 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=350, type="pt")
     pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
 
-    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j1, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j1, 2.5, d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
@@ -289,14 +283,10 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
 
-    pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j3, j2, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, d, k_mm=.1, sections=6, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, sections=6, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, d, k_mm=.1, sections=6, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j3, j2, 2.5, d, k_mm=.1, sections=6, alpha_w_per_m2k=5)
 
     pandapipes.create_ext_grid(net, j0, p_bar=5, t_k=350, type="pt")
     pandapipes.create_sink(net, j2, mdot_kg_per_s=1)
@@ -330,12 +320,9 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
 
-    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j0, j3, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j3, j2, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j3, 2.5, d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j3, j2, 2.5, d, k_mm=.1, sections=5, alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 

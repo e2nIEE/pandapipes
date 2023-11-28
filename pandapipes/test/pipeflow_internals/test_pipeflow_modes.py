@@ -23,8 +23,7 @@ def simple_test_net():
     d = 75e-3
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
-    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, diameter_mm=d, k_mm=.1, sections=1, alpha_w_per_m2k=5)
     pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=330, type="pt")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
 
@@ -70,8 +69,7 @@ def test_heat_only(use_numba):
     d = 75e-3
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
-    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, diameter_m=d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, diameter_mm=d, k_mm=.1, sections=6, alpha_w_per_m2k=5)
     pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=330, type="pt")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
 
@@ -84,8 +82,7 @@ def test_heat_only(use_numba):
     d = 75e-3
     pandapipes.create_junction(ntw, pn_bar=5, tfluid_k=283)
     pandapipes.create_junction(ntw, pn_bar=5, tfluid_k=283)
-    pandapipes.create_pipe_from_parameters(ntw, 0, 1, 6, diameter_m=d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(ntw, 0, 1, 6, diameter_mm=d, k_mm=.1, sections=6, alpha_w_per_m2k=5)
     pandapipes.create_ext_grid(ntw, 0, p_bar=5, t_k=330, type="pt")
     pandapipes.create_sink(ntw, 1, mdot_kg_per_s=1)
 

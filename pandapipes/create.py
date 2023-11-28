@@ -460,10 +460,9 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     return index
 
 
-def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_mm=0, k_mm=0.2,
-                                loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293,
-                                qext_w=0., name=None, index=None, geodata=None, in_service=True,
-                                type="pipe", **kwargs):
+def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_mm=0, k_mm=0.2, loss_coefficient=0,
+                                sections=1, u_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None, geodata=None,
+                                in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
 
@@ -510,8 +509,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1,
-        >>>                             length_km=1, diameter_mm=40)
+        >>> create_pipe_from_parameters(net,from_junction=0,to_junction=1,length_km=1,diameter_mm=40)
 
     """
     add_new_component(net, Pipe)

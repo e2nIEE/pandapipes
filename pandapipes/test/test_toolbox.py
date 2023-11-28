@@ -46,27 +46,22 @@ def create_base_net(oos):
 
     pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
                                name="Grid Connection")
-    pandapipes.create_pipe_from_parameters(net, from_junction=junction1, to_junction=junction2,
-                                           length_km=10, diameter_m=0.3, name="Pipe 1",
-                                           geodata=[(0, 0), (2, 0)], in_service=not oos)
-    pandapipes.create_pipe_from_parameters(net, from_junction=junction2, to_junction=junction3,
-                                           length_km=2, diameter_m=0.3, name="Pipe 2",
-                                           geodata=[(2, 0), (2, 4), (7, 4)], in_service=not oos)
-    pandapipes.create_pipe_from_parameters(net, from_junction=junction2, to_junction=junction4,
-                                           length_km=2.5, diameter_m=0.3, name="Pipe 3",
-                                           geodata=[(2, 0), (2, -4), (7, -4)], in_service=not oos)
-    pandapipes.create_pipe_from_parameters(net, from_junction=junction3, to_junction=junction5,
-                                           length_km=1, diameter_m=0.3, name="Pipe 4",
-                                           geodata=[(7, 4), (7, 3), (5, 3)])
-    pandapipes.create_pipe_from_parameters(net, from_junction=junction4, to_junction=junction6,
-                                           length_km=1, diameter_m=0.3, name="Pipe 5",
-                                           geodata=[(7, -4), (7, -3), (5, -3)])
-    pandapipes.create_pipe_from_parameters(net, from_junction=junction7, to_junction=junction8,
-                                           length_km=1, diameter_m=0.3, name="Pipe 6",
-                                           geodata=[(9, -4), (9, 0)])
-    pandapipes.create_pipe_from_parameters(net, from_junction=junction7, to_junction=junction8,
-                                           length_km=1, diameter_m=0.3, name="Pipe 7",
-                                           geodata=[(9, 0), (9, 4)])
+    pandapipes.create_pipe_from_parameters(net, from_junction=junction1, to_junction=junction2, length_km=10,
+                                           diameter_mm=0.3, name="Pipe 1", geodata=[(0, 0), (2, 0)], in_service=not oos)
+    pandapipes.create_pipe_from_parameters(net, from_junction=junction2, to_junction=junction3, length_km=2,
+                                           diameter_mm=0.3, name="Pipe 2", geodata=[(2, 0), (2, 4), (7, 4)],
+                                           in_service=not oos)
+    pandapipes.create_pipe_from_parameters(net, from_junction=junction2, to_junction=junction4, length_km=2.5,
+                                           diameter_mm=0.3, name="Pipe 3", geodata=[(2, 0), (2, -4), (7, -4)],
+                                           in_service=not oos)
+    pandapipes.create_pipe_from_parameters(net, from_junction=junction3, to_junction=junction5, length_km=1,
+                                           diameter_mm=0.3, name="Pipe 4", geodata=[(7, 4), (7, 3), (5, 3)])
+    pandapipes.create_pipe_from_parameters(net, from_junction=junction4, to_junction=junction6, length_km=1,
+                                           diameter_mm=0.3, name="Pipe 5", geodata=[(7, -4), (7, -3), (5, -3)])
+    pandapipes.create_pipe_from_parameters(net, from_junction=junction7, to_junction=junction8, length_km=1,
+                                           diameter_mm=0.3, name="Pipe 6", geodata=[(9, -4), (9, 0)])
+    pandapipes.create_pipe_from_parameters(net, from_junction=junction7, to_junction=junction8, length_km=1,
+                                           diameter_mm=0.3, name="Pipe 7", geodata=[(9, 0), (9, 4)])
 
     pandapipes.create_valve(net, from_junction=junction5, to_junction=junction6, diameter_m=0.05,
                             opened=True)

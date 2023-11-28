@@ -156,14 +156,13 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
             text_k = 293
             if hasattr(row, "TU"):
                 text_k = row.TU + 273.15
-            pandapipes.create_pipe_from_parameters(
-                net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
-                diameter_m=float(row.DM / 1000), k_mm=row.RAU, loss_coefficient=row.ZETA,
-                name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
-                text_k=text_k, in_service=bool(row.ISACTIVE), stanet_nr=-999,
-                stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
-                stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info
-            )
+            pandapipes.create_pipe_from_parameters(net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
+                                                   diameter_mm=float(row.DM / 1000), k_mm=row.RAU,
+                                                   loss_coefficient=row.ZETA, text_k=text_k,
+                                                   name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
+                                                   in_service=bool(row.ISACTIVE), stanet_nr=-999,
+                                                   stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
+                                                   stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info)
             pandapipes.create_valve(
                 net, j_aux, node_mapping[to_stanet_nr], diameter_m=float(row.DM / 1000),
                 opened=row.AUF == 'J', loss_coefficient=0,

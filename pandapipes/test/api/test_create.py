@@ -145,8 +145,7 @@ def test_create_pipe_from_parameters(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     pandapipes.create_junction(net, 1, 293, index=8, geodata=(0, 1))
     pandapipes.create_junction(net, 1, 293, index=9, geodata=(2, 2))
-    pandapipes.create_pipe_from_parameters(net, 8, 9, 0.3, 0.4, index=2,
-                                           geodata=[(0, 1), (1, 1), (2, 2)])
+    pandapipes.create_pipe_from_parameters(net, 8, 9, 0.3, 0.4, index=2, geodata=[(0, 1), (1, 1), (2, 2)])
 
     assert len(net.junction) == 2
     assert len(net.pipe) == 1
