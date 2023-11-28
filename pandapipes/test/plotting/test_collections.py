@@ -17,7 +17,7 @@ from pandapipes.test.test_toolbox import base_net_is_with_pumps
 
 def test_collection_lengths():
     net = pandapipes.create_empty_network(add_stdtypes=False)
-    d = 40e-3
+    d = 40
 
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(0, 0))
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(2, 0))
@@ -36,16 +36,13 @@ def test_collection_lengths():
     pandapipes.create_sink(net, j6, mdot_kg_per_s=0.5)
     pandapipes.create_sink(net, j8, mdot_kg_per_s=0.5)
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, diameter_m=d, k_mm=0.1,
-                                           geodata=[(0, 0), (2, 0)])
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, diameter_mm=d, k_mm=0.1, geodata=[(0, 0), (2, 0)])
     pandapipes.create_valve(net, j2, j3, diameter_m=d, opened=True, loss_coefficient=5e3)
     pandapipes.create_valve(net, j2, j4, diameter_m=d, opened=False, loss_coefficient=0.01)
     pandapipes.create_valve(net, j2, j5, diameter_m=d, opened=False, loss_coefficient=0.01)
-    pandapipes.create_pipe_from_parameters(net, j3, j6, 0.1, diameter_m=d, k_mm=0.1,
-                                           geodata=[(4, 2), (6, 2), (6, 0)])
-    pandapipes.create_pipe_from_parameters(net, j4, j6, 0.2, diameter_m=d, k_mm=0.1,
-                                           geodata=[(4, 0), (6, 0)])
-    pandapipes.create_pipe_from_parameters(net, j5, j6, 0.2, diameter_m=d, k_mm=0.1,
+    pandapipes.create_pipe_from_parameters(net, j3, j6, 0.1, diameter_mm=d, k_mm=0.1, geodata=[(4, 2), (6, 2), (6, 0)])
+    pandapipes.create_pipe_from_parameters(net, j4, j6, 0.2, diameter_mm=d, k_mm=0.1, geodata=[(4, 0), (6, 0)])
+    pandapipes.create_pipe_from_parameters(net, j5, j6, 0.2, diameter_mm=d, k_mm=0.1,
                                            geodata=[(4, -2), (6, -2), (6, 0)])
     pandapipes.create_heat_exchanger(net, j6, j7, d, qext_w=20000)
     pandapipes.create_pump_from_parameters(net, j7, j8, 'P1')
