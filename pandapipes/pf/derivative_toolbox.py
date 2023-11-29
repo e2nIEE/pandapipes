@@ -68,7 +68,7 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
 
 def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
     m_abs = np.abs(m)
-    m_abs[m_abs < 1e-6] = 1e-6
+    m_abs[m_abs < 1e-10] = 1e-10
     re = np.divide(m_abs * d, eta * area)
     lambda_laminar = np.zeros_like(m)
     lambda_laminar[m != 0] = 64 / re[m != 0]
