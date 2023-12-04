@@ -631,7 +631,7 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
         # TODO: there is no qext given!!!
         pandapipes.create_heat_exchanger(
             net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=qext,
-            diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA, 
+            diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA,
             in_service=bool(row.ISACTIVE), name="heat_exchanger_%s_%s" % (row.ANFNAM, row.ENDNAM),
             stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=row.VM,
             stanet_active=bool(row.ISACTIVE), **add_info
