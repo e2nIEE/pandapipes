@@ -2,7 +2,7 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from setuptools import find_namespace_packages
+from setuptools import find_packages
 from setuptools import setup
 import re
 
@@ -49,8 +49,7 @@ setup(
                     "test": ["pytest", "pytest-xdist", "nbmake"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
                             "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"]},
-    packages=find_namespace_packages(where="pandapipes"),
-    package_dir={"": "pandapipes"},
+    packages=find_packages(),
     include_package_data=True,
     classifiers=classifiers
 )

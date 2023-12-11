@@ -237,8 +237,8 @@ def test_connectivity_hydraulic(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_pipe.loc[[1, 2, 3], :].values))
     assert not np.any(np.isnan(net.res_junction.loc[[0, 1, 3, 4], :].values))
     assert not np.any(np.isnan(net.res_pipe.loc[[0, 4],
-    ["v_mean_m_per_s", "p_from_bar",
-     "p_to_bar"]].values))
+                                                ["v_mean_m_per_s", "p_from_bar",
+                                                 "p_to_bar"]].values))
     assert not np.any(np.isnan(net.res_sink.loc[[0, 2], "mdot_kg_per_s"].values))
     assert np.all(np.isnan(net.res_sink.loc[[1, 3, 4], "mdot_kg_per_s"].values))
 
