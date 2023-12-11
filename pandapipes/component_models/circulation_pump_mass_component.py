@@ -72,6 +72,3 @@ class CirculationPumpMass(CirculationPump):
         index = junction_idx_lookups[juncts]
         node_pit[index, LOAD] += loads_sum
 
-    @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
-        pass

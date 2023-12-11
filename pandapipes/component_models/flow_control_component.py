@@ -9,7 +9,7 @@ from pandapipes.component_models.abstract_models import BranchWZeroLengthCompone
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, TL, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
+from pandapipes.idx_branch import D, AREA, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
     RHO, LOAD_VEC_BRANCHES
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -72,9 +72,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         fc_pit[:, cls.CONTROL_ACTIVE] = tbl.control_active.values
         component_pits[cls.table_name()] = fc_pit
 
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
 
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -88,21 +85,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         fc_branch_pit[active, JAC_DERIV_DP1] = 0
         fc_branch_pit[active, JAC_DERIV_DV] = 1
         fc_branch_pit[active, LOAD_VEC_BRANCHES] = 0
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_component_pit:
-        :type branch_component_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        branch_component_pit[:, TL] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
