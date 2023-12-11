@@ -4,7 +4,6 @@
 
 import numpy as np
 from numpy import linalg
-from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, TOUTINIT, VINIT_T
@@ -16,6 +15,7 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_ne
     initialize_pit, reduce_pit, set_user_pf_options, init_all_result_tables, \
     identify_active_nodes_branches
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
+from pandapower.auxiliary import ppException
 
 try:
     import pandaplan.core.pplog as logging
@@ -70,15 +70,22 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     create_lookups(net)
     node_pit, branch_pit = initialize_pit(net)
-    if (len(node_pit) == 0) & (len(branch_pit) == 0):
-        logger.warning("There are no node and branch entries defined. This might mean that your net"
-                       " is empty")
+    if len(node_pit) == 0:
+        logger.warning("There are no nodes defined. "
+                       "You need at least one node! "
+                       "Without any nodes, you are not able to conduct a pipeflow!")
         return
+
     calculation_mode = get_net_option(net, "mode")
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
-    identify_active_nodes_branches(net, branch_pit, node_pit)
+    active_node_pit, active_branch_pit = identify_active_nodes_branches(net, branch_pit, node_pit)
+
+    if (len(active_node_pit) == 0):
+        logger.warning(" All nodes are out of service. Probably they are not supplied."
+                       " Have you forgotten to define an external grid?")
+        return
 
     if calculation_mode == "heat":
         if not net.user_pf_options["hyd_flag"]:
