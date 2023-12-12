@@ -104,6 +104,7 @@ jobs:
           python -m pip install jupyter
           python -m pip install --upgrade setuptools
           python -m pip install --upgrade pytest
+          python -m pip install atomicwrites colorama pywinpty pywin32
           python -m pip install .
 
       - name: List all installed packages
