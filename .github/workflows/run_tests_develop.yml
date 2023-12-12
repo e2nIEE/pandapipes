@@ -105,7 +105,7 @@ jobs:
           python -m pip install jupyter
           python -m pip install --upgrade setuptools
           python -m pip install --upgrade pytest
-          python -m pip install atomicwrites colorama
+          python -m pip install atomicwrites colorama ipython
           python -m pip install prompt-toolkit==3.0.41
           python -m pip install Babel==2.13.1
 
