@@ -105,8 +105,9 @@ jobs:
           python -m pip install jupyter
           python -m pip install --upgrade setuptools
           python -m pip install --upgrade pytest
-          python -m pip install atomicwrites colorama
-          python -m pip uninstall pexpect ptyprocess
+          python -m pip install prompt-toolkit==3.0.41
+          python -m pip install Babel==2.13.1
+
       - name: List all installed packages
         run: |
           pip list
