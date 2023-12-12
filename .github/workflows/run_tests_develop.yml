@@ -102,6 +102,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install jupyter
+          python -m pip install --upgrade setuptools
           python -m pip install .
 
       - name: List all installed packages
