@@ -49,8 +49,9 @@ setup(
                     "test": ["pytest", "pytest-xdist", "nbmake"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
                             "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"]},
-    packages=find_namespace_packages(where="pandapipes"),
-    package_dir={"": "pandapipes"},
+    #packages=find_namespace_packages(where="pandapipes"),
+    #package_dir={"": "pandapipes"},
+    packages=find_namespace_packages(),
     include_package_data=True,
     classifiers=classifiers
 )
