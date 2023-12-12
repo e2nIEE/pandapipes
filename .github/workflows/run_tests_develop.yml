@@ -108,7 +108,7 @@ jobs:
           pip list
       - name: Test with pytest
         run: |
-          pytest --nbmake -n=auto "./tutorials"
+          python -m pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
     runs-on: ubuntu-latest
