@@ -102,26 +102,9 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
-          python -m pip uninstall pytest-pythonpath
-          python -m pip install jupyter
-          python -m pip install --upgrade setuptools
-          python -m pip install --upgrade pytest
-          python -m pip install atomicwrites colorama ipython pytest-pythonpath 
-          python -m pip install prompt-toolkit==3.0.41
-          python -m pip install Babel==2.13.1
-
       - name: List all installed packages
         run: |
           pip list
-      - name: Get PYTHONPATH
-        run: |
-          echo $PYTHONPATH
-      - name: Get sys path
-        run: |
-          python -c "import sys; print(sys.path)"
-      - name: List pandapipes packages
-        run: |
-          python -c "import sys; import os; from setuptools import find_packages; print(find_packages(where=os.path.join([p for p in sys.path if p.endswith('site-packages')][0], 'pandapipes')))"
       - name: Test with pytest
         run: |
           python -m pytest --nbmake -n=auto "./tutorials"
