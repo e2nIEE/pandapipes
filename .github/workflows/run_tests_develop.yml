@@ -118,6 +118,9 @@ jobs:
       - name: Get sys path
         run: |
           python -c "import sys; print(sys.path)"
+      - name: List pandapipes packages
+        run: |
+          python -c "import sys; import os; from setuptools import find_packages; print(find_packages(where=os.path.join([p for p in sys.path if p.endswith('site-packages')][0], 'pandapipes')))"
       - name: Test with pytest
         run: |
           python -m pytest --nbmake -n=auto "./tutorials"
