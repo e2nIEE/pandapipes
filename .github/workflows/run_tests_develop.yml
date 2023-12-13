@@ -97,15 +97,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest nbmake pytest-xdist pytest-split igraph pytest-pythonpath 
+          python -m pip install pytest nbmake pytest-xdist pytest-split igraph
           if ${{ matrix.python-version != '3.11' }}; then python -m pip install numba; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
+          python -m pip uninstall pytest-pythonpath
           python -m pip install jupyter
           python -m pip install --upgrade setuptools
           python -m pip install --upgrade pytest
-          python -m pip install atomicwrites colorama ipython
+          python -m pip install atomicwrites colorama ipython pytest-pythonpath 
           python -m pip install prompt-toolkit==3.0.41
           python -m pip install Babel==2.13.1
 
