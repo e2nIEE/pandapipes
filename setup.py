@@ -2,9 +2,10 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import re
+
 from setuptools import find_namespace_packages
 from setuptools import setup
-import re
 
 with open('README.rst', 'rb') as f:
     install = f.read().decode('utf-8')
@@ -40,7 +41,7 @@ setup(
                  'jolando.kisse@uni-kassel.de',
     description='A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids',
     long_description=long_description,
-	long_description_content_type='text/x-rst',
+    long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
     install_requires=["pandapower>=2.11.1", "matplotlib", "shapely"],
@@ -50,7 +51,7 @@ setup(
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
                             "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"]},
     packages=find_namespace_packages(where='src'),
-    package_dir={"":"src"},
+    package_dir={"": "src"},
     include_package_data=True,
     classifiers=classifiers
 )
