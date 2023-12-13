@@ -112,6 +112,12 @@ jobs:
       - name: List all installed packages
         run: |
           pip list
+      - name: Get PYTHONPATH
+        run: |
+          echo $PYTHONPATH
+      - name: Get sys path
+        run: |
+          python -c "import sys; print(sys.path)"
       - name: Test with pytest
         run: |
           python -m pytest --nbmake -n=auto "./tutorials"
