@@ -3,9 +3,10 @@ import numpy as np
 from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
     FROM_NODE, TO_NODE, CP, VINIT_T, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
-    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE
+    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, T_OUT_OLD
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.pf.pipeflow_setup import get_net_option
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -88,13 +89,30 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
     t_m = (t_init_i1 + t_init_i) / 2
+    
+    transient = get_net_option(net, "transient")
 
-    branch_pit[:, LOAD_VEC_BRANCHES_T] = \
-        -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
-          - alpha * (t_amb - t_m) * length + qext)
+    tvor = branch_pit[:, T_OUT_OLD]
 
-    branch_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
-    branch_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
+    delta_t = get_net_option(net, "dt")
+
+    if transient:
+        branch_pit[:, LOAD_VEC_BRANCHES_T] = \
+            -(rho * area * cp * (t_m - tvor) * (1 / delta_t) + rho * area * cp * v_init * (
+                        -t_init_i + t_init_i1 - tl) / length
+              - alpha * (t_amb - t_m) + qext)
+
+        branch_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init / length + alpha \
+                                                + rho * area * cp / delta_t
+        branch_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init / length + 0 * alpha \
+                                                 + rho * area * cp / delta_t    
+    else:
+        branch_pit[:, LOAD_VEC_BRANCHES_T] = \
+            -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
+              - alpha * (t_amb - t_m) * length + qext)
+
+        branch_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
+        branch_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
 
     branch_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_pit[:, AREA]
     branch_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_pit[:, AREA] \
