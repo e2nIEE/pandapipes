@@ -7,14 +7,14 @@ from operator import itemgetter
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.junction_component import Junction
-from pandapipes.component_models.pump_component import Pump
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION, \
-     GRAVITATION_CONSTANT
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, TL, LOSS_COEFFICIENT as LC, FROM_NODE, \
-    TINIT, PL, Kv_max, ACTUAL_POS, DESIRED_MV, RHO
+from pandapipes.component_models.component_toolbox import get_component_array
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.constants import NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION, \
+    GRAVITATION_CONSTANT
+from pandapipes.idx_branch import VINIT, D, AREA, TL, LOSS_COEFFICIENT as LC, FROM_NODE, \
+    TOUTINIT, PL, ACTUAL_POS, DESIRED_MV, RHO
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -35,6 +35,10 @@ class DynamicPump(BranchWZeroLengthComponent):
     prev_act_pos = None
     time_step = 0
 
+    STD_TYPE = 0
+
+    internal_cols = 1
+
     @classmethod
     def from_to_node_cols(cls):
         return "from_junction", "to_junction"
@@ -52,6 +56,27 @@ class DynamicPump(BranchWZeroLengthComponent):
         return Junction
 
     @classmethod
+    def create_component_array(cls, net, component_pits):
+        """
+        Function which creates an internal array of the component in analogy to the pit, but with
+        component specific entries, that are not needed in the pit.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param component_pits: dictionary of component specific arrays
+        :type component_pits: dict
+        :return:
+        :rtype:
+        """
+        tbl = net[cls.table_name()]
+        pump_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+        std_types_lookup = get_std_type_lookup(net, cls.table_name())
+        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
+                                 == std_types_lookup[:, np.newaxis])
+        pump_array[pos, cls.STD_TYPE] = std_type
+        component_pits[cls.table_name()] = pump_array
+
+    @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
@@ -61,11 +86,8 @@ class DynamicPump(BranchWZeroLengthComponent):
         :type branch_pit:
         :return: No Output.
         """
+
         pump_pit = super().create_pit_branch_entries(net, branch_pit)
-        std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
-        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                                 == std_types_lookup[:, np.newaxis])
-        pump_pit[pos, STD_TYPE] = std_type
         pump_pit[:, D] = 0.1
         pump_pit[:, AREA] = pump_pit[:, D] ** 2 * np.pi / 4
         pump_pit[:, LC] = 0
@@ -126,14 +148,15 @@ class DynamicPump(BranchWZeroLengthComponent):
         dyn_pump_tbl = net[cls.table_name()]
         pump_pit = branch_pit[f:t, :]
         area = pump_pit[:, AREA]
-        idx = pump_pit[:, STD_TYPE].astype(int)
+        pump_array = get_component_array(net, cls.table_name())
+        idx = pump_array[:, cls.STD_TYPE].astype(np.int32)
         std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[idx]
         from_nodes = pump_pit[:, FROM_NODE].astype(np.int32)
         # to_nodes = pump_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
-        numerator = NORMAL_PRESSURE * pump_pit[:, TINIT]
+        numerator = NORMAL_PRESSURE * pump_pit[:, TOUTINIT]
         v_mps = pump_pit[:, VINIT]
         desired_mv = dyn_pump_tbl.desired_mv.values
         cur_actual_pos = dyn_pump_tbl.actual_pos.values
@@ -154,11 +177,10 @@ class DynamicPump(BranchWZeroLengthComponent):
         else:  # Steady state analysis
             actual_pos = dyn_pump_tbl.actual_pos.values
 
-
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
         m_head = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol_m3_s, actual_pos)))  # m head
-        rho= pump_pit[:, RHO]
+        rho = pump_pit[:, RHO]
         prsr_lift = np.divide((rho * GRAVITATION_CONSTANT * m_head), P_CONVERSION)[0]  # bar
         dyn_pump_tbl.p_lift = prsr_lift
         dyn_pump_tbl.m_head = m_head
@@ -278,13 +300,17 @@ class DynamicPump(BranchWZeroLengthComponent):
                       "v_from_m_per_s", "v_to_m_per_s",
                       "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to",  "desired_mv", "actual_pos"]
+                      "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to", "desired_mv", "actual_pos"]
             # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
         else:
             output = ["deltap_bar", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
                       "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
-                       "desired_mv", "actual_pos"]
+                      "desired_mv", "actual_pos"]
         if calc_compr_pow:
             output += ["compr_power_mw"]
 
         return output, True
+
+
+def get_std_type_lookup(net, table_name):
+    return np.array(list(net.std_types[table_name].keys()))
