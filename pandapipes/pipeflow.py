@@ -99,8 +99,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         raise UserWarning("Converged flag not set. Make sure that hydraulic calculation "
                           "results are available.")
     elif calculation_mode == "heat" and net.user_pf_options["hyd_flag"]:
-        net["_active_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
-        net["_active_pit"]["branch"][:, VINIT] = sol_vec[len(node_pit):]
+        net["_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
+        net["_pit"]["branch"][:, VINIT] = sol_vec[len(node_pit):]
 
     if calculate_hydraulics:
         reduce_pit(net, node_pit, branch_pit, mode="hydraulics")
@@ -204,13 +204,13 @@ def heat_transfer(net):
 
     set_net_option(net, "converged", False)
     niter = 0
+    if get_net_option(net, 'transient'):
+        branch_pit = net["_active_pit"]["branch"]
+        node_pit = net["_active_pit"]["node"]
+        if get_net_option(net, "time_step") == 0:
 
-    branch_pit = net["_active_pit"]["branch"]
-    node_pit = net["_active_pit"]["node"]
-    if get_net_option(net, "time_step") == 0:
-
-        node_pit[:, TINIT_OLD] = 293
-        branch_pit[:, T_OUT_OLD] = 293
+            node_pit[:, TINIT_OLD] = 293
+            branch_pit[:, T_OUT_OLD] = 293
 
 
     # This loop is left as soon as the solver converged
@@ -234,9 +234,9 @@ def heat_transfer(net):
         logger.debug("T_init_: %s" % t_init.round(4))
         logger.debug("T_out_: %s" % t_out.round(4))
         niter += 1
-
-    node_pit[:, TINIT_OLD] = node_pit[:, TINIT]
-    branch_pit[:, T_OUT_OLD] = branch_pit[:, TOUTINIT]
+    if get_net_option(net, 'transient'):
+        node_pit[:, TINIT_OLD] = node_pit[:, TINIT]
+        branch_pit[:, T_OUT_OLD] = branch_pit[:, TOUTINIT]
     write_internal_results(net, iterations_T=niter, error_T=error_t[niter - 1],
                            residual_norm_T=residual_norm)
 
