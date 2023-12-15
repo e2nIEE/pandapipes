@@ -2,17 +2,19 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from operator import itemgetter
+
 import numpy as np
 from numpy import dtype
-from operator import itemgetter
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
+
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
+from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options
-from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE, NODE_TYPE, P, ACTIVE as ACTIVE_ND, LOAD
-from pandapipes.idx_branch import D, AREA, TL, Kv_max, ACTUAL_POS, STD_TYPE, FROM_NODE, TO_NODE, \
-    VINIT, RHO, PL, LOSS_COEFFICIENT as LC, DESIRED_MV, ACTIVE, LOAD_VEC_NODES
+from pandapipes.idx_branch import D, AREA, TL, Kv_max, ACTUAL_POS, FROM_NODE, TO_NODE, \
+    RHO, LOSS_COEFFICIENT as LC, DESIRED_MV
+from pandapipes.idx_node import PINIT, PAMB
+from pandapipes.pf.pipeflow_setup import get_net_option
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
 
@@ -27,6 +29,10 @@ class DynamicValve(BranchWZeroLengthComponent):
     kwargs = None
     prev_act_pos = None
     time_step = 0
+
+    STD_TYPE = 0
+
+    internal_cols = 1
 
     @classmethod
     def from_to_node_cols(cls):
@@ -44,6 +50,26 @@ class DynamicValve(BranchWZeroLengthComponent):
     def get_connected_node_type(cls):
         return Junction
 
+    @classmethod
+    def create_component_array(cls, net, component_pits):
+        """
+        Function which creates an internal array of the component in analogy to the pit, but with
+        component specific entries, that are not needed in the pit.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param component_pits: dictionary of component specific arrays
+        :type component_pits: dict
+        :return:
+        :rtype:
+        """
+        tbl = net[cls.table_name()]
+        valve_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+        std_types_lookup = get_std_type_lookup(net, cls.table_name())
+        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
+                                 == std_types_lookup[:, np.newaxis])
+        valve_array[pos, cls.STD_TYPE] = std_type
+        component_pits[cls.table_name()] = valve_array
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -58,12 +84,11 @@ class DynamicValve(BranchWZeroLengthComponent):
         """
         valve_grids = net[cls.table_name()]
         valve_pit = super().create_pit_branch_entries(net, branch_pit)
-        valve_pit[:, D] = 0.05 #0.1 #net[cls.table_name()].diameter_m.values
+        valve_pit[:, D] = 0.05  # 0.1 #net[cls.table_name()].diameter_m.values
         valve_pit[:, AREA] = valve_pit[:, D] ** 2 * np.pi / 4
         valve_pit[:, Kv_max] = net[cls.table_name()].Kv_max.values
         valve_pit[:, ACTUAL_POS] = net[cls.table_name()].actual_pos.values
         valve_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
-
 
         # # # Update in_service status if valve actual position becomes 0%
         # vlv_status = valve_pit[:, ACTIVE]
@@ -74,7 +99,6 @@ class DynamicValve(BranchWZeroLengthComponent):
         std_types_lookup = np.array(list(net.std_types[cls.table_name()].keys()))
         std_type, pos = np.where(net[cls.table_name()]['std_type'].values
                                  == std_types_lookup[:, np.newaxis])
-        valve_pit[pos, STD_TYPE] = std_type
 
     @classmethod
     def plant_dynamics(cls, dt, desired_mv, dyn_valve_tbl):
@@ -130,7 +154,8 @@ class DynamicValve(BranchWZeroLengthComponent):
         dyn_valve_tbl = net[cls.table_name()]
         valve_pit = branch_pit[f:t, :]
         area = valve_pit[:, AREA]
-        idx = valve_pit[:, STD_TYPE].astype(int)
+        valve_array = get_component_array(net, cls.table_name())
+        idx = valve_array[:, cls.STD_TYPE].astype(np.int32)
         std_types = np.array(list(net.std_types['dynamic_valve'].keys()))[idx]
         from_nodes = valve_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = valve_pit[:, TO_NODE].astype(np.int32)
@@ -139,7 +164,6 @@ class DynamicValve(BranchWZeroLengthComponent):
         valve_pit[:, DESIRED_MV] = net[cls.table_name()].desired_mv.values
         desired_mv = valve_pit[:, DESIRED_MV]
         cur_actual_pos = valve_pit[:, ACTUAL_POS]
-
 
         if get_net_option(net, "time_step") == cls.time_step:
             # a controller timeseries is running
@@ -151,7 +175,7 @@ class DynamicValve(BranchWZeroLengthComponent):
             dyn_valve_tbl.actual_pos = actual_pos
             cls.time_step += 1
 
-        else: # Steady state analysis - recycle for Newton-Raphson loop
+        else:  # Steady state analysis - recycle for Newton-Raphson loop
             actual_pos = valve_pit[:, ACTUAL_POS]
 
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_valve'])
@@ -160,13 +184,13 @@ class DynamicValve(BranchWZeroLengthComponent):
         lift = np.divide(actual_pos, 100)
         relative_flow = np.array(list(map(lambda x, y: x.get_relative_flow(y), fcts, lift)))
 
-        kv_at_travel = relative_flow * valve_pit[:, Kv_max] # m3/h.Bar
+        kv_at_travel = relative_flow * valve_pit[:, Kv_max]  # m3/h.Bar
 
         delta_p = np.abs(p_from - p_to)  # bar
-        #if get_net_option(net, "time_step") == None or get_net_option(net, "time_step") == cls.time_step:
-            # On first loop initialise delta P to 0.1 if delta is zero
-            #delta_p = np.where(delta_p == 0, 0.1, delta_p)
-        #delta_p = np.where(np.ma.masked_where(delta_p == 0, lift == 1.0).mask, 0.1, delta_p)
+        # if get_net_option(net, "time_step") == None or get_net_option(net, "time_step") == cls.time_step:
+        # On first loop initialise delta P to 0.1 if delta is zero
+        # delta_p = np.where(delta_p == 0, 0.1, delta_p)
+        # delta_p = np.where(np.ma.masked_where(delta_p == 0, lift == 1.0).mask, 0.1, delta_p)
         positions_delta_p = np.where(delta_p == 0.0)
         positions_lift = np.where(lift != 1.0)
         # get common element values (indexes that appear in both position arrays)
@@ -260,3 +284,7 @@ class DynamicValve(BranchWZeroLengthComponent):
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
                       "lambda", "desired_mv", "actual_pos", "LC"]
         return output, True
+
+
+def get_std_type_lookup(net, table_name):
+    return np.array(list(net.std_types[table_name].keys()))
