@@ -26,7 +26,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     fluid = get_fluid(net)
     gas_mode = fluid.is_gas
     friction_model = options["friction_model"]
-
+    # Darcy Friction factor: lambda
     lambda_, re = calc_lambda(
         branch_pit[:, VINIT], branch_pit[:, ETA], branch_pit[:, RHO], branch_pit[:, D],
         branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options)
@@ -89,7 +89,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
     t_m = (t_init_i1 + t_init_i) / 2
-    
+
     transient = get_net_option(net, "transient")
 
     tvor = branch_pit[:, T_OUT_OLD]
@@ -105,7 +105,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
         branch_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init / length + alpha \
                                                 + rho * area * cp / delta_t
         branch_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init / length + 0 * alpha \
-                                                 + rho * area * cp / delta_t    
+                                                 + rho * area * cp / delta_t
     else:
         branch_pit[:, LOAD_VEC_BRANCHES_T] = \
             -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)

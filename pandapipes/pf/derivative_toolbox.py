@@ -23,10 +23,10 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
                             * np.divide(branch_pit[:, LENGTH], branch_pit[:, D]) * v_init2)
     load_vec = p_init_i_abs - p_init_i1_abs + branch_pit[:, PL] \
                + const_p_term * (GRAVITATION_CONSTANT * 2 * height_difference
-                                 - v_init2 * lambda_term)
-    mass_flow_dv = branch_pit[:, RHO] * branch_pit[:, AREA]
-    df_dv_nodes = mass_flow_dv
-    load_vec_nodes = mass_flow_dv * branch_pit[:, VINIT]
+                                 - v_init2 * lambda_term) # pressure difference between nodes (Bar)
+    mass_flow_dv = branch_pit[:, RHO] * branch_pit[:, AREA] # (kg/m3)*(m2)
+    df_dv_nodes = mass_flow_dv # kg/m
+    load_vec_nodes = mass_flow_dv * branch_pit[:, VINIT] # mass_flow (kg_s)
     df_dp = np.ones_like(der_lambda) * (-1)
     df_dp1 = np.ones_like(der_lambda)
     return load_vec, load_vec_nodes, df_dv, df_dv_nodes, df_dp, df_dp1

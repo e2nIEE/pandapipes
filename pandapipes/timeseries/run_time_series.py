@@ -121,7 +121,8 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :return: No output
     """
     ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
-
+    # A bad fix, need to sequence better - before the controllers are activated!
+    #net['_options']['dt'] = kwargs['dt']
     control_diagnostic(net)
     run_loop(net, ts_variables, **kwargs)
 

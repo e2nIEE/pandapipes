@@ -92,6 +92,8 @@ class CirculationPump(BranchWZeroLengthComponent):
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
         circ_pump_pit[:, ACTIVE] = False
 
+        return circ_pump_pit
+
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
         """

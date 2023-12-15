@@ -62,24 +62,32 @@ class HeatExchanger(BranchWZeroLengthComponent):
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
-        """
-        Class method to extract pipeflow results from the internal structure into the results table.
+        _, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param options: pipeflow options
-        :type options: dict
-        :param branch_results: important branch results
-        :type branch_results: dict
-        :param mode: simulation mode
-        :type mode: str
-        :return: No Output.
-        :rtype: None
-        """
-        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
+        required_results_hyd = [
+            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("t_from_k", "temp_from"),
+            ("t_to_k", "temp_to"), ("mdot_to_kg_per_s", "mf_to"), ("mdot_from_kg_per_s", "mf_from"),
+            ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"), ("reynolds", "reynolds"), ("qext_w", "qext_w")
+        ]
+
+        if get_fluid(net).is_gas:
+            required_results_hyd.extend([
+                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
+                ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
+                ("normfactor_to", "normfactor_to")
+            ])
+        else:
+            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
+
+
+    @classmethod
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        f, t = idx_lookups[cls.table_name()]
+        heat_exchanger_pit = branch_pit[f:t, :]
+        heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
 
 
     @classmethod
@@ -112,9 +120,9 @@ class HeatExchanger(BranchWZeroLengthComponent):
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
-                      "normfactor_to"]
+                      "normfactor_to", "qext_w"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
-                      "lambda"]
+                      "lambda", "qext_w"]
         return output, True

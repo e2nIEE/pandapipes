@@ -44,5 +44,8 @@ PL = 34
 TL = 35 # Temperature lift [K]
 BRANCH_TYPE = 36  # branch type relevant for the pressure controller
 T_OUT_OLD = 37
+Kv_max = 38  # dynamic valve flow characteristics
+DESIRED_MV = 39  # Final Control Element (FCE) Desired Manipulated Value percentage opened
+ACTUAL_POS = 40  # Final Control Element (FCE) Actual Position Value percentage opened
 
-branch_cols = 38
+branch_cols = 41

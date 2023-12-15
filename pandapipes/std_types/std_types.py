@@ -8,7 +8,7 @@ import re
 
 import pandas as pd
 from pandapipes import pp_dir
-from pandapipes.std_types.std_type_class import get_data, PumpStdType
+from pandapipes.std_types.std_type_class import get_data, PumpStdType, ValveStdType, DynPumpStdType
 
 try:
     import pandaplan.core.pplog as logging
@@ -39,10 +39,10 @@ def create_std_type(net, component, std_type_name, typedata, overwrite=False, ch
         if component == "pipe":
             required = ["inner_diameter_mm"]
         else:
-            if component in ["pump"]:
+            if component in ["pump", "dynamic_pump", "dynamic_valve", "dyn_circ_pump"]:
                 required = []
             else:
-                raise ValueError("Unkown component type %s" % component)
+                raise ValueError("Unknown component type %s" % component)
         for par in required:
             if par not in typedata:
                 raise UserWarning("%s is required as %s type parameter" % (par, component))
@@ -209,7 +209,7 @@ def change_std_type(net, cid, name, component):
 
 def create_pump_std_type(net, name, pump_object, overwrite=False):
     """
-    Create a new pump stdandard type object and add it to the pump standard types in net.
+    Create a new pump standard type object and add it to the pump standard types in net.
 
     :param net: The pandapipes network to which the standard type is added.
     :type net: pandapipesNet
@@ -228,6 +228,49 @@ def create_pump_std_type(net, name, pump_object, overwrite=False):
     create_std_type(net, "pump", name, pump_object, overwrite)
 
 
+def create_dynamic_pump_std_type(net, name, pump_object, overwrite=False):
+    """
+    Create a new pump standard type object and add it to the pump standard types in net.
+
+    :param net: The pandapipes network to which the standard type is added.
+    :type net: pandapipesNet
+    :param name: name of the created standard type
+    :type name: str
+    :param pump_object: dynamic pump standard type object
+    :type pump_object: DynPumpStdType
+    :param overwrite: if True, overwrites the standard type if it already exists in the net
+    :type overwrite: bool, default False
+    :return:
+    :rtype:
+    """
+    if not isinstance(pump_object, DynPumpStdType):
+        raise ValueError("dynamic pump needs to be of DynPumpStdType")
+
+    create_std_type(net, "dynamic_pump", name, pump_object, overwrite)
+
+
+def create_valve_std_type(net, name, valve_object, overwrite=False):
+    """
+    Create a new valve inherent characteristic standard type object and add it to the valve standard
+    types in net.
+
+    :param net: The pandapipes network to which the standard type is added.
+    :type net: pandapipesNet
+    :param name: name of the created standard type
+    :type name: str
+    :param valve_object: valve inherent characteristic type object
+    :type valve_object: ValveStdType
+    :param overwrite: if True, overwrites the standard type if it already exists in the net
+    :type overwrite: bool, default False
+    :return:
+    :rtype:
+    """
+    if not isinstance(valve_object, ValveStdType):
+        raise ValueError("valve needs to be of ValveStdType")
+
+    create_std_type(net, "dynamic_valve", name, valve_object, overwrite)
+
+
 def add_basic_std_types(net):
     """
 
@@ -236,11 +279,26 @@ def add_basic_std_types(net):
 
     """
     pump_files = os.listdir(os.path.join(pp_dir, "std_types", "library", "Pump"))
+    dyn_valve_files = os.listdir(os.path.join(pp_dir, "std_types", "library", "Dynamic_Valve"))
+    dyn_pump_folders = os.listdir(os.path.join(pp_dir, "std_types", "library", "Dynamic_Pump"))
+
     for pump_file in pump_files:
         pump_name = str(pump_file.split(".")[0])
         pump = PumpStdType.from_path(pump_name, os.path.join(pp_dir, "std_types", "library", "Pump",
                                                              pump_file))
         create_pump_std_type(net, pump_name, pump, True)
+
+    for dyn_pump_folder in dyn_pump_folders:
+        dyn_pump = DynPumpStdType.from_folder(dyn_pump_folder, os.path.join(pp_dir, "std_types", "library",
+                                                                       "Dynamic_Pump", dyn_pump_folder))
+        if dyn_pump is not None:
+            create_dynamic_pump_std_type(net, dyn_pump_folder, dyn_pump, True)
+
+    for dyn_valve_file in dyn_valve_files:
+        dyn_valve_name = str(dyn_valve_file.split(".")[0])
+        dyn_valve = ValveStdType.from_path(dyn_valve_name, os.path.join(pp_dir, "std_types", "library",
+                                                                        "Dynamic_Valve", dyn_valve_file))
+        create_valve_std_type(net, dyn_valve_name, dyn_valve, True)
 
     pipe_file = os.path.join(pp_dir, "std_types", "library", "Pipe.csv")
     data = get_data(pipe_file, "pipe").to_dict()
