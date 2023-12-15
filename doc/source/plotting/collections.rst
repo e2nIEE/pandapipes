@@ -31,6 +31,18 @@ fact return more than just one collection:
 
 .. autofunction:: pandapipes.plotting.create_heat_exchanger_collection
 
+.. autofunction:: pandapipes.plotting.create_pump_collection
+
+.. autofunction:: pandapipes.plotting.create_compressor_collection
+
+.. autofunction:: pandapipes.plotting.create_pressure_control_collection
+
+.. autofunction:: pandapipes.plotting.create_flow_control_collection
+
+A bunch of standard collections can be created by :code:`create_simple_collections`.
+If the collections should be plotted immediately, use :code:`simple_plot`.
+
+.. autofunction:: pandapipes.plotting.create_simple_collections
 
 Drawing Collections
 ===================

@@ -1,4 +1,4 @@
-p_bar;Vdot_m3ph;degree
-6.1;0;2
-5.8;19;
-4;83;
+Vdot_m3ph;p_bar;degree
+0;6.1;2
+19;5.8;
+83;4;

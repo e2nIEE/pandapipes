@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -94,8 +94,8 @@ def test_heat_only(use_numba):
     pandapipes.pipeflow(ntw, stop_condition="tol", iter=50, friction_model="nikuradse",
                         nonlinear_method="automatic", mode="hydraulics", use_numba=use_numba)
 
-    p = ntw._pit["node"][:, 5]
-    v = ntw._pit["branch"][:, 12]
+    p = ntw._pit["node"][:, PINIT]
+    v = ntw._pit["branch"][:, VINIT]
     u = np.concatenate((p, v))
 
     pandapipes.pipeflow(ntw, sol_vec=u, stop_condition="tol", iter=50, friction_model="nikuradse",
