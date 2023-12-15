@@ -69,7 +69,7 @@ def test_one_pipe_transient():
 
     dt = 60
     time_steps = range(50)
-    ow = _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
+    ow = _output_writer(net, time_steps, ow_path=r'pandapipes/test/pipeflow_internals/test_transient_results')
     run_timeseries(net, time_steps, transient=True, mode="all", iter=20, dt=dt)
 
     res_T = ow.np_results["res_internal.t_k"]
