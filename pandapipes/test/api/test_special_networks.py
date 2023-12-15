@@ -117,7 +117,7 @@ def test_wild_indexing(create_net_changed_indices):
     net = copy.deepcopy(create_net_changed_indices)
 
     pandapipes.pipeflow(net)
-    assert net["converged"]
+    assert net.converged
 
 
 if __name__ == "__main__":
