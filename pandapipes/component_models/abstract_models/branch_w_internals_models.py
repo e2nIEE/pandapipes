@@ -6,7 +6,7 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat
-from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, TINIT, RHO, ETA, CP, ELEMENT_IDX
+from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, RHO, ETA, CP, ELEMENT_IDX, TOUTINIT
 from pandapipes.idx_node import L, node_cols, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
@@ -196,13 +196,12 @@ class BranchWInternalsComponent(BranchComponent):
             internal_pipe_number, has_internals)
         branch_w_internals_pit[:, FROM_NODE] = from_nodes
         branch_w_internals_pit[:, TO_NODE] = to_nodes
-        branch_w_internals_pit[:, TINIT] = (node_pit[from_nodes, TINIT_NODE] + node_pit[
-            to_nodes, TINIT_NODE]) / 2
+        branch_w_internals_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
+        tm = (node_pit[from_nodes, TINIT_NODE] + branch_w_internals_pit[:, TOUTINIT]) / 2
         fluid = get_fluid(net)
-        branch_w_internals_pit[:, RHO] = fluid.get_density(branch_w_internals_pit[:, TINIT])
-        branch_w_internals_pit[:, ETA] = fluid.get_viscosity(branch_w_internals_pit[:, TINIT])
-        branch_w_internals_pit[:, CP] = fluid.get_heat_capacity(branch_w_internals_pit[:, TINIT])
-
+        branch_w_internals_pit[:, RHO] = fluid.get_density(tm)
+        branch_w_internals_pit[:, ETA] = fluid.get_viscosity(tm)
+        branch_w_internals_pit[:, CP] = fluid.get_heat_capacity(tm)
         return branch_w_internals_pit, internal_pipe_number
 
     @classmethod
@@ -217,7 +216,7 @@ class BranchWInternalsComponent(BranchComponent):
         return np.array(net[cls.table_name()].sections.values)
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         raise NotImplementedError
 
     @classmethod

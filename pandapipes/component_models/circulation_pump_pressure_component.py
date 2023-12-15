@@ -63,10 +63,3 @@ class CirculationPumpPressure(CirculationPump):
         p_in = press - circ_pump.plift_bar.values
         set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_in, None,
                                cls.get_connected_node_type(), "p")
-
-
-
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
-        pass

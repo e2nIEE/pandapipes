@@ -423,8 +423,9 @@ class PumpStdType(RegressionStdType):
     @classmethod
     def from_list(cls, name, x_values, y_values, degree):
         reg_par, x_values, y_values, degree = cls._from_list(x_values, y_values, degree)
-        reg_st = cls(name, reg_par)
-        cls.init_std_type(reg_st, x_values, y_values, degree)
+        pump_st = cls(name, reg_par)
+        cls.init_std_type(pump_st, x_values, y_values, degree)
+        return pump_st
 
     @classmethod
     def load_data(cls, path):

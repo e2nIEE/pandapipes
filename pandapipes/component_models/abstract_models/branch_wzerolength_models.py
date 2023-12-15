@@ -61,7 +61,7 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         return branch_wzerolength_pit
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         raise NotImplementedError
 
     @classmethod

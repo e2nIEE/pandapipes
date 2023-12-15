@@ -4,18 +4,19 @@
 
 import numpy as np
 from numpy import linalg
-from pandapipes.component_models.abstract_models import BranchComponent
-from pandapipes.idx_branch import ACTIVE as ACTIVE_BR, FROM_NODE, TO_NODE, FROM_NODE_T, \
-    TO_NODE_T, VINIT, T_OUT, VINIT_T, T_OUT_OLD
-from pandapipes.idx_node import PINIT, TINIT, TINIT_OLD, ACTIVE as ACTIVE_ND
-from pandapipes.pf.build_system_matrix import build_system_matrix
-from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
-from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
-    init_options, create_internal_results, write_internal_results, get_lookup, create_lookups,\
-    initialize_pit, check_connectivity, reduce_pit, set_user_pf_options, init_all_result_tables
-from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
+from pandapipes.idx_branch import T_OUT_OLD
+from pandapipes.idx_node import TINIT_OLD
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, TOUTINIT, VINIT_T
+from pandapipes.idx_node import PINIT, TINIT
+from pandapipes.pf.build_system_matrix import build_system_matrix
+from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic, calculate_derivatives_thermal
+from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
+    init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
+    initialize_pit, reduce_pit, set_user_pf_options, init_all_result_tables, \
+    identify_active_nodes_branches
+from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 
 try:
     import pandaplan.core.pplog as logging
@@ -91,38 +92,36 @@ def pipeflow(net, sol_vec=None, **kwargs):
     calculate_heat = calculation_mode in ["heat", "all"]
 
     # TODO: This is not necessary in every time step, but we need the result! The result of the
-    #       connectivity check is currently not saved anywhere!
-    if get_net_option(net, "check_connectivity"):
-        nodes_connected, branches_connected = check_connectivity(
-            net, branch_pit, node_pit, check_heat=calculate_heat)
-    else:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(bool)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(bool)
-
-    reduce_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
+    #       connectivity check is currentlynot saved anywhere!
+    identify_active_nodes_branches(net, branch_pit, node_pit)
 
     if calculation_mode == "heat" and not net.user_pf_options["hyd_flag"]:
-        raise UserWarning("Converged flag not set. Make sure that hydraulic calculation results "
-                          "are available.")
+        raise UserWarning("Converged flag not set. Make sure that hydraulic calculation "
+                          "results are available.")
     elif calculation_mode == "heat" and net.user_pf_options["hyd_flag"]:
-        net["_active_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
-        net["_active_pit"]["branch"][:, VINIT] = sol_vec[len(node_pit):]
+        net["_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
+        net["_pit"]["branch"][:, VINIT] = sol_vec[len(node_pit):]
 
     if calculate_hydraulics:
+        reduce_pit(net, node_pit, branch_pit, mode="hydraulics")
         converged, _ = hydraulics(net)
         if not converged:
             raise PipeflowNotConverged("The hydraulic calculation did not converge to a solution.")
+        extract_results_active_pit(net, mode="hydraulics")
 
     if calculate_heat:
+        node_pit, branch_pit = net["_pit"]["node"], net["_pit"]["branch"]
+        identify_active_nodes_branches(net, branch_pit, node_pit, False)
+        reduce_pit(net, node_pit, branch_pit, mode="heat_transfer")
         converged, _ = heat_transfer(net)
         if not converged:
             raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
                                        "solution.")
+        extract_results_active_pit(net, mode="heat_transfer")
     elif not calculate_hydraulics:
         raise UserWarning("No proper calculation mode chosen.")
 
-    extract_results_active_pit(net, node_pit, branch_pit, nodes_connected, branches_connected)
-    extract_all_results(net, nodes_connected, branches_connected)
+    extract_all_results(net, calculation_mode)
 
     # TODO: a really bad solution, should be passed in from outside!
     #if get_net_option(net, "transient"):
@@ -205,13 +204,13 @@ def heat_transfer(net):
 
     set_net_option(net, "converged", False)
     niter = 0
+    if get_net_option(net, 'transient'):
+        branch_pit = net["_active_pit"]["branch"]
+        node_pit = net["_active_pit"]["node"]
+        if get_net_option(net, "time_step") == 0:
 
-    branch_pit = net["_active_pit"]["branch"]
-    node_pit = net["_active_pit"]["node"]
-    if get_net_option(net, "time_step") == 0:
-
-        node_pit[:, TINIT_OLD] = 293
-        branch_pit[:, T_OUT_OLD] = 293
+            node_pit[:, TINIT_OLD] = 293
+            branch_pit[:, T_OUT_OLD] = 293
 
 
     # This loop is left as soon as the solver converged
@@ -230,11 +229,14 @@ def heat_transfer(net):
         error_t_out.append(linalg.norm(delta_t_out) / (len(delta_t_out)))
 
         finalize_iteration(net, niter, error_t, error_t_out, residual_norm, nonlinear_method, tol_t,
-                           tol_t, tol_res, t_init_old, t_out_old, hydraulic_mode=True)
+                           tol_t, tol_res, t_init_old, t_out_old, hydraulic_mode=False)
+        logger.debug("F: %s" % epsilon.round(4))
+        logger.debug("T_init_: %s" % t_init.round(4))
+        logger.debug("T_out_: %s" % t_out.round(4))
         niter += 1
-
-    node_pit[:, TINIT_OLD] = node_pit[:, TINIT]
-    branch_pit[:, T_OUT_OLD] = branch_pit[:, T_OUT]
+    if get_net_option(net, 'transient'):
+        node_pit[:, TINIT_OLD] = node_pit[:, TINIT]
+        branch_pit[:, T_OUT_OLD] = branch_pit[:, TOUTINIT]
     write_internal_results(net, iterations_T=niter, error_T=error_t[niter - 1],
                            residual_norm_T=residual_norm)
 
@@ -260,7 +262,7 @@ def solve_hydraulics(net):
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
 
-    branch_lookups = get_lookup(net, "branch", "from_to_active")
+    branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
     for comp in net['component_list']:
         comp.adaption_before_derivatives_hydraulic(
             net, branch_pit, node_pit, branch_lookups, options)
@@ -299,7 +301,7 @@ def solve_temperature(net):
     options = net["_options"]
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
-    branch_lookups = get_lookup(net, "branch", "from_to_active")
+    branch_lookups = get_lookup(net, "branch", "from_to_active_heat_transfer")
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
     # to_node for temperature calculation
@@ -312,20 +314,22 @@ def solve_temperature(net):
     branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
 
     for comp in net['component_list']:
-        if issubclass(comp, BranchComponent):
-            comp.calculate_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        comp.adaption_before_derivatives_thermal(
+            net, branch_pit, node_pit, branch_lookups, options)
+    calculate_derivatives_thermal(net, branch_pit, node_pit, options)
+    for comp in net['component_list']:
+        comp.adaption_after_derivatives_thermal(
+            net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()
-    t_out_old = branch_pit[:, T_OUT].copy()
+    t_out_old = branch_pit[:, TOUTINIT].copy()
 
     x = spsolve(jacobian, epsilon)
     node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
-    branch_pit[:, T_OUT] += x[len(node_pit):] * options["alpha"]
+    branch_pit[:, TOUTINIT] += x[len(node_pit):] * options["alpha"]
 
-
-
-    return branch_pit[:, T_OUT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
+    return branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
 
 
 def set_damping_factor(net, niter, error):
@@ -359,7 +363,7 @@ def set_damping_factor(net, niter, error):
 
 def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_method, tol_1, tol_2,
                        tol_res, vals_1_old, vals_2_old, hydraulic_mode=True):
-    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, T_OUT)
+    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, TOUTINIT)
 
     # Control of damping factor
     if nonlinear_method == "automatic":

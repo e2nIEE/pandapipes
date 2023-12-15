@@ -2,23 +2,20 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from operator import itemgetter
+
 import numpy as np
 from numpy import dtype
-from operator import itemgetter
-from pandapipes.component_models.junction_component import Junction
+
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries, update_fixed_node_entries
-from pandapipes.idx_node import PINIT, NODE_TYPE, P, EXT_GRID_OCCURENCE
-from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
-from pandapipes.idx_branch import STD_TYPE, VINIT, D, AREA, ACTIVE, LOSS_COEFFICIENT as LC, FROM_NODE, \
-    TINIT, PL, ACTUAL_POS, DESIRED_MV, RHO, TO_NODE, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, LOAD_VEC_BRANCHES
-from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE, HEIGHT, RHO as RHO_node
-from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, P_CONVERSION, GRAVITATION_CONSTANT
-from pandapipes.properties.fluids import get_fluid
-from pandapipes.component_models.component_toolbox import p_correction_height_air
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, \
     get_mass_flow_at_nodes
-from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.component_models.component_toolbox import update_fixed_node_entries
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT
+from pandapipes.idx_branch import ACTIVE, TOUTINIT
+from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, RHO as RHO_node
+from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
 
 try:
     import pandaplan.core.pplog as logging
@@ -29,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 class DynamicCirculationPump(CirculationPump):
-
     # class attributes
     kwargs = None
     prev_act_pos = None
@@ -66,7 +62,6 @@ class DynamicCirculationPump(CirculationPump):
         p_in = dyn_circ_pump.p_static_bar.values
         set_fixed_node_entries(net, node_pit, junction, dyn_circ_pump.type.values, p_in, None,
                                cls.get_connected_node_type(), "p")
-
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -143,7 +138,7 @@ class DynamicCirculationPump(CirculationPump):
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         dt = net['_options']['dt']
         circ_pump_tbl = net[cls.table_name()]
-        junction_lookup = get_lookup(net, "node", "index")[ cls.get_connected_node_type().table_name()]
+        junction_lookup = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
         fn_col, tn_col = cls.from_to_node_cols()
         # get indices in internal structure for flow_junctions in circ_pump tables which are
         # "active"
@@ -162,7 +157,7 @@ class DynamicCirculationPump(CirculationPump):
         desired_mv = circ_pump_tbl.desired_mv.values
         cur_actual_pos = circ_pump_tbl.actual_pos.values
 
-        #if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
+        # if not np.isnan(desired_mv) and get_net_option(net, "time_step") == cls.time_step:
         if get_net_option(net, "time_step") == cls.time_step:
             # a controller timeseries is running
             actual_pos = cls.plant_dynamics(dt, desired_mv, circ_pump_tbl)
@@ -172,7 +167,7 @@ class DynamicCirculationPump(CirculationPump):
             circ_pump_tbl.actual_pos = actual_pos
             cls.time_step += 1
 
-        else: # Steady state analysis
+        else:  # Steady state analysis
             actual_pos = circ_pump_tbl.actual_pos.values
 
         std_types_lookup = np.array(list(net.std_types['dynamic_pump'].keys()))
@@ -181,8 +176,8 @@ class DynamicCirculationPump(CirculationPump):
         std_types = np.array(list(net.std_types['dynamic_pump'].keys()))[std_type]
         fcts = itemgetter(*std_types)(net['std_types']['dynamic_pump'])
         fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-        m_head = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol_m3_s, actual_pos))) # m head
-        prsr_lift = np.divide((rho * GRAVITATION_CONSTANT * m_head), P_CONVERSION)[0] # bar
+        m_head = np.array(list(map(lambda x, y, z: x.get_m_head(y, z), fcts, vol_m3_s, actual_pos)))  # m head
+        prsr_lift = np.divide((rho * GRAVITATION_CONSTANT * m_head), P_CONVERSION)[0]  # bar
         circ_pump_tbl.p_lift = prsr_lift
         circ_pump_tbl.m_head = m_head
 
@@ -201,7 +196,6 @@ class DynamicCirculationPump(CirculationPump):
         # update the 'FROM' node i.e: discharge node temperature and pressure lift updates
         update_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, (prsr_lift + p_static), t_flow_k,
                                   cls.get_connected_node_type(), "pt")
-
 
     @classmethod
     def get_result_table(cls, net):
@@ -239,7 +233,6 @@ class DynamicCirculationPump(CirculationPump):
     @classmethod
     def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
         pass
-
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
@@ -287,8 +280,7 @@ class DynamicCirculationPump(CirculationPump):
         return_junctions = circ_pump_tbl[fn_col].values
         return_node = junction_lookup[return_junctions]
 
-
-        #res_table["vdot_norm_m3_per_s"] = np.divide(- (sum_mass_flows / counts)[inverse_nodes], rho)
+        # res_table["vdot_norm_m3_per_s"] = np.divide(- (sum_mass_flows / counts)[inverse_nodes], rho)
 
         return_junctions = circ_pump_tbl[fn_col].values
         return_nodes = junction_lookup[return_junctions]
@@ -297,8 +289,8 @@ class DynamicCirculationPump(CirculationPump):
         res_table["p_static_bar"].values[in_service] = circ_pump_tbl.p_static_bar.values
         res_table["p_flow_bar"].values[in_service] = node_pit[flow_nodes, PINIT]
         res_table["deltap_bar"].values[in_service] = deltap_bar[in_service]
-        res_table["t_from_k"].values[p_grids] = node_pit[return_node, TINIT]
-        res_table["t_to_k"].values[p_grids] = node_pit[flow_nodes, TINIT]
+        res_table["t_from_k"].values[p_grids] = node_pit[return_node, TOUTINIT]
+        res_table["t_to_k"].values[p_grids] = node_pit[flow_nodes, TOUTINIT]
         res_table["rho"].values[p_grids] = node_pit[return_node, RHO_node]
         res_table["p_lift"].values[p_grids] = circ_pump_tbl.p_lift.values
         res_table["m_head"].values[p_grids] = circ_pump_tbl.m_head.values

@@ -24,11 +24,11 @@ class OutputWriterTransient(OutputWriter):
     def _init_log_variable(self, net, table, variable, index=None, eval_function=None,
                            eval_name=None):
         if table == "res_internal":
-            index = np.arange(len(net.junction) + net.pipe.sections.sum())
+            index = np.arange(len(net.junction) + net.pipe.sections.sum() - 1)
         return super()._init_log_variable(net, table, variable, index, eval_function, eval_name)
 
 
-def _output_writer(net, time_steps, ow_path=None):
+def _output_writer(net, time_steps, ow_path=None, output_type='.csv'):
     """
     Creating an output writer.
 
@@ -44,7 +44,8 @@ def _output_writer(net, time_steps, ow_path=None):
     log_variables = [
         ('res_junction', 't_k'), ('res_pipe', 't_to_k'), ('res_internal', 't_k')
     ]
-    ow = OutputWriterTransient(net, time_steps, output_path=ow_path, log_variables=log_variables)
+    ow = OutputWriterTransient(net, time_steps, output_path=ow_path, log_variables=log_variables,
+                               output_file_type=output_type)
     return ow
 
 
@@ -68,7 +69,7 @@ def test_one_pipe_transient():
 
     dt = 60
     time_steps = range(50)
-    ow = _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
+    ow = _output_writer(net, time_steps, ow_path=r'pandapipes/test/pipeflow_internals/test_transient_results')
     run_timeseries(net, time_steps, transient=True, mode="all", iter=20, dt=dt)
 
     res_T = ow.np_results["res_internal.t_k"]

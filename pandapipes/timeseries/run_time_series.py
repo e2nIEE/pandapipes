@@ -117,7 +117,7 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :param verbose: Prints progress bar or if *logger.level == Debug*, it prints debug messages
     :type verbose: bool, default True
     :param kwargs: Keyword arguments for run_control and runpp
-    :type kwargs: dict
+    :type kwargs:
     :return: No output
     """
     ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
