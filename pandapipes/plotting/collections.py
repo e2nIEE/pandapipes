@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ from pandapower.plotting.collections import _create_node_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
 from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
-    pump_patches, pressure_control_patches, compressor_patches
+    pump_patches, pressure_control_patches, compressor_patches, flow_control_patches
 from pandapower.plotting.plotting_toolbox import get_index_array
 
 try:
@@ -373,11 +373,11 @@ def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodat
     infos = list(np.repeat([infofunc(i) for i in range(len(hex_with_geo))], 2)) \
         if infofunc is not None else []
 
-    lc, pc = _create_complex_branch_collection(
+    pc, lc = _create_complex_branch_collection(
         coords, heat_exchanger_patches, size, infos, picker=picker, linewidths=linewidths,
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
-    return lc, pc
+    return pc, lc
 
 
 def create_valve_collection(net, valves=None, size=5., junction_geodata=None, infofunc=None,
@@ -394,7 +394,8 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     :type valves: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
@@ -432,19 +433,85 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     filled = valve_table["opened"].values
     if fill_closed:
         filled = ~filled
-    lc, pc = _create_complex_branch_collection(
+    pc, lc = _create_complex_branch_collection(
         coords, valve_patches, size, infos, picker=picker, linewidths=linewidths, filled=filled,
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
-    return lc, pc
+    return pc, lc
+
+
+def create_flow_control_collection(net, flow_controllers=None, size=5., junction_geodata=None,
+                                   infofunc=None, picker=False, fill_closed=True,
+                                   respect_in_service=False, **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes flow control components.
+
+    They are plotted in the center between two junctions and look like a valve with a T on top,
+    if the flow control is active and an I on top, if the flow control is not active.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param flow_controllers: The flow_controllers for which the collections are created. If None,
+        all flow_controllers which have entries in the respective junction geodata will be plotted.
+    :type flow_controllers: list, default None
+    :param size: Patch size
+    :type size: float, default 5.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :type junction_geodata: pandas.DataFrame, default None
+    :param infofunc: infofunction for the patch element
+    :type infofunc: function, default None
+    :param picker: Picker argument passed to the patch collection
+    :type picker: bool, default False
+    :param fill_closed: If True, flow_controllers with parameter in_service == False will be filled
+        and those with in_service == True will have a white facecolor. Vice versa if False.
+    :type fill_closed: bool, default True
+    :param respect_in_service: if True, out-of-service flow controllers will not be plotted
+    :type respect_in_service: bool default False
+    :param kwargs: Keyword arguments are passed to the patch function
+    :return: lc - line collection, pc - patch collection
+
+    """
+    flow_controllers = get_index_array(
+        flow_controllers, net.flow_control[net.flow_control.in_service.values].index if
+        respect_in_service else
+        net.flow_control.index)
+
+    fc_table = net.flow_control.loc[flow_controllers]
+
+    coords, fc_with_geo = coords_from_node_geodata(
+        flow_controllers, fc_table.from_junction.values, fc_table.to_junction.values,
+        junction_geodata if junction_geodata is not None else net["junction_geodata"],
+        "flow_control", "Junction")
+
+    if len(fc_with_geo) == 0:
+        return None
+
+    colors = kwargs.pop("color", "k")
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(fc_with_geo))], 2)) \
+        if infofunc is not None else []
+    filled = fc_table["in_service"].values
+    controlled = fc_table["control_active"].values
+    if fill_closed:
+        filled = ~filled
+    pc, lc = _create_complex_branch_collection(
+        coords, flow_control_patches, size, infos, picker=picker, linewidths=linewidths,
+        filled=filled, patch_edgecolor=patch_edgecolor, line_color=line_color,
+        controlled=controlled, **kwargs)
+
+    return pc, lc
 
 
 def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None,
-                           infofunc=None, picker=False, **kwargs):
+                           infofunc=None, picker=False, fj_col="from_junction",
+                           tj_col="to_junction", **kwargs):
     """
-    Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
-    plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
-    between the junctions as well.
+    Creates a matplotlib patch collection of pandapipes pumps.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -455,10 +522,15 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     :type table_name: str, default 'pump'
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param infofunc: infofunction for the patch element
     :type infofunc: function, default None
+    :param fj_col: name of the from_junction column (can be different for different pump types)
+    :type fj_col: str, default "from_junction"
+    :param fj_col: name of the to_junction column (can be different for different pump types)
+    :type fj_col: str, default "to_junction"
     :param picker: Picker argument passed to the patch collection
     :type picker: bool, default False
     :param kwargs: Keyword arguments are passed to the patch function
@@ -469,7 +541,7 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
     pump_table = net[table_name].loc[pumps]
 
     coords, pumps_with_geo = coords_from_node_geodata(
-        pumps, pump_table.from_junction.values, pump_table.to_junction.values,
+        pumps, pump_table[fj_col].values, pump_table[tj_col].values,
         junction_geodata if junction_geodata is not None else net["junction_geodata"], "pump",
         "Junction")
 
@@ -485,29 +557,28 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
 
     infos = list(np.repeat([infofunc(i) for i in range(len(pumps_with_geo))], 2)) \
         if infofunc is not None else []
-    lc, pc = _create_complex_branch_collection(
+    pc, lc = _create_complex_branch_collection(
         coords, pump_patches, size, infos, picker=picker, linewidths=linewidths,
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
-    return lc, pc
+    return pc, lc
 
 
 def create_pressure_control_collection(net, pcs=None, table_name='press_control',
                                        size=5., junction_geodata=None,
                                        color='k', infofunc=None, picker=False, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
-    plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
-    between the junctions as well.
+    """Creates a matplotlib patch collection of pandapipes pressure controllers.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
-    :param valves: The valves for which the collections are created. If None, all valves which have\
-        entries in the respective junction geodata will be plotted.
-    :type valves: list, default None
+    :param pcs: The pressure controllers for which the collections are created. If None,
+                all pressure controllers which have entries in the respective junction geodata
+                will be plotted.
+    :type pcs: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param colors: Color or list of colors for every valve
     :type colors: iterable, float, default None
@@ -515,9 +586,6 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
     :type infofunc: function, default None
     :param picker: Picker argument passed to the patch collection
     :type picker: bool, default False
-    :param fill_closed: If True, valves with parameter opened == False will be filled and those\
-        with opened == True will have a white facecolor. Vice versa if False.
-    :type fill_closed: bool, default True
     :param kwargs: Keyword arguments are passed to the patch function
     :return: lc - line collection, pc - patch collection
 
@@ -539,16 +607,17 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
 
     infos = list(np.repeat([infofunc(i) for i in range(len(pcs_with_geo))], 2)) \
         if infofunc is not None else []
-    lc, pc = _create_complex_branch_collection(coords, pressure_control_patches, size, infos,
+    pc, lc = _create_complex_branch_collection(coords, pressure_control_patches, size, infos,
                                                picker=picker, linewidths=linewidths,
                                                patch_edgecolor=color, line_color=color,
                                                **kwargs)
 
-    return lc, pc
+    return pc, lc
 
-def create_compressor_collection(net, cmprs=None, table_name='compressor',
-                                       size=5., junction_geodata=None,
-                                       color='k', infofunc=None, picker=False, **kwargs):
+
+def create_compressor_collection(net, cmprs=None, table_name='compressor', size=5.,
+                                 junction_geodata=None, color='k', infofunc=None, picker=False,
+                                 **kwargs):
     """
     Creates a matplotlib patch collection of pandapipes compressors. Compressors are
     plotted in the center between two junctions.
@@ -560,7 +629,8 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor',
     :type cmprs: list, default None
     :param size: Patch size
     :type size: float, default 5.
-    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is used.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
     :type junction_geodata: pandas.DataFrame, default None
     :param colors: Color or list of colors for every compressor
     :type colors: iterable, float, default None
@@ -589,9 +659,9 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor',
 
     infos = list(np.repeat([infofunc(i) for i in range(len(cmprs_with_geo))], 2)) \
         if infofunc is not None else []
-    lc, pc = _create_complex_branch_collection(coords, compressor_patches, size, infos,
+    pc, lc = _create_complex_branch_collection(coords, compressor_patches, size, infos,
                                                picker=picker, linewidths=linewidths,
                                                patch_edgecolor=color, line_color=color,
                                                **kwargs)
 
-    return lc, pc
+    return pc, lc

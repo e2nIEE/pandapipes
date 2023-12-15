@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -16,7 +16,7 @@ NODE_TYPE = 2  # junction type
 ACTIVE = 3
 RHO = 4  # Density in [kg/m^3]
 PINIT = 5
-LOAD = 6
+LOAD = 6  # sink load: mdot_kg_per_s
 HEIGHT = 7
 TINIT = 8
 PAMB = 9  # Ambient pressure in [bar]

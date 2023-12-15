@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 import copy
@@ -7,13 +7,36 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 from networkx import has_path
+from pandapower import get_indices, dataframes_equal, clear_result_tables
+
+import pandapipes
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.create import create_empty_network
+from pandapipes.idx_branch import TABLE_IDX as TABLE_IDX_BRANCH, ELEMENT_IDX as ELEMENT_IDX_BRANCH, \
+    FROM_NODE as FROM_NODE_BRANCH, TO_NODE as TO_NODE_BRANCH, ACTIVE as ACTIVE_BRANCH, \
+    LENGTH as LENGTH_BRANCH, D as D_BRANCH, AREA as AREA_BRANCH, RHO as RHO_BRANCH, \
+    ETA as ETA_BRANCH, K as K_BRANCH, TINIT as TINIT_BRANCH, VINIT as VINIT_BRANCH, \
+    RE as RE_BRANCH, LAMBDA as LAMBDA_BRANCH, JAC_DERIV_DV as JAC_DERIV_DV_BRANCH, \
+    JAC_DERIV_DP as JAC_DERIV_DP_BRANCH, JAC_DERIV_DP1 as JAC_DERIV_DP1_BRANCH, \
+    LOAD_VEC_BRANCHES as LOAD_VEC_BRANCHES_BRANCH, JAC_DERIV_DV_NODE as JAC_DERIV_DV_NODE_BRANCH, \
+    LOAD_VEC_NODES as LOAD_VEC_NODES_BRANCH, LOSS_COEFFICIENT as LOSS_COEFFICIENT_BRANCH, \
+    CP as CP_BRANCH, ALPHA as ALPHA_BRANCH, JAC_DERIV_DT as JAC_DERIV_DT_BRANCH, \
+    JAC_DERIV_DT1 as JAC_DERIV_DT1_BRANCH, LOAD_VEC_BRANCHES_T as LOAD_VEC_BRANCHES_T_BRANCH, \
+    T_OUT as T_OUT_BRANCH, JAC_DERIV_DT_NODE as JAC_DERIV_DT_NODE_BRANCH, \
+    LOAD_VEC_NODES_T as LOAD_VEC_NODES_T_BRANCH, VINIT_T as VINIT_T_BRANCH, \
+    FROM_NODE_T as FROM_NODE_T_BRANCH, TO_NODE_T as TO_NODE_T_BRANCH, QEXT as QEXT_BRANCH, \
+    TEXT as TEXT_BRANCH, STD_TYPE as STD_TYPE_BRANCH, PL as PL_BRANCH, TL as TL_BRANCH, \
+    BRANCH_TYPE as BRANCH_TYPE_BRANCH, PRESSURE_RATIO as PRESSURE_RATIO_BRANCH, branch_cols
+from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, ELEMENT_IDX as ELEMENT_IDX_NODE, \
+    NODE_TYPE as NODE_TYPE_NODE, ACTIVE as ACTIVE_NODE, RHO as RHO_NODE, PINIT as PINIT_NODE, \
+    LOAD as LOAD_NODE, HEIGHT as HEIGHT_NODE, TINIT as TINIT_NODE, PAMB as PAMB_NODE, \
+    LOAD_T as LOAD_T_NODE, NODE_TYPE_T as NODE_TYPE_T_NODE, \
+    EXT_GRID_OCCURENCE as EXT_GRID_OCCURENCE_NODE, \
+    EXT_GRID_OCCURENCE_T as EXT_GRID_OCCURENCE_T_NODE, node_cols, \
+    T as TYPE_T, P as TYPE_P, PC as TYPE_PC, NONE as TYPE_NONE, L as TYPE_L
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
-from pandapower.auxiliary import get_indices
-from pandapower.toolbox import dataframes_equal, clear_result_tables
 
 try:
     import pandaplan.core.pplog as logging
@@ -100,45 +123,49 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
+    from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
+        CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
+        Compressor, FlowControlComponent
+    from pandapipes.converter.stanet.valve_pipe_component import ValvePipe
     special_elements_junctions = [("press_control", "controlled_junction")]
-    move_elements = {"n2b": ["circ_pump_mass", "circ_pump_pressure"], "b2n": []}
+    move_elements = {"n2b": [], "b2n": []}
     node_elements = []
     branch_elements = []
     if net is not None:
         all_tables = {comp.table_name(): comp for comp in net.component_list}
-        if include_node_elements:
-            node_elements = [tbl for tbl, comp in all_tables.items()
-                             if issubclass(comp, NodeElementComponent)
-                             and tbl not in move_elements["n2b"]]
-            node_elements += [me for me in move_elements["b2n"] if me in all_tables.keys()]
-        if include_branch_elements:
-            branch_elements = [comp.table_name() for comp in net.component_list
-                               if issubclass(comp, BranchComponent)
-                               and comp.table_name() not in move_elements["b2n"]]
-            branch_elements += [me for me in move_elements["n2b"] if me in all_tables.keys()]
     else:
-        if include_node_elements:
-            node_elements = ["sink", "source", "ext_grid"]
-        if include_branch_elements:
-            branch_elements = ["pipe", "valve", "pump", "circ_pump_mass", "circ_pump_pressure",
-                               "heat_exchanger", "press_control", "compressor"]
+        comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
+                     CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor,
+                     FlowControlComponent, ValvePipe]
+        all_tables = {comp.table_name(): comp for comp in comp_list}
+
     ejts = set()
     if include_node_elements:
+        node_elements = [tbl for tbl, comp in all_tables.items() if
+                         issubclass(comp, NodeElementComponent) and tbl not in move_elements["n2b"]]
+        node_elements += [me for me in move_elements["b2n"] if me in all_tables.keys()]
         for elm in node_elements:
             ejts.update([(elm, "junction")])
+
     if include_branch_elements:
-        for elm in branch_elements:
-            ejts.update([(elm, "from_junction"), (elm, "to_junction")])
+        branch_elements = [(tbl, comp.from_to_node_cols()) for tbl, comp in all_tables.items()
+                           if issubclass(comp, BranchComponent) and tbl not in move_elements["b2n"]]
+        branch_elements += [(me, all_tables[me].from_to_node_cols())
+                            for me in move_elements["n2b"] if me in all_tables.keys()]
+        for elm, from_to_cols in branch_elements:
+            ejts.update([(elm, from_to_cols[0]), (elm, from_to_cols[1])])
+
+    branch_tables = [br[0] for br in branch_elements]
     if include_res_elements:
         if net is not None:
-            elements_without_res = [elm for elm in node_elements + branch_elements
+            elements_without_res = [elm for elm in node_elements + branch_tables
                                     if "res_" + elm not in net]
         else:
-            elements_without_res = ["valve"]
+            elements_without_res = []
         ejts.update(
             [("res_" + ejt[0], ejt[1]) for ejt in ejts if ejt[0] not in elements_without_res])
     ejts.update((el, jn) for el, jn in special_elements_junctions if el in node_elements
-                or el in branch_elements)
+                or el in branch_tables)
     return ejts
 
 
@@ -513,3 +540,109 @@ def check_pressure_controllability(net, to_junction, controlled_junction):
 #     res_trafos = net["res_" + table].index.intersection(trafos)
 #     net["res_" + table].drop(res_trafos, inplace=True)
 #     logger.info("dropped %d %s elements with %d switches" % (len(trafos), table, num_switches))
+
+
+node_pit_indices = {
+    TABLE_IDX_NODE: "TABLE_IDX",
+    ELEMENT_IDX_NODE: "ELEMENT_IDX",
+    NODE_TYPE_NODE: "NODE_TYPE",
+    ACTIVE_NODE: "ACTIVE",
+    RHO_NODE: "RHO",
+    PINIT_NODE: "PINIT",
+    LOAD_NODE: "LOAD",
+    HEIGHT_NODE: "HEIGHT",
+    TINIT_NODE: "TINIT",
+    PAMB_NODE: "PAMB",
+    LOAD_T_NODE: "LOAD_T",
+    NODE_TYPE_T_NODE: "NODE_TYPE_T",
+    EXT_GRID_OCCURENCE_NODE: "EXT_GRID_OCCURENCE",
+    EXT_GRID_OCCURENCE_T_NODE: "EXT_GRID_OCCURENCE_T",
+}
+
+branch_pit_indices = {
+    TABLE_IDX_BRANCH: "TABLE_IDX",
+    ELEMENT_IDX_BRANCH: "ELEMENT_IDX",
+    FROM_NODE_BRANCH: "FROM_NODE",
+    TO_NODE_BRANCH: "TO_NODE",
+    ACTIVE_BRANCH: "ACTIVE",
+    LENGTH_BRANCH: "LENGTH",
+    D_BRANCH: "D",
+    AREA_BRANCH: "AREA",
+    RHO_BRANCH: "RHO",
+    ETA_BRANCH: "ETA",
+    K_BRANCH: "K",
+    TINIT_BRANCH: "TINIT",
+    VINIT_BRANCH: "VINIT",
+    RE_BRANCH: "RE",
+    LAMBDA_BRANCH: "LAMBDA",
+    JAC_DERIV_DV_BRANCH: "JAC_DERIV_DV",
+    JAC_DERIV_DP_BRANCH: "JAC_DERIV_DP",
+    JAC_DERIV_DP1_BRANCH: "JAC_DERIV_DP1",
+    LOAD_VEC_BRANCHES_BRANCH: "LOAD_VEC_BRANCHES",
+    JAC_DERIV_DV_NODE_BRANCH: "JAC_DERIV_DV_NODE",
+    LOAD_VEC_NODES_BRANCH: "LOAD_VEC_NODES",
+    LOSS_COEFFICIENT_BRANCH: "LOSS_COEFFICIENT",
+    CP_BRANCH: "CP",
+    ALPHA_BRANCH: "ALPHA",
+    JAC_DERIV_DT_BRANCH: "JAC_DERIV_DT",
+    JAC_DERIV_DT1_BRANCH: "JAC_DERIV_DT1",
+    LOAD_VEC_BRANCHES_T_BRANCH: "LOAD_VEC_BRANCHES_T",
+    T_OUT_BRANCH: "T_OUT",
+    JAC_DERIV_DT_NODE_BRANCH: "JAC_DERIV_DT_NODE",
+    LOAD_VEC_NODES_T_BRANCH: "LOAD_VEC_NODES_T",
+    VINIT_T_BRANCH: "VINIT_T",
+    FROM_NODE_T_BRANCH: "FROM_NODE_T",
+    TO_NODE_T_BRANCH: "TO_NODE_T",
+    QEXT_BRANCH: "QEXT",
+    TEXT_BRANCH: "TEXT",
+    STD_TYPE_BRANCH: "STD_TYPE",
+    PL_BRANCH: "PL",
+    TL_BRANCH: "TL",
+    BRANCH_TYPE_BRANCH: "BRANCH_TYPE",
+    PRESSURE_RATIO_BRANCH: "PRESSURE_RATIO",
+}
+
+
+pit_types = {TYPE_P: "P", TYPE_L: "L", TYPE_NONE: "NONE", TYPE_T: "T", TYPE_PC: "PC", 0: "NONE"}
+
+
+def get_internal_tables_pandas(net):
+    """
+    Convert the internal structure (pit) for nodes and branches into readable pandas DataFrames.
+
+    :param net: pandapipes network
+    :type net: pandapipesNet
+    :return: node_table, branch_table
+    :rtype: pandas.DataFrame
+    """
+    if "_pit" not in net:
+        logger.warning("The net does not contain an internal pandapipes structure. Please try "
+                       "running a pipeflow first.")
+        return None, None
+    branch_pit = net["_pit"]["branch"]
+    node_pit = net["_pit"]["node"]
+
+    missing_nodes = node_pit.shape[1] - node_cols
+    missing_branches = branch_pit.shape[1] - branch_cols
+
+    if missing_nodes > 0:
+        logger.warning("%d node pit entries are missing. Please verify the correctness of the "
+                       "table." % missing_nodes)
+    if missing_branches > 0:
+        logger.warning("%d branch pit entries are missing. Please verify the correctness of the "
+                       "table." % missing_branches)
+
+    node_table_lookup = pandapipes.get_lookup(net, "node", "table")
+    node_table = pd.DataFrame(node_pit)
+    node_table.rename(columns=node_pit_indices, inplace=True)
+    node_table["NODE_TYPE"].replace(pit_types, inplace=True)
+    node_table["NODE_TYPE_T"].replace(pit_types, inplace=True)
+    node_table["TABLE_IDX"].replace(node_table_lookup["n2t"], inplace=True)
+
+    branch_table_lookup = pandapipes.get_lookup(net, "branch", "table")
+    branch_table = pd.DataFrame(branch_pit)
+    branch_table.rename(columns=branch_pit_indices, inplace=True)
+    branch_table["BRANCH_TYPE"].replace(pit_types, inplace=True)
+    branch_table["TABLE_IDX"].replace(branch_table_lookup["n2t"], inplace=True)
+
+    return node_table, branch_table

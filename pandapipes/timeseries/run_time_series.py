@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -121,7 +121,8 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :return: No output
     """
     ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
-
+    # A bad fix, need to sequence better - before the controllers are activated!
+    #net['_options']['dt'] = kwargs['dt']
     control_diagnostic(net)
     run_loop(net, ts_variables, **kwargs)
 

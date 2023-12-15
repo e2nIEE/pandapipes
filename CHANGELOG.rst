@@ -1,6 +1,61 @@
 Change Log
 =============
 
+[upcoming release] - 2023-..-..
+-------------------------------
+- [ADDED] multiple creation of heat exchanger
+- [ADDED] support Python 3.11 (now included in test pipeline)
+- [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
+
+[0.8.4] - 2023-02-02
+-------------------------------
+- [FIXED] added flow control to nxgraph
+- [FIXED] in case of multiple pumps, there was a bug when calculating pressure
+- [FIXED] if all pumps are out of service, the pipeflow did not converge
+- [FIXED] remove unnecessary checkout in release.yml and tutorial tests
+
+[0.8.3] - 2023-01-09
+-------------------------------
+- [FIXED] inconsistency between testpypi and pypi
+
+[0.8.2] - 2023-01-08
+-------------------------------
+- [FIXED] failing tutorial tests on pypi
+
+[0.8.1] - 2023-01-08
+-------------------------------
+- [ADDED] shapely as additional requirement (due to the stanet2pandapipes converter)
+- [ADDED] missing components in collection docu were added
+- [FIXED] undetected failing tests fixed
+
+[0.8.0] - 2023-01-05
+-------------------------------
+- [ADDED] new component `flow controller`: a branch component that controls the flow through itself. The flow controller component is able to keep its mass flow fixed. It adapts the pressure drop between two junctions to reflect the desired flow situation.
+- [ADDED] new component `mass_storage` and tutorial how to use it
+- [ADDED] a stanet converter has been added incl. a stanet converter documentation
+- [ADDED] in the course of the stanet converter release a component called valve-pipe was introduced. It is a combination of a valve and a pipe
+- [ADDED] automated release process
+- [ADDED] documentation added for circulation pumps of any kind, compressors, flow controller, pressure controller and mass storage
+- [ADDED] adding property based on the sutherland model as additional FluidProperty
+- [ADDED] besides regression models it is also possible to use interpolation models in case of StdTypes
+- [ADDED] enable bulk creation of flow controls and ext grids
+- [ADDED] toolbox function to extract the _pit (pandapipes internal tables) structure for nodes and branches as pandas tables with meaningful names for the stored columns as given in the node_idx and branch_idx files
+- [ADDED] new global variable `__format_version__` that shall only be increased in case of API changes (i.e. if the convert_format function for JSON I/O must be called)
+- [ADDED] documentation check which is able to throw errors in case of warnings
+- [ADDED] example networks including new component types for the convert_format test
+- [CHANGED] circ pump is now a branch component
+- [CHANGED] default roughness parameter `k_mm` for pipes is now 0.2 mm instead of 1 mm (all create_pipe... functions)
+- [CHANGED] instead of from and to junction, in case of circulation pumps it is called return and flow junction from now on
+- [CHANGED] suffix 'flow' added to input variable p, t an mass in case of circulation pumps
+- [CHANGED] ctrl/ts_variables dict in multinet gets an intermediate level 'nets', so that the structure is similar to Multinet ADict
+- [CHANGED] order of the pump entries was adapted (v, p, degree)
+- [CHANGED] by default p and t are set to None in case of ext grids. Based on the type selected, p and t must be adapted accordingly. If set to 'auto', based on the given p and t values, the type is set
+- [CHANGED] 'auto' can also be set for type in case of circulation pumps. The behavior is the same as in case of ext grids
+- [CHANGED] authors list adapted
+- [CHANGED] as of now, not one but two example nets (water and gas) will be created for the convert_format test (ensure backward compatibility when loading nets from jsons)
+- [FIXED] the references to pipeflow procedures have changed. Caused problems in the documentation
+- [FIXED] removed unused import of 'progress_bar' from pandapower which caused import problems
+
 [0.7.0] - 2022-08-02
 -------------------------------
 - [ADDED] automated test with Python 3.10 added to GitHub Actions CI (now Python 3.7 - 3.10)
@@ -26,8 +81,8 @@ Change Log
 
 [0.6.0] - 2022-02-07
 -------------------------------
-- [ADDED] Adding pressure controller as new component
-- [ADDED] Adding compressor as new component
+- [ADDED] Adding `pressure controller` as new component
+- [ADDED] Adding `compressor` as new component
 - [ADDED] Compressing power of a pump component are returned as result
 - [ADDED] Adding polynomial fluids
 - [CHANGED] Removing irrelevant results in branch models with zero length (mean velocity, lambda, reynolds)

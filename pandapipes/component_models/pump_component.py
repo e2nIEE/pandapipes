@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 class Pump(BranchWZeroLengthComponent):
     """
-
     """
 
     @classmethod
@@ -50,7 +49,6 @@ class Pump(BranchWZeroLengthComponent):
     def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
-
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param branch_pit:
@@ -89,31 +87,30 @@ class Pump(BranchWZeroLengthComponent):
         else:
             v_mean = v_mps
         vol = v_mean * area
-        fcts = itemgetter(*std_types)(net['std_types']['pump'])
-        fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-        pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
-        pump_pit[:, PL] = pl
+        if len(std_types):
+            fcts = itemgetter(*std_types)(net['std_types']['pump'])
+            fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+            pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
+            pump_pit[:, PL] = pl
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pump_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
-
         :param net:
         :type net:
-        :param pump_pit:
-        :type pump_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:
         :rtype:
         """
-        pump_pit[:, TL] = 0
+        branch_component_pit[:, TL] = 0
 
     @classmethod
     def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
         """
         Function that extracts certain results.
-
         :param nodes_connected:
         :type nodes_connected:
         :param branches_connected:
@@ -159,15 +156,17 @@ class Pump(BranchWZeroLengthComponent):
                 try:
                     molar_mass = net.fluid.get_molar_mass()  # [g/mol]
                 except UserWarning:
-                    logger.error('Molar mass is missing in your fluid. Before you are able to retrieve '
-                                 'the compression power make sure that the molar mass is defined')
+                    logger.error('Molar mass is missing in your fluid. Before you are able to '
+                                 'retrieve the compression power make sure that the molar mass is'
+                                 ' defined')
                 else:
                     r_spec = 1e3 * R_UNIVERSAL / molar_mass  # [J/(kg * K)]
                     # 'kappa' heat capacity ratio:
                     k = 1.4  # TODO: implement proper calculation of kappa
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                     (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
-                    res_table['compr_power_mw'].values[:] = w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
+                    res_table['compr_power_mw'].values[:] = \
+                        w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
             else:
                 vf_sum_int = branch_results["vf"][f:t]
                 pl = branch_results["pl"][f:t]
@@ -176,9 +175,7 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_component_input(cls):
         """
-
         Get component input.
-
         :return:
         :rtype:
         """
@@ -192,9 +189,7 @@ class Pump(BranchWZeroLengthComponent):
     @classmethod
     def get_result_table(cls, net):
         """
-
         Gets the result table.
-
         :param net: The pandapipes network
         :type net: pandapipesNet
         :return: (columns, all_float) - the column names and whether they are all float type. Only

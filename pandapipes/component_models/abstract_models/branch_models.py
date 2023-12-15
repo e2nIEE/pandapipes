@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -88,8 +88,9 @@ class BranchComponent(Component):
 
         junction_idx_lookup = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
-        from_nodes = junction_idx_lookup[net[cls.table_name()]["from_junction"].values]
-        to_nodes = junction_idx_lookup[net[cls.table_name()]["to_junction"].values]
+        fn_col, tn_col = cls.from_to_node_cols()
+        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+        to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
         branch_component_pit[:, VINIT] = 0.1
         return branch_component_pit, node_pit, from_nodes, to_nodes
@@ -122,41 +123,33 @@ class BranchComponent(Component):
         t_amb = branch_component_pit[:, TEXT]
         area = branch_component_pit[:, AREA]
         length = branch_component_pit[:, LENGTH]
-        alpha = branch_component_pit[:, ALPHA] * np.pi * branch_component_pit[:, D]
+        alpha = branch_component_pit[:, ALPHA] * np.pi * branch_component_pit[:, D] * length
         cls.calculate_temperature_lift(net, branch_component_pit, node_pit)
         tl = branch_component_pit[:, TL]
         qext = branch_component_pit[:, QEXT]
+        spec_heat = rho * area * cp
 
-        transient = get_net_option(net, "transient")
+        if get_net_option(net, "transient"):
+            tvor = branch_component_pit[:, T_OUT_OLD]
+            delta_t = get_net_option(net, "dt")
 
-        tvor = branch_pit[:, T_OUT_OLD]
-
-        delta_t = get_net_option(net, "dt")
-
-        if transient:
-            t_m = t_init_i1  # (t_init_i1 + t_init_i) / 2
             branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
-                -(rho * area * cp * (t_m - tvor) * (1 / delta_t) + rho * area * cp * v_init * (
-                            -t_init_i + t_init_i1 - tl) / length
-                  - alpha * (t_amb - t_m) + qext)
+                -(spec_heat * (t_init_i1 - tvor) * (1 / delta_t) * length
+                  + spec_heat * v_init * (-t_init_i + t_init_i1 - tl)
+                  - alpha * (t_amb - t_init_i1) + qext)
 
-            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init / length + alpha \
-                                                    + rho * area * cp / delta_t
-            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init / length + 0 * alpha \
-                                                     + rho * area * cp / delta_t
+            branch_component_pit[:, JAC_DERIV_DT] = - spec_heat * v_init
+            branch_component_pit[:, JAC_DERIV_DT1] = spec_heat / delta_t * length \
+                                                     + spec_heat * v_init + alpha
 
-            branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init \
-                                                         * branch_component_pit[:, AREA]
-            branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init \
-                                                        * branch_component_pit[:, AREA] * t_init_i1
         else:
             t_m = (t_init_i1 + t_init_i) / 2
             branch_component_pit[:, LOAD_VEC_BRANCHES_T] = \
-                -(rho * area * cp * v_init * (-t_init_i + t_init_i1 - tl)
-                  - alpha * (t_amb - t_m) * length + qext)
+                -(spec_heat * v_init * (-t_init_i + t_init_i1 - tl)
+                  - alpha * (t_amb - t_m) + qext)
 
-            branch_component_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
-            branch_component_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
+            branch_component_pit[:, JAC_DERIV_DT] = - spec_heat * v_init + alpha / 2
+            branch_component_pit[:, JAC_DERIV_DT1] = spec_heat * v_init + alpha / 2
 
         branch_component_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_component_pit[:, AREA]
         branch_component_pit[:, LOAD_VEC_NODES_T] = rho * v_init \
@@ -167,13 +160,13 @@ class BranchComponent(Component):
         pass
 
     @classmethod
-    def calculate_temperature_lift(cls, net, branch_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         """
 
         :param net:
         :type net:
-        :param branch_pit:
-        :type branch_pit:
+        :param branch_component_pit:
+        :type branch_component_pit:
         :param node_pit:
         :type node_pit:
         :return:

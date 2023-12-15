@@ -1,0 +1,2 @@
+**Parameter**;**Datatype**;**Explanation**
+mdot_kg_per_s;float;mass flow [kg/s] (> 0: charging / < 0: discharging)

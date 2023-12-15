@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -113,7 +113,7 @@ class Junction(NodeComponent):
             # output, all_float = cls.get_result_table(net)
             if "res_internal" not in net:
                 net["res_internal"] = pd.DataFrame(
-                    np.NAN, columns=["t_k"], index=np.arange(len(net["_active_pit"]["node"][:, 8])),
+                    np.NAN, columns=["t_k"], index=np.arange(len(net["_active_pit"]["node"][:, TINIT])),
                     dtype=np.float64
                 )
             net["res_internal"]["t_k"] = net["_active_pit"]["node"][:, TINIT]

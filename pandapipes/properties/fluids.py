@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -532,6 +532,52 @@ class FluidPropertyPolynominal(FluidProperty):
         """
         values = np.loadtxt(path)
         return cls(values[:, 0], values[:, 1], polynominal_degree)
+
+
+class FluidPropertySutherland(FluidProperty):
+    """
+    Creates Property with a Sutherland model (mainly used for viscosity).
+    """
+
+    def __init__(self, eta0, t0, t_sutherland):
+        """
+
+        :param value:
+        :type value:
+        """
+        super().__init__()
+        self.eta0 = eta0
+        self.t0 = t0
+        self.t_sutherland = t_sutherland
+
+    def get_at_value(self, *args):
+        """
+
+        :param arg: Name of the property
+        :type arg: str
+        :return: Value of the property
+        :rtype: float
+
+        :Example:
+            >>> viscosity = get_fluid(net).get_property("viscosity")
+        """
+        return self.eta0 * (self.t0 + self.t_sutherland) / (self.t_sutherland + args[0]) \
+               * np.power(args[0] / self.t0, 1.5)
+
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        raise UserWarning("The sutherland property integral value function has not been implemented!")
+        # if isinstance(upper_limit_arg, pd.Series):
+        #     ul = self.offset * upper_limit_arg.values + 0.5 * self.slope * np.power(
+        #         upper_limit_arg.values, 2)
+        # else:
+        #     ul = self.offset * np.array(upper_limit_arg) + 0.5 * self.slope * np.array(
+        #         np.power(upper_limit_arg.values, 2))
+        # if isinstance(lower_limit_arg, pd.Series):
+        #     ll = self.offset * lower_limit_arg.values + 0.5 * self.slope * np.power(
+        #         lower_limit_arg.values, 2)
+        # else:
+        #     ll = self.offset * np.array(lower_limit_arg) + 0.5 * self.slope * np.array(
+        #         np.power(lower_limit_arg.values, 2))
 
 
 def create_constant_property(net, property_name, value, overwrite=True, warn_on_duplicates=True):
