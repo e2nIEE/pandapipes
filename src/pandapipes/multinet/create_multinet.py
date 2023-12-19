@@ -12,7 +12,6 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.WARNING)
 
 
 def create_empty_multinet(name=""):
