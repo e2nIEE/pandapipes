@@ -65,7 +65,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
     init_options(net, local_params)
 
     # init result tables
-    net["converged"] = False
+    net.converged = False
     init_all_result_tables(net)
 
     create_lookups(net)
@@ -97,8 +97,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     if calculate_hydraulics:
         reduce_pit(net, node_pit, branch_pit, mode="hydraulics")
-        converged, _ = hydraulics(net)
-        if not converged:
+        hydraulics(net)
+        if not net.converged:
             raise PipeflowNotConverged("The hydraulic calculation did not converge to a solution.")
         extract_results_active_pit(net, mode="hydraulics")
 
@@ -106,8 +106,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
         node_pit, branch_pit = net["_pit"]["node"], net["_pit"]["branch"]
         identify_active_nodes_branches(net, branch_pit, node_pit, False)
         reduce_pit(net, node_pit, branch_pit, mode="heat_transfer")
-        converged, _ = heat_transfer(net)
-        if not converged:
+        heat_transfer(net)
+        if not net.converged:
             raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
                                        "solution.")
         extract_results_active_pit(net, mode="heat_transfer")
@@ -132,7 +132,7 @@ def hydraulics(net):
     error_v, error_p, residual_norm = [], [], None
 
     # This loop is left as soon as the solver converged
-    while not get_net_option(net, "converged") and niter <= max_iter:
+    while not net.converged and niter <= max_iter:
         logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
@@ -152,16 +152,12 @@ def hydraulics(net):
     write_internal_results(net, iterations=niter, error_p=error_p[niter - 1],
                            error_v=error_v[niter - 1], residual_norm=residual_norm)
 
-    converged = get_net_option(net, "converged")
-    net['converged'] = converged
-    if converged:
+    if net.converged:
         set_user_pf_options(net, hyd_flag=True)
 
-    log_final_results(net, converged, niter, residual_norm)
+    log_final_results(net, niter, residual_norm)
     if not get_net_option(net, "reuse_internal_data"):
         net.pop("_internal_data", None)
-
-    return converged, niter
 
 
 def heat_transfer(net):
@@ -177,11 +173,11 @@ def heat_transfer(net):
 
     error_t, error_t_out, residual_norm = [], [], None
 
-    set_net_option(net, "converged", False)
+    net.converged = False
     niter = 0
 
     # This loop is left as soon as the solver converged
-    while not get_net_option(net, "converged") and niter <= max_iter:
+    while not net.converged and niter <= max_iter:
         logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
@@ -205,11 +201,7 @@ def heat_transfer(net):
     write_internal_results(net, iterations_T=niter, error_T=error_t[niter - 1],
                            residual_norm_T=residual_norm)
 
-    converged = get_net_option(net, "converged")
-    net['converged'] = converged
-    log_final_results(net, converged, niter, residual_norm, hyraulic_mode=False)
-
-    return converged, niter
+    log_final_results(net, niter, residual_norm, hyraulic_mode=False)
 
 
 def solve_hydraulics(net):
@@ -341,9 +333,9 @@ def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_me
     # Setting convergence flag
     if error_2[niter] <= tol_2 and error_1[niter] <= tol_1 and residual_norm < tol_res:
         if nonlinear_method != "automatic":
-            set_net_option(net, "converged", True)
+            net.converged = True
         elif get_net_option(net, "alpha") == 1:
-            set_net_option(net, "converged", True)
+            net.converged = True
 
     if hydraulic_mode:
         logger.debug("errorv: %s" % error_1[niter])
@@ -354,7 +346,7 @@ def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_me
         logger.debug("alpha: %s" % get_net_option(net, "alpha"))
 
 
-def log_final_results(net, converged, niter, residual_norm, hyraulic_mode=True):
+def log_final_results(net, niter, residual_norm, hyraulic_mode=True):
     if hyraulic_mode:
         solver = "hydraulics"
         outputs = ["tol_p", "tol_v"]
@@ -362,7 +354,7 @@ def log_final_results(net, converged, niter, residual_norm, hyraulic_mode=True):
         solver = "heat transfer"
         outputs = ["tol_T"]
     logger.debug("--------------------------------------------------------------------------------")
-    if not converged:
+    if not net.converged:
         logger.debug("Maximum number of iterations reached but %s solver did not converge."
                      % solver)
         logger.debug("Norm of residual: %s" % residual_norm)
