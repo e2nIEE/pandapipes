@@ -126,7 +126,7 @@ def create_mixed_indexing_grid():
 
 
 @pytest.fixture
-def create_net_wo_external_hydraulic_grid():
+def create_net_wo_ext_grid():
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
     pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
     pandapipes.create_junction(net, index=3, pn_bar=16, tfluid_k=283, height_m=0,
@@ -144,7 +144,6 @@ def create_net_wo_external_hydraulic_grid():
     pandapipes.create_source(net, junction=10, mdot_kg_per_s=0.04, name="Source 3")
     pandapipes.create_compressor(net, from_junction=9, to_junction=3, pressure_ratio=1.1,
                                  name="Compressor 0", index=None, in_service=True)
-    pandapipes.create_ext_grid(net, junction=3, t_k=300)
     return net
 
 
@@ -606,15 +605,24 @@ def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
-def test_pipeflow_cancellation(create_net_wo_external_hydraulic_grid, use_numba):
-    net = create_net_wo_external_hydraulic_grid
-    pandapipes.pipeflow(net)
-    assert np.all(np.isnan(net.res_junction))
-    assert np.all(np.isnan(net.res_pipe))
-    assert np.all(np.isnan(net.res_ext_grid))
-    assert np.all(np.isnan(net.res_sink))
-    assert np.all(np.isnan(net.res_source))
-    assert np.all(np.isnan(net.res_compressor))
+def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
+    net = create_net_wo_ext_grid
+    ex1 = pandapipes.create_ext_grid(net, junction=3, t_k=300)
+    ex2 = pandapipes.create_ext_grid(net, junction=3, p_bar=1)
+    with pytest.raises(PipeflowNotConverged):
+        net.ext_grid.at[ex2, 'in_service'] = False
+        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+                            use_numba=use_numba, check_connectivity=True)
+    net.ext_grid.at[ex1, 'in_service'] = False
+    net.ext_grid.at[ex2, 'in_service'] = True
+
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+                        use_numba=use_numba, check_connectivity=True)
+    assert not np.all(np.isnan(net.res_junction.p_bar.values))
+
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, mode='all', iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+                            use_numba=use_numba, check_connectivity=True)
 
 
 if __name__ == "__main__":
