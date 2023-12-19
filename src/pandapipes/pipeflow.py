@@ -4,7 +4,6 @@
 
 import numpy as np
 from numpy import linalg
-from pandapower.auxiliary import ppException
 from scipy.sparse.linalg import spsolve
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, TOUTINIT, VINIT_T
@@ -14,7 +13,7 @@ from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
     initialize_pit, reduce_pit, set_user_pf_options, init_all_result_tables, \
-    identify_active_nodes_branches
+    identify_active_nodes_branches, PipeflowNotConverged
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
 
 try:
@@ -70,14 +69,18 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     create_lookups(net)
     node_pit, branch_pit = initialize_pit(net)
-    if (len(node_pit) == 0) & (len(branch_pit) == 0):
-        logger.warning("There are no node and branch entries defined. This might mean that your net"
-                       " is empty")
+    if len(node_pit) == 0:
+        logger.warning("There are no nodes defined. "
+                       "You need at least one node! "
+                       "Without any nodes, you are not able to conduct a pipeflow!")
         return
+
     calculation_mode = get_net_option(net, "mode")
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
+    # cannot be moved to calculate_hydraulics as the active node/branch hydraulics lookup is also required to
+    # determine the active node/branch heat transfer lookup
     identify_active_nodes_branches(net, branch_pit, node_pit)
 
     if calculation_mode == "heat":
@@ -357,10 +360,3 @@ def log_final_results(net, niter, residual_norm, hyraulic_mode=True):
         logger.debug("Norm of residual: %s" % residual_norm)
         for out in outputs:
             logger.debug("%s: %s" % (out, get_net_option(net, out)))
-
-
-class PipeflowNotConverged(ppException):
-    """
-    Exception being raised in case pipeflow did not converge.
-    """
-    pass

@@ -6,6 +6,7 @@ import copy
 import inspect
 
 import numpy as np
+from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
@@ -22,6 +23,7 @@ try:
     numba_installed = True
 except ImportError:
     from pandapower.pf.no_numba import jit
+
     numba_installed = False
 
 try:
@@ -496,6 +498,11 @@ def identify_active_nodes_branches(net, branch_pit, node_pit, hydraulic=True):
             # here, any value between 0 and 1 should work, excluding 0 and 1)
             nodes_connected[fn_tn] = nodes_connected[fn_tn] & (flow > 0.1)
     mode = "hydraulics" if hydraulic else "heat_transfer"
+    if np.all(~nodes_connected):
+        mode = 'hydraulic' if hydraulic else 'heat transfer'
+        raise PipeflowNotConverged(" All nodes are set out of service. Probably they are not supplied."
+                                   " Therefore, the %s pipeflow did not converge. "
+                                   " Have you forgotten to define an external grid?" % mode)
     net["_lookups"]["node_active_" + mode] = nodes_connected
     net["_lookups"]["branch_active_" + mode] = branches_connected
 
@@ -551,7 +558,7 @@ def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
     else:
         active_branch_lookup = branches_connected_flow(branch_pit) \
                                & get_lookup(net, "branch", "active_hydraulics")
-        active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool_)\
+        active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool_) \
                              & get_lookup(net, "node", "active_hydraulics")
         slacks = np.where((node_pit[:, NODE_TYPE_T] == T) & active_node_lookup)[0]
 
@@ -634,7 +641,7 @@ def get_table_index_list(net, pit_array, pit_indices, pit_type="node"):
     tables = np.unique(int_pit[:, TABLE_IDX_ND])
     table_lookup = get_lookup(net, pit_type, "table")
     return [(get_table_name(table_lookup, tbl), list(int_pit[int_pit[:, TABLE_IDX_ND] == tbl,
-                                                             ELEMENT_IDX_ND].astype(np.int32)))
+    ELEMENT_IDX_ND].astype(np.int32)))
             for tbl in tables]
 
 
@@ -709,3 +716,10 @@ def reduce_pit(net, node_pit, branch_pit, mode="hydraulics"):
             from_to_active_lookup[table] = (count, count + len_new)
             count += len_new
         net["_lookups"]["%s_from_to_active_%s" % (el, mode)] = from_to_active_lookup
+
+
+class PipeflowNotConverged(ppException):
+    """
+    Exception being raised in case pipeflow did not converge.
+    """
+    pass
