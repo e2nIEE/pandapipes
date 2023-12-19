@@ -1,6 +1,6 @@
 #source CoolProp (http://www.coolprop.org/)
 # temperature in Kelvin, isobaric heat capacity in J/(kg K)
-263.151976.8823234072695
+263.15 1976.8823234072695
 265.15 1980.6134982832095
 267.15 1984.416050463013
 269.15 1988.2894370033634
