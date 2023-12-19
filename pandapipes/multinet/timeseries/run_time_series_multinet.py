@@ -19,7 +19,6 @@ except ImportError:
     import logging as pplog
 
 logger = pplog.getLogger(__name__)
-logger.setLevel(level=pplog.WARNING)
 
 
 def _call_output_writer(multinet, time_step, pf_converged, ctrl_converged, ts_variables):
