@@ -13,9 +13,8 @@ from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, \
     init_options, create_internal_results, write_internal_results, get_lookup, create_lookups, \
     initialize_pit, reduce_pit, set_user_pf_options, init_all_result_tables, \
-    identify_active_nodes_branches
+    identify_active_nodes_branches, PipeflowNotConverged
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
-from pandapower.auxiliary import ppException
 
 try:
     import pandaplan.core.pplog as logging
@@ -80,12 +79,9 @@ def pipeflow(net, sol_vec=None, **kwargs):
     calculate_hydraulics = calculation_mode in ["hydraulics", "all"]
     calculate_heat = calculation_mode in ["heat", "all"]
 
-    active_node_pit, active_branch_pit = identify_active_nodes_branches(net, branch_pit, node_pit)
-
-    if (len(active_node_pit) == 0):
-        logger.warning(" All nodes are out of service. Probably they are not supplied."
-                       " Have you forgotten to define an external grid?")
-        return
+    # cannot be moved to calculate_hydraulics as the active node/branch hydraulics lookup is also required to
+    # determine the active node/branch heat transfer lookup
+    identify_active_nodes_branches(net, branch_pit, node_pit)
 
     if calculation_mode == "heat":
         if not net.user_pf_options["hyd_flag"]:
@@ -364,10 +360,3 @@ def log_final_results(net, niter, residual_norm, hyraulic_mode=True):
         logger.debug("Norm of residual: %s" % residual_norm)
         for out in outputs:
             logger.debug("%s: %s" % (out, get_net_option(net, out)))
-
-
-class PipeflowNotConverged(ppException):
-    """
-    Exception being raised in case pipeflow did not converge.
-    """
-    pass
