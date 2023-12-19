@@ -25,6 +25,28 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_STANET_KEYWORDS = {
+    "pipes": ['REM Leitungsdaten'],
+    "house_pipes": ['REM HA Leitungsdaten'],
+    "nodes": ['REM Knotendaten'],
+    "house_nodes": ["REM HA Knotendaten"],
+    "valves": ['REM Ventiledaten'],
+    "pumps_gas": ['REM Kompressorendaten'],
+    "pumps_water": ['REM Pumpendaten'],
+    "net_parameters": ['REM Netzparameterdaten'],
+    "houses": ["REM Hausdaten"],
+    "house_connections": ["REM HA Verbindungsdaten"],
+    "meters": ["REM HA Zählerdaten"],
+    "controllers": ["REM Reglerdaten"],
+    "slider_valves": ["REM Schieberdaten"],
+    "inflexion_points": ["REM Knickpunktdaten"],
+    "heat_exchangers": ["REM Wärmetauscherdaten"],
+    "customers": ["REM Abnehmerdaten"],
+    "house_inflexion_points": ["REM HA Knickpunktdaten"],
+    "layers": ["REM Layerdaten"]
+}
+
+
 def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_line_info=False,
                         keywords=None):
     """
@@ -52,24 +74,7 @@ def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_
         # 4th line: STANET internal header of table (this is the first line to convert to pandas
         #           dataframe and return to the converter)
         # everything until the next empty line will be added to the dataframe
-        keywords = {"pipes": ['REM Leitungsdaten'],
-                    "house_pipes": ['REM HA Leitungsdaten'],
-                    "nodes": ['REM Knotendaten'],
-                    "house_nodes": ["REM HA Knotendaten"],
-                    "valves": ['REM Ventiledaten'],
-                    "pumps_gas": ['REM Kompressorendaten'],
-                    "pumps_water": ['REM Pumpendaten'],
-                    "net_parameters": ['REM Netzparameterdaten'],
-                    "houses": ["REM Hausdaten"],
-                    "house_connections": ["REM HA Verbindungsdaten"],
-                    "meters": ["REM HA Zählerdaten"],
-                    "controllers": ["REM Reglerdaten"],
-                    "slider_valves": ["REM Schieberdaten"],
-                    "inflexion_points": ["REM Knickpunktdaten"],
-                    "heat_exchangers": ["REM Wärmetauscherdaten"],
-                    "customers": ["REM Abnehmerdaten"],
-                    "house_inflexion_points": ["REM HA Knickpunktdaten"],
-                    "layers": ["REM Layerdaten"]}
+        keywords = DEFAULT_STANET_KEYWORDS
     stored_data = dict()
 
     logger.info("Reading STANET csv-file.")
@@ -230,9 +235,9 @@ def adapt_pipe_data_according_to_nodes(pipe_data, pipes_to_check, node_geo, pipe
     coord = "x" if is_x else "y"
     locat = "from" if is_start else "to"
     run = 0 if is_x else 2
-    run += 0 if is_start else 1
+    run += 1 - int(is_start)
     pipe_name = coord_names[run]
-    node_nr = node_cols[0] if is_start else node_cols[1]
+    node_nr = node_cols[1 - int(is_start)]
     node_val = node_geo.loc[pipe_data.loc[pipes_to_check, node_nr].values, node_name].values
 
     if pipe_name not in pipe_data.columns:
@@ -273,7 +278,7 @@ def adapt_pipe_data(stored_data, pipe_data, coord_names, use_clients):
 
         # the following code is just a check whether pipe and node geodata fit together
         # in case of deviations, the pipe geodata is adapted on the basis of the node geodata
-        pipe_rec = pipe_data.RECNO.values
+        pipe_rec = pipe_data.index.values
         for is_x, is_start in product([True, False], [True, False]):
             current_index_range = indices[0] if is_start else indices[1]
             current_pipe_nums = pipe_rec[current_index_range.values]
