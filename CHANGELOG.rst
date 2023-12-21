@@ -3,6 +3,7 @@ Change Log
 
 [upcoming release] - 2023-..-..
 -------------------------------
+
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [ADDED] after the connectivity check, intercept the pipeflow if no more nodes are in-service (heat and hydraulic)
