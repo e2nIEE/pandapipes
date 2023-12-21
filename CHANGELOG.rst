@@ -11,6 +11,7 @@ Change Log
 - [CHANGED] dynamic creation of lookups for getting pit as pandas tables
 - [CHANGED] components can have their own internal arrays for specific calculations (e.g. for compressor pressure ratio), so that the pit does not need to include such component specific entries
 - [CHANGED] .readthedocs.yml due to deprecation
+- [CHANGED] changing from setuptools flat-layout into src-layout
 - [FIXED] in STANET converter: bug fix for heat exchanger creation and external temperatures of pipes added
 - [REMOVED] broken travis badge removed from readme
 
