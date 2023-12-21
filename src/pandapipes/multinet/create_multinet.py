@@ -13,6 +13,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 def create_empty_multinet(name=""):
     """
     This function initializes the multinet datastructure.

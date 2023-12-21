@@ -168,7 +168,7 @@ def test_inservice_gas(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[~net.junction.in_service].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
-                | ~net.sink.in_service.values
+        | ~net.sink.in_service.values
     assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not np.any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
@@ -201,7 +201,7 @@ def test_inservice_water(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[~net.junction.in_service].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
-                | ~net.sink.in_service.values
+        | ~net.sink.in_service.values
     assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
@@ -518,7 +518,7 @@ def test_mixed_indexing_oos2(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -536,7 +536,7 @@ def test_mixed_indexing_oos3(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -554,7 +554,7 @@ def test_mixed_indexing_oos4(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -572,7 +572,7 @@ def test_mixed_indexing_oos5(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -590,7 +590,7 @@ def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -599,7 +599,7 @@ def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-    get_col_slice_null(tbl)].isnull())
+                                            get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
