@@ -7,7 +7,7 @@ Change Log
 - [ADDED] support Python 3.11 (now included in test pipeline)
 - [ADDED] after the connectivity check, intercept the pipeflow if no more nodes are in-service (heat and hydraulic)
 - [ADDED] adding biomethane (pure and treated) as additonal fluid
-- [ADDED] results tables can be assembled modularly
+- [ADDED] result tables can be assembled modularly
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
 - [CHANGED] connectivity check now separated by hydraulics and heat_transfer calculation, so that also results can differ in some rows (NaN or not)
 - [CHANGED] dynamic creation of lookups for getting pit as pandas tables
@@ -15,11 +15,11 @@ Change Log
 - [CHANGED] .readthedocs.yml due to deprecation
 - [CHANGED] changing from setuptools flat-layout into src-layout
 - [CHANGED] calculate thermal derivative globally, adaptions before/after can be done component-wise
-- [CHANGED] moving PipeflowNotConverged error from pipeflow to pipeflow_setup
+- [CHANGED] moving 'PipeflowNotConverged' error from pipeflow to pipeflow_setup
 - [CHANGED] moving 'result_extraction' under pf folder
 - [FIXED] in STANET converter: bug fix for heat exchanger creation and external temperatures of pipes added
 - [FIXED] build igraph considers all components
-- [FIXED] creating nxgraph and considering pressure circulation pumps
+- [FIXED] creating nxgraph and considering pressure circulation pumps correctly
 - [FIXED] error in tutorial 'circular flow in a district heating grid'
 - [FIXED] caused error during 'pip install pandapipes'
 - [REMOVED] broken travis badge removed from readme
