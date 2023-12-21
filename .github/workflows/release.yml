@@ -90,14 +90,14 @@ jobs:
       - name: Install pandapipes from TestPyPI
         if: ${{ inputs.upload_server == 'testpypi'}}
         run: |
-          pip install --no-cache-dir -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pandapipes
+          python -m pip install --no-cache-dir -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pandapipes
       - name: Install pandapipes from PyPI
         if: ${{ inputs.upload_server == 'pypi'}}
         run: |
-          pip install pandapipes
+          python -m pip install pandapipes
       - name: List all installed packages
         run: |
-          pip list
+          python -m pip list
       - name: Test with pytest
         run: |
           pytest --pyargs pandapipes.test
