@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[upcoming release] - 2023-..-..
+[0.9.0] - 2023-12-22
 -------------------------------
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
