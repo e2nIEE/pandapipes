@@ -1,8 +1,8 @@
-# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-__version__ = '0.8.5'
+__version__ = '0.9.0'
 __format_version__ = '0.8.0'
 
 import pandas as pd

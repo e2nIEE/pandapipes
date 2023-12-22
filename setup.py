@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -35,7 +35,7 @@ long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.8.5',
+    version='0.9.0',
     author='Simon Ruben Drauz-Mauel, Daniel Lohmeier, Jolando Marius Kisse',
     author_email='simon.ruben.drauz-mauel@iee.fraunhofer.de, daniel.lohmeier@retoflow.de, '
                  'jolando.kisse@uni-kassel.de',
@@ -44,7 +44,7 @@ setup(
     long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.11.1", "matplotlib", "shapely"],
+    install_requires=["pandapower>=2.13.1", "matplotlib", "shapely"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "igraph"],
                     "test": ["pytest", "pytest-xdist", "nbmake"],
