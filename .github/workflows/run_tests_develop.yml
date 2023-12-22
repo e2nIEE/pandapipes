@@ -34,6 +34,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
+        shell: bash
       - name: List all installed packages
         run: |
           python -m pip list
@@ -72,6 +73,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
+        shell: bash
       - name: List all installed packages
         run: |
           python -m pip list
@@ -105,6 +107,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
+        shell: bash
       - name: List all installed packages
         run: |
           python -m pip list
@@ -113,12 +116,10 @@ jobs:
           python -m pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
-    #runs-on: ubuntu-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [ '3.10' ]
-        os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}

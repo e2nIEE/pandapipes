@@ -80,12 +80,10 @@ jobs:
           python -m pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
-    #runs-on: ubuntu-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [ '3.10' ]
-        os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
