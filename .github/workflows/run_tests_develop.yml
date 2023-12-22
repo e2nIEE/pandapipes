@@ -14,36 +14,38 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        os:  [ ubuntu-latest, windows-latest ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest igraph pytest-split numba
+          python -m pip install pytest igraph pytest-split
+          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
-          pip install .
+          python -m pip install .
+        shell: bash
       - name: List all installed packages
         run: |
-          pip list
+          python -m pip list
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.9' }}
         run: |
-          pytest
+          python -m pytest
       - name: Test with pytest and Codecov
         if: ${{ matrix.python-version == '3.9' }}
         run: |
           python -m pip install pytest-cov
-          pytest --cov=./ --cov-report=xml
+          python -m pytest --cov=./ --cov-report=xml
       - name: Upload coverage to Codecov
         if: ${{ matrix.python-version == '3.9' }}
         uses: codecov/codecov-action@v1
@@ -51,16 +53,15 @@ jobs:
           verbose: true
 
   linting:
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.8']
-
+        python-version: ['3.10']
+        os:  [ ubuntu-latest, windows-latest ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -69,10 +70,11 @@ jobs:
           python -m pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
-          pip install .
+          python -m pip install .
+        shell: bash
       - name: List all installed packages
         run: |
-          pip list
+          python -m pip list
       - name: Lint with flake8 (syntax errors and undefinded names)
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -83,39 +85,42 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   tutorial_tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        os:  [ ubuntu-latest, windows-latest ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest nbmake pytest-xdist pytest-split igraph numba 
+          python -m pip install pytest nbmake pytest-xdist pytest-split igraph
+          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
-          pip install .
+          python -m pip install .
+        shell: bash
       - name: List all installed packages
         run: |
-          pip list
+          python -m pip list
       - name: Test with pytest
         run: |
-          pytest --nbmake -n=auto "./tutorials"
+          python -m pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.8' ]
+        python-version: [ '3.10' ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Check docs for Python ${{ matrix.python-version }}

@@ -1,10 +1,11 @@
-# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from setuptools import find_packages
-from setuptools import setup
 import re
+
+from setuptools import find_namespace_packages
+from setuptools import setup
 
 with open('README.rst', 'rb') as f:
     install = f.read().decode('utf-8')
@@ -34,22 +35,23 @@ long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.8.5',
+    version='0.9.0',
     author='Simon Ruben Drauz-Mauel, Daniel Lohmeier, Jolando Marius Kisse',
     author_email='simon.ruben.drauz-mauel@iee.fraunhofer.de, daniel.lohmeier@retoflow.de, '
                  'jolando.kisse@uni-kassel.de',
     description='A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids',
     long_description=long_description,
-	long_description_content_type='text/x-rst',
+    long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower>=2.11.1", "matplotlib", "shapely"],
+    install_requires=["pandapower>=2.13.1", "matplotlib", "shapely"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "igraph"],
                     "test": ["pytest", "pytest-xdist", "nbmake"],
                     "all": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
                             "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"]},
-    packages=find_packages(),
+    packages=find_namespace_packages(where='src'),
+    package_dir={"": "src"},
     include_package_data=True,
     classifiers=classifiers
 )
