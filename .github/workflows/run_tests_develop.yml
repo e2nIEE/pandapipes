@@ -14,11 +14,12 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    #runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11']
+        os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -29,7 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pytest igraph pytest-split
-          if ${{ matrix.python-version != '3.11' }}; then python -m pip install numba; fi
+          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
@@ -52,12 +53,12 @@ jobs:
           verbose: true
 
   linting:
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    #runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.10']
-
+        os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -84,10 +85,12 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   tutorial_tests:
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11']
+        os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -98,7 +101,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pytest nbmake pytest-xdist pytest-split igraph
-          if ${{ matrix.python-version != '3.11' }}; then python -m pip install numba; fi
+          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
@@ -110,10 +113,12 @@ jobs:
           python -m pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: [ '3.10' ]
+        os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
