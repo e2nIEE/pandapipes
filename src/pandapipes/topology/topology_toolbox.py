@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+import logging
 
 
 def get_all_branch_component_models():
@@ -26,8 +27,7 @@ def get_all_branch_component_models():
             bc.table_name()
             filtered.append(bc)
         except Exception as e:
-            # component does not have a table_name implemented
-            continue
+            logging.info(f"branch component {bc} has no table name {e}")
     return filtered
 
 
