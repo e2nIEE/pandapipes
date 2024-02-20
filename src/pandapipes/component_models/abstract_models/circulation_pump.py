@@ -68,7 +68,7 @@ class CirculationPump(BranchWZeroLengthComponent):
         """
         circ_pump_tbl = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
 
-        junction = net[cls.table_name()][cls.from_to_node_cols()[1]].values
+        junction = circ_pump_tbl[cls.from_to_node_cols()[1]].values
 
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
