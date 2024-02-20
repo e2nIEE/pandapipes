@@ -1651,10 +1651,10 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
 
     :param net: The net for which the heat exchangers should be created
     :type net: pandapipesNet
-    :param from_junctions: ID of the junctions on one side the heat exchangers will be\
+    :param from_junctions: IDs of the junctions on one side the heat exchangers will be\
             connected with
     :type from_junctions: Iterable(int)
-    :param to_junctions: ID of the junctions on the other side the heat exchangers will be\
+    :param to_junctions: IDs of the junctions on the other side the heat exchangers will be\
             connected with
     :type to_junctions: Iterable(int)
     :param diameter_m: The heat exchangers inner diameter in [m]
@@ -1665,9 +1665,10 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: Iterable(float) or float
     :param name: The name of the heat exchangers
-    :type name: str, default None
-    :param index: Force a specified ID if it is available. If None, the index one higher than the\
-            highest already existing index is selected.
+    :type name: Iterable(str) or str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards for the amount of heat \
+            exchangers created.
     :type index: Iterable(str) or str, default None
     :param in_service: True if the heat exchangers are in service or False if they are out of service
     :type in_service: Iterable(bool) or bool, default True
@@ -1692,6 +1693,75 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
                "in_service": bool(in_service), "type": type}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
+    return index
+
+
+def create_heat_consumers(net, from_junctions, to_junctions, diameter_m,
+                          controlled_mdot_kg_per_s=None, qext_w=None, deltat_k=None, treturn_k=None,
+                          name=None, index=None, in_service=True, type="heat_consumer", **kwargs):
+    """
+    Creates several heat consumer elements in net["heat_consumer"] from heat consumer parameters.
+
+    :param net: The net for which this heat consumer should be created
+    :type net:
+    :param from_junctions: IDs of the junctions on one side which the heat consumers will be \
+        connected with
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side which the heat consumers will be \
+        connected with
+    :type to_junctions: Iterable(int)
+    :param diameter_m: The heat consumers' inner diameter in [m] - only for result calculation
+    :type diameter_m: Iterable(float) or float
+    :param controlled_mdot_kg_per_s: Mass flow set point in [kg/s].
+    :type controlled_mdot_kg_per_s: Iterable(float) or float, default None
+    :param qext_w: External heat flux in [W]. If positive, heat is extracted from the network. If \
+        negative, heat is being fed into the network from a heat source.
+    :type qext_w: Iterable(float) or float, default None
+    :param deltat_k: Temperature difference set point between flow and return in [K].
+    :type deltat_k: Iterable(float) or float, default None
+    :param treturn_k: Return temperature set point in [K].
+    :type treturn_k: Iterable(float) or float, default None
+    :param name: Names of the heat consumer elements
+    :type name: Iterable(str) or str, default None
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+            highest already existing index is selected and counted onwards for the amount of heat \
+            consumers created.
+    :type index: Iterable(int) or int, default None
+    :param in_service: True for heat consumers that are in service, False for those out of service
+    :type in_service: Iterable(bool) or bool, default True
+    :param type: Currently not used - possibility to specify certain types of heat consumers
+    :type type: Iterable(str) or str, default "heat_consumer"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+        net["heat_consumer"] table
+    :type kwargs: dict
+    :return: index - The unique IDs of the created heat consumers
+    :rtype: int
+
+    :Example:
+        >>> create_heat_consumers(net,from_junctions=[0, 3], to_junctions=[1, 5], diameter_m=40e-3, qext_w=2000)
+    """
+    # TODO: change this to vectorized form
+    if deltat_k is not None or treturn_k is not None:
+        raise NotImplementedError("The models for consumers with fixed temperature difference or "
+                                  "fixed return temperature are not implemented yet.")
+    if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None)
+            + (treturn_k is None) !=2):
+        raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
+                             r"'qext_w' and 'deltat_k' or 'treturn_k' different from None")
+    if deltat_k is not None and treturn_k is not None:
+        raise AttributeError(r"It is not possible to set both 'deltat_k' and 'treturn_k', as the "
+                             r"flow temperature is independent of the heat consumer model.")
+
+    add_new_component(net, HeatConsumer)
+
+    index = _get_multiple_index_with_check(net, "heat_consumer", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "heat_consumer")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "diameter_m": diameter_m, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s,
+               "qext_w": qext_w, "deltat_k": deltat_k, "treturn_k": treturn_k,
+               "in_service": bool(in_service), "type": type}
+    _set_multiple_entries(net, "heat_consumer", index, **entries, **kwargs)
     return index
 
 
