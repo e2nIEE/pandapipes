@@ -9,8 +9,8 @@ import pytest
 
 import pandapipes
 from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pipeflow import PipeflowNotConverged
 from pandapipes.pipeflow import logger as pf_logger
+from pandapipes.pipeflow import PipeflowNotConverged
 
 try:
     import pandaplan.core.pplog as logging

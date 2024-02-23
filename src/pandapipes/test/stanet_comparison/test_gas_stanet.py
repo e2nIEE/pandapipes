@@ -3,8 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-import pandapipes.networks.simple_gas_networks as nw
 import pytest
+
+import pandapipes.networks.simple_gas_networks as nw
 from pandapipes.pipeflow import logger as pf_logger
 from pandapipes.test.stanet_comparison.pipeflow_stanet_comparison import pipeflow_stanet_comparison
 

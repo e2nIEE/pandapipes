@@ -10,11 +10,12 @@ import pandas as pd
 import pytest
 
 import pandapipes
-from pandapipes.idx_branch import VINIT
+from pandapipes.constants import NORMAL_TEMPERATURE
+from pandapipes.idx_branch import MINIT, AREA
 from pandapipes.idx_node import PINIT
-from pandapipes.test import test_path
 
-data_path = os.path.join(test_path, "pipeflow_internals", "data")
+from pandapipes.properties import get_fluid
+from pandapipes.test import data_path
 
 
 @pytest.fixture
@@ -55,7 +56,8 @@ def test_hydraulic_only(simple_test_net, use_numba):
     p_an = data.loc[1:3, "pv"]
 
     p_pandapipes = node_pit[:, PINIT]
-    v_pandapipes = branch_pit[:, VINIT]
+    fluid = get_fluid(net)
+    v_pandapipes = branch_pit[:, MINIT] / branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
 
     p_diff = np.abs(1 - p_pandapipes / p_an)
     v_diff = np.abs(v_pandapipes - v_an)
@@ -93,10 +95,9 @@ def test_heat_only(use_numba):
 
     pandapipes.pipeflow(ntw, stop_condition="tol", iter=50, friction_model="nikuradse",
                         nonlinear_method="automatic", mode="hydraulics", use_numba=use_numba)
-
     p = ntw._pit["node"][:, PINIT]
-    v = ntw._pit["branch"][:, VINIT]
-    u = np.concatenate((p, v))
+    m = ntw._pit["branch"][:, MINIT]
+    u = np.concatenate((p, m))
 
     pandapipes.pipeflow(ntw, sol_vec=u, stop_condition="tol", iter=50, friction_model="nikuradse",
                         nonlinear_method="automatic", mode="heat", use_numba=use_numba)

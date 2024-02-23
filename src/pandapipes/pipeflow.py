@@ -6,7 +6,7 @@ import numpy as np
 from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, VINIT, TOUTINIT, VINIT_T
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, MINIT, TOUTINIT, MINIT_T
 from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic, calculate_derivatives_thermal
@@ -89,7 +89,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
                               "results are available.")
         else:
             net["_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
-            net["_pit"]["branch"][:, VINIT] = sol_vec[len(node_pit):]
+            net["_pit"]["branch"][:, MINIT] = sol_vec[len(node_pit):]
 
     if calculate_hydraulics:
         reduce_pit(net, node_pit, branch_pit, mode="hydraulics")
@@ -114,8 +114,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
 
 def hydraulics(net):
-    max_iter, nonlinear_method, tol_p, tol_v, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_v", "tol_res")
+    max_iter, nonlinear_method, tol_p, tol_m, tol_res = get_net_options(
+        net, "iter", "nonlinear_method", "tol_p", "tol_m", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
@@ -125,28 +125,28 @@ def hydraulics(net):
         net["_internal_data"] = dict()
 
     # This branch is used to stop the solver after a specified error tolerance is reached
-    error_v, error_p, residual_norm = [], [], None
+    error_m, error_p, residual_norm = [], [], None
 
     # This loop is left as soon as the solver converged
     while not net.converged and niter <= max_iter:
         logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
-        v_init, p_init, v_init_old, p_init_old, epsilon = solve_hydraulics(net)
+        m_init, p_init, m_init_old, p_init_old, epsilon = solve_hydraulics(net)
 
         # Error estimation & convergence plot
-        dv_init = np.abs(v_init - v_init_old)
+        dm_init = np.abs(m_init - m_init_old)
         dp_init = np.abs(p_init - p_init_old)
 
         residual_norm = linalg.norm(epsilon) / len(epsilon)
-        error_v.append(linalg.norm(dv_init) / len(dv_init) if len(dv_init) else 0)
+        error_m.append(linalg.norm(dm_init) / len(dm_init) if len(dm_init) else 0)
         error_p.append(linalg.norm(dp_init / len(dp_init)))
 
-        finalize_iteration(net, niter, error_p, error_v, residual_norm, nonlinear_method, tol_p,
-                           tol_v, tol_res, p_init_old, v_init_old)
+        finalize_iteration(net, niter, error_p, error_m, residual_norm, nonlinear_method, tol_p,
+                           tol_m, tol_res, p_init_old, m_init_old)
         niter += 1
     write_internal_results(net, iterations=niter, error_p=error_p[niter - 1],
-                           error_v=error_v[niter - 1], residual_norm=residual_norm)
+                           error_m=error_m[niter - 1], residual_norm=residual_norm)
 
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
@@ -225,14 +225,14 @@ def solve_hydraulics(net):
             net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
-    v_init_old = branch_pit[:, VINIT].copy()
+    m_init_old = branch_pit[:, MINIT].copy()
     p_init_old = node_pit[:, PINIT].copy()
 
     x = spsolve(jacobian, epsilon)
-    branch_pit[:, VINIT] += x[len(node_pit):]
+    branch_pit[:, MINIT] += x[len(node_pit):]
     node_pit[:, PINIT] += x[:len(node_pit)] * options["alpha"]
 
-    return branch_pit[:, VINIT], node_pit[:, PINIT], v_init_old, p_init_old, epsilon
+    return branch_pit[:, MINIT], node_pit[:, PINIT], m_init_old, p_init_old, epsilon
 
 
 def solve_temperature(net):
@@ -255,11 +255,11 @@ def solve_temperature(net):
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
     # to_node for temperature calculation
-    branch_pit[:, VINIT_T] = branch_pit[:, VINIT]
+    branch_pit[:, MINIT_T] = branch_pit[:, MINIT]
     branch_pit[:, FROM_NODE_T] = branch_pit[:, FROM_NODE]
     branch_pit[:, TO_NODE_T] = branch_pit[:, TO_NODE]
-    mask = branch_pit[:, VINIT] < 0
-    branch_pit[mask, VINIT_T] = -branch_pit[mask, VINIT]
+    mask = branch_pit[:, MINIT] < 0
+    branch_pit[mask, MINIT_T] = -branch_pit[mask, MINIT]
     branch_pit[mask, FROM_NODE_T] = branch_pit[mask, TO_NODE]
     branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
 
@@ -313,7 +313,7 @@ def set_damping_factor(net, niter, error):
 
 def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_method, tol_1, tol_2,
                        tol_res, vals_1_old, vals_2_old, hydraulic_mode=True):
-    col1, col2 = (PINIT, VINIT) if hydraulic_mode else (TINIT, TOUTINIT)
+    col1, col2 = (PINIT, MINIT) if hydraulic_mode else (TINIT, TOUTINIT)
 
     # Control of damping factor
     if nonlinear_method == "automatic":
@@ -345,7 +345,7 @@ def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_me
 def log_final_results(net, niter, residual_norm, hyraulic_mode=True):
     if hyraulic_mode:
         solver = "hydraulics"
-        outputs = ["tol_p", "tol_v"]
+        outputs = ["tol_p", "tol_m"]
     else:
         solver = "heat transfer"
         outputs = ["tol_T"]
