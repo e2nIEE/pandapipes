@@ -142,7 +142,7 @@ def _output_writer(net, time_steps, ow_path=None):
     ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables)
     return ow
 
-@pytest.mark.xfail
+
 def test_time_series():
     """
 
@@ -154,11 +154,11 @@ def test_time_series():
     time_steps = range(25)
     # _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
     _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-    run_timeseries(net, time_steps, calc_compression_power = False)
+    run_timeseries(net, time_steps, calc_compression_power=False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
 
-@pytest.mark.xfail
+
 def test_time_series_default_ow():
     """
 
@@ -169,7 +169,7 @@ def test_time_series_default_ow():
     _prepare_grid(net)
     time_steps = range(25)
     init_default_outputwriter(net, time_steps)
-    run_timeseries(net, time_steps, calc_compression_power = False)
+    run_timeseries(net, time_steps, calc_compression_power=False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
 

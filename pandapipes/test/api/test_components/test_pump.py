@@ -11,7 +11,7 @@ import pytest
 import pandapipes
 from pandapipes.test import data_path
 
-@pytest.mark.xfail
+
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_from_measurement_parameteres(use_numba):
     """
@@ -37,7 +37,7 @@ def test_pump_from_measurement_parameteres(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "test_pump.csv"), sep=';')
 
@@ -50,7 +50,7 @@ def test_pump_from_measurement_parameteres(use_numba):
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)
 
-@pytest.mark.xfail
+
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_from_regression_parameteres(use_numba):
     """
@@ -92,7 +92,7 @@ def test_pump_from_regression_parameteres(use_numba):
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)
 
-@pytest.mark.xfail
+
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_from_std_type(use_numba):
     """

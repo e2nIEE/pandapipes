@@ -11,7 +11,6 @@ import pytest
 import pandapipes
 from pandapipes.test import data_path
 
-@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pressure_control_from_measurement_parameters(use_numba):
     """
@@ -37,7 +36,7 @@ def test_pressure_control_from_measurement_parameters(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "test_pressure_control.csv"), sep=';')
 
