@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
-from pandapipes.test.pipeflow_internals import internals_data_path
+from pandapipes.test import data_path
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -63,7 +63,7 @@ def test_p_type(use_numba):
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
                         use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "ext_grid_p.csv"),
+    data = pd.read_csv(os.path.join(data_path, "ext_grid_p.csv"),
                        sep=';', header=0, keep_default_na=False)
     p_comp = data["p"]
     p_pandapipes = net.res_junction["p_bar"][0]
@@ -71,7 +71,6 @@ def test_p_type(use_numba):
     p_diff = np.abs(1 - p_pandapipes / p_comp.loc[0])
 
     assert np.all(p_diff < 0.01)
-
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_t_type_single_pipe(use_numba):
@@ -253,7 +252,6 @@ def test_t_type_tee_2zu_2ab(use_numba):
     temp_diff = np.abs(1 - temp / temp2)
 
     assert np.all(temp_diff < 0.01)
-
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_t_type_tee_2zu_2ab2(use_numba):

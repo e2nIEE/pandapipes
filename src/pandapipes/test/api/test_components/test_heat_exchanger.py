@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
-from pandapipes.test.pipeflow_internals import internals_data_path
+from pandapipes.test import data_path
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -33,7 +33,7 @@ def test_heat_exchanger(use_numba):
                         mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_v=1e-4, use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "heat_exchanger_test.csv"), sep=';',
+    data = pd.read_csv(os.path.join(data_path, "heat_exchanger_test.csv"), sep=';',
                        header=0, keep_default_na=False)
     temp_an = data["T1"]
 
