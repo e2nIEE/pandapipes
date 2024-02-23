@@ -68,20 +68,18 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
 
 def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
     m_abs = np.abs(m)
-    m_abs[m_abs < 1e-10] = 1e-10
     re = np.divide(m_abs * d, eta * area)
     lambda_laminar = np.zeros_like(m)
-    lambda_laminar[m != 0] = 64 / re[m != 0]
+    lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
     lambda_nikuradse = np.divide(1, (-2 * np.log10(k / (3.71 * d))) ** 2)
     return re, lambda_laminar, lambda_nikuradse
 
 
 def calc_lambda_nikuradse_comp_np(m, d, k, eta, area):
     m_abs = np.abs(m)
-    m_abs[m_abs < 1e-6] = 1e-6
     re = np.divide(m_abs * d, eta * area)
     lambda_laminar = np.zeros_like(m)
-    lambda_laminar[m != 0] = 64 / re[m != 0]
+    lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
     lambda_nikuradse = np.divide(1, (2 * np.log10(d / k) + 1.14) ** 2)
     return re, lambda_laminar, lambda_nikuradse
 
@@ -133,15 +131,22 @@ def colebrook_np(re, d, k, lambda_nikuradse, dummy, max_iter):
     converged = False
     error_lambda = []
     niter = 0
-
+    mask = ~np.isclose(re, 0)
+    f = np.zeros_like(lambda_cb)
+    df = np.zeros_like(lambda_cb)
+    x = np.zeros_like(lambda_cb)
+    re_nz = re[mask]
+    k_nz = k[mask]
+    d_nz = d[mask]
     # Inner Newton-loop for calculation of lambda
     while not converged and niter < max_iter:
-        f = lambda_cb ** (-1 / 2) + 2 * np.log10(2.51 / (re * np.sqrt(lambda_cb)) + k / (3.71 * d))
 
-        df_dlambda_cb = -1 / 2 * lambda_cb ** (-3 / 2) - (2.51 / re) * lambda_cb ** (-3 / 2) \
-                        / (np.log(10) * (2.51 / (re * np.sqrt(lambda_cb)) + k / (3.71 * d)))
+        f[mask] = lambda_cb[mask] ** (-1 / 2) + 2 * np.log10(2.51 / (re_nz * np.sqrt(lambda_cb[mask])) + k_nz / (3.71 * d_nz))
 
-        x = - f / df_dlambda_cb
+        df[mask]= -1 / 2 * lambda_cb[mask] ** (-3 / 2) - (2.51 / re_nz) * lambda_cb[mask] ** (-3 / 2) \
+                        / (np.log(10) * (2.51 / (re_nz * np.sqrt(lambda_cb[mask])) + k_nz / (3.71 * d_nz)))
+
+        x[mask] = - f[mask] / df[mask]
 
         lambda_cb_old = lambda_cb
         lambda_cb = lambda_cb + x

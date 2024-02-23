@@ -97,11 +97,8 @@ def calc_lambda_nikuradse_incomp_numba(m, d, k, eta, area):
     re = np.empty_like(m)
     m_abs = np.abs(m)
     for i in range(m.shape[0]):
-        if m_abs[i] < 1e-6:
-            re[i] = np.divide(1e-6 * d[i], eta[i] * area[i])
-        else:
-            re[i] = np.divide(m_abs[i] * d[i], eta[i] * area[i])
-        if m[i] != 0:
+        re[i] = np.divide(m_abs[i] * d[i], eta[i] * area[i])
+        if re[i] != 0:
             lambda_laminar[i] = 64 / re[i]
         lambda_nikuradse[i] = np.power(-2 * np.log10(k[i] / (3.71 * d[i])), -2)
     return re, lambda_laminar, lambda_nikuradse
@@ -114,11 +111,8 @@ def calc_lambda_nikuradse_comp_numba(m, d, k, eta, area):
     re = np.empty_like(m)
     for i in range(len(m)):
         m_abs = np.abs(m[i])
-        if m_abs < 1e-6:
-            re[i] = np.divide(1e-6 * d[i], eta[i] * area[i])
-        else:
-            re[i] = np.divide(m_abs * d[i], eta[i] * area[i])
-        if m[i] != 0:
+        re[i] = np.divide(m_abs * d[i], eta[i] * area[i])
+        if re[i] != 0:
             lambda_laminar[i] = np.divide(64, re[i])
         lambda_nikuradse[i] = np.divide(1, (2 * np.log10(np.divide(d[i], k[i])) + 1.14) ** 2)
     return re, lambda_laminar, lambda_nikuradse
@@ -146,13 +140,14 @@ def calc_medium_pressure_with_derivative_numba(p_init_i_abs, p_init_i1_abs):
 @jit((float64[:], float64[:], float64[:], float64[:], float64[:], int64), nopython=True)
 def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
     lambda_cb = lambda_nikuradse.copy()
-    lambda_cb_old = np.empty_like(lambda_nikuradse)
+    lambda_cb_old = lambda_nikuradse.copy()
     converged = False
     niter = 0
 
     # Inner Newton-loop for calculation of lambda
     while not converged and niter < max_iter:
         for i in range(len(lambda_cb)):
+            if np.isclose(re[i],0): continue
             sqt = np.sqrt(lambda_cb[i])
             add_val = np.divide(k[i], (3.71 * d[i]))
             sqt_div = np.divide(1, sqt)
