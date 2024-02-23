@@ -6,6 +6,7 @@ import copy
 import inspect
 
 import numpy as np
+from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
