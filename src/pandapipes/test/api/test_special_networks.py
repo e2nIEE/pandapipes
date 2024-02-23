@@ -114,6 +114,7 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
 
 @pytest.mark.xfail(reason="The test net is not set up properly.")
 def test_wild_indexing(create_net_changed_indices):
+    # todo: still required?
     net = copy.deepcopy(create_net_changed_indices)
 
     pandapipes.pipeflow(net)
