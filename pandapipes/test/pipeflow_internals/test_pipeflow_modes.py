@@ -10,13 +10,11 @@ import pandas as pd
 import pytest
 
 import pandapipes
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import MINIT, AREA
 from pandapipes.idx_node import PINIT
-from pandapipes.test import test_path
 from pandapipes.properties import get_fluid
-from pandapipes.constants import NORMAL_TEMPERATURE
-
-data_path = os.path.join(test_path, "pipeflow_internals", "data")
+from pandapipes.test import data_path
 
 
 @pytest.fixture

@@ -6,14 +6,15 @@ import os
 import tempfile
 
 import numpy as np
+import pandapower.control as control
 import pandas as pd
 import pytest
+from pandapower.timeseries import OutputWriter, DFData
 
-import pandapower.control as control
 from pandapipes import networks as nw
 from pandapipes import pp_dir
 from pandapipes.timeseries import run_timeseries, init_default_outputwriter
-from pandapower.timeseries import OutputWriter, DFData
+from pandapipes.test import data_path
 
 try:
     import pandaplan.core.pplog as logging
@@ -21,8 +22,6 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
-
-path = os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results')
 
 
 def _prepare_grid(net):
@@ -72,18 +71,15 @@ def _data_source():
     :return: Time series values from csv files for sink and source
     :rtype: DataFrame
     """
-    profiles_sink = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
-                                             'test_time_series_sink_profiles.csv'), index_col=0)
-    profiles_source = pd.read_csv(os.path.join(pp_dir, 'test', 'pipeflow_internals', 'data',
-                                               'test_time_series_source_profiles.csv'), index_col=0)
+    profiles_sink = pd.read_csv(os.path.join(data_path, 'test_time_series_sink_profiles.csv'), index_col=0)
+    profiles_source = pd.read_csv(os.path.join(data_path, 'test_time_series_source_profiles.csv'), index_col=0)
     ds_sink = DFData(profiles_sink)
     ds_source = DFData(profiles_source)
     return ds_sink, ds_source
 
 
 def _compare_results(ow):
-    test_res_ext_grid = pd.read_csv(os.path.join(
-        pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_ext_grid',
+    test_res_ext_grid = pd.read_csv(os.path.join(data_path, 'test_time_series_results', 'res_ext_grid',
         'mdot_kg_per_s.csv'), sep=';', index_col=0)
     res_ext_grid = ow.np_results["res_ext_grid.mdot_kg_per_s"]
     res_ext_grid = res_ext_grid[~np.isclose(res_ext_grid, 0)]
@@ -91,8 +87,7 @@ def _compare_results(ow):
     diff = 1 - res_ext_grid.round(9) / test_res_ext_grid.round(9)
     check = diff < 0.0001
     assert (np.all(check))
-    test_res_junction = pd.read_csv(os.path.join(
-        pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_junction',
+    test_res_junction = pd.read_csv(os.path.join(data_path, 'test_time_series_results', 'res_junction',
         'p_bar.csv'), sep=';', index_col=0)
     res_junction = ow.np_results["res_junction.p_bar"]
     res_junction = res_junction[~np.isclose(res_junction, 0)]
@@ -100,8 +95,7 @@ def _compare_results(ow):
     diff = 1 - res_junction.round(9) / test_res_junction.round(9)
     check = diff < 0.0001
     assert (np.all(check))
-    test_res_pipe = pd.read_csv(os.path.join(
-        pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_pipe',
+    test_res_pipe = pd.read_csv(os.path.join(data_path, 'test_time_series_results', 'res_pipe',
         'v_mean_m_per_s.csv'), sep=';', index_col=0)
     res_pipe = ow.np_results["res_pipe.v_mean_m_per_s"]
     res_pipe = res_pipe[~np.isclose(res_pipe, 0)]
@@ -109,8 +103,7 @@ def _compare_results(ow):
     diff = 1 - res_pipe.round(9) / test_res_pipe.round(9)
     check = diff < 0.0001
     assert (np.all(check))
-    test_res_sink = pd.read_csv(os.path.join(
-        pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results', 'res_sink',
+    test_res_sink = pd.read_csv(os.path.join(data_path, 'test_time_series_results', 'res_sink',
         'mdot_kg_per_s.csv'), sep=';', index_col=0)
     res_sink = ow.np_results["res_sink.mdot_kg_per_s"]
     res_sink = res_sink[~np.isclose(res_sink, 0)]
@@ -118,8 +111,7 @@ def _compare_results(ow):
     diff = 1 - res_sink.round(9) / test_res_sink.round(9)
     check = diff < 0.0001
     assert (np.all(check))
-    test_res_source = pd.read_csv(os.path.join(
-        pp_dir, 'test', 'pipeflow_internals', 'data', 'test_time_series_results',
+    test_res_source = pd.read_csv(os.path.join(data_path, 'test_time_series_results',
         'res_source', 'mdot_kg_per_s.csv'), sep=';', index_col=0)
     res_source = ow.np_results["res_source.mdot_kg_per_s"]
     res_source = res_source[~np.isclose(res_source, 0)]

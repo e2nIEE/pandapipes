@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
-from pandapipes.test.pipeflow_internals import internals_data_path
+from pandapipes.test import data_path
 
 @pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -39,7 +39,7 @@ def test_pressure_control_from_measurement_parameters(use_numba):
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "test_pressure_control.csv"), sep=';')
+    data = pd.read_csv(os.path.join(data_path, "test_pressure_control.csv"), sep=';')
 
     res_junction = net.res_junction.p_bar.values
     res_pipe = net.res_pipe.v_mean_m_per_s.values
