@@ -229,7 +229,7 @@ def test_connectivity_hydraulic(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_junction.p_bar.loc[[2, 5, 6]].values))
