@@ -190,7 +190,7 @@ def set_user_pf_options(net, reset=False, **kwargs):
     :type net: pandapipesNet
     :param reset: Specifies whether the user_pf_options is removed before setting new options
     :type reset: bool, default False
-    :param kwargs: pipeflow options that shall be set, e.g. tol_v = 1e-7
+    :param kwargs: pipeflow options that shall be set, e.g. tol_m = 1e-7
     :return: No output
     """
     if reset or 'user_pf_options' not in net.keys():
@@ -217,7 +217,7 @@ def init_options(net, local_parameters):
         - **tol_p** (float): 1e-4 - The relative tolerance for the pressure. A result is accepted \
                                     if the relative error is smaller than this factor.
 
-        - **tol_v** (float): 1e-4 - The relative tolerance for the velocity. A result is accepted \
+        - **tol_m** (float): 1e-4 - The relative tolerance for the velocity. A result is accepted \
                                     if the relative error is smaller than this factor.
 
         - **tol_T** (float): 1e-4 - The relative tolerance for the temperature. A result is \
