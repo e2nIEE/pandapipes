@@ -18,6 +18,8 @@ numba_usage = [True, False]
 test_params = list(product(found_versions, numba_usage))
 # as of version 0.8.0, water and gas grids were separately created for convert_format testing
 minimal_version_two_nets = "0.8.0"
+from pandapipes.test.api.release_cycle.release_control_test_network import release_control_test_network_gas, \
+    release_control_test_network_water, release_control_test_network
 
 
 @pytest.mark.slow
@@ -25,9 +27,15 @@ minimal_version_two_nets = "0.8.0"
 def test_convert_format(pp_version, use_numba):
     if version.parse(pp_version) >= version.parse(minimal_version_two_nets):
         names = ["_gas", "_water"]
+        net_gas = release_control_test_network_gas()
+        net_water = release_control_test_network_water()
     else:
         names = [""]
+        net_old = release_control_test_network()
     for name in names:
+        if "_gas" in name: net_ref = net_gas
+        elif "_water" in name: net_ref = net_water
+        else: net_ref = net_old
         filename = os.path.join(folder, "example_%s%s.json" % (pp_version, name))
         if not os.path.isfile(filename):
             raise ValueError("File for %s grid of version %s does not exist" % (name, pp_version))
@@ -36,8 +44,7 @@ def test_convert_format(pp_version, use_numba):
         except:
             raise UserWarning("Can not load %s network saved in pandapipes version %s"
                               % (name, pp_version))
-        p_bar_old = net.res_junction.p_bar.copy()
-        v_mean_m_per_s_old = net.res_pipe.v_mean_m_per_s.copy()
+
         convert_format(net)
         try:
             pp.pipeflow(net, run_control="controller" in net and len(net.controller) > 0,
@@ -45,10 +52,13 @@ def test_convert_format(pp_version, use_numba):
         except:
             raise UserWarning("Can not run pipe flow in %s network "
                               "saved with pandapipes version %s" % (name, pp_version))
-        p_res = np.allclose(p_bar_old.values, net.res_junction.p_bar.values)
-        v_res = np.allclose(v_mean_m_per_s_old.values, net.res_pipe.v_mean_m_per_s.values)
+        p_bar_old = net.res_junction.p_bar.copy()
+        v_mean_m_per_s_old = net.res_pipe.v_mean_m_per_s.copy()
+
+        p_res = np.allclose(p_bar_old.values, net_ref.res_junction.p_bar.values)
+        v_res = np.allclose(v_mean_m_per_s_old.values, net_ref.res_pipe.v_mean_m_per_s.values)
         if not all([p_res, v_res]):
-            raise UserWarning("Pipe flow results mismatch in %s grid"
+            raise UserWarning("Pipe flow results mismatch in %s grid "
                               "with pandapipes version %s" % (name, pp_version))
 
 
