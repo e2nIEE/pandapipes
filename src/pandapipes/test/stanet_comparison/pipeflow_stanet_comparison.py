@@ -33,7 +33,7 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
     :rtype:
     """
     pandapipes.pipeflow(net, mode='hydraulics', stop_condition="tol", iter=100, tol_p=1e-7,
-                        tol_v=1e-7, friction_model=friction_model,
+                        tol_m=1e-7, friction_model=friction_model,
                         only_update_hydraulic_matrix=only_update_hydraulic_matrix, **kwargs)
 
     p_stanet = net.junction.p_stanet

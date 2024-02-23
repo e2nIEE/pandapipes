@@ -36,7 +36,7 @@ def test_circulation_pump_constant_mass(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "test_circ_pump_mass.csv"), sep=';')
 

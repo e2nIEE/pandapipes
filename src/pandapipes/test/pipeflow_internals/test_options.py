@@ -52,11 +52,11 @@ def test_set_user_pf_options(create_test_net, use_numba):
 
     # see if user arguments overrule user_pf_options, but other user_pf_options still have the
     # priority
-    pandapipes.pf.pipeflow_setup.set_user_pf_options(net, reset=True, tol_p=1e-6, tol_v=1e-6)
+    pandapipes.pf.pipeflow_setup.set_user_pf_options(net, reset=True, tol_p=1e-6, tol_m=1e-6)
     pandapipes.pipeflow(net, tol_p=1e-8, **necessary_options)
     assert net.user_pf_options['tol_p'] == 1e-6
     assert net._options['tol_p'] == 1e-8
-    assert net._options['tol_v'] == 1e-6
+    assert net._options['tol_m'] == 1e-6
 
 
 if __name__ == '__main__':

@@ -38,7 +38,7 @@ def test_pipe_velocity_results(use_numba):
         compressibility=1, der_compressibility=0, density=0.82752
     ))
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_v=1e-5,
+                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_m=1e-5,
                         use_numba=use_numba)
 
     v_1_sec_from = net.res_pipe.v_from_m_per_s
@@ -61,7 +61,7 @@ def test_pipe_velocity_results(use_numba):
         compressibility=1, der_compressibility=0, density=0.82752
     ))
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_v=1e-5,
+                        transient=False, nonlinear_method="automatic", tol_p=1e-5, tol_m=1e-5,
                         use_numba=use_numba)
 
     v_n_sec_from = net.res_pipe.v_from_m_per_s

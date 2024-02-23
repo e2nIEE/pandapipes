@@ -43,7 +43,7 @@ def test_hydraulic_only(simple_test_net, use_numba):
     """
     net = copy.deepcopy(simple_test_net)
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
+                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_m=1e-4,
                         use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "hydraulics.csv"), sep=';', header=0,

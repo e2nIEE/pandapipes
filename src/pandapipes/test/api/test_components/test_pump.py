@@ -79,7 +79,7 @@ def test_pump_from_regression_parameteres(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "test_pump.csv"), sep=';')
 
@@ -117,7 +117,7 @@ def test_pump_from_std_type(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "test_pump.csv"), sep=';')
 
@@ -155,7 +155,7 @@ def test_pump_bypass_on_reverse_flow(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     assert net.res_pump.deltap_bar.isin([0]).all()
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
@@ -185,7 +185,7 @@ def test_pump_bypass_high_vdot(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=30, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     assert net.res_pump.deltap_bar.isin([0]).all()
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])

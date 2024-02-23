@@ -160,7 +160,7 @@ def test_inservice_gas(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service, :].values))
@@ -193,7 +193,7 @@ def test_inservice_water(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service, :].values))
@@ -263,7 +263,7 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     pandapipes.create_junction(net, 1., 293.15)
@@ -276,7 +276,7 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
 
     pandapipes.create_sink(net, j, 0.1)
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     active_branches = get_lookup(net, "branch", "active_hydraulics")
@@ -291,7 +291,7 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[[7, 8, 10, 11]].values))
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=False)
 
 
@@ -611,19 +611,19 @@ def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
     ex2 = pandapipes.create_ext_grid(net, junction=3, p_bar=1)
     with pytest.raises(PipeflowNotConverged):
         net.ext_grid.at[ex2, 'in_service'] = False
-        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
     assert ~net.converged
     net.ext_grid.at[ex1, 'in_service'] = False
     net.ext_grid.at[ex2, 'in_service'] = True
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba, check_connectivity=True)
     assert not np.all(np.isnan(net.res_junction.p_bar.values))
     assert net.converged
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='all', iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+        pandapipes.pipeflow(net, mode='all', iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
     assert ~net.converged
 

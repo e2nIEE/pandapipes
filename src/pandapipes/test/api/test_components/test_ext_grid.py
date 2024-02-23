@@ -60,7 +60,7 @@ def test_p_type(use_numba):
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
     pandapipes.create_fluid_from_lib(net, name="water")
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
+                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_m=1e-4,
                         use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "ext_grid_p.csv"),
@@ -148,7 +148,7 @@ def test_t_type_tee(use_numba):
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=70, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode="all", use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -172,7 +172,7 @@ def test_t_type_tee(use_numba):
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=70, friction_model="nikuradse",
-                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_v=1e-4,
+                        transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_m=1e-4,
                         mode="all", use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
@@ -216,7 +216,7 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode="all", use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -245,7 +245,7 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", iter=3, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode="all", use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 

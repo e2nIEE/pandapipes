@@ -31,7 +31,7 @@ def test_heat_exchanger(use_numba):
 
     pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_v=1e-4, use_numba=use_numba)
+                        tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "heat_exchanger_test.csv"), sep=';',
                        header=0, keep_default_na=False)
