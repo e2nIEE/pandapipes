@@ -6,6 +6,7 @@ import os
 from pandapipes import pp_dir
 
 test_path = os.path.join(pp_dir, 'test')
+data_path = os.path.join(test_path, "data")
 tutorials_path = os.path.join(os.path.dirname(pp_dir), 'tutorials')
 from pandapipes.test.run_tests import *
 from pandapipes.test.test_imports import *
