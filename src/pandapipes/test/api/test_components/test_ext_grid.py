@@ -214,7 +214,7 @@ def test_t_type_tee_2zu_2ab(use_numba):
                                            alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    pandapipes.pipeflow(net, stop_condition="tol", iter=5, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, mode="all", use_numba=use_numba)
 
@@ -243,7 +243,7 @@ def test_t_type_tee_2zu_2ab(use_numba):
                                            alpha_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
-    pandapipes.pipeflow(net2, stop_condition="tol", iter=3, friction_model="nikuradse",
+    pandapipes.pipeflow(net2, stop_condition="tol", iter=5, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, mode="all", use_numba=use_numba)
 
