@@ -6,16 +6,15 @@ import copy
 import os
 
 import numpy as np
+import pandapipes
 import pandapower
 import pandas as pd
 import pytest
 from packaging import version
-
-import pandapipes
 from pandapipes import networks as nw, BranchComponent
 from pandapipes.component_models import NodeComponent
-from pandapipes.idx_node import node_cols
 from pandapipes.idx_branch import branch_cols
+from pandapipes.idx_node import node_cols
 from pandapipes.test.api.test_convert_format import found_versions, folder, minimal_version_two_nets
 
 
@@ -132,7 +131,7 @@ def create_net_changed_indices(base_net_is_wo_pumps):
     net = copy.deepcopy(base_net_is_wo_pumps)
 
     new_junction_indices = [55, 38, 84, 65, 83, 82, 28, 49, 99, 105]
-    new_pipe_indices = [30, 88, 72, 99,  0, 98, 70]
+    new_pipe_indices = [30, 88, 72, 99, 0, 98, 70]
     new_valve_indices = [19]
     new_pump_indices = [93]
     new_hxc_indices = [67]
