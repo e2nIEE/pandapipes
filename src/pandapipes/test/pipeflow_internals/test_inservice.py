@@ -391,7 +391,7 @@ def test_connectivity_heat3(complex_heat_connectivity_grid, use_numba):
 def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
 
-    net.pipe.in_service.loc[[7, 8]] = True
+    net.pipe.loc[[7, 8], 'in_service'] = True
     j_new = pandapipes.create_junction(net, 1, 320.15)
     pandapipes.create_pipe_from_parameters(net, 8, j_new, 0.1, 0.1, alpha_w_per_m2k=5)
 
@@ -406,7 +406,7 @@ def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
-    net.pipe.in_service.loc[[7, 8]] = True
+    net.pipe.loc[[7, 8], 'in_service'] = True
 
     j_from, j_to = pandapipes.create_junctions(net, 2, 1, 320.15)
 

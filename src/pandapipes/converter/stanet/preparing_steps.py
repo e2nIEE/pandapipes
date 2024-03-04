@@ -422,11 +422,11 @@ def connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata,
     connections["line_geo"] = pd.Series("", index=connections.index, dtype=object)
     main_connection = connections.CLIENTTYP == 2
     if np.any(main_connection):
-        connections.line_geo.loc[main_connection] = \
+        connections.loc[main_connection, 'line_geo'] = \
             pipe_geodata.loc[connections.SNUM.loc[main_connection].values].values
     house_connection = connections.CLIENTTYP == 38
     if np.any(house_connection):
-        connections.line_geo.loc[house_connection] = \
+        connections.loc[house_connection, 'line_geo'] = \
             house_pipe_geodata.loc[connections.SNUM.loc[house_connection].values].values
     connections["pos_on_line"] = connections.apply(dist_on_line, axis=1)
     # connections = connections.sort_values(["type", "SNUM"])
