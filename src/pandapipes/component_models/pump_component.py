@@ -179,11 +179,11 @@ class Pump(BranchWZeroLengthComponent):
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                     (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
                     res_table['compr_power_mw'].values[:] = \
-                        w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
+                        w_real_isentr * np.abs(mf_sum_int) / 1e6
             else:
                 vf_sum_int = branch_results["vf"][f:t]
                 pl = branch_results["pl"][f:t]
-                res_table['compr_power_mw'].values[:] = pl * P_CONVERSION * vf_sum_int / 10 ** 6
+                res_table['compr_power_mw'].values[:] = pl * P_CONVERSION * vf_sum_int / 1e6
 
     @classmethod
     def get_component_input(cls):
