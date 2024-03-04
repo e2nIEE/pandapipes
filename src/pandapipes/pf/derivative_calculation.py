@@ -197,28 +197,34 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     """
 
     # TODO: check if some formulas with constants can be shortened
-    m_corr = np.where(np.abs(m) < 0.00001, 0.00001, m)
+    b_term = np.zeros_like(m)
+    df_dm = np.zeros_like(m)
+    df_dlambda = np.zeros_like(m)
+    lambda_der = np.zeros_like(m)
+    pos = m != 0
 
     if friction_model == "colebrook":
-        b_term = 2.51 * eta * area / (m_corr * d * np.sqrt(lambda_pipe)) + k / (3.71 * d)
+        b_term[pos] = (2.51 * eta[pos] * area[pos] / (m[pos] * d[pos] * np.sqrt(lambda_pipe[pos])) +
+                       k[pos] / (3.71 * d[pos]))
 
-        df_dm = -2 * 2.51 * eta * area / (m_corr ** 2 * np.sqrt(lambda_pipe) * d) \
-                / (np.log(10) * b_term)
+        df_dm[pos] = -2 * 2.51 * eta[pos] * area[pos] / (m[pos] ** 2 * np.sqrt(lambda_pipe[pos]) * d[pos]) \
+                / (np.log(10) * b_term[pos])
 
-        df_dlambda = -0.5 * lambda_pipe ** (-3 / 2) - (2.51 * eta * area / (d * m_corr)) \
-                     * lambda_pipe ** (-3 / 2) / (np.log(10) * b_term)
+        df_dlambda[pos] = -0.5 * lambda_pipe[pos] ** (-3 / 2) - (2.51 * eta[pos] * area[pos] / (d[pos] * m[pos])) \
+                     * lambda_pipe[pos] ** (-3 / 2) / (np.log(10) * b_term[pos])
 
-        lambda_colebrook_der = df_dm / df_dlambda
+        lambda_der[pos] = df_dm[pos] / df_dlambda[pos]
 
-        return lambda_colebrook_der
+        return lambda_der
     elif friction_model == "swamee-jain":
-        param = k / (3.7 * d) + 5.74 * (np.abs(eta * area)) ** 0.9 / ((np.abs(m_corr * d)) ** 0.9)
+        param = (k[pos] / (3.7 * d[pos]) + 5.74 * (np.abs(eta[pos] * area[pos])) ** 0.9 /
+                 ((np.abs(m[pos] * d[pos])) ** 0.9))
         # 0.5 / (log(10) * log(param)^3 * param) * 5.166 * abs(eta)^0.9  / (abs(rho * d)^0.9
         # * abs(v_corr)^1.9)
-        lambda_swamee_jain_der = 0.5 * np.log(10) ** 2 / (np.log(param) ** 3) / param * 5.166 \
-                                 * np.abs(eta * area) ** 0.9 / ((np.abs(d) ** 0.9)
-                                                         * np.abs(m_corr) ** 1.9)
-        return lambda_swamee_jain_der
+        lambda_der[pos] = 0.5 * np.log(10) ** 2 / (np.log(param) ** 3) / param * 5.166 \
+                                 * np.abs(eta[pos] * area[pos]) ** 0.9 / ((np.abs(d[pos]) ** 0.9)
+                                                         * np.abs(m[pos]) ** 1.9)
+        return lambda_der
     else:
-        lambda_laminar_der = -(64 * eta * area) / (m_corr ** 2 * d)
-        return lambda_laminar_der
+        lambda_der[pos] = -(64 * eta[pos] * area[pos]) / (m[pos] ** 2 * d[pos])
+        return lambda_der
