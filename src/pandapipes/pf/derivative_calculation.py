@@ -3,7 +3,7 @@ import numpy as np
 from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DM_NODE, \
     FROM_NODE, TO_NODE, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
-    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, MINIT, MINIT_T
+    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE, MDOTINIT, MDOTINIT_T
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.constants import NORMAL_TEMPERATURE
@@ -32,9 +32,9 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     rho_n = fluid.get_density([NORMAL_TEMPERATURE] * len(branch_pit))
 
     lambda_, re = calc_lambda(
-        branch_pit[:, MINIT], eta, branch_pit[:, D],
+        branch_pit[:, MDOTINIT], eta, branch_pit[:, D],
         branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options, branch_pit[:, AREA])
-    der_lambda = calc_der_lambda(branch_pit[:, MINIT], eta,
+    der_lambda = calc_der_lambda(branch_pit[:, MDOTINIT], eta,
                                  branch_pit[:, D], branch_pit[:, K], friction_model, lambda_, branch_pit[:, AREA])
     branch_pit[:, RE] = re
     branch_pit[:, LAMBDA] = lambda_
@@ -82,7 +82,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     fluid = get_fluid(net)
     cp = get_branch_cp(net, fluid, node_pit, branch_pit)
-    m_init = branch_pit[:, MINIT_T]
+    m_init = branch_pit[:, MDOTINIT_T]
     from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
     t_init_i = node_pit[from_nodes, TINIT_NODE]
     t_init_i1 = branch_pit[:, TOUTINIT]

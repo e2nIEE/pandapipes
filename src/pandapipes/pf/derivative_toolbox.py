@@ -8,14 +8,14 @@ from numpy import linalg
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MINIT, TOUTINIT, FROM_NODE
+    MDOTINIT, TOUTINIT, FROM_NODE
 from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE
 
 
 def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
                                     height_difference, rho, rho_n):
-    m_init_abs = np.abs(branch_pit[:, MINIT])
-    m_init2 = m_init_abs * branch_pit[:, MINIT]
+    m_init_abs = np.abs(branch_pit[:, MDOTINIT])
+    m_init2 = m_init_abs * branch_pit[:, MDOTINIT]
     p_diff = p_init_i_abs - p_init_i1_abs
     const_height = rho * GRAVITATION_CONSTANT * height_difference / P_CONVERSION
     friction_term = np.divide(branch_pit[:, LENGTH] * branch_pit[:, LAMBDA], branch_pit[:, D]) + branch_pit[:, LC]
@@ -31,7 +31,7 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
 
     df_dm_nodes = np.ones_like(der_lambda)
 
-    load_vec_nodes = branch_pit[:, MINIT]
+    load_vec_nodes = branch_pit[:, MDOTINIT]
 
     return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
 
@@ -39,8 +39,8 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
 def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
                                   height_difference, comp_fact, der_comp, der_comp1, rho, rho_n):
     # Formulas for gas pressure loss according to laminar version
-    m_init_abs = np.abs(branch_pit[:, MINIT])
-    m_init2 = branch_pit[:, MINIT] * m_init_abs
+    m_init_abs = np.abs(branch_pit[:, MDOTINIT])
+    m_init2 = branch_pit[:, MDOTINIT] * m_init_abs
     p_diff = p_init_i_abs - p_init_i1_abs
     p_sum = p_init_i_abs + p_init_i1_abs
     p_sum_div = np.divide(1, p_sum)
@@ -62,7 +62,7 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
                - normal_term * comp_fact * m_init2 * friction_term * p_sum_div * tm
 
     df_dm_nodes = np.ones_like(lambda_)
-    load_vec_nodes = branch_pit[:, MINIT]
+    load_vec_nodes = branch_pit[:, MDOTINIT]
     return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
 
 

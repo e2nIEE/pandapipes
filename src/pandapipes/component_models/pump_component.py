@@ -12,7 +12,7 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
 from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import MINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
+from pandapipes.idx_branch import MDOTINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -104,7 +104,7 @@ class Pump(BranchWZeroLengthComponent):
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
         t_from = node_pit[from_nodes, TINIT_NODE]
         numerator_from = NORMAL_PRESSURE * t_from
-        v_mps = pump_branch_pit[:, MINIT] / pump_branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
+        v_mps = pump_branch_pit[:, MDOTINIT] / pump_branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
         if fluid.is_gas:
             # consider volume flow at inlet
             normfactor_from = numerator_from * fluid.get_property("compressibility", p_from) \

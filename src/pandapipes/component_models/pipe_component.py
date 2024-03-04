@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import p_correction_height_ai
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    MINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
+    MDOTINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
@@ -150,7 +150,7 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
-        pipe_pit[:, MINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
+        pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -227,7 +227,7 @@ class Pipe(BranchWInternalsComponent):
             p_nodes = int_p_lookup[:, 1][selected_indices_p_final]
             m_nodes = int_v_lookup[:, 1][selected_indices_v_final]
 
-            v_pipe_data = pipe_pit[m_nodes, MINIT] / fluid.get_density(NORMAL_TEMPERATURE) / pipe_pit[m_nodes, AREA]
+            v_pipe_data = pipe_pit[m_nodes, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / pipe_pit[m_nodes, AREA]
             p_node_data = node_pit[p_nodes, PINIT]
             t_node_data = node_pit[p_nodes, TINIT_NODE]
 

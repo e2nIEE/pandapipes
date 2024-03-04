@@ -8,7 +8,7 @@ from numpy import dtype
 from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pump_component import Pump
-from pandapipes.idx_branch import MINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
+from pandapipes.idx_branch import MDOTINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB
 
 
@@ -76,7 +76,7 @@ class Compressor(Pump):
         p_to_calc = p_from * compressor_array[:, cls.PRESSURE_RATIO]
         pl_abs = p_to_calc - p_from
 
-        m_mps = compressor_branch_pit[:, MINIT]
+        m_mps = compressor_branch_pit[:, MDOTINIT]
         pl_abs[m_mps < 0] = 0  # force pressure lift = 0 for reverse flow
 
         compressor_branch_pit[:, PL] = pl_abs

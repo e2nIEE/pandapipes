@@ -6,7 +6,7 @@ import numpy as np
 from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, MINIT, TOUTINIT, MINIT_T
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, MDOTINIT, TOUTINIT, MDOTINIT_T
 from pandapipes.idx_node import PINIT, TINIT
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic, calculate_derivatives_thermal
@@ -89,7 +89,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
                               "results are available.")
         else:
             net["_pit"]["node"][:, PINIT] = sol_vec[:len(node_pit)]
-            net["_pit"]["branch"][:, MINIT] = sol_vec[len(node_pit):]
+            net["_pit"]["branch"][:, MDOTINIT] = sol_vec[len(node_pit):]
 
     if calculate_hydraulics:
         reduce_pit(net, node_pit, branch_pit, mode="hydraulics")
@@ -225,14 +225,14 @@ def solve_hydraulics(net):
             net, branch_pit, node_pit, branch_lookups, options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
-    m_init_old = branch_pit[:, MINIT].copy()
+    m_init_old = branch_pit[:, MDOTINIT].copy()
     p_init_old = node_pit[:, PINIT].copy()
 
     x = spsolve(jacobian, epsilon)
-    branch_pit[:, MINIT] += x[len(node_pit):]
+    branch_pit[:, MDOTINIT] += x[len(node_pit):]
     node_pit[:, PINIT] += x[:len(node_pit)] * options["alpha"]
 
-    return branch_pit[:, MINIT], node_pit[:, PINIT], m_init_old, p_init_old, epsilon
+    return branch_pit[:, MDOTINIT], node_pit[:, PINIT], m_init_old, p_init_old, epsilon
 
 
 def solve_temperature(net):
@@ -255,11 +255,11 @@ def solve_temperature(net):
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
     # to_node for temperature calculation
-    branch_pit[:, MINIT_T] = branch_pit[:, MINIT]
+    branch_pit[:, MDOTINIT_T] = branch_pit[:, MDOTINIT]
     branch_pit[:, FROM_NODE_T] = branch_pit[:, FROM_NODE]
     branch_pit[:, TO_NODE_T] = branch_pit[:, TO_NODE]
-    mask = branch_pit[:, MINIT] < 0
-    branch_pit[mask, MINIT_T] = -branch_pit[mask, MINIT]
+    mask = branch_pit[:, MDOTINIT] < 0
+    branch_pit[mask, MDOTINIT_T] = -branch_pit[mask, MDOTINIT]
     branch_pit[mask, FROM_NODE_T] = branch_pit[mask, TO_NODE]
     branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
 
@@ -313,7 +313,7 @@ def set_damping_factor(net, niter, error):
 
 def finalize_iteration(net, niter, error_1, error_2, residual_norm, nonlinear_method, tol_1, tol_2,
                        tol_res, vals_1_old, vals_2_old, hydraulic_mode=True):
-    col1, col2 = (PINIT, MINIT) if hydraulic_mode else (TINIT, TOUTINIT)
+    col1, col2 = (PINIT, MDOTINIT) if hydraulic_mode else (TINIT, TOUTINIT)
 
     # Control of damping factor
     if nonlinear_method == "automatic":

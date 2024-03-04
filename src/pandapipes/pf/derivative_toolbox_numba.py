@@ -4,7 +4,7 @@ from numpy import linalg
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MINIT, FROM_NODE, TO_NODE
+    MDOTINIT, FROM_NODE, TO_NODE
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
 try:
@@ -27,8 +27,8 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
     df_dm_nodes = np.ones_like(der_lambda)
 
     for i in range(le):
-        m_init_abs = np.abs(branch_pit[i][MINIT])
-        m_init2 = m_init_abs * branch_pit[i][MINIT]
+        m_init_abs = np.abs(branch_pit[i][MDOTINIT])
+        m_init2 = m_init_abs * branch_pit[i][MDOTINIT]
         p_diff = p_init_i_abs[i] - p_init_i1_abs[i]
         const_height = rho[i] * GRAVITATION_CONSTANT * height_difference[i] / P_CONVERSION
         friction_term = np.divide(branch_pit[i][LENGTH] * branch_pit[i][LAMBDA], branch_pit[i][D]) \
@@ -40,7 +40,7 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
 
         load_vec[i] = p_diff + branch_pit[i][PL] + const_height - const_term * m_init2 * friction_term
 
-        load_vec_nodes[i] = branch_pit[i][MINIT]
+        load_vec_nodes[i] = branch_pit[i][MDOTINIT]
     return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
@@ -61,8 +61,8 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
     # Formulas for gas pressure loss according to laminar version
     for i in range(le):
         # compressibility settings
-        m_init_abs = np.abs(branch_pit[i][MINIT])
-        m_init2 = branch_pit[i][MINIT] * m_init_abs
+        m_init_abs = np.abs(branch_pit[i][MDOTINIT])
+        m_init2 = branch_pit[i][MDOTINIT] * m_init_abs
         p_diff = p_init_i_abs[i] - p_init_i1_abs[i]
         p_sum = p_init_i_abs[i] + p_init_i1_abs[i]
         p_sum_div = np.divide(1, p_sum)
@@ -86,7 +86,7 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         df_dm[i] = normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_init_abs * friction_term \
             + np.divide(der_lambda[i] * branch_pit[i][LENGTH] * m_init2, branch_pit[i][D]))
 
-        load_vec_nodes[i] = branch_pit[i][MINIT]
+        load_vec_nodes[i] = branch_pit[i][MDOTINIT]
     return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
