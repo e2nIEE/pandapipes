@@ -7,7 +7,6 @@ import numpy as np
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import TOUTINIT, FROM_NODE, TO_NODE
 from pandapipes.idx_node import TINIT, PINIT, PAMB
-from pandapipes.properties.fluids import get_fluid
 
 
 def calculate_mixture_viscosity(components_viscosities, components_molar_proportions,

@@ -8,7 +8,6 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACT
 from pandapipes.idx_node import TINIT as TINIT_NODE
 
 from pandapipes.pf.pipeflow_setup import add_table_lookup
-from pandapipes.properties.fluids import get_fluid
 
 try:
     import pandaplan.core.pplog as logging
