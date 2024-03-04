@@ -163,7 +163,6 @@ def get_branch_density(net, fluid, node_pit, branch_pit):
         to_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * to_p,
                            t_to * NORMAL_PRESSURE * fluid.get_compressibility(to_p))
     else:
-        fluid = get_fluid(net)
         from_rho = fluid.get_density(t_from)
         to_rho = fluid.get_density(t_to)
     rho = (from_rho + to_rho) / 2
