@@ -7,6 +7,7 @@ from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT 
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.properties_toolbox import get_branch_density
 
 try:
     from numba import jit
@@ -60,7 +61,7 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     fluid = get_fluid(net)
     t0 = node_pit[from_nodes, TINIT_NODE]
     t1 = node_pit[to_nodes, TINIT_NODE]
-    vf = branch_pit[:, MINIT] / fluid.get_density((t0 + t1) / 2)
+    vf = branch_pit[:, MINIT] / get_branch_density(net,fluid, node_pit, branch_pit)
     v = branch_pit[:, MINIT] / fluid.get_density(NORMAL_TEMPERATURE) / branch_pit[:, AREA]
     return v, branch_pit[:, MINIT], vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
         branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
