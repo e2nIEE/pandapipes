@@ -109,8 +109,8 @@ def calc_lambda_nikuradse_comp_numba(m, d, k, eta, area):
     lambda_nikuradse = np.empty_like(m)
     lambda_laminar = np.zeros_like(m)
     re = np.empty_like(m)
-    for i in range(len(m)):
-        m_abs = np.abs(m[i])
+    for i, mi in enumerate(m):
+        m_abs = np.abs(mi)
         re[i] = np.divide(m_abs * d[i], eta[i] * area[i])
         if re[i] != 0:
             lambda_laminar[i] = np.divide(64, re[i])
