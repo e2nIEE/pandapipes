@@ -1,0 +1,7 @@
+#Verein deutscher Ingenieure VDI e.V., ed. (2019), VDI-Wärmeatlas , Springer , Berlin Heidelberg
+# critical temperature [K]
+33.19
+# critical pressure [bar]
+13.15
+# ascentric factor []
+-0.219

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,8 +10,9 @@ from pandas.testing import assert_frame_equal
 from pandapipes.test.multinet.test_control_multinet import get_gas_example, get_power_example_simple
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
 from pandapipes.multinet import MultiNet
-from pandapower.toolbox import nets_equal as nets_equal_pandapower
+from pandapower import nets_equal as nets_equal_pandapower
 from pandapipes.toolbox import nets_equal
+
 
 # @pytest.fixture()
 def load_net():

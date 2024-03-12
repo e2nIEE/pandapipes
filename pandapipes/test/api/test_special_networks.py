@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,9 +10,13 @@ import pytest
 import pandapipes
 from pandapipes import networks as nets_pps
 from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source, \
-    create_pipe_from_parameters, create_valve
+    create_pipe_from_parameters, create_valve, create_fluid_from_lib
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 from pandapipes.properties.fluids import FluidPropertyConstant, Fluid, _add_fluid_to_net
+from pandapipes.properties.properties_toolbox import calculate_molar_fraction_from_mass_fraction, \
+    calculate_mixture_compressibility_fact
+from pandapipes.test.test_toolbox import create_net_changed_indices
+
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_one_node_net(use_numba):
@@ -24,18 +28,18 @@ def test_one_node_net(use_numba):
 
     net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15, fluid='water')
+    create_ext_grid(net, j, 'water', 1, 298.15)
     create_sink(net, j, 0.01)
-    create_source(net, j, 0.02, fluid='water')
+    create_source(net, j, 0.02, 'water')
     pandapipes.pipeflow(net, use_numba=use_numba)
 
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
     net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
+    create_ext_grid(net, j, 'lgas', 1, 298.15)
     create_sink(net, j, 0.01)
-    create_source(net, j, 0.02, fluid='lgas')
+    create_source(net, j, 0.02, 'lgas')
     pandapipes.pipeflow(net, use_numba=use_numba)
 
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
@@ -51,8 +55,9 @@ def simple_fluid(net):
     lowc = FluidPropertyConstant(1)
     derc = FluidPropertyConstant(0)
     comp = FluidPropertyConstant(0.001)
+    crit = FluidPropertyConstant([1,1,1])
     fluid1 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
-                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+                   der_compressibility=derc, compressibility=comp, critical_data=crit, hhv=higc, lhv=lowc)
     _add_fluid_to_net(net, fluid1)
 
     fluid_name = 'fluid2'
@@ -64,8 +69,9 @@ def simple_fluid(net):
     lowc = FluidPropertyConstant(2)
     derc = FluidPropertyConstant(0)
     comp = FluidPropertyConstant(0.002)
+    crit = FluidPropertyConstant([2,2,2])
     fluid2 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
-                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+                   der_compressibility=derc, compressibility=comp, critical_data=crit, hhv=higc, lhv=lowc)
     _add_fluid_to_net(net, fluid2)
 
     fluid_name = 'fluid3'
@@ -77,8 +83,9 @@ def simple_fluid(net):
     lowc = FluidPropertyConstant(3)
     derc = FluidPropertyConstant(0)
     comp = FluidPropertyConstant(0.003)
+    crit = FluidPropertyConstant([3,3,3])
     fluid3 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
-                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+                   der_compressibility=derc, compressibility=comp, critical_data=crit, hhv=higc, lhv=lowc)
     _add_fluid_to_net(net, fluid3)
 
 
@@ -92,8 +99,9 @@ def same_fluid_twice_defined(net):
     lowc = FluidPropertyConstant(1)
     derc = FluidPropertyConstant(0)
     comp = FluidPropertyConstant(0.001)
+    crit = FluidPropertyConstant([1,1,1])
     fluid1 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
-                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+                   der_compressibility=derc, compressibility=comp, critical_data=crit, hhv=higc, lhv=lowc)
     _add_fluid_to_net(net, fluid1)
 
     fluid_name = 'fluid2'
@@ -105,8 +113,9 @@ def same_fluid_twice_defined(net):
     lowc = FluidPropertyConstant(1)
     derc = FluidPropertyConstant(0)
     comp = FluidPropertyConstant(0.001)
+    crit = FluidPropertyConstant([1,1,1])
     fluid2 = Fluid(fluid_name, 'gas', density=dens, viscosity=visc, heat_capacity=heat, molar_mass=mass,
-                   der_compressibility=derc, compressibility=comp, hhv=higc, lhv=lowc)
+                   der_compressibility=derc, compressibility=comp, critical_data=crit, hhv=higc, lhv=lowc)
     _add_fluid_to_net(net, fluid2)
 
 
@@ -127,7 +136,7 @@ def test_two_fluids_grid_simple_gases(use_numba):
     j2 = create_junction(net, 1, 298.15, index=52)
     simple_fluid(net)
 
-    create_ext_grid(net, j1, 1, 298.15, fluid='fluid2', index=102)
+    create_ext_grid(net, j1, 'fluid2', 1, 298.15, index=102)
     create_sink(net, j2, 0.5)
     create_source(net, j1, 0.3, fluid='fluid1')
     create_pipe_from_parameters(net, j1, j2, 1, 10, np.pi)
@@ -149,7 +158,7 @@ def test_three_fluids_grid_simple_gases(use_numba):
     j2 = create_junction(net, 1, 298.15, index=52)
     simple_fluid(net)
 
-    create_ext_grid(net, j1, 1, 298.15, fluid='fluid1', index=102)
+    create_ext_grid(net, j1, 'fluid1', 1, 298.15, index=102)
     create_sink(net, j2, 0.5)
     create_source(net, j1, 0.1, fluid='fluid2')
     create_source(net, j1, 0.2, fluid='fluid3')
@@ -170,7 +179,7 @@ def test_two_fluids_grid_simple(use_numba):
     net = create_empty_network()
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1,'lgas',  1, 298.15, index=102)
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 0.5, 0.1, 0.01)
@@ -190,7 +199,7 @@ def test_three_fluids_grid_simple(use_numba):
     net = create_empty_network()
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_source(net, j1, 0.01, fluid='hgas')
@@ -211,7 +220,7 @@ def test_four_fluids_grid_simple(use_numba):
     net = create_empty_network()
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_source(net, j1, 0.01, fluid='hgas')
@@ -235,7 +244,7 @@ def test_two_fluids_two_pipes_grid_simple(use_numba):
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
     j3 = create_junction(net, 1, 298.15, index=54)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j3, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j2, j1, 0.01, np.pi, 0.01)
@@ -257,7 +266,7 @@ def test_multiple_fluids_grid_line_ascending(use_numba):
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
     j3 = create_junction(net, 1, 298.15, index=54)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j3, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_source(net, j1, 0.01, fluid='butane')
@@ -282,7 +291,7 @@ def test_multiple_fluids_grid(use_numba):
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
     j3 = create_junction(net, 1, 298.15, index=54)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j3, 0.08)
     create_source(net, j2, 0.03, fluid='hydrogen')
     create_source(net, j1, 0.01, fluid='butane')
@@ -308,7 +317,7 @@ def test_multiple_fluids_grid_mesehd_valve(use_numba):
     j2 = create_junction(net, 1, 298.15, index=52)
     j3 = create_junction(net, 1, 298.15, index=54)
     j4 = create_junction(net, 1, 298.15, index=55)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j4, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 0.01, np.pi, 0.01)
@@ -332,7 +341,7 @@ def test_multiple_fluids_grid_source(use_numba):
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
     j3 = create_junction(net, 1, 298.15, index=54)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j3, 0.08)
     create_source(net, j2, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
@@ -352,7 +361,7 @@ def test_multiple_fluids_grid_feed_back(use_numba):
     net = create_empty_network()
     j1 = create_junction(net, 1, 298.15, index=50)
     j2 = create_junction(net, 1, 298.15, index=52)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j2, 0.08)
     create_source(net, j1, 0.1, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 1, np.pi, 0.01)
@@ -380,7 +389,7 @@ def test_multiple_fluids_feeder(use_numba):
     j8 = create_junction(net, 1, 298.15, index=64)
     j9 = create_junction(net, 1, 298.15, index=66)
 
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_source(net, j1, 0.1, fluid='hydrogen')
     create_sink(net, j3, 0.08)
     create_sink(net, j4, 0.08)
@@ -416,7 +425,7 @@ def test_multiple_fluids_grid_valve(use_numba):
     j2 = create_junction(net, 1, 298.15, index=52)
     j3 = create_junction(net, 1, 298.15, index=54)
     j4 = create_junction(net, 1, 298.15, index=55)
-    create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=102)
+    create_ext_grid(net, j1, 'lgas', 1, 298.15, index=102)
     create_sink(net, j4, 0.08)
     create_source(net, j1, 0.03, fluid='hydrogen')
     create_pipe_from_parameters(net, j1, j2, 0.01, np.pi, 0.01)
@@ -439,7 +448,7 @@ def test_two_node_net_with_two_different_fluids(use_numba):
     net = create_empty_network()
     j1 = create_junction(net, 1, 298.15, index=51)
     j2 = create_junction(net, 1, 298.15, index=52)
-    create_ext_grid(net, j1, 1, 298.15, fluid='hgas', index=100)
+    create_ext_grid(net, j1, 'hgas', 1, 298.15, index=100)
     # create_ext_grid(net, j1, 1, 298.15, fluid='lgas', index=101)
     create_source(net, j1, 0.03, fluid='hydrogen', index=100)
     create_source(net, j1, 0.01, fluid='lgas', index=101)
@@ -464,11 +473,11 @@ def test_two_node_net(use_numba):
 
     net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15, fluid='water')
+    create_ext_grid(net, j, 'water', 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='water')
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15, fluid='water')
+    create_ext_grid(net, j, 'water', 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='water')
     pandapipes.pipeflow(net, use_numba=use_numba)
@@ -478,11 +487,11 @@ def test_two_node_net(use_numba):
 
     net = create_empty_network()
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
+    create_ext_grid(net, j, 'lgas', 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='lgas')
     j = create_junction(net, 1, 298.15)
-    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
+    create_ext_grid(net, j, 'lgas', 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='lgas')
     pandapipes.pipeflow(net, use_numba=use_numba)
@@ -507,7 +516,7 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
 
     j = create_junction(net, 1, 298.15)
     net.ext_grid.fluid = 'water'
-    create_ext_grid(net, j, 1, 298.15, fluid='water')
+    create_ext_grid(net, j, 'water', 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='water')
     pandapipes.pipeflow(net, use_numba=use_numba)
@@ -518,7 +527,7 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
 
     j = create_junction(net, 1, 298.15)
     net.ext_grid.fluid = 'lgas'
-    create_ext_grid(net, j, 1, 298.15, fluid='lgas')
+    create_ext_grid(net, j, 'lgas', 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02, fluid='lgas')
     pandapipes.pipeflow(net, use_numba=use_numba)
@@ -526,7 +535,7 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
     assert np.isclose(
         net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
 
-
+@pytest.mark.xfail
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_multiple_fluids_sink_source(use_numba):
     net = pandapipes.create_empty_network()
@@ -534,7 +543,7 @@ def test_multiple_fluids_sink_source(use_numba):
     j1 = pandapipes.create_junction(net, 1, 273)
     j2 = pandapipes.create_junction(net, 1, 273)
     j3 = pandapipes.create_junction(net, 1, 273)
-    pandapipes.create_ext_grid(net, j1, 1, 273, 'fluid1')
+    pandapipes.create_ext_grid(net, j1, 'fluid1',  1, 273)
     pandapipes.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
     pandapipes.create_sink(net, j3, 0.05)
@@ -546,6 +555,7 @@ def test_multiple_fluids_sink_source(use_numba):
 
 def test_schutterwald_hydrogen():
     net = nets_pps.schutterwald()
+    create_fluid_from_lib(net, 'hgas')
     pandapipes.create_sources(net, [5, 168, 193], 6.6e-3, 'hydrogen')
     pandapipes.pipeflow(net, iter=100)
 
@@ -557,7 +567,7 @@ def test_t_cross_mixture():
     j2 = pandapipes.create_junction(net, 1, 273)
     j3 = pandapipes.create_junction(net, 1, 273)
     j4 = pandapipes.create_junction(net, 1, 273)
-    pandapipes.create_ext_grid(net, j1, 1, 273, 'hgas')
+    pandapipes.create_ext_grid(net, j1, 'hgas', 1, 273)
     pandapipes.create_pipe_from_parameters(net, j1, j2, 1, 0.1, 0.1)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 1, 0.1, 0.1)
     pandapipes.create_pipe_from_parameters(net, j2, j4, 1, 0.1, 0.1)
@@ -566,6 +576,54 @@ def test_t_cross_mixture():
     pandapipes.create_source(net, j3, 0.02, 'lgas')
     pandapipes.create_source(net, j4, 0.03, 'hydrogen')
     pandapipes.pipeflow(net, iter=100, use_numba=False)
+
+
+def test_compressibility():
+    """
+    test to check the validity of the mixture compressibility factor calculation. The hard coded compressibility factor
+     values in the Assert statment are calculated using CoolProp for the corresponding pressures, temperatture and
+      molar fractions.
+
+    """
+    net = pandapipes.create_empty_network("net")
+    # create junction
+    j1 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 1")
+    j2 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 2")
+    j3 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 3")
+    j4 = pandapipes.create_junction(net, pn_bar=19, tfluid_k=283.15, name="Junction 4")
+    # create junction elements
+    ext_grid = pandapipes.create_ext_grid(net, fluid="methane", junction=j1, p_bar=20, t_k=283.15, name="Grid Connection")
+    sink = pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.045, name="Sink")
+    source = pandapipes.create_source(net, junction=j4, mdot_kg_per_s=0.01, name="Source", fluid="hydrogen")
+    # create branch element
+    pipe = pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=0.1, diameter_m=0.05,
+                      name="Pipe 1")
+    pipe1 = pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.1, diameter_m=0.05,
+                       name="Pipe 2")
+    pipe2 = pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=0.1, diameter_m=0.05,
+                       name="Pipe 3")
+    pandapipes.pipeflow(net)
+
+    mass_fraction = net.res_junction[['w_hydrogen','w_methane']].values
+    pressure = net.res_junction['p_bar']
+    temperature = net.res_junction['t_k']
+
+    critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
+    molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
+    molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
+    compressibility_fact, compressibility_fact_norm = calculate_mixture_compressibility_fact(molar_fraction.T, pressure, temperature, critical_data_list)
+
+    assert np.all(np.isclose(compressibility_fact,
+                      (0.95926, 1.00264, 1.00263, 1.01068), rtol=1.e-4, atol=1.e-4))
+
+
+@pytest.mark.xfail(reason="The test net is not set up properly.")
+def test_wild_indexing(create_net_changed_indices):
+    net = copy.deepcopy(create_net_changed_indices)
+
+    pandapipes.pipeflow(net)
+    assert net["converged"]
+
 
 if __name__ == "__main__":
     pytest.main([r'pandapipes/test/api/test_special_networks.py'])

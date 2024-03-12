@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -15,7 +15,7 @@ except ImportError:
     IGRAPH_INSTALLED = False
 
 
-@pytest.mark.skipif(IGRAPH_INSTALLED is False, reason="Requires python-igraph.")
+@pytest.mark.skipif(IGRAPH_INSTALLED is False, reason="Requires igraph.")
 def test_create_generic_coordinates_igraph(base_net_is_with_pumps):
     net = copy.deepcopy(base_net_is_with_pumps)
     net.junction_geodata.drop(net.junction_geodata.index, inplace=True)

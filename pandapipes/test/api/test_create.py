@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -245,6 +245,18 @@ def test_create_pump_from_parameters(create_empty_net):
         pandapipes.create_pump_from_parameters(net, 8, 9, "pump1", pressure_list=[0, 1, 2, 3],
                                                flowrate_list=[0, 1, 2, 3], reg_polynomial_degree=1,
                                                geodata=[(0, 1), (1, 1), (2, 2)])
+
+
+def test_create_mass_storage(create_empty_net):
+    net = copy.deepcopy(create_empty_net)
+    pandapipes.create_junction(net, 1, 293, index=8)
+    pandapipes.create_junction(net, 1, 293, index=9)
+    pandapipes.create_mass_storage(net, 9, mdot_kg_per_s=0.1, index=2)
+
+    with pytest.raises(UserWarning):
+        pandapipes.create_mass_storage(net, junction=10, mdot_kg_per_s=0.1)
+    with pytest.raises(UserWarning):
+        pandapipes.create_mass_storage(net, junction=9, mdot_kg_per_s=0.1, index=2)
 
 
 def test_create_junctions(create_empty_net):

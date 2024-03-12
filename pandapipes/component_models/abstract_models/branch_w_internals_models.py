@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,7 @@ from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table
 from pandapipes.properties.fluids import get_fluid, get_mixture_density
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -39,7 +39,7 @@ class BranchWInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def calculate_temperature_lift(cls, net, pipe_pit, node_pit):
+    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
         raise NotImplementedError
 
     @classmethod
@@ -236,7 +236,7 @@ class BranchWInternalsComponent(BranchComponent):
         return np.array(net[cls.table_name()].sections.values)
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         raise NotImplementedError
 
     @classmethod

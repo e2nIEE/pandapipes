@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,7 +7,7 @@ import copy
 import numpy as np
 import pandas as pd
 from numpy import dtype
-from pandapipes import __version__
+from pandapipes import __version__, __format_version__
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.component_models.ext_grid_component import ExtGrid
@@ -16,7 +16,7 @@ from pandapower.auxiliary import ADict
 from pandas import Index
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -80,6 +80,7 @@ def get_basic_net_entries():
         "OPF_converged": False,
         "name": "",
         "version": __version__,
+        "format_version": __format_version__,
         "node_list": [],
         "node_element_list": [],
         "branch_list": []}

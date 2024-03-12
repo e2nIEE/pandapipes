@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -414,8 +414,8 @@ def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
-    run_control(mn, ctrl_variables={"power": {"run": runpp_with_mark},
-                                    "gas": {"run": pipeflow_with_mark}})
+    run_control(mn, ctrl_variables={"nets": {"power": {"run": runpp_with_mark},
+                                             "gas": {"run": pipeflow_with_mark}}})
 
     assert net_power["mark"] == "runpp"
     assert net_gas["mark"] == "pipeflow"

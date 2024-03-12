@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,11 +6,11 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
+from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -36,6 +36,10 @@ class ExtGrid(NodeElementComponent):
         return Junction
 
     @classmethod
+    def active_identifier(cls):
+        return "in_service"
+
+    @classmethod
     def node_element_relevant(cls, net):
         return True
 
@@ -48,7 +52,8 @@ class ExtGrid(NodeElementComponent):
         t_mask = np.where(np.isin(ext_grids.type.values, ["t"]))
         ext_grid_pit[p_mask, net._idx_node_element['NODE_ELEMENT_TYPE']] = net._idx_node_element['P']
         ext_grid_pit[t_mask, net._idx_node_element['NODE_ELEMENT_TYPE']] = net._idx_node_element['T']
-        ext_grid_pit[:, net._idx_node_element['MINIT']] = 0.005
+        ext_grid_pit[p_mask, net._idx_node_element['MINIT']] = 0.005
+        ext_grid_pit[t_mask, net._idx_node_element['ACTIVE']] = False
         return ext_grid_pit
 
     @classmethod
@@ -62,49 +67,29 @@ class ExtGrid(NodeElementComponent):
         :type node_pit:
         :return: No Output.
         """
-
         ext_grids = net[cls.table_name()]
-        ext_grids = ext_grids[ext_grids.in_service.values]
+        ext_grids = ext_grids[ext_grids[cls.active_identifier()].values]
 
-        p_mask = np.where(np.isin(ext_grids.type.values, ["p", "pt"]))
-        press = ext_grids.p_bar.values[p_mask]
-        junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        junction = cls.get_connected_junction(net)
-        juncts_p, press_sum, number = _sum_by_group(
-            get_net_option(net, "use_numba"), junction.values[p_mask], press,
-            np.ones_like(press, dtype=np.int32))
-        index_p = junction_idx_lookups[juncts_p]
-        node_pit[index_p, net['_idx_node']['PINIT']] = press_sum / number
-        node_pit[index_p, net['_idx_node']['NODE_TYPE']] = net['_idx_node']['P']
-        node_pit[index_p, net['_idx_node']['EXT_GRID_OCCURENCE']] += number
+        junction = ext_grids[cls.get_node_col()].values
+        press = ext_grids.p_bar.values
+        set_fixed_node_entries(net, node_pit, junction, ext_grids.type.values, press,
+                               ext_grids.t_k.values, cls.get_connected_node_type())
 
-        t_mask = np.where(np.isin(ext_grids.type.values, ["t", "pt"]))
-        t_k = ext_grids.t_k.values[t_mask]
-        juncts_t, t_sum, number = _sum_by_group(get_net_option(net, "use_numba"),
-                                                junction.values[t_mask], t_k,
-                                                np.ones_like(t_k, dtype=np.int32))
-        index = junction_idx_lookups[juncts_t]
-        node_pit[index, net['_idx_node']['TINIT']] = t_sum / number
-        node_pit[index, net['_idx_node']['NODE_TYPE_T']] = net['_idx_node']['T']
-        node_pit[index, net['_idx_node']['EXT_GRID_OCCURENCE_T']] += number
-
-        net["_lookups"]["ext_grid"] = \
-            np.array(list(set(np.concatenate([net["_lookups"]["ext_grid"], index_p])))) if \
-                "ext_grid" in net['_lookups'] else index_p
         return ext_grids, press
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, nodes_connected, branches_connected):
+    def extract_results(cls, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
+        :param branch_results:
+        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
         :param options:
         :type options:
-        :param node_name:
-        :type node_name:
+        :param mode:
+        :type mode:
         :return: No Output.
         """
 
@@ -114,16 +99,13 @@ class ExtGrid(NodeElementComponent):
             return
 
         res_table = net["res_" + cls.table_name()]
-
+        #TODO: Check why pit and active pit lead to different results
         f, t = get_lookup(net, "node_element", "from_to")[cls.table_name()]
-        fa, ta = get_lookup(net, "node_element", "from_to_active")[cls.table_name()]
 
-        node_element_pit = net["_active_pit"]["node_element"][fa:ta, :]
-        node_elements_active = get_lookup(net, "node_element", "active")[f:t]
-
+        node_element_pit = net["_pit"]["node_element"][f:t]
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)
-        res_table["mdot_kg_per_s"].values[node_elements_active] = \
+        res_table["mdot_kg_per_s"].values[:] = \
             cls.sign() * node_element_pit[:, net['_idx_node_element']['MINIT']]
         return res_table, ext_grids
 
@@ -131,6 +113,10 @@ class ExtGrid(NodeElementComponent):
     def get_connected_junction(cls, net):
         junction = net[cls.table_name()].junction
         return junction
+
+    @classmethod
+    def get_node_col(cls):
+        return "junction"
 
     @classmethod
     def get_component_input(cls):

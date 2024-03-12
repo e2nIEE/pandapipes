@@ -82,8 +82,8 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
         else:
             w = get_lookup(net, 'branch', 'w')
             mf = branch_pit[:, w]
-            comp_fact = get_mixture_compressibility(net, p_m, mf)
-            der_comp_fact = get_mixture_der_cmpressibility(net, p_m, mf)
+            comp_fact = get_mixture_compressibility(net, p_m, mf, branch_pit[:, net['_idx_branch']['TINIT']])
+            der_comp_fact = get_mixture_der_cmpressibility(net, p_m, mf, branch_pit[:, net['_idx_branch']['TINIT']])
             der_comp = der_comp_fact * der_p_m
             der_comp1 = der_comp_fact * der_p_m1
         # TODO: this might not be required
@@ -195,7 +195,7 @@ def calc_der_lambda(v, eta, rho, d, k, friction_model, lambda_pipe):
     """
 
     # TODO: check if some formulas with constants can be shortened
-    v_corr = np.where(v == 0, 0.00001, v)
+    v_corr = np.where(np.abs(v) < 0.00001, 0.00001, v)
 
     if friction_model == "colebrook":
         b_term = 2.51 * eta / (rho * d * np.sqrt(lambda_pipe) * v_corr) + k / (3.71 * d)

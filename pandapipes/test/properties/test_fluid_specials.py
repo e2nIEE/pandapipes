@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -44,8 +44,10 @@ def test_property_adaptation():
 
     pandapipes.create_constant_property(net, "hgas", "density", 1, overwrite=True, warn_on_duplicates=False)
     density_new = pandapipes.create_constant_property(net, "hgas", "density", 1, overwrite=False)
-    assert fluid.all_properties["density"].equals(density_new)
-    assert fluid.all_properties["density"] != density_new
+    # '==' compares the attributes
+    assert fluid.all_properties["density"] == density_new
+    # 'is' compares the object address
+    assert fluid.all_properties["density"] is not  density_new
 
 
 def test_fluid_exceptions():

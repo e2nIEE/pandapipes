@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 import os
@@ -29,7 +29,7 @@ def test_valve(use_numba):
     j6 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=4)
     j7 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=8)
 
-    pandapipes.create_ext_grid(net, j0, 5, 283.15, fluid='lgas', type="p")
+    pandapipes.create_ext_grid(net, j0, 'lgas', 5, 283.15, type="p")
 
     pandapipes.create_pipe_from_parameters(net, j0, j1, diameter_m=.1, k_mm=1, length_km=1.)
     pandapipes.create_pipe_from_parameters(net, j3, j4, diameter_m=.1, k_mm=1, length_km=.5)

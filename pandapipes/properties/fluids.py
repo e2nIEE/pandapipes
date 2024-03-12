@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -8,14 +8,16 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 
+
 from pandapipes import pp_dir
 from pandapipes.properties.properties_toolbox import calculate_mixture_density, calculate_mixture_viscosity, \
     calculate_mixture_molar_mass, calculate_molar_fraction_from_mass_fraction, calculate_mixture_heat_capacity, \
-    calculate_mixture_compressibility, calculate_mixture_calorific_values, calculate_mass_fraction_from_molar_fraction
+    calculate_mixture_compressibility, calculate_mixture_calorific_values, calculate_mass_fraction_from_molar_fraction,\
+    calculate_mixture_compressibility_fact, calculate_der_mixture_compressibility_fact
 from pandapower.io_utils import JSONSerializableClass
 
 try:
-    from pandaplan.core import pplog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -154,6 +156,16 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("molar_mass")
 
+    def get_critical_data(self):
+        """
+        This function returns the critical data: critical temperature, critical pressure, ascentric factor.
+
+        :return: critical_data
+
+        """
+
+        return self.get_property("critical_data")
+
     def get_compressibility(self, p_bar):
         """
         This function returns the compressibility at a certain pressure.
@@ -181,6 +193,8 @@ class Fluid(JSONSerializableClass):
 
     def get_higher_heating_value(self):
         return self.get_property("hhv")
+
+
 
 
 class FluidProperty(JSONSerializableClass):
@@ -379,7 +393,11 @@ class FluidPropertyConstant(FluidProperty):
         :return:
         :rtype:
         """
-        value = np.loadtxt(path).item()
+        #if query for critical data cause more than one item is read
+        if "critical" in path:
+            value = np.loadtxt(path)
+        else:
+            value = np.loadtxt(path).item()
         return cls(value)
 
     @classmethod
@@ -543,6 +561,52 @@ class FluidPropertyPolynominal(FluidProperty):
         return cls(values[:, 0], values[:, 1], polynominal_degree)
 
 
+class FluidPropertySutherland(FluidProperty):
+    """
+    Creates Property with a Sutherland model (mainly used for viscosity).
+    """
+
+    def __init__(self, eta0, t0, t_sutherland):
+        """
+
+        :param value:
+        :type value:
+        """
+        super().__init__()
+        self.eta0 = eta0
+        self.t0 = t0
+        self.t_sutherland = t_sutherland
+
+    def get_at_value(self, *args):
+        """
+
+        :param arg: Name of the property
+        :type arg: str
+        :return: Value of the property
+        :rtype: float
+
+        :Example:
+            >>> viscosity = get_fluid(net).get_property("viscosity")
+        """
+        return self.eta0 * (self.t0 + self.t_sutherland) / (self.t_sutherland + args[0]) \
+               * np.power(args[0] / self.t0, 1.5)
+
+    def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
+        raise UserWarning("The sutherland property integral value function has not been implemented!")
+        # if isinstance(upper_limit_arg, pd.Series):
+        #     ul = self.offset * upper_limit_arg.values + 0.5 * self.slope * np.power(
+        #         upper_limit_arg.values, 2)
+        # else:
+        #     ul = self.offset * np.array(upper_limit_arg) + 0.5 * self.slope * np.array(
+        #         np.power(upper_limit_arg.values, 2))
+        # if isinstance(lower_limit_arg, pd.Series):
+        #     ll = self.offset * lower_limit_arg.values + 0.5 * self.slope * np.power(
+        #         lower_limit_arg.values, 2)
+        # else:
+        #     ll = self.offset * np.array(lower_limit_arg) + 0.5 * self.slope * np.array(
+        #         np.power(lower_limit_arg.values, 2))
+
+
 def create_constant_property(net, fluid_name, property_name, value, overwrite=True, warn_on_duplicates=True):
     """
     Creates a property with a constant value.
@@ -632,7 +696,8 @@ def call_lib(fluid_name):
             os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
 
     liquids = ["water"]
-    gases = ["air", "lgas", "hgas", "hydrogen", "methane", "ethane", "butane", "propane", "carbondioxide", "nitrogen"]
+    gases = ["air", "lgas", "hgas", "hydrogen", "methane", "ethane", "butane", "propane", "carbondioxide", "nitrogen",
+             "biomethane_pure", "biomethane_treated"]
 
     if fluid_name == "natural_gas":
         logger.error("'natural_gas' is ambigious. Please choose 'hgas' or 'lgas' "
@@ -649,6 +714,7 @@ def call_lib(fluid_name):
     molar_mass = constant_property("molar_mass")
     der_compr = constant_property("der_compressibility")
     compr = linear_property("compressibility")
+    crit = constant_property("critical_data")
 
     if (phase == 'gas'):
         lhv = constant_property("lower_heating_value")
@@ -656,7 +722,7 @@ def call_lib(fluid_name):
 
         return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass,
-                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv)
+                     compressibility=compr, der_compressibility=der_compr, lhv=lhv, hhv=hhv, critical_data=crit)
     else:
         return Fluid(fluid_name, phase, density=density, viscosity=viscosity,
                      heat_capacity=heat_capacity, molar_mass=molar_mass, compressibility=compr,
@@ -739,13 +805,57 @@ def get_mixture_heat_capacity(net, temperature, mass_fraction):
     return calculate_mixture_heat_capacity(heat_capacity_list, mass_fraction.T)
 
 
-def get_mixture_compressibility(net, pressure, mass_fraction):
-    compressibility_list = [net.fluid[fluid].get_property('compressibility', pressure) for fluid in net._fluid]
-    return calculate_mixture_compressibility(compressibility_list, mass_fraction.T)
+def get_mixture_compressibility(net, pressure, mass_fraction, temperature):
+    """
+    Returns the Gas law deviation coefficient: K = Z / Z_n.
 
-def get_mixture_der_cmpressibility(net, pressure, mass_fraction):
-    der_compressibility_list = [net.fluid[fluid].get_property('der_compressibility', pressure) for fluid in net._fluid]
-    return calculate_mixture_compressibility(der_compressibility_list, mass_fraction.T)
+    Nomenclature :
+
+    In the literature:
+    pv = ZRT
+    K = Z / Z_n
+
+    Z: Compressibility factor <-> Realgasfaktor
+    K: Gas law deviation coefficient <-> Kompressibilitätszahl
+
+    In this function:
+    Z: compressibility_fact
+    K: compressibility_fact / compressibility_fact_norm
+
+    """
+
+    critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
+    molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
+    molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
+    compressibility_fact, compressibility_fact_norm = calculate_mixture_compressibility_fact(molar_fraction.T,
+                                                                             pressure, temperature, critical_data_list)
+    return compressibility_fact / compressibility_fact_norm  # K = Z / Z_n
+
+
+def get_mixture_der_cmpressibility(net, pressure, mass_fraction, temperature):
+    """
+    Returns the derivative relative to the pressure of the Gas law deviation coefficient: dK /dp = dZ/dp * 1/Z_n.
+
+    Nomenclature :
+
+    In the literature:
+    pv = ZRT
+    K = Z / Z_n
+
+    Z: Compressibility factor <-> Realgasfaktor
+    K: Gas law deviation coefficient <-> Kompressibilitätszahl
+
+    In this function:
+    Z: compressibility_fact
+    dK / dp : der_compressibility_fact / compressibility_fact_norm
+
+    """
+    critical_data_list = [net.fluid[fluid].get_critical_data() for fluid in net._fluid]
+    molar_mass_list = [net.fluid[fluid].get_molar_mass() for fluid in net._fluid]
+    molar_fraction = calculate_molar_fraction_from_mass_fraction(mass_fraction.T, np.array(molar_mass_list))
+    der_compressibility_fact, compressibility_fact_norm = calculate_der_mixture_compressibility_fact(molar_fraction.T,
+                                                                            pressure, temperature, critical_data_list)
+    return der_compressibility_fact / compressibility_fact_norm  # dK /dp = dZ/dp * 1/Z_n.
 
 
 def get_mixture_higher_heating_value(net, mass_fraction):

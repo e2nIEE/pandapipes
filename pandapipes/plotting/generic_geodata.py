@@ -1,18 +1,13 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.component_models.sink_component import Sink
-from pandapipes.component_models.source_component import Source
-from pandapipes.component_models.junction_component import Junction
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
 try:
-    from pandaplan.core import ppglog as logging
+    import pandaplan.core.pplog as logging
 except ImportError:
     import logging
 
@@ -22,7 +17,7 @@ logger = logging.getLogger(__name__)
 def build_igraph_from_ppipes(net, junctions=None):
     """
     This function uses the igraph library to create an igraph graph for a given pandapipes network.
-    Pipes and valves are respected.
+    Any branch component is respected.
     Performance vs. networkx: https://graph-tool.skewed.de/performance
 
     :param net: The pandapipes network
@@ -41,9 +36,9 @@ def build_igraph_from_ppipes(net, junctions=None):
     try:
         import igraph as ig
     except (DeprecationWarning, ImportError):
-        raise ImportError("Please install python-igraph with "
-                          "`pip install python-igraph` or "
-                          "`conda install python-igraph` "
+        raise ImportError("Please install igraph with "
+                          "`pip install igraph` or "
+                          "`conda install igraph` "
                           "or from https://www.lfd.uci.edu/~gohlke/pythonlibs")
     g = ig.Graph(directed=True)
     junction_index = net.junction.index if junctions is None else np.array(junctions)
@@ -52,20 +47,18 @@ def build_igraph_from_ppipes(net, junctions=None):
     g.vs["label"] = list(junction_index)
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
-    mask = _get_element_mask_from_nodes(net, "pipe", ["from_junction", "to_junction"], junctions)
-    for junction in net.pipe[mask].itertuples():
-        g.add_edge(pp_junction_mapping[junction.from_junction],
-                   pp_junction_mapping[junction.to_junction],
-                   weight=junction.length_km)
+    #mask = _get_element_mask_from_nodes(net, "pipe", ["from_junction", "to_junction"], junctions)
+    #for pipe in net.pipe[mask].itertuples():
+    #    g.add_edge(pp_junction_mapping[pipe.from_junction], pp_junction_mapping[pipe.to_junction],
+    #               weight=pipe.length_km)
 
-    for comp in np.concatenate([net.branch_list]):
-        if not isinstance(comp, Pipe):
-            mask = _get_element_mask_from_nodes(
-                net, comp.table_name(), ["from_junction", "to_junction"], junctions)
-            for comp_data in net[comp.table_name()][mask].itertuples():
-                g.add_edge(pp_junction_mapping[comp_data.from_junction],
-                           pp_junction_mapping[comp_data.to_junction],
-                           weight=0.001)
+    for comp in net.branch_list:
+        fjc, tjc = comp.from_to_node_cols()
+        mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
+        for comp_data in net[comp.table_name()][mask].itertuples():
+            weight = 0.001 if 'length_km' not in dir(comp_data) else getattr(comp_data, 'length_km')
+            g.add_edge(pp_junction_mapping[getattr(comp_data, fjc)], pp_junction_mapping[getattr(comp_data, tjc)],
+                       weight=weight)
 
     meshed = _igraph_meshed(g)
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]

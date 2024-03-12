@@ -1,0 +1,7 @@
+#typical l-natural gas composition was used to estimate the critical data based on "Verein deutscher Ingenieure VDI e.V., ed. (2019), VDI-Wärmeatlas , Springer , Berlin Heidelberg"
+# critical temperature [K]
+191.92
+# critical pressure [Bar]
+45.24
+# ascentric factor []
+0.021

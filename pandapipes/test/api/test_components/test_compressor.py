@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -19,7 +19,7 @@ def test_compressor_pressure_ratio(use_numba):
 
     pandapipes.create_pipe_from_parameters(net, j1, j2, length_km=0.43380, diameter_m=0.1022)
     pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=0.26370, diameter_m=0.1022)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, fluid="hgas", type="p")
+    pandapipes.create_ext_grid(net, j1, "hgas", 5, 283.15, type="p")
     pandapipes.create_sink(net, j6, 0.02333)
 
     br1 = 1.5
