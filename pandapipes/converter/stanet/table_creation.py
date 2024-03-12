@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2023 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -14,6 +14,7 @@ from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_f
 try:
     from shapely.geometry import LineString
     from shapely.ops import substring
+
     SHAPELY_INSTALLED = True
 except ImportError:
     SHAPELY_INSTALLED = False
@@ -24,7 +25,6 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
-
 
 NODE_TYPE = 1
 HOUSE_TYPE = 8
@@ -63,10 +63,11 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
     stanet_nrs = node_table.RECNO.astype(np.int32)
     knams = node_table.KNAM.astype(str).values
     add_info = {"stanet_id": node_table.STANETID.astype(str).values
-                if "STANETID" in node_table.columns else knams,
+    if "STANETID" in node_table.columns else knams,
                 "p_stanet": node_table.PRECH.values.astype(np.float64),
-                "stanet_valid": ~node_table.CALCBAD.values.astype(np.bool_),
-                "t_stanet": node_table.TEMP.values.astype(np.float64)}
+                "stanet_valid": ~node_table.CALCBAD.values.astype(np.bool_)}
+    if "TEMP" in node_table.columns:
+        add_info["t_stanet"] = node_table.TEMP.values.astype(np.float64)
     if hasattr(node_table, "KFAK"):
         add_info["K_stanet"] = node_table.KFAK.values.astype(np.float64)
     if add_layers:
@@ -90,7 +91,7 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
         stanet_active=node_table.ISACTIVE.values.astype(np.bool_),
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE], **add_info)
     for eg_junc, p_bar, t_k in zip(junction_indices[eg_ind], eg_press, eg_temps):
-        pandapipes.create_ext_grid(net, eg_junc, 'STANET_fluid', p_bar, t_k, type="pt",
+        pandapipes.create_ext_grid(net, eg_junc, p_bar, t_k, type="pt",
                                    stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE])
     index_mapping["nodes"] = dict(zip(stanet_nrs, junction_indices))
 
@@ -142,7 +143,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
                 length_km=row.RORL / 1000, diameter_m=float(row.DM / 1000), k_mm=row.RAU,
                 opened=row.AUF == 'J', loss_coefficient=row.ZETA,
                 name="valve_pipe_%s_%s" % (row.ANFNAM, row.ENDNAM), in_service=bool(row.ISACTIVE),
-                stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID),  v_stanet=row.VM, **add_info
+                stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=row.VM, **add_info
             )
         else:
             j_ref = net.junction.loc[node_mapping[from_stanet_nr], :]
@@ -173,62 +174,88 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
             )
 
 
-def create_slider_valves(net, stored_data, index_mapping, add_layers):
+def create_slider_valves(net, stored_data, index_mapping, add_layers,
+                         guess_opened_from_types=False):
     """
     Creates pandapipes slider valves from STANET data.
-    :param net:
-    :type net:
-    :param stored_data:
-    :type stored_data:
-    :param index_mapping:
-    :type index_mapping:
-    :param add_layers:
-    :type add_layers:
-    :return:
-    :rtype:
+
+    :param net: pandapipes net to which to add slider valves
+    :type net: pandapipesNet
+    :param stored_data: dictionary of STANET element tables
+    :type stored_data: dict
+    :param index_mapping: dictionary of mappings between STANET and pandapipes indices
+    :type index_mapping: dict
+    :param add_layers: if True, the layer info will be added to the slider valve table
+    :type add_layers: bool
+    :param guess_opened_from_types: if True, the status of slider valves with unknown types is \
+        guessed based on the logic "even type number = opened, odd type number = closed"
+    :type guess_opened_from_types: bool, default False
+    :return: No output
+    :rtype: None
     """
-    if "slider_valves" not in stored_data:
+    if "slider_valves" not in stored_data and "house_slider_valves" not in stored_data:
         return
     logger.info("Creating all slider valves.")
-    slider_valves = stored_data["slider_valves"]
 
-    # identify all junctions that are connected on each side of the slider valves
-    svf = index_mapping["slider_valves_from"]
-    svt = index_mapping["slider_valves_to"]
-    from_junctions = np.array([svf[sv] for sv in slider_valves.RECNO.values])
-    to_junctions = np.array([svt[sv] for sv in slider_valves.RECNO.values])
+    for tbl_name in ("slider_valves", "house_slider_valves"):
+        if tbl_name not in stored_data:
+            continue
+        slider_valves = stored_data[tbl_name]
 
-    # these types can be converted to normal valves
-    # --> there are many types of slider valves in STANET, the behavior is not always clear, so
-    #     if you want to convert another type, identify the correct valve behavior in pandapipes
-    #     that matches this type.
-    opened_sv = [2, 6, 10, 18]
-    closed_sv = [3, 7, 11, 19]
-    opened_types = {o: True for o in opened_sv}
-    opened_types.update({c: False for c in closed_sv})
-    sv_types = set(slider_valves.TYP.values.astype(np.int32))
-    if len(sv_types - set(opened_types.keys())):
-        raise UserWarning("The slider valve types %s cannot be converted."
-                          % (sv_types - set(opened_types.keys())))
+        # identify all junctions that are connected on each side of the slider valves
+        svf = index_mapping["slider_valves_from"]
+        svt = index_mapping["slider_valves_to"]
+        from_junctions = np.array([svf[sv] for sv in slider_valves.RECNO.values])
+        to_junctions = np.array([svt[sv] for sv in slider_valves.RECNO.values])
 
-    # create all slider valves --> most important are the opened and loss_coefficient entries
-    valve_system = slider_valves.CLIENTTYP.replace(CLIENT_TYPES_OF_PIPES).values
-    add_info = dict()
-    if add_layers:
-        add_info["stanet_layer"] = slider_valves.LAYER.values.astype(str)
-    # account for sliders with diameter 0 m
-    if any(slider_valves.DM == 0):
-        logger.warning(f"{sum(slider_valves.DM == 0)} sliders have a inner diameter of 0 m! "
-                       f"The diameter will be set to 1 m.")
-        slider_valves.DM[slider_valves.DM == 0] = 1e3
-    pandapipes.create_valves(
-        net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
-        opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
-        loss_coefficient=slider_valves.ZETA.values, name=slider_valves.STANETID.values,
-        type="slider_valve_" + valve_system, stanet_nr=slider_valves.RECNO.values.astype(np.int32),
-        stanet_id=slider_valves.STANETID.values.astype(str), stanet_system=valve_system,
-        stanet_active=slider_valves.ISACTIVE.values.astype(np.bool_), **add_info
-    )
+        # these types can be converted to normal valves
+        # --> there are many types of slider valves in STANET, the behavior is not always clear, so
+        #     if you want to convert another type, identify the correct valve behavior in pandapipes
+        #     that matches this type.
+        opened_sv = [2, 6, 10, 18]
+        closed_sv = [3, 7, 11, 19]
+        # TODO: Is it possible that there is always a "CONNECTED" column and it says whether the
+        #       valve is opened or closed? Maybe the type is only used for graphical purpose.
+        opened_types = {o: True for o in opened_sv}
+        opened_types.update({c: False for c in closed_sv})
+        sv_types = set(slider_valves.TYP.values.astype(np.int32))
+        if len(sv_types - set(opened_types.keys())):
+            if guess_opened_from_types:
+                logger.warning(
+                    "The slider valve types %s are not (yet) known. Their status (opened/closed) "
+                    "will be guessed based on the logic: even number = opened, odd number = closed."
+                    % (sv_types - set(opened_types.keys()))
+                )
+                opened_types.update(
+                    {t: bool(t % 2 + 1) for t in sv_types - set(opened_types.keys())}
+                )
+            else:
+                raise UserWarning("The slider valve types %s cannot be converted."
+                                  % (sv_types - set(opened_types.keys())))
+
+        # create all slider valves --> most important are the opened and loss_coefficient entries
+        valve_system = slider_valves.CLIENTTYP.replace(CLIENT_TYPES_OF_PIPES).values
+        add_info = dict()
+        if add_layers:
+            add_info["stanet_layer"] = slider_valves.LAYER.values.astype(str)
+        # account for sliders with diameter 0 m
+        if "DM" not in slider_valves.columns:
+            logger.warning(f"The table {tbl_name} does not contain the slider valve inner diameter!"
+                           f"The diameter will be set to 1 m.")
+            slider_valves["DM"] = 1e3
+        if any(slider_valves.DM == 0):
+            logger.warning(f"{sum(slider_valves.DM == 0)} sliders have an inner diameter of 0 m! "
+                           f"The diameter will be set to 1 m.")
+            slider_valves.DM[slider_valves.DM == 0] = 1e3
+        pandapipes.create_valves(
+            net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
+            opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
+            loss_coefficient=slider_valves.ZETA.values, name=slider_valves.STANETID.values,
+            type="slider_valve_" + valve_system,
+            stanet_nr=slider_valves.RECNO.values.astype(np.int32),
+            stanet_id=slider_valves.STANETID.values.astype(str), stanet_system=valve_system,
+            stanet_active=slider_valves.ISACTIVE.values.astype(np.bool_), **add_info
+        )
 
 
 # noinspection PyTypeChecker
@@ -270,7 +297,7 @@ def create_pumps(net, pump_table, index_mapping, add_layers):
         pandapipes.create_pump(
             net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
             std_type=row.PUMPENTYP, in_service=bool(row.EIN == 'J'), stanet_nr=int(row.RECNO),
-            stanet_id=str(row.STANETID),  ps_stanet=-row.DP, stanet_active=bool(row.ISACTIVE),
+            stanet_id=str(row.STANETID), ps_stanet=-row.DP, stanet_active=bool(row.ISACTIVE),
             **add_info
         )
 
@@ -317,7 +344,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
 
     control_active = (control_table.AKTIV.values == "J").astype(np.bool_)
     if consider_controlled:
-        control_active &= fully_open
+        control_active &= ~fully_open
     in_service = control_table.ISACTIVE.values.astype(np.bool_)
     if consider_controlled:
         in_service &= ~(control_table.ZU.values == "J")
@@ -326,7 +353,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     is_fc = control_table.RTYP.values == "Q"
     if not np.all(is_pc | is_fc):
         raise UserWarning("There are controllers of types %s that cannot be converted!" \
-                                  % set(control_table.RTYP.values[~is_pc & ~is_fc]))
+                          % set(control_table.RTYP.values[~is_pc & ~is_fc]))
 
     if np.any(is_pc):
         logger.info("Creating pressure controls.")
@@ -398,7 +425,7 @@ def get_connection_types(connection_table):
     :return:
     :rtype:
     """
-    extend_from_to = ["slider_valves"]
+    extend_from_to = ["slider_valves", "house_slider_valves"]
     connection_types = list(chain.from_iterable([
         [(ct, ct)] if ct not in extend_from_to else [(ct, ct + "_from"), (ct, ct + "_to")]
         for ct in set(connection_table.type)
@@ -432,6 +459,8 @@ def create_junctions_from_connections(net, connection_table, net_params, index_m
     extend_from_to, connection_types = get_connection_types(connection_table)
     for con_type, node_type in connection_types:
         cons = connection_table.loc[connection_table.type == con_type]
+        if cons.empty:
+            continue
         stanet_ids = cons.STANETID.astype(str).values
         stanet_nrs = cons.RECNO.astype(np.int32).values
         p_stanet = cons.PRECH.astype(np.float64).values if houses_in_calculation else np.NaN
@@ -566,11 +595,15 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     text_k = 293
     if "TU" in pipes.columns:
         text_k = pipes.TU.values.astype(np.float64) + 273.15
+    alpha = 0
+    if "WDZAHL" in pipes.columns:
+        alpha = pipes.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
-        pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
+                                                               pipes.DM.values / 1000, pipes.RAU.values,
+        pipes.ZETA.values, type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
-        alpha_w_per_m2k=pipes.WDZAHL.values.astype(np.float64),
+        alpha_w_per_m2k=alpha,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             pipes.ANFNAM.values, pipes.ENDNAM.values, pipe_sections.section_no.values)],
         stanet_nr=pipes.RECNO.values, stanet_id=pipes.STANETID.values,
@@ -631,7 +664,7 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
         # TODO: there is no qext given!!!
         pandapipes.create_heat_exchanger(
             net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=qext,
-            diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA, std_type=row.ROHRTYP,
+            diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA,
             in_service=bool(row.ISACTIVE), name="heat_exchanger_%s_%s" % (row.ANFNAM, row.ENDNAM),
             stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=row.VM,
             stanet_active=bool(row.ISACTIVE), **add_info
@@ -641,7 +674,7 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
 def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, index_mapping,
                                            pipe_geodata, add_layers):
     """
-    
+
     :param net:
     :type net:
     :param stored_data:
@@ -694,14 +727,16 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     text_k = 293
     if "TU" in p_tbl.columns:
         text_k = p_tbl.TU.values.astype(np.float64) + 273.15
+    alpha = 0
+    if "WDZAHL" in p_tbl.columns:
+        alpha = p_tbl.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
         type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
-        alpha_w_per_m2k=p_tbl.WDZAHL.values.astype(np.float64), text_k=text_k,
         name=["pipe_%s_%s" % (anf, end) for anf, end in zip(from_names[valid], to_names[valid])],
-        stanet_nr=p_tbl.RECNO.values.astype(np.int32),
+        alpha_w_per_m2k=alpha, text_k=text_k, stanet_nr=p_tbl.RECNO.values.astype(np.int32),
         stanet_id=p_tbl.STANETID.values.astype(str), v_stanet=p_tbl.VM.values, geodata=geodata,
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=p_tbl.ISACTIVE.values.astype(np.bool_),
@@ -710,7 +745,8 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     )
 
 
-def check_connection_client_types(hh_pipes, all_client_types, node_client_types):
+def check_connection_client_types(hh_pipes, all_client_types, node_client_types,
+                                  fail_on_connection_check=True):
     # create pipes for household connections (from house to supply pipe), which is a separate table
     # in the STANET CSV file
     # --> there are many ways how household connections can be created in STANET,
@@ -725,16 +761,20 @@ def check_connection_client_types(hh_pipes, all_client_types, node_client_types)
     clientnodetype = hh_pipes.CLIENTTYP.isin(node_client_types)
     client2nodetype = hh_pipes.CLIENT2TYP.isin(node_client_types)
     if not np.all(clientnodetype | client2nodetype):
-        raise UserWarning(
-            f"One of the household connection sides must be connected to a node (type {NODE_TYPE} element)\n"
-            f"or a connection (type {HOUSE_CONNECTION_TYPE} element with ID CON...) "
-            f"or a house node (type {HOUSE_CONNECTION_TYPE} element). \n"
-            f"Please check that the input data is correct. \n"
-            f"Check these CLIENTTYP / CLIENT2TYP: "
-            f"{set(hh_pipes.loc[~clientnodetype, 'CLIENTTYP'].values) | set(hh_pipes.loc[~client2nodetype, 'CLIENT2TYP'].values)} "
-            f"in the HA LEI table (max. 10 entries shown): \n "
-            f"{hh_pipes.loc[~clientnodetype & ~client2nodetype].head(10)}"
-            )
+        not_node_type = (set(hh_pipes.loc[~clientnodetype, 'CLIENTTYP'].values)
+                         | set(hh_pipes.loc[~client2nodetype, 'CLIENT2TYP'].values))
+        msg = (f"One of the household connection sides must be connected to a node (type "
+               f"{NODE_TYPE} element)\n or a connection (type {HOUSE_CONNECTION_TYPE} element with"
+               f" ID CON...) or a house node (type {HOUSE_CONNECTION_TYPE} element). \n"
+               f"Please check that the input data is correct. \n"
+               f"Check these CLIENTTYP / CLIENT2TYP: "
+               f"{not_node_type} in the HA LEI table (max. 10 entries shown): \n"
+               f"{hh_pipes.loc[~clientnodetype & ~client2nodetype].head(10)}")
+        if fail_on_connection_check:
+            raise UserWarning(msg)
+        else:
+            logger.warning(f"{msg} \nWill ignore this error and continue net setup, please check "
+                           f"your network configuration carefully!")
     return clientnodetype, client2nodetype
 
 
@@ -1009,16 +1049,19 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     text_k = 293
     if "TU" in hp_data.columns:
         text_k = hp_data.TU.values.astype(np.float64) + 273.15
+    alpha = 0
+    if "WDZAHL" in hp_data.columns:
+        alpha = hp_data.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
-        hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
-        stanet_std_type=hp_data.ROHRTYP.values,
+                                                   hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values,
+        type="house_pipe",
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
-        alpha_w_per_m2k=hp_data.WDZAHL.values.astype(np.float64),
+        alpha_w_per_m2k=alpha, geodata=hp_data.section_geo.values,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             hp_data.CLIENTID.values, hp_data.CLIENT2ID.values, hp_data.section_no.values)],
-        stanet_nr=hp_data.RECNO.values, stanet_id=hp_data.STANETID.values,
-        geodata=hp_data.section_geo.values, v_stanet=hp_data.VM.values,
+        stanet_std_type=hp_data.ROHRTYP.values, stanet_nr=hp_data.RECNO.values,
+        stanet_id=hp_data.STANETID.values, v_stanet=hp_data.VM.values,
         stanet_active=hp_data.ISACTIVE.values.astype(np.bool_),
         stanet_valid=houses_in_calculation, **add_info
     )
@@ -1062,7 +1105,7 @@ def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers)
         meters_with_nodes = pd.Series(False, index=meter_table.index)
 
     if house_mapping is not None:
-        meters_with_house_nodes = meter_table.HAUSINDEX.isin(house_mapping.keys())\
+        meters_with_house_nodes = meter_table.HAUSINDEX.isin(house_mapping.keys()) \
                                   & ~meters_with_nodes
         junctions_connected[meters_with_house_nodes] = \
             [house_mapping[hn] for hn in meter_table.HAUSINDEX.loc[meters_with_house_nodes].values]
@@ -1159,7 +1202,6 @@ def create_sinks_from_nodes(net, node_table, index_mapping, net_params, sinks_de
         raise UserWarning("The following nodes cannot be interpreted correctly, as they have a "
                           "fixed pressure, but not unknown flow: %s"
                           % node_table.RECNO.values[fixed_p_nodes != unknown_flow_nodes])
-
 
     node_table.loc[control_flows.index, "ZUFLUSS"] -= control_flows.values
 
