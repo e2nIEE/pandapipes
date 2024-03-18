@@ -1743,8 +1743,11 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m,
     if np.any(pd.notnull(deltat_k)) or np.any(pd.notnull(treturn_k)):
         raise NotImplementedError("The models for consumers with fixed temperature difference or "
                                   "fixed return temperature are not implemented yet.")
-    if np.any(pd.isnull(controlled_mdot_kg_per_s) + pd.isnull(qext_w) + pd.isnull(deltat_k)
-                    + pd.isnull(treturn_k) != 2):
+    check_vars = [controlled_mdot_kg_per_s, qext_w, deltat_k, treturn_k]
+    var_sums = np.zeros([4, len(from_junctions)])
+    for i, cv in enumerate(check_vars):
+        var_sums[i] = np.full_like(from_junctions, pd.isnull(cv)).astype(int)
+    if np.any(np.sum(var_sums, axis=0) != 2):
             raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
                                  r"'qext_w' and 'deltat_k' or 'treturn_k' different from None"
                                  r"for each heat consumer.")
