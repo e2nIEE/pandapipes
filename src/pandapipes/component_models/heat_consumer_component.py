@@ -228,18 +228,3 @@ class HeatConsumer(BranchWZeroLengthComponent):
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
-
-    @classmethod
-    def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        """
-
-        :param net:
-        :type net:
-        :param branch_component_pit:
-        :type branch_component_pit:
-        :param node_pit:
-        :type node_pit:
-        :return:
-        :rtype:
-        """
-        branch_component_pit[:, TL] = 0
