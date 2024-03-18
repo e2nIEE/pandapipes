@@ -8,8 +8,8 @@ from numpy import dtype
 from pandapipes.component_models import get_fluid, \
     BranchWZeroLengthComponent, get_component_array, standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, VINIT, ALPHA, QEXT, \
-    RHO, TEXT, JAC_DERIV_DP1, JAC_DERIV_DV, JAC_DERIV_DP, LOAD_VEC_BRANCHES, TL
+from pandapipes.idx_branch import (D, AREA, VINIT, ALPHA, QEXT, RHO, TEXT, JAC_DERIV_DP1,
+                                   JAC_DERIV_DV, JAC_DERIV_DP, LOAD_VEC_BRANCHES)
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -137,7 +137,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
     #     f, t = idx_lookups[cls.table_name()]
     #     hs_pit = branch_pit[f:t, :]
     #     mask_t_return = ~np.isnan(hs_pit[:, TRETURN])
-    #     hs_pit[mask_t_return, TINIT_OUT] = hs_pit[mask_t_return, TINIT_OUT] - hs_pit[mask_t_return, DELTAT]
+    #     hs_pit[mask_t_return, TINIT_OUT] = (hs_pit[mask_t_return, TINIT_OUT]
+    #                                         - hs_pit[mask_t_return, DELTAT])
     #
     #
     # @classmethod
