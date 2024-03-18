@@ -1740,15 +1740,15 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m,
     :Example:
         >>> create_heat_consumers(net,from_junctions=[0, 3], to_junctions=[1, 5], diameter_m=40e-3, qext_w=2000)
     """
-    # TODO: change this to vectorized form
-    if deltat_k is not None or treturn_k is not None:
+    if np.any(pd.notnull(deltat_k)) or np.any(pd.notnull(treturn_k)):
         raise NotImplementedError("The models for consumers with fixed temperature difference or "
                                   "fixed return temperature are not implemented yet.")
-    if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None)
-            + (treturn_k is None) !=2):
-        raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
-                             r"'qext_w' and 'deltat_k' or 'treturn_k' different from None")
-    if deltat_k is not None and treturn_k is not None:
+    if np.any(pd.isnull(controlled_mdot_kg_per_s) + pd.isnull(qext_w) + pd.isnull(deltat_k)
+                    + pd.isnull(treturn_k) != 2):
+            raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
+                                 r"'qext_w' and 'deltat_k' or 'treturn_k' different from None"
+                                 r"for each heat consumer.")
+    if np.any(pd.notnull(deltat_k) & pd.notnull(treturn_k)):
         raise AttributeError(r"It is not possible to set both 'deltat_k' and 'treturn_k', as the "
                              r"flow temperature is independent of the heat consumer model.")
 
