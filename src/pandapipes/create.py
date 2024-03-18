@@ -221,11 +221,11 @@ def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_
     :type mdot_kg_per_s: float, default None
     :param init_m_stored_kg: The initially stored mass in the storage
     :type init_m_stored_kg: float, default None
-    :param min_m_stored_kg: Minimum amount of fluid that has to remain in the storage unit. (To be used
-                   with controllers)
+    :param min_m_stored_kg: Minimum amount of fluid that has to remain in the storage unit. (To be
+                   used with controllers)
     :type min_m_stored_kg: float
-    :param max_m_stored_kg: Maximum amount of fluid that can be stored in the storage unit. (To be used
-                   with controllers)
+    :param max_m_stored_kg: Maximum amount of fluid that can be stored in the storage unit. (To be
+                   used with controllers)
     :type max_m_stored_kg: float, default np.inf
     :param scaling: An optional scaling factor to be set customly
     :type scaling: float, default 1
@@ -1020,9 +1020,9 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
     return index
 
 
-def create_heat_consumer(net, from_junction, to_junction, diameter_m, controlled_mdot_kg_per_s=None,
-                         qext_w=None, deltat_k=None, treturn_k=None, name=None, index=None,
-                         in_service=True, type="heat_consumer", **kwargs):
+def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=None,
+                         controlled_mdot_kg_per_s=None, deltat_k=None, treturn_k=None, name=None,
+                         index=None, in_service=True, type="heat_consumer", **kwargs):
     """
     Creates a heat consumer element in net["heat_consumer"] from heat consumer parameters.
 
@@ -1061,13 +1061,14 @@ def create_heat_consumer(net, from_junction, to_junction, diameter_m, controlled
     :rtype: int
 
     :Example:
-        >>> create_heat_consumer(net,from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=2000)
+        >>> create_heat_consumer(net,from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=20000,
+        >>>                     controlled_mdot_kg_per_s=0.4, name="heat_consumer1")
     """
     if deltat_k is not None or treturn_k is not None:
         raise NotImplementedError("The models for consumers with fixed temperature difference or "
                                   "fixed return temperature are not implemented yet.")
     if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None)
-            + (treturn_k is None) !=2):
+            + (treturn_k is None) != 2):
         raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
                              r"'qext_w' and 'deltat_k' or 'treturn_k' different from None")
     if deltat_k is not None and treturn_k is not None:
@@ -1572,7 +1573,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
     controlled_elsewhere = (controlled_junctions != from_junctions) \
-                           & (controlled_junctions != to_junctions)
+        & (controlled_junctions != to_junctions)
     if np.any(controlled_elsewhere):
         controllers_warn = index[controlled_elsewhere]
         logger.warning("The pressure controllers %s control the pressure at junctions that they are"
@@ -1642,8 +1643,9 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     return index
 
 
-def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w, loss_coefficient=0,
-                           name=None, index=None, in_service=True, type="heat_exchanger", **kwargs):
+def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w,
+                           loss_coefficient=0, name=None, index=None, in_service=True,
+                           type="heat_exchanger", **kwargs):
     """
     Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1670,7 +1672,8 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
             highest already existing index is selected and counted onwards for the amount of heat \
             exchangers created.
     :type index: Iterable(str) or str, default None
-    :param in_service: True if the heat exchangers are in service or False if they are out of service
+    :param in_service: True if the heat exchangers are in service or False if they are out of \
+            service
     :type in_service: Iterable(bool) or bool, default True
     :param type: Not used yet
     :type type: Iterable(str) or str, default "heat exchanger"
@@ -1696,8 +1699,8 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
     return index
 
 
-def create_heat_consumers(net, from_junctions, to_junctions, diameter_m,
-                          controlled_mdot_kg_per_s=None, qext_w=None, deltat_k=None, treturn_k=None,
+def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=None,
+                          controlled_mdot_kg_per_s=None, deltat_k=None, treturn_k=None,
                           name=None, index=None, in_service=True, type="heat_consumer", **kwargs):
     """
     Creates several heat consumer elements in net["heat_consumer"] from heat consumer parameters.
@@ -1738,7 +1741,8 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m,
     :rtype: int
 
     :Example:
-        >>> create_heat_consumers(net,from_junctions=[0, 3], to_junctions=[1, 5], diameter_m=40e-3, qext_w=2000)
+        >>> create_heat_consumers(net,from_junctions=[0, 3], to_junctions=[1, 5], diameter_m=40e-3,
+        >>>                       qext_w=20000, controlled_mdot_kg_per_s=[0.5, 0.9])
     """
     if np.any(pd.notnull(deltat_k)) or np.any(pd.notnull(treturn_k)):
         raise NotImplementedError("The models for consumers with fixed temperature difference or "
@@ -1748,9 +1752,9 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m,
     for i, cv in enumerate(check_vars):
         var_sums[i] = np.full_like(from_junctions, pd.isnull(cv)).astype(int)
     if np.any(np.sum(var_sums, axis=0) != 2):
-            raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
-                                 r"'qext_w' and 'deltat_k' or 'treturn_k' different from None"
-                                 r"for each heat consumer.")
+        raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
+                             r"'qext_w' and 'deltat_k' or 'treturn_k' different from Nonefor each"
+                             r" heat consumer.")
     if np.any(pd.notnull(deltat_k) & pd.notnull(treturn_k)):
         raise AttributeError(r"It is not possible to set both 'deltat_k' and 'treturn_k', as the "
                              r"flow temperature is independent of the heat consumer model.")
@@ -1771,8 +1775,8 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m,
 def create_fluid_from_lib(net, name, overwrite=True):
     """
     Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
-    Currently, existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane", "water","biomethane_pure",
-    "biomethane_treated", "air".
+    Currently, existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane",
+    "water","biomethane_pure", "biomethane_treated", "air".
 
     :param net: The net for which this fluid should be created
     :type net: pandapipesNet

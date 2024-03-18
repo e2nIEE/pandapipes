@@ -94,9 +94,32 @@ def test_heat_consumer_not_implemented_model(simple_heat_net):
                                          treturn_k=[390, None])
 
 
+def test_heat_consumer_creation_not_allowed(simple_heat_net):
+    net = copy.deepcopy(simple_heat_net)
+    juncs = net.junction.index
+
+    with pytest.raises(AttributeError):
+        # check for less than 2 set parameters
+        pandapipes.create_heat_consumer(net, juncs[1], juncs[4], 0.1022,
+                                        controlled_mdot_kg_per_s=MDOT[0], qext_w=None,
+                                        treturn_k=None)
+    with pytest.raises(AttributeError):
+        # check for less than 2 set parameters in some consumers
+        pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022,
+                                         controlled_mdot_kg_per_s=MDOT, qext_w=[QEXT[0], None])
+    with pytest.raises(AttributeError):
+        # check for less than 2 set parameters in some consumers
+        pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022, qext_w=QEXT,
+                                         controlled_mdot_kg_per_s=[MDOT[0], None])
+    with pytest.raises(AttributeError):
+        # check for less than 2 set parameters in some consumers
+        pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022, qext_w=QEXT,
+                                         controlled_mdot_kg_per_s=None)
+
+
 @pytest.mark.xfail(reason="Can only be tested once models for deltat_k and treturn_k"
                           " are implemented for heat consumers.")
-def test_heat_consumer_creation_not_allowed(simple_heat_net):
+def test_heat_consumer_creation_not_allowed_2(simple_heat_net):
     net = copy.deepcopy(simple_heat_net)
     juncs = net.junction.index
     with pytest.raises(AttributeError):
@@ -105,11 +128,6 @@ def test_heat_consumer_creation_not_allowed(simple_heat_net):
                                         controlled_mdot_kg_per_s=MDOT[0], qext_w=QEXT[0],
                                         treturn_k=390)
     with pytest.raises(AttributeError):
-        # check for less than 2 set parameters
-        pandapipes.create_heat_consumer(net, juncs[1], juncs[4], 0.1022,
-                                        controlled_mdot_kg_per_s=MDOT[0], qext_w=None,
-                                        treturn_k=None)
-    with pytest.raises(AttributeError):
         # check for deltat_k and treturn_k given
         pandapipes.create_heat_consumer(net, juncs[1], juncs[4], 0.1022, deltat_k=20, treturn_k=390)
 
@@ -117,23 +135,23 @@ def test_heat_consumer_creation_not_allowed(simple_heat_net):
         # check for more than 2 set parameters
         pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022,
                                          deltat_k=[30, 40], treturn_k=[390, 385])
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(AttributeError):
         # check for less than 2 set parameters in some consumers
         pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022,
                                          controlled_mdot_kg_per_s=MDOT, deltat_k=[20, None])
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(AttributeError):
         # check for less than 2 set parameters in some consumers
         pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022, qext_w=QEXT,
                                          deltat_k=[20, None])
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(AttributeError):
         # check for less than 2 set parameters in some consumers
         pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022,
                                          controlled_mdot_kg_per_s=MDOT, treturn_k=[390, None])
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(AttributeError):
         # check for less than 2 set parameters in some consumers
         pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022, qext_w=QEXT,
                                          treturn_k=[390, None])
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(AttributeError):
         # check for less than 2 set parameters in all consumers
         pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022, qext_w=QEXT,
                                          treturn_k=None, controlled_mdot_kg_per_s=None)
