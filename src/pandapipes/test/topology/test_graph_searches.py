@@ -22,6 +22,13 @@ def test_connected_components():
     assert len(list(top.connected_components(mg))) == 8
 
 
+def test_calc_distance_to_junctions():
+    net = nw.gas_versatility()
+    egs = net.ext_grid.junction
+    assert top.calc_distance_to_junctions(net, egs, respect_status_valves=True).sum() == 30.93
+    assert top.calc_distance_to_junctions(net, egs, respect_status_valves=False).sum() == 26.96
+
+
 def test_unsupplied_buses_with_in_service():
     net = nw.gas_versatility()
     assert top.unsupplied_junctions(net) == set()
@@ -41,3 +48,7 @@ def test_elements_on_path():
         with pytest.raises(ValueError) as exception_info:
             top.elements_on_path(mg, path, element="source")
         assert str(exception_info.value) == "Invalid element type source"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

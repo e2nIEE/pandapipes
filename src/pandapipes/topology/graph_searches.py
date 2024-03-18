@@ -79,6 +79,42 @@ def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None, nog
     return pd.Series(nx.single_source_dijkstra_path_length(mg, junction))
 
 
+def calc_distance_to_junctions(net, junctions, respect_status_valves=True, notravjunctions=None, nogojunctions=None, weight="weight"):
+    """
+    Calculates the shortest distance between every source junction and all junctions connected to it.
+
+     INPUT:
+        **net** (pandapipesNet) - Variable that contains a pandapipes network.
+
+        **junctions** (integer) - Index of the source junctions.
+
+
+     OPTIONAL:
+        **respect_status_valve** (boolean, True) - Flag whether the "opened" column shall be considered and out\
+        of service valves neglected.
+
+        **nogojunctions** (integer/list, None) - nogojunctions are not being considered
+
+        **notravjunctions** (integer/list, None) - lines connected to these junctions are not being
+                                              considered
+        **weight** (string, None) – Edge data key corresponding to the edge weight
+
+     OUTPUT:
+        **dist** - Returns a pandas series with containing all distances to the source junction
+                   in km. If weight=None dist is the topological distance (int).
+
+     EXAMPLE:
+         import pandapipes.topology as top
+
+         dist = top.calc_distance_to_junctions(net, [5, 6])
+
+    """
+    g = create_nxgraph(net, respect_status_valves=respect_status_valves, nogojunctions=nogojunctions,
+                       notravjunctions=notravjunctions)
+    d = nx.multi_source_dijkstra_path_length(g, set(junctions), weight=weight)
+    return pd.Series(d)
+
+
 def unsupplied_junctions(net, mg=None, slacks=None, respect_valves=True):
     """
      Finds junctions, that are not connected to an external grid.
