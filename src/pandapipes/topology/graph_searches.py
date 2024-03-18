@@ -117,7 +117,7 @@ def unsupplied_junctions(net, mg=None, slacks=None, respect_valves=True):
     return not_supplied
 
 
-def elements_on_path(mg, path, element="pipe"):
+def elements_on_path(mg, path, element="pipe", check_element_validity=True):
     """
      Finds all elements that connect a given path of junctions.
 
@@ -126,10 +126,9 @@ def elements_on_path(mg, path, element="pipe"):
 
         **path** (list) - List of connected junctions.
 
-        **element** (string, "l") - element type of type BranchComponent
+        **element** (string, "pipe") - element type of type BranchComponent
 
-        **multi** (boolean, True) - True: Applied on a NetworkX MultiGraph
-                                    False: Applied on a NetworkX Graph
+        **check_element_validity** (boolean, True) - Check if element is a valid pandapipes table_name
 
      OUTPUT:
         **elements** (list) - Returns a list of all elements on the path.
@@ -141,9 +140,10 @@ def elements_on_path(mg, path, element="pipe"):
          elements = top.elements_on_path(mg, [4, 5, 6])
 
      """
-    table_names = get_all_branch_component_table_names()
-    if element not in table_names:
-        raise ValueError("Invalid element type %s" % element)
+    if check_element_validity:
+        table_names = get_all_branch_component_table_names()
+        if element not in table_names:
+            raise ValueError("Invalid element type %s" % element)
     if isinstance(mg, nx.MultiGraph):
         return [edge[1] for b1, b2 in zip(path, path[1:]) for edge in mg.get_edge_data(b1, b2).keys()
                 if edge[0] == element]
