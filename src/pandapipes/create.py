@@ -1750,9 +1750,9 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
     check_vars = [controlled_mdot_kg_per_s, qext_w, deltat_k, treturn_k]
     var_sums = np.zeros([4, len(from_junctions)])
     for i, cv in enumerate(check_vars):
-        var_sums[i] = np.full_like(from_junctions, pd.isnull(cv)).astype(int)
+        var_sums[i] = np.full_like(from_junctions, pd.isnull(cv)).astype(np.int32)
     if np.any(np.sum(var_sums, axis=0) != 2):
-        raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
+        raise AttributeError(r"Define exactly two variables from 'controlled_mdot_kg_per_s', "
                              r"'qext_w' and 'deltat_k' or 'treturn_k' different from Nonefor each"
                              r" heat consumer.")
     if np.any(pd.notnull(deltat_k) & pd.notnull(treturn_k)):
