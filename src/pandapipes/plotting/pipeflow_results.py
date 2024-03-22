@@ -92,11 +92,10 @@ def plot_pressure_profile(net, ax=None, x0_junctions=None, plot_pressure_control
         x0_junctions = net.ext_grid[net.ext_grid.in_service].junction.values.tolist()
 
     d = top.calc_distance_to_junctions(net, x0_junctions)
-    for pix, pipe in net.pipe[net.pipe.in_service & net.pipe.index.isin(pipes)].iterrows():
-        if pipe.from_junction not in d.index:
+    pipe_table = net.pipe[net.pipe.in_service & net.pipe.index.isin(pipes)]
+    for from_junction, to_junction in zip(pipe_table.from_junction, pipe_table.to_junction):
+        if from_junction not in d.index:
             continue
-        from_junction = pipe.from_junction
-        to_junction = pipe.to_junction
         x = [x0 + d.at[from_junction], x0 + d.at[to_junction]]
         try:
             y = [net.res_junction.p_bar.at[from_junction], net.res_junction.p_bar.at[to_junction]]
