@@ -186,9 +186,3 @@ def elements_on_path(mg, path, element="pipe", check_element_validity=True):
     else:
         return [mg.get_edge_data(b1, b2)["key"][1] for b1, b2 in zip(path, path[1:])
                 if mg.get_edge_data(b1, b2)["key"][0] == element]
-
-
-if __name__ == '__main__':
-    import pandapipes.networks as nw
-    net = nw.gas_meshed_delta()
-    dist = calc_minimum_distance_to_junctions(net, net.ext_grid.junction.values)
