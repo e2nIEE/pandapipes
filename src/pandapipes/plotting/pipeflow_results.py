@@ -99,7 +99,7 @@ def plot_pressure_profile(net, ax=None, x0_junctions=None, plot_pressure_control
     linewidth = kwargs.get("linewidth", 1)
     ax.plot(x, y, linewidth=linewidth, color=pipe_color, **kwargs)
 
-    x = d.values
+    x = d.values + x0
     y = net.res_junction.p_bar.loc[d.index]
     ax.plot(x, y, 'o', color=junction_color, ms=junction_size)
 
