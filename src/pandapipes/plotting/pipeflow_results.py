@@ -6,7 +6,6 @@
 import pandapipes.topology as top
 import pandas as pd
 import matplotlib.pyplot as plt
-from itertools import combinations
 import numpy as np
 
 
