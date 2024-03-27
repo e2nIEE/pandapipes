@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse',
-                               only_update_hydraulic_matrix=False, **kwargs):
+                               only_update_hydraulic_matrix=False,
+                               max_iter_hyd=10, **kwargs):
     """
 
     :param net:
@@ -32,7 +33,7 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
     :return:
     :rtype:
     """
-    pandapipes.pipeflow(net, mode='hydraulics', stop_condition="tol", iter=100, tol_p=1e-7,
+    pandapipes.pipeflow(net, mode='hydraulics', stop_condition="tol",max_iter_hyd=max_iter_hyd, tol_p=1e-7,
                         tol_m=1e-7, friction_model=friction_model,
                         only_update_hydraulic_matrix=only_update_hydraulic_matrix, **kwargs)
 
@@ -128,7 +129,7 @@ def retrieve_velocity_gas(net, element='pipe'):
     :rtype:
     """
     if 'v_stanet' not in net[element]:
-        net[element]['v_stanet'] = []
+        net[element].insert(len(net[element].columns), 'v_stanet', np.nan)
     v_stanet = net[element].v_stanet
     v_valid = pd.notnull(v_stanet)
     v_stanet = v_stanet.loc[v_valid]
