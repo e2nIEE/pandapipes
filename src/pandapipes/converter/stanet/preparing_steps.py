@@ -201,7 +201,7 @@ def get_net_params(net, stored_data):
     else:
         pandapipes.set_user_pf_options(
             net, friction_model=known_friction_models[net_params["friction_model"]],
-            iter=net_params["max_iterations"]
+            max_iter_hyd=net_params["max_iterations"], max_iter_therm=net_params["max_iteration"]
         )
     if net_params["compress_model"] != "linear":
         logger.warning("The compressibility model %s is not implemented in pandapipes, which might "

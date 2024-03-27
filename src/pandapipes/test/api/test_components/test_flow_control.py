@@ -25,7 +25,10 @@ def test_flow_control_simple_heat(use_numba):
 
     pandapipes.create_sink(net, j8, 3)
 
-    pandapipes.pipeflow(net, mode="all", use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        mode="all", use_numba=use_numba)
 
     assert np.allclose(net.res_pipe.loc[[p12, p48, p25, p74], "mdot_from_kg_per_s"], [3, 3, 1, 1])
     assert np.allclose(net.res_flow_control["mdot_from_kg_per_s"].values, [2, 1])
@@ -33,7 +36,8 @@ def test_flow_control_simple_heat(use_numba):
     j_new = pandapipes.create_junctions(net, 2, pn_bar=5, tfluid_k=360)
     pandapipes.create_flow_control(net, j_new[0], j_new[1], 2, 0.1)
 
-    pandapipes.pipeflow(net, mode="all", use_numba=use_numba, check_connectivity=True)
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        mode="all", use_numba=use_numba, check_connectivity=True)
 
     assert np.allclose(net.res_pipe.loc[[p12, p48, p25, p74], "mdot_from_kg_per_s"], [3, 3, 1, 1])
     assert np.allclose(net.res_flow_control["mdot_from_kg_per_s"].values[:2], [2, 1])
@@ -56,7 +60,9 @@ def test_flow_control_simple_gas(use_numba):
 
     pandapipes.create_sinks(net, [j3, j4, j5, j7, j8], [0.02, 0.04, 0.03, 0.04, 0.02])
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba)
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                        mode="hydraulics", use_numba=use_numba)
 
     assert np.allclose(net.res_pipe.loc[[p12, p23, p34, p45, p56, p58, p67], "mdot_from_kg_per_s"],
                        [0.15, 0.12, 0.08, 0.01, 0.01, -0.01, 0.04])
@@ -79,7 +85,9 @@ def test_flow_control_simple_gas_two_eg(use_numba):
 
     pandapipes.create_sinks(net, [j2, j3], [0.02, 0.04])
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                        mode="hydraulics", use_numba=use_numba)
 
     assert np.allclose(net.res_pipe.loc[[p12, p34], "mdot_from_kg_per_s"], [0.05, -0.01])
     assert np.allclose(net.res_flow_control["mdot_from_kg_per_s"].values, [0.03])

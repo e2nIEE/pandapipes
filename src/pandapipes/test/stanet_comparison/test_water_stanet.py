@@ -3,8 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-import pandapipes.networks.simple_water_networks as nw
 import pytest
+
+import pandapipes.networks.simple_water_networks as nw
 from pandapipes.pipeflow import logger as pf_logger
 from pandapipes.test.stanet_comparison.pipeflow_stanet_comparison import pipeflow_stanet_comparison
 
@@ -30,7 +31,11 @@ def test_case_district_grid_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_district_grid(method="n")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 7 if use_numba else 7
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(
+        net, log_results,
+        max_iter_hyd=max_iter_hyd,
+        use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -46,8 +51,12 @@ def test_case_district_grid_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_district_grid(method="pc")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
-                                                    friction_model="colebrook")
+    max_iter_hyd = 11 if use_numba else 11
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(
+        net, log_results,
+        max_iter_hyd=max_iter_hyd,
+        use_numba=use_numba,
+        friction_model="colebrook")
     assert np.all(p_diff < 3e-2)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -64,7 +73,10 @@ def test_case_pumps_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_meshed_pumps(results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 20 if use_numba else 20
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -80,7 +92,11 @@ def test_case_delta_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_meshed_delta(results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 25 if use_numba else 25
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(
+        net, log_results,
+        max_iter_hyd=max_iter_hyd,
+        use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -89,7 +105,10 @@ def test_case_delta_n(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_n(use_numba, log_results=False):
     net = nw.water_meshed_2valves(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 1e-3)
     assert np.all(v_diff_abs < 1e-3)
 
@@ -98,7 +117,10 @@ def test_case_meshed_2valves_n(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_pc(use_numba, log_results=False):
     net = nw.water_meshed_2valves(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 1e-3)
     assert np.all(v_diff_abs < 1e-3)
@@ -116,7 +138,10 @@ def test_case_one_pipe1_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_one_pipe1(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -132,7 +157,10 @@ def test_case_one_pipe1_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_one_pipe1(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
@@ -149,7 +177,10 @@ def test_case_one_pipe2_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_one_pipe2(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -165,7 +196,10 @@ def test_case_one_pipe2_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_one_pipe2(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
@@ -182,7 +216,10 @@ def test_case_one_pipe3_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_one_pipe3(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -198,7 +235,10 @@ def test_case_one_pipe3_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_one_pipe3(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
@@ -216,7 +256,10 @@ def test_case_simple_strand_net_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_simple_strand_net(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -232,7 +275,10 @@ def test_case_simple_strand_net_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_simple_strand_net(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 1e-2)
     assert np.all(v_diff_abs < 3e-2)
@@ -249,7 +295,10 @@ def test_case_two_pipes_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_strand_2pipes(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -265,7 +314,10 @@ def test_case_two_pipes_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_strand_2pipes(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
@@ -282,8 +334,12 @@ def test_case_cross_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_strand_cross(results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
-                                                    friction_model="colebrook")
+    max_iter_hyd = 18 if use_numba else 18
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(
+        net, log_results,
+        max_iter_hyd=max_iter_hyd,
+        use_numba=use_numba,
+        friction_model="colebrook")
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -299,7 +355,10 @@ def test_case_pump_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_strand_pump()
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -316,7 +375,10 @@ def test_case_tcross_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_tcross(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -332,7 +394,10 @@ def test_case_tcross_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_tcross(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 3 if use_numba else 3
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
@@ -350,7 +415,10 @@ def test_case_2eg_two_pipes_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_2eg_two_pipes(method="n", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba)
+    max_iter_hyd = 6 if use_numba else 6
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba)
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -366,7 +434,10 @@ def test_case_2eg_two_pipes_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_2eg_two_pipes(method="pc", results_from="stanet")
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 16 if use_numba else 16
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
+                                                    max_iter_hyd=max_iter_hyd,
+                                                    use_numba=use_numba,
                                                     friction_model="colebrook")
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)

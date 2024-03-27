@@ -19,7 +19,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 path = os.path.join(pp_dir, "test", "api", "old_versions")
 
-def release_control_test_network(save=False):
+def release_control_test_network(max_iter_hyd, save=False):
     # empty net
     net = pp.create_empty_network("net", add_stdtypes=False)
 
@@ -139,14 +139,14 @@ def release_control_test_network(save=False):
     const_sink.initial_run = False
     const_source.initial_run = False
 
-    pp.pipeflow(net)
+    pp.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     if save:
         pp.to_json(net, os.path.join(path, 'example_%s.json' % pp.__version__))
 
     return net
 
-def release_control_test_network_water(save=False):
+def release_control_test_network_water(max_iter_hyd, save=False):
     # empty net
     net = pp.create_empty_network("net", add_stdtypes=False)
 
@@ -244,14 +244,14 @@ def release_control_test_network_water(save=False):
     # time series
     add_ts_controllers(net)
 
-    pp.pipeflow(net)
+    pp.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     if save:
         pp.to_json(net, os.path.join(path, 'example_%s_water.json' % pp.__version__))
     return net
 
 
-def release_control_test_network_gas(save=False):
+def release_control_test_network_gas(max_iter_hyd, save=False):
     # empty net
     net = pp.create_empty_network("net", add_stdtypes=False)
 
@@ -338,7 +338,7 @@ def release_control_test_network_gas(save=False):
     # time series
     add_ts_controllers(net)
 
-    pp.pipeflow(net)
+    pp.pipeflow(net, max_iter_hyd=max_iter_hyd)
     if save:
         pp.to_json(net, os.path.join(path, 'example_%s_gas.json' % pp.__version__))
 

@@ -21,7 +21,9 @@ def test_set_user_pf_options(create_test_net, use_numba):
     net = copy.deepcopy(create_test_net)
     pandapipes.create_fluid_from_lib(net, "lgas")
 
-    necessary_options = {'mode': 'hydraulics', 'use_numba': use_numba}
+    max_iter_hyd = 3 if use_numba else 3
+    necessary_options = {'mode': 'hydraulics', 'use_numba': use_numba,
+                         'max_iter_hyd': max_iter_hyd}
     pandapipes.pipeflow(net, **necessary_options)
 
     old_options = net._options.copy()
@@ -53,6 +55,8 @@ def test_set_user_pf_options(create_test_net, use_numba):
     # see if user arguments overrule user_pf_options, but other user_pf_options still have the
     # priority
     pandapipes.pf.pipeflow_setup.set_user_pf_options(net, reset=True, tol_p=1e-6, tol_m=1e-6)
+    max_iter_hyd = 4 if use_numba else 4
+    necessary_options.update({'max_iter_hyd': max_iter_hyd})
     pandapipes.pipeflow(net, tol_p=1e-8, **necessary_options)
     assert net.user_pf_options['tol_p'] == 1e-6
     assert net._options['tol_p'] == 1e-8

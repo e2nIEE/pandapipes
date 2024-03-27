@@ -27,7 +27,9 @@ def test_one_node_net(use_numba):
     create_ext_grid(net, j, 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
-    pandapipes.pipeflow(net, use_numba=use_numba)
+
+    max_iter_hyd = 1 if use_numba else 1
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
@@ -36,7 +38,7 @@ def test_one_node_net(use_numba):
     create_ext_grid(net, j, 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
@@ -58,7 +60,8 @@ def test_two_node_net(use_numba):
     create_ext_grid(net, j, 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    max_iter_hyd = 1 if use_numba else 1
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
     assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values,
                              np.zeros((2, 1))))
@@ -72,7 +75,7 @@ def test_two_node_net(use_numba):
     create_ext_grid(net, j, 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
     assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values,
                              np.zeros((2, 1))))
@@ -96,7 +99,8 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
     create_ext_grid(net, j, 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
     net = copy.deepcopy(create_test_net)
 
@@ -106,7 +110,7 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
     create_ext_grid(net, j, 1, 298.15)
     create_sink(net, j, 0.01)
     create_source(net, j, 0.02)
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
     assert np.isclose(
         net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)

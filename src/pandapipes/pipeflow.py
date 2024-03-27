@@ -115,7 +115,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
 def hydraulics(net):
     max_iter, nonlinear_method, tol_p, tol_m, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_p", "tol_m", "tol_res")
+        net, "max_iter_hyd", "nonlinear_method", "tol_p", "tol_m", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ def hydraulics(net):
 
 def heat_transfer(net):
     max_iter, nonlinear_method, tol_t, tol_res = get_net_options(
-        net, "iter", "nonlinear_method", "tol_T", "tol_res")
+        net, "max_iter_therm", "nonlinear_method", "tol_T", "tol_res")
 
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------

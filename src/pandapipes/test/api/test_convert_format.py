@@ -27,15 +27,21 @@ from pandapipes.test.api.release_cycle.release_control_test_network import relea
 def test_convert_format(pp_version, use_numba):
     if version.parse(pp_version) >= version.parse(minimal_version_two_nets):
         names = ["_gas", "_water"]
-        net_gas = release_control_test_network_gas()
-        net_water = release_control_test_network_water()
+        net_gas = release_control_test_network_gas(max_iter_hyd=5)
+        net_water = release_control_test_network_water(max_iter_hyd=10)
     else:
         names = [""]
-        net_old = release_control_test_network()
+        net_old = release_control_test_network(max_iter_hyd=10)
     for name in names:
-        if "_gas" in name: net_ref = net_gas
-        elif "_water" in name: net_ref = net_water
-        else: net_ref = net_old
+        if "_gas" in name:
+            net_ref = net_gas
+            max_iter_hyd = 5 if use_numba else 5
+        elif "_water" in name:
+            net_ref = net_water
+            max_iter_hyd = 10 if use_numba else 10
+        else:
+            net_ref = net_old
+            max_iter_hyd = 10 if use_numba else 10
         filename = os.path.join(folder, "example_%s%s.json" % (pp_version, name))
         if not os.path.isfile(filename):
             raise ValueError("File for %s grid of version %s does not exist" % (name, pp_version))
@@ -48,7 +54,8 @@ def test_convert_format(pp_version, use_numba):
         convert_format(net)
         try:
             pp.pipeflow(net, run_control="controller" in net and len(net.controller) > 0,
-                        use_numba=use_numba)
+                        use_numba=use_numba, max_iter_hyd=max_iter_hyd)
+
         except:
             raise UserWarning("Can not run pipe flow in %s network "
                               "saved with pandapipes version %s" % (name, pp_version))

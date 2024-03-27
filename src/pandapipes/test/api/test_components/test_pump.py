@@ -35,7 +35,8 @@ def test_pump_from_measurement_parameteres(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
@@ -77,7 +78,8 @@ def test_pump_from_regression_parameteres(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
@@ -115,7 +117,8 @@ def test_pump_from_std_type(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
@@ -153,7 +156,8 @@ def test_pump_bypass_on_reverse_flow(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
@@ -183,7 +187,8 @@ def test_pump_bypass_high_vdot(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=30, friction_model="nikuradse",
+    max_iter_hyd = 5 if use_numba else 5
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
@@ -215,7 +220,9 @@ def test_compression_power(use_numba):
     _ = pandapipes.create_ext_grid(net, junction=j0, p_bar=4, t_k=293.15)
     _ = pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.05)
 
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba)
 
     # Local ambiental (atmospheric) pressure
     p_amb_bar_j1 = net["_pit"]['node'][1][PAMB]

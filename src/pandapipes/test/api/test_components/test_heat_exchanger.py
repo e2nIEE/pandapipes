@@ -29,7 +29,10 @@ def test_heat_exchanger(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 2 if use_numba else 2
+    max_iter_therm = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        stop_condition="tol", friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 

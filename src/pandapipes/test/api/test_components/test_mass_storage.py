@@ -22,7 +22,8 @@ def test_mass_storage(use_numba):
     pandapipes.create_mass_storage(net, j2, 0.1)
     pandapipes.create_mass_storage(net, j3, -0.2)
 
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
     assert np.isclose(net.res_ext_grid["mdot_kg_per_s"], 0.1)
 
 

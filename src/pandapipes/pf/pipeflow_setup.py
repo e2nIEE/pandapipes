@@ -33,8 +33,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-default_options = {"friction_model": "nikuradse", "tol_p": 1e-4, "tol_m": 1e-4,
-                   "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
+default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
+                   "tol_T": 1e-3, "tol_res": 1e-3, "max_iter_hyd": 10, "max_iter_therm": 10,
+                   "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
                    "max_iter_colebrook": 10, "only_update_hydraulic_matrix": False,
@@ -212,7 +213,10 @@ def init_options(net, local_parameters):
 
     Those are the options that can be set and their default values:
 
-        - **iter** (int): 10 - If the simulation is terminated after a certain amount of \
+        - **max_iter_hyd** (int): 10 - If the hydraulics simulation is terminated after a certain amount of \
+                               iterations, this is the number of iterations.
+
+        - **max_iter_therm** (int): 10 - If the thermal simulation is terminated after a certain amount of \
                                iterations, this is the number of iterations.
 
         - **tol_p** (float): 1e-4 - The relative tolerance for the pressure. A result is accepted \
