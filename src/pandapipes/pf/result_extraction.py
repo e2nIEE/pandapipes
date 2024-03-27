@@ -61,7 +61,7 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     fluid = get_fluid(net)
     t0 = node_pit[from_nodes, TINIT_NODE]
     t1 = node_pit[to_nodes, TINIT_NODE]
-    vf = branch_pit[:, MDOTINIT] / get_branch_density(net,fluid, node_pit, branch_pit)
+    vf = branch_pit[:, MDOTINIT] / get_fluid(net).get_density(NORMAL_TEMPERATURE)
     v = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / branch_pit[:, AREA]
     return v, branch_pit[:, MDOTINIT], vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
         branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
