@@ -20,8 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='colebrook',
+                                     max_iter_hyd=10, max_iter_therm=10,
                                      mode='hydraulics', only_update_hydraulic_matrix=False,
-                                     use_numba=True):
+                                     use_numba=True, **kwargs):
     """
         Comparison of the calculations of OpenModelica and pandapipes.
 
@@ -40,9 +41,10 @@ def pipeflow_openmodelica_comparison(net, log_results=True, friction_model='cole
         :return: p_diff, v_diff_abs
         :rtype: one-dimensional ndarray with axis labels
     """
-    pp.pipeflow(net, stop_condition="tol", iter=100, tol_p=1e-7, tol_v=1e-7,
+    pp.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                tol_p=1e-7, tol_m=1e-7,
                 friction_model=friction_model, mode=mode, use_numba=use_numba,
-                only_update_hydraulic_matrix=only_update_hydraulic_matrix)
+                only_update_hydraulic_matrix=only_update_hydraulic_matrix, **kwargs)
 
     logger.debug(net.res_junction)
     logger.debug(net.res_pipe)

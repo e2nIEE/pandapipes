@@ -29,7 +29,8 @@ def test_update(use_numba, log_results=False):
     """
     # before: gas_case3.json
     net = nw.gas_one_pipe1()
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba,
+    max_iter_hyd = 5 if use_numba else 5
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba, max_iter_hyd=max_iter_hyd,
                                                     only_update_hydraulic_matrix=True)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)

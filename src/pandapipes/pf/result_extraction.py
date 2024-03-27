@@ -1,12 +1,13 @@
 import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, LOAD_VEC_NODES, VINIT, RE, \
-    LAMBDA, FROM_NODE_T, TO_NODE_T, PL, TOUTINIT
+from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, MDOTINIT, RE, \
+    LAMBDA, FROM_NODE_T, TO_NODE_T, PL, TOUTINIT, AREA
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.properties_toolbox import get_branch_density
 
 try:
     from numba import jit
@@ -57,12 +58,12 @@ def extract_all_results(net, calculation_mode):
 def get_basic_branch_results(net, branch_pit, node_pit):
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-
+    fluid = get_fluid(net)
     t0 = node_pit[from_nodes, TINIT_NODE]
     t1 = node_pit[to_nodes, TINIT_NODE]
-    mf = branch_pit[:, LOAD_VEC_NODES]
-    vf = mf / get_fluid(net).get_density((t0 + t1) / 2)
-    return branch_pit[:, VINIT], mf, vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
+    vf = branch_pit[:, MDOTINIT] / get_fluid(net).get_density(NORMAL_TEMPERATURE)
+    v = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / branch_pit[:, AREA]
+    return v, branch_pit[:, MDOTINIT], vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
         branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
         branch_pit[:, PL]
 
@@ -283,8 +284,8 @@ def extract_results_active_pit(net,  mode="hydraulics"):
                                  if i not in [not_affected_node_col]])
     rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
 
-    result_branch_col = VINIT if mode == "hydraulics" else TOUTINIT
-    not_affected_branch_col = TOUTINIT if mode == "hydraulics" else VINIT
+    result_branch_col = MDOTINIT if mode == "hydraulics" else TOUTINIT
+    not_affected_branch_col = TOUTINIT if mode == "hydraulics" else MDOTINIT
     copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
                                    if i not in [FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T,
                                                 not_affected_branch_col]])

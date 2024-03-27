@@ -61,7 +61,8 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
-    run_control(mn)
+    max_iter_hyd = 7
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     # nets must not be changed
     assert mn.nets["power"] == net_power
@@ -77,7 +78,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     # check scaling functionality
     scaling_factor = 0.5
     net_power.load.loc[p2g_id_el, 'scaling'] = scaling_factor
-    run_control(mn)
+    run_control(mn, max_iter_hyd=max_iter_hyd)
     assert np.isclose(net_gas.source.at[p2g_id_gas, "mdot_kg_per_s"],
                       p_p2g_el * scaling_factor / (net_gas.fluid.get_property('hhv') * 3.6) * eta)
     assert net_power.load.at[p2g_id_el, "p_mw"] == p_p2g_el  # has to be still the same
@@ -104,7 +105,8 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     eta = 0.4
     G2PControlMultiEnergy(mn, g2p_id_el, g2p_id_gas, efficiency=eta, element_type_power="sgen")
 
-    run_control(mn)
+    max_iter_hyd = 4
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     # nets must not be changed
     assert mn.nets["power"] == net_power
@@ -120,7 +122,7 @@ def test_g2p_single(get_gas_example, get_power_example_simple):
     # check scaling functionality
     scaling_factor = 0.5
     net_gas.sink.loc[g2p_id_gas, 'scaling'] = scaling_factor
-    run_control(mn)
+    run_control(mn, max_iter_hyd=max_iter_hyd)
     assert np.isclose(net_power.sgen.at[g2p_id_el, "p_mw"],
                       gas_cons_kg_per_s * scaling_factor * net_gas.fluid.get_property("hhv")
                       * 3.6 * eta)
@@ -150,8 +152,8 @@ def test_g2g_single(get_gas_example):
     eta = 0.65
     GasToGasConversion(mn, g2g_id_cons, g2g_id_prod, efficiency=eta, name_gas_net_from='hgas_net',
                        name_gas_net_to='hydrogen_net')
-
-    run_control(mn)
+    max_iter_hyd = 7
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     fluid1 = pandapipes.get_fluid(net_gas1)
     fluid2 = pandapipes.get_fluid(net_gas2)
@@ -171,7 +173,8 @@ def test_g2g_single(get_gas_example):
     # check scaling functionality
     scaling_factor = 0.5
     net_gas1.sink.loc[g2g_id_cons, 'scaling'] = scaling_factor
-    run_control(mn)
+    max_iter_hyd = 8
+    run_control(mn, max_iter_hyd=max_iter_hyd)
     assert np.isclose(net_gas2.source.at[g2g_id_prod, "mdot_kg_per_s"],
                       (gas1_cons_kg_per_s * scaling_factor * fluid1.all_properties["hhv"].value
                        / fluid2.all_properties["hhv"].value) * eta)
@@ -201,8 +204,9 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_ids_el, p2g_ids_gas, efficiency=eta)
 
+    max_iter_hyd = 8
     # run control should read/write values with .loc
-    run_control(mn)
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     # nets must not be changed
     assert mn.nets["power"] == net_power
@@ -219,7 +223,9 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     # check scaling functionality
     scaling_factor = 0.5
     net_power.load.loc[p2g_ids_el, 'scaling'] = scaling_factor
-    run_control(mn)
+
+    max_iter_hyd = 6
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
                        p_p2g_el * scaling_factor / (net_gas.fluid.get_property('hhv') * 3.6) * eta)
@@ -250,8 +256,8 @@ def test_g2p_multiple(get_gas_example, get_power_example_simple):
     # add coupling controller
     eta = 0.4
     G2PControlMultiEnergy(mn, g2p_ids_el, g2p_ids_gas, efficiency=eta, element_type_power="sgen")
-
-    run_control(mn)
+    max_iter_hyd = 4
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     # nets must not be changed
     assert mn.nets["power"] == net_power
@@ -268,7 +274,7 @@ def test_g2p_multiple(get_gas_example, get_power_example_simple):
     # check scaling functionality
     scaling_factor = 0.5
     net_gas.sink.loc[g2p_ids_gas, 'scaling'] = scaling_factor
-    run_control(mn)
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     assert np.allclose(net_power.sgen.loc[g2p_ids_el, "p_mw"],
                        gas_cons_kg_per_s * scaling_factor * fluid.all_properties["hhv"].value
@@ -303,8 +309,8 @@ def test_g2g_multiple(get_gas_example):
     eta = 0.65
     GasToGasConversion(mn, g2g_ids_cons, g2g_ids_prod, efficiency=eta, name_gas_net_from='hgas_net',
                        name_gas_net_to='hydrogen_net')
-
-    run_control(mn)
+    max_iter_hyd = 6
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     fluid1 = pandapipes.get_fluid(net_gas1)
     fluid2 = pandapipes.get_fluid(net_gas2)
@@ -325,7 +331,7 @@ def test_g2g_multiple(get_gas_example):
     # check scaling functionality
     scaling_factor = 0.5
     net_gas1.sink.loc[g2g_ids_cons, 'scaling'] = scaling_factor
-    run_control(mn)
+    run_control(mn, max_iter_hyd=max_iter_hyd)
     assert np.allclose(net_gas2.source.loc[g2g_ids_prod, "mdot_kg_per_s"],
                        gas1_cons_kg_per_s * scaling_factor * fluid1.all_properties["hhv"].value
                        / fluid2.all_properties["hhv"].value * eta)
@@ -354,7 +360,8 @@ def test_const_p2g_control(get_gas_example, get_power_example_simple):
     ConstControl(net_power, 'load', 'p_mw', 1)
     ConstControl(net_power, 'sgen', 'p_mw', 0)
 
-    run_control(mn)
+    max_iter_hyd = 8
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
     assert np.all(net_power.res_load.p_mw.values == power_load)
     assert np.all(net_gas.res_sink.values == flow_gas)
@@ -380,7 +387,8 @@ def test_run_control_wo_controller(get_gas_example, get_power_example_simple):
 
     add_nets_to_multinet(mn, power=net_power, gas=net_gas)
 
-    run_control(mn)
+    max_iter_hyd = 8
+    run_control(mn, max_iter_hyd=max_iter_hyd)
 
 
 def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
@@ -403,8 +411,10 @@ def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
+    max_iter_hyd = 7
     run_control(mn, ctrl_variables={"nets": {"power": {"run": runpp_with_mark},
-                                             "gas": {"run": pipeflow_with_mark}}})
+                                             "gas": {"run": pipeflow_with_mark}}},
+                max_iter_hyd=max_iter_hyd)
 
     assert net_power["mark"] == "runpp"
     assert net_gas["mark"] == "pipeflow"

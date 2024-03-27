@@ -23,8 +23,12 @@ pf_logger.setLevel(logging.WARNING)
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta(use_numba, log_results=False):
     net = nw.heat_transfer_delta()
+    max_iter_hyd = 10 if use_numba else 10
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.007)
     assert np.all(p_diff < 0.05)
     assert np.all(v_diff_abs < 0.05)
@@ -33,8 +37,12 @@ def test_case_delta(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta_2sinks(use_numba, log_results=False):
     net = nw.heat_transfer_delta_2sinks()
+    max_iter_hyd = 10 if use_numba else 10
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.007)
     assert np.all(p_diff < 0.02)
     assert np.all(v_diff_abs < 0.05)
@@ -43,8 +51,12 @@ def test_case_delta_2sinks(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_heights(use_numba, log_results=False):
     net = nw.heat_transfer_heights()
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.0065)
     assert np.all(p_diff < 0.02)
     assert np.all(v_diff_abs < 0.05)
@@ -53,8 +65,12 @@ def test_case_heights(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe(use_numba, log_results=False):
     net = nw.heat_transfer_one_pipe()
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.004)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
@@ -63,8 +79,12 @@ def test_case_one_pipe(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_source(use_numba, log_results=False):
     net = nw.heat_transfer_one_source()
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.04)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
@@ -73,8 +93,12 @@ def test_case_one_source(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_section_variation(use_numba, log_results=False):
     net = nw.heat_transfer_section_variation()
+    max_iter_hyd = 10 if use_numba else 10
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     # all values of temp_diff_mean are zero except one with about 0.025
     assert np.all(temp_diff_mean < 0.03)
     assert np.all(p_diff < 0.022)
@@ -84,8 +108,12 @@ def test_case_section_variation(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_t_cross(use_numba, log_results=False):
     net = nw.heat_transfer_t_cross()
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.007)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
@@ -94,8 +122,12 @@ def test_case_t_cross(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_two_pipes(use_numba, log_results=False):
     net = nw.heat_transfer_two_pipes()
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
-        net, log_results, mode="all", use_numba=use_numba)
+        net, log_results,
+        max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+        mode="all", use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.004)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)

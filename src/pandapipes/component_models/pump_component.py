@@ -12,7 +12,7 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
 from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import VINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
+from pandapipes.idx_branch import MDOTINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -104,7 +104,7 @@ class Pump(BranchWZeroLengthComponent):
         # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
         t_from = node_pit[from_nodes, TINIT_NODE]
         numerator_from = NORMAL_PRESSURE * t_from
-        v_mps = pump_branch_pit[:, VINIT]
+        v_mps = pump_branch_pit[:, MDOTINIT] / pump_branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
         if fluid.is_gas:
             # consider volume flow at inlet
             normfactor_from = numerator_from * fluid.get_property("compressibility", p_from) \
@@ -179,11 +179,11 @@ class Pump(BranchWZeroLengthComponent):
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
                                     (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
                     res_table['compr_power_mw'].values[:] = \
-                        w_real_isentr * np.abs(mf_sum_int) / 10 ** 6
+                        w_real_isentr * np.abs(mf_sum_int) / 1e6
             else:
                 vf_sum_int = branch_results["vf"][f:t]
                 pl = branch_results["pl"][f:t]
-                res_table['compr_power_mw'].values[:] = pl * P_CONVERSION * vf_sum_int / 10 ** 6
+                res_table['compr_power_mw'].values[:] = pl * P_CONVERSION * vf_sum_int / 1e6
 
     @classmethod
     def get_component_input(cls):

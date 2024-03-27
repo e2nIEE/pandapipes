@@ -10,7 +10,7 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
-    ACTIVE as ACTIVE_BR, VINIT
+    ACTIVE as ACTIVE_BR, MDOTINIT
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
 from pandapipes.pf.internals_toolbox import _sum_by_group
@@ -33,11 +33,12 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-default_options = {"friction_model": "nikuradse", "tol_p": 1e-4, "tol_v": 1e-4,
-                   "tol_T": 1e-3, "tol_res": 1e-3, "iter": 10, "error_flag": False, "alpha": 1,
+default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
+                   "tol_T": 1e-3, "tol_res": 1e-3, "max_iter_hyd": 10, "max_iter_therm": 10,
+                   "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293, "check_connectivity": True,
-                   "max_iter_colebrook": 100, "only_update_hydraulic_matrix": False,
+                   "max_iter_colebrook": 10, "only_update_hydraulic_matrix": False,
                    "reuse_internal_data": False, "use_numba": True,
                    "quit_on_inconsistency_connectivity": False, "calc_compression_power": True}
 
@@ -191,7 +192,7 @@ def set_user_pf_options(net, reset=False, **kwargs):
     :type net: pandapipesNet
     :param reset: Specifies whether the user_pf_options is removed before setting new options
     :type reset: bool, default False
-    :param kwargs: pipeflow options that shall be set, e.g. tol_v = 1e-7
+    :param kwargs: pipeflow options that shall be set, e.g. tol_m = 1e-7
     :return: No output
     """
     if reset or 'user_pf_options' not in net.keys():
@@ -212,13 +213,16 @@ def init_options(net, local_parameters):
 
     Those are the options that can be set and their default values:
 
-        - **iter** (int): 10 - If the simulation is terminated after a certain amount of \
+        - **max_iter_hyd** (int): 10 - If the hydraulics simulation is terminated after a certain amount of \
+                               iterations, this is the number of iterations.
+
+        - **max_iter_therm** (int): 10 - If the thermal simulation is terminated after a certain amount of \
                                iterations, this is the number of iterations.
 
         - **tol_p** (float): 1e-4 - The relative tolerance for the pressure. A result is accepted \
                                     if the relative error is smaller than this factor.
 
-        - **tol_v** (float): 1e-4 - The relative tolerance for the velocity. A result is accepted \
+        - **tol_m** (float): 1e-4 - The relative tolerance for the velocity. A result is accepted \
                                     if the relative error is smaller than this factor.
 
         - **tol_T** (float): 1e-4 - The relative tolerance for the temperature. A result is \
@@ -517,8 +521,8 @@ def branches_connected_flow(branch_pit):
     :rtype: np.array
     """
     # TODO: is this formulation correct or could there be any caveats?
-    return ~np.isnan(branch_pit[:, VINIT]) \
-        & ~np.isclose(branch_pit[:, VINIT], 0, rtol=1e-10, atol=1e-10)
+    return ~np.isnan(branch_pit[:, MDOTINIT]) \
+        & ~np.isclose(branch_pit[:, MDOTINIT], 0, rtol=1e-10, atol=1e-10)
 
 
 def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
@@ -668,7 +672,7 @@ def reduce_pit(net, node_pit, branch_pit, mode="hydraulics"):
     reduced_node_lookup = None
     nodes_connected = get_lookup(net, "node", "active_" + mode)
     branches_connected = get_lookup(net, "branch", "active_" + mode)
-    if np.alltrue(nodes_connected):
+    if np.all(nodes_connected):
         net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "node", "from_to"))
         net["_lookups"]["node_index_active_" + mode] = copy.deepcopy(
@@ -682,7 +686,7 @@ def reduce_pit(net, node_pit, branch_pit, mode="hydraulics"):
             tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]]
             for tbl, idx_lookup in node_idx_lookup.items()}
         els["node"] = nodes_connected
-    if np.alltrue(branches_connected):
+    if np.all(branches_connected):
         net["_lookups"]["branch_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "branch", "from_to"))
         active_pit["branch"] = np.copy(branch_pit)

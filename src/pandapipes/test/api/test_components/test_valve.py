@@ -8,8 +8,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
-from pandapipes.test.pipeflow_internals import internals_data_path
-
+from pandapipes.test import data_path
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_valve(use_numba):
@@ -47,11 +46,12 @@ def test_valve(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
+    max_iter_hyd = 8 if use_numba else 7
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-8, tol_v=1e-8, use_numba=use_numba)
+                        tol_p=1e-8, tol_m=1e-8, use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "test_valve.csv"), sep=';')
+    data = pd.read_csv(os.path.join(data_path, "test_valve.csv"), sep=';')
     data_p = data['p'].dropna(inplace=False)
     data_v = data['v'].dropna(inplace=False)
 

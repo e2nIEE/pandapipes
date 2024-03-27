@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
-from pandapipes.test.pipeflow_internals import internals_data_path
+from pandapipes.test import data_path
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -35,11 +35,14 @@ def test_circulation_pump_constant_pressure(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=10, friction_model="nikuradse",
+    max_iter_hyd = 8 if use_numba else 8
+    max_iter_therm = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        stop_condition="tol", friction_model="nikuradse",
                         mode="all", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "test_circ_pump_pressure.csv"), sep=';')
+    data = pd.read_csv(os.path.join(data_path, "test_circ_pump_pressure.csv"), sep=';')
 
     res_junction = net.res_junction
     res_pipe = net.res_pipe.v_mean_m_per_s.values
