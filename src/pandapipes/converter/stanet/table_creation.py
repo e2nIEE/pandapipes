@@ -246,7 +246,7 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers,
         if any(slider_valves.DM == 0):
             logger.warning(f"{sum(slider_valves.DM == 0)} sliders have an inner diameter of 0 m! "
                            f"The diameter will be set to 1 m.")
-            slider_valves.DM[slider_valves.DM == 0] = 1e3
+            slider_valves.loc[slider_valves.DM == 0, 'DM'] = 1e3
         pandapipes.create_valves(
             net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
             opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
@@ -342,15 +342,17 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         logger.warning("There is an error in the control table! Please check the columns 'OFFEN',"
                        " 'ZU' and 'AKTIV', which should only contain 'J' or 'N'.")
 
-    control_active = (control_table.AKTIV.values == "J").astype(np.bool_)
-    if consider_controlled:
-        control_active &= ~fully_open
-    in_service = control_table.ISACTIVE.values.astype(np.bool_)
+    in_service = (control_table.AKTIV.values != "N").astype(np.bool_)
+    in_service &= control_table.ISACTIVE.values.astype(np.bool_)
     if consider_controlled:
         in_service &= ~(control_table.ZU.values == "J")
 
-    is_pc = control_table.RTYP.values == "P"
-    is_fc = control_table.RTYP.values == "Q"
+    control_active = np.ones(len(control_table), dtype=bool)
+    if consider_controlled:
+        control_active &= ~fully_open
+
+    is_pc = control_table.RSTATUS.values == "P"
+    is_fc = control_table.RSTATUS.values == "Q"
     if not np.all(is_pc | is_fc):
         raise UserWarning("There are controllers of types %s that cannot be converted!" \
                                   % set(control_table.RTYP.values[~is_pc & ~is_fc]))
