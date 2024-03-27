@@ -128,7 +128,7 @@ def hydraulics(net):
     error_m, error_p, residual_norm = [], [], None
 
     # This loop is left as soon as the solver converged
-    while not net.converged and niter <= max_iter:
+    while not net.converged and niter < max_iter:
         logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
@@ -173,7 +173,7 @@ def heat_transfer(net):
     niter = 0
 
     # This loop is left as soon as the solver converged
-    while not net.converged and niter <= max_iter:
+    while not net.converged and niter < max_iter:
         logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
