@@ -58,7 +58,6 @@ class HeatExchanger(BranchWZeroLengthComponent):
         heat_exchanger_pit[:, ALPHA] = 0
         heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
         heat_exchanger_pit[:, TEXT] = 293.15
-        heat_exchanger_pit[:, TOUTINIT] = 307
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
