@@ -654,15 +654,15 @@ def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
     net = create_net_wo_ext_grid
     ex1 = pandapipes.create_ext_grid(net, junction=3, t_k=300)
     ex2 = pandapipes.create_ext_grid(net, junction=3, p_bar=1)
+    max_iter_hyd = 9 if use_numba else 9
     with pytest.raises(PipeflowNotConverged):
         net.ext_grid.at[ex2, 'in_service'] = False
-        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
     assert ~net.converged
     net.ext_grid.at[ex1, 'in_service'] = False
     net.ext_grid.at[ex2, 'in_service'] = True
 
-    max_iter_hyd = 9 if use_numba else 9
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba, check_connectivity=True)
     assert not np.all(np.isnan(net.res_junction.p_bar.values))
