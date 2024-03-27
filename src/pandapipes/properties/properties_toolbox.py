@@ -149,12 +149,13 @@ def calculate_mass_fraction_from_molar_fraction(component_molar_proportions, com
 
 
 def get_branch_density(net, fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE].astype(int)
+    # todo consider flow change in case of heat calculation (relevant for bidirectional calculation)
+    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     if fluid.is_gas:
         from_p = node_pit[from_nodes, PINIT] + node_pit[from_nodes, PAMB]
-        to_nodes = branch_pit[:, TO_NODE].astype(int)
+        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
         to_p = node_pit[to_nodes, PINIT] + node_pit[to_nodes, PAMB]
         normal_rho = fluid.get_density(NORMAL_TEMPERATURE)
         from_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * from_p,
@@ -168,7 +169,7 @@ def get_branch_density(net, fluid, node_pit, branch_pit):
     return rho
 
 def get_branch_eta(net, fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE].astype(int)
+    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
@@ -176,7 +177,7 @@ def get_branch_eta(net, fluid, node_pit, branch_pit):
     return eta
 
 def get_branch_cp(net, fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE].astype(int)
+    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
