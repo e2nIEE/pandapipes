@@ -81,7 +81,6 @@ class HeatExchanger(BranchWZeroLengthComponent):
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
 
-
     @classmethod
     def get_component_input(cls):
         """

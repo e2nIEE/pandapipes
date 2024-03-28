@@ -11,6 +11,6 @@ exclude_lines =
     pragma: no cover
 
 omit =
-    pandapipes/test/*
-    pandapipes/plotting/geo.py
-    pandapipes/converter/stanet/data_cleaning.py
+    src/pandapipes/test/*
+    src/pandapipes/plotting/geo.py
+    src/pandapipes/converter/stanet/data_cleaning.py
