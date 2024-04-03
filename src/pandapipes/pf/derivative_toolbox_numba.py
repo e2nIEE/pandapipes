@@ -21,8 +21,8 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
     le = der_lambda.shape[0]
     load_vec = np.zeros_like(der_lambda)
     df_dm = np.zeros_like(der_lambda)
-    df_dp = np.ones_like(der_lambda) * (-1)
-    df_dp1 = np.ones_like(der_lambda)
+    df_dp = np.ones_like(der_lambda)
+    df_dp1 = np.ones_like(der_lambda) * (-1)
     load_vec_nodes = np.zeros_like(der_lambda)
     df_dm_nodes = np.ones_like(der_lambda)
 
@@ -35,7 +35,7 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
             + branch_pit[i][LC]
         const_term = np.divide(1, branch_pit[i][AREA] ** 2 * rho_n[i] * P_CONVERSION * 2)
 
-        df_dm[i] = const_term * (2 * m_init_abs * friction_term + der_lambda[i]
+        df_dm[i] = -1. * const_term * (2 * m_init_abs * friction_term + der_lambda[i]
                                    * np.divide(branch_pit[i][LENGTH], branch_pit[i][D]) * m_init2)
 
         load_vec[i] = p_diff + branch_pit[i][PL] + const_height - const_term * m_init2 * friction_term
@@ -52,7 +52,7 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
     load_vec = np.zeros_like(lambda_)
     df_dm = np.zeros_like(lambda_)
     df_dp = np.zeros_like(lambda_)
-    df_dp1 = np.zeros_like(lambda_) * (-1)
+    df_dp1 = np.zeros_like(lambda_)
     load_vec_nodes = np.zeros_like(der_lambda)
     df_dm_nodes = np.ones_like(der_lambda)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
@@ -80,10 +80,10 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
             - normal_term * comp_fact[i] * m_init2 * friction_term * p_sum_div * tm
 
         const_term = normal_term * m_init2 * friction_term * tm
-        df_dp[i] = -1. + const_term * p_sum_div * (der_comp[i] - comp_fact[i] * p_sum_div)
-        df_dp1[i] = 1. + const_term * p_sum_div * (der_comp1[i] - comp_fact[i] * p_sum_div)
+        df_dp[i] = 1. - const_term * p_sum_div * (der_comp[i] - comp_fact[i] * p_sum_div)
+        df_dp1[i] = -1. - const_term * p_sum_div * (der_comp1[i] - comp_fact[i] * p_sum_div)
 
-        df_dm[i] = normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_init_abs * friction_term \
+        df_dm[i] = -1. * normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_init_abs * friction_term \
             + np.divide(der_lambda[i] * branch_pit[i][LENGTH] * m_init2, branch_pit[i][D]))
 
         load_vec_nodes[i] = branch_pit[i][MDOTINIT]

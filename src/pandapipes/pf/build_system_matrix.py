@@ -67,16 +67,15 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
 
     if not heat_mode:
         # pdF_dv
-        system_data[:len_b] = branch_pit[:, JAC_DERIV_DM]
+        system_data[:len_b] = branch_pit[:, JAC_DERIV_DM] * (-1)
         # pdF_dpi
-        system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DP]
+        system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DP] * (-1)
         # pdF_dpi1
-        system_data[2 * len_b:3 * len_b] = branch_pit[:, JAC_DERIV_DP1]
+        system_data[2 * len_b:3 * len_b] = branch_pit[:, JAC_DERIV_DP1] * (-1)
         # jdF_dv_from_nodes
         system_data[3 * len_b:len_fn1] = branch_pit[not_slack_fn_branch_mask, JAC_DERIV_DM_NODE]
         # jdF_dv_to_nodes
-        system_data[len_fn1:len_tn1] = branch_pit[not_slack_tn_branch_mask,
-                                                  JAC_DERIV_DM_NODE] * (-1)
+        system_data[len_fn1:len_tn1] = branch_pit[not_slack_tn_branch_mask, JAC_DERIV_DM_NODE] * (-1)
         # pc_nodes and p_nodes
         system_data[len_tn1:] = 1
     else:

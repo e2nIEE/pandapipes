@@ -21,16 +21,16 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
     friction_term = np.divide(branch_pit[:, LENGTH] * branch_pit[:, LAMBDA], branch_pit[:, D]) + branch_pit[:, LC]
     const_term = np.divide(1, branch_pit[:, AREA] ** 2 * rho_n * P_CONVERSION * 2)
 
-    df_dm = const_term * (2 * m_init_abs * friction_term + der_lambda
+    df_dm = - const_term * (2 * m_init_abs * friction_term + der_lambda
                             * np.divide(branch_pit[:, LENGTH], branch_pit[:, D]) * m_init2)
 
     load_vec = p_diff + branch_pit[:, PL] + const_height - const_term * m_init2 * friction_term
 
-    df_dp = np.ones_like(der_lambda) * (-1)
-    df_dp1 = np.ones_like(der_lambda)
+    df_dp = np.ones_like(der_lambda)
+    df_dp1 = np.ones_like(der_lambda) * (-1)
 
     df_dm_nodes = np.ones_like(der_lambda)
-
+    
     load_vec_nodes = branch_pit[:, MDOTINIT]
 
     return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
@@ -51,11 +51,11 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
     normal_term = np.divide(NORMAL_PRESSURE, NORMAL_TEMPERATURE * P_CONVERSION * rho_n * branch_pit[:, AREA] ** 2)
 
     const_term_p = normal_term * m_init2 * friction_term * tm
-    df_dp = -1. + const_term_p * p_sum_div * (der_comp - comp_fact * p_sum_div)
-    df_dp1 = 1. + const_term_p * p_sum_div * (der_comp1 - comp_fact * p_sum_div)
+    df_dp = 1. - const_term_p * p_sum_div * (der_comp - comp_fact * p_sum_div)
+    df_dp1 = -1. - const_term_p * p_sum_div * (der_comp1 - comp_fact * p_sum_div)
 
     const_term_m = normal_term * p_sum_div * tm * comp_fact
-    df_dm = const_term_m * (2 * m_init_abs * friction_term +
+    df_dm = - const_term_m * (2 * m_init_abs * friction_term +
                             np.divide(der_lambda * branch_pit[:, LENGTH] * m_init2, branch_pit[:, D]))
 
     load_vec = p_diff + branch_pit[:, PL] + const_height \
