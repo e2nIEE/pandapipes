@@ -5,9 +5,11 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.component_toolbox import set_entry_check_repeat
+from pandapipes.component_models.component_toolbox import set_entry_check_repeat, vinterp, \
+    p_correction_height_air
 from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, RHO, ETA, CP, ELEMENT_IDX, TOUTINIT
-from pandapipes.idx_node import L, node_cols, TINIT as TINIT_NODE
+from pandapipes.idx_node import (L, node_cols, TINIT as TINIT_NODE, HEIGHT, PINIT, PAMB,
+                                 ACTIVE as ACTIVE_ND)
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 from pandapipes.properties.fluids import get_fluid
 
@@ -158,6 +160,17 @@ class BranchWInternalsComponent(BranchComponent):
         junction_indices = get_lookup(net, "node", "index")[junction_table_name]
         fj_nodes = junction_indices[from_junctions]
         tj_nodes = junction_indices[to_junctions]
+
+        int_node_pit[:, HEIGHT] = vinterp(junction_pit[fj_nodes, HEIGHT],
+                                          junction_pit[tj_nodes, HEIGHT], int_node_number)
+        int_node_pit[:, PINIT] = vinterp(junction_pit[fj_nodes, PINIT],
+                                         junction_pit[tj_nodes, PINIT], int_node_number)
+        int_node_pit[:, TINIT_NODE] = vinterp(junction_pit[fj_nodes, TINIT_NODE],
+                                              junction_pit[tj_nodes, TINIT_NODE],
+                                              int_node_number)
+        int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
+        int_node_pit[:, ACTIVE_ND] = \
+            np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
         return table_nr, int_node_number, int_node_pit, junction_pit, fj_nodes, tj_nodes
 
     @classmethod
