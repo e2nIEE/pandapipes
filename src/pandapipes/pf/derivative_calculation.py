@@ -196,7 +196,6 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     :rtype:
     """
 
-    # TODO: check if some formulas with constants can be shortened
     b_term = np.zeros_like(m)
     df_dm = np.zeros_like(m)
     df_dlambda = np.zeros_like(m)
@@ -217,13 +216,12 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
 
         return lambda_der
     elif friction_model == "swamee-jain":
-        param = (k[pos] / (3.7 * d[pos]) + 5.74 * (np.abs(eta[pos] * area[pos])) ** 0.9 /
-                 ((np.abs(m[pos] * d[pos])) ** 0.9))
+        param = (k[pos] / (3.7 * d[pos]) + 5.74 * ((eta[pos] * area[pos]) /
+                 (np.abs(m[pos]) * d[pos])) ** 0.9)
         # 0.5 / (log(10) * log(param)^3 * param) * 5.166 * abs(eta)^0.9  / (abs(rho * d)^0.9
         # * abs(v_corr)^1.9)
         lambda_der[pos] = 0.5 * np.log(10) ** 2 / (np.log(param) ** 3) / param * 5.166 \
-                                 * np.abs(eta[pos] * area[pos]) ** 0.9 / ((np.abs(d[pos]) ** 0.9)
-                                                         * np.abs(m[pos]) ** 1.9)
+                                 * ((eta[pos] * area[pos]) / (d[pos])) ** 0.9 * np.abs(m[pos]) ** -1.9
         return lambda_der
     else:
         lambda_der[pos] = -(64 * eta[pos] * area[pos]) / (m[pos] ** 2 * d[pos])
