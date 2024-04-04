@@ -108,7 +108,7 @@ def calc_medium_pressure_with_derivative_np(p_init_i_abs, p_init_i1_abs):
 
     return p_m, der_p_m, der_p_m1
 
-# TODO: check NR colebrook
+
 def colebrook_np(re, d, k, lambda_nikuradse, dummy, max_iter):
     """
 

@@ -136,7 +136,7 @@ def calc_medium_pressure_with_derivative_numba(p_init_i_abs, p_init_i1_abs):
                            + 2 * p_init_i1_abs[i] * diff_p_cub) * diff_p_sq_div ** 2 * val
     return p_m, der_p_m, der_p_m1
 
-# TODO: check NR colebrook
+
 @jit((float64[:], float64[:], float64[:], float64[:], float64[:], int64), nopython=True)
 def colebrook_numba(re, d, k, lambda_nikuradse, dummy, max_iter):
     lambda_cb = lambda_nikuradse.copy()
