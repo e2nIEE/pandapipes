@@ -4,7 +4,7 @@
 
 import numpy as np
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
-    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DT1, \
+    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, \
     JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T, BRANCH_TYPE
 from pandapipes.idx_node import LOAD, TINIT
 from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T
@@ -81,7 +81,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     else:
         system_data[:len_b] = branch_pit[:, JAC_DERIV_DT]
         # pdF_dpi1
-        system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DT1]
+        system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DTOUT]
         # jdF_dv_from_nodes
         system_data[2 * len_b:len_fn1] = inc_flow_sum[tn_unique_der]
         # jdF_dv_to_nodes
