@@ -10,7 +10,7 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
-    ACTIVE as ACTIVE_BR, MDOTINIT
+    ACTIVE as ACTIVE_BR, MDOTINIT, FROM_NODE_T, TO_NODE_T
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
 from pandapipes.pf.internals_toolbox import _sum_by_group
@@ -706,8 +706,10 @@ def reduce_pit(net, node_pit, branch_pit, mode="hydraulics"):
     if reduced_node_lookup is not None:
         active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
             branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
+        active_pit["branch"][:, FROM_NODE_T] = active_pit["branch"][:, FROM_NODE]
         active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
             branch_pit[branches_connected, TO_NODE].astype(np.int32)]
+        active_pit["branch"][:, TO_NODE_T] = active_pit["branch"][:, TO_NODE]
     net["_active_pit"] = active_pit
 
     for el, connected_els in els.items():

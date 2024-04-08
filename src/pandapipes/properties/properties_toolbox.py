@@ -5,7 +5,7 @@
 import numpy as np
 
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import TOUTINIT, FROM_NODE, TO_NODE
+from pandapipes.idx_branch import TOUTINIT, FROM_NODE_T, TO_NODE
 from pandapipes.idx_node import TINIT, PINIT, PAMB
 
 
@@ -148,9 +148,8 @@ def calculate_mass_fraction_from_molar_fraction(component_molar_proportions, com
     return com_array[:, 3]
 
 
-def get_branch_density(net, fluid, node_pit, branch_pit):
-    # todo consider flow change in case of heat calculation (relevant for bidirectional calculation)
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+def get_branch_real_density(fluid, node_pit, branch_pit):
+    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     if fluid.is_gas:
@@ -168,8 +167,8 @@ def get_branch_density(net, fluid, node_pit, branch_pit):
     rho = (from_rho + to_rho) / 2
     return rho
 
-def get_branch_eta(net, fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+def get_branch_real_eta(fluid, node_pit, branch_pit):
+    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
@@ -177,7 +176,7 @@ def get_branch_eta(net, fluid, node_pit, branch_pit):
     return eta
 
 def get_branch_cp(net, fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2

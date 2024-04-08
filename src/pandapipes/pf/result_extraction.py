@@ -7,7 +7,6 @@ from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT 
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.properties.properties_toolbox import get_branch_density
 
 try:
     from numba import jit
@@ -39,11 +38,11 @@ def extract_all_results(net, calculation_mode):
         if get_net_option(net, "use_numba"):
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
                 normfactor_to, normfactor_mean = get_branch_results_gas_numba(
-                    net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
+                net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
         else:
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
                 normfactor_to, normfactor_mean = get_branch_results_gas(
-                    net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
+                net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
         gas_branch_results = {
             "v_gas_from": v_gas_from, "v_gas_to": v_gas_to, "v_gas_mean": v_gas_mean,
             "p_from": p_from, "p_to": p_to, "p_abs_from": p_abs_from, "p_abs_to": p_abs_to,
@@ -75,7 +74,7 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
     p_abs_mean = np.empty_like(p_abs_to)
     p_abs_mean[~mask] = p_abs_from[~mask]
     p_abs_mean[mask] = 2 / 3 * (p_abs_from[mask] ** 3 - p_abs_to[mask] ** 3) \
-        / (p_abs_from[mask] ** 2 - p_abs_to[mask] ** 2)
+                       / (p_abs_from[mask] ** 2 - p_abs_to[mask] ** 2)
 
     fluid = get_fluid(net)
     t_from = node_pit[from_nodes, TINIT_NODE]
@@ -93,7 +92,7 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
     v_gas_to = v_mps * normfactor_to
     v_gas_mean = v_mps * normfactor_mean
 
-    return v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from,\
+    return v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
         normfactor_to, normfactor_mean
 
 
@@ -264,7 +263,7 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
                 branch_results[entry][f:t][comp_connected_ht]
 
 
-def extract_results_active_pit(net,  mode="hydraulics"):
+def extract_results_active_pit(net, mode="hydraulics"):
     """
     Extract the pipeflow results from the internal pit structure ("_active_pit") to the general pit
     structure.

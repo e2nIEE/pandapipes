@@ -6,7 +6,7 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat
-from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX
+from pandapipes.idx_branch import ACTIVE, FROM_NODE, FROM_NODE_T, TO_NODE, TO_NODE_T, TOUTINIT, ELEMENT_IDX
 from pandapipes.idx_node import L, node_cols, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number
 
@@ -194,7 +194,9 @@ class BranchWInternalsComponent(BranchComponent):
             branch_w_internals_pit, ACTIVE, net[cls.table_name()][cls.active_identifier()].values,
             internal_pipe_number, has_internals)
         branch_w_internals_pit[:, FROM_NODE] = from_nodes
+        branch_w_internals_pit[:, FROM_NODE_T] = from_nodes
         branch_w_internals_pit[:, TO_NODE] = to_nodes
+        branch_w_internals_pit[:, TO_NODE_T] = to_nodes
         branch_w_internals_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
         return branch_w_internals_pit, internal_pipe_number
 

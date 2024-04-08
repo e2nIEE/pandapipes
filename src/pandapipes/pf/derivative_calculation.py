@@ -7,7 +7,7 @@ from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.constants import NORMAL_TEMPERATURE
-from pandapipes.properties.properties_toolbox import get_branch_density, get_branch_eta, get_branch_cp
+from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, get_branch_cp
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -27,8 +27,8 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     fluid = get_fluid(net)
     gas_mode = fluid.is_gas
     friction_model = options["friction_model"]
-    rho = get_branch_density(net, fluid, node_pit, branch_pit)
-    eta = get_branch_eta(net, fluid, node_pit, branch_pit)
+    rho = get_branch_real_density(fluid, node_pit, branch_pit)
+    eta = get_branch_real_eta(fluid, node_pit, branch_pit)
     rho_n = fluid.get_density([NORMAL_TEMPERATURE] * len(branch_pit))
 
     lambda_, re = calc_lambda(
