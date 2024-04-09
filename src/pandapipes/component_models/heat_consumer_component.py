@@ -8,8 +8,8 @@ from numpy import dtype
 from pandapipes.component_models import get_fluid, \
     BranchWZeroLengthComponent, get_component_array, standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import (D, AREA, VINIT, ALPHA, QEXT, RHO, TEXT, JAC_DERIV_DP1,
-                                   JAC_DERIV_DV, JAC_DERIV_DP, LOAD_VEC_BRANCHES)
+from pandapipes.idx_branch import D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, \
+                                   JAC_DERIV_DM, JAC_DERIV_DP, LOAD_VEC_BRANCHES
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -68,8 +68,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hs_pit = super().create_pit_branch_entries(net, branch_pit)
         hs_pit[:, D] = net[cls.table_name()].diameter_m.values
         hs_pit[:, AREA] = hs_pit[:, D] ** 2 * np.pi / 4
-        hs_pit[:, VINIT] = (net[cls.table_name()].controlled_mdot_kg_per_s.values /
-                            (hs_pit[:, AREA] * hs_pit[:, RHO]))
+        hs_pit[:, MDOTINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values
         hs_pit[:, QEXT] = net[cls.table_name()].qext_w.values
         return hs_pit
 
@@ -127,7 +126,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         mdot_controlled = ~np.isnan(fc_array[:, cls.MASS])
         fc_branch_pit[mdot_controlled, JAC_DERIV_DP] = 0
         fc_branch_pit[mdot_controlled, JAC_DERIV_DP1] = 0
-        fc_branch_pit[mdot_controlled, JAC_DERIV_DV] = 1
+        fc_branch_pit[mdot_controlled, JAC_DERIV_DM] = 1
         fc_branch_pit[mdot_controlled, LOAD_VEC_BRANCHES] = 0
 
     # @classmethod
