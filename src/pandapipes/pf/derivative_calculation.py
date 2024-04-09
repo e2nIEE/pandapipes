@@ -3,7 +3,7 @@ import numpy as np
 from pandapipes.idx_branch import LENGTH, ETA, RHO, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DV_NODE, VINIT, \
     FROM_NODE, TO_NODE, CP, VINIT_T, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
-    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT1, JAC_DERIV_DT_NODE
+    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.properties.fluids import get_fluid
 
@@ -94,7 +94,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
           - alpha * (t_amb - t_m) * length + qext)
 
     branch_pit[:, JAC_DERIV_DT] = - rho * area * cp * v_init + alpha / 2 * length
-    branch_pit[:, JAC_DERIV_DT1] = rho * area * cp * v_init + alpha / 2 * length
+    branch_pit[:, JAC_DERIV_DTOUT] = rho * area * cp * v_init + alpha / 2 * length
 
     branch_pit[:, JAC_DERIV_DT_NODE] = rho * v_init * branch_pit[:, AREA]
     branch_pit[:, LOAD_VEC_NODES_T] = rho * v_init * branch_pit[:, AREA] \
