@@ -5,15 +5,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
-from pandapipes.component_models.component_toolbox import p_correction_height_air, \
-    vinterp, set_entry_check_repeat
+from pandapipes.component_models.component_toolbox import set_entry_check_repeat
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    VINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
-from pandapipes.idx_node import PINIT, HEIGHT, TINIT as TINIT_NODE, \
-    RHO as RHO_NODES, PAMB, ACTIVE as ACTIVE_ND
+    MDOTINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
+from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
@@ -92,34 +91,6 @@ class Pipe(BranchWInternalsComponent):
         return end, current_table
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        """
-        Function which creates pit node entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :return: No Output.
-        """
-        table_nr, int_node_number, int_node_pit, junction_pit, fj_nodes, tj_nodes = \
-            super().create_pit_node_entries(net, node_pit)
-        if table_nr is None:
-            return
-        get_lookup(net, "node", "index")
-        int_node_pit[:, HEIGHT] = vinterp(junction_pit[fj_nodes, HEIGHT],
-                                          junction_pit[tj_nodes, HEIGHT], int_node_number)
-        int_node_pit[:, PINIT] = vinterp(junction_pit[fj_nodes, PINIT],
-                                         junction_pit[tj_nodes, PINIT], int_node_number)
-        int_node_pit[:, TINIT_NODE] = vinterp(junction_pit[fj_nodes, TINIT_NODE],
-                                              junction_pit[tj_nodes, TINIT_NODE],
-                                              int_node_number)
-        int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
-        int_node_pit[:, RHO_NODES] = get_fluid(net).get_density(int_node_pit[:, TINIT_NODE])
-        int_node_pit[:, ACTIVE_ND] = \
-            np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
-
-    @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
         """
         Function which creates pit branch entries.
@@ -152,6 +123,7 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
+        pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -226,22 +198,22 @@ class Pipe(BranchWInternalsComponent):
             selected_indices_v_final = np.logical_or.reduce(selected_indices_v[:])
 
             p_nodes = int_p_lookup[:, 1][selected_indices_p_final]
-            v_nodes = int_v_lookup[:, 1][selected_indices_v_final]
+            m_nodes = int_v_lookup[:, 1][selected_indices_v_final]
 
-            v_pipe_data = pipe_pit[v_nodes, VINIT]
+            v_pipe_data = pipe_pit[m_nodes, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / pipe_pit[m_nodes, AREA]
             p_node_data = node_pit[p_nodes, PINIT]
             t_node_data = node_pit[p_nodes, TINIT_NODE]
 
             gas_mode = fluid.is_gas
 
             if gas_mode:
-                from_nodes = pipe_pit[v_nodes, FROM_NODE].astype(np.int32)
-                to_nodes = pipe_pit[v_nodes, TO_NODE].astype(np.int32)
+                from_nodes = pipe_pit[m_nodes, FROM_NODE].astype(np.int32)
+                to_nodes = pipe_pit[m_nodes, TO_NODE].astype(np.int32)
                 p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
                 p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
                 p_mean = np.where(p_from == p_to, p_from,
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
-                numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
+                numerator = NORMAL_PRESSURE * node_pit[m_nodes, TINIT_NODE]
                 normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
                     / (p_mean * NORMAL_TEMPERATURE)
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \

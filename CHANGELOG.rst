@@ -1,6 +1,25 @@
 Change Log
 =============
 
+[0.10.0] - 2024-04-09
+-------------------------------
+
+- [ADDED] function for plotting pressure profile
+- [ADDED] function for calculating distance to junctions
+- [ADDED] topology function for returning unsupplied junctions
+- [ADDED] topology function for returning elements on path
+- [ADDED] function for getting all branch-component table names
+- [ADDED] function for getting all branch-component models
+- [ADDED] component 'heat_consumer' that combines the two components heat_exchanger and flow_control
+- [CHANGED] moving generalizing pit entries up from specific components to the abstract class
+- [CHANGED] 'JAC_DERIV_DT1' to 'JAC_DERIV_DTOUT'
+- [CHANGED] solving for minit instead of vinit
+- [CHANGED] distinct max. iteration settings for hydraulic and thermal calculation
+- [CHANGED] default tolerances from 1e-4 to 1e-5
+- [FIXED] results of old grid are wrong, pipeflow needs to be conducted again
+- [FIXED] taking norm density instead of real density in Darcy-Weisbach equation
+- [FIXED] in circulation pumps only junctions in-service are considered
+
 [0.9.0] - 2023-12-22
 -------------------------------
 

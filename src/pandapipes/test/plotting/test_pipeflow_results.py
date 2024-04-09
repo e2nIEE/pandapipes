@@ -25,7 +25,8 @@ def test_pressure_profile_to_junction_geodata():
     pp.create_pipe_from_parameters(net, from_junction=j3, to_junction=j4,
                                           length_km=0.4, diameter_m=0.05)
 
-    pp.pipeflow(net)
+    max_iter_hyd = 3
+    pp.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     jgd = plot.pressure_profile_to_junction_geodata(net)
 
@@ -36,7 +37,8 @@ def test_pressure_profile_to_junction_geodata():
     pp.create_pipe_from_parameters(net, from_junction=j1, to_junction=j4,
                                           length_km=0.2, diameter_m=0.05,
                                           name="Pipe 1")
-    pp.pipeflow(net)
+    max_iter_hyd = 4
+    pp.pipeflow(net, max_iter_hyd=max_iter_hyd)
     jgd = plot.pressure_profile_to_junction_geodata(net)
     assert jgd.y.loc[jgd.index].equals(net.res_junction.p_bar.loc[jgd.index])
     assert np.isclose(jgd.x.loc[jgd.index].values, [0.0, 0.2, 0.5, 0.2]).all()

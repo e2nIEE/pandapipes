@@ -160,7 +160,9 @@ def test_inservice_gas(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                        tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service, :].values))
@@ -168,7 +170,7 @@ def test_inservice_gas(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[~net.junction.in_service].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
-        | ~net.sink.in_service.values
+                | ~net.sink.in_service.values
     assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not np.any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
@@ -193,7 +195,9 @@ def test_inservice_water(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                        tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_pipe.loc[~net.pipe.in_service, :].values))
@@ -201,7 +205,7 @@ def test_inservice_water(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[~net.junction.in_service].values))
 
     oos_sinks = np.isin(net.sink.junction.values, net.junction.index[~net.junction.in_service]) \
-        | ~net.sink.in_service.values
+                | ~net.sink.in_service.values
     assert np.all(np.isnan(net.res_sink.loc[oos_sinks, :].values))
 
     assert not any(np.isnan(net.res_pipe.v_mean_m_per_s.loc[net.pipe.in_service].values))
@@ -229,15 +233,14 @@ def test_connectivity_hydraulic(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_junction.p_bar.loc[[2, 5, 6]].values))
     assert np.all(np.isnan(net.res_pipe.loc[[1, 2, 3], :].values))
     assert not np.any(np.isnan(net.res_junction.loc[[0, 1, 3, 4], :].values))
-    assert not np.any(np.isnan(net.res_pipe.loc[[0, 4],
-                                                ["v_mean_m_per_s", "p_from_bar",
-                                                 "p_to_bar"]].values))
+    assert not np.any(np.isnan(net.res_pipe.loc[[0, 4], ["v_mean_m_per_s", "p_from_bar", "p_to_bar"]].values))
     assert not np.any(np.isnan(net.res_sink.loc[[0, 2], "mdot_kg_per_s"].values))
     assert np.all(np.isnan(net.res_sink.loc[[1, 3, 4], "mdot_kg_per_s"].values))
 
@@ -263,7 +266,8 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water")
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    max_iter_hyd = 7 if use_numba else 7
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     pandapipes.create_junction(net, 1., 293.15)
@@ -276,7 +280,7 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
 
     pandapipes.create_sink(net, j, 0.1)
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
 
     active_branches = get_lookup(net, "branch", "active_hydraulics")
@@ -291,14 +295,18 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
     assert np.all(np.isnan(net.res_junction.p_bar.loc[[7, 8, 10, 11]].values))
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=False)
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
-    pandapipes.pipeflow(net, mode="all", check_connectivity=True, use_numba=use_numba)
+
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 3 if use_numba else 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        mode="all", check_connectivity=True, use_numba=use_numba)
 
     oos_juncs_hyd = {4, 5, 6, 7}
     oos_pipe_hyd = {5, 7, 8, 9}
@@ -334,7 +342,11 @@ def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
 def test_connectivity_heat2(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
     net.pipe.at[7, "in_service"] = True
-    pandapipes.pipeflow(net, mode="all", check_connectivity=True, use_numba=use_numba)
+
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 5 if use_numba else 5
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        mode="all", check_connectivity=True, use_numba=use_numba)
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index) == {4}
     assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) \
@@ -364,7 +376,10 @@ def test_connectivity_heat3(complex_heat_connectivity_grid, use_numba):
     net.pipe.at[5, "in_service"] = True
     net.valve.at[12, "opened"] = True
     net.junction.at[5, "in_service"] = False
-    pandapipes.pipeflow(net, mode="all", check_connectivity=True, use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        mode="all", check_connectivity=True, use_numba=use_numba)
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index) == set()
     assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) \
@@ -391,14 +406,18 @@ def test_connectivity_heat3(complex_heat_connectivity_grid, use_numba):
 def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
 
-    net.pipe.in_service.loc[[7, 8]] = True
+    net.pipe.loc[[7, 8], 'in_service'] = True
     j_new = pandapipes.create_junction(net, 1, 320.15)
     pandapipes.create_pipe_from_parameters(net, 8, j_new, 0.1, 0.1, alpha_w_per_m2k=5)
 
     net2 = copy.deepcopy(net)
 
-    pandapipes.pipeflow(net, mode="all", check_connectivity=True, use_numba=use_numba)
-    pandapipes.pipeflow(net2, mode="all", check_connectivity=False, use_numba=use_numba)
+    max_iter_hyd = 9 if use_numba else 9
+    max_iter_therm = 6 if use_numba else 6
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        mode="all", check_connectivity=True, use_numba=use_numba)
+    pandapipes.pipeflow(net2, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        mode="all", check_connectivity=False, use_numba=use_numba)
 
     assert pandapipes.nets_equal(net, net2, check_only_results=True)
 
@@ -406,7 +425,7 @@ def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
-    net.pipe.in_service.loc[[7, 8]] = True
+    net.pipe.loc[[7, 8], 'in_service'] = True
 
     j_from, j_to = pandapipes.create_junctions(net, 2, 1, 320.15)
 
@@ -417,10 +436,14 @@ def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
     net.ext_grid.loc[2, 'in_service'] = False
     net.ext_grid.loc[1, 'type'] = 'p'
 
-    pandapipes.pipeflow(net, check_connectivity=True, mode='all', use_numba=use_numba)
+    max_iter_hyd = 9 if use_numba else 9
+    max_iter_therm = 3 if use_numba else 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                        check_connectivity=True, mode='all', use_numba=use_numba)
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, check_connectivity=False, mode='all', use_numba=use_numba)
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
+                            check_connectivity=False, mode='all', use_numba=use_numba)
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -441,7 +464,8 @@ def test_exclude_unconnected_junction(use_numba):
     pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.045)
     pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j3, length_km=0.1,
                                            diameter_m=0.05)
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert net.converged
 
 
@@ -482,22 +506,26 @@ def check_mass_flows(net):
 def test_mixed_indexing_oos1(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba)
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl)].notnull()) for tbl, oos_func
                in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl)].isnull()) for tbl, oos_func
                in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
+    max_iter_hyd = 4 if use_numba else 4
     net.pipe.at[3, "in_service"] = False
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba)
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl)].notnull()) for tbl, oos_func
                in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl)].isnull()) for tbl, oos_func
                in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba, check_connectivity=False)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl)].notnull()) for tbl, oos_func
                in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl)].isnull()) for tbl, oos_func
@@ -511,14 +539,18 @@ def test_mixed_indexing_oos2(create_mixed_indexing_grid, use_numba):
     net.pipe.at[10, "in_service"] = False
     oos_juncs = [10, 12]
 
+    max_iter_hyd = 3 if use_numba else 3
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
+        pandapipes.pipeflow(net, mode="hydraulics",
+                            max_iter_hyd=max_iter_hyd,
+                            use_numba=use_numba, check_connectivity=False)
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=True)
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba, check_connectivity=True)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-                                            get_col_slice_null(tbl)].isnull())
+    get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -529,14 +561,17 @@ def test_mixed_indexing_oos3(create_mixed_indexing_grid, use_numba):
     net.pipe.at[7, "in_service"] = False
     oos_juncs = [6, 15]
 
+    max_iter_hyd = 3 if use_numba else 3
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                            mode="hydraulics", use_numba=use_numba, check_connectivity=False)
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=True)
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba, check_connectivity=True)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-                                            get_col_slice_null(tbl)].isnull())
+    get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -547,14 +582,17 @@ def test_mixed_indexing_oos4(create_mixed_indexing_grid, use_numba):
     net.valve.at[2, "opened"] = False
     oos_juncs = [15]
 
+    max_iter_hyd = 3 if use_numba else 3
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                            mode="hydraulics", use_numba=use_numba, check_connectivity=False)
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=True)
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba, check_connectivity=True)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-                                            get_col_slice_null(tbl)].isnull())
+    get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -565,14 +603,17 @@ def test_mixed_indexing_oos5(create_mixed_indexing_grid, use_numba):
     net.pipe.at[6, "in_service"] = False
     oos_juncs = [9, 8, 7]
 
+    max_iter_hyd = 3 if use_numba else 3
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                            mode="hydraulics", use_numba=use_numba, check_connectivity=False)
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=True)
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba, check_connectivity=True)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-                                            get_col_slice_null(tbl)].isnull())
+    get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -583,23 +624,27 @@ def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     net.valve.at[3, "opened"] = False
     oos_juncs = [14, 6, 15, 9, 8, 7]
 
+    max_iter_hyd = 3 if use_numba else 3
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=False)
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                            mode="hydraulics", use_numba=use_numba, check_connectivity=False)
 
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=True)
+    pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba, check_connectivity=True)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-                                            get_col_slice_null(tbl)].isnull())
+    get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
     net.ext_grid.at[1, "in_service"] = False
-    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba, check_connectivity=True)
+    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba,
+                        max_iter_hyd=max_iter_hyd, check_connectivity=True)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl, oos_juncs)].notnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert all(np.all(net["res_" + tbl].loc[oos_func(net, tbl, oos_juncs),
-                                            get_col_slice_null(tbl)].isnull())
+    get_col_slice_null(tbl)].isnull())
                for tbl, oos_func in all_tbls_funcs.items())
     assert check_mass_flows(net)
 
@@ -609,21 +654,23 @@ def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
     net = create_net_wo_ext_grid
     ex1 = pandapipes.create_ext_grid(net, junction=3, t_k=300)
     ex2 = pandapipes.create_ext_grid(net, junction=3, p_bar=1)
+    max_iter_hyd = 9 if use_numba else 9
     with pytest.raises(PipeflowNotConverged):
         net.ext_grid.at[ex2, 'in_service'] = False
-        pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
     assert ~net.converged
     net.ext_grid.at[ex1, 'in_service'] = False
     net.ext_grid.at[ex2, 'in_service'] = True
 
-    pandapipes.pipeflow(net, iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba, check_connectivity=True)
     assert not np.all(np.isnan(net.res_junction.p_bar.values))
     assert net.converged
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='all', iter=100, tol_p=1e-7, tol_v=1e-7, friction_model="nikuradse",
+        pandapipes.pipeflow(net, mode='all', max_iter_hyd=max_iter_hyd,
+                            tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
     assert ~net.converged
 

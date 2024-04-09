@@ -3,8 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
-from pandapipes.io.file_io import from_json
+
 from pandapipes import pp_dir, drop_junctions
+from pandapipes.io.file_io import from_json
 from pandapipes.networks.nw_aux import log_result_upon_loading
 
 try:
@@ -265,6 +266,6 @@ def schutterwald(include_houses=True, max_length_house_conn_m=None):
         drop_junctions(net, net.sink.junction.values)
 
     if max_length_house_conn_m is not None:
-        net.pipe.in_service.loc[(net.pipe.type=="house_connection") &
-                                (net.pipe.length_km > max_length_house_conn_m / 1000)] = False
+        net.pipe.loc[(net.pipe.type == "house_connection") &
+                     (net.pipe.length_km > max_length_house_conn_m / 1000), 'in_service'] = False
     return net

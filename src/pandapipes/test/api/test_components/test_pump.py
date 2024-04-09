@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
-from pandapipes.test.pipeflow_internals import internals_data_path
+from pandapipes.test import data_path
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -35,11 +35,12 @@ def test_pump_from_measurement_parameteres(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "test_pump.csv"), sep=';')
+    data = pd.read_csv(os.path.join(data_path, "test_pump.csv"), sep=';')
 
     res_junction = net.res_junction.p_bar.values
     res_pipe = net.res_pipe.v_mean_m_per_s.values
@@ -77,11 +78,12 @@ def test_pump_from_regression_parameteres(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "test_pump.csv"), sep=';')
+    data = pd.read_csv(os.path.join(data_path, "test_pump.csv"), sep=';')
 
     res_junction = net.res_junction.p_bar.values
     res_pipe = net.res_pipe.v_mean_m_per_s.values
@@ -115,11 +117,12 @@ def test_pump_from_std_type(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 3 if use_numba else 3
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
-    data = pd.read_csv(os.path.join(internals_data_path, "test_pump.csv"), sep=';')
+    data = pd.read_csv(os.path.join(data_path, "test_pump.csv"), sep=';')
 
     res_junction = net.res_junction.p_bar.values
     res_pipe = net.res_pipe.v_mean_m_per_s.values
@@ -153,9 +156,10 @@ def test_pump_bypass_on_reverse_flow(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=3, friction_model="nikuradse",
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     assert net.res_pump.deltap_bar.isin([0]).all()
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
@@ -183,9 +187,10 @@ def test_pump_bypass_high_vdot(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "hgas", overwrite=True)
 
-    pandapipes.pipeflow(net, stop_condition="tol", iter=30, friction_model="nikuradse",
+    max_iter_hyd = 5 if use_numba else 5
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
-                        tol_p=1e-4, tol_v=1e-4, use_numba=use_numba)
+                        tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     assert net.res_pump.deltap_bar.isin([0]).all()
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
@@ -206,16 +211,18 @@ def test_compression_power(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, height_m=height_asl_m+10)
 
     _ = pandapipes.create_pipe_from_parameters(net, from_junction=j0, to_junction=j1, length_km=0.1,
-                                            diameter_m=0.05)
+                                               diameter_m=0.05)
     _ = pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.5,
-                                            diameter_m=0.05)
+                                               diameter_m=0.05)
 
     _ = pandapipes.create_pump(net, from_junction=j1, to_junction=j2, std_type="P2", name="Pump1")
 
     _ = pandapipes.create_ext_grid(net, junction=j0, p_bar=4, t_k=293.15)
     _ = pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.05)
 
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                        use_numba=use_numba)
 
     # Local ambiental (atmospheric) pressure
     p_amb_bar_j1 = net["_pit"]['node'][1][PAMB]
@@ -225,7 +232,7 @@ def test_compression_power(use_numba):
     R_spec = R_UNIVERSAL * 1e3 / pandapipes.get_fluid(net).get_molar_mass()
     cp = pandapipes.get_fluid(net).get_heat_capacity(293.15)
     cv = cp - R_spec
-    k = cp/cv
+    k = cp / cv
     pressure_ratio = ((net.res_pump.p_to_bar[0] + p_amb_bar_j2) /
                       (net.res_pump.p_from_bar[0] + p_amb_bar_j1))
     compr = pandapipes.get_fluid(net).get_compressibility(net.res_pump.p_from_bar[0] + + p_amb_bar_j1)
