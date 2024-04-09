@@ -1036,11 +1036,11 @@ def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=Non
     :type to_junction: int
     :param diameter_m: The heat consumer inner diameter in [m] - only for result calculation
     :type diameter_m: float
-    :param controlled_mdot_kg_per_s: Mass flow set point in [kg/s].
-    :type controlled_mdot_kg_per_s: float, default None
     :param qext_w: External heat flux in [W]. If positive, heat is extracted from the network. If \
         negative, heat is being fed into the network from a heat source.
     :type qext_w: float, default None
+    :param controlled_mdot_kg_per_s: Mass flow set point in [kg/s].
+    :type controlled_mdot_kg_per_s: float, default None
     :param deltat_k: Temperature difference set point between flow and return in [K].
     :type deltat_k: float, default None
     :param treturn_k: Return temperature set point in [K].
@@ -1715,11 +1715,11 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
     :type to_junctions: Iterable(int)
     :param diameter_m: The heat consumers' inner diameter in [m] - only for result calculation
     :type diameter_m: Iterable(float) or float
-    :param controlled_mdot_kg_per_s: Mass flow set point in [kg/s].
-    :type controlled_mdot_kg_per_s: Iterable(float) or float, default None
     :param qext_w: External heat flux in [W]. If positive, heat is extracted from the network. If \
         negative, heat is being fed into the network from a heat source.
     :type qext_w: Iterable(float) or float, default None
+    :param controlled_mdot_kg_per_s: Mass flow set point in [kg/s].
+    :type controlled_mdot_kg_per_s: Iterable(float) or float, default None
     :param deltat_k: Temperature difference set point between flow and return in [K].
     :type deltat_k: Iterable(float) or float, default None
     :param treturn_k: Return temperature set point in [K].
