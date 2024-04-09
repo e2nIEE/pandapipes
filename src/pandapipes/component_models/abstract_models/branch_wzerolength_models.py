@@ -4,7 +4,7 @@
 
 from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
     BranchWOInternalsComponent
-from pandapipes.idx_branch import LENGTH, K
+from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA
 
 try:
     import pandaplan.core.pplog as logging
@@ -58,6 +58,8 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
             super().create_pit_branch_entries(net, branch_pit)
         branch_wzerolength_pit[:, LENGTH] = 0
         branch_wzerolength_pit[:, K] = 1000
+        branch_wzerolength_pit[:, TEXT] = 293.15
+        branch_wzerolength_pit[:, ALPHA] = 0
         return branch_wzerolength_pit
 
     @classmethod
