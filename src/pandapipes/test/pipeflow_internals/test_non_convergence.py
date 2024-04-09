@@ -16,7 +16,8 @@ def test_pipeflow_non_convergence(use_numba):
     net = gas_versatility()
     pandapipes.get_fluid(net).add_property("molar_mass", FluidPropertyConstant(16.6))
 
-    pandapipes.pipeflow(net, use_numba=use_numba)
+    max_iter_hyd = 8 if use_numba else 8
+    pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
     for comp in net["component_list"]:
         table_name = comp.table_name()
         assert np.all(net["res_" + table_name].index == net[table_name].index)
@@ -26,7 +27,8 @@ def test_pipeflow_non_convergence(use_numba):
 
     pandapipes.create_sink(net, 6, 100)
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, use_numba=use_numba)
+        pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
+                            use_numba=use_numba)
 
     for comp in net["component_list"]:
         table_name = comp.table_name()

@@ -48,7 +48,7 @@ def _rename_columns(net):
     for comp in [CirculationPumpMass, CirculationPumpPressure]:
         cp_tbl = comp.table_name()
         if cp_tbl in net:
-            old_cols = ["to_junction", "from_junction", "mdot_kg_per_s", "p_bar", "t_k"]
+            old_cols = ["from_junction", "to_junction", "mdot_kg_per_s", "p_bar", "t_k"]
             new_cols = list(comp.from_to_node_cols()) + ["mdot_flow_kg_per_s", "p_flow_bar",
                                                          "t_flow_k"]
             for old_col, new_col in list(zip(old_cols, new_cols)):

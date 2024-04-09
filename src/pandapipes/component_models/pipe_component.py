@@ -10,12 +10,12 @@ from pandapipes.component_models.abstract_models import BranchWInternalsComponen
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import (FROM_NODE, TO_NODE, LENGTH, D, AREA, K, VINIT,
-                                   ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC)
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
+    MDOTINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
-from pandapipes.pf.result_extraction import (extract_branch_results_with_internals,
-                                             extract_branch_results_without_internals)
+from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
+    extract_branch_results_without_internals
 
 try:
     import pandaplan.core.pplog as logging
@@ -123,6 +123,7 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
+        pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -197,22 +198,22 @@ class Pipe(BranchWInternalsComponent):
             selected_indices_v_final = np.logical_or.reduce(selected_indices_v[:])
 
             p_nodes = int_p_lookup[:, 1][selected_indices_p_final]
-            v_nodes = int_v_lookup[:, 1][selected_indices_v_final]
+            m_nodes = int_v_lookup[:, 1][selected_indices_v_final]
 
-            v_pipe_data = pipe_pit[v_nodes, VINIT]
+            v_pipe_data = pipe_pit[m_nodes, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / pipe_pit[m_nodes, AREA]
             p_node_data = node_pit[p_nodes, PINIT]
             t_node_data = node_pit[p_nodes, TINIT_NODE]
 
             gas_mode = fluid.is_gas
 
             if gas_mode:
-                from_nodes = pipe_pit[v_nodes, FROM_NODE].astype(np.int32)
-                to_nodes = pipe_pit[v_nodes, TO_NODE].astype(np.int32)
+                from_nodes = pipe_pit[m_nodes, FROM_NODE].astype(np.int32)
+                to_nodes = pipe_pit[m_nodes, TO_NODE].astype(np.int32)
                 p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
                 p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
                 p_mean = np.where(p_from == p_to, p_from,
                                   2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
-                numerator = NORMAL_PRESSURE * node_pit[v_nodes, TINIT_NODE]
+                numerator = NORMAL_PRESSURE * node_pit[m_nodes, TINIT_NODE]
                 normfactor_mean = numerator * fluid.get_property("compressibility", p_mean) \
                     / (p_mean * NORMAL_TEMPERATURE)
                 normfactor_from = numerator * fluid.get_property("compressibility", p_from) \
