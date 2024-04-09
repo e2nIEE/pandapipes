@@ -1,6 +1,11 @@
 Change Log
 =============
 
+[0.10.0] - 2024-04-09
+-------------------------------
+- [CHANGED] moving generalizing pit entries up from specific components to the abstract class
+- [FIXED] in circulation pumps only junctions in-service are considered
+
 [0.9.0] - 2023-12-22
 -------------------------------
 
