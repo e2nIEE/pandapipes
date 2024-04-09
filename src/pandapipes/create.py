@@ -1081,9 +1081,9 @@ def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=Non
     _check_branch(net, "Heat consumer", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s,
-         "qext_w": qext_w, "deltat_k": deltat_k, "treturn_k": treturn_k,
-         "in_service": bool(in_service), "type": type}
+         "diameter_m": diameter_m, "qext_w": qext_w,
+         "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
+         "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
     _set_entries(net, "heat_consumer", index, **v, **kwargs)
 
     return index
@@ -1765,9 +1765,9 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
     _check_branches(net, from_junctions, to_junctions, "heat_consumer")
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "diameter_m": diameter_m, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s,
-               "qext_w": qext_w, "deltat_k": deltat_k, "treturn_k": treturn_k,
-               "in_service": bool(in_service), "type": type}
+               "diameter_m": diameter_m, "qext_w": qext_w,
+               "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
+               "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
     _set_multiple_entries(net, "heat_consumer", index, **entries, **kwargs)
     return index
 

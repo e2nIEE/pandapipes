@@ -166,7 +166,4 @@ def test_heat_consumer_creation_not_allowed_2(simple_heat_net):
 
 
 if __name__ == '__main__':
-    pd.set_option("display.width", 1000)
-    pd.set_option("display.max_columns", 45)
-    pd.set_option("display.max_colwidth", 100)
-    pd.set_option("display.max_rows", 200)
+    pytest.main([__file__])

@@ -70,9 +70,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hs_pit[:, AREA] = hs_pit[:, D] ** 2 * np.pi / 4
         hs_pit[:, VINIT] = (net[cls.table_name()].controlled_mdot_kg_per_s.values /
                             (hs_pit[:, AREA] * hs_pit[:, RHO]))
-        hs_pit[:, ALPHA] = 0
         hs_pit[:, QEXT] = net[cls.table_name()].qext_w.values
-        hs_pit[:, TEXT] = 293.15
         return hs_pit
 
     @classmethod
@@ -179,12 +177,12 @@ class HeatConsumer(BranchWZeroLengthComponent):
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
+                ("qext_w", "f8"),
                 ("controlled_mdot_kg_per_s", "f8"),
-                ("qext_w", 'f8'),
-                ("deltat_k", 'f8'),
-                ("treturn_k", 'f8'),
+                ("deltat_k", "f8"),
+                ("treturn_k", "f8"),
                 ("diameter_m", "f8"),
-                ("in_service", 'bool'),
+                ("in_service", "bool"),
                 ("type", dtype(object))]
 
     @classmethod
