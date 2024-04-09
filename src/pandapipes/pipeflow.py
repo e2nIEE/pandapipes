@@ -229,8 +229,8 @@ def solve_hydraulics(net):
     p_init_old = node_pit[:, PINIT].copy()
 
     x = spsolve(jacobian, epsilon)
-    branch_pit[:, MDOTINIT] += x[len(node_pit):]
-    node_pit[:, PINIT] += x[:len(node_pit)] * options["alpha"]
+    branch_pit[:, MDOTINIT] -= x[len(node_pit):]
+    node_pit[:, PINIT] -= x[:len(node_pit)] * options["alpha"]
 
     return branch_pit[:, MDOTINIT], node_pit[:, PINIT], m_init_old, p_init_old, epsilon
 
