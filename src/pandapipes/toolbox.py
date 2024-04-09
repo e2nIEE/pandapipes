@@ -600,12 +600,12 @@ def get_internal_tables_pandas(net, convert_types=True):
     if convert_types:
         # TODO: replace types with a version retrieved from get_pit_lookup, but before, the types
         #       need to be defined properly inside the files!
-        node_table["NODE_TYPE"].replace(pit_types, inplace=True)
-        node_table["NODE_TYPE_T"].replace(pit_types, inplace=True)
-        node_table["TABLE_IDX"].replace(node_table_lookup["n2t"], inplace=True)
+        node_table.replace({"NODE_TYPE": pit_types}, inplace=True)
+        node_table.replace({"NODE_TYPE_T": pit_types}, inplace=True)
+        node_table.replace( {"TABLE_IDX": node_table_lookup["n2t"]}, inplace=True)
 
-        branch_table["BRANCH_TYPE"].replace(pit_types, inplace=True)
-        branch_table["TABLE_IDX"].replace(branch_table_lookup["n2t"], inplace=True)
+        branch_table.replace({"BRANCH_TYPE": pit_types}, inplace=True)
+        branch_table.replace({"TABLE_IDX": branch_table_lookup["n2t"]}, inplace=True)
 
         for col in int_cols + bool_cols:
             for tbl in (node_table, branch_table):

@@ -4,11 +4,10 @@
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, RHO, ETA, CP, ACTIVE
+from pandapipes.idx_branch import FROM_NODE, FROM_NODE_T, TO_NODE, TO_NODE_T, TOUTINIT, ELEMENT_IDX, ACTIVE
 from pandapipes.idx_node import TINIT as TINIT_NODE
 
 from pandapipes.pf.pipeflow_setup import add_table_lookup
-from pandapipes.properties.fluids import get_fluid
 
 try:
     import pandaplan.core.pplog as logging
@@ -81,13 +80,10 @@ class BranchWOInternalsComponent(BranchComponent):
             = super().create_pit_branch_entries(net, branch_pit)
         branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
         branch_wo_internals_pit[:, FROM_NODE] = from_nodes
+        branch_wo_internals_pit[:, FROM_NODE_T] = from_nodes
         branch_wo_internals_pit[:, TO_NODE] = to_nodes
+        branch_wo_internals_pit[:, TO_NODE_T] = to_nodes
         branch_wo_internals_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
-        tm = (node_pit[from_nodes, TINIT_NODE] + branch_wo_internals_pit[:, TOUTINIT]) / 2
-        fluid = get_fluid(net)
-        branch_wo_internals_pit[:, RHO] = fluid.get_density(tm)
-        branch_wo_internals_pit[:, ETA] = fluid.get_viscosity(tm)
-        branch_wo_internals_pit[:, CP] = fluid.get_heat_capacity(tm)
         branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
         return branch_wo_internals_pit
 
