@@ -291,7 +291,9 @@ def init_options(net, local_parameters):
 
     # the third layer is the user defined pipeflow options
     if "user_pf_options" in net and len(net.user_pf_options) > 0:
-        net["_options"].update(net.user_pf_options)
+        opts = _iteration_check(net.user_pf_options)
+        net["_options"].update(opts)
+
 
     # the last layer is the layer of passeed parameters by the user, it is defined as the local
     # existing parameters during the pipeflow call which diverges from the default parameters of the
@@ -301,7 +303,9 @@ def init_options(net, local_parameters):
         if k in excluded_params or (k in pf_func_options and pf_func_options[k] == v):
             continue
         params[k] = v
-    params.update(local_parameters["kwargs"])
+
+    opts = _iteration_check(local_parameters["kwargs"])
+    params.update(opts)
     net["_options"].update(params)
     net["_options"]["fluid"] = get_fluid(net).name
     if not net["_options"]["only_update_hydraulic_matrix"]:
@@ -312,6 +316,26 @@ def init_options(net, local_parameters):
             logger.info("numba is not installed. Install numba first before you set the 'use_numba'"
                         " flag to True. The pipeflow will be performed without numba speedup.")
         net["_options"]["use_numba"] = False
+
+def _iteration_check(opts):
+    opts = copy.deepcopy(opts)
+    iter_defined = False
+    params = dict()
+    if 'iter' in opts:
+        params['max_iter_hyd'] = params['max_iter_therm'] = opts["iter"]
+        iter_defined = True
+    if 'max_iter_hyd' in opts:
+        max_iter_hyd = opts["max_iter_hyd"]
+        if iter_defined: logger.info("You defined 'iter' and 'max_iter_hyd. "
+                                     "'max_iter_hyd' will overwrite 'iter'")
+        params['max_iter_hyd'] = max_iter_hyd
+    if 'max_iter_therm' in opts:
+        max_iter_therm = opts["max_iter_therm"]
+        if iter_defined: logger.info("You defined 'iter' and 'max_iter_therm. "
+                                     "'max_iter_therm' will overwrite 'iter'")
+        params['max_iter_therm'] = max_iter_therm
+    opts.update(params)
+    return opts
 
 
 def create_internal_results(net):
