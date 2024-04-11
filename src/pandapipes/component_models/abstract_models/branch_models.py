@@ -5,7 +5,7 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.idx_branch import VINIT, branch_cols
+from pandapipes.idx_branch import MDOTINIT, branch_cols
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
 
 try:
@@ -88,7 +88,7 @@ class BranchComponent(Component):
         from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
         to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
-        branch_component_pit[:, VINIT] = 0.1
+        branch_component_pit[:, MDOTINIT] = 0.1
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
     @classmethod

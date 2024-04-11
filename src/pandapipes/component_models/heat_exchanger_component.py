@@ -9,7 +9,7 @@ from pandapipes.component_models import standard_branch_wo_internals_result_look
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import ALPHA, TEXT, QEXT, D, AREA, LOSS_COEFFICIENT as LC, TOUTINIT
+from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -55,10 +55,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
         heat_exchanger_pit[:, D] = net[cls.table_name()].diameter_m.values
         heat_exchanger_pit[:, AREA] = heat_exchanger_pit[:, D] ** 2 * np.pi / 4
         heat_exchanger_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
-        heat_exchanger_pit[:, ALPHA] = 0
         heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
-        heat_exchanger_pit[:, TEXT] = 293.15
-        heat_exchanger_pit[:, TOUTINIT] = 307
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -80,7 +77,6 @@ class HeatExchanger(BranchWZeroLengthComponent):
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
-
 
     @classmethod
     def get_component_input(cls):

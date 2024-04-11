@@ -2,10 +2,13 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import pandapipes.pf.pipeflow_setup
-import pandapipes
 import copy
+
 import pytest
+
+import pandapipes
+import pandapipes.pf.pipeflow_setup
+from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 
 
@@ -21,7 +24,9 @@ def test_set_user_pf_options(create_test_net, use_numba):
     net = copy.deepcopy(create_test_net)
     pandapipes.create_fluid_from_lib(net, "lgas")
 
-    necessary_options = {'mode': 'hydraulics', 'use_numba': use_numba}
+    max_iter_hyd = 3 if use_numba else 3
+    necessary_options = {'mode': 'hydraulics', 'use_numba': use_numba,
+                         'max_iter_hyd': max_iter_hyd}
     pandapipes.pipeflow(net, **necessary_options)
 
     old_options = net._options.copy()
@@ -52,11 +57,56 @@ def test_set_user_pf_options(create_test_net, use_numba):
 
     # see if user arguments overrule user_pf_options, but other user_pf_options still have the
     # priority
-    pandapipes.pf.pipeflow_setup.set_user_pf_options(net, reset=True, tol_p=1e-6, tol_v=1e-6)
+    pandapipes.pf.pipeflow_setup.set_user_pf_options(net, reset=True, tol_p=1e-6, tol_m=1e-6)
+    max_iter_hyd = 4 if use_numba else 4
+    necessary_options.update({'max_iter_hyd': max_iter_hyd})
     pandapipes.pipeflow(net, tol_p=1e-8, **necessary_options)
     assert net.user_pf_options['tol_p'] == 1e-6
     assert net._options['tol_p'] == 1e-8
-    assert net._options['tol_v'] == 1e-6
+    assert net._options['tol_m'] == 1e-6
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_iter(create_test_net, use_numba):
+    """
+
+    :param create_test_net:
+    :type create_test_net:
+    :return:
+    :rtype:
+    """
+    net = copy.deepcopy(create_test_net)
+    pandapipes.create_fluid_from_lib(net, "water")
+
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 3 if use_numba else 3
+
+    pandapipes.set_user_pf_options(net, iter=2)
+
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, mode='all')
+
+    pandapipes.pipeflow(net, mode='hydraulics', max_iter_hyd=max_iter_hyd)
+
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, mode='all', max_iter_hyd=max_iter_hyd)
+
+    pandapipes.pipeflow(net, mode='all', max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm)
+
+    pandapipes.set_user_pf_options(net, max_iter_hyd=max_iter_hyd)
+    pandapipes.pipeflow(net, mode='hydraulics')
+
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, mode='all')
+
+    pandapipes.set_user_pf_options(net, max_iter_therm=max_iter_therm)
+
+    pandapipes.pipeflow(net, mode='all')
+
+    pandapipes.set_user_pf_options(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm)
+
+    with pytest.raises(PipeflowNotConverged):
+        pandapipes.pipeflow(net, mode='all', iter=2)
 
 
 if __name__ == '__main__':

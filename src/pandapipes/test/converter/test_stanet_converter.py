@@ -31,7 +31,8 @@ def test_mini_exampelonia():
     assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
 
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
-    pandapipes.pipeflow(net)
+    max_iter_hyd = 2
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     res_p_pp = net.res_junction.p_bar
     res_p_stanet = net.junction.p_stanet
@@ -55,7 +56,8 @@ def test_mini_exampelonia_not_stanetlike():
     assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
 
     net = stanet_to_pandapipes(mininet_path, stanet_like_valves=False)
-    pandapipes.pipeflow(net)
+    max_iter_hyd = 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     assert net.converged
 
@@ -67,7 +69,8 @@ def test_mini_exampelonia_stanetlike():
     assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
 
     net = stanet_to_pandapipes(mininet_path, stanet_like_valves=True, add_layers=False)
-    pandapipes.pipeflow(net)
+    max_iter_hyd = 3
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     assert net.converged
 
@@ -79,7 +82,8 @@ def test_mini_exampelonia_sliders_open():
     assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
 
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
-    pandapipes.pipeflow(net)
+    max_iter_hyd = 2
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     assert net.converged
 
@@ -91,6 +95,7 @@ def test_mini_exampelonia_sliders_closed():
     assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
 
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
-    pandapipes.pipeflow(net)
+    max_iter_hyd = 2
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
     assert net.converged

@@ -3,8 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DV, JAC_DERIV_DP, JAC_DERIV_DP1, \
-    JAC_DERIV_DV_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, \
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
+    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, \
     JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T, BRANCH_TYPE
 from pandapipes.idx_node import LOAD, TINIT
 from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T
@@ -67,16 +67,15 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
 
     if not heat_mode:
         # pdF_dv
-        system_data[:len_b] = branch_pit[:, JAC_DERIV_DV]
+        system_data[:len_b] = branch_pit[:, JAC_DERIV_DM]
         # pdF_dpi
         system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DP]
         # pdF_dpi1
         system_data[2 * len_b:3 * len_b] = branch_pit[:, JAC_DERIV_DP1]
         # jdF_dv_from_nodes
-        system_data[3 * len_b:len_fn1] = branch_pit[not_slack_fn_branch_mask, JAC_DERIV_DV_NODE]
+        system_data[3 * len_b:len_fn1] = branch_pit[not_slack_fn_branch_mask, JAC_DERIV_DM_NODE] * (-1)
         # jdF_dv_to_nodes
-        system_data[len_fn1:len_tn1] = branch_pit[not_slack_tn_branch_mask,
-                                                  JAC_DERIV_DV_NODE] * (-1)
+        system_data[len_fn1:len_tn1] = branch_pit[not_slack_tn_branch_mask, JAC_DERIV_DM_NODE]
         # pc_nodes and p_nodes
         system_data[len_tn1:] = 1
     else:
