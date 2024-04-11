@@ -4,7 +4,7 @@
 
 def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.0, source_size=1.0,
                          valve_size=2.0, pump_size=1.0, heat_exchanger_size=1.0,
-                         pressure_control_size=1.0, compressor_size=1.0, flow_control_size=1.0):
+                         pressure_control_size=1.0, compressor_size=1.0, flow_control_size=1.0, heat_consumer_size=1.0):
     """
     Calculates the size for most collection types according to the distance between min and max
     geocoord so that the collections fit the plot nicely
@@ -26,6 +26,8 @@ def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.
     :type valve_size: float, default 2.
     :param heat_exchanger_size: relative heat exchanger size
     :type heat_exchanger_size: float, default 1.
+    :param heat_consumer_size: relative heat consumer size
+    :type heat_consumer_size: float, default 1.
     :return: sizes (dict) - dictionary containing all scaled sizes
     """
     mean_distance_between_junctions = sum((net['junction_geodata'].max() - net[
@@ -42,6 +44,7 @@ def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.
         "pressure_control": pressure_control_size * mean_distance_between_junctions * 8,
         "compressor": compressor_size * mean_distance_between_junctions * 8,
         "flow_control": flow_control_size * mean_distance_between_junctions * 2,
+        "heat_consumer": heat_consumer_size * mean_distance_between_junctions*2
     }
 
     return sizes

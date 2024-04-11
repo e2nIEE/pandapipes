@@ -9,7 +9,7 @@ from pandapower.plotting.collections import _create_node_collection, \
     add_cmap_to_collection, coords_from_node_geodata
 from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
 from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
-    pump_patches, pressure_control_patches, compressor_patches, flow_control_patches
+    pump_patches, pressure_control_patches, compressor_patches, flow_control_patches, heat_consumer_patches
 from pandapower.plotting.plotting_toolbox import get_index_array
 
 try:
@@ -660,6 +660,57 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor', size=
     infos = list(np.repeat([infofunc(i) for i in range(len(cmprs_with_geo))], 2)) \
         if infofunc is not None else []
     pc, lc = _create_complex_branch_collection(coords, compressor_patches, size, infos,
+                                               picker=picker, linewidths=linewidths,
+                                               patch_edgecolor=color, line_color=color,
+                                               **kwargs)
+
+    return pc, lc
+
+def create_heat_consumer_collection(net, hec=None, table_name='heat_consumer', size=5.,
+                                 junction_geodata=None, color='k', infofunc=None, picker=False,
+                                 **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes compressors. Compressors are
+    plotted in the center between two junctions.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param hec: The heat consumers for which the collections are created. If None, all heat consumers
+                 which have entries in the respective junction geodata will be plotted.
+    :type hec: list, default None
+    :param size: Patch size
+    :type size: float, default 5.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
+    :type junction_geodata: pandas.DataFrame, default None
+    :param colors: Color or list of colors for every compressor
+    :type colors: iterable, float, default None
+    :param infofunc: infofunction for the patch element
+    :type infofunc: function, default None
+    :param picker: Picker argument passed to the patch collection
+    :type picker: bool, default False
+    :param kwargs: Keyword arguments are passed to the patch function
+    :return: lc - line collection, pc - patch collection
+
+    """
+    hec = get_index_array(hec, net[table_name].index)
+    hec_table = net[table_name].loc[hec]
+
+    coords, hec_with_geo = coords_from_node_geodata(
+        hec, hec_table.from_junction.values, hec_table.to_junction.values,
+        junction_geodata if junction_geodata is not None else net["junction_geodata"], table_name,
+        "Junction")
+
+    if len(hec_with_geo) == 0:
+        return None
+
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(cmprs_with_geo))], 2)) \
+        if infofunc is not None else []
+    pc, lc = _create_complex_branch_collection(coords, heat_consumer_patches, size, infos,
                                                picker=picker, linewidths=linewidths,
                                                patch_edgecolor=color, line_color=color,
                                                **kwargs)
