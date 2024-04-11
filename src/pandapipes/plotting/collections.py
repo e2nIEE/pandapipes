@@ -708,7 +708,7 @@ def create_heat_consumer_collection(net, hec=None, table_name='heat_consumer', s
     linewidths = kwargs.pop("linewidth", linewidths)
     linewidths = kwargs.pop("lw", linewidths)
 
-    infos = list(np.repeat([infofunc(i) for i in range(len(cmprs_with_geo))], 2)) \
+    infos = list(np.repeat([infofunc(i) for i in range(len(hec_with_geo))], 2)) \
         if infofunc is not None else []
     pc, lc = _create_complex_branch_collection(coords, heat_consumer_patches, size, infos,
                                                picker=picker, linewidths=linewidths,
