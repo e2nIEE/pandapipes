@@ -21,7 +21,7 @@ def simple_heat_net():
                                         system=["flow"] * 3 + ["return"] * 3)
     pandapipes.create_pipes_from_parameters(
         net, juncs[[0, 1, 3, 4]], juncs[[1, 2, 4, 5]], k_mm=0.1, length_km=1, diameter_m=0.1022,
-        system=["flow"] * 2 + ["return"] * 2, alpha_w_per_m2k=10, text_k=273.15
+        system=["flow"] * 2 + ["return"] * 2, u_w_per_m2k=10, text_k=273.15
     )
     pandapipes.create_circ_pump_const_pressure(net, juncs[-1], juncs[0], 5, 2, 400, type='pt')
     return net

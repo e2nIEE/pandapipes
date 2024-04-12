@@ -602,7 +602,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
         pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
-        alpha_w_per_m2k=alpha,
+        u_w_per_m2k=alpha,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             pipes.ANFNAM.values, pipes.ENDNAM.values, pipe_sections.section_no.values)],
         stanet_nr=pipes.RECNO.values, stanet_id=pipes.STANETID.values,
@@ -735,7 +735,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
         name=["pipe_%s_%s" % (anf, end) for anf, end in zip(from_names[valid], to_names[valid])],
-        alpha_w_per_m2k=alpha, text_k=text_k, stanet_nr=p_tbl.RECNO.values.astype(np.int32),
+        u_w_per_m2k=alpha, text_k=text_k, stanet_nr=p_tbl.RECNO.values.astype(np.int32),
         stanet_id=p_tbl.STANETID.values.astype(str), v_stanet=p_tbl.VM.values, geodata=geodata,
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=p_tbl.ISACTIVE.values.astype(np.bool_),
@@ -1055,7 +1055,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
         hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
-        alpha_w_per_m2k=alpha, geodata=hp_data.section_geo.values,
+        u_w_per_m2k=alpha, geodata=hp_data.section_geo.values,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             hp_data.CLIENTID.values, hp_data.CLIENT2ID.values, hp_data.section_no.values)],
         stanet_std_type=hp_data.ROHRTYP.values, stanet_nr=hp_data.RECNO.values,

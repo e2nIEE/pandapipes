@@ -378,7 +378,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
 
 
 def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0,
-                sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
+                sections=1, text_k=293, qext_w=0., name=None, index=None,
                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -401,8 +401,6 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default 293
     :param qext_w: External heat feed-in to the pipe in [W]
@@ -439,8 +437,8 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     pipe_parameter = load_std_type(net, std_type, "pipe")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "length_km": length_km,
-         "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
+         "diameter_m": pipe_parameter["inner_diameter_mm"]/1000 , "k_mm": k_mm,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'],
          "sections": sections, "in_service": bool(in_service), "type": type, "qext_w": qext_w,
          "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
@@ -451,10 +449,9 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     return index
 
 
-def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2,
-                                loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
-                                qext_w=0., name=None, index=None, geodata=None, in_service=True,
-                                type="pipe", **kwargs):
+def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
+                                sections=1, u_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None, geodata=None,
+                                in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
 
@@ -476,8 +473,8 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
+    :param u_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :type u_w_per_m2k: float, default 0
     :param qext_w: external heat feed-in to the pipe in [W]
     :type qext_w: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
@@ -501,8 +498,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1,
-        >>>                             length_km=1, diameter_m=40e-3)
+        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1, diameter_m=40e-3)
 
     """
     add_new_component(net, Pipe)
@@ -512,9 +508,20 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
          "sections": sections, "in_service": bool(in_service),
          "type": type, "qext_w": qext_w, "text_k": text_k}
+    #Check if alpha parameter was declared (Alpha has been changed to U)
+    if 'alpha_w_per_m2k' in kwargs:
+        u_w_per_m2k = alpa_w_per_m2k
+
+        raise UserWarning('you have defined u and alpha which represent both the heat transfer coefficient.'
+                              ' In the future alpha will be renamed to u.'
+                              ' Please define only one variable for the heat transfer coefficient. '
+                              'u will be overwritten by alpha')
+
+
+
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
                           'create a pipe setting specific, individual parameters. If you want to '
@@ -1294,7 +1301,7 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
 
 
 def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2,
-                 loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0.,
+                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293, qext_w=0.,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
@@ -1321,8 +1328,8 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
-    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default 293
     :param qext_w: External heat feed-in to the pipes in [W]
@@ -1364,7 +1371,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": std_type, "length_km": length_km,
                "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-               "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
+               "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
                "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
                "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
@@ -1375,7 +1382,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
 
 
 def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2,
-                                 loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
+                                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293,
                                  qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                  type="pipe", **kwargs):
     """
@@ -1402,8 +1409,8 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
-    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default 293
     :param qext_w: External heat feed-in to the pipes in [W]
@@ -1441,9 +1448,23 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
-               "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k,
+               "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
                "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
                "text_k": text_k}
+    if 'alpha_w_per_m2k' in kwargs:
+            u_w_per_m2k = alpha_w_per_m2k
+
+            raise UserWarning('you have defined u and alpha which represent both the heat transfer coefficient.'
+                              ' In the future alpha will be renamed to u.'
+                              ' Please define only one variable for the heat transfer coefficient. '
+                              'u will be overwritten by alpha')
+
+
+
+    if 'std_type' in kwargs:
+        raise UserWarning('you have defined a std_type, however, using this function you can only '
+                          'create a pipe setting specific, individual parameters. If you want to '
+                          'create a pipe from net.std_types, please use `create_pipe`')
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
     if geodata is not None:
