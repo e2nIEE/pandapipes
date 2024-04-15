@@ -1,6 +1,9 @@
 Change Log
 =============
+
 [0.10.0] -
+-------------------------------
+
 - [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
 - [ADDED] variable "u_w_per_m2k" to std_type pipe
 - [ADDED] standard district heating pipe types
