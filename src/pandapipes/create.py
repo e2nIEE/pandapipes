@@ -513,10 +513,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
         if u_w_per_m2k == 0:
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
 
-        raise UserWarning('you have defined u and alpha which represent both the heat transfer coefficient.'
-                              ' In the future alpha will be renamed to u.'
-                              ' Please define only one variable for the heat transfer coefficient. '
-                              'u will be overwritten by alpha')
+        raise DeprecationWarning(' In the future alpha will be renamed to u')
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
@@ -1448,18 +1445,19 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "pipe")
 
+    if 'alpha_w_per_m2k' in kwargs:
+
+        if u_w_per_m2k == 0:
+            u_w_per_m2k = kwargs['alpha_w_per_m2k']
+
+        raise DeprecationWarning(' In the future alpha will be renamed to u')
+
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
                "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
                "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
                "text_k": text_k}
-    if 'alpha_w_per_m2k' in kwargs:
-            u_w_per_m2k = alpha_w_per_m2k
 
-            raise UserWarning('you have defined u and alpha which represent both the heat transfer coefficient.'
-                              ' In the future alpha will be renamed to u.'
-                              ' Please define only one variable for the heat transfer coefficient. '
-                              'u will be overwritten by alpha')
 
 
 
