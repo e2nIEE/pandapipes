@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[0.10.0] -
+[0.10.1] -
 -------------------------------
 
 - [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
