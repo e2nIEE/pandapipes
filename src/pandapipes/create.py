@@ -506,21 +506,23 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
-         "sections": sections, "in_service": bool(in_service),
-         "type": type, "qext_w": qext_w, "text_k": text_k}
+
     #Check if alpha parameter was declared (Alpha has been changed to U)
     if 'alpha_w_per_m2k' in kwargs:
-        u_w_per_m2k = alpa_w_per_m2k
+
+        if u_w_per_m2k == 0:
+            u_w_per_m2k = kwargs['alpha_w_per_m2k']
 
         raise UserWarning('you have defined u and alpha which represent both the heat transfer coefficient.'
                               ' In the future alpha will be renamed to u.'
                               ' Please define only one variable for the heat transfer coefficient. '
                               'u will be overwritten by alpha')
 
-
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+         "sections": sections, "in_service": bool(in_service),
+         "type": type, "qext_w": qext_w, "text_k": text_k}
 
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
