@@ -7,6 +7,7 @@ import pandapipes.topology as top
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from warnings import warn
 
 
 def pressure_profile_to_junction_geodata(net):
@@ -89,10 +90,21 @@ def plot_pressure_profile(net, ax=None, x0_junctions=None, plot_pressure_control
     if pipes is None:
         pipes = net.pipe.index
     if x0_junctions is None:
-        x0_junctions = net.ext_grid[net.ext_grid.in_service].junction.values.tolist()
+        x0_junctions = set(net.ext_grid[net.ext_grid.in_service].junction.values)
+        if hasattr(net, "circ_pump_pressure"):
+            x0_junctions |= set(net.circ_pump_pressure[net.circ_pump_pressure.in_service].junction.values)
+        if hasattr(net, "circ_pump_mass"):
+            x0_junctions |= set(net.circ_pump_mass[net.circ_pump_mass.in_service].junction.values)
+        x0_junctions = list(x0_junctions)
+
+    unsupplied_junctions = list(top.unsupplied_junctions(net, slacks=set(x0_junctions)))
+    if len(unsupplied_junctions) > 0:
+        warn(UserWarning(f'There are unsupplied junctions in the net, they will not be plottet: {unsupplied_junctions}'))
+    pipe_table = net.pipe[net.pipe.in_service & net.pipe.index.isin(pipes) &
+                          ~net.pipe.from_junction.isin(unsupplied_junctions) &
+                          ~net.pipe.to_junction.isin(unsupplied_junctions)]
 
     d = top.calc_distance_to_junctions(net, x0_junctions)
-    pipe_table = net.pipe[net.pipe.in_service & net.pipe.index.isin(pipes)]
 
     x = np.array([d.loc[pipe_table.from_junction].values, d.loc[pipe_table.to_junction].values]) + x0
     y = np.array([net.res_junction.p_bar.loc[pipe_table.from_junction].values, net.res_junction.p_bar.loc[pipe_table.to_junction].values])
