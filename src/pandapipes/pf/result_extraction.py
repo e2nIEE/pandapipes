@@ -64,7 +64,7 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     if fluid.is_gas:
         vf = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE)
     else:
-        vf = branch_pit[:, MDOTINIT] / get_branch_real_density(net, branch_pit, node_pit)
+        vf = branch_pit[:, MDOTINIT] / get_branch_real_density(net, node_pit, branch_pit)
     v = vf / branch_pit[:, AREA]
     return v, branch_pit[:, MDOTINIT], vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
         branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
