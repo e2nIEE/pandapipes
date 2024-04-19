@@ -7,6 +7,7 @@ from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT 
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.properties.properties_toolbox import get_branch_real_density
 
 try:
     from numba import jit
@@ -57,11 +58,14 @@ def extract_all_results(net, calculation_mode):
 def get_basic_branch_results(net, branch_pit, node_pit):
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    fluid = get_fluid(net)
     t0 = node_pit[from_nodes, TINIT_NODE]
     t1 = node_pit[to_nodes, TINIT_NODE]
-    vf = branch_pit[:, MDOTINIT] / get_fluid(net).get_density(NORMAL_TEMPERATURE)
-    v = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / branch_pit[:, AREA]
+    fluid = get_fluid(net)
+    if fluid.is_gas:
+        vf = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE)
+    else:
+        vf = branch_pit[:, MDOTINIT] / get_branch_real_density(net, branch_pit, node_pit)
+    v = vf / branch_pit[:, AREA]
     return v, branch_pit[:, MDOTINIT], vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
         branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
         branch_pit[:, PL]
