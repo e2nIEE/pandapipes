@@ -78,7 +78,8 @@ def pipeflow(net, sol_vec=None, **kwargs):
     # determine the active node/branch heat transfer lookup
     identify_active_nodes_branches(net)
 
-    if calculation_mode == 'heat': use_given_hydraulic_results(net, sol_vec)
+    if calculation_mode == 'heat':
+        use_given_hydraulic_results(net, sol_vec)
 
     if not (calculate_hydraulics | calculate_heat | calculate_bidrect):
         raise UserWarning("No proper calculation mode chosen.")
