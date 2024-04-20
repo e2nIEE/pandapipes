@@ -111,7 +111,6 @@ def newton_raphson(net, funct, mode, vars, tols, pit_names, iter_name):
     niter = 0
     # This branch is used to stop the solver after a specified error tolerance is reached
     errors = {var: [] for var in vars}
-    diff = {var: [] for var in vars}
     create_internal_results(net)
     residual_norm = None
     # This loop is left as soon as the solver converged
@@ -128,10 +127,9 @@ def newton_raphson(net, funct, mode, vars, tols, pit_names, iter_name):
         vals_old = results[pos[1::2]]
         for var, val_new, val_old in zip(vars, vals_new, vals_old):
             dval = val_new - val_old
-            diff[var].append(dval.mean())
             errors[var].append(linalg.norm(dval) / len(dval) if len(dval) else 0)
         finalize_iteration(net, niter, residual_norm, nonlinear_method, errors=errors, tols=tols, tol_res=tol_res,
-                           vals_old=vals_old, vars=vars, pit_names=pit_names, diff=diff)
+                           vals_old=vals_old, vars=vars, pit_names=pit_names)
         niter += 1
     write_internal_results(net, **errors)
     kwargs = dict()
@@ -142,8 +140,6 @@ def newton_raphson(net, funct, mode, vars, tols, pit_names, iter_name):
 
 
 def bidirectional(net):
-    if get_net_option(net, 'nonlinear_method') == 'std':
-        set_net_option(net, 'alpha', 0.33)
     net.converged = False
     if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
         net["_internal_data"] = dict()
@@ -189,9 +185,9 @@ def heat_transfer(net):
     if net.fluid.is_gas:
         logger.info("Caution! Temperature calculation does currently not affect hydraulic "
                     "properties!")
-    vars = ['Tout', 'Tin']
+    vars = ['Tout', 'T']
     tol_T = next(get_net_options(net, 'tol_T'))
-    newton_raphson(net, solve_temperature, 'heat', vars, [tol_T, tol_T], ['node', 'branch'], 'max_iter_therm')
+    newton_raphson(net, solve_temperature, 'heat', vars, [tol_T, tol_T], ['branch', 'node'], 'max_iter_therm')
     if not net.converged:
         raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
                                    "solution.")
@@ -316,22 +312,19 @@ def set_damping_factor(net, niter, errors):
     return error_increased
 
 
-def finalize_iteration(net, niter, residual_norm, nonlinear_method, errors, tols, tol_res, vals_old, vars, pit_names,
-                       diff):
+def finalize_iteration(net, niter, residual_norm, nonlinear_method, errors, tols, tol_res, vals_old, vars, pit_names):
     # Control of damping factor
     if nonlinear_method == "automatic":
         errors_increased = set_damping_factor(net, niter, errors)
         logger.debug("alpha: %s" % get_net_option(net, "alpha"))
         for error_increased, var, val, pit in zip(errors_increased, vars, vals_old, pit_names):
             if error_increased:
+                # todo: not working in bidirectional mode as bidirectional is not distinguishing between \
+                #  hydraulics and heat transfer active pit
                 net["_active_pit"][pit][:, globals()[var.upper() + 'INIT']] = val
         if get_net_option(net, "alpha") != 1:
             net.converged = False
             return
-    elif nonlinear_method == "std":
-        max_std = np.std(list(diff.values()), axis=1)[:5].max()
-        alpha = 0.33 if max_std == 0 else 1 if max_std < 1 else 0.33 if max_std > 3 else 1 / max_std
-        set_net_option(net, "alpha", alpha)
     elif nonlinear_method != "constant":
         logger.warning("No proper nonlinear method chosen. Using constant settings.")
     for error, var, tol in zip(errors.values(), vars, tols):

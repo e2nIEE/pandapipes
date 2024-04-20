@@ -92,7 +92,7 @@ def test_heat_consumer_equivalence2():
                                     qext_w=qext[0])
     pandapipes.create_heat_consumer(net2, juncs[2], juncs[3], 0.1022, treturn_k= 285.4461399735642,
                                     qext_w=qext[1])
-    pandapipes.pipeflow(net2, mode="bidirectional", iter=40, nonlinear_method='std')
+    pandapipes.pipeflow(net2, mode="bidirectional", iter=20, alpha=0.65)
 
     pandapipes.create_heat_consumer(net3, juncs[1], juncs[4], 0.1022, controlled_mdot_kg_per_s=mdot[0],
                                     qext_w=qext[0])
