@@ -144,9 +144,6 @@ def test_heat_consumer_creation_not_allowed(simple_heat_net):
         pandapipes.create_heat_consumers(net, juncs[[1, 2]], juncs[[4, 3]], 0.1022, qext_w=QEXT,
                                          controlled_mdot_kg_per_s=None)
 
-
-@pytest.mark.xfail(reason="Can only be tested once models for deltat_k and treturn_k"
-                          " are implemented for heat consumers.")
 def test_heat_consumer_creation_not_allowed_2(simple_heat_net):
     net = copy.deepcopy(simple_heat_net)
     juncs = net.junction.index

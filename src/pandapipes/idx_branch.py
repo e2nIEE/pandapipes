@@ -40,5 +40,6 @@ TEXT = 30
 PL = 31
 TL = 32 # Temperature lift [K]
 BRANCH_TYPE = 33  # branch type relevant for the pressure controller
+IGN = 34
 
-branch_cols = 34
+branch_cols = 35

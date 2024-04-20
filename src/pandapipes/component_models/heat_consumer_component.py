@@ -8,9 +8,10 @@ from numpy import dtype
 from pandapipes.component_models import get_fluid, BranchWZeroLengthComponent, get_component_array, \
     standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, FROM_NODE_T, JAC_DERIV_DM, JAC_DERIV_DP, \
-    LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE
-from pandapipes.idx_node import TINIT
+from pandapipes.idx_branch import D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, FROM_NODE_T, TO_NODE_T, JAC_DERIV_DM, \
+    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE, IGN
+from pandapipes.idx_node import TINIT, PINIT
+from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
@@ -70,6 +71,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         # causes otherwise problems in case of mode Q
         hc_pit[np.isnan(hc_pit[:, MDOTINIT]), MDOTINIT] = 0.1
         hc_pit[hc_pit[:, QEXT] == 0, ACTIVE] = False
+        hc_pit[:, IGN] = True
         return hc_pit
 
     @classmethod
@@ -155,6 +157,19 @@ class HeatConsumer(BranchWZeroLengthComponent):
             df_dm = - cp[mask] * (t_out - t_in)
             hc_pit[mask, LOAD_VEC_BRANCHES] = - consumer_array[mask, cls.QEXT] + df_dm * hc_pit[mask, MDOTINIT]
             hc_pit[mask, JAC_DERIV_DM] = df_dm
+
+        active_ign = get_lookup(net, "node", "active_ign_hydraulics")
+        active = get_lookup(net, "node", "active_hydraulics")
+        mask_ign = False if active_ign is None else active_ign != active
+
+        if np.any(mask_ign):
+            from_nodes = hc_pit[:, FROM_NODE_T].astype(int)
+            to_nodes = hc_pit[:, TO_NODE_T].astype(int)
+            mask = ~active_ign[from_nodes] or ~active_ign[to_nodes]
+            hc_pit[mask, JAC_DERIV_DP] = 1
+            hc_pit[mask, JAC_DERIV_DP1] = -1
+            hc_pit[mask, JAC_DERIV_DM] = 0
+            hc_pit[mask, LOAD_VEC_BRANCHES] = node_pit[from_nodes[mask], PINIT] - node_pit[to_nodes[mask], PINIT]
 
     @classmethod
     def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):

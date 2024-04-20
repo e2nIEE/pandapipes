@@ -9,10 +9,10 @@ import numpy as np
 from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, \
-    ACTIVE as ACTIVE_BR, MDOTINIT, FROM_NODE_T, TO_NODE_T
-from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
-    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, ACTIVE as ACTIVE_BR, MDOTINIT, FROM_NODE_T, \
+    TO_NODE_T, IGN
+from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, TABLE_IDX as TABLE_IDX_ND, \
+    ELEMENT_IDX as ELEMENT_IDX_ND
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
 
@@ -33,14 +33,12 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
-                   "tol_T": 1e-3, "tol_res": 1e-3, "max_iter_hyd": 10, "max_iter_therm": 10, "max_iter_bidirect": 10,
-                   "error_flag": False, "alpha": 1,
-                   "nonlinear_method": "constant", "mode": "hydraulics",
-                   "ambient_temperature": 293.15, "check_connectivity": True,
-                   "max_iter_colebrook": 10, "only_update_hydraulic_matrix": False,
-                   "reuse_internal_data": False, "use_numba": True,
-                   "quit_on_inconsistency_connectivity": False, "calc_compression_power": True}
+default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5, "tol_T": 1e-3, "tol_res": 1e-3,
+                   "max_iter_hyd": 10, "max_iter_therm": 10, "max_iter_bidirect": 10, "error_flag": False, "alpha": 1,
+                   "nonlinear_method": "constant", "mode": "hydraulics", "ambient_temperature": 293.15,
+                   "check_connectivity": True, "max_iter_colebrook": 10, "only_update_hydraulic_matrix": False,
+                   "reuse_internal_data": False, "use_numba": True, "quit_on_inconsistency_connectivity": False,
+                   "calc_compression_power": True}
 
 
 def get_net_option(net, option_name):
@@ -88,8 +86,8 @@ def set_net_option(net, option_name, option_value):
 
 
 def warn_high_index(element_name, element_length, max_element_index):
-    if (element_length > 100 and max_element_index > 1000 * element_length) \
-            or (element_length <= 100 and max_element_index > 50000):
+    if (element_length > 100 and max_element_index > 1000 * element_length) or (
+            element_length <= 100 and max_element_index > 50000):
         logger.warning("High index in %s table!!!" % element_name)
 
 
@@ -165,17 +163,16 @@ def get_lookup(net, pit_type="node", lookup_type="index"):
     """
     pit_type = pit_type.lower()
     lookup_type = lookup_type.lower()
-    all_lookup_types = ["index", "table", "from_to", "active_hydraulics", "active_heat_transfer",
-                        "length", "from_to_active_hydraulics", "from_to_active_heat_transfer",
-                        "index_active_hydraulics", "index_active_heat_transfer"]
+    all_lookup_types = ["index", "table", "from_to", "active_hydraulics", "active_ign_hydraulics",
+                        "active_heat_transfer", "length",
+                        "from_to_active_hydraulics", "from_to_active_heat_transfer", "index_active_hydraulics",
+                        "index_active_heat_transfer"]
     if lookup_type not in all_lookup_types:
         type_names = "', '".join(all_lookup_types)
-        logger.error("No lookup type '%s' exists. Please choose one of '%s'."
-                     % (lookup_type, type_names))
+        logger.error("No lookup type '%s' exists. Please choose one of '%s'." % (lookup_type, type_names))
         return None
     if pit_type not in ["node", "branch"]:
-        logger.error("No pit type '%s' exists. Please choose one of 'node' and 'branch'."
-                     % pit_type)
+        logger.error("No pit type '%s' exists. Please choose one of 'node' and 'branch'." % pit_type)
         return None
     return net["_lookups"]["%s_%s" % (pit_type, lookup_type)]
 
@@ -200,8 +197,7 @@ def set_user_pf_options(net, reset=False, **kwargs):
 
     additional_kwargs = set(kwargs.keys()) - set(default_options.keys()) - {"fluid", "hyd_flag"}
     if len(additional_kwargs) > 0:
-        logger.info('parameters %s are not in the list of standard options'
-                    % list(additional_kwargs))
+        logger.info('parameters %s are not in the list of standard options' % list(additional_kwargs))
 
     net.user_pf_options.update(kwargs)
 
@@ -295,7 +291,6 @@ def init_options(net, local_parameters):
         opts = _check_mode(opts)
         net["_options"].update(opts)
 
-
     # the last layer is the layer of passeed parameters by the user, it is defined as the local
     # existing parameters during the pipeflow call which diverges from the default parameters of the
     # function definition in the second layer
@@ -318,6 +313,7 @@ def init_options(net, local_parameters):
             logger.info("numba is not installed. Install numba first before you set the 'use_numba'"
                         " flag to True. The pipeflow will be performed without numba speedup.")
         net["_options"]["use_numba"] = False
+
 
 def _iteration_check(opts):
     opts = copy.deepcopy(opts)
@@ -344,6 +340,7 @@ def _iteration_check(opts):
     opts.update(params)
     return opts
 
+
 def _check_mode(opts):
     opts = copy.deepcopy(opts)
     if 'mode' in opts and opts['mode'] == 'all':
@@ -352,6 +349,7 @@ def _check_mode(opts):
                        "For now 'all' is set equal to 'sequential'.")
         opts['mode'] = 'sequential'
     return opts
+
 
 def create_internal_results(net):
     """
@@ -404,6 +402,7 @@ def initialize_pit(net):
                        "You need at least one node! "
                        "Without any nodes, you are not able to conduct a pipeflow!")
         return
+
 
 def create_empty_pit(net):
     """
@@ -474,18 +473,15 @@ def create_lookups(net):
     internal_nodes_lookup = dict()
 
     for comp in net['component_list']:
-        branch_from, branch_table_nr = comp.create_branch_lookups(
-            net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_table_nr,
-            branch_from)
-        node_from, node_table_nr = comp.create_node_lookups(
-            net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from, node_table_nr,
-            internal_nodes_lookup)
+        branch_from, branch_table_nr = comp.create_branch_lookups(net, branch_ft_lookups, branch_table_lookups,
+            branch_idx_lookups, branch_table_nr, branch_from)
+        node_from, node_table_nr = comp.create_node_lookups(net, node_ft_lookups, node_table_lookups, node_idx_lookups,
+            node_from, node_table_nr, internal_nodes_lookup)
 
     net["_lookups"] = {"node_from_to": node_ft_lookups, "branch_from_to": branch_ft_lookups,
                        "node_table": node_table_lookups, "branch_table": branch_table_lookups,
-                       "node_index": node_idx_lookups, "branch_index": branch_idx_lookups,
-                       "node_length": node_from, "branch_length": branch_from,
-                       "internal_nodes_lookup": internal_nodes_lookup}
+                       "node_index": node_idx_lookups, "branch_index": branch_idx_lookups, "node_length": node_from,
+                       "branch_length": branch_from, "internal_nodes_lookup": internal_nodes_lookup}
 
 
 def identify_active_nodes_branches(net, hydraulic=True):
@@ -519,35 +515,35 @@ def identify_active_nodes_branches(net, hydraulic=True):
     if hydraulic:
         # connectivity check for hydraulic simulation
         if get_net_option(net, "check_connectivity"):
-            nodes_connected, branches_connected = check_connectivity(net, branch_pit, node_pit)
+            nodes_connected, branches_connected, nodes_connected_ign, branches_connected_ign = (
+                check_connectivity(net, branch_pit, node_pit))
         else:
             # if connectivity check is switched off, still consider oos elements
             nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool_)
             branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool_)
+            nodes_connected_ign = branches_connected_ign = None
     else:
         # connectivity check for heat simulation (needs to consider branches with 0 velocity as
         # well)
         if get_net_option(net, "check_connectivity"):
             # full connectivity check for hydraulic simulation
-            nodes_connected, branches_connected = check_connectivity(net, branch_pit, node_pit,
-                                                                     mode="heat_transfer")
+            nodes_connected, branches_connected, _, _ = (
+                check_connectivity(net, branch_pit, node_pit, mode="heat_transfer"))
         else:
             # if no full connectivity check is performed, all nodes that are not connected to the
             # rest of the network wrt. flow can be identified by a more performant sum_by_group_call
             # check for branches that are not traversed (for temperature calculation, this means
             # that they are "out of service")
-            branches_connected = get_lookup(net, "branch", "active_hydraulics") \
-                                 & branches_connected_flow(branch_pit)
+            branches_connected = get_lookup(net, "branch", "active_hydraulics") & branches_connected_flow(branch_pit)
             fn = branch_pit[:, FROM_NODE].astype(np.int32)
             tn = branch_pit[:, TO_NODE].astype(np.int32)
-            fn_tn, flow = _sum_by_group(
-                get_net_option(net, "use_numba"), np.concatenate([fn, tn]),
-                np.concatenate([branches_connected, branches_connected]).astype(np.int32)
-            )
+            fn_tn, flow = _sum_by_group(get_net_option(net, "use_numba"), np.concatenate([fn, tn]),
+                np.concatenate([branches_connected, branches_connected]).astype(np.int32))
             nodes_connected = np.copy(get_lookup(net, "node", "active_hydraulics"))
             # set nodes oos that are not connected to any branches with flow > 0 (0.1 is arbitrary
             # here, any value between 0 and 1 should work, excluding 0 and 1)
             nodes_connected[fn_tn] = nodes_connected[fn_tn] & (flow > 0.1)
+        nodes_connected_ign = branches_connected_ign = None
     mode = "hydraulics" if hydraulic else "heat_transfer"
     if np.all(~nodes_connected):
         mode = 'hydraulic' if hydraulic else 'heat transfer'
@@ -556,6 +552,8 @@ def identify_active_nodes_branches(net, hydraulic=True):
                                    " Have you forgotten to define an external grid?" % mode)
     net["_lookups"]["node_active_" + mode] = nodes_connected
     net["_lookups"]["branch_active_" + mode] = branches_connected
+    net["_lookups"]["node_active_ign_" + mode] = nodes_connected_ign
+    net["_lookups"]["branch_active_ign_" + mode] = branches_connected_ign
 
 
 def branches_connected_flow(branch_pit):
@@ -568,8 +566,7 @@ def branches_connected_flow(branch_pit):
     :rtype: np.array
     """
     # TODO: is this formulation correct or could there be any caveats?
-    return ~np.isnan(branch_pit[:, MDOTINIT]) \
-        & ~np.isclose(branch_pit[:, MDOTINIT], 0, rtol=1e-10, atol=1e-10)
+    return ~np.isnan(branch_pit[:, MDOTINIT]) & ~np.isclose(branch_pit[:, MDOTINIT], 0, rtol=1e-10, atol=1e-10)
 
 
 def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
@@ -607,30 +604,43 @@ def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
         active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool_)
         slacks = np.where((node_pit[:, NODE_TYPE] == P) & active_node_lookup)[0]
     else:
-        active_branch_lookup = branches_connected_flow(branch_pit) \
-                               & get_lookup(net, "branch", "active_hydraulics")
-        active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool_) \
-                             & get_lookup(net, "node", "active_hydraulics")
+        active_branch_lookup = branches_connected_flow(branch_pit) & get_lookup(net, "branch", "active_hydraulics")
+        active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool_) & get_lookup(net, "node", "active_hydraulics")
         slacks = np.where((node_pit[:, NODE_TYPE_T] == T) & active_node_lookup)[0]
 
-    return perform_connectivity_search(net, node_pit, branch_pit, slacks, active_node_lookup,
-                                       active_branch_lookup, mode=mode)
+    return perform_connectivity_search(net, node_pit, branch_pit, slacks, active_node_lookup, active_branch_lookup,
+                                       mode=mode)
 
 
-def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes,
-                                active_node_lookup, active_branch_lookup, mode="hydraulics"):
-    len_nodes = len(node_pit)
+def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
+                                mode="hydraulics"):
+    nodes_connected, branches_connected = (
+        _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
+
+    ign = branch_pit[:, IGN].astype(np.bool_)
+    if not all(ign) and mode == 'hydraulics':
+        active_branch_lookup_ign = active_branch_lookup & ~ign
+        nodes_connected_ign, branches_connected_ign = (
+            _connectivity(net, branch_pit, node_pit, active_branch_lookup_ign, active_node_lookup, slack_nodes, mode))
+    else:
+        nodes_connected_ign, branches_connected_ign = None, None
+    return nodes_connected, branches_connected, nodes_connected_ign, branches_connected_ign
+
+
+def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode):
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+    len_nodes = len(node_pit)
+
     nobranch = np.sum(active_branch_lookup)
+
     active_from_nodes = from_nodes[active_branch_lookup]
     active_to_nodes = to_nodes[active_branch_lookup]
 
     # we create a "virtual" node that is connected to all slack nodes and start the connectivity
     # search at this node
     fn_matrix = np.concatenate([active_from_nodes, slack_nodes])
-    tn_matrix = np.concatenate([active_to_nodes,
-                                np.full(len(slack_nodes), len_nodes, dtype=np.int32)])
+    tn_matrix = np.concatenate([active_to_nodes, np.full(len(slack_nodes), len_nodes, dtype=np.int32)])
 
     adj_matrix = coo_matrix((np.ones(nobranch + len(slack_nodes)), (fn_matrix, tn_matrix)),
                             shape=(len_nodes + 1, len_nodes + 1))
@@ -644,31 +654,27 @@ def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes,
     nodes_connected[reachable_nodes] = True
 
     if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
-        raise ValueError(
-            "An error occured in the %s connectivity check. Please contact the pandapipes "
-            "development team!" % mode)
+        raise ValueError("An error occured in the %s connectivity check. Please contact the pandapipes "
+                         "development team!" % mode)
     branches_connected = active_branch_lookup & nodes_connected[from_nodes]
 
     oos_nodes = np.where(~nodes_connected & active_node_lookup)[0]
     is_nodes = np.where(nodes_connected & ~active_node_lookup)[0]
 
     if len(oos_nodes) > 0:
-        msg = "\n".join("In table %s: %s" % (tbl, nds) for tbl, nds in
-                        get_table_index_list(net, node_pit, oos_nodes))
+        msg = "\n".join("In table %s: %s" % (tbl, nds) for tbl, nds in get_table_index_list(net, node_pit, oos_nodes))
         logger.info("Setting the following nodes out of service for %s calculation in connectivity"
                     " check:\n%s" % (mode, msg))
 
     if len(is_nodes) > 0:
-        node_type_message = "\n".join("In table %s: %s" % (tbl, nds) for tbl, nds in
-                                      get_table_index_list(net, node_pit, is_nodes))
+        node_type_message = "\n".join(
+            "In table %s: %s" % (tbl, nds) for tbl, nds in get_table_index_list(net, node_pit, is_nodes))
         if get_net_option(net, "quit_on_inconsistency_connectivity"):
-            raise UserWarning(
-                "The following nodes are connected to in_service branches in the %s calculation "
-                "although being out of service, which leads to an inconsistency in the connectivity"
-                " check!\n%s" % (mode, node_type_message))
+            raise UserWarning("The following nodes are connected to in_service branches in the %s calculation "
+                              "although being out of service, which leads to an inconsistency in the connectivity"
+                              " check!\n%s" % (mode, node_type_message))
         logger.info("Setting the following nodes back in service for %s calculation in connectivity"
-                    " check as they are connected to in_service branches:\n%s"
-                    % (mode, node_type_message))
+                    " check as they are connected to in_service branches:\n%s" % (mode, node_type_message))
 
     return nodes_connected, branches_connected
 
@@ -691,9 +697,8 @@ def get_table_index_list(net, pit_array, pit_indices, pit_type="node"):
     int_pit = pit_array[pit_indices, :]
     tables = np.unique(int_pit[:, TABLE_IDX_ND])
     table_lookup = get_lookup(net, pit_type, "table")
-    return [(get_table_name(table_lookup, tbl), list(int_pit[int_pit[:, TABLE_IDX_ND] == tbl,
-    ELEMENT_IDX_ND].astype(np.int32)))
-            for tbl in tables]
+    return [(get_table_name(table_lookup, tbl),
+             list(int_pit[int_pit[:, TABLE_IDX_ND] == tbl, ELEMENT_IDX_ND].astype(np.int32))) for tbl in tables]
 
 
 def reduce_pit(net, mode="hydraulics"):
@@ -724,32 +729,26 @@ def reduce_pit(net, mode="hydraulics"):
     nodes_connected = get_lookup(net, "node", "active_" + mode)
     branches_connected = get_lookup(net, "branch", "active_" + mode)
     if np.all(nodes_connected):
-        net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "node", "from_to"))
-        net["_lookups"]["node_index_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "node", "index"))
+        net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(get_lookup(net, "node", "from_to"))
+        net["_lookups"]["node_index_active_" + mode] = copy.deepcopy(get_lookup(net, "node", "index"))
         active_pit["node"] = np.copy(node_pit)
     else:
         active_pit["node"] = np.copy(node_pit[nodes_connected, :])
         reduced_node_lookup = np.cumsum(nodes_connected) - 1
         node_idx_lookup = get_lookup(net, "node", "index")
-        net["_lookups"]["node_index_active_" + mode] = {
-            tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]]
-            for tbl, idx_lookup in node_idx_lookup.items()}
+        net["_lookups"]["node_index_active_" + mode] = {tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]] for
+            tbl, idx_lookup in node_idx_lookup.items()}
         els["node"] = nodes_connected
     if np.all(branches_connected):
-        net["_lookups"]["branch_from_to_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "branch", "from_to"))
+        net["_lookups"]["branch_from_to_active_" + mode] = copy.deepcopy(get_lookup(net, "branch", "from_to"))
         active_pit["branch"] = np.copy(branch_pit)
-        net["_lookups"]["branch_index_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "branch", "index"))
+        net["_lookups"]["branch_index_active_" + mode] = copy.deepcopy(get_lookup(net, "branch", "index"))
     else:
         active_pit["branch"] = np.copy(branch_pit[branches_connected, :])
         branch_idx_lookup = get_lookup(net, "branch", "index")
         if len(branch_idx_lookup):
             reduced_branch_lookup = np.cumsum(branches_connected) - 1
-            net["_lookups"]["branch_index_active_" + mode] = {
-                tbl: reduced_branch_lookup[idx_lookup[idx_lookup != -1]]
+            net["_lookups"]["branch_index_active_" + mode] = {tbl: reduced_branch_lookup[idx_lookup[idx_lookup != -1]]
                 for tbl, idx_lookup in branch_idx_lookup.items()}
         else:
             net["_lookups"]["branch_index_active_" + mode] = dict()
@@ -758,15 +757,14 @@ def reduce_pit(net, mode="hydraulics"):
         active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
             branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
         active_pit["branch"][:, FROM_NODE_T] = active_pit["branch"][:, FROM_NODE]
-        active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
-            branch_pit[branches_connected, TO_NODE].astype(np.int32)]
+        active_pit["branch"][:, TO_NODE] = reduced_node_lookup[branch_pit[branches_connected, TO_NODE].astype(np.int32)]
         active_pit["branch"][:, TO_NODE_T] = active_pit["branch"][:, TO_NODE]
     net["_active_pit"] = active_pit
 
     for el, connected_els in els.items():
         ft_lookup = get_lookup(net, el, "from_to")
-        aux_lookup = {table: (ft[0], ft[1], np.sum(connected_els[ft[0]: ft[1]]))
-                      for table, ft in ft_lookup.items() if ft is not None}
+        aux_lookup = {table: (ft[0], ft[1], np.sum(connected_els[ft[0]: ft[1]])) for table, ft in ft_lookup.items() if
+                      ft is not None}
         from_to_active_lookup = copy.deepcopy(ft_lookup)
         count = 0
         for table, (_, _, len_new) in sorted(aux_lookup.items(), key=lambda x: x[1][0]):
