@@ -36,9 +36,8 @@ def test_circulation_pump_constant_mass(use_numba):
 
     max_iter_hyd = 4 if use_numba else 4
     max_iter_therm = 4 if use_numba else 4
-    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                        stop_condition="tol", friction_model="nikuradse",
-                        mode="all", transient=False, nonlinear_method="automatic",
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm, stop_condition="tol",
+                        friction_model="nikuradse", mode="all", transient=False, nonlinear_method="automatic",
                         tol_p=1e-4, tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "test_circ_pump_mass.csv"), sep=';')
@@ -51,8 +50,8 @@ def test_circulation_pump_constant_mass(use_numba):
     t_diff = np.abs(1 - res_junction.t_k.values / data['t'].dropna().values)
     v_diff = np.abs(1 - res_pipe / data['v'].dropna().values)
     mdot_diff = np.abs(1 - res_pump['mdot_from_kg_per_s'].values / data['mdot'].dropna().values)
-    deltap = res_pump['p_to_bar'].values - res_pump['p_from_bar'].values
-    deltap_diff = np.abs(1 - deltap / data['deltap'].dropna().values)
+    deltap_diff = np.abs(
+        1 - (res_pump['p_to_bar'].values - res_pump['p_from_bar'].values) / data['deltap'].dropna().values)
 
     assert np.all(p_diff < 0.01)
     assert np.all(t_diff < 0.01)

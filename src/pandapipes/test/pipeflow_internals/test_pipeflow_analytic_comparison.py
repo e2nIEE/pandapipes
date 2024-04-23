@@ -276,7 +276,7 @@ def test_temperature_internal_nodes_2zu_2ab(use_numba):
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
     max_iter_hyd = 3 if use_numba else 3
-    max_iter_therm = 4 if use_numba else 4
+    max_iter_therm = 5 if use_numba else 5
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
@@ -321,7 +321,7 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
     max_iter_hyd = 3 if use_numba else 3
-    max_iter_therm = 4 if use_numba else 4
+    max_iter_therm = 5 if use_numba else 5
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,

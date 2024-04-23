@@ -8,7 +8,6 @@ L = 2  # All other nodes
 T = 10  # Reference node with fixed temperature, otherwise 0
 PC = 20  # Controlled node with fixed pressure p
 NONE = 3  # None
-
 # node indices
 TABLE_IDX = 0  # number of the table that this node belongs to
 ELEMENT_IDX = 1  # index of the element that this node belongs to (within the given table)
@@ -23,5 +22,6 @@ LOAD_T = 9  # Heat power drawn in [W]
 NODE_TYPE_T = 10
 EXT_GRID_OCCURENCE = 11
 EXT_GRID_OCCURENCE_T = 12
+INFEED = 13
 
-node_cols = 13
+node_cols = 14

@@ -6,9 +6,7 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, PL, BRANCH_TYPE
-from pandapipes.idx_node import PC, PINIT
-from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, PL
 
 try:
     import pandaplan.core.pplog as logging
@@ -31,14 +29,8 @@ class CirculationPumpPressure(CirculationPump):
         :return:
         :rtype:
         """
-        return [("name", dtype(object)),
-                ("return_junction", "u4"),
-                ("flow_junction", "u4"),
-                ("p_flow_bar", "f8"),
-                ("t_flow_k", "f8"),
-                ("plift_bar", "f8"),
-                ("in_service", 'bool'),
-                ("type", dtype(object))]
+        return [("name", dtype(object)), ("return_junction", "u4"), ("flow_junction", "u4"), ("p_flow_bar", "f8"),
+                ("t_flow_k", "f8"), ("plift_bar", "f8"), ("in_service", 'bool'), ("type", dtype(object))]
 
     @classmethod
     def active_identifier(cls):
@@ -49,26 +41,18 @@ class CirculationPumpPressure(CirculationPump):
         return Junction
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
-        Function which creates pit node entries.
-
+        Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        super().create_pit_node_entries(net, node_pit)
-        circ_pumps = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
-
-        junction = circ_pumps[cls.from_to_node_cols()[0]].values
-
-        p_in = circ_pumps.p_flow_bar.values - circ_pumps.plift_bar.values
-        junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        index_pc = junction_idx_lookups[junction]
-        node_pit[index_pc, PINIT] = p_in
+        circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
+        circ_pump_pit[:, PL] = net[cls.table_name()]['plift_bar'].values
+        return circ_pump_pit
 
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -78,5 +62,3 @@ class CirculationPumpPressure(CirculationPump):
         circ_pump_pit = branch_pit[f:t, :]
         circ_pump_pit[:, JAC_DERIV_DP] = 1
         circ_pump_pit[:, JAC_DERIV_DP1] = -1
-        circ_pump_pit[:, PL] = net[cls.table_name()]['plift_bar'].values
-        circ_pump_pit[:, BRANCH_TYPE] = PC

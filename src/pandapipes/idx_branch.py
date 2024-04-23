@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 # branch types
-# no types defined
+CIRC = 1
 
 # branch indices
 TABLE_IDX = 0  # number of the table that this branch belongs to
@@ -16,7 +16,7 @@ D = 6  # Diameter in [m]
 AREA = 7  # Area in [m²]
 K = 8  # Pipe roughness in [m]
 MDOTINIT = 9  # mass in  [m/s]
-RE = 10 # Reynolds number
+RE = 10  # Reynolds number
 LAMBDA = 11  # Lambda
 JAC_DERIV_DM = 12  # Slot for the derivative by mass
 JAC_DERIV_DP = 13  # Slot for the derivative by pressure from_node
@@ -30,15 +30,17 @@ JAC_DERIV_DT = 20
 JAC_DERIV_DTOUT = 21
 LOAD_VEC_BRANCHES_T = 22
 TOUTINIT = 23  # Internal slot for outlet pipe temperature
-JAC_DERIV_DT_NODE = 24  # Slot for the derivative fpr T for the nodes connected to branch
-LOAD_VEC_NODES_T = 25
-MDOTINIT_T = 26
-FROM_NODE_T = 27
-TO_NODE_T = 28
-QEXT = 29  # heat input in [W]
-TEXT = 30
-PL = 31
-TL = 32 # Temperature lift [K]
-BRANCH_TYPE = 33  # branch type relevant for the pressure controller
+JAC_DERIV_DT_NODE_B = 24  # Slot for the node equation derivative of T for the corresponding branch
+JAC_DERIV_DT_NODE_N = 25  # Slot for the node equation derivative of T for the nodes branch is connected to
+LOAD_VEC_NODES_T = 26
+MDOTINIT_T = 27
+FROM_NODE_T = 28
+TO_NODE_T = 29
+QEXT = 30  # heat input in [W]
+TEXT = 31
+PL = 32
+TL = 33  # Temperature lift [K]
+BRANCH_TYPE = 34  # branch type relevant for the pressure controller
+PUMP_TYPE = 35
 
-branch_cols = 34
+branch_cols = 36

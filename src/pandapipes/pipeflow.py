@@ -276,8 +276,8 @@ def solve_temperature(net):
     t_out_old = branch_pit[:, TOUTINIT].copy()
 
     x = spsolve(jacobian, epsilon)
-    node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
-    branch_pit[:, TOUTINIT] += x[len(node_pit):]
+    node_pit[:, TINIT] -= x[:len(node_pit)] * options["alpha"]
+    branch_pit[:, TOUTINIT] -= x[len(node_pit):]
 
     return branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old, epsilon
 

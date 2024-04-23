@@ -6,8 +6,8 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import AREA, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DV, VINIT, \
-    RHO, LOAD_VEC_BRANCHES
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, \
+    LOAD_VEC_BRANCHES
 
 try:
     import pandaplan.core.pplog as logging
@@ -50,8 +50,7 @@ class CirculationPumpMass(CirculationPump):
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
-        circ_pump_pit[:, VINIT] = net[cls.table_name()].mdot_flow_kg_per_s.values / \
-                                  (circ_pump_pit[:, AREA] * circ_pump_pit[:, RHO])
+        circ_pump_pit[:, MDOTINIT] = net[cls.table_name()].mdot_flow_kg_per_s.values
 
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -61,6 +60,6 @@ class CirculationPumpMass(CirculationPump):
         circ_pump_pit = branch_pit[f:t, :]
         circ_pump_pit[:, JAC_DERIV_DP] = 0
         circ_pump_pit[:, JAC_DERIV_DP1] = 0
-        circ_pump_pit[:, JAC_DERIV_DV] = 1
+        circ_pump_pit[:, JAC_DERIV_DM] = 1
         circ_pump_pit[:, LOAD_VEC_BRANCHES] = 0
 

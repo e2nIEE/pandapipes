@@ -8,7 +8,7 @@ from scipy.sparse import csr_matrix
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
     JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, CIRC, PUMP_TYPE, \
     JAC_DERIV_DT_NODE_B, JAC_DERIV_DT_NODE_N, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T, BRANCH_TYPE
-from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T, LOAD, TINIT
+from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T, LOAD, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_net_option
 
@@ -58,10 +58,9 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         len_pc = len_tn1 + pc_nodes.shape[0]
         full_len = len_pc + slack_nodes.shape[0]
     else:
-        not_slack_fn_branch_mask = branch_pit[:, PUMP_TYPE] != CIRC
-        not_slack_tn_branch_mask = branch_pit[:, PUMP_TYPE] != CIRC
-        len_tn_not_slack = np.sum(not_slack_tn_branch_mask)
-        infeed_node = list(set(fn[not_slack_fn_branch_mask]) - set(tn[not_slack_tn_branch_mask]))
+        not_slack_branch_mask =  branch_pit[:, PUMP_TYPE] != CIRC
+        len_tn_not_slack = np.sum(not_slack_branch_mask)
+        infeed_node = np.arange(len_n)[node_pit[:, INFEED].astype(np.bool_)]
         len_tn1 = num_der * len_b + len_tn_not_slack
         len_tn2 = len_tn1 + len_tn_not_slack
         full_len = len_tn2 + slack_nodes.shape[0]
@@ -70,45 +69,45 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
 
     # entries in the matrix
     if not heat_mode:
-        # ==============================
+
         # branch equations
-        # ==============================
-        # pdF_dv
+        # ----------------
+        # branch_dF_dm
         system_data[:len_b] = branch_pit[:, JAC_DERIV_DM]
-        # pdF_dpi
+        # branch_dF_dp_from
         system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DP]
-        # pdF_dpi1
+        # branch_dF_dp_to
         system_data[2 * len_b:3 * len_b] = branch_pit[:, JAC_DERIV_DP1]
-        # ==============================
+
         # node equations
-        # ==============================
-        # jdF_dv_from_nodes
+        # --------------
+        # from_node_dF_dm
         system_data[3 * len_b:len_fn1] = branch_pit[not_slack_fn_branch_mask, JAC_DERIV_DM_NODE] * (-1)
-        # jdF_dv_to_nodes
+        # to_node_dF_dm
         system_data[len_fn1:len_tn1] = branch_pit[not_slack_tn_branch_mask, JAC_DERIV_DM_NODE]
-        # ==============================
+
         # fixed pressure equations
-        # ==============================
+        # ------------------------
         # pc_nodes and slack_nodes
         system_data[len_tn1:] = 1
     else:
-        # ==============================
+
         # branch equations
-        # ==============================
-        # dF_branch_dT_from
+        # ----------------
+        # branch_dF_dT_from
         system_data[:len_b] = branch_pit[:, JAC_DERIV_DT]
-        # dF_branch_dT_to
+        # branch_dF_dT_out
         system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DTOUT]
-        # ==============================
+
         # node equations
-        # ==============================
-        # dF_node_dT_mixture
-        system_data[2 * len_b:len_tn1] = branch_pit[not_slack_tn_branch_mask, JAC_DERIV_DT_NODE_N]
-        # dF_node_dT_inflow
-        system_data[len_tn1:len_tn2] = branch_pit[not_slack_tn_branch_mask, JAC_DERIV_DT_NODE_B]
-        # ==============================
+        # --------------
+        # node_dF_dT_to
+        system_data[2 * len_b:len_tn1] = branch_pit[not_slack_branch_mask, JAC_DERIV_DT_NODE_N]
+        # node_dF_dT_out
+        system_data[len_tn1:len_tn2] = branch_pit[not_slack_branch_mask, JAC_DERIV_DT_NODE_B]
+
         # fixed temperature equations
-        # ==============================
+        # ---------------------------
         # t_nodes
         system_data[len_tn2:] = 1
 
@@ -118,68 +117,57 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         system_rows = np.zeros(full_len, dtype=np.int32)
 
         if not heat_mode:
-            # ==============================
+
             # branch equations
-            # ==============================
-            # pdF_dv
+            # ----------------
+            # branch_dF_dm
             system_cols[:len_b] = branch_matrix_indices
             system_rows[:len_b] = branch_matrix_indices
-
-            # pdF_dpi
+            # branch_dF_dp_from
             system_cols[len_b:2 * len_b] = fn
             system_rows[len_b:2 * len_b] = branch_matrix_indices
-
-            # pdF_dpi1
+            # branch_dF_dp_to
             system_cols[2 * len_b:3 * len_b] = tn
             system_rows[2 * len_b:3 * len_b] = branch_matrix_indices
 
-            # ==============================
             # node equations
-            # ==============================
-            # jdF_dv_from_nodes
+            # --------------
+            # from_node_dF_dm
             system_cols[3 * len_b:len_fn1] = branch_matrix_indices[not_slack_fn_branch_mask]
             system_rows[3 * len_b:len_fn1] = fn[not_slack_fn_branch_mask]
-
-            # jdF_dv_to_nodes
+            # to_node_dF_dm
             system_cols[len_fn1:len_tn1] = branch_matrix_indices[not_slack_tn_branch_mask]
             system_rows[len_fn1:len_tn1] = tn[not_slack_tn_branch_mask]
 
-            # ==============================
             # fixed pressure equations
-            # ==============================
+            # -----------------------
             # pc_nodes
             system_cols[len_tn1:len_pc] = pc_nodes
             system_rows[len_tn1:len_pc] = pc_matrix_indices
-
-            # p_nodes
+            # slack_nodes
             system_cols[len_pc:] = slack_nodes
             system_rows[len_pc:] = slack_nodes
         else:
-            # ==============================
             # branch equations
-            # ==============================
-            # dF_branch_dT_from
+            # ----------------
+            # branch_dF_dT_from
             system_cols[:len_b] = fn
             system_rows[:len_b] = branch_matrix_indices
-
-            # dF_branch_dT_to
+            # branch_dF_dT_out
             system_cols[len_b:2 * len_b] = branch_matrix_indices
             system_rows[len_b:2 * len_b] = branch_matrix_indices
 
-            # ==============================
             # node equations
-            # ==============================
-            # dF_node_dT_mixture
-            system_cols[2 * len_b:len_tn1] = tn[not_slack_tn_branch_mask]
-            system_rows[2 * len_b:len_tn1] = tn[not_slack_tn_branch_mask]
+            # --------------
+            # node_dF_dT_to
+            system_cols[2 * len_b:len_tn1] = tn[not_slack_branch_mask]
+            system_rows[2 * len_b:len_tn1] = tn[not_slack_branch_mask]
+            # node_dF_dT_out
+            system_cols[len_tn1:len_tn2] = branch_matrix_indices[not_slack_branch_mask]
+            system_rows[len_tn1:len_tn2] = tn[not_slack_branch_mask]
 
-            # dF_node_dT_infeed
-            system_cols[len_tn1:len_tn2] = branch_matrix_indices[not_slack_tn_branch_mask]
-            system_rows[len_tn1:len_tn2] = tn[not_slack_tn_branch_mask]
-
-            # ==============================
             # fixed temperature equations
-            # ==============================
+            # ---------------------------
             # t_nodes (overwrites only infeeding nodes' equation)
             system_cols[len_tn2:] = slack_nodes
             system_rows[len_tn2:] = infeed_node
