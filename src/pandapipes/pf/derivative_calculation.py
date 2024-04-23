@@ -102,7 +102,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DTOUT] = cp * m_init + alpha / 2 * length
 
     branch_pit[:, JAC_DERIV_DT_NODE_B] = m_init * cp_out
-    branch_pit[:, JAC_DERIV_DT_NODE_N] = - m_init * cp_to
+    branch_pit[:, JAC_DERIV_DT_NODE_N] = - m_init * cp_n
     branch_pit[:, LOAD_VEC_NODES_T] = m_init * t_init_i1 * cp_out - m_init * t_init_n * cp_n
 
     infeed_node = (
