@@ -73,6 +73,9 @@ def release_control_test_network(max_iter_hyd, save=False):
     pp.create_ext_grid(net, junction=0, p_bar=3, t_k=300, name="External Grid 0", in_service=True,
                        index=None, type="pt")
     pp.create_ext_grid(net, 1, p_bar=5, t_k=350, name="External Grid 1", type="pt")
+    pp.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", in_service=True,
+                       index=None, type="pt")
+    pp.create_ext_grid(net, 5, p_bar=5, t_k=290, name="External Grid 3", type="pt")
 
     # sinks
     pp.create_sink(net, junction=2, mdot_kg_per_s=0.2, scaling=1., name="Sink 0", index=None,
@@ -189,6 +192,9 @@ def release_control_test_network_water(max_iter_hyd, save=False):
     pp.create_ext_grid(net, junction=0, p_bar=3, t_k=300, name="External Grid 0", in_service=True,
                        index=None, type="pt")
     pp.create_ext_grid(net, 1, p_bar=5, t_k=350, name="External Grid 1", type="pt")
+    pp.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", in_service=True,
+                       index=None, type="pt")
+    pp.create_ext_grid(net, 5, p_bar=5, t_k=290, name="External Grid 3", type="pt")
 
     # sinks
     pp.create_sink(net, junction=2, mdot_kg_per_s=0.2, scaling=1., name="Sink 0", index=None,
