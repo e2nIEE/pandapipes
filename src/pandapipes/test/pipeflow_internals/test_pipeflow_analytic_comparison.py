@@ -95,7 +95,7 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     pipe_results = Pipe.get_internal_results(net, [0])
@@ -150,7 +150,7 @@ def test_temperature_internal_nodes_tee_2ab_1zu(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_tee_2ab_1zu_an.csv"),
@@ -193,7 +193,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_tee_2zu_1ab_an.csv"),
@@ -236,7 +236,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_tee_2zu_1ab_an.csv"),
@@ -279,7 +279,7 @@ def test_temperature_internal_nodes_2zu_2ab(use_numba):
     max_iter_therm = 5 if use_numba else 5
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_2zu_2ab_an.csv"), sep=';',
@@ -324,7 +324,7 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     max_iter_therm = 5 if use_numba else 5
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_masche_1load_an.csv"),
@@ -366,7 +366,7 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path,
