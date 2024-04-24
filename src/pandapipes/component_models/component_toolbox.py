@@ -7,9 +7,8 @@ import pandas as pd
 
 from pandapipes import get_fluid
 from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, HEIGHT_EXPONENT
-from pandapipes.idx_branch import LOAD_VEC_NODES, FROM_NODE, TO_NODE
 from pandapipes.idx_node import EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T, PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, \
-    LOAD, JAC_DERIV_MSL, CIRC_PUMP_OCCURENCE
+    MDOTSLACKINIT, JAC_DERIV_MSL, CIRC_PUMP_OCCURENCE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 
@@ -158,25 +157,6 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
             node_pit[index, JAC_DERIV_MSL] = -1.
         if circ_pump and eg_type == 'p':
             node_pit[index, CIRC_PUMP_OCCURENCE] += number
-
-
-
-def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
-    node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True, return_inverse=True)
-    eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)
-    eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
-    from_nodes = branch_pit[eg_from_branches, FROM_NODE]
-    to_nodes = branch_pit[eg_to_branches, TO_NODE]
-    mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES]
-    mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES]
-    loads = node_pit[node_uni, LOAD]
-    all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
-    all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
-    nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes, all_mass_flows)
-    if not np.all(nodes == node_uni):
-        raise UserWarning("In component %s: Something went wrong with the mass flow balance. "
-                          "Please report this error at github." % comp.__name__)
-    return sum_mass_flows, inverse_nodes, counts
 
 
 def standard_branch_wo_internals_result_lookup(net):
