@@ -6,7 +6,8 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
-from pandapipes.idx_branch import D, AREA, PUMP_TYPE, CIRC, LOAD_VEC_BRANCHES_T
+from pandapipes.idx_branch import D, AREA, PUMP_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
+from pandapipes.idx_node import MDOTSLACKINIT, CIRC_PUMP_OCCURENCE, EXT_GRID_OCCURENCE
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -79,7 +80,7 @@ class CirculationPump(BranchWZeroLengthComponent):
         #       not contain "p", as this should not be allowed for this component
         press = circ_pump_tbl.p_flow_bar.values
         set_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press, circ_pump_tbl.t_flow_k.values,
-                               cls.get_connected_node_type())
+                               cls.get_connected_node_type(), circ_pump=True)
         return circ_pump_tbl, press
 
     @classmethod
@@ -96,6 +97,23 @@ class CirculationPump(BranchWZeroLengthComponent):
         circ_pump_pit[:, D] = 0.1
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
         circ_pump_pit[:, PUMP_TYPE] = CIRC
+        return circ_pump_pit
+
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        """
+        Function which creates pit branch entries with a specific table.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_pit:
+        :type branch_pit:
+        :return: No Output.
+        """
+        f, t = idx_lookups[cls.table_name()]
+        circ_pump_pit = branch_pit[f:t, :]
+        tn = circ_pump_pit[:, TO_NODE].astype(np.int32)
+        mask = node_pit[tn, CIRC_PUMP_OCCURENCE] == node_pit[tn, EXT_GRID_OCCURENCE]
+        node_pit[tn[mask], MDOTSLACKINIT] = 0
         return circ_pump_pit
 
     @classmethod

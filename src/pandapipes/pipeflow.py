@@ -7,7 +7,7 @@ from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, MDOTINIT, TOUTINIT, MDOTINIT_T
-from pandapipes.idx_node import PINIT, TINIT
+from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic, calculate_derivatives_thermal
 from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_net_option, init_options, \
@@ -162,9 +162,10 @@ def hydraulics(net):
     reduce_pit(net, mode="hydraulics")
     if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
         net["_internal_data"] = dict()
-    vars = ['mdot', 'p']
-    tol_p, tol_m = get_net_options(net, 'tol_m', 'tol_p')
-    newton_raphson(net, solve_hydraulics, 'hydraulics', vars, [tol_m, tol_p], ['branch', 'node'], 'max_iter_hyd')
+    vars = ['mdot', 'p', 'mdotslack']
+    tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
+    newton_raphson(net, solve_hydraulics, 'hydraulics', vars, [tol_m, tol_p, tol_msl], ['branch', 'node', 'node'],
+                   'max_iter_hyd')
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
 
@@ -232,13 +233,17 @@ def solve_hydraulics(net):
 
     m_init_old = branch_pit[:, MDOTINIT].copy()
     p_init_old = node_pit[:, PINIT].copy()
+    slack_nodes = np.where(node_pit[:, NODE_TYPE] == P)[0]
+    msl_init_old = node_pit[slack_nodes, MDOTSLACKINIT].copy()
 
     x = spsolve(jacobian, epsilon)
 
-    branch_pit[:, MDOTINIT] -= x[len(node_pit):]
+    branch_pit[:, MDOTINIT] -= x[len(node_pit):len(node_pit) + len(branch_pit)]
     node_pit[:, PINIT] -= x[:len(node_pit)] * options["alpha"]
+    node_pit[slack_nodes, MDOTSLACKINIT] -= x[len(node_pit) + len(branch_pit):]
 
-    return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old], epsilon
+    return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old, msl_init_old,
+            node_pit[slack_nodes, MDOTSLACKINIT]], epsilon
 
 
 def solve_temperature(net):
