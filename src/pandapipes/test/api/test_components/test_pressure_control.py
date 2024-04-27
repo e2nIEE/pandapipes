@@ -29,7 +29,7 @@ def test_pressure_control_from_measurement_parameters(use_numba):
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=10.,
                                            diameter_m=0.1022)
     pandapipes.create_pressure_control(net, j1, j2, j4, 20.)
-    pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net, j1, 32, 283.15, type="p")
     pandapipes.create_sink(net, j4, 0.5)
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
@@ -68,3 +68,43 @@ def test_2pressure_controller_controllability():
     pandapipes.create_pressure_control(net, j1, j2, j5, 20.)
 
     assert len(net.press_control == 1)
+
+
+def test_pctrl_line():
+    net = pandapipes.create_empty_network(fluid='hgas')
+    j1, j2 = pandapipes.create_junctions(net, 2, 3, 300)
+    pandapipes.create_ext_grid(net, j1, 2)
+    pandapipes.create_sink(net, j2, 4)
+    pandapipes.create_pressure_control(net, j1, j2, j2, 3, loss_coefficient=0.5)
+    pandapipes.pipeflow(net, use_numba=False)
+    assert np.isclose(net.res_junction.at[j2, 'p_bar'], 1.6556170)
+
+
+def test_pctrl_reverse():
+    net = pandapipes.create_empty_network(fluid='hgas')
+    j1, j2 = pandapipes.create_junctions(net, 2, 3, 300)
+    pandapipes.create_ext_grid(net, j1, 5)
+    pandapipes.create_source(net, j2, 4)
+    pandapipes.create_pressure_control(net, j1, j2, j2, 3, loss_coefficient=0.5)
+    pandapipes.pipeflow(net, use_numba=False)
+    assert np.isnan(net.res_junction.at[j2, 'p_bar'])
+
+
+def test_pctrl_default():
+    net = pandapipes.create_empty_network(fluid='hgas')
+    j1, j2 = pandapipes.create_junctions(net, 2, 3, 300)
+    pandapipes.create_ext_grid(net, j1, 5)
+    pandapipes.create_sink(net, j2, 4)
+    pandapipes.create_pressure_control(net, j1, j2, j2, 3, loss_coefficient=0.5)
+    pandapipes.pipeflow(net, use_numba=False)
+    assert net.res_junction.at[j2, 'p_bar'] == 3
+
+def test_pctrl_max_mdot():
+    net = pandapipes.create_empty_network(fluid='water')
+    j1, j2, j3, j4 = pandapipes.create_junctions(net, 4, 3, 300)
+    pandapipes.create_circ_pump_const_pressure(net, j4, j1, 10, 8)
+    pandapipes.create_pipes_from_parameters(net, [j1, j2, j3], [j2, j4,  j4], 0.1, 0.1)
+    pandapipes.create_pressure_control(net, j2, j3, j3, 3, loss_coefficient=0.5, max_mdot_kg_per_s=10)
+    pandapipes.pipeflow(net, use_numba=False)
+
+    assert net.res_press_control.mdot_from_kg_per_s.values == 10

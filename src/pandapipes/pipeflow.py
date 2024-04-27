@@ -4,8 +4,6 @@
 
 import numpy as np
 from numpy import linalg
-from scipy.sparse.linalg import spsolve
-
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, MDOTINIT, TOUTINIT, MDOTINIT_T
 from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P
 from pandapipes.pf.build_system_matrix import build_system_matrix
@@ -14,6 +12,7 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_net_options, set_ne
     create_internal_results, write_internal_results, get_lookup, create_lookups, initialize_pit, reduce_pit, \
     set_user_pf_options, init_all_result_tables, identify_active_nodes_branches, PipeflowNotConverged
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
+from scipy.sparse.linalg import spsolve
 
 try:
     import pandaplan.core.pplog as logging
@@ -166,6 +165,14 @@ def hydraulics(net):
     tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
     newton_raphson(net, solve_hydraulics, 'hydraulics', vars, [tol_m, tol_p, tol_msl], ['branch', 'node', 'node'],
                    'max_iter_hyd')
+    rerun = False
+    for comp in net['component_list']:
+        rerun = max(comp.rerun_hydraulics(net), rerun)
+    if rerun:
+        extract_results_active_pit(net, 'hydraulics')
+        identify_active_nodes_branches(net)
+        hydraulics(net)
+
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
 
@@ -189,6 +196,15 @@ def heat_transfer(net):
     vars = ['Tout', 'T']
     tol_T = next(get_net_options(net, 'tol_T'))
     newton_raphson(net, solve_temperature, 'heat', vars, [tol_T, tol_T], ['branch', 'node'], 'max_iter_therm')
+
+    rerun = False
+    for comp in net['component_list']:
+        rerun = max(comp.rerun_heat_transfer(net), rerun)
+    if rerun:
+        extract_results_active_pit(net, mode="heat_transfer")
+        identify_active_nodes_branches(net, False)
+        heat_transfer(net)
+
     if not net.converged:
         raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
                                    "solution.")

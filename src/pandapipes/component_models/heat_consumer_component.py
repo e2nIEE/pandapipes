@@ -61,7 +61,6 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :type branch_pit:
         :return: No Output.
         """
-        node_pit = net['_pit']['node']
         hc_pit = super().create_pit_branch_entries(net, branch_pit)
         hc_pit[:, D] = net[cls.table_name()].diameter_m.values
         hc_pit[:, AREA] = hc_pit[:, D] ** 2 * np.pi / 4
