@@ -352,13 +352,13 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         control_active &= ~fully_open
 
     #todo: after implementing a new pressure controller RTYP should replace RSTATUS
-    is_pc_nan = np.isnan(control_table.RTYP)
+    is_nan = np.isnan(control_table.RTYP)
     is_pc_stat = control_table.RSTATUS.values[is_pc_nan] == "P"
     is_fc_stat = control_table.RSTATUS.values[is_pc_nan] == "Q"
     is_pc = control_table.RTYP.values == "P"
     is_fc = control_table.RTYP.values == "Q"
-    is_pc[is_pc_nan] |= is_pc_stat
-    is_fc[is_fc_nan] |= is_fc_stat
+    is_pc[is_nan] |= is_pc_stat
+    is_fc[is_nan] |= is_fc_stat
 
     if not np.all(is_pc | is_fc):
         raise UserWarning("There are controllers of types %s that cannot be converted!" \
