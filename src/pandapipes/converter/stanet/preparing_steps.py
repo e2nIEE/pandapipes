@@ -273,8 +273,8 @@ def adapt_pipe_data(stored_data, pipe_data, coord_names, use_clients):
         node_name = CLIENT_TYPES_OF_NODES[client_num]
         node_data = stored_data[node_name]
         node_geo = node_data.loc[:, ["XRECHTS", "YHOCH"]]
-        node_geo.index = node_data.RECNO.values
-        node_cols = ["CLIENTNO", "CLIENT2NO"] if use_clients else ["ANFNR", "ENDNR"]
+        node_geo.index = node_data.STANETID.values if use_clients else node_data.RECNO.values
+        node_cols = ["CLIENTID", "CLIENT2ID"] if use_clients else ["ANFNR", "ENDNR"]
 
         # the following code is just a check whether pipe and node geodata fit together
         # in case of deviations, the pipe geodata is adapted on the basis of the node geodata
