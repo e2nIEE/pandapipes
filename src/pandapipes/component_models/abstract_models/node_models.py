@@ -21,6 +21,9 @@ class NodeComponent(Component):
     def table_name(cls):
         raise NotImplementedError
 
+    def get_component_type(cls):
+        return "node"
+
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
                             current_table, internal_nodes_lookup):

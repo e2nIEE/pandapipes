@@ -22,6 +22,10 @@ class NodeElementComponent(Component):
         raise NotImplementedError
 
     @classmethod
+    def get_component_type(cls):
+        return "node_element"
+
+    @classmethod
     def get_connected_node_type(cls):
         raise NotImplementedError
 

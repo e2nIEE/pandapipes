@@ -52,7 +52,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
     @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         pcs = net[cls.table_name()]
-        controlled = pcs.control_active
+        controlled = pcs.in_service & pcs.control_active
         juncts = pcs['controlled_junction'].values[controlled]
         press = pcs['controlled_p_bar'].values[controlled]
         junction_idx_lookups = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()]
@@ -99,14 +99,15 @@ class PressureControlComponent(BranchWZeroLengthComponent):
 
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        junction_idx_lookups = get_lookup(net, "node", "index")[
+        junction_idx_lookups = get_lookup(net, "node", "index_active_hydraulics")[
             cls.get_connected_node_type().table_name()]
         f, t = idx_lookups[cls.table_name()]
         pc_pit = branch_pit[f:t, :]
         pc_array = get_component_array(net, cls.table_name())
-        mask_ctrl =  pc_array[:, cls.MODE] == cls.PCTRL
-        mask_open = pc_array[:, cls.MODE] == cls.OPEN
-        mask_maxv = pc_array[:, cls.MODE] == cls.MAXVEXT
+        pc_branch = pc_pit[:, BRANCH_TYPE] == PC
+        mask_ctrl = (pc_array[:, cls.MODE] == cls.PCTRL) & pc_branch
+        mask_open = (pc_array[:, cls.MODE] == cls.OPEN) & pc_branch
+        mask_maxv = (pc_array[:, cls.MODE] == cls.MAXVEXT) & pc_branch
 
         if any(mask_ctrl):
             pc_pit[mask_ctrl, BRANCH_TYPE] = PC
@@ -137,14 +138,13 @@ class PressureControlComponent(BranchWZeroLengthComponent):
     @classmethod
     def rerun_hydraulics(cls, net):
         rerun = False
-
         branch_pit = net["_active_pit"]["branch"]
         node_pit = net["_active_pit"]["node"]
         branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
 
         f, t = branch_lookups[cls.table_name()]
         pc_pit = branch_pit[f:t, :]
-        pc_array = get_component_array(net, cls.table_name(), only_active=False)
+        pc_array = get_component_array(net, cls.table_name())
 
         pc_branch = pc_pit[:, BRANCH_TYPE] == PC
         to_nodes = pc_pit[:, TO_NODE].astype(np.int32)
@@ -158,27 +158,27 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         is_open = pc_array[:, cls.MODE] == cls.OPEN
         is_controlled = pc_array[:, cls.MODE] == cls.PCTRL
 
-        ctrlable = (p_to <= p_ctrl) and (is_closed or is_open)
-        mask_ctrl = ctrlable and pc_branch
+        #ctrlable = (p_to <= p_ctrl) & (is_closed | is_open)
+        #mask_ctrl = ctrlable & pc_branch
 
-        if any(mask_ctrl):
-            pc_array[mask_ctrl, cls.MODE] = cls.PCTRL
-            pc_pit[mask_ctrl, ACTIVE] = True
-            rerun = True
+        #if any(mask_ctrl):
+        #    pc_array[mask_ctrl, cls.MODE] = cls.PCTRL
+        #    pc_pit[mask_ctrl, ACTIVE] = True
+        #    rerun = True
 
-        open = p_to > p_from and (is_controlled or not is_closed)
-        mask_open = open and pc_branch
+        open = (p_to > p_from) & is_controlled#(is_controlled | ~is_closed)
+        mask_open = open & pc_branch
 
         if any(mask_open):
             pc_array[mask_open, cls.MODE] = cls.OPEN
             pc_pit[mask_open, ACTIVE] = True
             rerun = True
 
-        reverse = mf < 0 and (is_controlled or is_open)
-        mask_reverse = reverse and pc_branch
+        reverse = (mf < 0) & is_controlled#(is_controlled | is_open)
+        mask_reverse = reverse & pc_branch
 
         if any(mask_reverse):
-            junction_idx_lookups = get_lookup(net, "node", "index")[
+            junction_idx_lookups = get_lookup(net, "node", "index_active_hydraulics")[
                 cls.get_connected_node_type().table_name()]
             pc_array[mask_reverse, cls.MODE] = cls.CLOSED
             pc_pit[mask_reverse, ACTIVE] = False
@@ -188,7 +188,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
 
 
         mask_maxv = ~np.isnan(pc_array[:, cls.MAXV])
-        mask_maxv &= not (pc_array[mask_maxv, cls.MODE] == cls.CLOSED or pc_array[mask_maxv, cls.MODE] == cls.OPEN)
+        #maxv_isclose = pc_array[:, cls.MODE] == cls.CLOSED
+        #maxv_isopen = pc_array[:, cls.MODE] == cls.OPEN
+        mask_maxv &= is_controlled#~(maxv_isclose | maxv_isopen )
         if np.any(mask_maxv):
             mask_maxv = pc_array[mask_maxv, cls.MAXV] < pc_pit[mask_maxv, MDOTINIT]
             pc_pit[mask_maxv, ACTIVE] = True

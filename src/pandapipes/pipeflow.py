@@ -167,7 +167,7 @@ def hydraulics(net):
                    'max_iter_hyd')
     rerun = False
     for comp in net['component_list']:
-        rerun = max(comp.rerun_hydraulics(net), rerun)
+        rerun |= comp.rerun_hydraulics(net)
     if rerun:
         extract_results_active_pit(net, 'hydraulics')
         identify_active_nodes_branches(net)

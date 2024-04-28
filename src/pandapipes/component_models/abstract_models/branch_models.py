@@ -23,6 +23,10 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
+    def get_component_type(cls):
+        return "branch"
+
+    @classmethod
     def get_component_input(cls):
         raise NotImplementedError
 

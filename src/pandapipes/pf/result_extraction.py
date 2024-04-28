@@ -300,6 +300,15 @@ def extract_results_active_pit(net, mode="hydraulics"):
     net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
         net["_active_pit"]["branch"][:, copied_branch_cols]
 
+    for comp in net["component_list"]:
+        component_name = comp.table_name()
+        if component_name in net["_pit"]["components"]:
+            component_type = comp.get_component_type()
+            f_all, t_all = get_lookup(net, component_type, "from_to")[comp.table_name()]
+            in_service_elm = get_lookup(net, component_type, "active_%s" % mode)[f_all:t_all]
+            net["_pit"]["components"][component_name][in_service_elm] = \
+                net["_active_pit"]["components"][component_name]
+
 
 def consider_heat(mode, results=None):
     consider_ = mode in ["heat", 'sequential', 'bidirectional']
