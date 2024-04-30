@@ -24,8 +24,9 @@ class PressureControlComponent(BranchWZeroLengthComponent):
     PINIT = 1
     JUNCTS = 2
     MAXV = 3
+    PC = 4
 
-    internal_cols = 4
+    internal_cols = 5
 
     CLOSED = 1
     PCTRL = 2
@@ -91,11 +92,24 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         """
         tbl = net[cls.table_name()]
         pc_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
-        pc_array[:, cls.MODE] = cls.PCTRL
-        pc_array[:, cls.PINIT] = tbl['controlled_p_bar'].values
-        pc_array[:, cls.JUNCTS] = tbl['controlled_junction'].values
-        pc_array[:, cls.MAXV] = tbl['max_mdot_kg_per_s'].values
+        pc_array[net[cls.table_name()].control_active.values, cls.PC] = PC
+        pc_branch = pc_array[net[cls.table_name()].control_active.values, cls.PC] == PC
+        pc_array[pc_branch, cls.MODE] = cls.PCTRL
+        pc_array[pc_branch, cls.PINIT] = tbl['controlled_p_bar'].values
+        pc_array[pc_branch, cls.JUNCTS] = tbl['controlled_junction'].values
+        pc_array[pc_branch, cls.MAXV] = tbl['max_mdot_kg_per_s'].values
         component_pits[cls.table_name()] = pc_array
+
+    @classmethod
+    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        f, t = idx_lookups[cls.table_name()]
+        pc_pit = branch_pit[f:t, :]
+        pc_array = get_component_array(net, cls.table_name())
+        pc_branch = pc_array[:, cls.PC] == PC
+        pc_pit[pc_branch, BRANCH_TYPE] = PC
+        mask_maxv = (pc_array[:, cls.MODE] == cls.MAXVEXT)
+        if any(mask_maxv):
+            pc_pit[mask_maxv, MDOTINIT] = pc_array[mask_maxv, cls.MAXV]
 
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -124,7 +138,6 @@ class PressureControlComponent(BranchWZeroLengthComponent):
             pc_pit[mask_maxv, JAC_DERIV_DP1] = 0
             pc_pit[mask_maxv, JAC_DERIV_DM] = 1
             pc_pit[mask_maxv, LOAD_VEC_BRANCHES] = 0
-            pc_pit[mask_maxv, MDOTINIT] = pc_array[mask_maxv, cls.MAXV]
             index_pc = junction_idx_lookups[pc_array[mask_maxv, cls.JUNCTS].astype(np.int32)]
             node_pit[index_pc, NODE_TYPE] = L
             pc_pit[mask_maxv, BRANCH_TYPE] = L
@@ -149,7 +162,6 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         pc_branch = pc_pit[:, BRANCH_TYPE] == PC
         to_nodes = pc_pit[:, TO_NODE].astype(np.int32)
         from_nodes = pc_pit[:, FROM_NODE].astype(np.int32)
-        p_ctrl = pc_array[:, cls.PINIT]
         p_to = node_pit[to_nodes, PINIT]
         p_from = node_pit[from_nodes, PINIT]
         mf = pc_pit[:, MDOTINIT]
@@ -157,6 +169,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         is_closed = pc_array[:, cls.MODE] == cls.CLOSED
         is_open = pc_array[:, cls.MODE] == cls.OPEN
         is_controlled = pc_array[:, cls.MODE] == cls.PCTRL
+        is_maxv = pc_array[:, cls.MODE] == cls.MAXVEXT
 
         #ctrlable = (p_to <= p_ctrl) & (is_closed | is_open)
         #mask_ctrl = ctrlable & pc_branch
@@ -166,7 +179,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         #    pc_pit[mask_ctrl, ACTIVE] = True
         #    rerun = True
 
-        open = (p_to > p_from) & is_controlled#(is_controlled | ~is_closed)
+        open = (p_to > p_from) & ~np.isclose(p_to, p_from)  & (is_controlled | is_open)#(is_controlled | ~is_closed)
         mask_open = open & pc_branch
 
         if any(mask_open):
@@ -174,7 +187,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
             pc_pit[mask_open, ACTIVE] = True
             rerun = True
 
-        reverse = (mf < 0) & is_controlled#(is_controlled | is_open)
+        reverse = (mf < 0) & (is_controlled | is_closed) & ~np.isclose(mf, 0) #(is_controlled | is_open)
         mask_reverse = reverse & pc_branch
 
         if any(mask_reverse):
@@ -187,15 +200,15 @@ class PressureControlComponent(BranchWZeroLengthComponent):
             rerun = True
 
 
-        mask_maxv = ~np.isnan(pc_array[:, cls.MAXV])
+        mask_non_nan = ~np.isnan(pc_array[:, cls.MAXV])
         #maxv_isclose = pc_array[:, cls.MODE] == cls.CLOSED
         #maxv_isopen = pc_array[:, cls.MODE] == cls.OPEN
-        mask_maxv &= is_controlled#~(maxv_isclose | maxv_isopen )
-        if np.any(mask_maxv):
-            mask_maxv = pc_array[mask_maxv, cls.MAXV] < pc_pit[mask_maxv, MDOTINIT]
-            pc_pit[mask_maxv, ACTIVE] = True
-            pc_array[mask_maxv, cls.MODE] = cls.MAXVEXT
-            if any(mask_maxv):
+        mask_non_nan &= (is_controlled | is_maxv)#~(maxv_isclose | maxv_isopen )
+        if np.any(mask_non_nan):
+            mask_maxv = pc_array[:, cls.MAXV] < pc_pit[:, MDOTINIT]
+            pc_pit[mask_non_nan & mask_maxv, ACTIVE] = True
+            pc_array[mask_non_nan & mask_maxv, cls.MODE] = cls.MAXVEXT
+            if any(mask_non_nan & mask_maxv):
                 rerun =True
 
         return rerun
