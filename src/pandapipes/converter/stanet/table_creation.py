@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 
 import pandapipes
+from pandapipes.properties import get_fluid
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.component_models.component_toolbox import vrange
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
@@ -321,6 +323,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     """
     if "controllers" not in stored_data:
         return
+    fluid = get_fluid(net)
     logger.info("Creating control components.")
     control_table = stored_data["controllers"]
     node_mapping = index_mapping["nodes"]
@@ -386,6 +389,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
             stanet_is_closed=fully_closed[is_pc],
             stanet_flow_kgps=flow[is_pc],
             stanet_active=control_table.ISACTIVE.values[is_pc].astype(np.bool_),
+            max_mdot_kg_per_s=control_table.QSOLL.values[is_pc] / 3600 * fluid.get_density(NORMAL_TEMPERATURE)
+
             **add_info
         )
 
