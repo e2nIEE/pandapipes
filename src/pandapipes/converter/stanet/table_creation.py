@@ -743,7 +743,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     alpha = 0
     if "WDZAHL" in p_tbl.columns:
         alpha = p_tbl.WDZAHL.values.astype(np.float64)
-    baujahr = stored_data['BAUJAHR'].values if 'BAUJAHR' in stored_data else np.isnan
+    baujahr = stored_data['BAUJAHR'].values if 'BAUJAHR' in stored_data else np.nan
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
         type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
@@ -1067,7 +1067,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     alpha = 0
     if "WDZAHL" in hp_data.columns:
         alpha = hp_data.WDZAHL.values.astype(np.float64)
-    baujahr = stored_data['BAUJAHR'].values if 'BAUJAHR' in stored_data else np.isnan
+    baujahr = stored_data['BAUJAHR'].values if 'BAUJAHR' in stored_data else np.nan
     pandapipes.create_pipes_from_parameters(
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
         hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
