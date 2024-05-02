@@ -389,10 +389,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
             stanet_is_closed=fully_closed[is_pc],
             stanet_flow_kgps=flow[is_pc],
             stanet_active=control_table.ISACTIVE.values[is_pc].astype(np.bool_),
-            max_mdot_kg_per_s=control_table.QSOLL.values[is_pc] / 3600 * fluid.get_density(NORMAL_TEMPERATURE)
-
-            **add_info
-        )
+            max_mdot_kg_per_s=control_table.QSOLL.values[is_pc] / 3600 * fluid.get_density(NORMAL_TEMPERATURE),
+            **add_info)
 
         drop_eg = net.ext_grid.loc[net.ext_grid.junction.isin(to_junctions[is_pc])].index
         net.ext_grid.drop(drop_eg, inplace=True)
