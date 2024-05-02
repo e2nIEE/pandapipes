@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 
 import pandapipes
+from pandapipes.properties import get_fluid
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.component_models.component_toolbox import vrange
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
@@ -321,6 +323,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     """
     if "controllers" not in stored_data:
         return
+    fluid = get_fluid(net)
     logger.info("Creating control components.")
     control_table = stored_data["controllers"]
     node_mapping = index_mapping["nodes"]
@@ -352,9 +355,9 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         control_active &= ~fully_open
 
     #todo: after implementing a new pressure controller RTYP should replace RSTATUS
-    is_nan = np.isnan(control_table.RTYP)
-    is_pc_stat = control_table.RSTATUS.values[is_pc_nan] == "P"
-    is_fc_stat = control_table.RSTATUS.values[is_pc_nan] == "Q"
+    is_nan = pd.isnull(control_table.RTYP.values)
+    is_pc_stat = control_table.RSTATUS.values[is_nan] == "P"
+    is_fc_stat = control_table.RSTATUS.values[is_nan] == "Q"
     is_pc = control_table.RTYP.values == "P"
     is_fc = control_table.RTYP.values == "Q"
     is_pc[is_nan] |= is_pc_stat
@@ -386,6 +389,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
             stanet_is_closed=fully_closed[is_pc],
             stanet_flow_kgps=flow[is_pc],
             stanet_active=control_table.ISACTIVE.values[is_pc].astype(np.bool_),
+            max_mdot_kg_per_s=control_table.QSOLL.values[is_pc] / 3600 * fluid.get_density(NORMAL_TEMPERATURE)
+
             **add_info
         )
 
@@ -738,6 +743,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     alpha = 0
     if "WDZAHL" in p_tbl.columns:
         alpha = p_tbl.WDZAHL.values.astype(np.float64)
+    baujahr = stored_data['BAUJAHR'].values if 'BAUJAHR' in stored_data else np.isnan
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
         type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
@@ -749,6 +755,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=p_tbl.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~p_tbl.CALCBAD.values.astype(np.bool_),
+        construction_year=baujahr,
         **add_info
     )
 
@@ -1060,6 +1067,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     alpha = 0
     if "WDZAHL" in hp_data.columns:
         alpha = hp_data.WDZAHL.values.astype(np.float64)
+    baujahr = stored_data['BAUJAHR'].values if 'BAUJAHR' in stored_data else np.isnan
     pandapipes.create_pipes_from_parameters(
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
         hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
@@ -1070,7 +1078,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
         stanet_std_type=hp_data.ROHRTYP.values, stanet_nr=hp_data.RECNO.values,
         stanet_id=hp_data.STANETID.values, v_stanet=hp_data.VM.values,
         stanet_active=hp_data.ISACTIVE.values.astype(np.bool_),
-        stanet_valid=houses_in_calculation, **add_info
+        stanet_valid=houses_in_calculation, construction_year=baujahr, **add_info
     )
 
 
