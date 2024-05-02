@@ -352,9 +352,9 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         control_active &= ~fully_open
 
     #todo: after implementing a new pressure controller RTYP should replace RSTATUS
-    is_nan = np.isnan(control_table.RTYP)
-    is_pc_stat = control_table.RSTATUS.values[is_pc_nan] == "P"
-    is_fc_stat = control_table.RSTATUS.values[is_pc_nan] == "Q"
+    is_nan = pd.isnull(control_table.RTYP.values)
+    is_pc_stat = control_table.RSTATUS.values[is_nan] == "P"
+    is_fc_stat = control_table.RSTATUS.values[is_nan] == "Q"
     is_pc = control_table.RTYP.values == "P"
     is_fc = control_table.RTYP.values == "Q"
     is_pc[is_nan] |= is_pc_stat
