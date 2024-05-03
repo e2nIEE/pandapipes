@@ -93,11 +93,11 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         tbl = net[cls.table_name()]
         pc_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
         pc_array[net[cls.table_name()].control_active.values, cls.PC] = PC
-        pc_branch = pc_array[net[cls.table_name()].control_active.values, cls.PC] == PC
+        pc_branch = pc_array[:, cls.PC] == PC
         pc_array[pc_branch, cls.MODE] = cls.PCTRL
-        pc_array[pc_branch, cls.PINIT] = tbl['controlled_p_bar'].values
-        pc_array[pc_branch, cls.JUNCTS] = tbl['controlled_junction'].values
-        pc_array[pc_branch, cls.MAXV] = tbl['max_mdot_kg_per_s'].values
+        pc_array[pc_branch, cls.PINIT] = tbl['controlled_p_bar'].values[pc_branch]
+        pc_array[pc_branch, cls.JUNCTS] = tbl['controlled_junction'].values[pc_branch]
+        pc_array[pc_branch, cls.MAXV] = tbl['max_mdot_kg_per_s'].values[pc_branch]
         component_pits[cls.table_name()] = pc_array
 
     @classmethod

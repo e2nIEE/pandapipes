@@ -1535,7 +1535,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
                "control_active": control_active, "loss_coefficient": loss_coefficient, "in_service": in_service,
-               "type": type}
+               "max_mdot_kg_per_s": max_mdot_kg_per_s, "type": type}
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
     controlled_elsewhere = (controlled_junctions != from_junctions) & (controlled_junctions != to_junctions)

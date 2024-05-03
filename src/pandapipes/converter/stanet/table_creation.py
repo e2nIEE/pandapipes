@@ -338,8 +338,6 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     fully_closed = control_table.ZU.values == "J"
     flow = control_table.FLUSS.values.astype(np.float64) * net_params["rho"] / 3600
 
-    consider_controlled = kwargs.get("consider_control_status", False)
-
     if not all([np.all((control_table[col] == "J") | (control_table[col] == "N"))
                 for col in ["OFFEN", "ZU", "AKTIV"]]):
         logger.warning("There is an error in the control table! Please check the columns 'OFFEN',"
@@ -347,12 +345,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
 
     in_service = (control_table.AKTIV.values != "N").astype(np.bool_)
     in_service &= control_table.ISACTIVE.values.astype(np.bool_)
-    if consider_controlled:
-        in_service &= ~(control_table.ZU.values == "J")
 
     control_active = np.ones(len(control_table), dtype=bool)
-    if consider_controlled:
-        control_active &= ~fully_open
 
     #todo: after implementing a new pressure controller RTYP should replace RSTATUS
     is_nan = pd.isnull(control_table.RTYP.values)
@@ -362,7 +356,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     is_fc = control_table.RTYP.values == "Q"
     is_pc[is_nan] |= is_pc_stat
     is_fc[is_nan] |= is_fc_stat
-
+    equal_zero = control_table.QSOLL.values[is_pc].astype(float) == 0
+    control_table.QSOLL.values[is_pc & equal_zero] = np.nan
     if not np.all(is_pc | is_fc):
         raise UserWarning("There are controllers of types %s that cannot be converted!" \
                                   % set(control_table.RTYP.values[~is_pc & ~is_fc]))

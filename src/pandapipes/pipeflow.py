@@ -165,13 +165,14 @@ def hydraulics(net):
     tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
     newton_raphson(net, solve_hydraulics, 'hydraulics', vars, [tol_m, tol_p, tol_msl], ['branch', 'node', 'node'],
                    'max_iter_hyd')
-    rerun = False
-    for comp in net['component_list']:
-        rerun |= comp.rerun_hydraulics(net)
-    if rerun:
-        extract_results_active_pit(net, 'hydraulics')
-        identify_active_nodes_branches(net)
-        hydraulics(net)
+    if net.converged:
+        rerun = False
+        for comp in net['component_list']:
+            rerun |= comp.rerun_hydraulics(net)
+        if rerun:
+            extract_results_active_pit(net, 'hydraulics')
+            identify_active_nodes_branches(net)
+            hydraulics(net)
 
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
