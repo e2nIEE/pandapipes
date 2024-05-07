@@ -137,10 +137,10 @@ def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
 
 
 def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_values, node_comp,
-                           mode="all"):
+                           mode="sequential"):
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
     for eg_type in ("p", "t"):
-        if eg_type not in mode and mode != "all":
+        if eg_type not in mode and mode != "sequential" and mode!= "bidrectional":
             continue
         if eg_type == "p":
             val_col, type_col, eg_count_col, typ, valid_types, values = \
@@ -200,7 +200,7 @@ def standard_branch_wo_internals_result_lookup(net):
     return required_results_hyd, required_results_ht
 
 
-def get_component_array(net, component_name, component_type="branch", only_active=True):
+def get_component_array(net, component_name, component_type="branch", mode='hydraulics', only_active=True):
     """
     Returns the internal array of a component.
 
@@ -218,5 +218,5 @@ def get_component_array(net, component_name, component_type="branch", only_activ
     f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
     if not only_active:
         return net["_pit"]["components"][component_name]
-    in_service_elm = get_lookup(net, component_type, "active_hydraulics")[f_all:t_all]
+    in_service_elm = get_lookup(net, component_type, "active_%s"%mode)[f_all:t_all]
     return net["_pit"]["components"][component_name][in_service_elm]

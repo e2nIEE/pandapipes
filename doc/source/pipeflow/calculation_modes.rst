@@ -34,7 +34,7 @@ variations are very small.
 The user has to decide if these assumptions are suitable for his purposes. In future, pandapipes
 will be extended in order to make sure that calculated temperatures also effect hydraulic fluid
 properties. To activate temperature calculation, the pipe flow option "mode" has to be set
-to "all" or "heat". If heat is chosen, the user has to provide a solution vector of the hydraulics calculation manually.
+to "sequential", "bidirectional" or "heat". If heat is chosen, the user has to provide a solution vector of the hydraulics calculation manually.
 
 
 Hydraulic calculations for incompressible media
@@ -92,8 +92,8 @@ In gas flows, the velocity is typically not constant along a pipeline. For this 
 tables for pipes show more entries in comparison with the result tables for incompressible media.
 
 
-Temperature calculations (pipeflow option: mode = "all" or mode = "heat")
-=========================================================================
+Temperature calculations (pipeflow option: mode = "sequential", mode = "bidrectional" or mode = "heat")
+=======================================================================================================
 
 Important parameters of the network main components (junctions and pipes) needed for the calculation
 are listed in the following table. The :ref:`component section <components>` of this manual contains
