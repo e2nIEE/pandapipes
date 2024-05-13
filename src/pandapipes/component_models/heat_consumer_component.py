@@ -5,11 +5,13 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models import get_fluid, BranchWZeroLengthComponent, get_component_array, \
-    standard_branch_wo_internals_result_lookup
+from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
+                                         standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, FROM_NODE_T, JAC_DERIV_DM, JAC_DERIV_DP, \
+from pandapipes.idx_branch import (
+    D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, FROM_NODE_T, JAC_DERIV_DM, JAC_DERIV_DP,
     LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE
+)
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.properties_toolbox import get_branch_cp
@@ -61,7 +63,6 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :type branch_pit:
         :return: No Output.
         """
-        node_pit = net['_pit']['node']
         hc_pit = super().create_pit_branch_entries(net, branch_pit)
         hc_pit[:, D] = net[cls.table_name()].diameter_m.values
         hc_pit[:, AREA] = hc_pit[:, D] ** 2 * np.pi / 4
@@ -153,7 +154,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
             node_pit[from_nodes[t_mask], TINIT] += 10
             t_in = node_pit[from_nodes, TINIT]
             df_dm = - cp[mask] * (t_out - t_in)
-            hc_pit[mask, LOAD_VEC_BRANCHES] = - consumer_array[mask, cls.QEXT] + df_dm * hc_pit[mask, MDOTINIT]
+            hc_pit[mask, LOAD_VEC_BRANCHES] = (- consumer_array[mask, cls.QEXT] + df_dm
+                                               * hc_pit[mask, MDOTINIT])
             hc_pit[mask, JAC_DERIV_DM] = df_dm
 
     @classmethod
@@ -199,9 +201,10 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("qext_w", "f8"),
-                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"), ("diameter_m", "f8"),
-                ("in_service", "bool"), ("type", dtype(object))]
+        return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"),
+                ("qext_w", "f8"), ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"),
+                ("treturn_k", "f8"), ("diameter_m", "f8"), ("in_service", "bool"),
+                ("type", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):
@@ -216,12 +219,14 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
-                      "normfactor_from", "normfactor_to"]
+            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda"]
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                      "lambda"]
         return output, True
 
     @classmethod
@@ -241,5 +246,6 @@ class HeatConsumer(BranchWZeroLengthComponent):
         """
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
-        extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-                                                 cls.table_name(), mode)
+        extract_branch_results_without_internals(
+            net, branch_results, required_results_hyd, required_results_ht, cls.table_name(), mode
+        )
