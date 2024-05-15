@@ -702,7 +702,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
 
 
 def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_setpoint_bar, plift_bar,
-                                     setpoint="flow" ,t_flow_k=None, type="auto", name=None, index=None,
+                                     t_flow_k=None, setpoint="flow",  type="auto", name=None, index=None,
                                     in_service=True,**kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n

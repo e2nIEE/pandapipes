@@ -164,7 +164,7 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
 
 def set_fixed_node_entries_circ_pump(net, node_pit, junctions, flow_junctions, eg_types, p_values, t_values, node_comp,
                            mode="all"):
-    #adde so that in case of setpoint for pressure at return junction can be set while setting temperature at flow junction
+    #added so that in case of setpoint for pressure at return junction can be set while setting temperature at flow junction
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
     for eg_type in ("p", "t"):
         if eg_type not in mode and mode != "all":
