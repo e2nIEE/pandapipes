@@ -7,7 +7,7 @@ import numpy as np
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, \
-    get_mass_flow_at_nodes
+    get_mass_flow_at_nodes, set_fixed_node_entries_circ_pump
 from pandapipes.idx_branch import D, AREA, ACTIVE
 from pandapipes.idx_node import PINIT
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -68,12 +68,19 @@ class CirculationPump(BranchWZeroLengthComponent):
         """
         circ_pump_tbl = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
 
-        junction = circ_pump_tbl[cls.from_to_node_cols()[1]].values
-
+        flow_junction = junction = circ_pump_tbl[cls.from_to_node_cols()[1]].values
+        if circ_pump_tbl["setpoint"][0] == "flow":
+            junction = circ_pump_tbl[cls.from_to_node_cols()[1]].values
+        elif circ_pump_tbl["setpoint"][0] == "return":
+            junction = circ_pump_tbl[cls.from_to_node_cols()[0]].values
+        else:
+            raise UserWarning(
+                "The setpoint can only be set to flow or return. Please enter\
+                a valid string")
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
         press = circ_pump_tbl.p_setpoint_bar.values
-        set_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press,
+        set_fixed_node_entries_circ_pump(net, node_pit, junction, flow_junction, circ_pump_tbl.type.values, press,
                                circ_pump_tbl.t_flow_k.values, cls.get_connected_node_type())
         return circ_pump_tbl, press
 

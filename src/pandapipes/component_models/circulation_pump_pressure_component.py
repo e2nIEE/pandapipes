@@ -5,7 +5,7 @@
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries, set_fixed_node_entries_circ_pump
 from pandapipes.component_models.junction_component import Junction
 
 try:
@@ -59,17 +59,17 @@ class CirculationPumpPressure(CirculationPump):
         :return: No Output.
         """
         circ_pump, press = super().create_pit_node_entries(net, node_pit)
-
+        flow_junction = junction = circ_pump[cls.from_to_node_cols()[1]].values
         if circ_pump["setpoint"][0] == "flow":
 
             junction = circ_pump[cls.from_to_node_cols()[0]].values
             p_setpoint = press - circ_pump.plift_bar.values
-            set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_setpoint, None,
+            set_fixed_node_entries_circ_pump(net, node_pit, junction, flow_junction, circ_pump.type.values, p_setpoint, None,
                                    cls.get_connected_node_type(), "p")
         elif circ_pump["setpoint"][0] == "return":
             junction = circ_pump[cls.from_to_node_cols()[1]].values
             p_setpoint = press + circ_pump.plift_bar.values
-            set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_setpoint, None,
+            set_fixed_node_entries_circ_pump(net, node_pit, junction,flow_junction, circ_pump.type.values, p_setpoint, None,
                                    cls.get_connected_node_type(), "p")
         else:
             raise UserWarning(

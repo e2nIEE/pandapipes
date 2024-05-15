@@ -148,6 +148,34 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
         else:
             val_col, type_col, eg_count_col, typ, valid_types, values = \
                 TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, ["t", "pt"], t_values
+
+        mask = np.isin(eg_types, valid_types)
+        if not np.any(mask):
+            continue
+        use_numba = get_net_option(net, "use_numba")
+        juncts, press_sum, number = _sum_by_group(use_numba, junctions[mask], values[mask],
+                                                  np.ones_like(values[mask], dtype=np.int32))
+        index = junction_idx_lookups[juncts]
+        node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, eg_count_col]
+                                    + press_sum) / (number + node_pit[index, eg_count_col])
+        node_pit[index, type_col] = typ
+        node_pit[index, eg_count_col] += number
+
+
+def set_fixed_node_entries_circ_pump(net, node_pit, junctions, flow_junctions, eg_types, p_values, t_values, node_comp,
+                           mode="all"):
+    #adde so that in case of setpoint for pressure at return junction can be set while setting temperature at flow junction
+    junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
+    for eg_type in ("p", "t"):
+        if eg_type not in mode and mode != "all":
+            continue
+        if eg_type == "p":
+            val_col, type_col, eg_count_col, typ, valid_types, values = \
+                PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p", "pt"], p_values
+        else:
+            val_col, type_col, eg_count_col, typ, valid_types, values = \
+                TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, ["t", "pt"], t_values
+            junctions= flow_junctions
         mask = np.isin(eg_types, valid_types)
         if not np.any(mask):
             continue
