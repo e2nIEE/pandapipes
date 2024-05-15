@@ -32,9 +32,10 @@ class CirculationPumpPressure(CirculationPump):
         return [("name", dtype(object)),
                 ("return_junction", "u4"),
                 ("flow_junction", "u4"),
-                ("p_flow_bar", "f8"),
+                ("p_setpoint_bar", "f8"),
                 ("t_flow_k", "f8"),
                 ("plift_bar", "f8"),
+                ("setpoint","str"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
@@ -59,7 +60,18 @@ class CirculationPumpPressure(CirculationPump):
         """
         circ_pump, press = super().create_pit_node_entries(net, node_pit)
 
-        junction = circ_pump[cls.from_to_node_cols()[0]].values
-        p_in = press - circ_pump.plift_bar.values
-        set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_in, None,
-                               cls.get_connected_node_type(), "p")
+        if circ_pump["setpoint"][0] == "flow":
+
+            junction = circ_pump[cls.from_to_node_cols()[0]].values
+            p_setpoint = press - circ_pump.plift_bar.values
+            set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_setpoint, None,
+                                   cls.get_connected_node_type(), "p")
+        elif circ_pump["setpoint"][0] == "return":
+            junction = circ_pump[cls.from_to_node_cols()[1]].values
+            p_setpoint = press + circ_pump.plift_bar.values
+            set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_setpoint, None,
+                                   cls.get_connected_node_type(), "p")
+        else:
+            raise UserWarning(
+                "The setpoint can only be set to flow or return. Please enter\
+                a valid string")

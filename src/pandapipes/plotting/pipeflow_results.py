@@ -89,13 +89,20 @@ def plot_pressure_profile(net, ax=None, x0_junctions=None, plot_pressure_control
     if pipes is None:
         pipes = net.pipe.index
     if x0_junctions is None:
-        x0_junctions = net.ext_grid[net.ext_grid.in_service].junction.values.tolist()
-
+        x0_junctions = list(set(net.ext_grid[net.ext_grid.in_service].junction.values)|\
+                       set(net.circ_pump_pressure[net.circ_pump_pressure.in_service].junction.values)|\
+                       set(net.circ_pump_pressure[net.circ_pump_pressure.in_service].junction.values))
+    unsupplied_junctions = list(top.unsupplied_junctions(net, slacks=set(x0_junctions)))
+    net.junction.in_service.loc[unsupplied_junctions] = False
     d = top.calc_distance_to_junctions(net, x0_junctions)
-    pipe_table = net.pipe[net.pipe.in_service & net.pipe.index.isin(pipes)]
+    in_service_junctions = net.junction[net.junction['in_service']==True].index
+    pipe_table = net.pipe[net.pipe.in_service & net.pipe.index.isin(pipes) &
+                          net.pipe.from_junction.isin(in_service_junctions) &
+                          net.pipe.to_junction.isin(in_service_junctions)]
 
     x = np.array([d.loc[pipe_table.from_junction].values, d.loc[pipe_table.to_junction].values]) + x0
     y = np.array([net.res_junction.p_bar.loc[pipe_table.from_junction].values, net.res_junction.p_bar.loc[pipe_table.to_junction].values])
+    net.junction.in_service.loc[unsupplied_junctions] = True
     linewidth = kwargs.get("linewidth", 1)
     ax.plot(x, y, linewidth=linewidth, color=pipe_color, **kwargs)
 

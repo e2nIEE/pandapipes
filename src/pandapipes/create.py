@@ -701,9 +701,9 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     return index
 
 
-def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar,
-                                    t_flow_k=None, type="auto", name=None, index=None,
-                                    in_service=True, **kwargs):
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_setpoint_bar, plift_bar,
+                                     setpoint="flow" ,t_flow_k=None, type="auto", name=None, index=None,
+                                    in_service=True,**kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -760,10 +760,10 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
     _check_branch(net, "circulation pump with constant pressure", index, return_junction,
                   flow_junction)
 
-    type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpPressure)
+    type = _auto_ext_grid_type(p_setpoint_bar, t_flow_k, type, CirculationPumpPressure)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "plift_bar": plift_bar, "type": type,
+         "p_setpoint_bar": p_setpoint_bar, "t_flow_k": t_flow_k, "plift_bar": plift_bar , "setpoint":setpoint,"type": type,
          "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_pressure", index, **v, **kwargs)
 
