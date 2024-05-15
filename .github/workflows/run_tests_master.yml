@@ -96,7 +96,6 @@ jobs:
           pre-build-command: "apt-get update -y && apt-get install -y git;
                               git --version;
                               python -m pip install --upgrade pip;
-                              python -m pip install git+https://github.com/e2nIEE/pandapower@master#egg=pandapower;
-                              python -m pip install ."
+                              python -m pip install .[docs]"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
