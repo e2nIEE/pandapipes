@@ -770,7 +770,7 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_setpo
     return index
 
 
-def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow_bar,
+def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_setpoint_bar,
                                      mdot_flow_kg_per_s, t_flow_k=None, type="auto", name=None,
                                      index=None, in_service=True, **kwargs):
     """
@@ -828,11 +828,11 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
     _check_branch(net, "circulation pump with constant mass flow", index, return_junction,
                   flow_junction)
 
-    type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpMass)
+    type = _auto_ext_grid_type(p_setpoint_bar, t_flow_k, type, CirculationPumpMass)
 
     v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s,
-         "type": type, "in_service": bool(in_service)}
+         "p_setpoint_bar": p_setpoint_bar, "t_flow_k": t_flow_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s,
+         "setpoint":"flow", "type": type, "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
 
     return index
