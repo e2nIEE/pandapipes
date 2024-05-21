@@ -719,12 +719,14 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_setpo
     :type return_junction: int
     :param flow_junction: ID of the junction on the other side which the pump will be connected with
     :type flow_junction: int
-    :param p_flow_bar: Pressure set point at the flow junction
-    :type p_flow_bar: float
+    :param p_setpoint_bar: Pressure set point at the set junction
+    :type p_setpoint_bar: float
     :param plift_bar: Pressure lift induced by the pump
     :type plift_bar: float
     :param t_flow_k: Temperature set point at the flow junction
     :type t_flow_k: float, default None
+    :param setpoint: set point for the pressure; either "flow" or "return" junction
+    :type setpoint: string, default "flow"
     :param type: The pump type denotes the values that are fixed:\n
             - "auto": Will automatically assign one of the following types based on the input for \
                   p_bar and t_k \n
@@ -788,8 +790,8 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_setp
     :type return_junction: int
     :param flow_junction: ID of the junction on the other side which the pump will be connected with
     :type flow_junction: int
-    :param p_flow_bar: Pressure set point at the flow junction
-    :type p_flow_bar: float
+    :param p_setpoint_bar: Pressure set point at the set junction
+    :type p_setpoint_bar: float
     :param mdot_flow_kg_per_s: Constant mass flow, which is transported through the pump
     :type mdot_flow_kg_per_s: float
     :param t_flow_k: Temperature set point at the flow junction
