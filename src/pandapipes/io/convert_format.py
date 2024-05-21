@@ -54,6 +54,10 @@ def _rename_columns(net):
             for old_col, new_col in list(zip(old_cols, new_cols)):
                 if old_col in net[cp_tbl].columns and new_col not in net[cp_tbl].columns:
                     net[cp_tbl].rename(columns={old_col: new_col}, inplace=True)
+    if "circ_pump_pressure" in net:
+        net["circ_pump_pressure"].rename(columns={"p_flow_bar": "p_setpoint_bar"}, inplace=True)
+    if "circ_pump_mass" in net:
+        net["circ_pump_mass"].rename(columns={"p_flow_bar": "p_setpoint_bar"}, inplace=True)
 
 
 def _add_missing_columns(net):
@@ -64,7 +68,12 @@ def _add_missing_columns(net):
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
             else:
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow
-
+    if "circ_pump_pressure" in net:
+        if "setpoint" not in net.circ_pump_pressure:
+            net.circ_pump_pressure.insert(6, 'setpoint', "flow")
+    if "circ_pump_mass" in net: #Why are circ pumps in some versions existing and in some not?
+        if "setpoint" not in net.circ_pump_mass:
+            net.circ_pump_mass.insert(6, 'setpoint', "flow")
 
 def _rename_attributes(net):
     if "std_type" in net and "std_types" not in net:
