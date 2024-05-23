@@ -865,8 +865,8 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
 
 
 def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar, control_active=True,
-                            loss_coefficient=0., name=None, index=None, in_service=True, type="pressure_control",
-                            **kwargs):
+                            loss_coefficient=0., max_mdot_kg_per_s=None, name=None, index=None, in_service=True,
+                            type="pressure_control", **kwargs):
     """Adds one pressure control that enforces a pressure at a specific junction.
 
     The pressure control unit creates a pressure drop / lift between the 'from' and the 'to'
@@ -933,7 +933,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction, to_junction=to_junction,
                  controlled_junction=controlled_junction, control_active=bool(control_active),
                  loss_coefficient=loss_coefficient, controlled_p_bar=controlled_p_bar, in_service=bool(in_service),
-                 type=type, **kwargs)
+                 max_mdot_kg_per_s=max_mdot_kg_per_s, type=type, **kwargs)
 
     if controlled_junction != from_junction and controlled_junction != to_junction:
         logger.warning("The pressure controller %d controls the pressure at a junction that it is "
@@ -1471,7 +1471,7 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
                              control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
-                             type="pressure_control", **kwargs):
+                             max_mdot_kg_per_s=None, type="pressure_control", **kwargs):
     """
     Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1535,7 +1535,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
                "control_active": control_active, "loss_coefficient": loss_coefficient, "in_service": in_service,
-               "type": type}
+               "max_mdot_kg_per_s": max_mdot_kg_per_s, "type": type}
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
     controlled_elsewhere = (controlled_junctions != from_junctions) & (controlled_junctions != to_junctions)
@@ -1908,7 +1908,7 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
         overview = pd.DataFrame({"Position": pos_not_allowed_types, "Type": typ_not_allowed_types})
         logger.warning("Please check the following types for component %s, as they must be one of "
                        "the following for correct model implementation: %s. \n%s" % (
-                       comp.__name__, ALLOWED_EG_TYPES, overview))
+                           comp.__name__, ALLOWED_EG_TYPES, overview))
 
     p_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["t", "auto"]])
     t_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["p", "auto"]])
