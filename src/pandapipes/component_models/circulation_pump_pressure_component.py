@@ -1,7 +1,7 @@
 # Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
+import numpy
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
@@ -59,19 +59,34 @@ class CirculationPumpPressure(CirculationPump):
         :return: No Output.
         """
         circ_pump, press = super().create_pit_node_entries(net, node_pit)
-        flow_junction = junction = circ_pump[cls.from_to_node_cols()[1]].values
-        if circ_pump["setpoint"][0] == "flow":
+        flow_junction =  circ_pump[cls.from_to_node_cols()[1]].values
+        junctions = numpy.zeros(len(circ_pump), dtype=numpy.int8)
+        p_setpoint = numpy.zeros(len(circ_pump), dtype=numpy.int8)
+        i = 0
+        for row in circ_pump["setpoint"]:
 
-            junction = circ_pump[cls.from_to_node_cols()[0]].values
-            p_setpoint = press - circ_pump.plift_bar.values
-            set_fixed_node_entries_circ_pump(net, node_pit, junction, flow_junction, circ_pump.type.values, p_setpoint, None,
-                                   cls.get_connected_node_type(), "p")
-        elif circ_pump["setpoint"][0] == "return":
-            junction = circ_pump[cls.from_to_node_cols()[1]].values
-            p_setpoint = press + circ_pump.plift_bar.values
-            set_fixed_node_entries_circ_pump(net, node_pit, junction,flow_junction, circ_pump.type.values, p_setpoint, None,
-                                   cls.get_connected_node_type(), "p")
-        else:
-            raise UserWarning(
-                "The setpoint can only be set to flow or return. Please enter\
-                a valid string")
+            if row == "flow":
+                junction = circ_pump[cls.from_to_node_cols()[0]].values
+                junctions[i] = junction[i]
+                p_setpoint[i] = press[i] - circ_pump.plift_bar.values[i]
+
+            elif row == "return":
+                junction = circ_pump[cls.from_to_node_cols()[1]].values
+                junctions[i] = junction[i]
+                p_setpoint[i] = press[i] + circ_pump.plift_bar.values[i]
+
+            i += 1
+        set_fixed_node_entries_circ_pump(net, node_pit, junctions, flow_junction, circ_pump.type.values,
+                                             p_setpoint, None,
+                                             cls.get_connected_node_type(), "p")
+        # if circ_pump["setpoint"][0] == "flow":
+        #
+        #     junction = circ_pump[cls.from_to_node_cols()[0]].values
+        #     p_setpoint = press - circ_pump.plift_bar.values
+        #     set_fixed_node_entries_circ_pump(net, node_pit, junction, flow_junction, circ_pump.type.values, p_setpoint, None,
+        #                            cls.get_connected_node_type(), "p")
+        # elif circ_pump["setpoint"][0] == "return":
+        #     junction = circ_pump[cls.from_to_node_cols()[1]].values
+        #     p_setpoint = press + circ_pump.plift_bar.values
+        #     set_fixed_node_entries_circ_pump(net, node_pit, junction,flow_junction, circ_pump.type.values, p_setpoint, None,
+        #                            cls.get_connected_node_type(), "p")
