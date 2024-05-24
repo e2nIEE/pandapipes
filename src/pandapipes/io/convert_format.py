@@ -48,16 +48,12 @@ def _rename_columns(net):
     for comp in [CirculationPumpMass, CirculationPumpPressure]:
         cp_tbl = comp.table_name()
         if cp_tbl in net:
-            old_cols = ["from_junction", "to_junction", "mdot_kg_per_s", "p_bar", "t_k"]
-            new_cols = list(comp.from_to_node_cols()) + ["mdot_flow_kg_per_s", "p_flow_bar",
-                                                         "t_flow_k"]
+            old_cols = ["from_junction", "to_junction", "mdot_kg_per_s", "p_bar","p_flow_bar", "t_k"]
+            new_cols = list(comp.from_to_node_cols()) + ["mdot_flow_kg_per_s",
+                                                        "p_setpoint_bar","p_setpoint_bar","t_flow_k"]
             for old_col, new_col in list(zip(old_cols, new_cols)):
                 if old_col in net[cp_tbl].columns and new_col not in net[cp_tbl].columns:
                     net[cp_tbl].rename(columns={old_col: new_col}, inplace=True)
-    if "circ_pump_pressure" in net:
-        net["circ_pump_pressure"].rename(columns={"p_flow_bar": "p_setpoint_bar"}, inplace=True)
-    if "circ_pump_mass" in net:
-        net["circ_pump_mass"].rename(columns={"p_flow_bar": "p_setpoint_bar"}, inplace=True)
 
 
 def _add_missing_columns(net):
