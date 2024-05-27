@@ -139,6 +139,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         add_info = dict()
         if add_layers:
             add_info["stanet_layer"] = str(row.LAYER)
+            add_info["construction_year"] = int(row.BAUJAHR) if 'BAUJAHR' in row else np.nan
         if stanet_like_valves:
             create_valve_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
@@ -159,14 +160,13 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
             text_k = 293
             if hasattr(row, "TU"):
                 text_k = row.TU + 273.15
-            baujahr = int(row['BAUJAHR']) if 'BAUJAHR' in row else np.nan
             pandapipes.create_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
                 diameter_m=float(row.DM / 1000), k_mm=row.RAU, loss_coefficient=row.ZETA,
                 name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
                 text_k=text_k, in_service=bool(row.ISACTIVE), stanet_nr=-999,
                 stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
-                stanet_active=bool(row.ISACTIVE), stanet_valid=False, construction_year=baujahr, **add_info
+                stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info
             )
             pandapipes.create_valve(
                 net, j_aux, node_mapping[to_stanet_nr], diameter_m=float(row.DM / 1000),
@@ -599,6 +599,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = pipes.LAYER.values.astype(str)
+        add_info["construction_year"] = pipes.BAUJAHR.values.astype(np.int32) if 'BAUJAHR' in pipes else np.nan
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
     text_k = 293
     if "TU" in pipes.columns:
@@ -606,7 +607,6 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     alpha = 0
     if "WDZAHL" in pipes.columns:
         alpha = pipes.WDZAHL.values.astype(np.float64)
-    baujahr = pipe_sections['BAUJAHR'].astype(np.int32) if 'BAUJAHR' in pipe_sections else np.nan
     pandapipes.create_pipes_from_parameters(
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
         pipes.DM.values.astype(float) / 1000, pipes.RAU.values.astype(float), pipes.ZETA.values.astype(float), type="main_pipe",
@@ -619,7 +619,6 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=pipes.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~pipes.CALCBAD.values.astype(np.bool_),
-        construction_year=baujahr,
         **add_info
     )
 
@@ -733,13 +732,13 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = p_tbl.LAYER.values.astype(str)
+        add_info["construction_year"] = p_tbl.BAUJAHR.values.astype(np.int32) if 'BAUJAHR' in p_tbl else np.nan
     text_k = 293
     if "TU" in p_tbl.columns:
         text_k = p_tbl.TU.values.astype(np.float64) + 273.15
     alpha = 0
     if "WDZAHL" in p_tbl.columns:
         alpha = p_tbl.WDZAHL.values.astype(np.float64)
-    baujahr = p_tbl['BAUJAHR'].values.astype(np.int32) if 'BAUJAHR' in p_tbl else np.nan
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
         type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
@@ -751,7 +750,6 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=p_tbl.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~p_tbl.CALCBAD.values.astype(np.bool_),
-        construction_year=baujahr,
         **add_info
     )
 
@@ -1056,6 +1054,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = hp_data.LAYER.values.astype(str)
+        add_info["construction_year"] = hp_data.BAUJAHR.values.astype(np.int32) if 'BAUJAHR' in hp_data else np.nan
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
     text_k = 293
     if "TU" in hp_data.columns:
@@ -1063,7 +1062,6 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     alpha = 0
     if "WDZAHL" in hp_data.columns:
         alpha = hp_data.WDZAHL.values.astype(np.float64)
-    baujahr = hp_data['BAUJAHR'].values.astype(np.int32) if 'BAUJAHR' in hp_data else np.nan
     pandapipes.create_pipes_from_parameters(
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
         hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
@@ -1074,7 +1072,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
         stanet_std_type=hp_data.ROHRTYP.values, stanet_nr=hp_data.RECNO.values,
         stanet_id=hp_data.STANETID.values, v_stanet=hp_data.VM.values,
         stanet_active=hp_data.ISACTIVE.values.astype(np.bool_),
-        stanet_valid=houses_in_calculation, construction_year=baujahr, **add_info
+        stanet_valid=houses_in_calculation, **add_info
     )
 
 
