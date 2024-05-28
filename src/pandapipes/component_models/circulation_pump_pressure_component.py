@@ -5,7 +5,7 @@ import numpy
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries, set_fixed_node_entries_circ_pump
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries_circ_pump
 from pandapipes.component_models.junction_component import Junction
 
 try:
