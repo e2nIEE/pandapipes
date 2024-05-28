@@ -21,6 +21,7 @@ from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, \
     load_std_type
+import warnings
 
 try:
     import pandaplan.core.pplog as logging
@@ -702,9 +703,26 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     return index
 
 
+def handle_deprecated_args_circ_pump(func):
+    def wrapper(*args, **kwargs):
+
+        if 'p_setpoint_bar' not in kwargs and 'p_flow_bar' in kwargs:
+
+            kwargs['p_setpoint_bar'] = kwargs.pop('p_flow_bar')
+            warnings.warn(
+                "The 'p_flow_bar' argument is deprecated and will be removed in a future version. "
+                "Please use 'p_setpoint_bar' instead.",
+                DeprecationWarning
+            )
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+@handle_deprecated_args_circ_pump
 def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_setpoint_bar, plift_bar,
-                                     t_flow_k=None, setpoint="flow",  type="auto", name=None, index=None,
-                                    in_service=True,**kwargs):
+                                    t_flow_k=None, setpoint="flow",  type="auto",
+                                    name=None, index=None, in_service=True,**kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -751,11 +769,10 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_setpo
     :rtype: int
 
     :Example:
-        >>> create_circ_pump_const_pressure(net, 0, 1, p_flow_bar=5, plift_bar=2,
+        >>> create_circ_pump_const_pressure(net, 0, 1, p_setpoint_bar=5, plift_bar=2,
         >>>                                 t_flow_k=350, type="p")
 
     """
-
     add_new_component(net, CirculationPumpPressure)
 
     index = _get_index_with_check(net, "circ_pump_pressure", index,
@@ -772,7 +789,7 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_setpo
 
     return index
 
-
+@handle_deprecated_args_circ_pump
 def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_setpoint_bar,
                                      mdot_flow_kg_per_s, t_flow_k=None, type="auto", name=None,
                                      index=None, in_service=True, **kwargs):
