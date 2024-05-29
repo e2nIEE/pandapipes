@@ -86,6 +86,13 @@ class Component:
     def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
+    @classmethod
+    def rerun_hydraulics(self, net):
+        return False
+
+    @classmethod
+    def rerun_heat_transfer(self, net):
+        return False
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,

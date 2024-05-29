@@ -84,29 +84,29 @@ def test_iter(create_test_net, use_numba):
     pandapipes.set_user_pf_options(net, iter=2)
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='all')
+        pandapipes.pipeflow(net, mode='sequential')
 
     pandapipes.pipeflow(net, mode='hydraulics', max_iter_hyd=max_iter_hyd)
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='all', max_iter_hyd=max_iter_hyd)
+        pandapipes.pipeflow(net, mode='sequential', max_iter_hyd=max_iter_hyd)
 
-    pandapipes.pipeflow(net, mode='all', max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm)
+    pandapipes.pipeflow(net, mode='sequential', max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm)
 
     pandapipes.set_user_pf_options(net, max_iter_hyd=max_iter_hyd)
     pandapipes.pipeflow(net, mode='hydraulics')
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='all')
+        pandapipes.pipeflow(net, mode='sequential')
 
     pandapipes.set_user_pf_options(net, max_iter_therm=max_iter_therm)
 
-    pandapipes.pipeflow(net, mode='all')
+    pandapipes.pipeflow(net, mode='sequential')
 
     pandapipes.set_user_pf_options(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm)
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='all', iter=2)
+        pandapipes.pipeflow(net, mode='sequential', iter=2)
 
 
 if __name__ == '__main__':

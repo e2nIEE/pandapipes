@@ -107,7 +107,7 @@ class Junction(NodeComponent):
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         junction_pit = net["_pit"]["node"][f:t, :]
 
-        if mode in ["hydraulics", "all"]:
+        if mode in ["hydraulics", "sequential", "bidirectional"]:
             junctions_connected_hydraulic = get_lookup(net, "node", "active_hydraulics")[f:t]
 
             if np.any(junction_pit[junctions_connected_hydraulic, PINIT] < 0):
@@ -119,7 +119,7 @@ class Junction(NodeComponent):
         #     if mode == "hydraulics":
         #         res_table["t_k"].values[junctions_connected_hydraulic] = junction_pit[:, TINIT]
         #
-        # if mode in ["heat", "all"]:
+        # if mode in ["heat", "sequential", "bidirectional]:
         #     junctions_connected_ht = get_lookup(net, "node", "active_heat_transfer")[f:t]
         #     res_table["t_k"].values[junctions_connected_ht] = junction_pit[:, TINIT]
         res_table["p_bar"].values[:] = junction_pit[:, PINIT]

@@ -5,8 +5,8 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.idx_branch import MDOTINIT, branch_cols
-from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
+from pandapipes.idx_branch import MDOTINIT, branch_cols, TEXT
+from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 
 try:
     import pandaplan.core.pplog as logging
@@ -21,6 +21,10 @@ class BranchComponent(Component):
     @classmethod
     def table_name(cls):
         raise NotImplementedError
+
+    @classmethod
+    def get_component_type(cls):
+        return "branch"
 
     @classmethod
     def get_component_input(cls):
@@ -89,6 +93,7 @@ class BranchComponent(Component):
         to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
         branch_component_pit[:, MDOTINIT] = 0.1
+        branch_component_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
     @classmethod
