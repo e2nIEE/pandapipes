@@ -286,7 +286,7 @@ def extract_results_active_pit(net, mode="hydraulics"):
     result_branch_col = MDOTINIT if mode == "hydraulics" else TOUTINIT
     not_affected_branch_col = TOUTINIT if mode == "hydraulics" else MDOTINIT
     copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
-                                   if i not in [FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T,
+                                   if i not in [FROM_NODE, TO_NODE,
                                                 not_affected_branch_col]])
     rows_branches = np.arange(net["_pit"]["branch"].shape[0])[branches_connected]
 

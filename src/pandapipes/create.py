@@ -374,7 +374,7 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
 
 
 def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0, sections=1,
-                alpha_w_per_m2k=0., qext_w=0., text_k=None, name=None, index=None, geodata=None, in_service=True,
+                alpha_w_per_m2k=0., text_k=None, qext_w=0.,name=None, index=None, geodata=None, in_service=True,
                 type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -399,10 +399,10 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     :type sections: int, default 1
     :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
     :type alpha_w_per_m2k: float, default 0
-    :param qext_w: External heat feed-in to the pipe in [W]
-    :type qext_w: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default None, will be set equal to the net ambient temperature
+    :param qext_w: External heat feed-in to the pipe in [W]
+    :type qext_w: float, default 0
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -446,7 +446,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
 
 
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
+                                sections=1, alpha_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
                                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -471,10 +471,10 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :type sections: int, default 1
     :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
     :type alpha_w_per_m2k: float, default 0
+    :param text_k: Ambient temperature of pipe in [K]
+    :type text_k: float, default None, will be set equal to the net ambient temperature
     :param qext_w: external heat feed-in to the pipe in [W]
     :type qext_w: float, default 0
-    :param text_k: Ambient temperature of pipe in [K]
-    :type text_k: float, default 293
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -1266,7 +1266,7 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
 
 
 def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2, loss_coefficient=0, sections=1,
-                 alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None, geodata=None, in_service=True,
+                 alpha_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None, geodata=None, in_service=True,
                  type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
@@ -1296,7 +1296,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
     :type alpha_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
-    :type text_k: Iterable or float, default 293
+    :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
     :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
@@ -1345,7 +1345,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
 
 
 def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                 sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
+                                 sections=1, alpha_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
                                  geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
@@ -1374,7 +1374,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
     :type alpha_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
-    :type text_k: Iterable or float, default 293
+    :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
     :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
