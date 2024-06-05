@@ -70,7 +70,7 @@ def test_circ_pump_pressure_return_flow(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, name="junction 3")
 
     pandapipes.create_circ_pump_const_pressure(net, return_junction=j3, flow_junction=j0, p_setpoint_bar=7.5,
-                                       plift_bar=5, setpoint='flow', t_flow_k=273.15 + 35)
+                                       plift_bar=5, setpoint='return', t_flow_k=273.15 + 35)
 
     pandapipes.create_heat_exchanger(net, from_junction=j1, to_junction=j2, diameter_m=200e-3, qext_w=100000)
 

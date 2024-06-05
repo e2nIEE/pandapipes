@@ -61,32 +61,21 @@ class CirculationPumpPressure(CirculationPump):
         circ_pump, press = super().create_pit_node_entries(net, node_pit)
         flow_junction =  circ_pump[cls.from_to_node_cols()[1]].values
         junctions = numpy.zeros(len(circ_pump), dtype=numpy.int8)
-        p_setpoint = numpy.zeros(len(circ_pump), dtype=numpy.int8)
-        i = 0
-        for row in circ_pump["setpoint"]:
+        p_setpoint = numpy.zeros(len(circ_pump), dtype=float)
 
-            if row == "flow":
-                junction = circ_pump[cls.from_to_node_cols()[0]].values
-                junctions[i] = junction[i]
-                p_setpoint[i] = press[i] - circ_pump.plift_bar.values[i]
+        flow_col = cls.from_to_node_cols()[0]
+        return_col = cls.from_to_node_cols()[1]
 
-            elif row == "return":
-                junction = circ_pump[cls.from_to_node_cols()[1]].values
-                junctions[i] = junction[i]
-                p_setpoint[i] = press[i] + circ_pump.plift_bar.values[i]
+        flow_mask = circ_pump["setpoint"] == "flow"
+        return_mask = circ_pump["setpoint"] == "return"
 
-            i += 1
+        junctions[flow_mask] = circ_pump[flow_col][flow_mask]
+        junctions[return_mask] = circ_pump[return_col][return_mask]
+
+        p_setpoint[flow_mask] = press[flow_mask] - circ_pump.plift_bar.values[flow_mask]
+        p_setpoint[return_mask] = press[return_mask] + circ_pump.plift_bar.values[return_mask]
+
         set_fixed_node_entries_circ_pump(net, node_pit, junctions, flow_junction, circ_pump.type.values,
                                              p_setpoint, None,
                                              cls.get_connected_node_type(), "p")
-        # if circ_pump["setpoint"][0] == "flow":
-        #
-        #     junction = circ_pump[cls.from_to_node_cols()[0]].values
-        #     p_setpoint = press - circ_pump.plift_bar.values
-        #     set_fixed_node_entries_circ_pump(net, node_pit, junction, flow_junction, circ_pump.type.values, p_setpoint, None,
-        #                            cls.get_connected_node_type(), "p")
-        # elif circ_pump["setpoint"][0] == "return":
-        #     junction = circ_pump[cls.from_to_node_cols()[1]].values
-        #     p_setpoint = press + circ_pump.plift_bar.values
-        #     set_fixed_node_entries_circ_pump(net, node_pit, junction,flow_junction, circ_pump.type.values, p_setpoint, None,
-        #                            cls.get_connected_node_type(), "p")
+

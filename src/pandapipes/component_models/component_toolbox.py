@@ -175,7 +175,7 @@ def set_fixed_node_entries_circ_pump(net, node_pit, junctions, flow_junctions, e
         else:
             val_col, type_col, eg_count_col, typ, valid_types, values = \
                 TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, ["t", "pt"], t_values
-            junctions= flow_junctions
+            junctions = flow_junctions
         mask = np.isin(eg_types, valid_types)
         if not np.any(mask):
             continue

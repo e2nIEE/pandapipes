@@ -70,16 +70,15 @@ class CirculationPump(BranchWZeroLengthComponent):
 
         flow_junction = circ_pump_tbl[cls.from_to_node_cols()[1]].values
         junctions = np.zeros(len(circ_pump_tbl),dtype=np.int8)
-        i=0
-        for row in circ_pump_tbl["setpoint"]:
 
-            if row == "flow":
-                junction = circ_pump_tbl[cls.from_to_node_cols()[1]].values
-                junctions[i] = junction[i]
-            elif row == "return":
-                junction = circ_pump_tbl[cls.from_to_node_cols()[0]].values
-                junctions[i] = junction[i]
-            i+=1
+        flow_col = cls.from_to_node_cols()[1]
+        return_col = cls.from_to_node_cols()[0]
+
+        flow_mask = circ_pump_tbl["setpoint"] == "flow"
+        return_mask = circ_pump_tbl["setpoint"] == "return"
+
+        junctions[flow_mask] = circ_pump_tbl[flow_col][flow_mask]
+        junctions[return_mask] = circ_pump_tbl[return_col][return_mask]
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
         press = circ_pump_tbl.p_setpoint_bar.values
