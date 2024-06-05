@@ -1,5 +1,9 @@
 Change Log
 =============
+[0.10.1] - 
+-------------------------------
+- [CHANGED] circ_pump_pressure to now have the option to chose a "setpoint" (flow or return junction) for the pressure to be set at
+
 
 [0.10.0] - 2024-04-09
 -------------------------------

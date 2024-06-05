@@ -104,12 +104,12 @@ def release_control_test_network(max_iter_hyd, save=False):
 
     # circulation pump mass
     pp.create_circ_pump_const_mass_flow(
-        net, return_junction=3, flow_junction=4, p_flow_bar=6, mdot_flow_kg_per_s=1, t_flow_k=290,
+        net, return_junction=3, flow_junction=4, p_setpoint_bar=6, mdot_flow_kg_per_s=1, t_flow_k=290,
         name="Circ. Pump Mass", index=None, in_service=True, type="pt")
 
     # circulation pump pressure
     pp.create_circ_pump_const_pressure(
-        net, return_junction=11, flow_junction=5, p_flow_bar=5, plift_bar=2, t_flow_k=290,
+        net, return_junction=11, flow_junction=5, p_setpoint_bar=5, plift_bar=2, t_flow_k=290,
         name="Circ. Pump Pressure", index=None, in_service=True, type="pt")
 
     # heat exchanger
@@ -222,12 +222,12 @@ def release_control_test_network_water(max_iter_hyd, save=False):
 
     # circulation pump mass
     pp.create_circ_pump_const_mass_flow(
-        net, return_junction=3, flow_junction=4, p_flow_bar=6, mdot_flow_kg_per_s=0.2, t_flow_k=290,
+        net, return_junction=3, flow_junction=4, p_setpoint_bar=6, mdot_flow_kg_per_s=0.2, t_flow_k=290,
         name="Circ. Pump Mass", index=None, in_service=True, type="pt")
 
     # circulation pump pressure
     pp.create_circ_pump_const_pressure(
-        net, return_junction=11, flow_junction=5, p_flow_bar=5, plift_bar=2, t_flow_k=290,
+        net, return_junction=11, flow_junction=5, p_setpoint_bar=5, plift_bar=2, t_flow_k=290,
         name="Circ. Pump Pressure", index=None, in_service=True, type="pt")
 
     # heat exchanger

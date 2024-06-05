@@ -1,11 +1,11 @@
 # Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-
+import numpy
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries_circ_pump
 from pandapipes.component_models.junction_component import Junction
 
 try:
@@ -32,9 +32,10 @@ class CirculationPumpPressure(CirculationPump):
         return [("name", dtype(object)),
                 ("return_junction", "u4"),
                 ("flow_junction", "u4"),
-                ("p_flow_bar", "f8"),
+                ("p_setpoint_bar", "f8"),
                 ("t_flow_k", "f8"),
                 ("plift_bar", "f8"),
+                ("setpoint","str"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
@@ -58,8 +59,23 @@ class CirculationPumpPressure(CirculationPump):
         :return: No Output.
         """
         circ_pump, press = super().create_pit_node_entries(net, node_pit)
+        flow_junction =  circ_pump[cls.from_to_node_cols()[1]].values
+        junctions = numpy.zeros(len(circ_pump), dtype=numpy.int8)
+        p_setpoint = numpy.zeros(len(circ_pump), dtype=float)
 
-        junction = circ_pump[cls.from_to_node_cols()[0]].values
-        p_in = press - circ_pump.plift_bar.values
-        set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_in, None,
-                               cls.get_connected_node_type(), "p")
+        flow_col = cls.from_to_node_cols()[0]
+        return_col = cls.from_to_node_cols()[1]
+
+        flow_mask = circ_pump["setpoint"] == "flow"
+        return_mask = circ_pump["setpoint"] == "return"
+
+        junctions[flow_mask] = circ_pump[flow_col][flow_mask]
+        junctions[return_mask] = circ_pump[return_col][return_mask]
+
+        p_setpoint[flow_mask] = press[flow_mask] - circ_pump.plift_bar.values[flow_mask]
+        p_setpoint[return_mask] = press[return_mask] + circ_pump.plift_bar.values[return_mask]
+
+        set_fixed_node_entries_circ_pump(net, node_pit, junctions, flow_junction, circ_pump.type.values,
+                                             p_setpoint, None,
+                                             cls.get_connected_node_type(), "p")
+
