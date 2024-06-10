@@ -35,7 +35,7 @@ long_description = '\n\n'.join((install, changelog))
 
 setup(
     name='pandapipes',
-    version='0.9.0',
+    version='0.10.0',
     author='Simon Ruben Drauz-Mauel, Daniel Lohmeier, Jolando Marius Kisse',
     author_email='simon.ruben.drauz-mauel@iee.fraunhofer.de, daniel.lohmeier@retoflow.de, '
                  'jolando.kisse@uni-kassel.de',
@@ -44,7 +44,7 @@ setup(
     long_description_content_type='text/x-rst',
     url='http://www.pandapipes.org',
     license='BSD',
-    install_requires=["pandapower<3.0.0", "matplotlib", "shapely"],
+    install_requires=["pandapower>=2.14.6", "matplotlib", "shapely"],
     extras_require={"docs": ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex"],
                     "plotting": ["plotly", "igraph"],
                     "test": ["pytest", "pytest-xdist", "nbmake"],

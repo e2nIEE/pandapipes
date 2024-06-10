@@ -10,7 +10,7 @@ from pandapower.create import _get_multiple_index_with_check, _get_index_with_ch
     _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
-    CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, Compressor, MassStorage
+    CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, Compressor, MassStorage, ThrottleValve
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.component_models.flow_control_component import FlowControlComponent
 from pandapipes.component_models.heat_consumer_component import HeatConsumer
@@ -865,8 +865,7 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
 
 
 def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar, control_active=True,
-                            loss_coefficient=0., max_mdot_kg_per_s=None,
-                            name=None, index=None, in_service=True, type="pressure_control",
+                            loss_coefficient=0., name=None, index=None, in_service=True, type="pressure_control",
                             **kwargs):
     """Adds one pressure control that enforces a pressure at a specific junction.
 
@@ -934,10 +933,91 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction, to_junction=to_junction,
                  controlled_junction=controlled_junction, control_active=bool(control_active),
                  loss_coefficient=loss_coefficient, controlled_p_bar=controlled_p_bar, in_service=bool(in_service),
-                 max_mdot_kg_per_s=max_mdot_kg_per_s, type=type, **kwargs)
+                 type=type, **kwargs)
 
     if controlled_junction != from_junction and controlled_junction != to_junction:
         logger.warning("The pressure controller %d controls the pressure at a junction that it is "
+                       "not connected to. Please note that this can lead to errors in the pipeflow "
+                       "calculation that will not be displayed properly. Make sure that your grid "
+                       "configuration is valid." % index)
+
+    return index
+
+
+def create_throttle_valve(net, from_junction, to_junction, controlled_junction, controlled_p_bar, control_active=True,
+                            loss_coefficient=0., max_mdot_kg_per_s=None,
+                            name=None, index=None, in_service=True, type="pressure_control",
+                            **kwargs):
+    """Adds one throttle valve that enforces a pressure at a specific junction.
+
+    The throttle valve unit creates a pressure drop between the 'from' and the 'to'
+    junction so that the pressure set point at the controlled junction is met.
+    It is required that the controlled junction is hydraulically properly connected to the from
+    and to junction and no other pessure control unit is inbetween.
+
+    :param net: The net for which this throttle valve should be created
+    :type net: pandapipesNet
+    :param from_junction: ID of the junction on one side which the throttle valve will be \
+            connected with
+    :type from_junction: int
+    :param to_junction: ID of the junction on the other side which the throttle valvewill be \
+            connected with
+    :type to_junction: int
+    :param controlled_junction: ID of the junction at which the pressure is controlled
+    :type controlled_junction: int
+    :param controlled_p_bar: Pressure set point
+    :type controlled_p_bar: float
+    :param control_active: Variable to state whether the throttle valve is active (otherwise \
+        behaviour similar to open valve)
+    :type control_active: bool, default True
+    :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
+        (used only if control is not active).
+    :type loss_coefficient: float, default 0
+    :param name: Name of the throttle valve element
+    :type name: str
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+            highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True if the throttle valve is in service or False if it is out of service
+    :type in_service: bool, default True
+    :param type: Currently not used - possibility to specify a certain type of throttle valve
+    :type type: str, default "throttle_valve"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["throttle_valve"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created element
+    :rtype: int
+
+    :Example:
+        Connect junction 0 and 1 and set the pressure at junction 1 to 5 bar.
+
+        >>> create_pressure_control(net, 0, 1, 1, controlled_p_bar=5, max_mdot_kg_per_s=1.)
+
+    """
+    from pandapipes.toolbox import check_pressure_controllability
+    if not check_pressure_controllability(net, to_junction, controlled_junction):
+        return logger.error('The controlled junction of the created throttle valve '
+                            'is not controllable, as it is either not reachable or '
+                            'another pressure controllable component is in between')
+
+    logger.info('Using a default throttle valve in pandapipes assumes, that the temperature '
+                'settings at the junctions are kept. Therefore, energy is induced/retrieved to meet these '
+                'constraints.')
+
+    add_new_component(net, ThrottleValveComponent)
+
+    index = _get_index_with_check(net, "throttle_valve", index)
+
+    # check if junctions exist to attach the trottle valve to
+    _check_branch(net, "ThrottleValve", index, from_junction, to_junction)
+
+    _set_entries(net, "throttle_valve", index, name=name, from_junction=from_junction, to_junction=to_junction,
+                 controlled_junction=controlled_junction, control_active=bool(control_active),
+                 loss_coefficient=loss_coefficient, controlled_p_bar=controlled_p_bar, in_service=bool(in_service),
+                 max_mdot_kg_per_s=max_mdot_kg_per_s, type=type, **kwargs)
+
+    if controlled_junction != from_junction and controlled_junction != to_junction:
+        logger.warning("The throttle valve %d controls the pressure at a junction that it is "
                        "not connected to. Please note that this can lead to errors in the pipeflow "
                        "calculation that will not be displayed properly. Make sure that your grid "
                        "configuration is valid." % index)
@@ -1472,7 +1552,7 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
                              control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
-                             max_mdot_kg_per_s=None, type="pressure_control", **kwargs):
+                             type="pressure_control", **kwargs):
     """
     Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1543,6 +1623,87 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     if np.any(controlled_elsewhere):
         controllers_warn = index[controlled_elsewhere]
         logger.warning("The pressure controllers %s control the pressure at junctions that they are"
+                       " not connected to. Please note that this can lead to errors in the pipeflow"
+                       " calculation that will not be displayed properly. Make sure that your grid "
+                       "configuration is valid." % controllers_warn)
+
+    return index
+
+
+def create_throttle_valves(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
+                             control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
+                             max_mdot_kg_per_s=None, type="throttle_valve", **kwargs):
+    """
+    Convenience function for creating many throttle valves at once. Parameters 'from_junctions'\
+    and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
+    same length or single values.
+
+    Throttle valve units enforce a pressure at a specific junction by creating a pressure drop
+    between the 'from' and the 'to' junction so that the pressure set point at the
+    controlled junction is met.
+    It is required that the controlled junction is hydraulically properly connected to the from
+    and to junction and no other pessure controlling unit is inbetween.
+
+    :param net: The net for which these throttle valves should be created
+    :type net: pandapipesNet
+    :param from_junctions: IDs of the junctions on one side which the throttle valves will be\
+            connected to
+    :type from_junctions: Iterable(int)
+    :param to_junctions: IDs of the junctions on the other side to which the throttle valves will\
+            be connected to
+    :type to_junctions: Iterable(int)
+    :param controlled_junctions: IDs of the junctions at which the pressure is controlled
+    :type controlled_junctions: Iterable or int
+    :param controlled_p_bar: Pressure set points
+    :type controlled_p_bar: Iterable or float
+    :param control_active: Variable to state whether the throttle valve is active (otherwise \
+        behaviour similar to open valve)
+    :type control_active: bool, default True
+    :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
+        (used only if control is not active).
+    :type loss_coefficient: float, default 0
+    :param name: Name of the throttle valve elements
+    :type name: Iterable or str
+    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+        highest already existing index is selected and counted onwards.
+    :type index: Iterable(int), default None
+    :param in_service: True if the throttle valves are in service or False if they are out of\
+        service
+    :type in_service: Iterable or bool, default True
+    :param type: Currently not used - possibility to specify a certain type of throttle valve
+    :type type: Iterable or str, default "throttle valve"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+            net["throttle valve"] table
+    :return: index - The unique IDs of the created elements
+    :rtype: array(int)
+
+    :Example:
+        Create one unit to connect junction 0 and 1,
+        set the pressure at junction 1 to 5 bar and the maximal mass flow at 1 kg/s.
+
+        And create a 2nd unit to connect junction 2 and 4,
+        set the pressure at junction 3 to 4.9 bar and the maximal mass flow at 1.2 kg/s.
+
+        >>> create_throttle_valves(net, [0, 2], [1, 4], [1, 3],
+        >>>                        controlled_p_bar=[5, 4.9],
+        >>>                        max_mdot_kg_per_s=[1, 1.2])
+
+    """
+    add_new_component(net, ThrottleValve)
+
+    index = _get_multiple_index_with_check(net, "throttle_valve", index, len(from_junctions))
+    _check_branches(net, from_junctions, to_junctions, "throttle_valve")
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
+               "control_active": control_active, "loss_coefficient": loss_coefficient, "in_service": in_service,
+               "max_mdot_kg_per_s": max_mdot_kg_per_s, "type": type}
+    _set_multiple_entries(net, "throttle_valve", index, **entries, **kwargs)
+
+    controlled_elsewhere = (controlled_junctions != from_junctions) & (controlled_junctions != to_junctions)
+    if np.any(controlled_elsewhere):
+        controllers_warn = index[controlled_elsewhere]
+        logger.warning("The throttle valves %s control the pressure at junctions that they are"
                        " not connected to. Please note that this can lead to errors in the pipeflow"
                        " calculation that will not be displayed properly. Make sure that your grid "
                        "configuration is valid." % controllers_warn)

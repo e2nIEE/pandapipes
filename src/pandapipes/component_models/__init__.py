@@ -16,3 +16,4 @@ from pandapipes.component_models.pressure_control_component import *
 from pandapipes.component_models.compressor_component import *
 from pandapipes.component_models.flow_control_component import *
 from pandapipes.component_models.mass_storage_component import *
+from pandapipes.component_models.throttle_valve_component import *

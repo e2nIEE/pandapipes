@@ -359,7 +359,7 @@ def finalize_iteration(net, niter, residual_norm, nonlinear_method, errors, tols
                                                   pit_names):
             if error_increased:
                 # todo: not working in bidirectional mode as bidirectional is not distinguishing \
-                # between hydraulics and heat transfer active pit
+                #  between hydraulics and heat transfer active pit
                 net["_active_pit"][pit][:, globals()[var.upper() + 'INIT']] = val
         if get_net_option(net, "alpha") != 1:
             net.converged = False
