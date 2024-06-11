@@ -18,7 +18,7 @@ sys.path.append(os.path.abspath('..'))
 sys.path.append(os.path.abspath('../..'))
 sys.path.append(os.path.abspath('../../..'))
 sys.path.append(os.path.abspath('../../../pandapower'))
-
+sys.path.append(os.path.abspath('../../src'))
 
 master_doc = 'index'
 
