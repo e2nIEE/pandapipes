@@ -1,6 +1,12 @@
 Change Log
 =============
 
+[latest] - RELEASEDATE
+-------------------------------
+
+- [CHANGED] switched from setup.py to pyproject.toml
+
+
 [0.10.0] - 2024-04-09
 -------------------------------
 
