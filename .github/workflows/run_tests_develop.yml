@@ -31,7 +31,7 @@ jobs:
           python -m pip install pytest igraph pytest-split
           if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
+          python -m pip install pandapower
           python -m pip install .
         shell: bash
       - name: List all installed packages
@@ -51,6 +51,35 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           verbose: true
+
+  relying:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        os:  [ ubuntu-latest, windows-latest ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest igraph pytest-split
+          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
+          python -m pip install .
+        shell: bash
+      - name: List all installed packages
+        run: |
+          python -m pip list
+      - name: Test with pytest
+        if: ${{ matrix.python-version != '3.9' }}
+        run: |
+          python -m pytest
 
   linting:
     runs-on: ${{ matrix.os }}
@@ -129,7 +158,6 @@ jobs:
           pre-build-command: "apt-get update -y && apt-get install -y git;
                               git --version;
                               python -m pip install --upgrade pip;
-                              python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower;
-                              python -m pip install ."
+                              python -m pip install .[docs];"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
