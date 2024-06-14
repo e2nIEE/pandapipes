@@ -4,9 +4,10 @@
 
 import numpy as np
 import pandas as pd
+from pandapower.auxiliary import _preserve_dtypes
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
-    _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
+    _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
@@ -1819,6 +1820,23 @@ def _check_std_type(net, std_type, table, function_name):
     if std_type not in net['std_types'][table]:
         raise UserWarning('%s is not given in std_types (%s). Either change std_type or define new '
                           'one' % (std_type, table))
+
+
+def _add_multiple_branch_geodata(net, table, geodata, index):
+    geo_table = f"{table}_geodata"
+    dtypes = net[geo_table].dtypes
+    df = pd.DataFrame(index=index, columns=net[geo_table].columns)
+    # works with single or multiple lists of coordinates
+    if len(geodata[0]) == 2 and not hasattr(geodata[0][0], "__iter__"):
+        # geodata is a single list of coordinates
+        df["coords"] = [geodata] * len(index)
+    else:
+        # geodata is multiple lists of coordinates
+        df["coords"] = geodata
+
+    net[geo_table] = pd.concat([net[geo_table],df], sort=False)
+
+    _preserve_dtypes(net[geo_table], dtypes)
 
 
 ALLOWED_EG_TYPES = ["auto", "t", "p", "pt", "tp"]
