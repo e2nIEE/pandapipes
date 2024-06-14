@@ -670,7 +670,7 @@ def create_heat_consumer_collection(net, hec=None, table_name='heat_consumer', s
                                  junction_geodata=None, color='k', infofunc=None, picker=False,
                                  **kwargs):
     """
-    Creates a matplotlib patch collection of pandapipes compressors. Compressors are
+    Creates a matplotlib patch collection of pandapipes heat_consumers. Heat consumers are
     plotted in the center between two junctions.
 
     :param net: The pandapipes network
