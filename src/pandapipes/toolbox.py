@@ -615,3 +615,89 @@ def get_internal_tables_pandas(net, convert_types=True):
                         tbl[col] = tbl[col].astype(np.bool_)
 
     return node_table, branch_table
+
+def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer):
+    """
+    Creates a closed loop network(DH) from an open loop network (ext grid, sinks).
+    At the moment only works with one source/ext_grid and one circ_pump
+    ToDo: multiple sources, geodata
+    :param open_net: Open Loop net to be transformed to closed loop
+    :type open_net: pandapipesNet
+    :param p_lift_bar: pressure lift of the circ pump
+    :type p_lift_bar: float
+    :param diameter_m_consumer: diameter of the consumers
+    :type diameter_m_consumer: float
+    :return: closed loop net
+    :rtype: pandapipesNet
+    """
+
+    closed_net = pandapipes.create_empty_network()
+
+    # Duplicate junctions
+    orig_junctions = open_net.junction
+    new_junctions = orig_junctions.copy()
+    return_junctions = orig_junctions.copy()
+
+    # Handle NaN names
+    new_junctions['name'] = new_junctions.apply(
+        lambda row: f'junction_{row.name}_flow' if pd.isna(row['name']) else row['name'] + '_flow', axis=1)
+    return_junctions['name'] = return_junctions.apply(
+        lambda row: f'junction_{row.name}_return' if pd.isna(row['name']) else row['name'] + '_return', axis=1)
+
+    # Create new junctions
+    new_junction_indices = new_junctions.apply(
+        lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
+                                             , name=row['name']), axis=1)
+    return_junction_indices = return_junctions.apply(
+        lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
+                                             , name=row['name']), axis=1)
+
+    junction_mapping = pd.DataFrame(
+        {'orig_junction': orig_junctions.index, 'flow_junction': new_junction_indices,
+         'return_junction': return_junction_indices})
+
+    # Duplicate pipes
+    orig_pipes = open_net.pipe.copy()
+    from_node_indices = junction_mapping.set_index('orig_junction').loc[orig_pipes['from_junction'],
+                                                                       'flow_junction'].values
+    to_node_indices = junction_mapping.set_index('orig_junction').loc[orig_pipes['to_junction'],
+                                                                     'flow_junction'].values
+    return_from_node_indices = junction_mapping.set_index('orig_junction').loc[orig_pipes['to_junction'],
+                                                                              'return_junction'].values
+    return_to_node_indices = junction_mapping.set_index('orig_junction').loc[orig_pipes['from_junction'],
+                                                                            'return_junction'].values
+
+    # Create original flow pipes
+    pandapipes.create_pipes_from_parameters(closed_net, from_node_indices, to_node_indices,
+                                           length_km=orig_pipes['length_km'].values,
+                                           diameter_m=orig_pipes['diameter_m'].values)
+
+    # Create return flow pipes
+    pandapipes.create_pipes_from_parameters(closed_net, return_from_node_indices, return_to_node_indices,
+                                            length_km=orig_pipes['length_km'].values,
+                                            diameter_m=orig_pipes['diameter_m'].values)
+
+    # Create connections for consumers
+    orig_load = open_net.sink.copy()
+    flow_junction_indices = junction_mapping.set_index('orig_junction').loc[orig_load['junction'],
+                                                                            'flow_junction'].values
+    return_junction_indices = junction_mapping.set_index('orig_junction').loc[orig_load['junction'],
+                                                                              'return_junction'].values
+
+    # Create consumers
+    pandapipes.create_heat_consumers(closed_net, flow_junction_indices, return_junction_indices,
+                                     diameter_m=diameter_m_consumer,
+                                    qext_w=orig_load['qext_w'],
+                                    controlled_mdot_kg_per_s=orig_load['mdot_kg_per_s'])
+
+    #Create producer
+    orig_ext_grids = open_net.ext_grid.copy()
+    flow_junction_indices = junction_mapping.set_index('orig_junction').loc[orig_ext_grids['junction'],
+                                                                            'flow_junction'].values
+    return_junction_indices = junction_mapping.set_index('orig_junction').loc[orig_ext_grids['junction'],
+                                                                              'return_junction'].values
+
+    pandapipes.create_circ_pump_const_pressure(closed_net, return_junction_indices[0], flow_junction_indices[0],
+                                               p_flow_bar=orig_ext_grids['p_bar'][0], plift_bar=p_lift_bar)
+
+    return closed_net
