@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from matplotlib.patches import RegularPolygon, Rectangle, Circle, PathPatch, FancyArrow, Polygon
+from matplotlib.patches import RegularPolygon, Rectangle, Circle, PathPatch, FancyArrow
 from matplotlib.path import Path
 from pandapower.plotting.plotting_toolbox import get_color_list, _rotate_dim2, get_angle_list, \
     get_list
@@ -294,7 +294,7 @@ def create_triangles(center, size, direc, normal, edgecolor):
     :return:
     :rtype:
     """
-    x, y = center
+
     radius = size
 
     # Create the first triangle
