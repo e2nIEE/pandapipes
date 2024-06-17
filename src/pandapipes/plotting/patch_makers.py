@@ -220,6 +220,17 @@ def pressure_control_patches(coords, size, **kwargs):
     return lines, polys, {}
 
 def heat_consumer_patches(coords, size, **kwargs):
+    """
+    Creates patches for matplotlib plotting of heat consumer component
+    :param coords:
+    :type coords:
+    :param size:
+    :type size:
+    :param kwargs:
+    :type kwargs:
+    :return:
+    :rtype:
+    """
     polys, lines = [], []
     facecolor = kwargs.get("patch_facecolor", "w")
     edgecolor = kwargs.get("patch_edgecolor", "k")
@@ -268,6 +279,21 @@ def heat_consumer_patches(coords, size, **kwargs):
 
 
 def create_triangles(center, size, direc, normal, edgecolor):
+    """
+    Creates a pathpatch for triangles
+    :param center:
+    :type center:
+    :param size:
+    :type size:
+    :param direc:
+    :type direc:
+    :param normal:
+    :type normal:
+    :param edgecolor:
+    :type edgecolor:
+    :return:
+    :rtype:
+    """
     x, y = center
     radius = size
 
