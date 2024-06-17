@@ -1,7 +1,14 @@
 Change Log
 =============
 
+
 -[ADDED] heat_consumer plotting
+
+[latest] - RELEASEDATE
+
+- [CHANGED] switched from setup.py to pyproject.toml
+
+
 
 [0.10.0] - 2024-04-09
 -------------------------------
