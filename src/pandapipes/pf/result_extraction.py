@@ -290,13 +290,10 @@ def extract_results_active_pit(net, mode="hydraulics"):
                                                 not_affected_branch_col]])
     rows_branches = np.arange(net["_pit"]["branch"].shape[0])[branches_connected]
 
-    amb = get_net_option(net, 'ambient_temperature')
-
-    net["_pit"]["node"][~nodes_connected, result_node_col] = np.NaN if mode == "hydraulics" else amb
+    net["_pit"]["node"][~nodes_connected, result_node_col] = np.nan
     net["_pit"]["node"][rows_nodes[:, np.newaxis], copied_node_cols[np.newaxis, :]] = \
         net["_active_pit"]["node"][:, copied_node_cols]
-    net["_pit"]["branch"][~branches_connected, result_branch_col] = np.NaN if mode == "hydraulics" else \
-        net["_pit"]["branch"][~branches_connected, TEXT]
+    net["_pit"]["branch"][~branches_connected, result_branch_col] = np.nan
     net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
         net["_active_pit"]["branch"][:, copied_branch_cols]
 

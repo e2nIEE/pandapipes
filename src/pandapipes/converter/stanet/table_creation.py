@@ -149,9 +149,9 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
             j_ref = net.junction.loc[node_mapping[from_stanet_nr], :]
             j_ref_geodata = net.junction_geodata.loc[node_mapping[from_stanet_nr], :]
             j_aux = pandapipes.create_junction(
-                net, np.NaN, tfluid_k=net_params["medium_temp_K"], height_m=j_ref['height_m'],
+                net, np.nan, tfluid_k=net_params["medium_temp_K"], height_m=j_ref['height_m'],
                 name='aux_' + j_ref['stanet_id'], geodata=(j_ref_geodata.x, j_ref_geodata.y),
-                stanet_nr=-999, stanet_id='aux_' + j_ref['stanet_id'], p_stanet=np.NaN,
+                stanet_nr=-999, stanet_id='aux_' + j_ref['stanet_id'], p_stanet=np.nan,
                 stanet_active=bool(row.ISACTIVE), **add_info
             )
             text_k = 293
@@ -169,7 +169,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
                 net, j_aux, node_mapping[to_stanet_nr], diameter_m=float(row.DM / 1000),
                 opened=row.AUF == 'J', loss_coefficient=0,
                 name="valve_%s_%s" % ('aux_' + str(row.ENDNAM), str(row.ENDNAM)),
-                stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=np.NaN,
+                stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=np.nan,
                 stanet_active=bool(row.ISACTIVE), **add_info
             )
 
@@ -382,7 +382,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
 
         drop_eg = net.ext_grid.loc[net.ext_grid.junction.isin(to_junctions[is_pc])].index
         net.ext_grid.drop(drop_eg, inplace=True)
-        net.junction.loc[to_junctions[is_pc], "pn_bar"] = np.NaN
+        net.junction.loc[to_junctions[is_pc], "pn_bar"] = np.nan
         pandapipes.reindex_elements(net, "ext_grid", np.arange(len(net.ext_grid)))
 
     if np.any(is_fc):
@@ -463,7 +463,7 @@ def create_junctions_from_connections(net, connection_table, net_params, index_m
             continue
         stanet_ids = cons.STANETID.astype(str).values
         stanet_nrs = cons.RECNO.astype(np.int32).values
-        p_stanet = cons.PRECH.astype(np.float64).values if houses_in_calculation else np.NaN
+        p_stanet = cons.PRECH.astype(np.float64).values if houses_in_calculation else np.nan
         names = stanet_ids if con_type not in extend_from_to else \
             stanet_ids + node_type.replace(con_type, "")
         geo = np.array([cons.geo.apply(lambda g: g[0]), cons.geo.apply(lambda g: g[1])]).transpose()
@@ -475,7 +475,7 @@ def create_junctions_from_connections(net, connection_table, net_params, index_m
         if add_layers:
             add_info["stanet_layer"] = cons.LAYER.values.astype(str)
         pp_indices = pandapipes.create_junctions(
-            net, len(cons), np.NaN, net_params["medium_temp_K"], name=names,
+            net, len(cons), np.nan, net_params["medium_temp_K"], name=names,
             height_m=cons.GEOH.astype(np.float64).values, geodata=geo, type=cons.type.values,
             in_service=in_service, stanet_nr=stanet_nrs, stanet_id=stanet_ids, p_stanet=p_stanet,
             stanet_system=cons.CLIENTTYP.replace(CLIENT_TYPES_OF_PIPES).values,
@@ -798,13 +798,13 @@ def build_house_junctions(net, index_mapping, hh_types, hh_recno, house_table, m
             add_info["stanet_layer"] = connected_houses.LAYER.values.astype(str)
         # create junctions for houses that are directly connected via house pipes
         pp_ind = pandapipes.create_junctions(
-            net, len(connected_houses), np.NaN, tfluid_k=net_params["medium_temp_K"],
+            net, len(connected_houses), np.nan, tfluid_k=net_params["medium_temp_K"],
             height_m=heights_houses.astype(np.float64), geodata=geodata,
             in_service=houses_in_calculation,
             name=["house_%s" % hn for hn in connected_houses.RECNO.values],
             type="house", stanet_nr=connected_houses.RECNO.values,
             stanet_id=connected_houses.STANETID.values.astype(str),
-            p_stanet=connected_houses.PRECH.values if houses_in_calculation else np.NaN,
+            p_stanet=connected_houses.PRECH.values if houses_in_calculation else np.nan,
             stanet_system=CLIENT_TYPES_OF_PIPES[HOUSE_PIPE_TYPE],
             stanet_active=connected_houses.ISACTIVE.values.astype(np.bool_),
             stanet_valid=houses_in_calculation, **add_info
@@ -827,13 +827,13 @@ def build_meter_junctions(net, index_mapping, hh_types, hh_recno, meter_table, n
             add_info["stanet_layer"] = connected_meters.LAYER.values.astype(str)
         # create junctions for meters that are directly connected via house pipes
         pp_ind = pandapipes.create_junctions(
-            net, len(connected_meters), np.NaN, tfluid_k=net_params["medium_temp_K"],
+            net, len(connected_meters), np.nan, tfluid_k=net_params["medium_temp_K"],
             height_m=connected_meters.GEOH.values.astype(np.float64),
             name=connected_meters.STANETID.values.astype(str), geodata=geodata, type="meter",
             stanet_nr=connected_meters.RECNO.values,
             stanet_id=connected_meters.STANETID.astype(str),
             in_service=houses_in_calculation,
-            p_stanet=connected_meters.PRECH.values if houses_in_calculation else np.NaN,
+            p_stanet=connected_meters.PRECH.values if houses_in_calculation else np.nan,
             stanet_system=CLIENT_TYPES_OF_PIPES[HOUSE_PIPE_TYPE],
             stanet_active=connected_meters.ISACTIVE.values.astype(np.bool_),
             stanet_valid=houses_in_calculation, **add_info
@@ -853,12 +853,12 @@ def build_house_node_junctions(net, index_mapping, stored_data, net_params, hous
     if add_layers:
         add_info["stanet_layer"] = house_nodes.LAYER.values.astype(str)
     pp_ind = pandapipes.create_junctions(
-        net, len(house_node_nrs), np.NaN, tfluid_k=net_params["medium_temp_K"],
+        net, len(house_node_nrs), np.nan, tfluid_k=net_params["medium_temp_K"],
         height_m=house_nodes.GEOH.values.astype(np.float64),
         name=house_nodes.STANETID.values.astype(str), geodata=geodata,
         type="house_node", stanet_nr=house_node_nrs,
         stanet_id=house_nodes.STANETID.astype(str), in_service=houses_in_calculation,
-        p_stanet=house_nodes.PRECH.values if houses_in_calculation else np.NaN,
+        p_stanet=house_nodes.PRECH.values if houses_in_calculation else np.nan,
         stanet_system=CLIENT_TYPES_OF_PIPES[HOUSE_PIPE_TYPE],
         stanet_active=house_nodes.ISACTIVE.values.astype(np.bool_),
         stanet_valid=houses_in_calculation, **add_info
@@ -1091,7 +1091,7 @@ def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers)
 
     assigned_node_nums = meter_table.KNONUM.astype(np.int32)
     meter_nrs = meter_table.RECNO.astype(np.int32)
-    junctions_assigned = pd.Series([node_mapping.get(nn, np.NaN) for nn in assigned_node_nums],
+    junctions_assigned = pd.Series([node_mapping.get(nn, np.nan) for nn in assigned_node_nums],
                                    index=meter_table.index, dtype=float)
 
     junctions_connected = pd.Series(index=meter_table.index, dtype=float)
@@ -1110,7 +1110,7 @@ def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers)
 
     if np.any(junctions_connected.isnull()):
         junctions_connected.loc[junctions_connected.isnull()] = \
-            [node_mapping.get(n, np.NaN) if not np.isnan(n) else np.NaN for n in
+            [node_mapping.get(n, np.nan) if not np.isnan(n) else np.nan for n in
              meter_table.KNONUM.loc[junctions_connected.isnull()].values]
         logger.warning("The meters %s cannot be mapped to a house connection node and will be "
                        "assigned to nodes %s"

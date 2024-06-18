@@ -88,7 +88,7 @@ def init_results_element(net, element, output, all_float):
                                         dtype=np.float64)
     else:
         net[res_element] = pd.DataFrame(np.zeros(0, dtype=output), index=[])
-        net[res_element] = pd.DataFrame(np.NaN, index=net[element].index,
+        net[res_element] = pd.DataFrame(np.nan, index=net[element].index,
                                         columns=net[res_element].columns)
 
 
