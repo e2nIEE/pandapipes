@@ -616,11 +616,12 @@ def get_internal_tables_pandas(net, convert_types=True):
 
     return node_table, branch_table
 
-def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer):
+def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer, offset=(0,0)):
     """
     Creates a closed loop network(DH) from an open loop network (ext grid, sinks).
-    At the moment only works with one source/ext_grid and one circ_pump
-    ToDo: multiple sources, geodata
+    At the moment only works with one source/ext_grid and one circ_pump. Geodata copying works with new pandapower geo
+     format. Also an offset can be given to have the new return junctions have an coordinates offset.
+    ToDo: multiple sources
     :param open_net: Open Loop net to be transformed to closed loop
     :type open_net: pandapipesNet
     :param p_lift_bar: pressure lift of the circ pump
@@ -644,13 +645,23 @@ def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer):
     return_junctions['name'] = return_junctions.apply(
         lambda row: f'junction_{row.name}_return' if pd.isna(row['name']) else row['name'] + '_return', axis=1)
 
+    # Apply geocoordinates with optional offset
+    if 'geodata' in new_junctions.columns and new_junctions['geodata'].notna().any():
+        new_junctions['geodata'] = new_junctions['geodata'].apply(
+            lambda coords: (coords[0] , coords[1] ) if pd.notna(coords) else coords)
+        return_buses['geodata'] = return_buses['geodata'].apply(
+            lambda coords: (coords[0] + offset[0], coords[1] + offset[1]) if pd.notna(coords) else coords)
+    else:
+        new_junctions['geodata'] = [(None, None)] * len(new_junctions)
+        return_junctions['geodata'] = [(None, None)] * len(return_junctions)
+
     # Create new junctions
     new_junction_indices = new_junctions.apply(
         lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
-                                             , name=row['name']), axis=1)
+                                             , name=row['name'], geodata=row['geodata']), axis=1)
     return_junction_indices = return_junctions.apply(
         lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
-                                             , name=row['name']), axis=1)
+                                             , name=row['name'], geodata=row['geodata']), axis=1)
 
     junction_mapping = pd.DataFrame(
         {'orig_junction': orig_junctions.index, 'flow_junction': new_junction_indices,
