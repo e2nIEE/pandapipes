@@ -44,7 +44,7 @@ def _sum_by_group_sorted(indices, *values):
             val[i] = val[i][index]
             still_na = nans[index]
             val[i][1:] = val[i][1:] - val[i][:-1]
-            val[i][still_na] = np.NaN
+            val[i][still_na] = np.nan
         else:
             np.cumsum(val[i], out=val[i])
             val[i] = val[i][index]
