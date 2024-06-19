@@ -645,23 +645,45 @@ def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer, offset=(0,0)):
     return_junctions['name'] = return_junctions.apply(
         lambda row: f'junction_{row.name}_return' if pd.isna(row['name']) else row['name'] + '_return', axis=1)
 
-    # Apply geocoordinates with optional offset
-    if 'geodata' in new_junctions.columns and new_junctions['geodata'].notna().any():
-        new_junctions['geodata'] = new_junctions['geodata'].apply(
-            lambda coords: (coords[0] , coords[1] ) if pd.notna(coords) else coords)
-        return_buses['geodata'] = return_buses['geodata'].apply(
-            lambda coords: (coords[0] + offset[0], coords[1] + offset[1]) if pd.notna(coords) else coords)
-    else:
-        new_junctions['geodata'] = [(None, None)] * len(new_junctions)
-        return_junctions['geodata'] = [(None, None)] * len(return_junctions)
+    #ToDo implement this once geo change is implemented in pandapipes
+    # # Apply geocoordinates with optional offset
+    # if 'geodata' in new_junctions.columns and new_junctions['geodata'].notna().any():
+    #     new_junctions['geodata'] = new_junctions['geodata'].apply(
+    #         lambda coords: (coords[0] , coords[1] ) if pd.notna(coords) else coords)
+    #     return_junctions['geodata'] = return_junctions['geodata'].apply(
+    #         lambda coords: (coords[0] + offset[0], coords[1] + offset[1]) if pd.notna(coords) else coords)
+    # else:
+    #     new_junctions['geodata'] = [(None, None)] * len(new_junctions)
+    #     return_junctions['geodata'] = [(None, None)] * len(return_junctions)
 
     # Create new junctions
+    # new_junction_indices = new_junctions.apply(
+    #     lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
+    #                                            , name=row['name'], geodata=row['geodata']), axis=1)
+    # return_junction_indices = return_junctions.apply(
+    #     lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
+    #                                            , name=row['name'], geodata=row['geodata']), axis=1)
+
     new_junction_indices = new_junctions.apply(
         lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
-                                             , name=row['name'], geodata=row['geodata']), axis=1)
+                                               , name=row['name']), axis=1)
     return_junction_indices = return_junctions.apply(
         lambda row: pandapipes.create_junction(closed_net, pn_bar=row['pn_bar'], tfluid_k=row['tfluid_k']
-                                             , name=row['name'], geodata=row['geodata']), axis=1)
+                                               , name=row['name']), axis=1)
+    #ToDo replace this one geo change in pandapipes implemented---------------------------------------
+    if not open_net.junction_geodata.empty:
+        geodata_with_offset = open_net.junction_geodata.copy()
+        geodata_with_offset['x'] += offset[0]
+        geodata_with_offset['y'] += offset[1]
+        new_geodata = pd.DataFrame(index=pd.concat([new_junction_indices, return_junction_indices]))
+
+        new_geodata.loc[new_junction_indices, 'x'] = open_net.junction_geodata['x'].values
+        new_geodata.loc[new_junction_indices, 'y'] = open_net.junction_geodata['y'].values
+        # return geodata
+        new_geodata.loc[return_junction_indices, 'x'] = geodata_with_offset['x'].values
+        new_geodata.loc[return_junction_indices, 'y'] = geodata_with_offset['y'].values
+        closed_net.junction_geodata = new_geodata
+    #----------------------------------------------------------------------------------------------
 
     junction_mapping = pd.DataFrame(
         {'orig_junction': orig_junctions.index, 'flow_junction': new_junction_indices,
