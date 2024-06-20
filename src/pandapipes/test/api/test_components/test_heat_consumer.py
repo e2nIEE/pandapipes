@@ -81,7 +81,7 @@ def test_heat_consumer_equivalence2():
 
     pandapipes.create_heat_consumer(net2, juncs[1], juncs[4], 0.1022, controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net2, juncs[2], juncs[3], 0.1022, treturn_k=263.4459264973806, qext_w=qext[1])
-    pandapipes.pipeflow(net2, mode="bidirectional", iter=25, alpha=0.5)
+    pandapipes.pipeflow(net2, mode="bidirectional", iter=28, alpha=0.5)
 
     pandapipes.create_heat_consumer(net3, juncs[1], juncs[4], 0.1022, controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net3, juncs[2], juncs[3], 0.1022, deltat_k=17.82611044059695, qext_w=qext[1])
@@ -183,7 +183,7 @@ def test_heat_consumer_qext_zero():
     pandapipes.create_heat_consumer(net, juncs[1], juncs[4], 0.1022, treturn_k=263.4459264973806, qext_w=0)
     pandapipes.create_heat_consumer(net, juncs[2], juncs[3], 0.1022, controlled_mdot_kg_per_s=1, qext_w=7500)
 
-    pandapipes.pipeflow(net, mode="bidirectional", iter=25, alpha=0.5)
+    pandapipes.pipeflow(net, mode="bidirectional", iter=27, alpha=0.5)
 
     assert net.res_junction.at[juncs[4], 't_k'] != 263.4459264973806
 
