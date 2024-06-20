@@ -81,10 +81,12 @@ def init_results_element(net, element, output, all_float):
     """
     res_element = "res_" + element
     if all_float:
-        net[res_element] = pd.DataFrame(np.NAN, columns=output, index=net[element].index, dtype=np.float64)
+        net[res_element] = pd.DataFrame(np.nan, columns=output, index=net[element].index,
+                                        dtype=np.float64)
     else:
         net[res_element] = pd.DataFrame(np.zeros(0, dtype=output), index=[])
-        net[res_element] = pd.DataFrame(np.NaN, index=net[element].index, columns=net[res_element].columns)
+        net[res_element] = pd.DataFrame(np.nan, index=net[element].index,
+                                        columns=net[res_element].columns)
 
 
 def add_new_component(net, component, overwrite=False):
@@ -137,11 +139,11 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
         if eg_type not in mode and mode != "sequential" and mode != "bidrectional":
             continue
         if eg_type == "p":
-            val_col, type_col, eg_count_col, typ, valid_types, values = PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p",
-                                                                                                                  "pt"], p_values
+            val_col, type_col, eg_count_col, typ, valid_types, values = \
+                PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p", "pt"], p_values
         else:
-            val_col, type_col, eg_count_col, typ, valid_types, values = TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, [
-                "t", "pt"], t_values
+            val_col, type_col, eg_count_col, typ, valid_types, values = \
+                TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, ["t", "pt"], t_values
         mask = np.isin(eg_types, valid_types)
         if not np.any(mask):
             continue
@@ -149,8 +151,8 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
         juncts, press_sum, number = _sum_by_group(use_numba, junctions[mask], values[mask],
                                                   np.ones_like(values[mask], dtype=np.int32))
         index = junction_idx_lookups[juncts]
-        node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, eg_count_col] + press_sum) / (
-                number + node_pit[index, eg_count_col])
+        node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, eg_count_col]
+                                    + press_sum) / (number + node_pit[index, eg_count_col])
         node_pit[index, type_col] = typ
         node_pit[index, eg_count_col] += number
         if eg_type == 'p':

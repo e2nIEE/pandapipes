@@ -4,12 +4,12 @@
 
 import numpy as np
 import pandas as pd
-from pandapower.plotting.collections import _create_node_collection, \
-    _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection, \
-    add_cmap_to_collection, coords_from_node_geodata
-from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
 from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
     pump_patches, pressure_control_patches, compressor_patches, flow_control_patches
+from pandapipes.plotting.plotting_toolbox import coords_from_node_geodata
+from pandapower.plotting.collections import _create_node_collection, add_cmap_to_collection, \
+    _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection
+from pandapower.plotting.patch_makers import load_patches, ext_grid_patches
 from pandapower.plotting.plotting_toolbox import get_index_array
 
 try:
