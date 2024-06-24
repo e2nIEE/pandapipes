@@ -264,7 +264,6 @@ def test_select_subnet(base_net_is_wo_pumps):
         assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
     assert len(net.junction) == len(net2.junction) + 3
 
-
 def test_pit_extraction():
     max_ver = max(found_versions)
     if version.parse(max_ver) >= version.parse(minimal_version_two_nets):

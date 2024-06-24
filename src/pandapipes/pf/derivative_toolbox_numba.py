@@ -4,7 +4,7 @@ from numpy import linalg
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, FROM_NODE, TO_NODE
+    MDOTINIT, FROM_NODE, TO_NODE, TOUTINIT
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
 try:
@@ -67,8 +67,7 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         p_sum = p_init_i_abs[i] + p_init_i1_abs[i]
         p_sum_div = np.divide(1, p_sum)
         fn = from_nodes[i]
-        tn = to_nodes[i]
-        tm = (node_pit[fn, TINIT_NODE] + node_pit[tn, TINIT_NODE]) / 2
+        tm = (node_pit[fn, TINIT_NODE] + branch_pit[i][TOUTINIT]) / 2
 
         const_height =  rho[i] * GRAVITATION_CONSTANT * height_difference[i] / P_CONVERSION
         friction_term = np.divide(lambda_[i] * branch_pit[i][LENGTH], branch_pit[i][D]) + \

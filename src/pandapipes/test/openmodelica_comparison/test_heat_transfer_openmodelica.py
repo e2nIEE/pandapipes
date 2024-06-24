@@ -28,7 +28,7 @@ def test_case_delta(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.007)
     assert np.all(p_diff < 0.05)
     assert np.all(v_diff_abs < 0.05)
@@ -42,7 +42,7 @@ def test_case_delta_2sinks(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.007)
     assert np.all(p_diff < 0.02)
     assert np.all(v_diff_abs < 0.05)
@@ -56,7 +56,7 @@ def test_case_heights(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.0065)
     assert np.all(p_diff < 0.02)
     assert np.all(v_diff_abs < 0.05)
@@ -70,7 +70,7 @@ def test_case_one_pipe(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.004)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
@@ -84,7 +84,7 @@ def test_case_one_source(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.04)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
@@ -98,7 +98,7 @@ def test_case_section_variation(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     # all values of temp_diff_mean are zero except one with about 0.025
     assert np.all(temp_diff_mean < 0.03)
     assert np.all(p_diff < 0.022)
@@ -113,7 +113,7 @@ def test_case_t_cross(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.007)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
@@ -127,7 +127,7 @@ def test_case_two_pipes(use_numba, log_results=False):
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode="all", use_numba=use_numba)
+        mode='sequential', use_numba=use_numba)
     assert np.all(temp_diff_mean < 0.004)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
