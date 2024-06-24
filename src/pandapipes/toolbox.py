@@ -621,7 +621,7 @@ def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer, offset=(0,0)):
     Creates a closed loop network(DH) from an open loop network (ext grid, sinks).
     At the moment only works with one source/ext_grid and one circ_pump. Geodata copying works with new pandapower geo
      format. Also an offset can be given to have the new return junctions have an coordinates offset.
-    ToDo: multiple sources
+    ToDo: multiple sources and adapt new geo format one implemented
     :param open_net: Open Loop net to be transformed to closed loop
     :type open_net: pandapipesNet
     :param p_lift_bar: pressure lift of the circ pump
