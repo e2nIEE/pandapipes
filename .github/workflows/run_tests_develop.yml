@@ -12,9 +12,6 @@ on:
   pull_request:
     branches-ignore: [ master ]
 
-env:
-  CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -23,19 +20,18 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11']
         os:  [ ubuntu-latest, windows-latest ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest igraph pytest-split
-          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
+          python -m pip install pytest pytest-split
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
-          python -m pip install .
+          python -m pip install .["all"]
         shell: bash
       - name: List all installed packages
         run: |
@@ -43,6 +39,11 @@ jobs:
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.9' }}
         run: |
+          python -m pytest
+      - name: Test with numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          python -m pip install numba
           python -m pytest
       - name: Test with pytest and Codecov
         if: ${{ matrix.python-version == '3.9' }}
@@ -62,9 +63,9 @@ jobs:
         python-version: ['3.10']
         os:  [ ubuntu-latest, windows-latest ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -73,7 +74,7 @@ jobs:
           python -m pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
-          python -m pip install .
+          python -m pip install .["all"]
         shell: bash
       - name: List all installed packages
         run: |
@@ -94,16 +95,15 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11']
         os:  [ ubuntu-latest, windows-latest ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest==8.0.2 nbmake pytest-xdist pytest-split igraph
-          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
+          python -m pip install pytest==8.0.2 nbmake pytest-xdist pytest-split
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
           python -m pip install .
@@ -114,6 +114,11 @@ jobs:
       - name: Test with pytest
         run: |
           python -m pytest --nbmake -n=auto "./tutorials"
+      - name: Test with numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          python -m pip install numba
+          python -m pytest -n=auto "./tutorials"
 
   docs_check:
     runs-on: ubuntu-latest
@@ -121,9 +126,9 @@ jobs:
       matrix:
         python-version: [ '3.10' ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Check docs for Python ${{ matrix.python-version }}
@@ -133,6 +138,6 @@ jobs:
                               git --version;
                               python -m pip install --upgrade pip;
                               python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower;
-                              python -m pip install ."
+                              python -m pip install .['all']"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
