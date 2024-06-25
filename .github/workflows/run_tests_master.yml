@@ -47,8 +47,9 @@ jobs:
       - name: Test with pytest, Codecov and Coverage
         if: ${{ matrix.python-version == '3.9' }}
         run: |
-          python -m pip install pytest-cov coverage
-          coverage run -m pytest --nbmake -n=auto --cov=./ --cov-report=xml
+          python -m pip install pytest-cov
+          python -m pytest --nbmake -n=auto --cov=./ --cov-report=xml
+          cp ./coverage.xml ./codecov_coverage.xml
       - name: Upload coverage to Codacy
         if: ${{ matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest'}}
         env:
@@ -60,6 +61,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./codecov_coverage.xml
           verbose: true
           exclude: |
             '**/test/**'
