@@ -55,6 +55,15 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           verbose: true
+          dry_run: ${{ github.ref == 'refs/heads/develop' && 'false' || 'true' }}
+          exclude: |
+            '**/test/**'
+            '**/__init__.py'
+            'doc/**'
+            'tutorials/**'
+            'pandapipes/networks/network_files/**'
+            '**.yml'
+            '**.rst'
 
   linting:
     runs-on: ${{ matrix.os }}
