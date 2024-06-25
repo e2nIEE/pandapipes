@@ -7,3 +7,5 @@ exclude_paths:
   - 'pandapipes/networks/network_files/**'
   - '**.yml'
   - '**.rst'
+  - 'coverage.xml'
+  - '.coverage'
