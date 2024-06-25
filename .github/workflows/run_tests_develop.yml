@@ -118,7 +118,7 @@ jobs:
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           python -m pip install numba
-          python -m pytest -n=auto "./tutorials"
+          python -m pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
     runs-on: ubuntu-latest

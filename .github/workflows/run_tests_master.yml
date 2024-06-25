@@ -53,8 +53,12 @@ jobs:
         if: ${{ matrix.python-version == '3.9' }}
         uses: codecov/codecov-action@v4
         with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           verbose: true
+      - name: Upload coverage to Codacy
+        if: ${{ matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest'}}
+        uses: codacy/codacy-analysis-cli-action@master
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           upload: true
 
   tutorial_tests:
@@ -87,7 +91,7 @@ jobs:
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           python -m pip install numba
-          python -m pytest -n=auto "./tutorials"
+          python -m pytest --nbmake -n=auto "./tutorials"
 
 
   docs_check:
