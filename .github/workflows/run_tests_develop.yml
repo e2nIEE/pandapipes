@@ -55,7 +55,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           verbose: true
-          dry_run: ${{ github.ref == 'refs/heads/develop' && 'false' || 'true' }}
+          dry_run: ${{ github.ref != 'refs/heads/develop' }}
           exclude: |
             '**/test/**'
             '**/__init__.py'
