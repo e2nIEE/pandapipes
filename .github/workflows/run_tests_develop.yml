@@ -55,6 +55,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
           dry_run: ${{ github.ref != 'refs/heads/develop' }}
           exclude: |
             '**/test/**'
