@@ -248,8 +248,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
             cls.table_name(), mode)
 
         node_pit = net['_pit']['node']
-        branch_pit = net['_active_pit']['branch']
-        branch_lookups = get_lookup(net, "branch", "from_to_active_heat_transfer")
+        branch_pit = net['_pit']['branch']
+        branch_lookups = get_lookup(net, "branch", "from_to")
         f, t = branch_lookups[cls.table_name()]
 
         res_table = net["res_" + cls.table_name()]
