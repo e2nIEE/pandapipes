@@ -6,11 +6,10 @@ import numpy as np
 import pandas as pd
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
-    _add_multiple_branch_geodata, _check_branch_element, _check_multiple_branch_elements
+    _check_branch_element, _check_multiple_branch_elements
 
-from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, \
-    Compressor, MassStorage
+from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
+    CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, Compressor, MassStorage
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.component_models.flow_control_component import FlowControlComponent
 from pandapipes.component_models.heat_consumer_component import HeatConsumer
@@ -18,8 +17,7 @@ from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
-from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, \
-    load_std_type
+from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, load_std_type
 
 try:
     import pandaplan.core.pplog as logging
@@ -67,8 +65,8 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     return net
 
 
-def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in_service=True,
-                    type="junction", geodata=None, **kwargs):
+def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in_service=True, type="junction",
+                    geodata=None, **kwargs):
     """
     Adds one junction in table net["junction"]. Junctions are the nodes of the network that
     all other elements connect to.
@@ -119,8 +117,8 @@ def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in
     return index
 
 
-def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
-                type='sink', **kwargs):
+def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='sink',
+                **kwargs):
     """
     Adds one sink in table net["sink"].
 
@@ -162,8 +160,8 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
     return index
 
 
-def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
-                  type='source', **kwargs):
+def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='source',
+                  **kwargs):
     """
     Adds one source in table net["source"].
 
@@ -206,9 +204,8 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_stored_kg=0.,
-                        max_m_stored_kg=np.inf, scaling=1., name=None, index=None,
-                        in_service=True, type="mass_storage", **kwargs):
+def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_stored_kg=0., max_m_stored_kg=np.inf,
+                        scaling=1., name=None, index=None, in_service=True, type="mass_storage", **kwargs):
     """
     Adds one storage entry in table net["mass_storage"]. Not suitable for thermal storage tanks.
 
@@ -262,17 +259,16 @@ def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_
 
     index = _get_index_with_check(net, "mass_storage", index)
 
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "init_m_stored_kg", "min_m_stored_kg",
-            "max_m_stored_kg", "in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, init_m_stored_kg, min_m_stored_kg,
-            max_m_stored_kg, bool(in_service), type]
+    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "init_m_stored_kg", "min_m_stored_kg", "max_m_stored_kg",
+            "in_service", "type"]
+    vals = [name, junction, mdot_kg_per_s, scaling, init_m_stored_kg, min_m_stored_kg, max_m_stored_kg,
+            bool(in_service), type]
     _set_entries(net, "mass_storage", index, **dict(zip(cols, vals)), **kwargs)
 
     return index
 
 
-def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None, in_service=True,
-                    index=None, **kwargs):
+def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None, in_service=True, index=None, **kwargs):
     """
     Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
     that it is connected to into a node with fixed value for either pressure, temperature or both
@@ -326,8 +322,8 @@ def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None,
     return index
 
 
-def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, loss_coefficient=0,
-                          name=None, index=None, in_service=True, type="heat_exchanger", **kwargs):
+def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, loss_coefficient=0, name=None,
+                          index=None, in_service=True, type="heat_exchanger", **kwargs):
     """
     Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
 
@@ -369,16 +365,15 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     index = _get_index_with_check(net, "heat_exchanger", index, "heat exchanger")
     _check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
-         "in_service": bool(in_service), "type": type}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "diameter_m": diameter_m,
+         "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
     _set_entries(net, "heat_exchanger", index, **v, **kwargs)
 
     return index
 
 
 def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0,
-                sections=1, text_k=293, qext_w=0., name=None, index=None,
+                sections=1, text_k=0, qext_w=0., name=None, index=None,
                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -402,7 +397,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
     :param text_k: Ambient temperature of pipe in [K]
-    :type text_k: float, default 293
+    :type text_k: float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipe in [W]
     :type qext_w: float, default 0
     :param name: A name tag for this pipe
@@ -435,12 +430,10 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": std_type, "length_km": length_km,
-         "diameter_m": pipe_parameter["inner_diameter_mm"]/1000 , "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'],
-         "sections": sections, "in_service": bool(in_service), "type": type, "qext_w": qext_w,
-         "text_k": text_k}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
+         "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'], "sections": sections,
+         "in_service": bool(in_service), "type": type, "qext_w": qext_w, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
 
     if geodata is not None:
@@ -450,8 +443,8 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
 
 
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                sections=1, u_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None, geodata=None,
-                                in_service=True, type="pipe", **kwargs):
+                                sections=1, u_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
+                                geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
 
@@ -473,12 +466,12 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param u_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type u_w_per_m2k: float, default 0
+    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :type alpha_w_per_m2k: float, default 0
+    :param text_k: Ambient temperature of pipe in [K]
+    :type text_k: float, default None, will be set equal to the net ambient temperature
     :param qext_w: external heat feed-in to the pipe in [W]
     :type qext_w: float, default 0
-    :param text_k: Ambient temperature of pipe in [K]
-    :type text_k: float, default 293
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -533,8 +526,8 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     return index
 
 
-def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_coefficient=0,
-                 name=None, index=None, type='valve', **kwargs):
+def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
+                 type='valve', **kwargs):
     """
     Creates a valve element in net["valve"] from valve parameters.
 
@@ -572,16 +565,15 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
     index = _get_index_with_check(net, "valve", index)
     _check_branch(net, "Valve", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "opened": opened, "loss_coefficient": loss_coefficient,
-         "type": type}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "diameter_m": diameter_m,
+         "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
     _set_entries(net, "valve", index, **v, **kwargs)
 
     return index
 
 
-def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True,
-                type="pump", **kwargs):
+def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True, type="pump",
+                **kwargs):
     """
     Adds one pump in table net["pump"].
 
@@ -620,17 +612,16 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     _check_branch(net, "Pump", index, from_junction, to_junction)
 
     _check_std_type(net, std_type, "pump", "create_pump")
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": std_type, "in_service": bool(in_service), "type": type}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
+         "in_service": bool(in_service), "type": type}
     _set_entries(net, "pump", index, **v, **kwargs)
 
     return index
 
 
-def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name,
-                                pressure_list=None, flowrate_list=None, reg_polynomial_degree=None,
-                                poly_coefficents=None, name=None, index=None, in_service=True,
-                                type="pump", **kwargs):
+def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name, pressure_list=None,
+                                flowrate_list=None, reg_polynomial_degree=None, poly_coefficents=None, name=None,
+                                index=None, in_service=True, type="pump", **kwargs):
     """
     Adds one pump in table net["pump"].
 
@@ -691,8 +682,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     index = _get_index_with_check(net, "pump", index)
     _check_branch(net, "Pump", index, from_junction, to_junction)
 
-    if pressure_list is not None and flowrate_list is not None \
-            and reg_polynomial_degree is not None:
+    if pressure_list is not None and flowrate_list is not None and reg_polynomial_degree is not None:
         reg_par = regression_function(flowrate_list, pressure_list, reg_polynomial_degree)
         pump = PumpStdType(new_std_type_name, reg_par)
         create_pump_std_type(net, new_std_type_name, pump)
@@ -700,16 +690,15 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
         pump = PumpStdType(new_std_type_name, poly_coefficents)
         create_pump_std_type(net, new_std_type_name, pump)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": new_std_type_name, "in_service": bool(in_service), "type": type}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": new_std_type_name,
+         "in_service": bool(in_service), "type": type}
     _set_entries(net, "pump", index, **v, **kwargs)
 
     return index
 
 
-def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar,
-                                    t_flow_k=None, type="auto", name=None, index=None,
-                                    in_service=True, **kwargs):
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar, t_flow_k=None,
+                                    type="auto", name=None, index=None, in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -761,24 +750,20 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
 
     add_new_component(net, CirculationPumpPressure)
 
-    index = _get_index_with_check(net, "circ_pump_pressure", index,
-                                  name="circulation pump with constant pressure")
-    _check_branch(net, "circulation pump with constant pressure", index, return_junction,
-                  flow_junction)
+    index = _get_index_with_check(net, "circ_pump_pressure", index, name="circulation pump with constant pressure")
+    _check_branch(net, "circulation pump with constant pressure", index, return_junction, flow_junction)
 
     type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpPressure)
 
-    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "plift_bar": plift_bar, "type": type,
-         "in_service": bool(in_service)}
+    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction, "p_flow_bar": p_flow_bar,
+         "t_flow_k": t_flow_k, "plift_bar": plift_bar, "type": type, "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_pressure", index, **v, **kwargs)
 
     return index
 
 
-def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow_bar,
-                                     mdot_flow_kg_per_s, t_flow_k=None, type="auto", name=None,
-                                     index=None, in_service=True, **kwargs):
+def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow_bar, mdot_flow_kg_per_s, t_flow_k=None,
+                                     type="auto", name=None, index=None, in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].\n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -829,23 +814,20 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
 
     add_new_component(net, CirculationPumpMass)
 
-    index = _get_index_with_check(net, "circ_pump_mass", index,
-                                  name="circulation pump with constant mass flow")
-    _check_branch(net, "circulation pump with constant mass flow", index, return_junction,
-                  flow_junction)
+    index = _get_index_with_check(net, "circ_pump_mass", index, name="circulation pump with constant mass flow")
+    _check_branch(net, "circulation pump with constant mass flow", index, return_junction, flow_junction)
 
     type = _auto_ext_grid_type(p_flow_bar, t_flow_k, type, CirculationPumpMass)
 
-    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
-         "p_flow_bar": p_flow_bar, "t_flow_k": t_flow_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s,
-         "type": type, "in_service": bool(in_service)}
+    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction, "p_flow_bar": p_flow_bar,
+         "t_flow_k": t_flow_k, "mdot_flow_kg_per_s": mdot_flow_kg_per_s, "type": type, "in_service": bool(in_service)}
     _set_entries(net, "circ_pump_mass", index, **v, **kwargs)
 
     return index
 
 
-def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None,
-                      in_service=True, **kwargs):
+def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None, index=None, in_service=True,
+                      **kwargs):
     """Adds a compressor with relative pressure lift to net["compressor"].
 
     The outlet (absolute) pressure is calculated by (p_in + p_ambient) * pressure_ratio. For
@@ -882,16 +864,16 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     index = _get_index_with_check(net, "compressor", index)
     _check_branch(net, "Compressor", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "pressure_ratio": pressure_ratio, "in_service": bool(in_service)}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "pressure_ratio": pressure_ratio,
+         "in_service": bool(in_service)}
     _set_entries(net, "compressor", index, **v, **kwargs)
 
     return index
 
 
-def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar,
-                            control_active=True, loss_coefficient=0., name=None, index=None,
-                            in_service=True, type="pressure_control", **kwargs):
+def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar, control_active=True,
+                            loss_coefficient=0., name=None, index=None, in_service=True, type="pressure_control",
+                            **kwargs):
     """Adds one pressure control that enforces a pressure at a specific junction.
 
     The pressure control unit creates a pressure drop / lift between the 'from' and the 'to'
@@ -955,11 +937,10 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     # check if junctions exist to attach the pump to
     _check_branch(net, "PressureControl", index, from_junction, to_junction)
 
-    _set_entries(net, "press_control", index, name=name, from_junction=from_junction,
-                 to_junction=to_junction, controlled_junction=controlled_junction,
-                 control_active=bool(control_active), loss_coefficient=loss_coefficient,
-                 controlled_p_bar=controlled_p_bar, in_service=bool(in_service), type=type,
-                 **kwargs)
+    _set_entries(net, "press_control", index, name=name, from_junction=from_junction, to_junction=to_junction,
+                 controlled_junction=controlled_junction, control_active=bool(control_active),
+                 loss_coefficient=loss_coefficient, controlled_p_bar=controlled_p_bar, in_service=bool(in_service),
+                 type=type, **kwargs)
 
     if controlled_junction != from_junction and controlled_junction != to_junction:
         logger.warning("The pressure controller %d controls the pressure at a junction that it is "
@@ -970,9 +951,8 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     return index
 
 
-def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_s, diameter_m,
-                        control_active=True, name=None, index=None, in_service=True, type="fc",
-                        **kwargs):
+def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_s, diameter_m, control_active=True,
+                        name=None, index=None, in_service=True, type="fc", **kwargs):
     """
     Adds one flow control with a constant mass flow in table net["flow_control"].
 
@@ -1018,17 +998,16 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
     # check if junctions exist to attach the pump to
     _check_branch(net, "FlowControl", index, from_junction, to_junction)
 
-    _set_entries(net, "flow_control", index, name=name, from_junction=from_junction,
-                 to_junction=to_junction, controlled_mdot_kg_per_s=controlled_mdot_kg_per_s,
-                 diameter_m=diameter_m, control_active=bool(control_active),
-                 in_service=bool(in_service), type=type, **kwargs)
+    _set_entries(net, "flow_control", index, name=name, from_junction=from_junction, to_junction=to_junction,
+                 controlled_mdot_kg_per_s=controlled_mdot_kg_per_s, diameter_m=diameter_m,
+                 control_active=bool(control_active), in_service=bool(in_service), type=type, **kwargs)
 
     return index
 
 
-def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=None,
-                         controlled_mdot_kg_per_s=None, deltat_k=None, treturn_k=None, name=None,
-                         index=None, in_service=True, type="heat_consumer", **kwargs):
+def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=None, controlled_mdot_kg_per_s=None,
+                         deltat_k=None, treturn_k=None, name=None, index=None, in_service=True, type="heat_consumer",
+                         **kwargs):
     """
     Creates a heat consumer element in net["heat_consumer"] from heat consumer parameters.
 
@@ -1070,33 +1049,28 @@ def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=Non
         >>> create_heat_consumer(net,from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=20000,
         >>>                     controlled_mdot_kg_per_s=0.4, name="heat_consumer1")
     """
-    if deltat_k is not None or treturn_k is not None:
-        raise NotImplementedError("The models for consumers with fixed temperature difference or "
-                                  "fixed return temperature are not implemented yet.")
-    if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None)
-            + (treturn_k is None) != 2):
+    if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None) + (treturn_k is None) != 2):
         raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
-                             r"'qext_w' and 'deltat_k' or 'treturn_k' different from None")
+                             r"'qext_w' and 'deltat_k' or 'treturn_k' different from None.")
+
     if deltat_k is not None and treturn_k is not None:
         raise AttributeError(r"It is not possible to set both 'deltat_k' and 'treturn_k', as the "
                              r"flow temperature is independent of the heat consumer model.")
-
     add_new_component(net, HeatConsumer)
 
     index = _get_index_with_check(net, "heat_consumer", index, "heat consumer")
     _check_branch(net, "Heat consumer", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "diameter_m": diameter_m, "qext_w": qext_w,
-         "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "diameter_m": diameter_m,
+         "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
          "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
     _set_entries(net, "heat_consumer", index, **v, **kwargs)
 
     return index
 
 
-def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None, index=None,
-                     in_service=True, type="junction", geodata=None, **kwargs):
+def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None, index=None, in_service=True,
+                     type="junction", geodata=None, **kwargs):
     """
     Convenience function for creating many junctions at once. Parameter 'nr_junctions' specifies \
     the number of junctions created. Other parameters may be either arrays of length 'nr_junctions'\
@@ -1137,8 +1111,8 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
     add_new_component(net, Junction)
 
     index = _get_multiple_index_with_check(net, "junction", index, nr_junctions)
-    entries = {"pn_bar": pn_bar, "type": type, "tfluid_k": tfluid_k, "height_m": height_m,
-               "in_service": in_service, "name": name}
+    entries = {"pn_bar": pn_bar, "type": type, "tfluid_k": tfluid_k, "height_m": height_m, "in_service": in_service,
+               "name": name}
     _set_multiple_entries(net, "junction", index, **entries, **kwargs)
 
     if geodata is not None:
@@ -1152,8 +1126,8 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
     return index
 
 
-def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True,
-                 type='sink', **kwargs):
+def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='sink',
+                 **kwargs):
     """
     Convenience function for creating many sinks at once. Parameter 'junctions' must be an array \
     of the desired length. Other parameters may be either arrays of the same length or single \
@@ -1190,15 +1164,15 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=Non
     _check_multiple_junction_elements(net, junctions)
     index = _get_multiple_index_with_check(net, "sink", index, len(junctions))
 
-    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
-               "in_service": in_service, "name": name, "type": type}
+    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling, "in_service": in_service,
+               "name": name, "type": type}
     _set_multiple_entries(net, "sink", index, **entries, **kwargs)
 
     return index
 
 
-def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None,
-                   in_service=True, type='source', **kwargs):
+def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='source',
+                   **kwargs):
     """
     Convenience function for creating many sources at once. Parameter 'junctions' must be an array \
     of the desired length. Other parameters may be either arrays of the same length or single \
@@ -1235,15 +1209,14 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
     _check_multiple_junction_elements(net, junctions)
     index = _get_multiple_index_with_check(net, "source", index, len(junctions))
 
-    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling,
-               "in_service": in_service, "name": name, "type": type}
+    entries = {"junction": junctions, "mdot_kg_per_s": mdot_kg_per_s, "scaling": scaling, "in_service": in_service,
+               "name": name, "type": type}
     _set_multiple_entries(net, "source", index, **entries, **kwargs)
 
     return index
 
 
-def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, index=None,
-                     type="auto", **kwargs):
+def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, index=None, type="auto", **kwargs):
     """
     Convenience function for creating many external grids at once. Parameter 'junctions' must be an\
     array of the desired length. Other parameters may be either arrays of the same length or single\
@@ -1292,15 +1265,14 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
 
     type = _auto_ext_grid_types(p_bar, t_k, type, ExtGrid)
 
-    entries = {"junction": junctions, "p_bar": p_bar, "t_k": t_k,
-               "in_service": in_service, "name": name, "type": type}
+    entries = {"junction": junctions, "p_bar": p_bar, "t_k": t_k, "in_service": in_service, "name": name, "type": type}
     _set_multiple_entries(net, "ext_grid", index, **entries, **kwargs)
 
     return index
 
 
 def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2,
-                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293, qext_w=0.,
+                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None, qext_w=0.,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
@@ -1330,7 +1302,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
     :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
-    :type text_k: Iterable or float, default 293
+    :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
     :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
@@ -1381,7 +1353,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
 
 
 def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2,
-                                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293,
+                                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None,
                                  qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                  type="pipe", **kwargs):
     """
@@ -1411,7 +1383,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
     :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
-    :type text_k: Iterable or float, default 293
+    :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
     :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
@@ -1472,8 +1444,8 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     return index
 
 
-def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, loss_coefficient=0,
-                  name=None, index=None, type='valve', **kwargs):
+def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
+                  type='valve', **kwargs):
     """
     Convenience function for creating many valves at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
@@ -1516,17 +1488,16 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
     index = _get_multiple_index_with_check(net, "valve", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "valve")
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "diameter_m": diameter_m, "opened": opened, "loss_coefficient": loss_coefficient,
-               "type": type}
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "diameter_m": diameter_m,
+               "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
     _set_multiple_entries(net, "valve", index, **entries, **kwargs)
 
     return index
 
 
-def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions,
-                             controlled_p_bar, control_active=True, loss_coefficient=0., name=None,
-                             index=None, in_service=True, type="pressure_control", **kwargs):
+def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
+                             control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
+                             type="pressure_control", **kwargs):
     """
     Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1589,12 +1560,11 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
-               "control_active": control_active, "loss_coefficient": loss_coefficient,
-               "in_service": in_service, "type": type}
+               "control_active": control_active, "loss_coefficient": loss_coefficient, "in_service": in_service,
+               "type": type}
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
-    controlled_elsewhere = (controlled_junctions != from_junctions) \
-        & (controlled_junctions != to_junctions)
+    controlled_elsewhere = (controlled_junctions != from_junctions) & (controlled_junctions != to_junctions)
     if np.any(controlled_elsewhere):
         controllers_warn = index[controlled_elsewhere]
         logger.warning("The pressure controllers %s control the pressure at junctions that they are"
@@ -1605,9 +1575,8 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     return index
 
 
-def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_per_s, diameter_m,
-                         control_active=True, name=None, index=None, in_service=True, type="fc",
-                         **kwargs):
+def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_per_s, diameter_m, control_active=True,
+                         name=None, index=None, in_service=True, type="fc", **kwargs):
     """
     Convenience function for creating many flow controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1664,9 +1633,8 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     return index
 
 
-def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w,
-                           loss_coefficient=0, name=None, index=None, in_service=True,
-                           type="heat_exchanger", **kwargs):
+def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w, loss_coefficient=0, name=None,
+                           index=None, in_service=True, type="heat_exchanger", **kwargs):
     """
     Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1712,17 +1680,16 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
     index = _get_multiple_index_with_check(net, "heat_exchanger", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "diameter_m": diameter_m, "qext_w": qext_w, "loss_coefficient": loss_coefficient,
-               "in_service": bool(in_service), "type": type}
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "diameter_m": diameter_m,
+               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
     return index
 
 
-def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=None,
-                          controlled_mdot_kg_per_s=None, deltat_k=None, treturn_k=None,
-                          name=None, index=None, in_service=True, type="heat_consumer", **kwargs):
+def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=None, controlled_mdot_kg_per_s=None,
+                          deltat_k=None, treturn_k=None, name=None, index=None, in_service=True, type="heat_consumer",
+                          **kwargs):
     """
     Creates several heat consumer elements in net["heat_consumer"] from heat consumer parameters.
 
@@ -1765,9 +1732,6 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
         >>> create_heat_consumers(net,from_junctions=[0, 3], to_junctions=[1, 5], diameter_m=40e-3,
         >>>                       qext_w=20000, controlled_mdot_kg_per_s=[0.5, 0.9])
     """
-    if np.any(pd.notnull(deltat_k)) or np.any(pd.notnull(treturn_k)):
-        raise NotImplementedError("The models for consumers with fixed temperature difference or "
-                                  "fixed return temperature are not implemented yet.")
     check_vars = [controlled_mdot_kg_per_s, qext_w, deltat_k, treturn_k]
     var_sums = np.zeros([4, len(from_junctions)])
     for i, cv in enumerate(check_vars):
@@ -1785,9 +1749,8 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
     index = _get_multiple_index_with_check(net, "heat_consumer", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "heat_consumer")
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "diameter_m": diameter_m, "qext_w": qext_w,
-               "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "diameter_m": diameter_m,
+               "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
                "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
     _set_multiple_entries(net, "heat_consumer", index, **entries, **kwargs)
     return index
@@ -1823,13 +1786,11 @@ def _check_junction_element(net, junction):
 
 
 def _check_branch(net, element_name, index, from_junction, to_junction):
-    return _check_branch_element(net, element_name, index, from_junction, to_junction,
-                                 node_name="junction", plural="s")
+    return _check_branch_element(net, element_name, index, from_junction, to_junction, node_name="junction", plural="s")
 
 
 def _check_branches(net, from_junctions, to_junctions, table):
-    return _check_multiple_branch_elements(net, from_junctions, to_junctions, table,
-                                           node_name="junction", plural="s")
+    return _check_multiple_branch_elements(net, from_junctions, to_junctions, table, node_name="junction", plural="s")
 
 
 def _check_std_type(net, std_type, table, function_name):
@@ -1840,6 +1801,23 @@ def _check_std_type(net, std_type, table, function_name):
     if std_type not in net['std_types'][table]:
         raise UserWarning('%s is not given in std_types (%s). Either change std_type or define new '
                           'one' % (std_type, table))
+
+
+def _add_multiple_branch_geodata(net, table, geodata, index):
+    geo_table = f"{table}_geodata"
+    dtypes = net[geo_table].dtypes
+    df = pd.DataFrame(index=index, columns=net[geo_table].columns)
+    # works with single or multiple lists of coordinates
+    if len(geodata[0]) == 2 and not hasattr(geodata[0][0], "__iter__"):
+        # geodata is a single list of coordinates
+        df["coords"] = [geodata] * len(index)
+    else:
+        # geodata is multiple lists of coordinates
+        df["coords"] = geodata
+
+    net[geo_table] = pd.concat([net[geo_table],df], sort=False)
+
+    _preserve_dtypes(net[geo_table], dtypes)
 
 
 ALLOWED_EG_TYPES = ["auto", "t", "p", "pt", "tp"]
@@ -1864,30 +1842,25 @@ def _auto_ext_grid_type(p_bar, t_k, typ, comp):
     p_null, t_null = p_bar is None or np.isnan(p_bar), t_k is None or np.isnan(t_k)
 
     if p_null and t_null:
-        raise UserWarning("For component %s, either pressure or temperature must be defined!"
-                          % comp.__name__)
+        raise UserWarning("For component %s, either pressure or temperature must be defined!" % comp.__name__)
 
     if typ not in ALLOWED_EG_TYPES:
         logger.warning("The type for component %s was %s, but must be one of the following for "
                        "correct model implementation: %s." % (comp.__name__, typ, ALLOWED_EG_TYPES))
 
     if typ not in ["t", "auto"] and p_null:
-        raise UserWarning("The type %s for component %s requires a pressure as input!"
-                          % (typ, comp.__name__))
+        raise UserWarning("The type %s for component %s requires a pressure as input!" % (typ, comp.__name__))
 
     if typ not in ["p", "auto"] and t_null:
-        raise UserWarning("The type %s for component %s requires a temperature as input!"
-                          % (typ, comp.__name__))
+        raise UserWarning("The type %s for component %s requires a temperature as input!" % (typ, comp.__name__))
 
     if typ != "auto" and "p" not in typ and not p_null:
         logger.warning("For component %s you gave a value for p, although the component is not of "
-                       "'p'-type (type is %s), i.e. this value is probably neglected internally."
-                       % (comp, typ))
+                       "'p'-type (type is %s), i.e. this value is probably neglected internally." % (comp, typ))
 
     if typ != "auto" and "t" not in typ and not t_null:
         logger.warning("For component %s you gave a value for t, although the component is not of "
-                       "'t'-type (type is %s), i.e. this value is probably neglected internally."
-                       % (comp, typ))
+                       "'t'-type (type is %s), i.e. this value is probably neglected internally." % (comp, typ))
 
     if typ == "tp":
         logger.warning("The type 'tp' is replaced by type 'pt' (might be mistaken internally).")
@@ -1931,8 +1904,7 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
     if not any([p_arr, t_arr, typ_arr]):
         return _auto_ext_grid_type(p_bar, t_k, typ, comp)
     else:
-        lengths = np.array([len(arr) for arr, it in zip([p_bar, t_k, typ], [p_arr, t_arr, typ_arr])
-                            if it])
+        lengths = np.array([len(arr) for arr, it in zip([p_bar, t_k, typ], [p_arr, t_arr, typ_arr]) if it])
         if not np.array_equal(lengths[1:], lengths[:-1]):
             raise UserWarning("The arrays for p_bar, t_k and type must have equal length!")
         length = lengths[0]
@@ -1961,8 +1933,8 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
         pos_not_allowed_types = np.where(not_allowed_types)
         overview = pd.DataFrame({"Position": pos_not_allowed_types, "Type": typ_not_allowed_types})
         logger.warning("Please check the following types for component %s, as they must be one of "
-                       "the following for correct model implementation: %s. \n%s"
-                       % (comp.__name__, ALLOWED_EG_TYPES, overview))
+                       "the following for correct model implementation: %s. \n%s" % (
+                       comp.__name__, ALLOWED_EG_TYPES, overview))
 
     p_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["t", "auto"]])
     t_types = np.isin(typ, [tp for tp in ALLOWED_EG_TYPES if tp not in ["p", "auto"]])
@@ -1985,8 +1957,7 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
 
     ununsed_p = ~auto_types & ~p_null & ~p_types
     if np.any(ununsed_p):
-        overview = pd.DataFrame({"Positions": np.where(ununsed_p)[0],
-                                 "Type": np.array(typ)[ununsed_p],
+        overview = pd.DataFrame({"Positions": np.where(ununsed_p)[0], "Type": np.array(typ)[ununsed_p],
                                  "p_value": np.array(p_bar)[ununsed_p]})
         logger.warning("For component %s you gave a value for p in some cases, although the "
                        "respective components are not of 'p'-type, i.e. the given values are "
@@ -1994,8 +1965,7 @@ def _auto_ext_grid_types(p_bar, t_k, typ, comp):
 
     ununsed_t = ~auto_types & ~t_null & ~t_types
     if np.any(ununsed_t):
-        overview = pd.DataFrame({"Positions": np.where(ununsed_t)[0],
-                                 "Type": np.array(typ)[ununsed_t],
+        overview = pd.DataFrame({"Positions": np.where(ununsed_t)[0], "Type": np.array(typ)[ununsed_t],
                                  "t_value": np.array(p_bar)[ununsed_t]})
         logger.warning("For component %s you gave a value for t in some cases, although the "
                        "respective components are not of 't'-type, i.e. the given values are "

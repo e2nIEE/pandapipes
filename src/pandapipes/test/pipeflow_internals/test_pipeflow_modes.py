@@ -86,7 +86,7 @@ def test_heat_only(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         stop_condition="tol", friction_model="nikuradse",
-                        nonlinear_method="automatic", mode="all", use_numba=use_numba)
+                        nonlinear_method="automatic", mode='sequential', use_numba=use_numba)
 
     ntw = pandapipes.create_empty_network("net")
     d = 75e-3

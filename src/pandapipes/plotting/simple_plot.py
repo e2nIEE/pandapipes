@@ -13,7 +13,7 @@ from pandapipes.component_models.pump_component import Pump
 from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
     create_valve_collection, create_source_collection, create_pressure_control_collection, \
     create_heat_exchanger_collection, create_sink_collection, create_pump_collection, \
-    create_compressor_collection, create_flow_control_collection
+    create_compressor_collection, create_flow_control_collection, create_heat_consumer_collection
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
 from pandapipes.plotting.plotting_toolbox import get_collection_sizes
 
@@ -29,10 +29,10 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                 junction_size=1.0, ext_grid_size=1.0, plot_sinks=False, plot_sources=False,
                 sink_size=1.0, source_size=1.0, valve_size=1.0, pump_size=1.0,
                 heat_exchanger_size=1.0, pressure_control_size=1.0, compressor_size=1.0, flow_control_size=1.0,
-                scale_size=True, junction_color="r", pipe_color='silver', ext_grid_color='orange',
-                valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
+                heat_consumer_size=1.0, scale_size=True, junction_color="r", pipe_color='silver',
+                ext_grid_color='orange', valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
                 pressure_control_color='silver', compressor_color='silver', flow_control_color='silver',
-                library="igraph", show_plot=True, ax=None, **kwargs):
+                heat_consumer_color='silver',library="igraph", show_plot=True, ax=None, **kwargs):
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
     geodata is generated. For advanced plotting see
@@ -74,6 +74,8 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
     :type compressor_size: float, default 1.0
     :param flow_control_size: Relative size of flow_control to plot.
     :type flow_control_size: float, default 1.0
+    :param heat_consumer_size: Relative size of heat_consumer to plot.
+    :type heat_consumer_size: float, default 1.0
     :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
             scaled with respect to grid mean distances
     :type scale_size: bool, default True
@@ -96,6 +98,8 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
     :type compressor_color: str, tuple, default "silver"
     :param flow_control_color: Flow Control Color.
     :type flow_control_color: str, tuple, default "silver"
+    :param heat_consumer_color: heat_consumer Color.
+    :type heat_consumer_color: str, tuple, default "silver"
     :param library: Library name to create generic coordinates (case of missing geodata). Choose\
             "igraph" to use igraph package or "networkx" to use networkx package.
     :type library: str, default "igraph"
@@ -122,6 +126,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                                             pressure_control_size=pressure_control_size,
                                             compressor_size=compressor_size,
                                             flow_control_size=flow_control_size,
+                                            heat_consumer_size=heat_consumer_size,
                                             scale_size=scale_size,
                                             junction_color=junction_color,
                                             pipe_color=pipe_color,
@@ -132,6 +137,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                                             pressure_control_color=pressure_control_color,
                                             compressor_color=compressor_color,
                                             flow_control_color=flow_control_color,
+                                            heat_consumer_color=heat_consumer_color,
                                             library=library,
                                             as_dict=False, **kwargs)
     ax = draw_collections(collections, ax=ax)
@@ -145,11 +151,11 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                               junction_size=1.0, ext_grid_size=1.0, plot_sinks=False,
                               plot_sources=False, sink_size=1.0, source_size=1.0, valve_size=1.0,
                               pump_size=1.0, heat_exchanger_size=1.0, pressure_control_size=1.0,
-                              compressor_size=1.0, flow_control_size=1.0,
+                              compressor_size=1.0, flow_control_size=1.0, heat_consumer_size=1.0,
                               scale_size=True, junction_color="r", pipe_color='silver',
                               ext_grid_color='orange', valve_color='silver', pump_color='silver',
                               heat_exchanger_color='silver', pressure_control_color='silver',
-                              compressor_color='silver', flow_control_color='silver',
+                              compressor_color='silver', flow_control_color='silver', heat_consumer_color='silver',
                               library="igraph", as_dict=True, **kwargs):
     """
     Plots a pandapipes network as simple as possible.
@@ -194,6 +200,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :type compressor_size: float, default 1.0
     :param flow_control_size: Relative size of flow_control to plot.
     :type flow_control_size: float, default 1.0
+    :param heat_consumer_size: Relative size of heat_consumer to plot.
+    :type heat_consumer_size: float, default 1.0
     :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
             scaled with respect to grid mean distances
     :type scale_size: bool, default True
@@ -216,6 +224,8 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :type compressor_color: str, tuple, default "silver"
     :param flow_control_color: Flow Control Color.
     :type flow_control_color: str, tuple, default "silver"
+    :param heat_consumer_color: heat_consumer Color.
+    :type heat_consumer_color: str, tuple, default "silver"
     :param library: library name to create generic coordinates (case of missing geodata). Choose\
             "igraph" to use igraph package or "networkx" to use networkx package. **NOTE**: \
             Currently the networkx implementation is not working!
@@ -236,7 +246,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         # if scale_size -> calc size from distance between min and max geocoord
         sizes = get_collection_sizes(
             net, junction_size, ext_grid_size, sink_size, source_size, valve_size, pump_size,
-            heat_exchanger_size, pressure_control_size, compressor_size, flow_control_size)
+            heat_exchanger_size, pressure_control_size, compressor_size, flow_control_size, heat_consumer_size)
         junction_size = sizes["junction"]
         ext_grid_size = sizes["ext_grid"]
         source_size = sizes["source"]
@@ -247,6 +257,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         pressure_control_size = sizes["pressure_control"]
         compressor_size = sizes["compressor"]
         flow_control_size = sizes["flow_control"]
+        heat_consumer_size = sizes["heat_consumer"]
 
     # create junction collections to plot
     junc_idx = net.junction[net.junction.in_service].index if respect_in_service \
@@ -339,6 +350,13 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         compr_colls = create_compressor_collection(net, idx, size=compressor_size,
                                                    linewidths=pipe_width, color=compressor_color)
         collections["compressor"] = compr_colls
+
+    if 'heat_consumer' in net:
+        idx = net.heat_consumer[net.heat_consumer.in_service].index if respect_in_service \
+            else net.heat_consumer.index
+        he_colls = create_heat_consumer_collection(net, idx, size=heat_consumer_size,
+                                                   linewidths=pipe_width, color=heat_consumer_color)
+        collections["heat consumers"] = he_colls
 
     if 'additional_collections' in kwargs:
         collections["additional"] = list()

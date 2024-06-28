@@ -2,7 +2,7 @@ import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, MDOTINIT, RE, \
-    LAMBDA, FROM_NODE_T, TO_NODE_T, PL, TOUTINIT, AREA
+    LAMBDA, FROM_NODE_T, TO_NODE_T, PL, TOUTINIT, AREA, TEXT
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
@@ -21,7 +21,7 @@ def extract_all_results(net, calculation_mode):
 
     :param net: pandapipes net for which to extract results into net.res_xy
     :type net: pandapipesNet
-    :param net: mode of the simulation (e.g. "hydraulics" or "heat" or "all")
+    :param net: mode of the simulation (e.g. "hydraulics" or "heat" or "sequential" or "bidirectional")
     :type net: str
     :return: No output
 
@@ -182,7 +182,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
         if result_mode == "hydraulics" and simulation_mode == "heat":
             continue
         lookup_name = "hydraulics"
-        if result_mode == "heat" and simulation_mode in ["heat", "all"]:
+        if result_mode == "heat" and simulation_mode in ["heat", "sequential", "bidirectional"]:
             lookup_name = "heat_transfer"
         comp_connected = get_lookup(net, "branch", "active_" + lookup_name)[f:t]
         for (res_ext, node_name) in ((res_nodes_from, "from_nodes"), (res_nodes_to, "to_nodes")):
@@ -233,7 +233,7 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
     :type required_results_heat: list[tuple]
     :param table_name: The name of the table that the results should be written to
     :type table_name: str
-    :param simulation_mode: simulation mode (e.g. "hydraulics", "heat", "all"); defines whether results from \
+    :param simulation_mode: simulation mode (e.g. "hydraulics", "heat", "sequential", "bidirectional"); defines whether results from \
         hydraulic or temperature calculation are transferred
     :type simulation_mode: str
     :return: No output
@@ -243,7 +243,7 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
     f, t = get_lookup(net, "branch", "from_to")[table_name]
 
     # extract hydraulic results
-    if simulation_mode in ["hydraulics", "all"]:
+    if simulation_mode in ["hydraulics", 'sequential', "bidirectional"]:
         # lookup for connected branch elements (hydraulic results)
         comp_connected_hyd = get_lookup(net, "branch", "active_hydraulics")[f:t]
         for res_name, entry in required_results_hydraulic:
@@ -255,7 +255,7 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
                     branch_results[entry][f:t][comp_connected_hyd]
 
     # extract heat transfer results
-    if simulation_mode in ["heat", "all"]:
+    if simulation_mode in ["heat", 'sequential', "bidirectional"]:
         # lookup for connected branch elements (heat transfer results)
         comp_connected_ht = get_lookup(net, "branch", "active_heat_transfer")[f:t]
         for res_name, entry in required_results_heat:
@@ -286,20 +286,23 @@ def extract_results_active_pit(net, mode="hydraulics"):
     result_branch_col = MDOTINIT if mode == "hydraulics" else TOUTINIT
     not_affected_branch_col = TOUTINIT if mode == "hydraulics" else MDOTINIT
     copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
-                                   if i not in [FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T,
+                                   if i not in [FROM_NODE, TO_NODE,
                                                 not_affected_branch_col]])
     rows_branches = np.arange(net["_pit"]["branch"].shape[0])[branches_connected]
 
-    net["_pit"]["node"][~nodes_connected, result_node_col] = np.NaN
+    amb = get_net_option(net, 'ambient_temperature')
+
+    net["_pit"]["node"][~nodes_connected, result_node_col] = np.NaN if mode == "hydraulics" else amb
     net["_pit"]["node"][rows_nodes[:, np.newaxis], copied_node_cols[np.newaxis, :]] = \
         net["_active_pit"]["node"][:, copied_node_cols]
-    net["_pit"]["branch"][~branches_connected, result_branch_col] = np.NaN
+    net["_pit"]["branch"][~branches_connected, result_branch_col] = np.NaN if mode == "hydraulics" else \
+        net["_pit"]["branch"][~branches_connected, TEXT]
     net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
         net["_active_pit"]["branch"][:, copied_branch_cols]
 
 
 def consider_heat(mode, results=None):
-    consider_ = mode in ["heat", "all"]
+    consider_ = mode in ["heat", 'sequential', 'bidirectional']
     if results is None:
         return consider_
     return consider_ and any(r[2] for r in results)

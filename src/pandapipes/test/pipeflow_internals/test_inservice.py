@@ -306,7 +306,7 @@ def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 3 if use_numba else 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                        mode="all", check_connectivity=True, use_numba=use_numba)
+                        mode='sequential', check_connectivity=True, use_numba=use_numba)
 
     oos_juncs_hyd = {4, 5, 6, 7}
     oos_pipe_hyd = {5, 7, 8, 9}
@@ -346,7 +346,7 @@ def test_connectivity_heat2(complex_heat_connectivity_grid, use_numba):
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 5 if use_numba else 5
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                        mode="all", check_connectivity=True, use_numba=use_numba)
+                        mode='sequential', check_connectivity=True, use_numba=use_numba)
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index) == {4}
     assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) \
@@ -379,7 +379,7 @@ def test_connectivity_heat3(complex_heat_connectivity_grid, use_numba):
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                        mode="all", check_connectivity=True, use_numba=use_numba)
+                        mode='sequential', check_connectivity=True, use_numba=use_numba)
 
     assert set(net.res_junction.loc[net.res_junction.p_bar.isnull()].index) == set()
     assert set(net.res_junction.loc[net.res_junction.p_bar.notnull()].index) \
@@ -415,9 +415,9 @@ def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
     max_iter_hyd = 9 if use_numba else 9
     max_iter_therm = 6 if use_numba else 6
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                        mode="all", check_connectivity=True, use_numba=use_numba)
+                        mode='sequential', check_connectivity=True, use_numba=use_numba)
     pandapipes.pipeflow(net2, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                        mode="all", check_connectivity=False, use_numba=use_numba)
+                        mode='sequential', check_connectivity=False, use_numba=use_numba)
 
     assert pandapipes.nets_equal(net, net2, check_only_results=True)
 
@@ -439,11 +439,11 @@ def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
     max_iter_hyd = 9 if use_numba else 9
     max_iter_therm = 3 if use_numba else 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                        check_connectivity=True, mode='all', use_numba=use_numba)
+                        check_connectivity=True, mode='sequential', use_numba=use_numba)
 
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-                            check_connectivity=False, mode='all', use_numba=use_numba)
+                            check_connectivity=False, mode='sequential', use_numba=use_numba)
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -669,7 +669,7 @@ def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
     assert net.converged
 
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='all', max_iter_hyd=max_iter_hyd,
+        pandapipes.pipeflow(net, mode='sequential', max_iter_hyd=max_iter_hyd,
                             tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
     assert ~net.converged

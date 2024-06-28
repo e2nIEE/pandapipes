@@ -98,7 +98,7 @@ def test_t_type_single_pipe(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -119,7 +119,7 @@ def test_t_type_single_pipe(use_numba):
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_m=1e-4,
-                        mode="all", use_numba=use_numba)
+                        mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -161,7 +161,7 @@ def test_t_type_tee(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -187,7 +187,7 @@ def test_t_type_tee(use_numba):
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_m=1e-4,
-                        mode="all", use_numba=use_numba)
+                        mode='sequential', use_numba=use_numba)
     temp2 = net2.res_junction.t_k.values
 
     temp_diff = np.abs(1 - temp / temp2)
@@ -231,7 +231,7 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -261,7 +261,7 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -305,7 +305,7 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -335,7 +335,7 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -381,7 +381,7 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -411,7 +411,7 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
