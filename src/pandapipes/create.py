@@ -4,6 +4,7 @@
 
 import numpy as np
 import pandas as pd
+from pandapower.auxiliary import _preserve_dtypes
 import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
