@@ -4,6 +4,7 @@
 
 import numpy as np
 import pandas as pd
+import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
     _check_branch_element, _check_multiple_branch_elements
@@ -429,6 +430,10 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     _check_branch(net, "Pipe", index, from_junction, to_junction)
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
+    if "alpha_w_per_m2k" in kwargs:
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k. U is extracted from the std_type"
+                      , DeprecationWarning)
+
     pipe_parameter = load_std_type(net, std_type, "pipe")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
          "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
@@ -506,7 +511,8 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
         if u_w_per_m2k == 0:
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
 
-        raise DeprecationWarning(' In the future alpha will be renamed to u')
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.",
+                      DeprecationWarning)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
@@ -1422,7 +1428,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
         if u_w_per_m2k == 0:
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
 
-        raise DeprecationWarning(' In the future alpha will be renamed to u')
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.", DeprecationWarning)
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
