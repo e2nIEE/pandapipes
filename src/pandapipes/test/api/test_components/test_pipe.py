@@ -6,7 +6,7 @@ import pytest
 
 import pandapipes
 from pandapipes.properties.fluids import _add_fluid_to_net
-
+import copy
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pipe_velocity_results(use_numba):
@@ -73,3 +73,30 @@ def test_pipe_velocity_results(use_numba):
 
     assert np.all(np.abs(diff_from) < 1e-9)
     assert np.all(np.abs(diff_to) < 1e-9)
+
+@pytest.fixture
+def create_empty_net():
+    return pandapipes.create_empty_network()
+
+def test_namechange_pipe_from_parameters(create_empty_net):
+    net = copy.deepcopy(create_empty_net)
+    length_km = 1
+    diameter_m = 0.01
+    alpha = 5
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    with pytest.warns(DeprecationWarning):
+        pandapipes.create_pipe_from_parameters(net, 0, 1, length_km, diameter_m, alpha_w_per_m2k=alpha)
+        assert net.pipe.u_w_per_m2k.values == alpha
+
+def test_namechange_pipes_from_parameters(create_empty_net):
+    net = copy.deepcopy(create_empty_net)
+    length_km = 1
+    diameter_m = 0.01
+    alpha = [5,3]
+    j1 = pandapipes.create_junction(net, 3, 273)
+    j2 = pandapipes.create_junction(net, 3, 273)
+    j3 = pandapipes.create_junction(net, 3, 273)
+    with pytest.warns(DeprecationWarning):
+        pandapipes.create_pipes_from_parameters(net, [0,1], [1,2], length_km, diameter_m, alpha_w_per_m2k=alpha)
+        assert net.pipe.u_w_per_m2k.values.tolist() == alpha

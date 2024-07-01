@@ -5,6 +5,7 @@
 import numpy as np
 import pandas as pd
 from pandapower.auxiliary import _preserve_dtypes
+import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
     _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
     _check_branch_element, _check_multiple_branch_elements
@@ -373,9 +374,9 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     return index
 
 
-def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0, sections=1,
-                alpha_w_per_m2k=0., text_k=None, qext_w=0.,name=None, index=None, geodata=None, in_service=True,
-                type="pipe", **kwargs):
+def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0,
+                sections=1, text_k=0, qext_w=0., name=None, index=None,
+                geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
 
@@ -397,8 +398,6 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipe in [W]
@@ -432,10 +431,14 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     _check_branch(net, "Pipe", index, from_junction, to_junction)
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
+    if "alpha_w_per_m2k" in kwargs:
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k. U is extracted from the std_type"
+                      , DeprecationWarning)
+
     pipe_parameter = load_std_type(net, std_type, "pipe")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
          "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'], "sections": sections,
          "in_service": bool(in_service), "type": type, "qext_w": qext_w, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
 
@@ -446,7 +449,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
 
 
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                sections=1, alpha_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
+                                sections=1, u_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
                                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -494,8 +497,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1,
-        >>>                             length_km=1, diameter_m=40e-3)
+        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1, diameter_m=40e-3)
 
     """
     add_new_component(net, Pipe)
@@ -503,10 +505,22 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": None,
-         "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm, "loss_coefficient": loss_coefficient,
-         "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections, "in_service": bool(in_service), "type": type,
-         "qext_w": qext_w, "text_k": text_k}
+
+    #Check if alpha parameter was declared (Alpha has been changed to U)
+    if 'alpha_w_per_m2k' in kwargs:
+
+        if u_w_per_m2k == 0:
+            u_w_per_m2k = kwargs['alpha_w_per_m2k']
+
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.",
+                      DeprecationWarning)
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+         "sections": sections, "in_service": bool(in_service),
+         "type": type, "qext_w": qext_w, "text_k": text_k}
+
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
                           'create a pipe setting specific, individual parameters. If you want to '
@@ -1264,9 +1278,9 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
     return index
 
 
-def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2, loss_coefficient=0, sections=1,
-                 alpha_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None, geodata=None, in_service=True,
-                 type="pipe", **kwargs):
+def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2,
+                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None, qext_w=0.,
+                 name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
@@ -1292,8 +1306,8 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
-    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
@@ -1332,10 +1346,12 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     _check_std_type(net, std_type, "pipe", "create_pipes")
 
     pipe_parameters = load_std_type(net, std_type, "pipe")
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "std_type": std_type,
-               "length_km": length_km, "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-               "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections,
-               "in_service": in_service, "type": type, "qext_w": qext_w, "text_k": text_k}
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "std_type": std_type, "length_km": length_km,
+               "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
+               "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
+               "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
     if geodata is not None:
@@ -1343,9 +1359,10 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     return index
 
 
-def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                 sections=1, alpha_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
-                                 geodata=None, in_service=True, type="pipe", **kwargs):
+def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2,
+                                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None,
+                                 qext_w=0., name=None, index=None, geodata=None, in_service=True,
+                                 type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
@@ -1370,8 +1387,8 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
-    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
@@ -1407,10 +1424,26 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "pipe")
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "std_type": None,
-               "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm, "loss_coefficient": loss_coefficient,
-               "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections, "in_service": in_service, "type": type,
-               "qext_w": qext_w, "text_k": text_k}
+    if 'alpha_w_per_m2k' in kwargs:
+
+        if u_w_per_m2k == 0:
+            u_w_per_m2k = kwargs['alpha_w_per_m2k']
+
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.", DeprecationWarning)
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+               "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
+               "text_k": text_k}
+
+
+
+
+    if 'std_type' in kwargs:
+        raise UserWarning('you have defined a std_type, however, using this function you can only '
+                          'create a pipe setting specific, individual parameters. If you want to '
+                          'create a pipe from net.std_types, please use `create_pipe`')
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
     if geodata is not None:

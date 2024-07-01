@@ -69,7 +69,7 @@ class ValvePipe(Pipe):
                 ("max_vdot_m3_per_s", 'f8'),
                 ("max_v_m_per_s", 'f8'),
                 ("in_service", 'bool'),
-                ("alpha_w_per_m2k", 'f8'),
+                ("u_w_per_m2k", 'f8'),
                 ("qext_w", 'f8'),
                 ("type", dtype(object)),
                 ('index', 'u4')]
