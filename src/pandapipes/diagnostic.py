@@ -63,13 +63,13 @@ def check_net(net, low_length_limit_km=0.01, check_scaling_factor=1e-5):
                     f"\t\tThe error message is: {e}")
 
     # check iterations
-    iter = 200
+    iterations = 200
     try:
-        pp.pipeflow(net, iter=iter)
+        pp.pipeflow(net, iter=iterations)
         logger.info(f"The pipeflow converges after {net._internal_results['iterations']:d} "
                     f"iterations.")
     except PipeflowNotConverged:
-        logger.info(f"After {iter:d} iterations the pipeflow did NOT converge.")
+        logger.info(f"After {iterations:d} iterations the pipeflow did NOT converge.")
 
     # check with little sink and source scaling
     logger.info("Testing with scaled-down sinks and sources.")
