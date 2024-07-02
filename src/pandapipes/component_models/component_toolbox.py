@@ -215,8 +215,8 @@ def get_component_array(net, component_name, component_type="branch", mode='hydr
     :return: component_array - internal array of the component
     :rtype: numpy.ndarray
     """
-    f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
     if not only_active:
         return net["_pit"]["components"][component_name]
+    f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
     in_service_elm = get_lookup(net, component_type, "active_%s"%mode)[f_all:t_all]
     return net["_pit"]["components"][component_name][in_service_elm]

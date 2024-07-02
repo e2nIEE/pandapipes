@@ -1,6 +1,7 @@
 # Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+from typing import Iterable
 
 import numpy as np
 import pandas as pd
@@ -1426,19 +1427,18 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
 
     if 'alpha_w_per_m2k' in kwargs:
 
-        if u_w_per_m2k == 0:
+        if (not isinstance(u_w_per_m2k, Iterable) and isinstance(u_w_per_m2k, float)
+                and u_w_per_m2k == 0.):
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
 
-        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.", DeprecationWarning)
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
+                      "It will be removed in future.", DeprecationWarning)
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
                "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
                "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
                "text_k": text_k}
-
-
-
 
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
