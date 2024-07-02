@@ -1,11 +1,67 @@
 Change Log
 =============
 
-[upcoming release] - 2023-..-..
+
+-[ADDED] heat_consumer plotting
+-[CHANGED] switched from setup.py to pyproject.toml
+- [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
+- [ADDED] variable "u_w_per_m2k" to std_type pipe
+- [ADDED] standard district heating pipe types
+
+
+
+[0.10.0] - 2024-04-09
 -------------------------------
+
+- [ADDED] function for plotting pressure profile
+- [ADDED] function for calculating distance to junctions
+- [ADDED] topology function for returning unsupplied junctions
+- [ADDED] topology function for returning elements on path
+- [ADDED] function for getting all branch-component table names
+- [ADDED] function for getting all branch-component models
+- [ADDED] component 'heat_consumer' that combines the two components heat_exchanger and flow_control
+- [CHANGED] moving generalizing pit entries up from specific components to the abstract class
+- [CHANGED] 'JAC_DERIV_DT1' to 'JAC_DERIV_DTOUT'
+- [CHANGED] solving for minit instead of vinit
+- [CHANGED] distinct max. iteration settings for hydraulic and thermal calculation
+- [CHANGED] default tolerances from 1e-4 to 1e-5
+- [FIXED] results of old grid are wrong, pipeflow needs to be conducted again
+- [FIXED] taking norm density instead of real density in Darcy-Weisbach equation
+- [FIXED] in circulation pumps only junctions in-service are considered
+
+[0.9.0] - 2023-12-22
+-------------------------------
+
 - [ADDED] multiple creation of heat exchanger
 - [ADDED] support Python 3.11 (now included in test pipeline)
+- [ADDED] after the connectivity check, intercept the pipeflow if no more nodes are in-service (heat and hydraulic)
+- [ADDED] adding biomethane (pure and treated) as additonal fluid
+- [ADDED] result tables can be assembled modularly
 - [CHANGED] dropped support for Python 3.7 (no longer included in test pipeline)
+- [CHANGED] connectivity check now separated by hydraulics and heat_transfer calculation, so that also results can differ in some rows (NaN or not)
+- [CHANGED] dynamic creation of lookups for getting pit as pandas tables
+- [CHANGED] components can have their own internal arrays for specific calculations (e.g. for compressor pressure ratio), so that the pit does not need to include such component specific entries
+- [CHANGED] .readthedocs.yml due to deprecation
+- [CHANGED] changing from setuptools flat-layout into src-layout
+- [CHANGED] calculate thermal derivative globally, adaptions before/after can be done component-wise
+- [CHANGED] moving 'PipeflowNotConverged' error from pipeflow to pipeflow_setup
+- [CHANGED] moving 'result_extraction' under pf folder
+- [FIXED] in STANET converter: bug fix for heat exchanger creation and external temperatures of pipes added
+- [FIXED] build igraph considers all components
+- [FIXED] creating nxgraph and considering pressure circulation pumps correctly
+- [FIXED] error in tutorial 'circular flow in a district heating grid'
+- [FIXED] caused error during 'pip install pandapipes'
+- [REMOVED] broken travis badge removed from readme
+- [REMOVED] branch TINIT removed as it is not a solution variable, temperature determined on the fly
+- [REMOVED] 'converged' setting from options
+
+[0.8.5] - 2023-06-19
+-------------------------------
+- [FIXED] consider ambient pressure in calculation of compression power for pumps/compressors
+- [FIXED] np.bool error in pipeflow calculation due to deprecation of np.bool
+- [FIXED] use igraph package instead of python-igraph (has been renamed)
+- [ADDED] gas specific calculation of heat capacity ration kappa = cp/cv (for pumps/compressors)
+- [REMOVED] Python 3.7 removed from test pipeline due to inconsistencies with pandapower
 
 [0.8.4] - 2023-02-02
 -------------------------------
