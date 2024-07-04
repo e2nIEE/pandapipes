@@ -94,12 +94,12 @@ def plot_pressure_profile(net, ax=None, x0_junctions=None, plot_pressure_control
         if hasattr(net, "circ_pump_pressure"):
             x0_junctions |= set(net.circ_pump_pressure[net.circ_pump_pressure.in_service].flow_junction.values)
             warn(UserWarning(
-                f'For circ pumps, if no x0_junctions are given the flow junctions is chosen automatically:'
+                f'For circ pumps, if no x0_junctions are given the flow junctions are chosen automatically:'
                 f' {x0_junctions}'))
         if hasattr(net, "circ_pump_mass"):
             x0_junctions |= set(net.circ_pump_mass[net.circ_pump_mass.in_service].flow_junction.values)
             warn(UserWarning(
-                f'For circ pumps, if no x0_junctions are given the flow junctions is chosen automatically:'
+                f'For circ pumps, if no x0_junctions are given the flow junctions are chosen automatically:'
                 f' {x0_junctions}'))
         x0_junctions = list(x0_junctions)
 
