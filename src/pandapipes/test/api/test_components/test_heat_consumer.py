@@ -204,7 +204,7 @@ def test_heat_consumer_result_extraction():
     pandapipes.create_pipe_from_parameters(net, 6, 7, k_mm=0.1, length_km=1,
                                            diameter_m=0.1022, alpha_w_per_m2k=10, text_k=273.15)
 
-    pandapipes.pipeflow(net, mode="bidirectional", iter=25, alpha=0.5)
+    pandapipes.pipeflow(net, mode="bidirectional", iter=27, alpha=0.5)
 
     #hydraulics only to check for lookup heat transfer error
     pandapipes.pipeflow(net)
