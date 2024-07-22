@@ -112,7 +112,7 @@ class Pipe(BranchWInternalsComponent):
         set_entry_check_repeat(
             pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
         set_entry_check_repeat(
-            pipe_pit, ALPHA, net[tbl].alpha_w_per_m2k.values, internal_pipe_number, has_internals)
+            pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
         set_entry_check_repeat(
             pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
         set_entry_check_repeat(
@@ -266,7 +266,7 @@ class Pipe(BranchWInternalsComponent):
                 ("diameter_m", "f8"),
                 ("k_mm", "f8"),
                 ("loss_coefficient", "f8"),
-                ("alpha_w_per_m2k", 'f8'),
+                ("u_w_per_m2k", 'f8'),
                 ("text_k", 'f8'),
                 ("qext_w", 'f8'),
                 ("sections", "u4"),
