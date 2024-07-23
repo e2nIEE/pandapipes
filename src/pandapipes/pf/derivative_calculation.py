@@ -105,8 +105,8 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DT_NODE_N] = - m_init * cp_n
     branch_pit[:, LOAD_VEC_NODES_T] = m_init * t_init_i1 * cp_out - m_init * t_init_n * cp_n
 
-    infeed_node = (
-        list(set(from_nodes[branch_pit[:, PUMP_TYPE] != CIRC]) - set(to_nodes[branch_pit[:, PUMP_TYPE] != CIRC])))
+    no_cp = branch_pit[:, PUMP_TYPE] != CIRC
+    infeed_node = np.setdiff1d(from_nodes[no_cp], to_nodes[no_cp])
     slack_nodes = np.where(node_pit[:, NODE_TYPE_T] == T)[0]
     if len(infeed_node) != len(slack_nodes):
         raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
