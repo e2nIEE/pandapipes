@@ -8,6 +8,7 @@ L = 2  # All other nodes
 T = 10  # Reference node with fixed temperature, otherwise 0
 PC = 20  # Controlled node with fixed pressure p
 NONE = 3  # None
+
 # node indices
 TABLE_IDX = 0  # number of the table that this node belongs to
 ELEMENT_IDX = 1  # index of the element that this node belongs to (within the given table)
