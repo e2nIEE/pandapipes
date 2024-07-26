@@ -1330,7 +1330,9 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     nr_pipes = len(from_junctions)
     index = _get_multiple_index_with_check(net, "pipe", index, nr_pipes)
     _check_branches(net, from_junctions, to_junctions, "pipe")
-    _check_std_type(net, std_type, "pipe", "create_pipes")
+    uni_std_type = np.unique(std_type)
+    for st in uni_std_type:
+        _check_std_type(net, st, "pipe", "create_pipes")
 
     pipe_parameters = load_std_type(net, std_type, "pipe")
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "std_type": std_type,
