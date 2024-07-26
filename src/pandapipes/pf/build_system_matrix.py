@@ -6,10 +6,11 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
-    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, CIRC, PUMP_TYPE, \
+    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, CIRC, PC as PC_BRANCH, \
     JAC_DERIV_DT_NODE_B, JAC_DERIV_DT_NODE_N, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T, BRANCH_TYPE
 
-from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T, LOAD, INFEED, MDOTSLACKINIT, JAC_DERIV_MSL
+from pandapipes.idx_node import (P, PC as PC_NODE, NODE_TYPE, T, NODE_TYPE_T, LOAD, INFEED,
+                                 MDOTSLACKINIT, JAC_DERIV_MSL)
 from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_net_option
 
@@ -37,14 +38,14 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     len_b = len(branch_pit)
     len_n = len(node_pit)
     branch_matrix_indices = np.arange(len_b) + len_n
-    fn_col, tn_col, ntyp_col, slack_type, pc_type, num_der = \
-        (FROM_NODE, TO_NODE, NODE_TYPE, P, PC, 3) \
-            if not heat_mode else (FROM_NODE_T, TO_NODE_T, NODE_TYPE_T, T, PC, 2)
-    pc_nodes = np.where(node_pit[:, ntyp_col] == pc_type)[0]
+    fn_col, tn_col, ntyp_col, slack_type, pcn_type, pcb_type, branch_type, num_der = \
+        (FROM_NODE, TO_NODE, NODE_TYPE, P, PC_NODE, PC_BRANCH, BRANCH_TYPE, 3) \
+            if not heat_mode else (FROM_NODE_T, TO_NODE_T, NODE_TYPE_T, T, None, None, BRANCH_TYPE, 2)
+    pc_nodes = np.where(node_pit[:, ntyp_col] == pcn_type)[0]
     fn = branch_pit[:, fn_col].astype(np.int32)
     tn = branch_pit[:, tn_col].astype(np.int32)
 
-    pc_branch_mask = branch_pit[:, BRANCH_TYPE] == pc_type
+    pc_branch_mask = branch_pit[:, branch_type] == pcb_type
     slack_nodes = np.where(node_pit[:, ntyp_col] == slack_type)[0]
     pc_matrix_indices = branch_matrix_indices[pc_branch_mask]
 
@@ -67,7 +68,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         full_len = len_tsb + slack_nodes.shape[0]
     else:
         len_sl = 0
-        not_slack_branch_mask = branch_pit[:, PUMP_TYPE] != CIRC
+        not_slack_branch_mask = branch_pit[:, branch_type] != CIRC
         len_tn_not_slack = np.sum(not_slack_branch_mask)
         infeed_node = np.arange(len_n)[node_pit[:, INFEED].astype(np.bool_)]
         len_tn1 = num_der * len_b + len_tn_not_slack

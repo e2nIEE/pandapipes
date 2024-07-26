@@ -4,7 +4,7 @@ from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, JAC_DERIV_DM, JAC_DERIV_DP, \
     JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DM_NODE, FROM_NODE, TO_NODE, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, \
     QEXT, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE_B, \
-    JAC_DERIV_DT_NODE_N, MDOTINIT, MDOTINIT_T, TO_NODE_T, PUMP_TYPE, CIRC
+    JAC_DERIV_DT_NODE_N, MDOTINIT, MDOTINIT_T, TO_NODE_T, BRANCH_TYPE, CIRC
 from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, NODE_TYPE_T, T
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
@@ -106,7 +106,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     branch_pit[:, LOAD_VEC_NODES_T] = m_init * t_init_i1 * cp_out - m_init * t_init_n * cp_n
 
     infeed_node = (
-        list(set(from_nodes[branch_pit[:, PUMP_TYPE] != CIRC]) - set(to_nodes[branch_pit[:, PUMP_TYPE] != CIRC])))
+        list(set(from_nodes[branch_pit[:, BRANCH_TYPE] != CIRC]) - set(to_nodes[branch_pit[:, BRANCH_TYPE] != CIRC])))
     slack_nodes = np.where(node_pit[:, NODE_TYPE_T] == T)[0]
     if len(infeed_node) != len(slack_nodes):
         raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')

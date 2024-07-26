@@ -9,8 +9,8 @@ from pandapipes.component_models.abstract_models.branch_wzerolength_models impor
     BranchWZeroLengthComponent
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import D, AREA, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, BRANCH_TYPE, LOSS_COEFFICIENT as LC
-from pandapipes.idx_node import PINIT, NODE_TYPE, PC
+    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH
+from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
@@ -46,7 +46,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         junction_idx_lookups = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
         index_pc = junction_idx_lookups[juncts]
-        node_pit[index_pc, NODE_TYPE] = PC
+        node_pit[index_pc, NODE_TYPE] = PC_NODE
         node_pit[index_pc, PINIT] = press
 
     @classmethod
@@ -62,7 +62,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         pc_pit = super().create_pit_branch_entries(net, branch_pit)
         pc_pit[:, D] = 0.1
         pc_pit[:, AREA] = pc_pit[:, D] ** 2 * np.pi / 4
-        pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC
+        pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC_BRANCH
         pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
 
     @classmethod
@@ -74,7 +74,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         # set all PC branches to derivatives to 0
         f, t = idx_lookups[cls.table_name()]
         press_pit = branch_pit[f:t, :]
-        pc_branch = press_pit[:, BRANCH_TYPE] == PC
+        pc_branch = press_pit[:, BRANCH_TYPE] == PC_BRANCH
         press_pit[pc_branch, JAC_DERIV_DP] = 0
         press_pit[pc_branch, JAC_DERIV_DP1] = 0
         press_pit[pc_branch, JAC_DERIV_DM] = 0

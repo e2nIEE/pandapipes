@@ -5,9 +5,9 @@
 # node types
 P = 1  # Reference node, pressure is fixed
 L = 2  # All other nodes
-T = 10  # Reference node with fixed temperature, otherwise 0
-PC = 20  # Controlled node with fixed pressure p
-NONE = 3  # None
+T = 3  # Reference node with fixed temperature, otherwise 0
+PC = 4  # Controlled node with fixed pressure p
+
 # node indices
 TABLE_IDX = 0  # number of the table that this node belongs to
 ELEMENT_IDX = 1  # index of the element that this node belongs to (within the given table)
@@ -23,8 +23,8 @@ NODE_TYPE_T = 10
 EXT_GRID_OCCURENCE = 11
 EXT_GRID_OCCURENCE_T = 12
 CIRC_PUMP_OCCURENCE = 13
-INFEED = 14
-MDOTSLACKINIT = 15
-JAC_DERIV_MSL = 16
+MDOTSLACKINIT = 14
+JAC_DERIV_MSL = 15
+INFEED = 16
 
 node_cols = 17

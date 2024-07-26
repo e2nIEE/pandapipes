@@ -7,8 +7,8 @@ import pandas as pd
 
 from pandapipes import get_fluid
 from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, HEIGHT_EXPONENT
-from pandapipes.idx_node import EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T, PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, \
-    MDOTSLACKINIT, JAC_DERIV_MSL, CIRC_PUMP_OCCURENCE
+from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T, PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T,
+                                 JAC_DERIV_MSL)
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 
@@ -132,12 +132,9 @@ def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
         pit[:, column] = entry
 
 
-def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_values, node_comp, mode="sequential",
-                           circ_pump=False):
+def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_values, node_comp):
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
     for eg_type in ("p", "t"):
-        if eg_type not in mode and mode != "sequential" and mode != "bidrectional":
-            continue
         if eg_type == "p":
             val_col, type_col, eg_count_col, typ, valid_types, values = \
                 PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p", "pt"], p_values
@@ -157,8 +154,6 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
         node_pit[index, eg_count_col] += number
         if eg_type == 'p':
             node_pit[index, JAC_DERIV_MSL] = -1.
-        if circ_pump and eg_type == 'p':
-            node_pit[index, CIRC_PUMP_OCCURENCE] += number
 
 
 def standard_branch_wo_internals_result_lookup(net):

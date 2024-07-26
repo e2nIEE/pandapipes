@@ -16,7 +16,7 @@ from pandapipes.component_models.abstract_models.node_element_models import Node
 from pandapipes.create import create_empty_network
 from pandapipes.idx_branch import branch_cols
 from pandapipes.idx_node import node_cols, \
-    T as TYPE_T, P as TYPE_P, PC as TYPE_PC, NONE as TYPE_NONE, L as TYPE_L
+    T as TYPE_T, P as TYPE_P, PC as TYPE_PC, L as TYPE_L
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
 
@@ -524,7 +524,7 @@ def check_pressure_controllability(net, to_junction, controlled_junction):
 #     logger.info("dropped %d %s elements with %d switches" % (len(trafos), table, num_switches))
 
 
-pit_types = {TYPE_P: "P", TYPE_L: "L", TYPE_NONE: "NONE", TYPE_T: "T", TYPE_PC: "PC", 0: "NONE"}
+pit_types = {TYPE_P: "P", TYPE_L: "L", TYPE_T: "T", TYPE_PC: "PC"}
 int_cols = ["FROM_NODE", "TO_NODE", "ELEMENT_IDX", "EXT_GRID_OCCURENCE", "EXT_GRID_OCCURENCE_T"]
 bool_cols = ["ACTIVE"]
 
