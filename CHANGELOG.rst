@@ -6,7 +6,8 @@ Change Log
 -[CHANGED] switched from setup.py to pyproject.toml
 - [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
 - [FIXED] Pressure plot not working for circ pump
-- [ADDED] variable "u_w_per_m2k" to std_type pipe
+- [FIXED] volume flow rate for incompressible fluids based on real density, thus in this case results are renamed from "vdot_norm_m3_per_s" to "vdot_m3_per_s"
+- [ADDED] variable "u_w_per_m2k" to pipe std_types
 - [ADDED] standard district heating pipe types
 
 
