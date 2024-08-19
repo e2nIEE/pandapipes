@@ -183,8 +183,7 @@ def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
 def standard_branch_wo_internals_result_lookup(net):
     required_results_hyd = [
         ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
-        ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
-        ("reynolds", "reynolds")
+        ("mdot_from_kg_per_s", "mf_from"), ("lambda", "lambda"), ("reynolds", "reynolds")
     ]
     required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
 
@@ -192,10 +191,10 @@ def standard_branch_wo_internals_result_lookup(net):
         required_results_hyd.extend([
             ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
             ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
-            ("normfactor_to", "normfactor_to")
+            ("normfactor_to", "normfactor_to"), ("vdot_norm_m3_per_s", "vf")
         ])
     else:
-        required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
+        required_results_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
 
     return required_results_hyd, required_results_ht
 

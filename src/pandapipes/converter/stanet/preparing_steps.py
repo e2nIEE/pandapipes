@@ -245,7 +245,7 @@ def adapt_pipe_data_according_to_nodes(pipe_data, pipes_to_check, node_geo, pipe
         pipe_data.loc[pipes_to_check, pipe_name] = node_val
     current_pipe_data = pipe_data.loc[pipes_to_check]
     if not np.allclose(node_val, current_pipe_data[pipe_name].values):
-        wrong_data = ~np.isclose(node_val, current_pipe_data[pipe_name].values)
+        wrong_data = ~np.isclose(node_val, current_pipe_data[pipe_name].values, rtol=1e-10)
         df = pd.DataFrame(
             {"pipe_%s_%s" % (coord, locat): current_pipe_data[pipe_name].values[wrong_data],
              "node_%s_%s" % (coord, locat): node_val[wrong_data]}, index=pipe_rec[wrong_data]
