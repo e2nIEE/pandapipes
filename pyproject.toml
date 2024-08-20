@@ -35,7 +35,7 @@ dependencies = [
     'pandapower ~= 2.14.6',
     'matplotlib',
     'shapely',
-    'setuptools; python_version == "3.12"',
+    'setuptools; python_version >= "3.12"',
 ]
 keywords = [
     "network", "analysis", "optimization", "automation", "grid", "energy", "engineering", "simulation", "pipeflow", "pandapipes", "gas"
