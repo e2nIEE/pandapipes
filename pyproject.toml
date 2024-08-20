@@ -32,9 +32,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    "pandapower ~= 2.14.6",
-    "matplotlib",
-    "shapely",
+    'pandapower ~= 2.14.6',
+    'matplotlib',
+    'shapely',
+    'setuptools; python_version == "3.12"',
 ]
 keywords = [
     "network", "analysis", "optimization", "automation", "grid", "energy", "engineering", "simulation", "pipeflow", "pandapipes", "gas"
@@ -55,8 +56,7 @@ plotting = ["plotly", "igraph"]
 test = ["pytest", "pytest-xdist", "nbmake"]
 all = [
     "numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-    "plotly", "igraph",
-    "pytest", "pytest-xdist", "nbmake"
+    "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"
 ]
 
 [tool.setuptools.packages.find]
