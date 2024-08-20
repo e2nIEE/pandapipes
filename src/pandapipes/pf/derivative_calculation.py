@@ -52,7 +52,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_incomp
 
         load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
-            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho, rho_n)
+            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho)
     else:
         if options["use_numba"]:
             from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
