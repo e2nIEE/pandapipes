@@ -32,13 +32,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    'pandapower ~= 2.14.6',
-    'matplotlib',
-    'shapely',
-    'setuptools; python_version >= "3.12"',
+    "pandapower ~= 2.14.6",
+    "matplotlib",
+    "shapely",
 ]
 keywords = [
-    "network", "analysis", "optimization", "automation", "grid", "energy", "engineering", "simulation", "pipeflow", "pandapipes", "gas"
+    "network", "analysis", "optimization", "automation", "grid", "energy", "engineering",
+    "simulation", "pipeflow", "pandapipes", "gas"
 ]
 
 [project.urls]
@@ -53,10 +53,10 @@ Changelog = "https://github.com/e2nIEE/pandapipes/blob/develop/CHANGELOG.rst"
 [project.optional-dependencies]
 docs = ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex", "sphinx-pyproject"]
 plotting = ["plotly", "igraph"]
-test = ["pytest", "pytest-xdist", "nbmake"]
+test = ["pytest", "pytest-xdist", "nbmake", "setuptools; python_version >= '3.12'"]
 all = [
     "numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-    "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"
+    "plotly", "igraph", "pytest", "pytest-xdist", "nbmake", "setuptools; python_version >= '3.12'"
 ]
 
 [tool.setuptools.packages.find]
