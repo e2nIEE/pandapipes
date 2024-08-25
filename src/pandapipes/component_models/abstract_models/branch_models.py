@@ -88,7 +88,7 @@ class BranchComponent(Component):
         from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
         to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
-        branch_component_pit[:, MDOTINIT] = 0.1
+        branch_component_pit[:, MDOTINIT] = 1
         branch_component_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
         return branch_component_pit, node_pit, from_nodes, to_nodes
 

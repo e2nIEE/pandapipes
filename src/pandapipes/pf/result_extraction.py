@@ -28,12 +28,12 @@ def extract_all_results(net, calculation_mode):
     """
     branch_pit = net["_pit"]["branch"]
     node_pit = net["_pit"]["node"]
-    v_mps, mf, vf, from_nodes, to_nodes, temp_from, temp_to, reynolds, _lambda, p_from, p_to, pl = \
+    v_mps, mf, vf, from_nodes, to_nodes, temp_from, temp_to, t_outlet, reynolds, _lambda, p_from, p_to, pl = \
         get_basic_branch_results(net, branch_pit, node_pit)
     branch_results = {"v_mps": v_mps, "mf_from": mf, "mf_to": -mf, "vf": vf, "p_from": p_from,
                       "p_to": p_to, "from_nodes": from_nodes, "to_nodes": to_nodes,
                       "temp_from": temp_from, "temp_to": temp_to, "reynolds": reynolds,
-                      "lambda": _lambda, "pl": pl}
+                      "lambda": _lambda, "pl": pl, "t_outlet": t_outlet}
     if get_fluid(net).is_gas:
         if get_net_option(net, "use_numba"):
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
@@ -62,7 +62,8 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     t1 = node_pit[to_nodes, TINIT_NODE]
     vf = branch_pit[:, MDOTINIT] / get_fluid(net).get_density(NORMAL_TEMPERATURE)
     v = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / branch_pit[:, AREA]
-    return v, branch_pit[:, MDOTINIT], vf, from_nodes, to_nodes, t0, t1, branch_pit[:, RE], \
+    t_outlet = branch_pit[:, TOUTINIT]
+    return v, branch_pit[:, MDOTINIT], vf, from_nodes, to_nodes, t0, t1, t_outlet, branch_pit[:, RE], \
         branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
         branch_pit[:, PL]
 
@@ -155,7 +156,7 @@ def get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs
 def extract_branch_results_with_internals(net, branch_results, table_name,
                                           res_nodes_from_hydraulics, res_nodes_from_heat,
                                           res_nodes_to_hydraulics, res_nodes_to_heat,
-                                          res_mean_hydraulics, res_mean_heat, node_name,
+                                          res_mean_hydraulics, res_branch_ht, res_mean_heat, node_name,
                                           simulation_mode):
     # the result table to write results to
     res_table = net["res_" + table_name]
@@ -212,6 +213,11 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
 
             for i, (res_name, entry) in enumerate(res_mean_hydraulics):
                 res_table[res_name].values[pt] = res[i + 3][connected_ind] / num_internals
+    #outlet temperature
+    use_numba = get_net_option(net, "use_numba")
+    indices, sections = _sum_by_group(use_numba, branch_pit[:, ELEMENT_IDX], np.ones(len(branch_pit)))
+    indices_last_section = (np.cumsum(sections)-1).astype(int)
+    res_table["t_outlet_k"] = branch_results["t_outlet"][indices_last_section]
 
 
 def extract_branch_results_without_internals(net, branch_results, required_results_hydraulic,
