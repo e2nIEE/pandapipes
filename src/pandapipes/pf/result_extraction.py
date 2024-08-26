@@ -28,25 +28,22 @@ def extract_all_results(net, calculation_mode):
     """
     branch_pit = net["_pit"]["branch"]
     node_pit = net["_pit"]["node"]
-    v_mps, mf, vf, from_nodes, to_nodes, temp_from, temp_to, t_outlet, reynolds, _lambda, p_from, p_to, pl = \
-        get_basic_branch_results(net, branch_pit, node_pit)
-    branch_results = {"v_mps": v_mps, "mf_from": mf, "mf_to": -mf, "vf": vf, "p_from": p_from,
-                      "p_to": p_to, "from_nodes": from_nodes, "to_nodes": to_nodes,
-                      "temp_from": temp_from, "temp_to": temp_to, "reynolds": reynolds,
-                      "lambda": _lambda, "pl": pl, "t_outlet": t_outlet}
+    branch_results = get_basic_branch_results(net, branch_pit, node_pit)
     if get_fluid(net).is_gas:
         if get_net_option(net, "use_numba"):
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
                 normfactor_to, normfactor_mean = get_branch_results_gas_numba(
-                net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
+                net, branch_pit, node_pit, branch_results['from_nodes'], branch_results['to_nodes'],
+                branch_results['v_mps'], branch_results['p_from'], branch_results['p_to'])
         else:
             v_gas_from, v_gas_to, v_gas_mean, p_abs_from, p_abs_to, p_abs_mean, normfactor_from, \
                 normfactor_to, normfactor_mean = get_branch_results_gas(
-                net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to)
+                net, branch_pit, node_pit, branch_results['from_nodes'], branch_results['to_nodes'],
+                branch_results['v_mps'], branch_results['p_from'], branch_results['p_to'])
         gas_branch_results = {
             "v_gas_from": v_gas_from, "v_gas_to": v_gas_to, "v_gas_mean": v_gas_mean,
-            "p_from": p_from, "p_to": p_to, "p_abs_from": p_abs_from, "p_abs_to": p_abs_to,
-            "p_abs_mean": p_abs_mean, "normfactor_from": normfactor_from,
+            "p_from": branch_results['p_from'], "p_to": branch_results['p_to'], "p_abs_from": p_abs_from,
+            "p_abs_to": p_abs_to, "p_abs_mean": p_abs_mean, "normfactor_from": normfactor_from,
             "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean
         }
         branch_results.update(gas_branch_results)
@@ -63,9 +60,12 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     vf = branch_pit[:, MDOTINIT] / get_fluid(net).get_density(NORMAL_TEMPERATURE)
     v = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / branch_pit[:, AREA]
     t_outlet = branch_pit[:, TOUTINIT]
-    return v, branch_pit[:, MDOTINIT], vf, from_nodes, to_nodes, t0, t1, t_outlet, branch_pit[:, RE], \
-        branch_pit[:, LAMBDA], node_pit[from_nodes, PINIT], node_pit[to_nodes, PINIT], \
-        branch_pit[:, PL]
+    branch_results = {"v_mps": v, "mf_from": branch_pit[:, MDOTINIT], "mf_to": -branch_pit[:, MDOTINIT],
+                      "vf": vf, "p_from": node_pit[from_nodes, PINIT], "p_to": node_pit[to_nodes, PINIT],
+                      "from_nodes": from_nodes, "to_nodes": to_nodes,  "temp_from": t0, "temp_to": t1,
+                      "reynolds": branch_pit[:, RE], "lambda": branch_pit[:, LAMBDA], "pl": branch_pit[:, PL],
+                      "t_outlet": t_outlet}
+    return branch_results
 
 
 def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
@@ -176,9 +176,9 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
     # the id of the external node table inside the node_pit (mostly this is "junction": 0)
     ext_node_tbl_idx = get_table_number(get_lookup(net, "node", "table"), node_name)
 
-    for (result_mode, res_nodes_from, res_nodes_to, res_mean) in [
-        ("hydraulics", res_nodes_from_hydraulics, res_nodes_to_hydraulics, res_mean_hydraulics),
-        ("heat", res_nodes_from_heat, res_nodes_to_heat, res_mean_heat)
+    for (result_mode, res_nodes_from, res_nodes_to, res_mean, res_branch) in [
+        ("hydraulics", res_nodes_from_hydraulics, res_nodes_to_hydraulics, res_mean_hydraulics, []),
+        ("heat", res_nodes_from_heat, res_nodes_to_heat, res_mean_heat, res_branch_ht)
     ]:
         if result_mode == "hydraulics" and simulation_mode == "heat":
             continue
@@ -213,11 +213,17 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
 
             for i, (res_name, entry) in enumerate(res_mean_hydraulics):
                 res_table[res_name].values[pt] = res[i + 3][connected_ind] / num_internals
-    #outlet temperature
-    use_numba = get_net_option(net, "use_numba")
-    indices, sections = _sum_by_group(use_numba, branch_pit[:, ELEMENT_IDX], np.ones(len(branch_pit)))
-    indices_last_section = (np.cumsum(sections)-1).astype(int)
-    res_table["t_outlet_k"] = branch_results["t_outlet"][indices_last_section]
+        if len(res_branch) > 0:
+            use_numba = get_net_option(net, "use_numba")
+            indices, sections, connected_sum = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
+                                comp_connected.astype(np.int32))
+            connected_ind = connected_sum > 0.99
+            indices_last_section = (np.cumsum(sections) - 1).astype(int)[connected_ind]
+            # hint: idx_pit[placement_table] should result in the indices as ordered in the table
+            pt = placement_table[connected_ind]
+
+            for i, (res_name, entry) in enumerate(res_branch):
+                res_table[res_name].values[pt] = branch_results[entry][indices_last_section]
 
 
 def extract_branch_results_without_internals(net, branch_results, required_results_hydraulic,
