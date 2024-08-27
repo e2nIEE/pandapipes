@@ -215,7 +215,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
                 res_table[res_name].values[pt] = res[i + 3][connected_ind] / num_internals
         if len(res_branch) > 0:
             use_numba = get_net_option(net, "use_numba")
-            indices, sections, connected_sum = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
+            _, sections, connected_sum = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
                                 comp_connected.astype(np.int32))
             connected_ind = connected_sum > 0.99
             indices_last_section = (np.cumsum(sections) - 1).astype(int)[connected_ind]

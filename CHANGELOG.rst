@@ -8,7 +8,7 @@ Change Log
 - [FIXED] Pressure plot not working for circ pump
 - [ADDED] variable "u_w_per_m2k" to std_type pipe
 - [ADDED] standard district heating pipe types
-
+- [ADDED] t_outlet_k to result tables of branch components
 
 
 [0.10.0] - 2024-04-09
