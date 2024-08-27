@@ -35,28 +35,23 @@ jobs:
         run: |
           python -m pip list
       - name: Test with pytest
-        if: ${{ matrix.python-version != '3.9' }}
+        if: ${{ matrix.python-version != '3.11' }}
         run: |
           python -m pytest
-      - name: Test with numba
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          python -m pip install numba
-          python -m pytest -n=auto
       - name: Test with pytest, Codecov and Coverage
-        if: ${{ matrix.python-version == '3.9' }}
+        if: ${{ matrix.python-version == '3.11' }}
         run: |
           python -m pip install pytest-cov
           python -m pytest --nbmake -n=auto --cov=./ --cov-report=xml
           cp ./coverage.xml ./codecov_coverage.xml
       - name: Upload coverage to Codacy
-        if: ${{ matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest'}}
+        if: ${{ matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'}}
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
         run: |
           bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
       - name: Upload coverage to Codecov
-        if: ${{ matrix.python-version == '3.9' }}
+        if: ${{ matrix.python-version == '3.11' }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -70,6 +65,11 @@ jobs:
             'pandapipes/networks/network_files/**'
             '**.yml'
             '**.rst'
+      - name: Test without numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          python -m pip uninstall numba
+          python -m pytest -n=auto
 
 
   relying:
@@ -95,8 +95,13 @@ jobs:
         run: |
           python -m pip list
       - name: Test with pytest
-        if: ${{ matrix.python-version != '3.9' }}
+        # if: ${{ matrix.python-version != '3.11' }}
         run: |
+          python -m pytest -n=auto
+      - name: Test without numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          python -m pip uninstall numba
           python -m pytest -n=auto
 
   tutorial_tests:
@@ -124,10 +129,10 @@ jobs:
       - name: Test with pytest
         run: |
           python -m pytest --nbmake -n=auto "./tutorials"
-      - name: Test with numba
+      - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          python -m pip install numba
+          python -m pip uninstall numba
           python -m pytest --nbmake -n=auto "./tutorials"
 
 
@@ -135,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.10' ]
+        python-version: [ '3.11' ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}

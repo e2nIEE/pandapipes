@@ -15,21 +15,9 @@ except ImportError:
     SETUPTOOLS_AVAILABLE = False
 
 
+@pytest.mark.skipif(not SETUPTOOLS_AVAILABLE, reason="setuptools not available")
 def test_import_packages():
-    if SETUPTOOLS_AVAILABLE:
-        all_packages = find_packages(pp_dir)
-    else:
-        all_packages = []
-        for root, dirs, files in os.walk(pp_dir):
-            for file in files:
-                if file != "__init__.py":
-                    continue
-                path = os.path.relpath(root, pp_dir)
-                if path == ".":
-                    continue
-                pck = path.replace(os.sep, ".")
-                all_packages.append(pck)
-
+    all_packages = find_packages(pp_dir)
     for pck in all_packages:
         spec = importlib.util.find_spec(os.path.split(pp_dir)[-1] + "." + pck)
         new_module = importlib.util.module_from_spec(spec)

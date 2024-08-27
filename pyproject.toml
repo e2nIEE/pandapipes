@@ -53,10 +53,11 @@ Changelog = "https://github.com/e2nIEE/pandapipes/blob/develop/CHANGELOG.rst"
 [project.optional-dependencies]
 docs = ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex", "sphinx-pyproject"]
 plotting = ["plotly", "igraph"]
-test = ["pytest", "pytest-xdist", "nbmake"]
+test = ["pytest", "pytest-xdist", "nbmake", "numba", "setuptools; python_version >= '3.12'"]
 all = [
     "numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-    "plotly", "igraph", "pytest", "pytest-xdist", "nbmake"
+    "plotly", "igraph", "pytest", "pytest-xdist", "nbmake", "numba",
+    "setuptools; python_version >= '3.12'"
 ]
 
 [tool.setuptools.packages.find]
