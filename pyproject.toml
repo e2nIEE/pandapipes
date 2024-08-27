@@ -13,7 +13,7 @@ authors=[
 description = "A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -26,7 +26,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     # Add the specific Python versions supported here, e.g.:
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -38,7 +37,8 @@ dependencies = [
     "shapely",
 ]
 keywords = [
-    "network", "analysis", "optimization", "automation", "grid", "energy", "engineering", "simulation", "pipeflow", "pandapipes", "gas"
+    "network", "analysis", "optimization", "automation", "grid", "energy", "engineering",
+    "simulation", "pipeflow", "pandapipes", "gas"
 ]
 
 [project.urls]
@@ -53,11 +53,14 @@ Changelog = "https://github.com/e2nIEE/pandapipes/blob/develop/CHANGELOG.rst"
 [project.optional-dependencies]
 docs = ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex", "sphinx-pyproject"]
 plotting = ["plotly", "igraph"]
-test = ["pytest", "pytest-xdist", "nbmake"]
+test = [
+    "pytest", "pytest-xdist", "pytest-split", "nbmake", "numba",
+    "setuptools; python_version >= '3.12'"
+]
 all = [
     "numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
-    "plotly", "igraph",
-    "pytest", "pytest-xdist", "nbmake"
+    "plotly", "igraph", "pytest", "pytest-xdist", "pytest-split", "nbmake", "numba",
+    "setuptools; python_version >= '3.12'"
 ]
 
 [tool.setuptools.packages.find]
