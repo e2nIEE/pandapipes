@@ -134,6 +134,7 @@ class Pipe(BranchWInternalsComponent):
         res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
         res_nodes_to_ht = [("t_to_k", "temp_to")]
         res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds")]
+        res_branch_ht = [("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
             res_nodes_from_hyd.extend([("v_from_m_per_s", "v_gas_from"),
@@ -147,11 +148,11 @@ class Pipe(BranchWInternalsComponent):
         if np.any(cls.get_internal_pipe_number(net) > 1):
             extract_branch_results_with_internals(
                 net, branch_results, cls.table_name(), res_nodes_from_hyd, res_nodes_from_ht,
-                res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, [],
+                res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, res_branch_ht, [],
                 cls.get_connected_node_type().table_name(), mode)
         else:
             required_results_hyd = res_nodes_from_hyd + res_nodes_to_hyd + res_mean_hyd
-            required_results_ht = res_nodes_from_ht + res_nodes_to_ht
+            required_results_ht = res_nodes_from_ht + res_nodes_to_ht + res_branch_ht
             extract_branch_results_without_internals(
                 net, branch_results, required_results_hyd, required_results_ht, cls.table_name(),
                 mode
@@ -293,11 +294,11 @@ class Pipe(BranchWInternalsComponent):
         """
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
-                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
                       "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
                       "lambda"]
         return output, True
