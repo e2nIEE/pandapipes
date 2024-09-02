@@ -39,8 +39,11 @@ def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.
     :type heat_consumer_size: float, default 1.
     :return: sizes (dict) - dictionary containing all scaled sizes
     """
-    mean_distance_between_junctions = sum((net['junction_geodata'].max() - net[
-        'junction_geodata'].min()).dropna() / 200)
+    mean_distance_between_junctions = sum(
+        (np.max(net['junction_geodata'].loc[:, ["x", "y"]].to_numpy(), axis=0)
+         - np.min(net['junction_geodata'].loc[:, ["x", "y"]].to_numpy(), axis=0))
+        / 200
+    )
 
     sizes = {
         "junction": junction_size * mean_distance_between_junctions,

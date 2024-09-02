@@ -2,12 +2,15 @@ Change Log
 =============
 
 
--[ADDED] heat_consumer plotting
--[CHANGED] switched from setup.py to pyproject.toml
-- [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
-- [FIXED] Pressure plot not working for circ pump
+- [ADDED] heat_consumer plotting
 - [ADDED] variable "u_w_per_m2k" to std_type pipe
 - [ADDED] standard district heating pipe types
+- [ADDED] support for Python 3.12
+- [ADDED] t_outlet_k to result tables of branch components
+- [CHANGED] switched from setup.py to pyproject.toml
+- [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
+- [FIXED] Pressure plot not working for circ pump
+- [REMOVED] support for Python 3.8 due to EOL
 
 
 

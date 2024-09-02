@@ -98,7 +98,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
             ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_from_kg_per_s", "mf_from"),
             ("mdot_to_kg_per_s", "mf_to"), ("vdot_norm_m3_per_s", "vf")
         ]
-        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
+        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to"), ("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
             required_results_hyd.extend([
@@ -150,10 +150,10 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         """
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s", "v_to_m_per_s", "p_from_bar", "p_to_bar",
-                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
                       "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
         output += ["deltap_bar"]
         return output, True

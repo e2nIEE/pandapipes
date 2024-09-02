@@ -140,7 +140,7 @@ class Pump(BranchWZeroLengthComponent):
             ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
             ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl"),
         ]
-        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
+        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to"), ("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
             required_results_hyd.extend([
@@ -219,12 +219,12 @@ class Pump(BranchWZeroLengthComponent):
             output = ["deltap_bar",
                       "v_from_m_per_s", "v_to_m_per_s",
                       "p_from_bar", "p_to_bar",
-                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
             # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
         else:
             output = ["deltap_bar", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
         if calc_compr_pow:
             output += ["compr_power_mw"]
 
