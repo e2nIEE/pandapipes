@@ -616,12 +616,29 @@ def get_internal_tables_pandas(net, convert_types=True):
 
     return node_table, branch_table
 
-def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer, offset=(0,0)):
+def create_closed_loop(open_net, p_lift_bar, load_column, diameter_m_consumer=0.1, offset=(0,0)):
     """
     Creates a closed loop network(DH) from an open loop network (ext grid, sinks).
     At the moment only works with one source/ext_grid and one circ_pump. Geodata copying works with new pandapower geo
      format. Also an offset can be given to have the new return junctions have an coordinates offset.
-    ToDo: multiple sources and adapt new geo format one implemented
+    :param open_net: Open Loop net to be transformed to closed loop
+    :type open_net: pandapipesNet
+    :param p_lift_bar: pressure lift of the circ pump
+    :type p_lift_bar: float
+    :param load_column: column of net.sinks for the load of the heat consumers
+    :type load_column: string
+    :param diameter_m_consumer: diameter of the consumers
+    :type diameter_m_consumer: float
+    :param offset: offset for the return flow from the original geodata
+    :type offset: 
+    :return: closed loop net
+    :rtype: pandapipesNet
+    """
+    """
+    Creates a closed loop network(DH) from an open loop network (ext grid, sinks).
+    At the moment only works with one source/ext_grid and one circ_pump. Geodata copying works with new pandapower geo
+     format. Also an offset can be given to have the new return junctions have an coordinates offset.
+    
     :param open_net: Open Loop net to be transformed to closed loop
     :type open_net: pandapipesNet
     :param p_lift_bar: pressure lift of the circ pump
@@ -631,8 +648,9 @@ def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer, offset=(0,0)):
     :return: closed loop net
     :rtype: pandapipesNet
     """
-
-    closed_net = pandapipes.create_empty_network()
+    #ToDo: multiple sources and adapt new geoformat once implemented
+    fluid = open_net.fluid.name
+    closed_net = pandapipes.create_empty_network(fluid=fluid)
 
     # Duplicate junctions
     orig_junctions = open_net.junction
@@ -720,7 +738,7 @@ def create_closed_loop(open_net, p_lift_bar, diameter_m_consumer, offset=(0,0)):
     # Create consumers
     pandapipes.create_heat_consumers(closed_net, flow_junction_indices, return_junction_indices,
                                      diameter_m=diameter_m_consumer,
-                                    qext_w=orig_load['qext_w'],
+                                    qext_w=orig_load[load_column],
                                     controlled_mdot_kg_per_s=orig_load['mdot_kg_per_s'])
 
     #Create producer
