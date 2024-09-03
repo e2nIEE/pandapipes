@@ -1,13 +1,15 @@
 import numpy as np
 
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DM_NODE, \
-    FROM_NODE, TO_NODE, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
-    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE, MDOTINIT, MDOTINIT_T
+    FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
+    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE, MDOTINIT
 from pandapipes.idx_node import TINIT as TINIT_NODE
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.constants import NORMAL_TEMPERATURE
-from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, get_branch_cp
+from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
+    get_branch_cp
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -79,11 +81,11 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DM_NODE] = df_dm_nodes
 
 
-def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
+def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     fluid = get_fluid(net)
-    cp = get_branch_cp(net, fluid, node_pit, branch_pit)
-    m_init = branch_pit[:, MDOTINIT_T]
-    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
+    cp = get_branch_cp(fluid, node_pit, branch_pit)
+    m_init = np.abs(branch_pit[:, MDOTINIT])
+    from_nodes = get_from_nodes_corrected(branch_pit)
     t_init_i = node_pit[from_nodes, TINIT_NODE]
     t_init_i1 = branch_pit[:, TOUTINIT]
     t_amb = branch_pit[:, TEXT]

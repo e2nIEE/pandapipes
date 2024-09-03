@@ -85,7 +85,7 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
     d = 75e-3
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
-    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, d, k_mm=.1, sections=6, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 6, d, k_mm=.1, sections=6, u_w_per_m2k=5)
     pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=330, type="pt")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
 
@@ -95,7 +95,7 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     pipe_results = Pipe.get_internal_results(net, [0])
@@ -140,9 +140,9 @@ def test_temperature_internal_nodes_tee_2ab_1zu(use_numba):
     pandapipes.create_sink(net, j2, mdot_kg_per_s=1)
     pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
 
-    pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, d, k_mm=.1, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, d, k_mm=.1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, d, k_mm=.1, u_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, u_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, d, k_mm=.1, u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
@@ -150,7 +150,7 @@ def test_temperature_internal_nodes_tee_2ab_1zu(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_tee_2ab_1zu_an.csv"),
@@ -178,11 +178,11 @@ def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
 
     pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=3,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, sections=3,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, sections=3,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_ext_grid(net, j0, p_bar=5, t_k=350, type="pt")
     pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=350, type="pt")
     pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
@@ -193,7 +193,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_tee_2zu_1ab_an.csv"),
@@ -224,11 +224,11 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
 
     pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j1, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
@@ -236,7 +236,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_tee_2zu_1ab_an.csv"),
@@ -268,10 +268,10 @@ def test_temperature_internal_nodes_2zu_2ab(use_numba):
     pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
     pandapipes.create_sink(net, j4, mdot_kg_per_s=1)
 
-    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, alpha_w_per_m2k=5)
-    pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, d, k_mm=.1, alpha_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, u_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, u_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, d, k_mm=.1, u_w_per_m2k=5)
+    pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, d, k_mm=.1, u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
@@ -279,7 +279,7 @@ def test_temperature_internal_nodes_2zu_2ab(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_2zu_2ab_an.csv"), sep=';',
@@ -307,13 +307,13 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
 
     pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j3, j2, 2.5, d, k_mm=.1, sections=6,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_ext_grid(net, j0, p_bar=5, t_k=350, type="pt")
     pandapipes.create_sink(net, j2, mdot_kg_per_s=1)
@@ -324,7 +324,7 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "Temperature_masche_1load_an.csv"),
@@ -351,11 +351,11 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
 
     pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j0, j3, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j3, j2, 2.5, d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
@@ -366,7 +366,7 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
-                        mode='all', transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path,
