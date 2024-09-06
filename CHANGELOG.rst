@@ -10,6 +10,7 @@ Change Log
 - [CHANGED] switched from setup.py to pyproject.toml
 - [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
 - [FIXED] Pressure plot not working for circ pump
+- [FIXED] volume flow rate for incompressible fluids based on real density, thus in this case results are renamed from "vdot_norm_m3_per_s" to "vdot_m3_per_s"
 - [REMOVED] support for Python 3.8 due to EOL
 
 

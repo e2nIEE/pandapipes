@@ -133,8 +133,7 @@ class Pipe(BranchWInternalsComponent):
         res_nodes_from_ht = [("t_from_k", "temp_from")]
         res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
         res_nodes_to_ht = [("t_to_k", "temp_to")]
-        res_mean_hyd = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
-                        ("reynolds", "reynolds")]
+        res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds")]
         res_branch_ht = [("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
@@ -142,9 +141,9 @@ class Pipe(BranchWInternalsComponent):
                                        ("normfactor_from", "normfactor_from")])
             res_nodes_to_hyd.extend([("v_to_m_per_s", "v_gas_to"),
                                      ("normfactor_to", "normfactor_to")])
-            res_mean_hyd.extend([("v_mean_m_per_s", "v_gas_mean")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_gas_mean"), ("vdot_norm_m3_per_s", "vf")])
         else:
-            res_mean_hyd.extend([("v_mean_m_per_s", "v_mps")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
 
         if np.any(cls.get_internal_pipe_number(net) > 1):
             extract_branch_results_with_internals(
@@ -300,7 +299,7 @@ class Pipe(BranchWInternalsComponent):
                       "normfactor_to"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
                       "lambda"]
         return output, True
 

@@ -96,17 +96,18 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         """
         required_results_hyd = [
             ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("mdot_to_kg_per_s", "mf_to"), ("vdot_norm_m3_per_s", "vf")
+            ("mdot_to_kg_per_s", "mf_to")
         ]
         required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to"), ("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
             required_results_hyd.extend([
                 ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
+                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to"),
+                ("vdot_norm_m3_per_s", "vf")
             ])
         else:
-            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
+            required_results_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
@@ -154,6 +155,6 @@ class PressureControlComponent(BranchWZeroLengthComponent):
                       "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s"]
         output += ["deltap_bar"]
         return output, True

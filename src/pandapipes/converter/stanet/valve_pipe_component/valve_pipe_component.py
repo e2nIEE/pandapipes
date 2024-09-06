@@ -116,7 +116,7 @@ class ValvePipe(Pipe):
                       "p_to_mw",
                       "mdot_from_kg_per_s",
                       "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s",
+                      "vdot_m3_per_s",
                       "reynolds",
                       "lambda",
                       "loading_percent"]
