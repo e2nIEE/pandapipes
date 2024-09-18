@@ -1,7 +1,7 @@
 Change Log
 =============
 
-
+- [FIXED] some imports from pandapower
 - [ADDED] heat_consumer plotting
 - [ADDED] variable "u_w_per_m2k" to std_type pipe
 - [ADDED] standard district heating pipe types
