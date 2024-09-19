@@ -6,8 +6,7 @@ import copy
 
 import pandas as pd
 from numpy import dtype
-from pandapower import pandapowerNet
-from pandapower.auxiliary import ADict
+from pandapower.auxiliary import ADict, pandapowerNet
 
 from pandapipes import __version__
 from pandapipes import pandapipesNet
