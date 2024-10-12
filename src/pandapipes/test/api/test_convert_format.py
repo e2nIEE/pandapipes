@@ -21,32 +21,35 @@ minimal_version_two_nets = "0.8.0"
 from pandapipes.test.api.release_cycle.release_control_test_network import release_control_test_network_gas, \
     release_control_test_network_water, release_control_test_network
 
-
 @pytest.mark.slow
 @pytest.mark.parametrize("pp_version, use_numba", test_params)
 def test_convert_format(pp_version, use_numba):
     if version.parse(pp_version) >= version.parse(minimal_version_two_nets):
         names = ["_gas", "_water"]
         net_gas = release_control_test_network_gas(max_iter_hyd=5)
-        net_water = release_control_test_network_water(max_iter_hyd=10)
+        net_water = release_control_test_network_water(max_iter_hyd=11)
     else:
         names = [""]
-        net_old = release_control_test_network(max_iter_hyd=10)
+        net_old = release_control_test_network(max_iter_hyd=11)
     for name in names:
         if "_gas" in name:
             net_ref = net_gas
             max_iter_hyd = 5 if use_numba else 5
         elif "_water" in name:
             net_ref = net_water
-            max_iter_hyd = 10 if use_numba else 10
+            max_iter_hyd = 11 if use_numba else 11
         else:
             net_ref = net_old
-            max_iter_hyd = 10 if use_numba else 10
+            max_iter_hyd = 11 if use_numba else 11
         filename = os.path.join(folder, "example_%s%s.json" % (pp_version, name))
         if not os.path.isfile(filename):
             raise ValueError("File for %s grid of version %s does not exist" % (name, pp_version))
         try:
             net = pp.from_json(filename, convert=False)
+            if not "_gas" in name:
+                pp.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", index=None)
+                pp.create_ext_grid(net, junction=5, p_bar=5, t_k=290, name="External Grid 3")
+
         except:
             raise UserWarning("Can not load %s network saved in pandapipes version %s"
                               % (name, pp_version))

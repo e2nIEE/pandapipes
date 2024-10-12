@@ -153,9 +153,10 @@ def bidirectional(net):
         net["_internal_data"] = dict()
     solver_vars = ['mdot', 'p', 'TOUT', 'T']
     tol_m, tol_p, tol_T = get_net_options(net, 'tol_m', 'tol_p', 'tol_T')
-    newton_raphson(net, solve_bidirectional, 'bidirectional', solver_vars, [tol_m, tol_p, tol_T, tol_T],
-                   ['branch', 'node', 'branch', 'node'], 'max_iter_bidirect'
-                   )
+    newton_raphson(
+        net, solve_bidirectional, 'bidirectional', solver_vars, [tol_m, tol_p, tol_T, tol_T],
+        ['branch', 'node', 'branch', 'node'], 'max_iter_bidirect'
+    )
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
     if not get_net_option(net, "reuse_internal_data"):
@@ -175,14 +176,6 @@ def hydraulics(net):
     tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
     newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p, tol_msl], ['branch', 'node', 'node'],
                    'max_iter_hyd')
-    if net.converged:
-        rerun = False
-        for comp in net['component_list']:
-            rerun |= comp.rerun_hydraulics(net)
-        if rerun:
-            extract_results_active_pit(net, 'hydraulics')
-            identify_active_nodes_branches(net)
-            hydraulics(net)
 
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
@@ -208,15 +201,6 @@ def heat_transfer(net):
     tol_T = next(get_net_options(net, 'tol_T'))
     newton_raphson(net, solve_temperature, 'heat', solver_vars, [tol_T, tol_T], ['branch', 'node'],
                    'max_iter_therm')
-
-    rerun = False
-    for comp in net['component_list']:
-        rerun = max(comp.rerun_heat_transfer(net), rerun)
-    if rerun:
-        extract_results_active_pit(net, mode="heat_transfer")
-        identify_active_nodes_branches(net, False)
-        heat_transfer(net)
-
     if not net.converged:
         raise PipeflowNotConverged("The heat transfer calculation did not converge to a "
                                    "solution.")
@@ -358,9 +342,9 @@ def finalize_iteration(net, niter, residual_norm, nonlinear_method, errors, tols
             return
     elif nonlinear_method != "constant":
         logger.warning("No proper nonlinear method chosen. Using constant settings.")
-    converged = True
     for error, var, tol in zip(errors.values(), solver_vars, tols):
-        converged = converged and error[niter] <= tol
+        converged = error[niter] <= tol
+        if not converged: break
         logger.debug("error_%s: %s" % (var, error[niter]))
     net.converged = converged and residual_norm <= tol_res
 

@@ -23,5 +23,8 @@ NODE_TYPE_T = 10
 EXT_GRID_OCCURENCE = 11
 EXT_GRID_OCCURENCE_T = 12
 INFEED = 13
+MDOTSLACKINIT = 14
+JAC_DERIV_MSL = 15
+VAR_MASS_SLACK = 16 #required as slack do not necesseraly allow mass different from zero
 
-node_cols = 14
+node_cols = 17
