@@ -55,8 +55,8 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     if not heat_mode:
         len_sl = len(slack_nodes)
         slack_mass_matrix_indices = np.arange(len_sl) + len_b + len_n
-        slack_masses_from, slack_branches_from = np.where(branch_pit[:, fn_col] == slack_nodes[:, None])
-        slack_masses_to, slack_branches_to = np.where(branch_pit[:, tn_col] == slack_nodes[:, None])
+        slack_masses_from, slack_branches_from = np.where(branch_pit[:, FROM_NODE] == slack_nodes[:, None])
+        slack_masses_to, slack_branches_to = np.where(branch_pit[:, TO_NODE] == slack_nodes[:, None])
         not_slack_fn_branch_mask = node_pit[fn, ntyp_col] != slack_type
         not_slack_tn_branch_mask = node_pit[tn, ntyp_col] != slack_type
         len_fn_not_slack = np.sum(not_slack_fn_branch_mask)
