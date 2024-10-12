@@ -6,8 +6,8 @@ from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
     LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE_B, \
     JAC_DERIV_DT_NODE_N, MDOTINIT, PUMP_TYPE, CIRC
-from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, NODE_TYPE_T, T
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected, P
+from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, NODE_TYPE_T, T, P
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.properties.fluids import get_fluid
 from pandpaipes.pf.pipeflow_setup import PipeflowNotConverged
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
