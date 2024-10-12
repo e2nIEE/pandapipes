@@ -38,5 +38,7 @@ TEXT = 28 # temperature of surrounding [K]
 PL = 29 # Pressure lift [bar]
 TL = 30 # Temperature lift [K]
 BRANCH_TYPE = 31  # branch type relevant for the pressure controller
+PUMP_TYPE = 32
+CIRC = 33
 
-branch_cols = 32
+branch_cols = 34
