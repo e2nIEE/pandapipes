@@ -20,7 +20,7 @@ def sort_by_pos(group):
 
 def sort_by_flow(group):
     group["follower"] = group.FLUSSB.apply(lambda b: group.index[group.FLUSSA == b][0]
-                                           if b in group.FLUSSA.values else np.NaN)
+                                           if b in group.FLUSSA.values else np.nan)
     ls = list(group.loc[~group.FLUSSA.isin(group.FLUSSB)].index)
     assert len(ls) == 1
     while len(ls) < len(group):

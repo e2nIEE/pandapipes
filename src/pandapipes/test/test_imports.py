@@ -8,9 +8,14 @@ import os
 
 import pytest
 from pandapipes import pp_dir
-from setuptools import find_packages
+try:
+    from setuptools import find_packages
+    SETUPTOOLS_AVAILABLE = True
+except ImportError:
+    SETUPTOOLS_AVAILABLE = False
 
 
+@pytest.mark.skipif(not SETUPTOOLS_AVAILABLE, reason="setuptools not available")
 def test_import_packages():
     all_packages = find_packages(pp_dir)
     for pck in all_packages:

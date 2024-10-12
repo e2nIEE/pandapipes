@@ -182,7 +182,7 @@ def get_net_params(net, stored_data):
     net_params["t_sutherland"] = net_data.at[0, "TS"]
     net_params["t0_sutherland"] = net_data.at[0, "T0"]
     net_params["calculate_temp"] = str(net_data.at[0, "TEMPCALC"]) == "J"
-    pp_calc_mode = "all" if net_params["calculate_temp"] else "hydraulics"
+    pp_calc_mode = "sequential" if net_params["calculate_temp"] else "hydraulics"
     pandapipes.set_user_pf_options(net, mode=pp_calc_mode)
     net_params["medium_temp_C"] = net_data.at[0, "TEMP"]
     net_params["medium_temp_K"] = net_data.at[0, "TEMP"] + 273.15
@@ -241,7 +241,7 @@ def adapt_pipe_data_according_to_nodes(pipe_data, pipes_to_check, node_geo, pipe
     node_val = node_geo.loc[pipe_data.loc[pipes_to_check, node_nr].values, node_name].values
 
     if pipe_name not in pipe_data.columns:
-        pipe_data[pipe_name] = np.NaN
+        pipe_data[pipe_name] = np.nan
         pipe_data.loc[pipes_to_check, pipe_name] = node_val
     current_pipe_data = pipe_data.loc[pipes_to_check]
     if not np.allclose(node_val, current_pipe_data[pipe_name].values):
@@ -401,9 +401,9 @@ def connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata,
         #     but requires checks (e.g. positioning on pipe, max. 2 valves per pipe)
         c2 = stored_data["slider_valves"].loc[:, [c for c in required_columns if c not in
                                                   ["PRECH", "VMA", "VMB"]]]
-        c2["PRECH"] = np.NaN
-        c2["VMA"] = np.NaN
-        c2["VMB"] = np.NaN
+        c2["PRECH"] = np.nan
+        c2["VMA"] = np.nan
+        c2["VMB"] = np.nan
         c2["type"] = "slider_valves"
         connections = pd.concat([connections, c2], ignore_index=True)
 

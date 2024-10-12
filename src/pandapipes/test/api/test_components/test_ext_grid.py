@@ -90,7 +90,7 @@ def test_t_type_single_pipe(use_numba):
     pandapipes.create_ext_grid(net, j0, 5, 645, type="pt")
     pandapipes.create_sink(net, j1, 1)
     pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     max_iter_hyd = 3 if use_numba else 3
@@ -98,7 +98,7 @@ def test_t_type_single_pipe(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -112,14 +112,14 @@ def test_t_type_single_pipe(use_numba):
     pandapipes.create_sink(net2, j1, 1)
 
     pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 12 if use_numba else 12
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_m=1e-4,
-                        mode="all", use_numba=use_numba)
+                        mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -148,11 +148,11 @@ def test_t_type_tee(use_numba):
     pandapipes.create_ext_grid(net, j2, 5, 310, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
@@ -161,7 +161,7 @@ def test_t_type_tee(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -177,17 +177,17 @@ def test_t_type_tee(use_numba):
     pandapipes.create_sink(net2, j3, 1)
 
     pandapipes.create_pipe_from_parameters(net2, j0, j1, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4, tol_m=1e-4,
-                        mode="all", use_numba=use_numba)
+                        mode='sequential', use_numba=use_numba)
     temp2 = net2.res_junction.t_k.values
 
     temp_diff = np.abs(1 - temp / temp2)
@@ -218,20 +218,20 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.create_ext_grid(net, j0, 5, 645, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j2, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     max_iter_hyd = 4 if use_numba else 4
     max_iter_therm = 8 if use_numba else 8
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -249,19 +249,19 @@ def test_t_type_tee_2zu_2ab(use_numba):
     pandapipes.create_sink(net2, j4, 1)
 
     pandapipes.create_pipe_from_parameters(net2, j0, j2, 6, diameter_m=d, k_mm=.1, sections=1,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -292,20 +292,20 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     pandapipes.create_ext_grid(net, j4, 5, 382.485897, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 8 if use_numba else 8
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -323,19 +323,19 @@ def test_t_type_tee_2zu_2ab2(use_numba):
     pandapipes.create_sink(net2, j4, 1)
 
     pandapipes.create_pipe_from_parameters(net2, j0, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j1, j2, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j2, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j2, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 
@@ -366,13 +366,13 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     pandapipes.create_ext_grid(net, j4, 5, 382.485897, type="t")
 
     pandapipes.create_pipe_from_parameters(net, j0, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j2, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net, j1, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
@@ -381,7 +381,7 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp = net.res_junction.t_k.values
 
@@ -399,19 +399,19 @@ def test_t_type_tee_2zu_2ab3(use_numba):
     pandapipes.create_sink(net2, j4, 1)
 
     pandapipes.create_pipe_from_parameters(net2, j0, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j2, j1, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j1, j3, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
     pandapipes.create_pipe_from_parameters(net2, j1, j4, 2.5, diameter_m=d, k_mm=.1, sections=5,
-                                           alpha_w_per_m2k=5)
+                                           u_w_per_m2k=5)
 
     pandapipes.create_fluid_from_lib(net2, "water", overwrite=True)
     pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,
-                        tol_m=1e-4, mode="all", use_numba=use_numba)
+                        tol_m=1e-4, mode='sequential', use_numba=use_numba)
 
     temp2 = net2.res_junction.t_k.values
 

@@ -15,7 +15,7 @@ from pandapipes.io.convert_format import convert_format
 from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.multinet import MultiNet
-from pandapower import pandapowerNet
+from pandapower.auxiliary import pandapowerNet
 from pandapower.convert_format import convert_format as convert_format_pandapower
 
 
