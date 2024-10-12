@@ -1,6 +1,5 @@
 import numpy as np
 
-from build.lib.pandapipes.pf.internals_toolbox import get_to_nodes_corrected
 from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DM_NODE, \
@@ -8,7 +7,7 @@ from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE_B, \
     JAC_DERIV_DT_NODE_N, MDOTINIT, PUMP_TYPE, CIRC
 from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, NODE_TYPE_T, T
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected, P
 from pandapipes.properties.fluids import get_fluid
 from pandpaipes.pf.pipeflow_setup import PipeflowNotConverged
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
