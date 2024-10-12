@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 # branch types
-# no types defined
+CIRC = 1
 
 # branch indices
 TABLE_IDX = 0  # number of the table that this branch belongs to
@@ -30,15 +30,16 @@ JAC_DERIV_DT = 20
 JAC_DERIV_DTOUT = 21
 LOAD_VEC_BRANCHES_T = 22
 TOUTINIT = 23  # Internal slot for outlet pipe temperature
-JAC_DERIV_DT_NODE = 24  # Slot for the derivative fpr T for the nodes connected to branch
-LOAD_VEC_NODES_T = 25 # Slot for the load vector of the nodes connected to branch
-FROM_NODE_T_SWITCHED = 26 # flag to indicate if the from and to node are switched in the thermal calculation
-QEXT = 27  # heat input into the branch [W]
-TEXT = 28 # temperature of surrounding [K]
-PL = 29 # Pressure lift [bar]
-TL = 30 # Temperature lift [K]
-BRANCH_TYPE = 31  # branch type relevant for the pressure controller
-PUMP_TYPE = 32
-CIRC = 33
+JAC_DERIV_DT_NODE_B = 24  # Slot for the node equation derivative of T for the corresponding branch
+JAC_DERIV_DT_NODE_N = 25  # Slot for the node equation derivative of T for the nodes branch is connected to
+LOAD_VEC_NODES_T = 26 # Slot for the load vector of the nodes connected to branch
+MDOTINIT_T = 27
+FROM_NODE_T_SWITCHED = 28 # flag to indicate if the from and to node are switched in the thermal calculation
+QEXT = 29  # heat input into the branch [W]
+TEXT = 30 # temperature of surrounding [K]
+PL = 31 # Pressure lift [bar]
+TL = 32 # Temperature lift [K]
+BRANCH_TYPE = 33  # branch type relevant for the pressure controller
+PUMP_TYPE = 34
 
-branch_cols = 34
+branch_cols = 35

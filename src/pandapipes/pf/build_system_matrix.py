@@ -6,10 +6,9 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
-    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, \
-    JAC_DERIV_DT_NODE, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, BRANCH_TYPE
-from pandapipes.idx_node import LOAD, TINIT
-from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T
+    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, CIRC, PUMP_TYPE, \
+    JAC_DERIV_DT_NODE_B, JAC_DERIV_DT_NODE_N, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, BRANCH_TYPE
+from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T, LOAD, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group, \
     get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_net_option
@@ -48,13 +47,14 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     else:
         fn = get_from_nodes_corrected(branch_pit)
         tn = get_to_nodes_corrected(branch_pit)
-    not_slack_fn_branch_mask = node_pit[fn, ntyp_col] != slack_type
-    not_slack_tn_branch_mask = node_pit[tn, ntyp_col] != slack_type
     pc_branch_mask = branch_pit[:, BRANCH_TYPE] == pc_type
     slack_nodes = np.where(node_pit[:, ntyp_col] == slack_type)[0]
     pc_matrix_indices = branch_matrix_indices[pc_branch_mask]
 
+    # size of the matrix
     if not heat_mode:
+        not_slack_fn_branch_mask = node_pit[fn, ntyp_col] != slack_type
+        not_slack_tn_branch_mask = node_pit[tn, ntyp_col] != slack_type
         len_fn_not_slack = np.sum(not_slack_fn_branch_mask)
         len_tn_not_slack = np.sum(not_slack_tn_branch_mask)
         len_fn1 = num_der * len_b + len_fn_not_slack
@@ -62,98 +62,119 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         len_pc = len_tn1 + pc_nodes.shape[0]
         full_len = len_pc + slack_nodes.shape[0]
     else:
-        inc_flow_sum = np.zeros(len(node_pit[:, LOAD]))
-        tn_unique_der, tn_sums_der = _sum_by_group(use_numba, tn, branch_pit[:, JAC_DERIV_DT_NODE])
-        inc_flow_sum[tn_unique_der] += tn_sums_der
-        len_fn1 = num_der * len_b + len(tn_unique_der)
-        len_tn1 = len_fn1 + len_b
-        full_len = len_tn1 + slack_nodes.shape[0]
+        not_slack_branch_mask =  branch_pit[:, PUMP_TYPE] != CIRC
+        len_tn_not_slack = np.sum(not_slack_branch_mask)
+        infeed_node = np.arange(len_n)[node_pit[:, INFEED].astype(np.bool_)]
+        len_tn1 = num_der * len_b + len_tn_not_slack
+        len_tn2 = len_tn1 + len_tn_not_slack
+        full_len = len_tn2 + slack_nodes.shape[0]
 
     system_data = np.zeros(full_len, dtype=np.float64)
 
+    # entries in the matrix
     if not heat_mode:
-        # pdF_dv
+
+        # branch equations
+        # ----------------
+        # branch_dF_dm
         system_data[:len_b] = branch_pit[:, JAC_DERIV_DM]
-        # pdF_dpi
+        # branch_dF_dp_from
         system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DP]
-        # pdF_dpi1
+        # branch_dF_dp_to
         system_data[2 * len_b:3 * len_b] = branch_pit[:, JAC_DERIV_DP1]
-        # jdF_dv_from_nodes
+
+        # node equations
+        # --------------
+        # from_node_dF_dm
         system_data[3 * len_b:len_fn1] = branch_pit[not_slack_fn_branch_mask, JAC_DERIV_DM_NODE] * (-1)
-        # jdF_dv_to_nodes
+        # to_node_dF_dm
         system_data[len_fn1:len_tn1] = branch_pit[not_slack_tn_branch_mask, JAC_DERIV_DM_NODE]
-        # pc_nodes and p_nodes
+
+        # fixed pressure equations
+        # ------------------------
+        # pc_nodes and slack_nodes
         system_data[len_tn1:] = 1
     else:
-        system_data[:len_b] = branch_pit[:, JAC_DERIV_DT]
-        # pdF_dpi1
-        system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DTOUT]
-        # jdF_dv_from_nodes
-        system_data[2 * len_b:len_fn1] = inc_flow_sum[tn_unique_der]
-        # jdF_dv_to_nodes
-        data = branch_pit[:, JAC_DERIV_DT_NODE] * (-1)
-        rows = tn
-        index = np.argsort(rows)
-        data = data[index]
-        system_data[len_fn1:len_fn1 + len_b] = data
-        system_data[len_fn1 + len_b:] = 1
 
+        # branch equations
+        # ----------------
+        # branch_dF_dT_from
+        system_data[:len_b] = branch_pit[:, JAC_DERIV_DT]
+        # branch_dF_dT_out
+        system_data[len_b:2 * len_b] = branch_pit[:, JAC_DERIV_DTOUT]
+
+        # node equations
+        # --------------
+        # node_dF_dT_to
+        system_data[2 * len_b:len_tn1] = branch_pit[not_slack_branch_mask, JAC_DERIV_DT_NODE_N]
+        # node_dF_dT_out
+        system_data[len_tn1:len_tn2] = branch_pit[not_slack_branch_mask, JAC_DERIV_DT_NODE_B]
+
+        # fixed temperature equations
+        # ---------------------------
+        # t_nodes
+        system_data[len_tn2:] = 1
+
+    # position in the matrix
     if not update_only:
         system_cols = np.zeros(full_len, dtype=np.int32)
         system_rows = np.zeros(full_len, dtype=np.int32)
 
         if not heat_mode:
-            # pdF_dv
+
+            # branch equations
+            # ----------------
+            # branch_dF_dm
             system_cols[:len_b] = branch_matrix_indices
             system_rows[:len_b] = branch_matrix_indices
-
-            # pdF_dpi
+            # branch_dF_dp_from
             system_cols[len_b:2 * len_b] = fn
             system_rows[len_b:2 * len_b] = branch_matrix_indices
-
-            # pdF_dpi1
+            # branch_dF_dp_to
             system_cols[2 * len_b:3 * len_b] = tn
             system_rows[2 * len_b:3 * len_b] = branch_matrix_indices
 
-            # jdF_dv_from_nodes
+            # node equations
+            # --------------
+            # from_node_dF_dm
             system_cols[3 * len_b:len_fn1] = branch_matrix_indices[not_slack_fn_branch_mask]
             system_rows[3 * len_b:len_fn1] = fn[not_slack_fn_branch_mask]
-
-            # jdF_dv_to_nodes
+            # to_node_dF_dm
             system_cols[len_fn1:len_tn1] = branch_matrix_indices[not_slack_tn_branch_mask]
             system_rows[len_fn1:len_tn1] = tn[not_slack_tn_branch_mask]
 
+            # fixed pressure equations
+            # -----------------------
             # pc_nodes
             system_cols[len_tn1:len_pc] = pc_nodes
             system_rows[len_tn1:len_pc] = pc_matrix_indices
-
-            # p_nodes
+            # slack_nodes
             system_cols[len_pc:] = slack_nodes
             system_rows[len_pc:] = slack_nodes
         else:
-            # pdF_dTfromnode
+            # branch equations
+            # ----------------
+            # branch_dF_dT_from
             system_cols[:len_b] = fn
             system_rows[:len_b] = branch_matrix_indices
-
-            # pdF_dTout
+            # branch_dF_dT_out
             system_cols[len_b:2 * len_b] = branch_matrix_indices
             system_rows[len_b:2 * len_b] = branch_matrix_indices
 
-            # t_nodes
-            system_cols[len_fn1 + len_b:] = slack_nodes
-            system_rows[len_fn1 + len_b:] = np.arange(0, len(slack_nodes))
+            # node equations
+            # --------------
+            # node_dF_dT_to
+            system_cols[2 * len_b:len_tn1] = tn[not_slack_branch_mask]
+            system_rows[2 * len_b:len_tn1] = tn[not_slack_branch_mask]
+            # node_dF_dT_out
+            system_cols[len_tn1:len_tn2] = branch_matrix_indices[not_slack_branch_mask]
+            system_rows[len_tn1:len_tn2] = tn[not_slack_branch_mask]
 
-            # jdF_dTnode_
-            tn_unique_idx = np.unique(tn, return_index=True)
-            system_cols[2 * len_b:len_fn1] = tn_unique_idx[0]
-            system_rows[2 * len_b:len_fn1] = len(slack_nodes) + np.arange(0, len(tn_unique_der))
-
-            # jdF_dTout
-            branch_order = np.argsort(tn)
-            tn_uni, tn_uni_counts = np.unique(tn[branch_order], return_counts=True)
-            row_index = np.repeat(np.arange(len(tn_uni)), tn_uni_counts)
-            system_cols[len_fn1:len_fn1 + len_b] = branch_matrix_indices[branch_order]
-            system_rows[len_fn1:len_fn1 + len_b] = len(slack_nodes) + row_index
+            # fixed temperature equations
+            # ---------------------------
+            # t_nodes (overwrites only infeeding nodes' equation)
+            system_cols[len_tn2:] = slack_nodes
+            system_rows[len_tn2:] = infeed_node
 
         if not update_option:
             system_matrix = csr_matrix((system_data, (system_rows, system_cols)),
@@ -179,6 +200,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         system_matrix = net["_internal_data"]["hydraulic_matrix"]
         system_matrix.data = system_data
 
+    # load vector on the right side
     if not heat_mode:
         load_vector = np.empty(len_n + len_b)
         load_vector[len_n:] = branch_pit[:, LOAD_VEC_BRANCHES]
@@ -190,13 +212,10 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         load_vector[slack_nodes] = 0
         load_vector[pc_matrix_indices] = 0
     else:
-        tn_unique, tn_sums = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_T])
         load_vector = np.zeros(len_n + len_b)
-        load_vector[len(slack_nodes) + np.arange(0, len(tn_unique_der))] += tn_sums
-        load_vector[len(slack_nodes) + np.arange(0, len(tn_unique_der))] -= tn_sums_der * node_pit[
-            tn_unique_der, TINIT]
-        load_vector[0:len(slack_nodes)] = 0.
-
         load_vector[len_n:] = branch_pit[:, LOAD_VEC_BRANCHES_T]
+        tn_unique_n, tn_sums_n = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_T])
+        load_vector[tn_unique_n] += tn_sums_n
+        load_vector[infeed_node] = 0
 
     return system_matrix, load_vector

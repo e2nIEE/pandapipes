@@ -5,8 +5,8 @@
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, PL
 
 try:
     import pandaplan.core.pplog as logging
@@ -29,14 +29,8 @@ class CirculationPumpPressure(CirculationPump):
         :return:
         :rtype:
         """
-        return [("name", dtype(object)),
-                ("return_junction", "u4"),
-                ("flow_junction", "u4"),
-                ("p_flow_bar", "f8"),
-                ("t_flow_k", "f8"),
-                ("plift_bar", "f8"),
-                ("in_service", 'bool'),
-                ("type", dtype(object))]
+        return [("name", dtype(object)), ("return_junction", "u4"), ("flow_junction", "u4"), ("p_flow_bar", "f8"),
+                ("t_flow_k", "f8"), ("plift_bar", "f8"), ("in_service", 'bool'), ("type", dtype(object))]
 
     @classmethod
     def active_identifier(cls):
@@ -47,19 +41,24 @@ class CirculationPumpPressure(CirculationPump):
         return Junction
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
+    def create_pit_branch_entries(cls, net, branch_pit):
         """
-        Function which creates pit node entries.
-
+        Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
+        :param branch_pit:
+        :type branch_pit:
         :return: No Output.
         """
-        circ_pump, press = super().create_pit_node_entries(net, node_pit)
+        circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
+        circ_pump_pit[:, PL] = net[cls.table_name()]['plift_bar'].values
+        return circ_pump_pit
 
-        junction = circ_pump[cls.from_to_node_cols()[0]].values
-        p_in = press - circ_pump.plift_bar.values
-        set_fixed_node_entries(net, node_pit, junction, circ_pump.type.values, p_in, None,
-                               cls.get_connected_node_type(), "p")
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
+        # of velocity is allowed during the pipeflow iteration
+        f, t = idx_lookups[cls.table_name()]
+        circ_pump_pit = branch_pit[f:t, :]
+        circ_pump_pit[:, JAC_DERIV_DP] = 1
+        circ_pump_pit[:, JAC_DERIV_DP1] = -1
