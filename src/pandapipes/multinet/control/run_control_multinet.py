@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 import pandapipes as ppipes
-import pandapower as pp
+from pandapower.auxiliary import pandapowerNet
 from pandapipes.control.run_control import prepare_run_ctrl as prepare_run_ctrl_ppipes
 from pandapower.control.run_control import prepare_run_ctrl as prepare_run_ctrl_pp, \
     net_initialization, get_recycle, control_initialization, control_finalization, \
@@ -219,7 +219,7 @@ def prepare_ctrl_variables_for_net(multinet, net_name, ctrl_variables, **kwargs)
     net = multinet['nets'][net_name]
     if isinstance(net, ppipes.pandapipesNet):
         ctrl_variables_net = prepare_run_ctrl_ppipes(net, None, **kwargs)
-    elif isinstance(net, pp.pandapowerNet):
+    elif isinstance(net, pandapowerNet):
         ctrl_variables_net = prepare_run_ctrl_pp(net, None, **kwargs)
     else:
         raise ValueError('the given nets are neither pandapipes nor pandapower nets')

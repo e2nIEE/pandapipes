@@ -4,6 +4,9 @@
 
 import numpy as np
 import logging
+
+from pandapipes.idx_branch import FROM_NODE_T_SWITCHED, TO_NODE, FROM_NODE
+
 try:
     from numba import jit
     numba_installed = True
@@ -44,7 +47,7 @@ def _sum_by_group_sorted(indices, *values):
             val[i] = val[i][index]
             still_na = nans[index]
             val[i][1:] = val[i][1:] - val[i][:-1]
-            val[i][still_na] = np.NaN
+            val[i][still_na] = np.nan
         else:
             np.cumsum(val[i], out=val[i])
             val[i] = val[i][index]
@@ -154,3 +157,47 @@ def _sum_values_by_index(indices, value_arr, max_ind, le, n_vals):
 @jit(nopython=True)
 def max_nb(arr):
     return np.max(arr)
+
+
+def get_from_nodes_corrected(branch_pit, switch_from_to_col=None):
+    """
+    Function to get corrected from nodes from the branch pit.
+
+    Usually, this should be used if the velocity in a branch is negative, so that the\
+    flow goes from the to_node to the from_node. The parameter switch_from_to_col indicates\
+    whether the two columns shall be switched (for each row) or not.
+
+    :param branch_pit: The branch pit
+    :type branch_pit: np.ndarray
+    :param switch_from_to_col: Indicates for each branch, whether to use the from (True) or \
+        to (False) node. If None, the column FROM_NODE_T_SWITCHED is used.
+    :type switch_from_to_col: np.ndarray, default None
+    :return:
+    :rtype:
+    """
+    if switch_from_to_col is None:
+        switch_from_to_col = branch_pit[:, FROM_NODE_T_SWITCHED]
+    from_node_col = switch_from_to_col.astype(np.int32) * (TO_NODE - FROM_NODE) + FROM_NODE
+    return branch_pit[np.arange(len(branch_pit)), from_node_col].astype(np.int32)
+
+
+def get_to_nodes_corrected(branch_pit, switch_from_to_col=None):
+    """
+    Function to get corrected to nodes from the branch pit.
+
+    Usually, this should be used if the velocity in a branch is negative, so that the\
+    flow goes from the to_node to the from_node. The parameter switch_from_to_col indicates\
+    whether the two columns shall be switched (for each row) or not.
+
+    :param branch_pit: The branch pit
+    :type branch_pit: np.ndarray
+    :param switch_from_to_col: Indicates for each branch, whether to use the from (False) or \
+        to (True) node. If set to None, the column FROM_NODE_T_SWITCHED is used.
+    :type switch_from_to_col: np.ndarray, default None
+    :return:
+    :rtype:
+    """
+    if switch_from_to_col is None:
+        switch_from_to_col = branch_pit[:, FROM_NODE_T_SWITCHED]
+    to_node_col = switch_from_to_col.astype(np.int32) * (FROM_NODE - TO_NODE) + TO_NODE
+    return branch_pit[np.arange(len(branch_pit)), to_node_col].astype(np.int32)

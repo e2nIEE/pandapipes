@@ -5,12 +5,15 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models import get_fluid, BranchWZeroLengthComponent, get_component_array, \
-    standard_branch_wo_internals_result_lookup
+from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
+                                         standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, FROM_NODE_T, JAC_DERIV_DM, JAC_DERIV_DP, \
-    LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE
+from pandapipes.idx_branch import (D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
+                                   JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
+                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T)
 from pandapipes.idx_node import TINIT
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
+from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
@@ -61,15 +64,15 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :type branch_pit:
         :return: No Output.
         """
-        node_pit = net['_pit']['node']
         hc_pit = super().create_pit_branch_entries(net, branch_pit)
         hc_pit[:, D] = net[cls.table_name()].diameter_m.values
         hc_pit[:, AREA] = hc_pit[:, D] ** 2 * np.pi / 4
-        hc_pit[:, MDOTINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values
-        hc_pit[:, QEXT] = net[cls.table_name()].qext_w.values
-        # causes otherwise problems in case of mode Q
-        hc_pit[np.isnan(hc_pit[:, MDOTINIT]), MDOTINIT] = 0.1
-        hc_pit[hc_pit[:, QEXT] == 0, ACTIVE] = False
+        qext = net[cls.table_name()].qext_w.values
+        hc_pit[~np.isnan(qext), QEXT] = qext[~np.isnan(qext)]
+        mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
+        hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
+        treturn = net[cls.table_name()].treturn_k.values
+        hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
         return hc_pit
 
     @classmethod
@@ -87,14 +90,15 @@ class HeatConsumer(BranchWZeroLengthComponent):
         """
         tbl = net[cls.table_name()]
         consumer_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
-        consumer_array[:, cls.MASS] = tbl.controlled_mdot_kg_per_s.values
-        consumer_array[:, cls.QEXT] = tbl.qext_w.values
         consumer_array[:, cls.DELTAT] = tbl.deltat_k.values
-        consumer_array[:, cls.TRETURN] = tbl.treturn_k.values
-        mf = ~np.isnan(consumer_array[:, cls.MASS])
-        qe = ~np.isnan(consumer_array[:, cls.QEXT])
-        dt = ~np.isnan(consumer_array[:, cls.DELTAT])
-        tr = ~np.isnan(consumer_array[:, cls.TRETURN])
+        mf = tbl.controlled_mdot_kg_per_s.values
+        tr = tbl.treturn_k.values
+        dt = tbl.deltat_k.values
+        qe = tbl.qext_w.values
+        mf = ~np.isnan(mf)
+        tr = ~np.isnan(tr)
+        dt = ~np.isnan(dt)
+        qe = ~np.isnan(qe)
         consumer_array[mf & dt, cls.MODE] = cls.MF_DT
         consumer_array[mf & tr, cls.MODE] = cls.MF_TR
         consumer_array[qe & mf, cls.MODE] = cls.QE_MF
@@ -110,9 +114,9 @@ class HeatConsumer(BranchWZeroLengthComponent):
 
         mask = consumer_array[:, cls.MODE] == cls.QE_DT
         if np.any(mask):
-            cp = get_branch_cp(net, get_fluid(net), node_pit, hc_pit)
-            deltat = net[cls.table_name()].deltat_k.values
-            mass = consumer_array[mask, cls.QEXT] / (cp[mask] * (deltat[mask]))
+            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit[mask])
+            deltat = consumer_array[mask, cls.DELTAT]
+            mass = hc_pit[mask, QEXT] / (cp * deltat)
             hc_pit[mask, MDOTINIT] = mass
 
     @classmethod
@@ -146,15 +150,16 @@ class HeatConsumer(BranchWZeroLengthComponent):
 
         mask = consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask):
-            cp = get_branch_cp(net, get_fluid(net), node_pit, hc_pit)
-            from_nodes = hc_pit[mask, FROM_NODE_T].astype(int)
-            t_out = consumer_array[mask, cls.TRETURN]
-            t_mask = hc_pit[mask, TOUTINIT] == node_pit[from_nodes, TINIT]
-            node_pit[from_nodes[t_mask], TINIT] += 10
+            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
+            from_nodes = get_from_nodes_corrected(hc_pit)
             t_in = node_pit[from_nodes, TINIT]
-            df_dm = - cp[mask] * (t_out - t_in)
-            hc_pit[mask, LOAD_VEC_BRANCHES] = - consumer_array[mask, cls.QEXT] + df_dm * hc_pit[mask, MDOTINIT]
-            hc_pit[mask, JAC_DERIV_DM] = df_dm
+            t_out = hc_pit[:, TOUTINIT]
+
+            df_dm = - cp * (t_out - t_in)
+            hc_pit[mask, LOAD_VEC_BRANCHES] = - hc_pit[mask, QEXT] + df_dm[mask] * hc_pit[mask, MDOTINIT]
+            mask_equal = t_out == t_in
+            hc_pit[mask & mask_equal, MDOTINIT] = 0
+            hc_pit[mask & ~mask_equal, JAC_DERIV_DM] = df_dm[mask & ~mask_equal]
 
     @classmethod
     def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -163,17 +168,17 @@ class HeatConsumer(BranchWZeroLengthComponent):
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
         mask = consumer_array[:, cls.MODE] == cls.MF_DT
         if np.any(mask):
-            cp = get_branch_cp(net, get_fluid(net), node_pit, hc_pit)
-            q_ext = cp[mask] * consumer_array[mask, cls.MASS] * consumer_array[mask, cls.DELTAT]
+            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
+            q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * consumer_array[mask, cls.DELTAT]
             hc_pit[mask, QEXT] = q_ext
 
         mask = consumer_array[:, cls.MODE] == cls.MF_TR
         if np.any(mask):
-            cp = get_branch_cp(net, get_fluid(net), node_pit, hc_pit)
-            from_nodes = hc_pit[mask, FROM_NODE_T].astype(int)
+            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
+            from_nodes = get_from_nodes_corrected(hc_pit[mask])
             t_in = node_pit[from_nodes, TINIT]
             t_out = hc_pit[mask, TOUTINIT]
-            q_ext = cp[mask] * consumer_array[mask, cls.MASS] * (t_in - t_out)
+            q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * (t_in - t_out)
             hc_pit[mask, QEXT] = q_ext
 
     @classmethod
@@ -186,9 +191,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
         mask = np.isin(consumer_array[:, cls.MODE], [cls.MF_TR, cls.QE_TR])
         if np.any(mask):
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
-            hc_pit[mask, JAC_DERIV_DTOUT] = -1
+            hc_pit[mask, JAC_DERIV_DTOUT] = 1
             hc_pit[mask, JAC_DERIV_DT] = 0
-            hc_pit[mask, TOUTINIT] = consumer_array[mask, cls.TRETURN]
 
     @classmethod
     def get_component_input(cls):
@@ -217,11 +221,12 @@ class HeatConsumer(BranchWZeroLengthComponent):
         """
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
                       "normfactor_from", "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda"]
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
+                      "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda"]
+        output += ['deltat_k', 'qext_w']
         return output, True
 
     @classmethod
@@ -242,4 +247,17 @@ class HeatConsumer(BranchWZeroLengthComponent):
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-                                                 cls.table_name(), mode)
+            cls.table_name(), mode)
+
+        node_pit = net['_pit']['node']
+        branch_pit = net['_pit']['branch']
+        branch_lookups = get_lookup(net, "branch", "from_to")
+        f, t = branch_lookups[cls.table_name()]
+
+        res_table = net["res_" + cls.table_name()]
+
+        res_table['qext_w'].values[:] = branch_pit[f:t, QEXT]
+        from_nodes = get_from_nodes_corrected(branch_pit[f:t])
+        t_from = node_pit[from_nodes, TINIT]
+        tout = branch_pit[f:t, TOUTINIT]
+        res_table['deltat_k'].values[:] = t_from - tout

@@ -7,10 +7,10 @@ from scipy.sparse import csr_matrix
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
     JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, CIRC, PUMP_TYPE, \
-    JAC_DERIV_DT_NODE_B, JAC_DERIV_DT_NODE_N, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, FROM_NODE_T, TO_NODE_T, BRANCH_TYPE
-
+    JAC_DERIV_DT_NODE_B, JAC_DERIV_DT_NODE_N, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, BRANCH_TYPE
 from pandapipes.idx_node import P, PC, NODE_TYPE, T, NODE_TYPE_T, LOAD, INFEED, MDOTSLACKINIT, JAC_DERIV_MSL
-from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group
+from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group, \
+    get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_net_option
 
 
@@ -31,19 +31,22 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     """
     update_option = get_net_option(net, "only_update_hydraulic_matrix")
     update_only = update_option and "hydraulic_data_sorting" in net["_internal_data"] \
-                  and "hydraulic_matrix" in net["_internal_data"]
+        and "hydraulic_matrix" in net["_internal_data"]
     use_numba = get_net_option(net, "use_numba")
 
     len_b = len(branch_pit)
     len_n = len(node_pit)
     branch_matrix_indices = np.arange(len_b) + len_n
-    fn_col, tn_col, ntyp_col, slack_type, pc_type, num_der = \
-        (FROM_NODE, TO_NODE, NODE_TYPE, P, PC, 3) \
-            if not heat_mode else (FROM_NODE_T, TO_NODE_T, NODE_TYPE_T, T, PC, 2)
+    ntyp_col, slack_type, pc_type, num_der = \
+        (NODE_TYPE, P, PC, 3) if not heat_mode else (NODE_TYPE_T, T, PC, 2)
     pc_nodes = np.where(node_pit[:, ntyp_col] == pc_type)[0]
-    fn = branch_pit[:, fn_col].astype(np.int32)
-    tn = branch_pit[:, tn_col].astype(np.int32)
 
+    if not heat_mode:
+        fn = branch_pit[:, FROM_NODE].astype(np.int32)
+        tn = branch_pit[:, TO_NODE].astype(np.int32)
+    else:
+        fn = get_from_nodes_corrected(branch_pit)
+        tn = get_to_nodes_corrected(branch_pit)
     pc_branch_mask = branch_pit[:, BRANCH_TYPE] == pc_type
     slack_nodes = np.where(node_pit[:, ntyp_col] == slack_type)[0]
     pc_matrix_indices = branch_matrix_indices[pc_branch_mask]

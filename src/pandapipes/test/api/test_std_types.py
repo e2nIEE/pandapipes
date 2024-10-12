@@ -305,10 +305,11 @@ def test_available_std_types():
     do = 99.5
     di = 87.5
     rat = 16.33
+    u = 10
     mat = "GGG"
 
     typdata = {"standard_dimension_ratio": rat, "material": mat, "inner_diameter_mm": di,
-               "outer_diameter_mm": do, "nominal_width_mm": w}
+               "outer_diameter_mm": do, "nominal_width_mm": w, "u_w_per_m2k":u}
 
     typdatas = {"typ1": typdata, "typ2": typdata}
     pandapipes.create_std_types(net, component="pipe", type_dict=typdatas)
