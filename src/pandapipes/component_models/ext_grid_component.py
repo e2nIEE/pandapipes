@@ -6,9 +6,9 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries, \
-    get_mass_flow_at_nodes
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.idx_node import MDOTSLACKINIT
 
 try:
     import pandaplan.core.pplog as logging
@@ -91,8 +91,8 @@ class ExtGrid(NodeElementComponent):
         # get indices in internal structure for junctions in ext_grid tables which are "active"
         eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
             junction[p_grids]]
-        sum_mass_flows, inverse_nodes, counts = get_mass_flow_at_nodes(net, node_pit, branch_pit,
-                                                                       eg_nodes, cls)
+        node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True, return_inverse=True)
+        sum_mass_flows = node_pit[node_uni, MDOTSLACKINIT]
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)

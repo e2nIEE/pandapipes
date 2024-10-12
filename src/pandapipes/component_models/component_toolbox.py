@@ -10,9 +10,9 @@ from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERA
     HEIGHT_EXPONENT
 from pandapipes.idx_branch import LOAD_VEC_NODES, FROM_NODE, TO_NODE
 from pandapipes.idx_node import EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T
-from pandapipes.idx_node import PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD
-from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.idx_node import PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD, VAR_MASS_SLACK, JAC_DERIV_MSL
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
+from pandapipes.pf.internals_toolbox import _sum_by_group
 
 
 def p_correction_height_air(height):
@@ -84,7 +84,7 @@ def init_results_element(net, element, output, all_float):
     """
     res_element = "res_" + element
     if all_float:
-        net[res_element] = pd.DataFrame(np.NAN, columns=output, index=net[element].index,
+        net[res_element] = pd.DataFrame(np.nan, columns=output, index=net[element].index,
                                         dtype=np.float64)
     else:
         net[res_element] = pd.DataFrame(np.zeros(0, dtype=output), index=[])
@@ -136,11 +136,11 @@ def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
         pit[:, column] = entry
 
 
-def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_values, node_comp,
+def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_values, node_comp, var_mass_slack=True,
                            mode="sequential"):
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
     for eg_type in ("p", "t"):
-        if eg_type not in mode and mode != "sequential" and mode!= "bidrectional":
+        if eg_type not in mode and mode != "sequential" and mode != "bidrectional":
             continue
         if eg_type == "p":
             val_col, type_col, eg_count_col, typ, valid_types, values = \
@@ -159,7 +159,10 @@ def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_value
                                     + press_sum) / (number + node_pit[index, eg_count_col])
         node_pit[index, type_col] = typ
         node_pit[index, eg_count_col] += number
-
+        if eg_type == 'p':
+            node_pit[index, JAC_DERIV_MSL] = -1.
+            mask = node_pit[index, VAR_MASS_SLACK] == 0
+            node_pit[index[mask], VAR_MASS_SLACK] = var_mass_slack
 
 def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
     node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True, return_inverse=True)
