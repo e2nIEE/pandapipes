@@ -1,13 +1,15 @@
 import numpy as np
 
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DM_NODE, \
-    FROM_NODE, TO_NODE, FROM_NODE_T, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
-    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE, MDOTINIT, MDOTINIT_T
+    FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
+    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE, MDOTINIT
 from pandapipes.idx_node import TINIT as TINIT_NODE
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.constants import NORMAL_TEMPERATURE
-from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, get_branch_cp
+from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
+    get_branch_cp
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -29,7 +31,6 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     friction_model = options["friction_model"]
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
     eta = get_branch_real_eta(fluid, node_pit, branch_pit)
-    rho_n = fluid.get_density([NORMAL_TEMPERATURE] * len(branch_pit))
 
     lambda_, re = calc_lambda(
         branch_pit[:, MDOTINIT], eta, branch_pit[:, D],
@@ -52,7 +53,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_incomp
 
         load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
-            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho, rho_n)
+            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho)
     else:
         if options["use_numba"]:
             from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
@@ -63,6 +64,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
                 calc_medium_pressure_with_derivative
         p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
+        rho_n = np.full(len(branch_pit), fluid.get_density(NORMAL_TEMPERATURE))
         comp_fact = fluid.get_compressibility(p_m)
         # TODO: this might not be required
         der_comp = fluid.get_der_compressibility() * der_p_m
@@ -79,12 +81,12 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DM_NODE] = df_dm_nodes
 
 
-def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
+def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     node_pit[:, INFEED] = False
     fluid = get_fluid(net)
-    cp = get_branch_cp(net, fluid, node_pit, branch_pit)
-    m_init = branch_pit[:, MDOTINIT_T]
-    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
+    cp = get_branch_cp(fluid, node_pit, branch_pit)
+    m_init = np.abs(branch_pit[:, MDOTINIT])
+    from_nodes = get_from_nodes_corrected(branch_pit)
     t_init_i = node_pit[from_nodes, TINIT_NODE]
     t_init_i1 = branch_pit[:, TOUTINIT]
     t_amb = branch_pit[:, TEXT]

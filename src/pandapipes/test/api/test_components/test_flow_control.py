@@ -12,7 +12,7 @@ def test_flow_control_simple_heat(use_numba):
     j1, j2, j3, j4, j5, j6, j7, j8 = j
 
     p12, p25, p48, p74 = pandapipes.create_pipes_from_parameters(
-        net, [j1, j2, j4, j7], [j2, j5, j8, j4], 0.2, 0.1, k_mm=0.1, alpha_w_per_m2k=20.,
+        net, [j1, j2, j4, j7], [j2, j5, j8, j4], 0.2, 0.1, k_mm=0.1, u_w_per_m2k=20.,
         text_k=280)
 
     pandapipes.create_heat_exchanger(net, j3, j4, 0.1, 50000, 1)

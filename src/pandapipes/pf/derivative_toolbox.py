@@ -13,13 +13,16 @@ from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE
 
 
 def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                    height_difference, rho, rho_n):
+                                    height_difference, rho):
+    # Formulas for pressure loss in incompressible flow
+    # Use medium density ((rho_from + rho_to) / 2) for Darcy Weisbach according to
+    # https://www.schweizer-fn.de/rohr/rohrleitung/rohrleitung.php#fluessigkeiten
     m_init_abs = np.abs(branch_pit[:, MDOTINIT])
     m_init2 = m_init_abs * branch_pit[:, MDOTINIT]
     p_diff = p_init_i_abs - p_init_i1_abs
     const_height = rho * GRAVITATION_CONSTANT * height_difference / P_CONVERSION
     friction_term = np.divide(branch_pit[:, LENGTH] * branch_pit[:, LAMBDA], branch_pit[:, D]) + branch_pit[:, LC]
-    const_term = np.divide(1, branch_pit[:, AREA] ** 2 * rho_n * P_CONVERSION * 2)
+    const_term = np.divide(1, branch_pit[:, AREA] ** 2 * rho * P_CONVERSION * 2)
 
     df_dm = - const_term * (2 * m_init_abs * friction_term + der_lambda
                             * np.divide(branch_pit[:, LENGTH], branch_pit[:, D]) * m_init2)

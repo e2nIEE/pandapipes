@@ -88,7 +88,7 @@ def init_results_element(net, element, output, all_float):
                                         dtype=np.float64)
     else:
         net[res_element] = pd.DataFrame(np.zeros(0, dtype=output), index=[])
-        net[res_element] = pd.DataFrame(np.NaN, index=net[element].index,
+        net[res_element] = pd.DataFrame(np.nan, index=net[element].index,
                                         columns=net[res_element].columns)
 
 
@@ -183,19 +183,18 @@ def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
 def standard_branch_wo_internals_result_lookup(net):
     required_results_hyd = [
         ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
-        ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
-        ("reynolds", "reynolds")
+        ("mdot_from_kg_per_s", "mf_from"), ("lambda", "lambda"), ("reynolds", "reynolds")
     ]
-    required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
+    required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to"), ("t_outlet_k", "t_outlet")]
 
     if get_fluid(net).is_gas:
         required_results_hyd.extend([
             ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
             ("v_mean_m_per_s", "v_gas_mean"), ("normfactor_from", "normfactor_from"),
-            ("normfactor_to", "normfactor_to")
+            ("normfactor_to", "normfactor_to"), ("vdot_norm_m3_per_s", "vf")
         ])
     else:
-        required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
+        required_results_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
 
     return required_results_hyd, required_results_ht
 
@@ -215,8 +214,8 @@ def get_component_array(net, component_name, component_type="branch", mode='hydr
     :return: component_array - internal array of the component
     :rtype: numpy.ndarray
     """
-    f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
     if not only_active:
         return net["_pit"]["components"][component_name]
+    f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
     in_service_elm = get_lookup(net, component_type, "active_%s"%mode)[f_all:t_all]
     return net["_pit"]["components"][component_name][in_service_elm]
