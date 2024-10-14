@@ -82,7 +82,7 @@ def test_heat_consumer_equivalence2():
 
     pandapipes.create_heat_consumer(net2, juncs[1], juncs[4], 0.1022, controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net2, juncs[2], juncs[3], 0.1022, treturn_k=263.4459264973806, qext_w=qext[1])
-    pandapipes.pipeflow(net2, mode="bidirectional", iter=28, alpha=0.5)
+    pandapipes.pipeflow(net2, mode="bidirectional", iter=25)
 
     pandapipes.create_heat_consumer(net3, juncs[1], juncs[4], 0.1022, controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net3, juncs[2], juncs[3], 0.1022, deltat_k=17.82611044059695, qext_w=qext[1])
@@ -184,7 +184,7 @@ def test_heat_consumer_qext_zero():
     pandapipes.create_heat_consumer(net, juncs[1], juncs[4], 0.1022, treturn_k=263.4459264973806, qext_w=0)
     pandapipes.create_heat_consumer(net, juncs[2], juncs[3], 0.1022, controlled_mdot_kg_per_s=1, qext_w=7500)
 
-    pandapipes.pipeflow(net, mode="bidirectional", iter=27, alpha=0.5)
+    pandapipes.pipeflow(net, mode="bidirectional")
 
     assert net.res_junction.at[juncs[4], 't_k'] != 263.4459264973806
 
@@ -204,7 +204,7 @@ def test_heat_consumer_result_extraction():
     pandapipes.create_pipe_from_parameters(net, 6, 7, k_mm=0.1, length_km=1,
                                            diameter_m=0.1022, alpha_w_per_m2k=10, text_k=273.15)
 
-    pandapipes.pipeflow(net, mode="bidirectional", iter=27, alpha=0.5)
+    pandapipes.pipeflow(net, mode="bidirectional")
 
     #hydraulics only to check for lookup heat transfer error
     pandapipes.pipeflow(net)

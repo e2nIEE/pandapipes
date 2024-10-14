@@ -11,7 +11,8 @@ from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP
 
 from pandapipes.idx_node import (P, PC as PC_NODE, NODE_TYPE, T, NODE_TYPE_T, LOAD, INFEED,
                                  MDOTSLACKINIT, JAC_DERIV_MSL)
-from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group
+from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group, \
+    get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_net_option
 
 
@@ -38,13 +39,17 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     len_b = len(branch_pit)
     len_n = len(node_pit)
     branch_matrix_indices = np.arange(len_b) + len_n
-    fn_col, tn_col, ntyp_col, slack_type, pcn_type, pcb_type, branch_type, num_der = \
-        (FROM_NODE, TO_NODE, NODE_TYPE, P, PC_NODE, PC_BRANCH, BRANCH_TYPE, 3) \
-            if not heat_mode else (FROM_NODE_T, TO_NODE_T, NODE_TYPE_T, T, None, None, BRANCH_TYPE, 2)
+    ntyp_col, slack_type, pcn_type, pcb_type, branch_type, num_der = \
+        (NODE_TYPE, P, PC_NODE, PC_BRANCH, BRANCH_TYPE, 3) \
+            if not heat_mode else (NODE_TYPE_T, T, None, None, BRANCH_TYPE, 2)
     pc_nodes = np.where(node_pit[:, ntyp_col] == pcn_type)[0]
-    fn = branch_pit[:, fn_col].astype(np.int32)
-    tn = branch_pit[:, tn_col].astype(np.int32)
 
+    if not heat_mode:
+        fn = branch_pit[:, FROM_NODE].astype(np.int32)
+        tn = branch_pit[:, TO_NODE].astype(np.int32)
+    else:
+        fn = get_from_nodes_corrected(branch_pit)
+        tn = get_to_nodes_corrected(branch_pit)
     pc_branch_mask = branch_pit[:, branch_type] == pcb_type
     slack_nodes = np.where(node_pit[:, ntyp_col] == slack_type)[0]
     pc_matrix_indices = branch_matrix_indices[pc_branch_mask]
@@ -53,8 +58,8 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
     if not heat_mode:
         len_sl = len(slack_nodes)
         slack_mass_matrix_indices = np.arange(len_sl) + len_b + len_n
-        slack_masses_from, slack_branches_from = np.where(branch_pit[:, fn_col] == slack_nodes[:, None])
-        slack_masses_to, slack_branches_to = np.where(branch_pit[:, tn_col] == slack_nodes[:, None])
+        slack_masses_from, slack_branches_from = np.where(branch_pit[:, FROM_NODE] == slack_nodes[:, None])
+        slack_masses_to, slack_branches_to = np.where(branch_pit[:, TO_NODE] == slack_nodes[:, None])
         not_slack_fn_branch_mask = node_pit[fn, ntyp_col] != slack_type
         not_slack_tn_branch_mask = node_pit[tn, ntyp_col] != slack_type
         len_fn_not_slack = np.sum(not_slack_fn_branch_mask)

@@ -22,9 +22,9 @@ LOAD_T = 9  # Heat power drawn in [W]
 NODE_TYPE_T = 10
 EXT_GRID_OCCURENCE = 11
 EXT_GRID_OCCURENCE_T = 12
-CIRC_PUMP_OCCURENCE = 13
+INFEED = 13
 MDOTSLACKINIT = 14
 JAC_DERIV_MSL = 15
-INFEED = 16
+VAR_MASS_SLACK = 16 #required as slack do not necesseraly allow mass different from zero
 
 node_cols = 17

@@ -7,7 +7,7 @@ import numpy as np
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
-from pandapipes.idx_node import MDOTSLACKINIT, EXT_GRID_OCCURENCE
+from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -33,6 +33,8 @@ class CirculationPump(BranchWZeroLengthComponent):
     def get_result_table(cls, net):
         """
 
+        Gets the result table.
+
         :param net: The pandapipes network
         :type net: pandapipesNet
         :return: (columns, all_float) - the column names and whether they are all float type. Only
@@ -41,11 +43,12 @@ class CirculationPump(BranchWZeroLengthComponent):
         """
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
-                      "normfactor_from", "normfactor_to", "qext_w"]
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
+                      "normfactor_from", "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda", "qext_w"]
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
+                      "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda"]
+        output += ['deltat_k', 'qext_w']
         return output, True
 
     @classmethod
@@ -113,9 +116,8 @@ class CirculationPump(BranchWZeroLengthComponent):
         f, t = idx_lookups[cls.table_name()]
         circ_pump_pit = branch_pit[f:t, :]
         tn = circ_pump_pit[:, TO_NODE].astype(np.int32)
-        pos, counts = np.unique(tn, return_counts=True)
-        mask = counts == node_pit[pos, EXT_GRID_OCCURENCE]
-        node_pit[pos[mask], MDOTSLACKINIT] = 0
+        mask = node_pit[tn, VAR_MASS_SLACK].astype(bool)
+        node_pit[tn[~mask], MDOTSLACKINIT] = 0
         return circ_pump_pit
 
     @classmethod

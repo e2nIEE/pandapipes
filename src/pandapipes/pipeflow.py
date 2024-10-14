@@ -6,7 +6,7 @@ import numpy as np
 from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, MDOTINIT, TOUTINIT, MDOTINIT_T
+from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED
 from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import (calculate_derivatives_hydraulic,
@@ -279,13 +279,7 @@ def solve_temperature(net):
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
     # to_node for temperature calculation
-    branch_pit[:, MDOTINIT_T] = branch_pit[:, MDOTINIT]
-    branch_pit[:, FROM_NODE_T] = branch_pit[:, FROM_NODE]
-    branch_pit[:, TO_NODE_T] = branch_pit[:, TO_NODE]
-    mask = branch_pit[:, MDOTINIT] < 0
-    branch_pit[mask, MDOTINIT_T] = -branch_pit[mask, MDOTINIT]
-    branch_pit[mask, FROM_NODE_T] = branch_pit[mask, TO_NODE]
-    branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
+    branch_pit[:, FROM_NODE_T_SWITCHED] = branch_pit[:, MDOTINIT] < 0
 
     for comp in net['component_list']:
         comp.adaption_before_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
@@ -347,9 +341,9 @@ def finalize_iteration(net, niter, residual_norm, nonlinear_method, errors, tols
             return
     elif nonlinear_method != "constant":
         logger.warning("No proper nonlinear method chosen. Using constant settings.")
-    converged = True
     for error, var, tol in zip(errors.values(), solver_vars, tols):
-        converged = converged and error[niter] <= tol
+        converged = error[niter] <= tol
+        if not converged: break
         logger.debug("error_%s: %s" % (var, error[niter]))
     net.converged = converged and residual_norm <= tol_res
 
