@@ -17,3 +17,4 @@ from pandapipes.component_models.compressor_component import *
 from pandapipes.component_models.flow_control_component import *
 from pandapipes.component_models.mass_storage_component import *
 from pandapipes.component_models.heat_consumer_component import *
+from pandapipes.component_models.component_toolbox import *
