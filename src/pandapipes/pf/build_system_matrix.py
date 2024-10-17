@@ -180,9 +180,6 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
             # to_slack_dF_dm
             system_cols[len_fsb:len_tsb] = branch_matrix_indices[slack_branches_to]
             system_rows[len_fsb:len_tsb] = slack_mass_matrix_indices[slack_masses_to]
-            # to_slack_dF_dm
-            system_cols[len_fsb:len_tsb] = branch_matrix_indices[slack_branches_to]
-            system_rows[len_fsb:len_tsb] = slack_mass_matrix_indices[slack_masses_to]
             # slackmass_dF_dmslack
             system_cols[len_tsb:] = slack_mass_matrix_indices
             system_rows[len_tsb:] = slack_mass_matrix_indices
