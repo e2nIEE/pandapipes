@@ -5,9 +5,8 @@
 # node types
 P = 1  # Reference node, pressure is fixed
 L = 2  # All other nodes
-T = 10  # Reference node with fixed temperature, otherwise 0
-PC = 20  # Controlled node with fixed pressure p
-NONE = 3  # None
+T = 3  # Reference node with fixed temperature, otherwise 0
+PC = 4  # Controlled node with fixed pressure p
 
 # node indices
 TABLE_IDX = 0  # number of the table that this node belongs to
@@ -23,5 +22,9 @@ LOAD_T = 9  # Heat power drawn in [W]
 NODE_TYPE_T = 10
 EXT_GRID_OCCURENCE = 11
 EXT_GRID_OCCURENCE_T = 12
+INFEED = 13
+MDOTSLACKINIT = 14
+JAC_DERIV_MSL = 15
+VAR_MASS_SLACK = 16 #required as slack do not necesseraly allow mass different from zero
 
-node_cols = 13
+node_cols = 17

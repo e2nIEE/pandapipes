@@ -4,10 +4,12 @@ from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, LOAD_VEC_NODES, JAC_DERIV_DM_NODE, \
     FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_T, \
-    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE, MDOTINIT
-from pandapipes.idx_node import TINIT as TINIT_NODE
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
+    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DT_NODE_B, \
+    JAC_DERIV_DT_NODE_N, MDOTINIT, BRANCH_TYPE, CIRC
+from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, NODE_TYPE_T, T, P
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
     get_branch_cp
 
@@ -86,8 +88,12 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     cp = get_branch_cp(fluid, node_pit, branch_pit)
     m_init = np.abs(branch_pit[:, MDOTINIT])
     from_nodes = get_from_nodes_corrected(branch_pit)
+    to_nodes = get_to_nodes_corrected(branch_pit)
     t_init_i = node_pit[from_nodes, TINIT_NODE]
     t_init_i1 = branch_pit[:, TOUTINIT]
+    cp_out = fluid.get_heat_capacity(t_init_i1)
+    t_init_n = node_pit[to_nodes, TINIT_NODE]
+    cp_n = fluid.get_heat_capacity(t_init_n)
     t_amb = branch_pit[:, TEXT]
     length = branch_pit[:, LENGTH]
     alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
@@ -95,14 +101,23 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     qext = branch_pit[:, QEXT]
     t_m = (t_init_i1 + t_init_i) / 2
 
-    branch_pit[:, LOAD_VEC_BRANCHES_T] = \
-        -(cp * m_init * (-t_init_i + t_init_i1 - tl) - alpha * (t_amb - t_m) * length + qext)
+    branch_pit[:, LOAD_VEC_BRANCHES_T] = cp * m_init * (-t_init_i + t_init_i1 - tl) - alpha * (
+                t_amb - t_m) * length + qext
 
     branch_pit[:, JAC_DERIV_DT] = - cp * m_init + alpha / 2 * length
     branch_pit[:, JAC_DERIV_DTOUT] = cp * m_init + alpha / 2 * length
 
-    branch_pit[:, JAC_DERIV_DT_NODE] = m_init
-    branch_pit[:, LOAD_VEC_NODES_T] = m_init * t_init_i1
+    branch_pit[:, JAC_DERIV_DT_NODE_B] = m_init * cp_out
+    branch_pit[:, JAC_DERIV_DT_NODE_N] = - m_init * cp_n
+    branch_pit[:, LOAD_VEC_NODES_T] = m_init * t_init_i1 * cp_out - m_init * t_init_n * cp_n
+
+    no_cp = branch_pit[:, BRANCH_TYPE] != CIRC
+    infeed_node = np.setdiff1d(from_nodes[no_cp], to_nodes[no_cp])
+    slack_nodes = np.where(node_pit[:, NODE_TYPE_T] == T)[0]
+    if len(infeed_node) != len(slack_nodes):
+        raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
+
+    node_pit[infeed_node, INFEED] = True
 
 
 def get_derived_values(node_pit, from_nodes, to_nodes, use_numba):

@@ -104,7 +104,7 @@ def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="ju
         raise ValueError("Unknown library %s - chose 'igraph' or 'networkx'" % library)
 
     if len(coords):
-        net[geodata_table].x = coords[1]
-        net[geodata_table].y = coords[0]
+        net[geodata_table].loc[:, 'x'] = coords[1]
+        net[geodata_table].loc[:, 'y'] = coords[0]
         net[geodata_table].index = net.junction.index if junctions is None else junctions
     return net

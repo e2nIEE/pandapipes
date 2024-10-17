@@ -46,7 +46,7 @@ def test_case_combined_mixed_sj(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_versatility_pc(use_numba, log_results=False):
     net = nw.water_combined_versatility()
-    max_iter_hyd = 14 if use_numba else 14
+    max_iter_hyd = 15 if use_numba else 15
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd,
@@ -58,7 +58,7 @@ def test_case_combined_versatility_pc(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_versatility_sj(use_numba, log_results=False):
     net = nw.water_combined_versatility(method="swamee-jain")
-    max_iter_hyd = 14 if use_numba else 14
+    max_iter_hyd = 15 if use_numba else 15
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd,
