@@ -31,7 +31,6 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     friction_model = options["friction_model"]
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
     eta = get_branch_real_eta(fluid, node_pit, branch_pit)
-    rho_n = fluid.get_density([NORMAL_TEMPERATURE] * len(branch_pit))
 
     lambda_, re = calc_lambda(
         branch_pit[:, MDOTINIT], eta, branch_pit[:, D],
@@ -54,7 +53,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_incomp
 
         load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1 = derivatives_hydraulic_incomp(
-            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho, rho_n)
+            branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho)
     else:
         if options["use_numba"]:
             from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
@@ -65,6 +64,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                 as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
                 calc_medium_pressure_with_derivative
         p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
+        rho_n = np.full(len(branch_pit), fluid.get_density(NORMAL_TEMPERATURE))
         comp_fact = fluid.get_compressibility(p_m)
         # TODO: this might not be required
         der_comp = fluid.get_der_compressibility() * der_p_m
