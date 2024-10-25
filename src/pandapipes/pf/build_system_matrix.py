@@ -5,11 +5,12 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
-    JAC_DERIV_DM_NODE, LOAD_VEC_NODES, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT, CIRC, PC as PC_BRANCH, \
-    JAC_DERIV_DT_NODE_B, JAC_DERIV_DT_NODE_N, LOAD_VEC_NODES_T, LOAD_VEC_BRANCHES_T, BRANCH_TYPE
+from pandapipes.idx_branch import (FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, \
+    JAC_DERIV_DM_NODE, LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, LOAD_VEC_BRANCHES, JAC_DERIV_DT, JAC_DERIV_DTOUT,
+    CIRC, PC as PC_BRANCH, JAC_DERIV_DT_NODE, JAC_DERIV_DTOUT_NODE, LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T, \
+    LOAD_VEC_BRANCHES_T, BRANCH_TYPE)
 
-from pandapipes.idx_node import (P, PC as PC_NODE, NODE_TYPE, T, NODE_TYPE_T, LOAD, INFEED,
+from pandapipes.idx_node import (P, PC as PC_NODE, NODE_TYPE, T, NODE_TYPE_T, LOAD, LOAD_T, INFEED,
                                  MDOTSLACKINIT, JAC_DERIV_MSL)
 from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group, \
     get_from_nodes_corrected, get_to_nodes_corrected
@@ -126,9 +127,9 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         # node equations
         # --------------
         # node_dF_dT_to
-        system_data[2 * len_b:len_tn1] = branch_pit[not_slack_branch_mask, JAC_DERIV_DT_NODE_N]
+        system_data[2 * len_b:len_tn1] = branch_pit[not_slack_branch_mask, JAC_DERIV_DT_NODE]
         # node_dF_dT_out
-        system_data[len_tn1:len_tn2] = branch_pit[not_slack_branch_mask, JAC_DERIV_DT_NODE_B]
+        system_data[len_tn1:len_tn2] = branch_pit[not_slack_branch_mask, JAC_DERIV_DTOUT_NODE]
 
         # fixed temperature equations
         # ---------------------------
@@ -238,24 +239,30 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         load_vector = np.empty(len_n + len_b + len_sl)
         load_vector[len_n:len_b + len_n] = branch_pit[:, LOAD_VEC_BRANCHES]
         load_vector[:len_n] = node_pit[:, LOAD] * (-1)
-        fn_unique, fn_sums = _sum_by_group(use_numba, fn, branch_pit[:, LOAD_VEC_NODES])
-        tn_unique, tn_sums = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES])
+        fn_unique, fn_sums = _sum_by_group(use_numba, fn, branch_pit[:, LOAD_VEC_NODES_FROM])
+        tn_unique, tn_sums = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_TO])
         load_vector[fn_unique] -= fn_sums
         load_vector[tn_unique] += tn_sums
         load_vector[slack_nodes] = 0
         load_vector[pc_matrix_indices] = 0
 
         load_vector[slack_mass_matrix_indices] = node_pit[slack_nodes, LOAD] * (-1)
-        fsb_unique, fsb_sums = _sum_by_group(use_numba, slack_masses_from, branch_pit[slack_branches_from, LOAD_VEC_NODES])
-        tsb_unique, tsb_sums = _sum_by_group(use_numba, slack_masses_to, branch_pit[slack_branches_to, LOAD_VEC_NODES])
+        fsb_unique, fsb_sums = _sum_by_group(use_numba, slack_masses_from,
+                                             branch_pit[slack_branches_from, LOAD_VEC_NODES_FROM])
+        tsb_unique, tsb_sums = _sum_by_group(use_numba, slack_masses_to,
+                                             branch_pit[slack_branches_to, LOAD_VEC_NODES_TO])
         load_vector[slack_mass_matrix_indices[fsb_unique]] -= fsb_sums
         load_vector[slack_mass_matrix_indices[tsb_unique]] += tsb_sums
         load_vector[slack_mass_matrix_indices] -= node_pit[slack_nodes, MDOTSLACKINIT]
     else:
         load_vector = np.zeros(len_n + len_b)
         load_vector[len_n:] = branch_pit[:, LOAD_VEC_BRANCHES_T]
-        tn_unique_n, tn_sums_n = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_T])
-        load_vector[tn_unique_n] += tn_sums_n
+        load_vector[:len_n] = node_pit[:, LOAD_T] * (-1)
+        # fn_unique, fn_sums = _sum_by_group(use_numba, fn, branch_pit[:, LOAD_VEC_NODES_FROM_T])
+        fn_unique, fn_sums = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_FROM_T])
+        tn_unique, tn_sums = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_TO_T])
+        load_vector[fn_unique] -= fn_sums
+        load_vector[tn_unique] += tn_sums
         load_vector[infeed_node] = 0
 
     return system_matrix, load_vector
