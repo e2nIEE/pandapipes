@@ -5,11 +5,10 @@
 import json
 import os
 import pickle
-from functools import partial
 
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
-from pandapower.io_utils import pp_hook, encrypt_string, decrypt_string
+from pandapower.io_utils import encrypt_string, decrypt_string
 
 from pandapipes.io.convert_format import convert_format
 from pandapipes.io.io_utils import isinstance_partial, FromSerializableRegistryPpipe
