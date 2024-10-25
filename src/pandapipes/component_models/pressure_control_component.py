@@ -61,8 +61,6 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         pc_pit = super().create_pit_branch_entries(net, branch_pit)
-        pc_pit[:, D] = 0.1
-        pc_pit[:, AREA] = pc_pit[:, D] ** 2 * np.pi / 4
         pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC_BRANCH
         pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
 

@@ -49,8 +49,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         fc_branch_pit = super().create_pit_branch_entries(net, branch_pit)
-        fc_branch_pit[:, D] = net[cls.table_name()].diameter_m.values
-        fc_branch_pit[:, AREA] = fc_branch_pit[:, D] ** 2 * np.pi / 4
         fc_branch_pit[:, MDOTINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values
 
     @classmethod
@@ -105,7 +103,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
                 ("controlled_mdot_kg_per_s", "f8"),
-                ("diameter_m", "f8"),
                 ("control_active", "bool"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]

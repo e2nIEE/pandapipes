@@ -62,8 +62,6 @@ class Pump(BranchWZeroLengthComponent):
         :return: No Output.
         """
         pump_pit = super().create_pit_branch_entries(net, branch_pit)
-        pump_pit[:, D] = 0.1
-        pump_pit[:, AREA] = pump_pit[:, D] ** 2 * np.pi / 4
         pump_pit[:, LC] = 0
 
     @classmethod

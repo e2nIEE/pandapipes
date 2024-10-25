@@ -29,7 +29,7 @@ def test_circulation_pump_constant_pressure(use_numba):
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370,
                                            diameter_m=0.1022)
     pandapipes.create_circ_pump_const_pressure(net, j4, j1, 5, 2, 300, type='pt')
-    pandapipes.create_heat_exchanger(net, j2, j3, 0.1, qext_w=200000)
+    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000)
     pandapipes.create_sink(net, j1, 2)
     pandapipes.create_source(net, j4, 2)
 

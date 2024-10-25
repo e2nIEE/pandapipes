@@ -65,8 +65,6 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :return: No Output.
         """
         hc_pit = super().create_pit_branch_entries(net, branch_pit)
-        hc_pit[:, D] = net[cls.table_name()].diameter_m.values
-        hc_pit[:, AREA] = hc_pit[:, D] ** 2 * np.pi / 4
         qext = net[cls.table_name()].qext_w.values
         hc_pit[~np.isnan(qext), QEXT] = qext[~np.isnan(qext)]
         mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
@@ -204,7 +202,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :rtype:
         """
         return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("qext_w", "f8"),
-                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"), ("diameter_m", "f8"),
+                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"),
                 ("in_service", "bool"), ("type", dtype(object))]
 
     @classmethod
