@@ -8,7 +8,7 @@ import pandas as pd
 from pandapipes import get_fluid
 from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
     HEIGHT_EXPONENT
-from pandapipes.idx_branch import LOAD_VEC_NODES, FROM_NODE, TO_NODE
+from pandapipes.idx_branch import LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, FROM_NODE, TO_NODE
 from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
                                  PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD, VAR_MASS_SLACK, JAC_DERIV_MSL)
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
@@ -136,33 +136,36 @@ def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
         pit[:, column] = entry
 
 
-def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_values, node_comp, var_mass_slack=True,
-                           mode="sequential"):
+def set_fixed_node_entries(net, node_pit, junctions, types, p_values, t_values, node_comp):
+    if not len(junctions):
+        return [], []
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
-    for eg_type in ("p", "t"):
-        if eg_type not in mode and mode != "sequential" and mode != "bidrectional":
-            continue
-        if eg_type == "p":
-            val_col, type_col, eg_count_col, typ, valid_types, values = \
-                PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p", "pt"], p_values
-        else:
-            val_col, type_col, eg_count_col, typ, valid_types, values = \
-                TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, ["t", "pt"], t_values
-        mask = np.isin(eg_types, valid_types)
-        if not np.any(mask):
-            continue
-        use_numba = get_net_option(net, "use_numba")
-        juncts, press_sum, number = _sum_by_group(use_numba, junctions[mask], values[mask],
-                                                  np.ones_like(values[mask], dtype=np.int32))
-        index = junction_idx_lookups[juncts]
-        node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, eg_count_col]
-                                    + press_sum) / (number + node_pit[index, eg_count_col])
-        node_pit[index, type_col] = typ
-        node_pit[index, eg_count_col] += number
-        if eg_type == 'p':
-            node_pit[index, JAC_DERIV_MSL] = -1.
-            mask = node_pit[index, VAR_MASS_SLACK] == 0
-            node_pit[index[mask], VAR_MASS_SLACK] = var_mass_slack
+    use_numba = get_net_option(net, "use_numba")
+    mask_p = np.isin(types, ["p", "pt"])
+    mask_t = np.isin(types, ["t", "pt"])
+
+    juncts_p, sum_p, number_p = _sum_by_group(use_numba, junctions[mask_p], p_values[mask_p],
+                                              np.ones_like(p_values[mask_p], dtype=np.int32))
+    juncts_t, sum_t, number_t = _sum_by_group(use_numba, junctions[mask_t], t_values[mask_t],
+                                              np.ones_like(p_values[mask_t], dtype=np.int32))
+
+    index_p = junction_idx_lookups[juncts_p]
+    index_t = junction_idx_lookups[juncts_t]
+
+    def mix_value(index, col, occur, summary, number):
+        node_pit[index, col] = (node_pit[index, col] * node_pit[index, occur] + summary) / \
+                               (number + node_pit[index, occur])
+
+    mix_value(index_p, PINIT, EXT_GRID_OCCURENCE, sum_p, number_p)
+    mix_value(index_t, TINIT, EXT_GRID_OCCURENCE_T, sum_t, number_t)
+
+    node_pit[index_p, EXT_GRID_OCCURENCE] += number_p
+    node_pit[index_t, EXT_GRID_OCCURENCE_T] += number_t
+    node_pit[index_p, NODE_TYPE] = P
+    node_pit[index_t, NODE_TYPE_T] = T
+    node_pit[index_p, JAC_DERIV_MSL] = -1.
+    return index_p, index_t
+
 
 def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
     node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True, return_inverse=True)
@@ -170,8 +173,8 @@ def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
     eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
     from_nodes = branch_pit[eg_from_branches, FROM_NODE]
     to_nodes = branch_pit[eg_to_branches, TO_NODE]
-    mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES]
-    mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES]
+    mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES_FROM]
+    mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES_TO]
     loads = node_pit[node_uni, LOAD]
     all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
     all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])

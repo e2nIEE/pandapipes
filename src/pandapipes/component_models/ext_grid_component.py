@@ -8,7 +8,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.idx_node import MDOTSLACKINIT
+from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK
 
 try:
     import pandaplan.core.pplog as logging
@@ -55,11 +55,13 @@ class ExtGrid(NodeElementComponent):
         ext_grids = ext_grids[ext_grids[cls.active_identifier()].values]
 
         junction = ext_grids[cls.get_node_col()].values
-        press = ext_grids.p_bar.values
-        set_fixed_node_entries(net, node_pit, junction, ext_grids.type.values, press,
-                               ext_grids.t_k.values, cls.get_connected_node_type())
-
-        return ext_grids, press
+        types = ext_grids.type.values
+        p_values = ext_grids.p_bar.values
+        t_values = ext_grids.t_k.values
+        index_p, index_t = set_fixed_node_entries(
+            net, node_pit, junction, types, p_values, t_values, cls.get_connected_node_type())
+        node_pit[index_p, VAR_MASS_SLACK] = True
+        return ext_grids, p_values
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
