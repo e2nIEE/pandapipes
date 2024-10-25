@@ -89,6 +89,9 @@ class HeatConsumer(BranchWZeroLengthComponent):
         tbl = net[cls.table_name()]
         consumer_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
         consumer_array[:, cls.DELTAT] = tbl.deltat_k.values
+        consumer_array[:, cls.TRETURN] = tbl.treturn_k.values
+        consumer_array[:, cls.QEXT] = tbl.qext_w.values
+        consumer_array[:, cls.MASS] = tbl.controlled_mdot_kg_per_s.values
         mf = tbl.controlled_mdot_kg_per_s.values
         tr = tbl.treturn_k.values
         dt = tbl.deltat_k.values
@@ -175,7 +178,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
             from_nodes = get_from_nodes_corrected(hc_pit[mask])
             t_in = node_pit[from_nodes, TINIT]
-            t_out = hc_pit[mask, TOUTINIT]
+            t_out = consumer_array[mask, cls.TRETURN]
             q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * (t_in - t_out)
             hc_pit[mask, QEXT] = q_ext
 
@@ -186,7 +189,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
 
         # Any MODE where TRETURN is given
-        mask = np.isin(consumer_array[:, cls.MODE], [cls.MF_TR, cls.QE_TR])
+        mask = consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask):
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
             hc_pit[mask, JAC_DERIV_DTOUT] = 1
