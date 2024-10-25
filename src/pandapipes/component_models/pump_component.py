@@ -9,6 +9,7 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
     BranchWZeroLengthComponent
+from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
@@ -134,26 +135,14 @@ class Pump(BranchWZeroLengthComponent):
         :type mode:
         :return: No Output.
         """
-        calc_compr_pow = options['calc_compression_power']
 
-        required_results_hyd = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
-            ("mdot_from_kg_per_s", "mf_from"), ("deltap_bar", "pl"),
-        ]
-        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to"), ("t_outlet_k", "t_outlet")]
-
-        if get_fluid(net).is_gas:
-            required_results_hyd.extend([
-                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to"),
-                ("vdot_norm_m3_per_s", "vf")
-            ])
-        else:
-            required_results_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
+        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
+        required_results_hyd.extend([("deltap_bar", "pl")])
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
 
+        calc_compr_pow = options['calc_compression_power']
         if calc_compr_pow:
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
             from_nodes = branch_results["from_nodes"][f:t]
@@ -218,13 +207,11 @@ class Pump(BranchWZeroLengthComponent):
 
         if get_fluid(net).is_gas:
             output = ["deltap_bar",
-                      "v_from_m_per_s", "v_to_m_per_s",
                       "p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
-            # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
         else:
-            output = ["deltap_bar", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
+            output = ["deltap_bar", "p_from_bar", "p_to_bar", "t_from_k",
                       "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s"]
         if calc_compr_pow:
             output += ["compr_power_mw"]

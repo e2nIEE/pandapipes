@@ -100,23 +100,19 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
     t_m = (t_init_i1 + t_init_i) / 2
-
-    branch_pit[:, LOAD_VEC_BRANCHES_T] = cp * m_init * (-t_init_i + t_init_i1 - tl) - alpha * (
-                t_amb - t_m) * length + qext
+    no_cp = branch_pit[:, BRANCH_TYPE] != CIRC
+    infeed_node = np.setdiff1d(from_nodes[no_cp], to_nodes[no_cp])
 
     branch_pit[:, JAC_DERIV_DT] = - cp * m_init + alpha / 2 * length
     branch_pit[:, JAC_DERIV_DTOUT] = cp * m_init + alpha / 2 * length
+    branch_pit[:, LOAD_VEC_BRANCHES_T] = cp * m_init * (-t_init_i + t_init_i1 - tl) - alpha * (
+                t_amb - t_m) * length + qext
 
     branch_pit[:, JAC_DERIV_DT_NODE_B] = m_init * cp_out
     branch_pit[:, JAC_DERIV_DT_NODE_N] = - m_init * cp_n
     branch_pit[:, LOAD_VEC_NODES_T] = m_init * t_init_i1 * cp_out - m_init * t_init_n * cp_n
 
-    no_cp = branch_pit[:, BRANCH_TYPE] != CIRC
-    infeed_node = np.setdiff1d(from_nodes[no_cp], to_nodes[no_cp])
-    slack_nodes = np.where(node_pit[:, NODE_TYPE_T] == T)[0]
-    if len(infeed_node) != len(slack_nodes):
-        raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
-
+    node_pit[:, INFEED] = False
     node_pit[infeed_node, INFEED] = True
 
 
