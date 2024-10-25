@@ -6,7 +6,7 @@ from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT, LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T,\
     LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE, \
     JAC_DERIV_DT_NODE, MDOTINIT, BRANCH_TYPE, CIRC
-from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, LOAD, LOAD_T
+from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
@@ -117,7 +117,12 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     branch_pit[:, LOAD_VEC_NODES_FROM_T] = m_init_i1 * t_init_n * cp_n
     branch_pit[:, LOAD_VEC_NODES_TO_T] = m_init_i1 * t_init_i1 * cp_i1
 
-    # Currently not required, but might be interesting in the future
+    # This approach can be used if you consider the effect of sources with given temperature (checkout issue #656)
+
+    # branch_pit[:, LOAD_VEC_NODES_FROM_T] = m_init_i * t_init_i * cp_i
+    # --> cp_i is calculated by fluid.get_heat_capacity(t_init_i)
+    # branch_pit[:, LOAD_VEC_NODES_TO_T] = m_init_i1 * t_init_i1 * cp_i1
+    # --> still missing is the derivative of loads
     # t_init = node_pit[:, TINIT_NODE]
     # cp_n = fluid.get_heat_capacity(t_init)
     # node_pit[:, LOAD_T] = cp_n * node_pit[:, LOAD] * t_init

@@ -258,6 +258,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         load_vector = np.zeros(len_n + len_b)
         load_vector[len_n:] = branch_pit[:, LOAD_VEC_BRANCHES_T]
         load_vector[:len_n] = node_pit[:, LOAD_T] * (-1)
+        # This approach can be used if you consider the effect of sources with given temperature
         # fn_unique, fn_sums = _sum_by_group(use_numba, fn, branch_pit[:, LOAD_VEC_NODES_FROM_T])
         fn_unique, fn_sums = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_FROM_T])
         tn_unique, tn_sums = _sum_by_group(use_numba, tn, branch_pit[:, LOAD_VEC_NODES_TO_T])
