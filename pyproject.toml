@@ -51,7 +51,7 @@ Download = "https://pypi.org/project/pandapipes/#files"
 Changelog = "https://github.com/e2nIEE/pandapipes/blob/develop/CHANGELOG.rst"
 
 [project.optional-dependencies]
-docs = ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex", "sphinx-pyproject"]
+docs = ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex", "sphinx-pyproject", "meson", "ninja"]
 plotting = ["plotly", "igraph"]
 test = [
     "pytest", "pytest-xdist", "pytest-split", "nbmake", "numba",
