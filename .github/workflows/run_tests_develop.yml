@@ -180,6 +180,7 @@ jobs:
         uses: e2nIEE/sphinx-action@master
         with:
           pre-build-command: "apt-get update -y && apt-get install -y git;
+                              apt install build-essential;
                               git --version;
                               python -m pip install --upgrade pip;
                               python -m pip install .[docs];"
