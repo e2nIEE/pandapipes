@@ -7,7 +7,7 @@ import numpy as np
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
-from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK
+from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -84,7 +84,10 @@ class CirculationPump(BranchWZeroLengthComponent):
         types = circ_pump_tbl.type.values
         p_values = circ_pump_tbl.p_flow_bar.values
         t_values = circ_pump_tbl.t_flow_k.values
-        set_fixed_node_entries(net, node_pit, junction, types, p_values, t_values, cls.get_connected_node_type())
+        index_p = set_fixed_node_entries(
+            net, node_pit, junction, types, p_values, cls.get_connected_node_type(), 'p')
+        set_fixed_node_entries(net, node_pit, junction, types, t_values, cls.get_connected_node_type(), 't')
+        node_pit[index_p, JAC_DERIV_MSL] = -1.
         return circ_pump_tbl, p_values
 
     @classmethod

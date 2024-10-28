@@ -10,7 +10,7 @@ from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERA
     HEIGHT_EXPONENT
 from pandapipes.idx_branch import LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, FROM_NODE, TO_NODE
 from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
-                                 PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD, VAR_MASS_SLACK, JAC_DERIV_MSL)
+                                 PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD)
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.pf.internals_toolbox import _sum_by_group
 
@@ -136,35 +136,36 @@ def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
         pit[:, column] = entry
 
 
-def set_fixed_node_entries(net, node_pit, junctions, types, p_values, t_values, node_comp):
+def set_fixed_node_entries(net, node_pit, junctions, types, values, node_comp, mode):
     if not len(junctions):
         return [], []
+
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
     use_numba = get_net_option(net, "use_numba")
-    mask_p = np.isin(types, ["p", "pt"])
-    mask_t = np.isin(types, ["t", "pt"])
 
-    juncts_p, sum_p, number_p = _sum_by_group(use_numba, junctions[mask_p], p_values[mask_p],
-                                              np.ones_like(p_values[mask_p], dtype=np.int32))
-    juncts_t, sum_t, number_t = _sum_by_group(use_numba, junctions[mask_t], t_values[mask_t],
-                                              np.ones_like(p_values[mask_t], dtype=np.int32))
+    if mode == "p":
+        val_col, type_col, count_col, typ, valid_types, values = \
+            PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p", "pt"], values
+    elif mode == "t":
+        val_col, type_col, count_col, typ, valid_types, values = \
+            TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, ["t", "pt"], values
+    else:
+        raise UserWarning(r'The mode %s is not supported. Choose either mode "p" or "t"' % mode)
 
-    index_p = junction_idx_lookups[juncts_p]
-    index_t = junction_idx_lookups[juncts_t]
+    mask = np.isin(types, valid_types)
 
-    def mix_value(index, col, occur, summary, number):
-        node_pit[index, col] = (node_pit[index, col] * node_pit[index, occur] + summary) / \
-                               (number + node_pit[index, occur])
+    juncts, val_sum, number = _sum_by_group(use_numba, junctions[mask], values[mask],
+                                            np.ones_like(values[mask], dtype=np.int32))
 
-    mix_value(index_p, PINIT, EXT_GRID_OCCURENCE, sum_p, number_p)
-    mix_value(index_t, TINIT, EXT_GRID_OCCURENCE_T, sum_t, number_t)
+    index = junction_idx_lookups[juncts]
 
-    node_pit[index_p, EXT_GRID_OCCURENCE] += number_p
-    node_pit[index_t, EXT_GRID_OCCURENCE_T] += number_t
-    node_pit[index_p, NODE_TYPE] = P
-    node_pit[index_t, NODE_TYPE_T] = T
-    node_pit[index_p, JAC_DERIV_MSL] = -1.
-    return index_p, index_t
+    node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, count_col] + val_sum) / \
+                               (number + node_pit[index, count_col])
+
+    node_pit[index, count_col] += number
+    node_pit[index, type_col] = typ
+
+    return index
 
 
 def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
