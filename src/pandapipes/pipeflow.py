@@ -14,7 +14,7 @@ from pandapipes.pf.derivative_calculation import (calculate_derivatives_hydrauli
 from pandapipes.pf.pipeflow_setup import (
     get_net_option, get_net_options, set_net_option, init_options, create_internal_results,
     write_internal_results, get_lookup, create_lookups, initialize_pit, reduce_pit,
-    set_user_pf_options, init_all_result_tables, identify_active_nodes_branches,
+    set_user_pf_options, init_all_result_tables, identify_active_nodes_branches, check_infeed_number,
     PipeflowNotConverged
 )
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
@@ -174,9 +174,8 @@ def hydraulics(net):
         net["_internal_data"] = dict()
     solver_vars = ['mdot', 'p', 'mdotslack']
     tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
-    newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p, tol_msl], ['branch', 'node', 'node'],
-                   'max_iter_hyd')
-
+    newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p, tol_msl],
+                   ['branch', 'node', 'node'], 'max_iter_hyd')
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
 
@@ -287,6 +286,8 @@ def solve_temperature(net):
     calculate_derivatives_thermal(net, branch_pit, node_pit, options)
     for comp in net['component_list']:
         comp.adaption_after_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+    check_infeed_number(node_pit)
+
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()

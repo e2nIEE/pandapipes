@@ -19,11 +19,10 @@ def test_heat_exchanger(use_numba):
         :rtype:
         """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
 
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
-    pandapipes.create_heat_exchanger(net, 0, 1, d, qext_w=20000)
+    pandapipes.create_heat_exchanger(net, 0, 1, qext_w=20000)
     pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=330, type="pt")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
 

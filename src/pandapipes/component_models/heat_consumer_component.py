@@ -65,8 +65,6 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :return: No Output.
         """
         hc_pit = super().create_pit_branch_entries(net, branch_pit)
-        hc_pit[:, D] = net[cls.table_name()].diameter_m.values
-        hc_pit[:, AREA] = hc_pit[:, D] ** 2 * np.pi / 4
         qext = net[cls.table_name()].qext_w.values
         hc_pit[~np.isnan(qext), QEXT] = qext[~np.isnan(qext)]
         mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
@@ -91,6 +89,9 @@ class HeatConsumer(BranchWZeroLengthComponent):
         tbl = net[cls.table_name()]
         consumer_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
         consumer_array[:, cls.DELTAT] = tbl.deltat_k.values
+        consumer_array[:, cls.TRETURN] = tbl.treturn_k.values
+        consumer_array[:, cls.QEXT] = tbl.qext_w.values
+        consumer_array[:, cls.MASS] = tbl.controlled_mdot_kg_per_s.values
         mf = tbl.controlled_mdot_kg_per_s.values
         tr = tbl.treturn_k.values
         dt = tbl.deltat_k.values
@@ -177,7 +178,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
             from_nodes = get_from_nodes_corrected(hc_pit[mask])
             t_in = node_pit[from_nodes, TINIT]
-            t_out = hc_pit[mask, TOUTINIT]
+            t_out = consumer_array[mask, cls.TRETURN]
             q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * (t_in - t_out)
             hc_pit[mask, QEXT] = q_ext
 
@@ -188,7 +189,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
 
         # Any MODE where TRETURN is given
-        mask = np.isin(consumer_array[:, cls.MODE], [cls.MF_TR, cls.QE_TR])
+        mask = consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask):
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
             hc_pit[mask, JAC_DERIV_DTOUT] = 1
@@ -204,7 +205,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :rtype:
         """
         return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("qext_w", "f8"),
-                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"), ("diameter_m", "f8"),
+                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"),
                 ("in_service", "bool"), ("type", dtype(object))]
 
     @classmethod
@@ -220,11 +221,11 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
+            output = ["p_from_bar", "p_to_bar", "t_from_k",
                       "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
                       "normfactor_from", "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
+            output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
                       "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda"]
         output += ['deltat_k', 'qext_w']
         return output, True

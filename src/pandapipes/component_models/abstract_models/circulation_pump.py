@@ -6,8 +6,8 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
-from pandapipes.idx_branch import D, AREA, PUMP_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
-from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK
+from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
+from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -43,11 +43,11 @@ class CirculationPump(BranchWZeroLengthComponent):
         """
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
                       "normfactor_from", "normfactor_to"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda"]
+                      "mdot_to_kg_per_s", "vdot_m3_per_s"]
         output += ['deltat_k', 'qext_w']
         return output, True
 
@@ -81,10 +81,14 @@ class CirculationPump(BranchWZeroLengthComponent):
 
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
-        press = circ_pump_tbl.p_flow_bar.values
-        set_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press, circ_pump_tbl.t_flow_k.values,
-                               cls.get_connected_node_type(), False)
-        return circ_pump_tbl, press
+        types = circ_pump_tbl.type.values
+        p_values = circ_pump_tbl.p_flow_bar.values
+        t_values = circ_pump_tbl.t_flow_k.values
+        index_p = set_fixed_node_entries(
+            net, node_pit, junction, types, p_values, cls.get_connected_node_type(), 'p')
+        set_fixed_node_entries(net, node_pit, junction, types, t_values, cls.get_connected_node_type(), 't')
+        node_pit[index_p, JAC_DERIV_MSL] = -1.
+        return circ_pump_tbl, p_values
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -99,7 +103,7 @@ class CirculationPump(BranchWZeroLengthComponent):
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
         circ_pump_pit[:, D] = 0.1
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
-        circ_pump_pit[:, PUMP_TYPE] = CIRC
+        circ_pump_pit[:, BRANCH_TYPE] = CIRC
         return circ_pump_pit
 
     @classmethod
