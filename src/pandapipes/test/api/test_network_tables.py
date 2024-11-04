@@ -77,7 +77,7 @@ def test_additional_tables():
 
     pandapipes.add_new_component(net, HeatExchanger)
     hex_input = list(copy.deepcopy(net.heat_exchanger.columns))
-    pandapipes.create_heat_exchanger(net, 0, 1, 0.2, qext_w=20000)
+    pandapipes.create_heat_exchanger(net, 0, 1, qext_w=20000)
     hex_input_create = list(net.heat_exchanger.columns)
     assert hex_input == hex_input_create, "Input does not equal create-table"
 

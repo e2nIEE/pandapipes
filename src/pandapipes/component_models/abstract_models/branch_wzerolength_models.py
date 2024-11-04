@@ -2,9 +2,11 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import numpy as np
+
 from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
     BranchWOInternalsComponent
-from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA
+from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA, D, AREA
 
 try:
     import pandaplan.core.pplog as logging
@@ -60,6 +62,8 @@ class BranchWZeroLengthComponent(BranchWOInternalsComponent):
         branch_wzerolength_pit[:, K] = 1000
         branch_wzerolength_pit[:, TEXT] = 293.15
         branch_wzerolength_pit[:, ALPHA] = 0
+        branch_wzerolength_pit[:, D] = 0.1
+        branch_wzerolength_pit[:, AREA] = branch_wzerolength_pit[:, D] ** 2 * np.pi / 4
         return branch_wzerolength_pit
 
     @classmethod

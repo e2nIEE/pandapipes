@@ -12,7 +12,7 @@ from scipy.sparse import coo_matrix, csgraph
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, MDOTINIT, \
     ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
-    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
+    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
 
@@ -771,6 +771,13 @@ def reduce_pit(net, mode="hydraulics"):
             from_to_active_lookup[table] = (count, count + len_new)
             count += len_new
         net["_lookups"]["%s_from_to_active_%s" % (el, mode)] = from_to_active_lookup
+
+
+def check_infeed_number(node_pit):
+    slack_nodes = node_pit[:, NODE_TYPE_T] == T
+    infeed_nodes = node_pit[:, INFEED]
+    if sum(infeed_nodes) != sum(slack_nodes):
+        raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
 
 
 class PipeflowNotConverged(ppException):
