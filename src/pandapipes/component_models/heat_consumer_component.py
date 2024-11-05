@@ -5,7 +5,6 @@
 import numpy as np
 from numpy import dtype
 
-from build.lib.pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.junction_component import Junction

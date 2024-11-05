@@ -7,11 +7,13 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.properties import get_fluid
+from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES, IGN
 from pandapipes.idx_node import PINIT
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -90,8 +92,8 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         mask_ign = False if active_ign is None else active_ign != active_hyd
 
         if np.any(mask_ign):
-            from_nodes = fc_branch_pit[:, FROM_NODE_T].astype(int)
-            to_nodes = fc_branch_pit[:, TO_NODE_T].astype(int)
+            from_nodes = get_from_nodes_corrected(branch_pit)
+            to_nodes = get_to_nodes_corrected(branch_pit)
             mask = ~active_ign[from_nodes] | ~active_ign[to_nodes]
             fc_branch_pit[mask, JAC_DERIV_DP] = 1
             fc_branch_pit[mask, JAC_DERIV_DP1] = -1

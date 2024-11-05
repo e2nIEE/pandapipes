@@ -638,10 +638,9 @@ def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_n
 
 
 def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode):
+    len_nodes = len(node_pit)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    len_nodes = len(node_pit)
-
     nobranch = np.sum(active_branch_lookup)
     active_from_nodes = from_nodes[active_branch_lookup]
     active_to_nodes = to_nodes[active_branch_lookup]
