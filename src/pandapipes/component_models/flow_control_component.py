@@ -6,15 +6,13 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
-from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup, \
-    get_component_array
-from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES, IGN, \
-    FROM_NODE_T, TO_NODE_T
-from pandapipes.idx_node import PINIT
-from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties import get_fluid
+from pandapipes.component_models.component_toolbox import \
+    standard_branch_wo_internals_result_lookup, get_component_array
+from pandapipes.component_models.junction_component import Junction
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES, IGN
+from pandapipes.idx_node import PINIT
+from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
 class FlowControlComponent(BranchWZeroLengthComponent):
@@ -52,8 +50,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         fc_branch_pit = super().create_pit_branch_entries(net, branch_pit)
-        fc_branch_pit[:, D] = net[cls.table_name()].diameter_m.values
-        fc_branch_pit[:, AREA] = fc_branch_pit[:, D] ** 2 * np.pi / 4
         fc_branch_pit[:, MDOTINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values
         fc_branch_pit[net[cls.table_name()].control_active, IGN] = True
 
@@ -74,6 +70,7 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         fc_pit = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
         fc_pit[:, cls.CONTROL_ACTIVE] = tbl.control_active.values
         component_pits[cls.table_name()] = fc_pit
+
 
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -106,8 +103,8 @@ class FlowControlComponent(BranchWZeroLengthComponent):
     def extract_results(cls, net, options, branch_results, mode):
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
-        extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-                                                 cls.table_name(), mode)
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd,
+                                                 required_results_ht, cls.table_name(), mode)
 
     @classmethod
     def get_component_input(cls):
@@ -118,9 +115,13 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"),
-                ("controlled_mdot_kg_per_s", "f8"), ("diameter_m", "f8"), ("control_active", "bool"),
-                ("in_service", 'bool'), ("type", dtype(object))]
+        return [("name", dtype(object)),
+                ("from_junction", "u4"),
+                ("to_junction", "u4"),
+                ("controlled_mdot_kg_per_s", "f8"),
+                ("control_active", "bool"),
+                ("in_service", 'bool'),
+                ("type", dtype(object))]
 
     @classmethod
     def get_result_table(cls, net):
@@ -135,10 +136,12 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
-                      "normfactor_from", "normfactor_to"]
+            output = ["p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda"]
+            output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
+                      "lambda"]
         return output, True

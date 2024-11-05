@@ -45,34 +45,37 @@ def release_control_test_network(max_iter_hyd, save=False):
     # pipes
     pp.create_pipe_from_parameters(
         net, from_junction=0, to_junction=8, length_km=3, diameter_m=0.01, k_mm=1,
-        loss_coefficient=0, sections=10, alpha_w_per_m2k=10, text_k=293, qext_w=0., name="Pipe 0",
+        loss_coefficient=0, sections=10, u_w_per_m2k=10, text_k=293, qext_w=0., name="Pipe 0",
         index=None, geodata=None, in_service=True, type="pipe")
     pp.create_pipe_from_parameters(
-        net, 9, 2, length_km=6, diameter_m=0.075, k_mm=.1, sections=10, alpha_w_per_m2k=3,
+        net, 9, 2, length_km=6, diameter_m=0.075, k_mm=.1, sections=10, u_w_per_m2k=3,
         name="Pipe 1")
     pp.create_pipe_from_parameters(
-        net, 2, 12, length_km=5, diameter_m=0.06, k_mm=.1, sections=10, alpha_w_per_m2k=20,
+        net, 2, 12, length_km=5, diameter_m=0.06, k_mm=.1, sections=10, u_w_per_m2k=20,
         name="Pipe 2")
     pp.create_pipe_from_parameters(
-        net, 4, 12, length_km=0.1, diameter_m=0.07, k_mm=.1, sections=10, alpha_w_per_m2k=2,
+        net, 4, 12, length_km=0.1, diameter_m=0.07, k_mm=.1, sections=10, u_w_per_m2k=2,
         name="Pipe 3")
     pp.create_pipe_from_parameters(
-        net, 5, 3, length_km=1, diameter_m=0.09, k_mm=.1, sections=10, alpha_w_per_m2k=3,
+        net, 5, 3, length_km=1, diameter_m=0.09, k_mm=.1, sections=10, u_w_per_m2k=3,
         name="Pipe 4")
     pp.create_pipe_from_parameters(
-        net, 4, 11, length_km=2.5, diameter_m=0.08, k_mm=.1, sections=10, alpha_w_per_m2k=15,
+        net, 4, 11, length_km=2.5, diameter_m=0.08, k_mm=.1, sections=10, u_w_per_m2k=15,
         name="Pipe 5")
     pp.create_pipe_from_parameters(
-        net, 7, 6, length_km=4.5, diameter_m=0.085, k_mm=.1, sections=10, alpha_w_per_m2k=2.5,
+        net, 7, 6, length_km=4.5, diameter_m=0.085, k_mm=.1, sections=10, u_w_per_m2k=2.5,
         name="Pipe 6")
     pp.create_pipe_from_parameters(
-        net, 1, 7, length_km=4, diameter_m=0.03, k_mm=.1, sections=10, alpha_w_per_m2k=1,
+        net, 1, 7, length_km=4, diameter_m=0.03, k_mm=.1, sections=10, u_w_per_m2k=1,
         name="Pipe 7")
 
     # external grids
     pp.create_ext_grid(net, junction=0, p_bar=3, t_k=300, name="External Grid 0", in_service=True,
                        index=None, type="pt")
     pp.create_ext_grid(net, 1, p_bar=5, t_k=350, name="External Grid 1", type="pt")
+    pp.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", in_service=True,
+                       index=None, type="pt")
+    pp.create_ext_grid(net, 5, p_bar=5, t_k=290, name="External Grid 3", type="pt")
 
     # sinks
     pp.create_sink(net, junction=2, mdot_kg_per_s=0.2, scaling=1., name="Sink 0", index=None,
@@ -161,34 +164,37 @@ def release_control_test_network_water(max_iter_hyd, save=False):
     # pipes
     pp.create_pipe_from_parameters(
         net, from_junction=0, to_junction=8, length_km=3, diameter_m=0.01, k_mm=1,
-        loss_coefficient=0, sections=10, alpha_w_per_m2k=10, text_k=293, qext_w=0., name="Pipe 0",
+        loss_coefficient=0, sections=10, u_w_per_m2k=10, text_k=293, qext_w=0., name="Pipe 0",
         index=None, geodata=None, in_service=True, type="pipe")
     pp.create_pipe_from_parameters(
-        net, 9, 2, length_km=6, diameter_m=0.075, k_mm=.1, sections=10, alpha_w_per_m2k=3,
+        net, 9, 2, length_km=6, diameter_m=0.075, k_mm=.1, sections=10, u_w_per_m2k=3,
         name="Pipe 1")
     pp.create_pipe_from_parameters(
-        net, 2, 12, length_km=5, diameter_m=0.06, k_mm=.1, sections=10, alpha_w_per_m2k=20,
+        net, 2, 12, length_km=5, diameter_m=0.06, k_mm=.1, sections=10, u_w_per_m2k=20,
         name="Pipe 2")
     pp.create_pipe_from_parameters(
-        net, 4, 12, length_km=0.1, diameter_m=0.07, k_mm=.1, sections=10, alpha_w_per_m2k=2,
+        net, 4, 12, length_km=0.1, diameter_m=0.07, k_mm=.1, sections=10, u_w_per_m2k=2,
         name="Pipe 3")
     pp.create_pipe_from_parameters(
-        net, 5, 3, length_km=1, diameter_m=0.09, k_mm=.1, sections=10, alpha_w_per_m2k=3,
+        net, 5, 3, length_km=1, diameter_m=0.09, k_mm=.1, sections=10, u_w_per_m2k=3,
         name="Pipe 4")
     pp.create_pipe_from_parameters(
-        net, 4, 11, length_km=2.5, diameter_m=0.08, k_mm=.1, sections=10, alpha_w_per_m2k=15,
+        net, 4, 11, length_km=2.5, diameter_m=0.08, k_mm=.1, sections=10, u_w_per_m2k=15,
         name="Pipe 5")
     pp.create_pipe_from_parameters(
-        net, 7, 13, length_km=4.5, diameter_m=0.085, k_mm=.1, sections=10, alpha_w_per_m2k=2.5,
+        net, 7, 13, length_km=4.5, diameter_m=0.085, k_mm=.1, sections=10, u_w_per_m2k=2.5,
         name="Pipe 6")
     pp.create_pipe_from_parameters(
-        net, 1, 7, length_km=4, diameter_m=0.03, k_mm=.1, sections=10, alpha_w_per_m2k=1,
+        net, 1, 7, length_km=4, diameter_m=0.03, k_mm=.1, sections=10, u_w_per_m2k=1,
         name="Pipe 7")
 
     # external grids
     pp.create_ext_grid(net, junction=0, p_bar=3, t_k=300, name="External Grid 0", in_service=True,
                        index=None, type="pt")
     pp.create_ext_grid(net, 1, p_bar=5, t_k=350, name="External Grid 1", type="pt")
+    pp.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", in_service=True,
+                       index=None, type="pt")
+    pp.create_ext_grid(net, 5, p_bar=5, t_k=290, name="External Grid 3", type="pt")
 
     # sinks
     pp.create_sink(net, junction=2, mdot_kg_per_s=0.2, scaling=1., name="Sink 0", index=None,
@@ -271,29 +277,29 @@ def release_control_test_network_gas(max_iter_hyd, save=False):
     # pipes
     pp.create_pipe_from_parameters(
         net, from_junction=0, to_junction=1, length_km=3, diameter_m=0.1, k_mm=1,
-        loss_coefficient=0, sections=10, alpha_w_per_m2k=10, text_k=293, qext_w=0., name="Pipe 0",
+        loss_coefficient=0, sections=10, u_w_per_m2k=10, text_k=293, qext_w=0., name="Pipe 0",
         index=None, geodata=None, in_service=True, type="pipe")
     pp.create_pipe_from_parameters(
-        net, 2, 3, length_km=6, diameter_m=0.075, k_mm=.1, sections=10, alpha_w_per_m2k=3,
+        net, 2, 3, length_km=6, diameter_m=0.075, k_mm=.1, sections=10, u_w_per_m2k=3,
         name="Pipe 1")
     pp.create_pipe_from_parameters(
-        net, 3, 4, length_km=5, diameter_m=0.06, k_mm=.1, sections=10, alpha_w_per_m2k=20,
+        net, 3, 4, length_km=5, diameter_m=0.06, k_mm=.1, sections=10, u_w_per_m2k=20,
         name="Pipe 2")
     pp.create_pipe_from_parameters(
-        net, 4, 5, length_km=0.1, diameter_m=0.07, k_mm=.1, sections=10, alpha_w_per_m2k=2,
+        net, 4, 5, length_km=0.1, diameter_m=0.07, k_mm=.1, sections=10, u_w_per_m2k=2,
         name="Pipe 3")
     pp.create_pipe_from_parameters(
-        net, 5, 6, length_km=4.5, diameter_m=0.085, k_mm=.1, sections=10, alpha_w_per_m2k=2.5,
+        net, 5, 6, length_km=4.5, diameter_m=0.085, k_mm=.1, sections=10, u_w_per_m2k=2.5,
         name="Pipe 4")
     pp.create_pipe_from_parameters(
-        net, 8, 7, length_km=4, diameter_m=0.03, k_mm=.1, sections=10, alpha_w_per_m2k=1,
+        net, 8, 7, length_km=4, diameter_m=0.03, k_mm=.1, sections=10, u_w_per_m2k=1,
         name="Pipe 5")
 
     pp.create_pipe_from_parameters(
-        net, 9, 10, length_km=1, diameter_m=0.03, k_mm=.1, sections=10, alpha_w_per_m2k=1,
+        net, 9, 10, length_km=1, diameter_m=0.03, k_mm=.1, sections=10, u_w_per_m2k=1,
         name="Pipe 6")
     pp.create_pipe_from_parameters(
-        net, 11, 12, length_km=1.5, diameter_m=0.09, k_mm=.1, sections=10, alpha_w_per_m2k=3,
+        net, 11, 12, length_km=1.5, diameter_m=0.09, k_mm=.1, sections=10, u_w_per_m2k=3,
         name="Pipe 7")
 
     # external grids

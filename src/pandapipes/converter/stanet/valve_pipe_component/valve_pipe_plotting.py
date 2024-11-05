@@ -6,11 +6,11 @@ from functools import partial
 
 import numpy as np
 import pandas as pd
-from pandapower.plotting.collections import _create_complex_branch_collection, \
-    add_cmap_to_collection, coords_from_node_geodata
-from pandapower.plotting.plotting_toolbox import get_index_array
-
 from pandapipes.plotting.patch_makers import valve_patches
+from pandapipes.plotting.plotting_toolbox import coords_from_node_geodata
+from pandapower.plotting.collections import (_create_complex_branch_collection,
+                                             add_cmap_to_collection)
+from pandapower.plotting.plotting_toolbox import get_index_array
 
 try:
     import pandaplan.core.pplog as logging

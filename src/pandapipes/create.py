@@ -1,12 +1,15 @@
 # Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+from typing import Iterable
 
 import numpy as np
 import pandas as pd
-from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, _check_node_element, \
-    _check_multiple_node_elements, _set_multiple_entries, _add_multiple_branch_geodata, _check_branch_element, \
-    _check_multiple_branch_elements
+from pandapower.auxiliary import _preserve_dtypes
+import warnings
+from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
+    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
+    _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
     CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, Compressor, MassStorage
@@ -322,7 +325,7 @@ def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None,
     return index
 
 
-def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, loss_coefficient=0, name=None,
+def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coefficient=0, name=None,
                           index=None, in_service=True, type="heat_exchanger", **kwargs):
     """
     Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
@@ -335,8 +338,6 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :param to_junction: ID of the junction on the other side which the heat exchanger will be\
             connected with
     :type to_junction: int
-    :param diameter_m: The heat exchanger inner diameter in [m]
-    :type diameter_m: float
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
     :type qext_w: float
@@ -357,24 +358,27 @@ def create_heat_exchanger(net, from_junction, to_junction, diameter_m, qext_w, l
     :rtype: int
 
     :Example:
-        >>> create_heat_exchanger(net, from_junction=0, to_junction=1,
-        >>>                       diameter_m=40e-3, qext_w=2000)
+        >>> create_heat_exchanger(net, from_junction=0, to_junction=1, qext_w=2000)
     """
+    if 'diameter_m' in kwargs:
+        logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
+                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
+
     add_new_component(net, HeatExchanger)
 
     index = _get_index_with_check(net, "heat_exchanger", index, "heat exchanger")
     _check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "diameter_m": diameter_m,
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
     _set_entries(net, "heat_exchanger", index, **v, **kwargs)
 
     return index
 
 
-def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0, sections=1,
-                alpha_w_per_m2k=0., qext_w=0., text_k=None, name=None, index=None, geodata=None, in_service=True,
-                type="pipe", **kwargs):
+def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0,
+                sections=1, text_k=0, qext_w=0., name=None, index=None,
+                geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
 
@@ -396,12 +400,10 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
-    :param qext_w: External heat feed-in to the pipe in [W]
-    :type qext_w: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default None, will be set equal to the net ambient temperature
+    :param qext_w: External heat feed-in to the pipe in [W]
+    :type qext_w: float, default 0
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -431,10 +433,14 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     _check_branch(net, "Pipe", index, from_junction, to_junction)
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
+    if "alpha_w_per_m2k" in kwargs:
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k. U is extracted from the std_type"
+                      , DeprecationWarning)
+
     pipe_parameter = load_std_type(net, std_type, "pipe")
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
          "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-         "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'], "sections": sections,
          "in_service": bool(in_service), "type": type, "qext_w": qext_w, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
 
@@ -445,7 +451,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
 
 
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
+                                sections=1, u_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
                                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -470,10 +476,10 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :type sections: int, default 1
     :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
     :type alpha_w_per_m2k: float, default 0
+    :param text_k: Ambient temperature of pipe in [K]
+    :type text_k: float, default None, will be set equal to the net ambient temperature
     :param qext_w: external heat feed-in to the pipe in [W]
     :type qext_w: float, default 0
-    :param text_k: Ambient temperature of pipe in [K]
-    :type text_k: float, default 293
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -493,8 +499,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1,
-        >>>                             length_km=1, diameter_m=40e-3)
+        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1, diameter_m=40e-3)
 
     """
     add_new_component(net, Pipe)
@@ -502,10 +507,22 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": None,
-         "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm, "loss_coefficient": loss_coefficient,
-         "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections, "in_service": bool(in_service), "type": type,
-         "qext_w": qext_w, "text_k": text_k}
+
+    #Check if alpha parameter was declared (Alpha has been changed to U)
+    if 'alpha_w_per_m2k' in kwargs:
+
+        if u_w_per_m2k == 0:
+            u_w_per_m2k = kwargs['alpha_w_per_m2k']
+
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.",
+                      DeprecationWarning)
+
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+         "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+         "sections": sections, "in_service": bool(in_service),
+         "type": type, "qext_w": qext_w, "text_k": text_k}
+
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
                           'create a pipe setting specific, individual parameters. If you want to '
@@ -943,7 +960,7 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     return index
 
 
-def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_s, diameter_m, control_active=True,
+def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_s, control_active=True,
                         name=None, index=None, in_service=True, type="fc", **kwargs):
     """
     Adds one flow control with a constant mass flow in table net["flow_control"].
@@ -958,9 +975,6 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
     :type to_junction: int
     :param controlled_mdot_kg_per_s: Mass flow set point
     :type controlled_mdot_kg_per_s: float
-    :param diameter_m: Measure of the diameter to derive the cross-sectional area (important for \
-            the velocity calculation)
-    :type diameter_m: float
     :param control_active: Variable to state whether the flow control is active (otherwise \
             similar to open valve)
     :type control_active: bool, default True
@@ -982,6 +996,9 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
         >>> create_flow_control(net, 0, 1, 0.5, 0.8)
 
     """
+    if 'diameter_m' in kwargs:
+        logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
+                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
 
     add_new_component(net, FlowControlComponent)
 
@@ -991,13 +1008,13 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
     _check_branch(net, "FlowControl", index, from_junction, to_junction)
 
     _set_entries(net, "flow_control", index, name=name, from_junction=from_junction, to_junction=to_junction,
-                 controlled_mdot_kg_per_s=controlled_mdot_kg_per_s, diameter_m=diameter_m,
+                 controlled_mdot_kg_per_s=controlled_mdot_kg_per_s,
                  control_active=bool(control_active), in_service=bool(in_service), type=type, **kwargs)
 
     return index
 
 
-def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=None, controlled_mdot_kg_per_s=None,
+def create_heat_consumer(net, from_junction, to_junction, qext_w=None, controlled_mdot_kg_per_s=None,
                          deltat_k=None, treturn_k=None, name=None, index=None, in_service=True, type="heat_consumer",
                          **kwargs):
     """
@@ -1011,8 +1028,6 @@ def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=Non
     :param to_junction: ID of the junction on the other side which the heat consumer will be \
         connected with
     :type to_junction: int
-    :param diameter_m: The heat consumer inner diameter in [m] - only for result calculation
-    :type diameter_m: float
     :param qext_w: External heat flux in [W]. If positive, heat is extracted from the network. If \
         negative, heat is being fed into the network from a heat source.
     :type qext_w: float, default None
@@ -1041,6 +1056,10 @@ def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=Non
         >>> create_heat_consumer(net,from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=20000,
         >>>                     controlled_mdot_kg_per_s=0.4, name="heat_consumer1")
     """
+    if 'diameter_m' in kwargs:
+        logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
+                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
+
     if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None) + (treturn_k is None) != 2):
         raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
                              r"'qext_w' and 'deltat_k' or 'treturn_k' different from None.")
@@ -1053,7 +1072,7 @@ def create_heat_consumer(net, from_junction, to_junction, diameter_m, qext_w=Non
     index = _get_index_with_check(net, "heat_consumer", index, "heat consumer")
     _check_branch(net, "Heat consumer", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "diameter_m": diameter_m,
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
          "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
     _set_entries(net, "heat_consumer", index, **v, **kwargs)
@@ -1263,9 +1282,9 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
     return index
 
 
-def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2, loss_coefficient=0, sections=1,
-                 alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None, geodata=None, in_service=True,
-                 type="pipe", **kwargs):
+def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2,
+                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None, qext_w=0.,
+                 name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
@@ -1291,10 +1310,10 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
-    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
-    :type text_k: Iterable or float, default 293
+    :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
     :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
@@ -1331,10 +1350,12 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     _check_std_type(net, std_type, "pipe", "create_pipes")
 
     pipe_parameters = load_std_type(net, std_type, "pipe")
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "std_type": std_type,
-               "length_km": length_km, "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-               "loss_coefficient": loss_coefficient, "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections,
-               "in_service": in_service, "type": type, "qext_w": qext_w, "text_k": text_k}
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "std_type": std_type, "length_km": length_km,
+               "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
+               "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
+               "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
     if geodata is not None:
@@ -1342,9 +1363,10 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     return index
 
 
-def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                 sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0., name=None, index=None,
-                                 geodata=None, in_service=True, type="pipe", **kwargs):
+def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2,
+                                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None,
+                                 qext_w=0., name=None, index=None, geodata=None, in_service=True,
+                                 type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
@@ -1369,10 +1391,10 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
-    :type alpha_w_per_m2k: Iterable or float, default 0
+    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
-    :type text_k: Iterable or float, default 293
+    :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
     :param qext_w: External heat feed-in to the pipes in [W]
     :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
@@ -1406,10 +1428,25 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "pipe")
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "std_type": None,
-               "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm, "loss_coefficient": loss_coefficient,
-               "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections, "in_service": in_service, "type": type,
-               "qext_w": qext_w, "text_k": text_k}
+    if 'alpha_w_per_m2k' in kwargs:
+
+        if (not isinstance(u_w_per_m2k, Iterable) and isinstance(u_w_per_m2k, float)
+                and u_w_per_m2k == 0.):
+            u_w_per_m2k = kwargs['alpha_w_per_m2k']
+
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
+                      "It will be removed in future.", DeprecationWarning)
+
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
+               "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+               "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
+               "text_k": text_k}
+
+    if 'std_type' in kwargs:
+        raise UserWarning('you have defined a std_type, however, using this function you can only '
+                          'create a pipe setting specific, individual parameters. If you want to '
+                          'create a pipe from net.std_types, please use `create_pipe`')
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
     if geodata is not None:
@@ -1548,7 +1585,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     return index
 
 
-def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_per_s, diameter_m, control_active=True,
+def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_per_s, control_active=True,
                          name=None, index=None, in_service=True, type="fc", **kwargs):
     """
     Convenience function for creating many flow controls at once. Parameters 'from_junctions'\
@@ -1565,9 +1602,6 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     :type to_junctions: Iterable(int)
     :param controlled_mdot_kg_per_s: Mass flow set points
     :type controlled_mdot_kg_per_s: Iterable or float
-    :param diameter_m: Measure of the diameter to derive the cross-sectional area (important for \
-            the velocity calculation)
-    :type diameter_m: Iterable or float
     :param control_active: Variable to state whether the flow control is active (otherwise \
             similar to open valve)
     :type control_active: bool, default True
@@ -1586,12 +1620,15 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     :rtype: array(int)
 
     :Example:
-        Create two flow controllers with 0.8 m diameter between junction 0 and 1 with 0.5 kg/s and
+        Create two flow controllers between junction 0 and 1 with 0.5 kg/s and
         junction 2 and 4 with 0.9 kg/s, respectively.
 
-        >>> create_flow_controls(net, [0, 2], [1, 4], [0.5, 0.9], [0.8, 0.8])
+        >>> create_flow_controls(net, [0, 2], [1, 4], [0.5, 0.9])
 
     """
+    if 'diameter_m' in kwargs:
+        logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
+                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
 
     add_new_component(net, FlowControlComponent)
 
@@ -1599,14 +1636,14 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     _check_branches(net, from_junctions, to_junctions, "flow_control")
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "diameter_m": diameter_m,
+               "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s,
                "control_active": control_active, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "flow_control", index, **entries, **kwargs)
 
     return index
 
 
-def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w, loss_coefficient=0, name=None,
+def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coefficient=0, name=None,
                            index=None, in_service=True, type="heat_exchanger", **kwargs):
     """
     Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
@@ -1621,8 +1658,6 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
     :param to_junctions: IDs of the junctions on the other side the heat exchangers will be\
             connected with
     :type to_junctions: Iterable(int)
-    :param diameter_m: The heat exchangers inner diameter in [m]
-    :type diameter_m: Iterable(float) or float
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
     :type qext_w: Iterable(float) or float
@@ -1645,22 +1680,25 @@ def create_heat_exchangers(net, from_junctions, to_junctions, diameter_m, qext_w
     :rtype: Iterable(int), default None
 
     :Example:
-        >>> create_heat_exchangers(net, from_junctions=[0,1], to_junctions=[2,3],
-        >>>                       diameter_m=40e-3, qext_w=2000)
+        >>> create_heat_exchangers(net, from_junctions=[0,1], to_junctions=[2,3], qext_w=2000)
     """
+    if 'diameter_m' in kwargs:
+        logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
+                       r'it will be stored in the component table for postprocessing purposes by you if required.')
+
     add_new_component(net, HeatExchanger)
 
     index = _get_multiple_index_with_check(net, "heat_exchanger", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "diameter_m": diameter_m,
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
     return index
 
 
-def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=None, controlled_mdot_kg_per_s=None,
+def create_heat_consumers(net, from_junctions, to_junctions, qext_w=None, controlled_mdot_kg_per_s=None,
                           deltat_k=None, treturn_k=None, name=None, index=None, in_service=True, type="heat_consumer",
                           **kwargs):
     """
@@ -1674,8 +1712,6 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
     :param to_junctions: IDs of the junctions on the other side which the heat consumers will be \
         connected with
     :type to_junctions: Iterable(int)
-    :param diameter_m: The heat consumers' inner diameter in [m] - only for result calculation
-    :type diameter_m: Iterable(float) or float
     :param qext_w: External heat flux in [W]. If positive, heat is extracted from the network. If \
         negative, heat is being fed into the network from a heat source.
     :type qext_w: Iterable(float) or float, default None
@@ -1702,9 +1738,12 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
     :rtype: int
 
     :Example:
-        >>> create_heat_consumers(net,from_junctions=[0, 3], to_junctions=[1, 5], diameter_m=40e-3,
+        >>> create_heat_consumers(net,from_junctions=[0, 3], to_junctions=[1, 5],
         >>>                       qext_w=20000, controlled_mdot_kg_per_s=[0.5, 0.9])
     """
+    if 'diameter_m' in kwargs:
+        logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
+                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
     check_vars = [controlled_mdot_kg_per_s, qext_w, deltat_k, treturn_k]
     var_sums = np.zeros([4, len(from_junctions)])
     for i, cv in enumerate(check_vars):
@@ -1722,7 +1761,7 @@ def create_heat_consumers(net, from_junctions, to_junctions, diameter_m, qext_w=
     index = _get_multiple_index_with_check(net, "heat_consumer", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "heat_consumer")
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "diameter_m": diameter_m,
+    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
                "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
     _set_multiple_entries(net, "heat_consumer", index, **entries, **kwargs)
@@ -1774,6 +1813,23 @@ def _check_std_type(net, std_type, table, function_name):
     if std_type not in net['std_types'][table]:
         raise UserWarning('%s is not given in std_types (%s). Either change std_type or define new '
                           'one' % (std_type, table))
+
+
+def _add_multiple_branch_geodata(net, table, geodata, index):
+    geo_table = f"{table}_geodata"
+    dtypes = net[geo_table].dtypes
+    df = pd.DataFrame(index=index, columns=net[geo_table].columns)
+    # works with single or multiple lists of coordinates
+    if len(geodata[0]) == 2 and not hasattr(geodata[0][0], "__iter__"):
+        # geodata is a single list of coordinates
+        df["coords"] = [geodata] * len(index)
+    else:
+        # geodata is multiple lists of coordinates
+        df["coords"] = geodata
+
+    net[geo_table] = pd.concat([net[geo_table],df], sort=False)
+
+    _preserve_dtypes(net[geo_table], dtypes)
 
 
 ALLOWED_EG_TYPES = ["auto", "t", "p", "pt", "tp"]

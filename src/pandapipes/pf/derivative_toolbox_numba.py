@@ -15,15 +15,16 @@ except ImportError:
     from numpy import int32, float64, int64
 
 
-@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
+@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
 def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                       height_difference, rho, rho_n):
+                                       height_difference, rho):
     le = der_lambda.shape[0]
     load_vec = np.zeros_like(der_lambda)
     df_dm = np.zeros_like(der_lambda)
     df_dp = np.ones_like(der_lambda)
     df_dp1 = np.ones_like(der_lambda) * (-1)
-    load_vec_nodes = np.zeros_like(der_lambda)
+    load_vec_nodes_from = np.zeros_like(der_lambda)
+    load_vec_nodes_to = np.zeros_like(der_lambda)
     df_dm_nodes = np.ones_like(der_lambda)
 
     for i in range(le):
@@ -33,15 +34,16 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
         const_height = rho[i] * GRAVITATION_CONSTANT * height_difference[i] / P_CONVERSION
         friction_term = np.divide(branch_pit[i][LENGTH] * branch_pit[i][LAMBDA], branch_pit[i][D]) \
             + branch_pit[i][LC]
-        const_term = np.divide(1, branch_pit[i][AREA] ** 2 * rho_n[i] * P_CONVERSION * 2)
+        const_term = np.divide(1, branch_pit[i][AREA] ** 2 * rho[i] * P_CONVERSION * 2)
 
         df_dm[i] = -1. * const_term * (2 * m_init_abs * friction_term + der_lambda[i]
                                    * np.divide(branch_pit[i][LENGTH], branch_pit[i][D]) * m_init2)
 
         load_vec[i] = p_diff + branch_pit[i][PL] + const_height - const_term * m_init2 * friction_term
 
-        load_vec_nodes[i] = branch_pit[i][MDOTINIT]
-    return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
+        load_vec_nodes_from[i] = branch_pit[i][MDOTINIT]
+        load_vec_nodes_to[i] = branch_pit[i][MDOTINIT]
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
 @jit((float64[:, :], float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
@@ -53,10 +55,10 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
     df_dm = np.zeros_like(lambda_)
     df_dp = np.zeros_like(lambda_)
     df_dp1 = np.zeros_like(lambda_)
-    load_vec_nodes = np.zeros_like(der_lambda)
+    load_vec_nodes_from = np.zeros_like(der_lambda)
+    load_vec_nodes_to = np.zeros_like(der_lambda)
     df_dm_nodes = np.ones_like(der_lambda)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
 
     # Formulas for gas pressure loss according to laminar version
     for i in range(le):
@@ -85,8 +87,9 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         df_dm[i] = -1. * normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_init_abs * friction_term \
             + np.divide(der_lambda[i] * branch_pit[i][LENGTH] * m_init2, branch_pit[i][D]))
 
-        load_vec_nodes[i] = branch_pit[i][MDOTINIT]
-    return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
+        load_vec_nodes_from[i] = branch_pit[i][MDOTINIT]
+        load_vec_nodes_to[i] = branch_pit[i][MDOTINIT]
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
 @jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
