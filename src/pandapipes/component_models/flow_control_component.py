@@ -92,8 +92,8 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         mask_ign = False if active_ign is None else active_ign != active_hyd
 
         if np.any(mask_ign):
-            from_nodes = get_from_nodes_corrected(branch_pit)
-            to_nodes = get_to_nodes_corrected(branch_pit)
+            from_nodes = get_from_nodes_corrected(fc_branch_pit)
+            to_nodes = get_to_nodes_corrected(fc_branch_pit)
             mask = ~active_ign[from_nodes] | ~active_ign[to_nodes]
             fc_branch_pit[mask, JAC_DERIV_DP] = 1
             fc_branch_pit[mask, JAC_DERIV_DP1] = -1

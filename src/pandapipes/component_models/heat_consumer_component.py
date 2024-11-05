@@ -11,7 +11,7 @@ from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
                                    JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE, IGN)
-from pandapipes.idx_node import TINIT
+from pandapipes.idx_node import TINIT, PINIT
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -169,9 +169,9 @@ class HeatConsumer(BranchWZeroLengthComponent):
         mask_ign = False if active_ign is None else active_ign != active
 
         if np.any(mask_ign):
-            from_nodes = get_from_nodes_corrected(branch_pit)
-            to_nodes = get_to_nodes_corrected(branch_pit)
-            mask = ~active_ign[from_nodes] or ~active_ign[to_nodes]
+            from_nodes = get_from_nodes_corrected(hc_pit)
+            to_nodes = get_to_nodes_corrected(hc_pit)
+            mask = ~active_ign[from_nodes] | ~active_ign[to_nodes]
             hc_pit[mask, JAC_DERIV_DP] = 1
             hc_pit[mask, JAC_DERIV_DP1] = -1
             hc_pit[mask, JAC_DERIV_DM] = 0
