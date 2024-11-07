@@ -251,7 +251,7 @@ def solve_hydraulics(net):
 
     x = spsolve(jacobian, epsilon)
 
-    branch_pit[:, MDOTINIT] -= x[len(node_pit):len(node_pit) + len(branch_pit)]
+    branch_pit[:, MDOTINIT] -= x[len(node_pit):len(node_pit) + len(branch_pit)] * options["alpha"]
     node_pit[:, PINIT] -= x[:len(node_pit)] * options["alpha"]
     node_pit[slack_nodes, MDOTSLACKINIT] -= x[len(node_pit) + len(branch_pit):]
 
