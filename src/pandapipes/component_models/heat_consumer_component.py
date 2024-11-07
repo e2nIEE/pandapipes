@@ -17,6 +17,12 @@ from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
+try:
+    import pandaplan.core.pplog as logging
+except ImportError:
+    import logging
+
+logger = logging.getLogger(__name__)
 
 class HeatConsumer(BranchWZeroLengthComponent):
     """
