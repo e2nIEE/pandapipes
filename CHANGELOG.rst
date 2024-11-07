@@ -1,7 +1,7 @@
 Change Log
 =============
 
-[0.11.0] - 2024-10-24
+[0.11.0] - 2024-11-07
 -------------------------------
 - [ADDED] heat_consumer component
 - [ADDED] heat_consumer plotting
@@ -15,12 +15,14 @@ Change Log
 - [CHANGED] variable "alpha_w_per_m2k" to "u_w_per_m2k"
 - [CHANGED] option "all" for pipeflow heat calculations to "sequential", the new option is "bidirectional"
 - [CHANGED] volume flow in result tables instead of normalized volume flow for non gas fluids
+- [CHANGED] introduction of slack mass flow into nodes as solved variable + circulation pumps are now branches and thus cannot generate or consume mass
 - [FIXED] Pressure plot not working for circ pump
 - [FIXED] volume flow rate for incompressible fluids based on real density, thus in this case results are renamed from "vdot_norm_m3_per_s" to "vdot_m3_per_s"
 - [FIXED] some imports from pandapower
 - [FIXED] NAN to nan because of numpy changes
 - [FIXED] if velocity in a branch is negative to get corrected nodes from the branch pit
 - [FIXED] plot pressure profile not working for circulation pump sources
+- [FIXED] Infeed switches are considered correctly + Heat consumers with qext_w = 0 and temperature control ignore temperature set points + alpha also applied to mdot
 - [REMOVED] support for Python 3.8 due to EOL
 
 
