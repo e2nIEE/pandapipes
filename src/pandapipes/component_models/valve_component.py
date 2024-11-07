@@ -71,6 +71,11 @@ class Valve(BranchWZeroLengthComponent):
     def extract_results(cls, net, options, branch_results, mode):
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
+        required_results_hyd.extend([("v_mean_m_per_s", "v_mps"), ("lambda", "lambda"), ("reynolds", "reynolds")])
+
+        if get_fluid(net).is_gas:
+            required_results_hyd.extend([("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to")])
+
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
 
