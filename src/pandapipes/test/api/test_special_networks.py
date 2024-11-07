@@ -63,7 +63,8 @@ def test_two_node_net(use_numba):
     max_iter_hyd = 2 if use_numba else 2
     pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
-    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, np.zeros((2, 1))))
+    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values,
+                             np.zeros((2, 1))))
 
     net = create_empty_network(fluid='lgas')
     j = create_junction(net, 1, 298.15)
@@ -76,7 +77,8 @@ def test_two_node_net(use_numba):
     create_source(net, j, 0.02)
     pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
-    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, np.zeros((2, 1))))
+    assert np.all(np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values,
+                             np.zeros((2, 1))))
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -110,7 +112,8 @@ def test_random_net_and_one_node_net(create_test_net, use_numba):
     create_source(net, j, 0.02)
     pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
 
-    assert np.isclose(net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
+    assert np.isclose(
+        net.res_ext_grid.values[-1] + net.res_sink.values[-1] - net.res_source.values[-1], 0)
 
 
 @pytest.mark.xfail(reason="The test net is not set up properly.")

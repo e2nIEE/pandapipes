@@ -7,13 +7,10 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
 from pandapipes.properties import get_fluid
-from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES, IGN
-from pandapipes.idx_node import PINIT
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
+from pandapipes.idx_branch import D, AREA, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES, IGN
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -86,20 +83,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         fc_branch_pit[active, JAC_DERIV_DP1] = 0
         fc_branch_pit[active, JAC_DERIV_DM] = 1
         fc_branch_pit[active, LOAD_VEC_BRANCHES] = 0
-
-        active_ign = get_lookup(net, "node", "active_ign_hydraulics")
-        active_hyd = get_lookup(net, "node", "active_hydraulics")
-        mask_ign = False if active_ign is None else active_ign != active_hyd
-
-        if np.any(mask_ign):
-            from_nodes = get_from_nodes_corrected(fc_branch_pit)
-            to_nodes = get_to_nodes_corrected(fc_branch_pit)
-            mask = ~active_ign[from_nodes] | ~active_ign[to_nodes]
-            fc_branch_pit[mask, JAC_DERIV_DP] = 1
-            fc_branch_pit[mask, JAC_DERIV_DP1] = -1
-            fc_branch_pit[mask, JAC_DERIV_DM] = 0
-            fc_branch_pit[mask, LOAD_VEC_BRANCHES] = (
-                    node_pit[from_nodes[mask], PINIT] - node_pit[to_nodes[mask], PINIT])
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
