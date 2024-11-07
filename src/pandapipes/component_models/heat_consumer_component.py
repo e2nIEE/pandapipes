@@ -77,9 +77,9 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
         hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
-        mask_q0 = hc_pit[:, QEXT] == 0 & np.isnan(hc_pit[:, MDOTINIT])
-        hc_pit[mask_q0, ACTIVE] = False
-        if any(mask_q0):
+        mask_q0 = qext == 0 & np.isnan(mdot)
+        if np.any(mask_q0):
+            hc_pit[mask_q0, ACTIVE] = False
             logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
                            r'Therefore, the defined temperature control cannot be maintained.' \
                     %net[cls.table_name()].index[mask_q0])
