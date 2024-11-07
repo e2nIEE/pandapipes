@@ -775,8 +775,10 @@ def reduce_pit(net, mode="hydraulics"):
 
 def check_infeed_number(node_pit):
     slack_nodes = node_pit[:, NODE_TYPE_T] == T
+    if len(node_pit) == 1:
+        node_pit[slack_nodes, INFEED] = True
     infeed_nodes = node_pit[:, INFEED]
-    if sum(infeed_nodes) != sum(slack_nodes):
+    if np.sum(infeed_nodes) != np.sum(slack_nodes):
         raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
 
 
