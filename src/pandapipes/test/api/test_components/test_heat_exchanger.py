@@ -19,11 +19,10 @@ def test_heat_exchanger(use_numba):
         :rtype:
         """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
 
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
-    pandapipes.create_heat_exchanger(net, 0, 1, d, qext_w=20000)
+    pandapipes.create_heat_exchanger(net, 0, 1, qext_w=20000)
     pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=330, type="pt")
     pandapipes.create_sink(net, 1, mdot_kg_per_s=1)
 
@@ -33,7 +32,7 @@ def test_heat_exchanger(use_numba):
     max_iter_therm = 4 if use_numba else 4
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         stop_condition="tol", friction_model="nikuradse",
-                        mode="all", transient=False, nonlinear_method="automatic", tol_p=1e-4,
+                        mode='sequential', transient=False, nonlinear_method="automatic", tol_p=1e-4,
                         tol_m=1e-4, use_numba=use_numba)
 
     data = pd.read_csv(os.path.join(data_path, "heat_exchanger_test.csv"), sep=';',

@@ -10,7 +10,7 @@ from pandapipes.properties import get_fluid
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -49,8 +49,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         fc_branch_pit = super().create_pit_branch_entries(net, branch_pit)
-        fc_branch_pit[:, D] = net[cls.table_name()].diameter_m.values
-        fc_branch_pit[:, AREA] = fc_branch_pit[:, D] ** 2 * np.pi / 4
         fc_branch_pit[:, MDOTINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values
 
     @classmethod
@@ -105,7 +103,6 @@ class FlowControlComponent(BranchWZeroLengthComponent):
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
                 ("controlled_mdot_kg_per_s", "f8"),
-                ("diameter_m", "f8"),
                 ("control_active", "bool"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
@@ -123,12 +120,12 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
-                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+            output = ["p_from_bar", "p_to_bar",
+                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
                       "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+            output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
                       "lambda"]
         return output, True
