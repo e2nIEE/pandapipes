@@ -17,6 +17,12 @@ from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
+try:
+    import pandaplan.core.pplog as logging
+except ImportError:
+    import logging
+
+logger = logging.getLogger(__name__)
 
 class HeatConsumer(BranchWZeroLengthComponent):
     """
@@ -71,8 +77,13 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
         hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
-        hc_pit[hc_pit[:, QEXT] == 0 & np.isnan(hc_pit[:, MDOTINIT]), ACTIVE] = False
         hc_pit[:, IGN] = True
+        mask_q0 = qext == 0 & np.isnan(mdot)
+        if np.any(mask_q0):
+            hc_pit[mask_q0, ACTIVE] = False
+            logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
+                           r'Therefore, the defined temperature control cannot be maintained.' \
+                    %net[cls.table_name()].index[mask_q0])
         return hc_pit
 
     @classmethod
