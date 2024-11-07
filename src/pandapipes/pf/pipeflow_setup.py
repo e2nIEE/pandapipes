@@ -636,7 +636,6 @@ def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_l
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
     active_branch_lookup = active_branch_lookup & np.isin(from_nodes, active_nodes) & np.isin(to_nodes, active_nodes)
     nobranch = np.sum(active_branch_lookup)
-
     active_from_nodes = from_nodes[active_branch_lookup]
     active_to_nodes = to_nodes[active_branch_lookup]
 

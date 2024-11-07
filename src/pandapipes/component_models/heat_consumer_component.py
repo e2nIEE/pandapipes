@@ -71,7 +71,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
         hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
-        hc_pit[hc_pit[:, QEXT] == 0, ACTIVE] = False
+        hc_pit[hc_pit[:, QEXT] == 0 & np.isnan(hc_pit[:, MDOTINIT]), ACTIVE] = False
         hc_pit[:, IGN] = True
         return hc_pit
 
