@@ -18,13 +18,20 @@ class Junction(NodeComponent):
     """
 
     """
-
-    @classmethod
-    def table_name(cls):
+    @property
+    def table_name(self):
         return "junction"
 
-    @classmethod
-    def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
+    @property
+    def geodata(self):
+        """
+
+        :return:
+        :rtype:
+        """
+        return [("x", "f8"), ("y", "f8")]
+
+    def create_node_lookups(self, net, ft_lookups, table_lookup, idx_lookups, current_start,
                             current_table, internal_nodes_lookup):
         """
         Function which creates node lookups.
@@ -46,21 +53,20 @@ class Junction(NodeComponent):
         :return:
         :rtype:
         """
-        table_indices = net[cls.table_name()].index
+        table_indices = net[self.table_name].index
         table_len = len(table_indices)
         end = current_start + table_len
-        ft_lookups[cls.table_name()] = (current_start, end)
-        add_table_lookup(table_lookup, cls.table_name(), current_table)
+        ft_lookups[self.table_name] = (current_start, end)
+        add_table_lookup(table_lookup, self.table_name, current_table)
         if not table_len:
-            idx_lookups[cls.table_name()] = np.array([], dtype=np.int32)
-            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
+            idx_lookups[self.table_name] = np.array([], dtype=np.int32)
+            idx_lookups[self.table_name][table_indices] = np.arange(table_len) + current_start
         else:
-            idx_lookups[cls.table_name()] = -np.ones(table_indices.max() + 1, dtype=np.int32)
-            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
+            idx_lookups[self.table_name] = -np.ones(table_indices.max() + 1, dtype=np.int32)
+            idx_lookups[self.table_name][table_indices] = np.arange(table_len) + current_start
         return end, current_table + 1
 
-    @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
+    def create_pit_node_entries(self, net, node_pit):
         """
         Function which creates pit node entries.
 
@@ -71,10 +77,10 @@ class Junction(NodeComponent):
         :return: No Output.
         """
         ft_lookup = get_lookup(net, "node", "from_to")
-        table_nr = get_table_number(get_lookup(net, "node", "table"), cls.table_name())
-        f, t = ft_lookup[cls.table_name()]
+        table_nr = get_table_number(get_lookup(net, "node", "table"), self.table_name)
+        f, t = ft_lookup[self.table_name]
 
-        junctions = net[cls.table_name()]
+        junctions = net[self.table_name]
         junction_pit = node_pit[f:t, :]
         junction_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
 
@@ -85,8 +91,7 @@ class Junction(NodeComponent):
         junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
         junction_pit[:, ACTIVE_ND] = junctions.in_service.values
 
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(self, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
@@ -102,9 +107,9 @@ class Junction(NodeComponent):
         :type mode:
         :return: No Output.
         """
-        res_table = net["res_" + cls.table_name()]
+        res_table = net["res_" + self.table_name]
 
-        f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
+        f, t = get_lookup(net, "node", "from_to")[self.table_name]
         junction_pit = net["_pit"]["node"][f:t, :]
 
         if mode in ["hydraulics", "sequential", "bidirectional"]:
@@ -125,8 +130,7 @@ class Junction(NodeComponent):
         res_table["p_bar"].values[:] = junction_pit[:, PINIT]
         res_table["t_k"].values[:] = junction_pit[:, TINIT]
 
-    @classmethod
-    def get_component_input(cls):
+    def get_component_input(self):
         """
 
         :return:
@@ -139,17 +143,7 @@ class Junction(NodeComponent):
                 ('in_service', 'bool'),
                 ('type', dtype(object))]
 
-    @classmethod
-    def geodata(cls):
-        """
-
-        :return:
-        :rtype:
-        """
-        return [("x", "f8"), ("y", "f8")]
-
-    @classmethod
-    def get_result_table(cls, net):
+    def get_result_table(self, net):
         """
 
         :param net: The pandapipes network

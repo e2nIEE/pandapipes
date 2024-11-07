@@ -2,46 +2,21 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
-from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC
+from pandapipes.component_models.abstract_models.branch_element_models import BranchElementComponent
+from pandapipes.idx_branch import QEXT, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-
-class HeatExchanger(BranchWZeroLengthComponent):
-
-    @classmethod
-    def from_to_node_cols(cls):
-        return "from_junction", "to_junction"
-
-    @classmethod
-    def table_name(cls):
+class HeatExchanger(BranchElementComponent):
+    @property
+    def table_name(self):
         return "heat_exchanger"
 
-    @classmethod
-    def active_identifier(cls):
-        return "in_service"
-
-    @classmethod
-    def get_connected_node_type(cls):
-        return Junction
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
+    def create_pit_branch_entries(self, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
@@ -52,11 +27,10 @@ class HeatExchanger(BranchWZeroLengthComponent):
         :return: No Output.
         """
         heat_exchanger_pit = super().create_pit_branch_entries(net, branch_pit)
-        heat_exchanger_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
-        heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
+        heat_exchanger_pit[:, LC] = net[self.table_name].loss_coefficient.values
+        heat_exchanger_pit[:, QEXT] = net[self.table_name].qext_w.values
 
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(self, net, options, branch_results, mode):
         """
         Class method to extract pipeflow results from the internal structure into the results table.
 
@@ -74,10 +48,9 @@ class HeatExchanger(BranchWZeroLengthComponent):
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
-                                                 required_results_ht, cls.table_name(), mode)
+                                                 required_results_ht, self.table_name, mode)
 
-    @classmethod
-    def get_component_input(cls):
+    def get_component_input(self):
         """
 
         :return:
@@ -92,8 +65,7 @@ class HeatExchanger(BranchWZeroLengthComponent):
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
-    @classmethod
-    def get_result_table(cls, net):
+    def get_result_table(self, net):
         """
 
         :param net: The pandapipes network

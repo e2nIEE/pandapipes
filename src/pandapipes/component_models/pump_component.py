@@ -4,29 +4,26 @@
 
 from operator import itemgetter
 
-import numpy as np
-from numpy import dtype
+from numpy import dtype, zeros, where, newaxis, float64, int32, array, divide, abs as abs_
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_element_models import BranchElementComponent
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.component_toolbox import get_component_array
-from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import MDOTINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
+from pandapipes.idx_branch import MDOTINIT, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 try:
-    import pandaplan.core.pplog as logging
+    from pandaplan.core.pplog.logging import getLogger
 except ImportError:
-    import logging
+    from logging import getLogger
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
-class Pump(BranchWZeroLengthComponent):
+class Pump(BranchElementComponent):
     """
 
     """
@@ -34,24 +31,11 @@ class Pump(BranchWZeroLengthComponent):
 
     internal_cols = 1
 
-    @classmethod
-    def from_to_node_cols(cls):
-        return "from_junction", "to_junction"
-
-    @classmethod
-    def table_name(cls):
+    @property
+    def table_name(self):
         return "pump"
 
-    @classmethod
-    def active_identifier(cls):
-        return "in_service"
-
-    @classmethod
-    def get_connected_node_type(cls):
-        return Junction
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
+    def create_pit_branch_entries(self, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
 
@@ -64,8 +48,7 @@ class Pump(BranchWZeroLengthComponent):
         pump_pit = super().create_pit_branch_entries(net, branch_pit)
         pump_pit[:, LC] = 0
 
-    @classmethod
-    def create_component_array(cls, net, component_pits):
+    def create_component_array(self, net, component_pits):
         """
         Function which creates an internal array of the component in analogy to the pit, but with
         component specific entries, that are not needed in the pit.
@@ -77,26 +60,25 @@ class Pump(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        tbl = net[cls.table_name()]
-        pump_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
-        std_types_lookup = get_std_type_lookup(net, cls.table_name())
-        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                                 == std_types_lookup[:, np.newaxis])
-        pump_array[pos, cls.STD_TYPE] = std_type
-        component_pits[cls.table_name()] = pump_array
+        tbl = net[self.table_name]
+        pump_array = zeros(shape=(len(tbl), self.internal_cols), dtype=float64)
+        std_types_lookup = get_std_type_lookup(net, self.table_name)
+        std_type, pos = where(net[self.table_name]['std_type'].values
+                                 == std_types_lookup[:, newaxis])
+        pump_array[pos, self.STD_TYPE] = std_type
+        component_pits[self.table_name] = pump_array
 
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(self, net, branch_pit, node_pit, idx_lookups, options):
         # calculation of pressure lift
-        f, t = idx_lookups[cls.table_name()]
+        f, t = idx_lookups[self.table_name]
         pump_branch_pit = branch_pit[f:t, :]
         area = pump_branch_pit[:, AREA]
 
-        pump_array = get_component_array(net, cls.table_name())
-        idx = pump_array[:, cls.STD_TYPE].astype(np.int32)
-        std_types = get_std_type_lookup(net, cls.table_name())[idx]
+        pump_array = get_component_array(net, self.table_name)
+        idx = pump_array[:, self.STD_TYPE].astype(int32)
+        std_types = get_std_type_lookup(net, self.table_name)[idx]
 
-        from_nodes = pump_branch_pit[:, FROM_NODE].astype(np.int32)
+        from_nodes = pump_branch_pit[:, FROM_NODE].astype(int32)
         # to_nodes = pump_branch_pit[:, TO_NODE].astype(np.int32)
         fluid = get_fluid(net)
         p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
@@ -115,11 +97,10 @@ class Pump(BranchWZeroLengthComponent):
         if len(std_types):
             fcts = itemgetter(*std_types)(net['std_types']['pump'])
             fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-            pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
+            pl = array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
             pump_branch_pit[:, PL] = pl
 
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(self, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
@@ -138,14 +119,14 @@ class Pump(BranchWZeroLengthComponent):
         required_results_hyd.extend([("deltap_bar", "pl")])
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
-                                                 required_results_ht, cls.table_name(), mode)
+                                                 required_results_ht, self.table_name, mode)
 
         calc_compr_pow = options['calc_compression_power']
         if calc_compr_pow:
-            f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+            f, t = get_lookup(net, "branch", "from_to")[self.table_name]
             from_nodes = branch_results["from_nodes"][f:t]
 
-            res_table = net["res_" + cls.table_name()]
+            res_table = net["res_" + self.table_name]
             if net.fluid.is_gas:
                 p_from = branch_results["p_abs_from"][f:t]
                 p_to = branch_results["p_abs_to"][f:t]
@@ -165,16 +146,15 @@ class Pump(BranchWZeroLengthComponent):
                     cv = cp - r_spec
                     k = cp/cv  # 'kappa' heat capacity ratio
                     w_real_isentr = (k / (k - 1)) * r_spec * compr * t0 * \
-                                    (np.divide(p_to, p_from) ** ((k - 1) / k) - 1)
+                                    (divide(p_to, p_from) ** ((k - 1) / k) - 1)
                     res_table['compr_power_mw'].values[:] = \
-                        w_real_isentr * np.abs(mf_sum_int) / 1e6
+                        w_real_isentr * abs_(mf_sum_int) / 1e6
             else:
                 vf_sum_int = branch_results["vf"][f:t]
                 pl = branch_results["pl"][f:t]
                 res_table['compr_power_mw'].values[:] = pl * P_CONVERSION * vf_sum_int / 1e6
 
-    @classmethod
-    def get_component_input(cls):
+    def get_component_input(self):
         """
 
         Get component input.
@@ -189,8 +169,7 @@ class Pump(BranchWZeroLengthComponent):
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
-    @classmethod
-    def get_result_table(cls, net):
+    def get_result_table(self, net):
         """
 
         Gets the result table.
@@ -218,4 +197,4 @@ class Pump(BranchWZeroLengthComponent):
 
 
 def get_std_type_lookup(net, table_name):
-    return np.array(list(net.std_types[table_name].keys()))
+    return array(list(net.std_types[table_name].keys()))

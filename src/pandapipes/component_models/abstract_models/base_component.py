@@ -2,38 +2,23 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from abc import ABC, abstractmethod
 from pandapipes.component_models.component_toolbox import init_results_element
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
 
-logger = logging.getLogger(__name__)
+class Component(ABC):
 
+    @property
+    @abstractmethod
+    def table_name(self):
+        ...
 
-class Component:
+    @property
+    def active_identifier(self):
+        return "in_service"
 
-    @classmethod
-    def table_name(cls):
-        raise NotImplementedError()
-
-    @classmethod
-    def init_results(cls, net):
-        """
-        Function that intializes the result table for the component.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :return: No Output.
-        """
-        output, all_float = cls.get_result_table(net)
-        init_results_element(net, cls.table_name(), output, all_float)
-        res_table = net["res_" + cls.table_name()]
-        return res_table
-
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    @abstractmethod
+    def extract_results(self, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
@@ -47,19 +32,19 @@ class Component:
         :type mode:
         :return: No Output.
         """
-        raise NotImplementedError
+        ...
 
-    @classmethod
-    def get_component_input(cls):
+    @abstractmethod
+    def get_component_input(self):
         """
 
         :return:
         :rtype:
         """
-        raise NotImplementedError
+        ...
 
-    @classmethod
-    def get_result_table(cls, net):
+    @abstractmethod
+    def get_result_table(self, net):
         """
         Get result table.
 
@@ -68,110 +53,17 @@ class Component:
         :return:
         :rtype:
         """
-        raise NotImplementedError
+        ...
 
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
-
-    @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
-
-    @classmethod
-    def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
-
-    @classmethod
-    def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-        pass
-
-
-    @classmethod
-    def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internal_nodes_lookup):
+    def init_results(self, net):
         """
-        Function which creates node lookups.
+        Function that intializes the result table for the component.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param ft_lookups:
-        :type ft_lookups:
-        :param table_lookup:
-        :type table_lookup:
-        :param idx_lookups:
-        :type idx_lookups:
-        :param current_start:
-        :type current_start:
-        :param current_table:
-        :type current_table:
-        :param internal_nodes_lookup:
-        :type internal_nodes_lookup:
-        :return:
-        :rtype:
-        """
-        return current_start, current_table
-
-    @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
-                              current_start):
-        """
-        Function which creates branch lookups.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param ft_lookups:
-        :type ft_lookups:
-        :param table_lookup:
-        :type table_lookup:
-        :param idx_lookups:
-        :type idx_lookups:
-        :param current_table:
-        :type current_table:
-        :param current_start:
-        :type current_start:
         :return: No Output.
         """
-        return current_start, current_table
-
-    @classmethod
-    def create_component_array(cls, net, component_pits):
-        """
-        Function which creates an internal array of the component in analogy to the pit, but with
-        component specific entries, that are not needed in the pit.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param component_pits: dictionary of component specific arrays
-        :type component_pits: dict
-        :return:
-        :rtype:
-        """
-        pass
-
-    @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        """
-        Function which creates pit branch entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :return: No Output.
-        """
-        pass
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
-        """
-        Function which creates pit branch entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :return: No Output.
-        """
-        pass
-
+        output, all_float = self.get_result_table(net)
+        init_results_element(net, self.table_name, output, all_float)
+        res_table = net["res_" + self.table_name]
+        return res_table

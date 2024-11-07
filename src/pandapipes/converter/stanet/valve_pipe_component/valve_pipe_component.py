@@ -29,7 +29,7 @@ class ValvePipe(Pipe):
         return "opened"
 
     @classmethod
-    def get_connected_node_type(cls):
+    def connected_node_type(cls):
         return Junction
 
     @classmethod

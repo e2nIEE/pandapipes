@@ -2,13 +2,11 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
-from numpy import dtype
+from numpy import dtype, isnan, zeros, float64, any as any_
 
-from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
+from pandapipes.component_models import (get_fluid, BranchElementComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
-from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import (D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
+from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
                                    JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T)
 from pandapipes.idx_node import TINIT
@@ -18,7 +16,7 @@ from pandapipes.pf.result_extraction import extract_branch_results_without_inter
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
 
-class HeatConsumer(BranchWZeroLengthComponent):
+class HeatConsumer(BranchElementComponent):
     """
 
     """
@@ -38,24 +36,11 @@ class HeatConsumer(BranchWZeroLengthComponent):
     QE_DT = 4
     QE_TR = 5
 
-    @classmethod
-    def table_name(cls):
+    @property
+    def table_name(self):
         return "heat_consumer"
 
-    @classmethod
-    def get_connected_node_type(cls):
-        return Junction
-
-    @classmethod
-    def from_to_node_cols(cls):
-        return "from_junction", "to_junction"
-
-    @classmethod
-    def active_identifier(cls):
-        return "in_service"
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
+    def create_pit_branch_entries(self, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
@@ -65,16 +50,15 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :return: No Output.
         """
         hc_pit = super().create_pit_branch_entries(net, branch_pit)
-        qext = net[cls.table_name()].qext_w.values
-        hc_pit[~np.isnan(qext), QEXT] = qext[~np.isnan(qext)]
-        mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
-        hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
-        treturn = net[cls.table_name()].treturn_k.values
-        hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
+        qext = net[self.table_name].qext_w.values
+        hc_pit[~isnan(qext), QEXT] = qext[~isnan(qext)]
+        mdot = net[self.table_name].controlled_mdot_kg_per_s.values
+        hc_pit[~isnan(mdot), MDOTINIT] = mdot[~isnan(mdot)]
+        treturn = net[self.table_name].treturn_k.values
+        hc_pit[~isnan(treturn), TOUTINIT] = treturn[~isnan(treturn)]
         return hc_pit
 
-    @classmethod
-    def create_component_array(cls, net, component_pits):
+    def create_component_array(self, net, component_pits):
         """
         Function which creates an internal array of the component in analogy to the pit, but with
         component specific entries, that are not needed in the pit.
@@ -86,42 +70,40 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :return:
         :rtype:
         """
-        tbl = net[cls.table_name()]
-        consumer_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
-        consumer_array[:, cls.DELTAT] = tbl.deltat_k.values
-        consumer_array[:, cls.TRETURN] = tbl.treturn_k.values
-        consumer_array[:, cls.QEXT] = tbl.qext_w.values
-        consumer_array[:, cls.MASS] = tbl.controlled_mdot_kg_per_s.values
+        tbl = net[self.table_name]
+        consumer_array = zeros(shape=(len(tbl), self.internal_cols), dtype=float64)
+        consumer_array[:, self.DELTAT] = tbl.deltat_k.values
+        consumer_array[:, self.TRETURN] = tbl.treturn_k.values
+        consumer_array[:, self.QEXT] = tbl.qext_w.values
+        consumer_array[:, self.MASS] = tbl.controlled_mdot_kg_per_s.values
         mf = tbl.controlled_mdot_kg_per_s.values
         tr = tbl.treturn_k.values
         dt = tbl.deltat_k.values
         qe = tbl.qext_w.values
-        mf = ~np.isnan(mf)
-        tr = ~np.isnan(tr)
-        dt = ~np.isnan(dt)
-        qe = ~np.isnan(qe)
-        consumer_array[mf & dt, cls.MODE] = cls.MF_DT
-        consumer_array[mf & tr, cls.MODE] = cls.MF_TR
-        consumer_array[qe & mf, cls.MODE] = cls.QE_MF
-        consumer_array[qe & dt, cls.MODE] = cls.QE_DT
-        consumer_array[qe & tr, cls.MODE] = cls.QE_TR
-        component_pits[cls.table_name()] = consumer_array
+        mf = ~isnan(mf)
+        tr = ~isnan(tr)
+        dt = ~isnan(dt)
+        qe = ~isnan(qe)
+        consumer_array[mf & dt, self.MODE] = self.MF_DT
+        consumer_array[mf & tr, self.MODE] = self.MF_TR
+        consumer_array[qe & mf, self.MODE] = self.QE_MF
+        consumer_array[qe & dt, self.MODE] = self.QE_DT
+        consumer_array[qe & tr, self.MODE] = self.QE_TR
+        component_pits[self.table_name] = consumer_array
 
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
-        f, t = idx_lookups[cls.table_name()]
+    def adaption_before_derivatives_hydraulic(self, net, branch_pit, node_pit, idx_lookups, options):
+        f, t = idx_lookups[self.table_name]
         hc_pit = branch_pit[f:t, :]
-        consumer_array = get_component_array(net, cls.table_name())
+        consumer_array = get_component_array(net, self.table_name)
 
-        mask = consumer_array[:, cls.MODE] == cls.QE_DT
-        if np.any(mask):
+        mask = consumer_array[:, self.MODE] == self.QE_DT
+        if any_(mask):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit[mask])
-            deltat = consumer_array[mask, cls.DELTAT]
+            deltat = consumer_array[mask, self.DELTAT]
             mass = hc_pit[mask, QEXT] / (cp * deltat)
             hc_pit[mask, MDOTINIT] = mass
 
-    @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(self, net, branch_pit, node_pit, idx_lookups, options):
         """
         Perform adaptions to the branch pit after the derivatives have been calculated globally.
 
@@ -140,8 +122,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
         """
         # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
         # of velocity is allowed during the pipeflow iteration
-        f, t = idx_lookups[cls.table_name()]
-        consumer_array = get_component_array(net, cls.table_name())
+        f, t = idx_lookups[self.table_name]
+        consumer_array = get_component_array(net, self.table_name)
 
         hc_pit = branch_pit[f:t, :]
         hc_pit[:, JAC_DERIV_DP] = 0
@@ -149,8 +131,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[:, JAC_DERIV_DM] = 1
         hc_pit[:, LOAD_VEC_BRANCHES] = 0
 
-        mask = consumer_array[:, cls.MODE] == cls.QE_TR
-        if np.any(mask):
+        mask = consumer_array[:, self.MODE] == self.QE_TR
+        if any_(mask):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
             from_nodes = get_from_nodes_corrected(hc_pit)
             t_in = node_pit[from_nodes, TINIT]
@@ -162,41 +144,38 @@ class HeatConsumer(BranchWZeroLengthComponent):
             hc_pit[mask & mask_equal, MDOTINIT] = 0
             hc_pit[mask & ~mask_equal, JAC_DERIV_DM] = df_dm[mask & ~mask_equal]
 
-    @classmethod
-    def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-        f, t = idx_lookups[cls.table_name()]
+    def adaption_before_derivatives_thermal(self, net, branch_pit, node_pit, idx_lookups, options):
+        f, t = idx_lookups[self.table_name]
         hc_pit = branch_pit[f:t, :]
-        consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
-        mask = consumer_array[:, cls.MODE] == cls.MF_DT
-        if np.any(mask):
+        consumer_array = get_component_array(net, self.table_name, mode='heat_transfer')
+        mask = consumer_array[:, self.MODE] == self.MF_DT
+        if any_(mask):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
-            q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * consumer_array[mask, cls.DELTAT]
+            q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * consumer_array[mask, self.DELTAT]
             hc_pit[mask, QEXT] = q_ext
 
-        mask = consumer_array[:, cls.MODE] == cls.MF_TR
-        if np.any(mask):
+        mask = consumer_array[:, self.MODE] == self.MF_TR
+        if any_(mask):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
             from_nodes = get_from_nodes_corrected(hc_pit[mask])
             t_in = node_pit[from_nodes, TINIT]
-            t_out = consumer_array[mask, cls.TRETURN]
+            t_out = consumer_array[mask, self.TRETURN]
             q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * (t_in - t_out)
             hc_pit[mask, QEXT] = q_ext
 
-    @classmethod
-    def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-        f, t = idx_lookups[cls.table_name()]
+    def adaption_after_derivatives_thermal(self, net, branch_pit, node_pit, idx_lookups, options):
+        f, t = idx_lookups[self.table_name]
         hc_pit = branch_pit[f:t, :]
-        consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
+        consumer_array = get_component_array(net, self.table_name, mode='heat_transfer')
 
         # Any MODE where TRETURN is given
-        mask = consumer_array[:, cls.MODE] == cls.QE_TR
-        if np.any(mask):
+        mask = consumer_array[:, self.MODE] == self.QE_TR
+        if any_(mask):
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
             hc_pit[mask, JAC_DERIV_DTOUT] = 1
             hc_pit[mask, JAC_DERIV_DT] = 0
 
-    @classmethod
-    def get_component_input(cls):
+    def get_component_input(self):
         """
 
         Get component input.
@@ -208,8 +187,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
                 ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"),
                 ("in_service", "bool"), ("type", dtype(object))]
 
-    @classmethod
-    def get_result_table(cls, net):
+    def get_result_table(self, net):
         """
 
         Gets the result table.
@@ -230,8 +208,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         output += ['deltat_k', 'qext_w']
         return output, True
 
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(self, net, options, branch_results, mode):
         """
 
         :param net:
@@ -248,14 +225,14 @@ class HeatConsumer(BranchWZeroLengthComponent):
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-            cls.table_name(), mode)
+                                                 self.table_name, mode)
 
         node_pit = net['_pit']['node']
         branch_pit = net['_pit']['branch']
         branch_lookups = get_lookup(net, "branch", "from_to")
-        f, t = branch_lookups[cls.table_name()]
+        f, t = branch_lookups[self.table_name]
 
-        res_table = net["res_" + cls.table_name()]
+        res_table = net["res_" + self.table_name]
 
         res_table['qext_w'].values[:] = branch_pit[f:t, QEXT]
         from_nodes = get_from_nodes_corrected(branch_pit[f:t])
