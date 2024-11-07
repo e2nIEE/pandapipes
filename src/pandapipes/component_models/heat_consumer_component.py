@@ -8,9 +8,9 @@ from numpy import dtype
 from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import (D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
+from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
-                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T)
+                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE)
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -71,6 +71,12 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
         hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
+        mask_q0 = hc_pit[:, QEXT] == 0 & np.isnan(hc_pit[:, MDOTINIT])
+        hc_pit[mask_q0, ACTIVE] = False
+        if any(mask_q0):
+            logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
+                           r'Therefore, the defined temperature control cannot be maintained.' \
+                    %net[cls.table_name()].index[mask_q0])
         return hc_pit
 
     @classmethod
