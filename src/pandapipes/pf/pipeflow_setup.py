@@ -10,7 +10,7 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, MDOTINIT, \
-    ACTIVE as ACTIVE_BR, IGN, ACTIVE, BRANCH_TYPE, CIRC
+    ACTIVE as ACTIVE_BR, VLRLCONNECT, ACTIVE, BRANCH_TYPE, CIRC
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group
@@ -619,18 +619,18 @@ def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
 
 def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
                                 mode="hydraulics"):
-    ign = branch_pit[:, IGN].astype(bool)
+    connect = branch_pit[:, VLRLCONNECT].astype(bool)
     circ = branch_pit[:, BRANCH_TYPE] == CIRC
     if np.any(circ) and mode == 'hydraulics':
-        active_branch_lookup = active_branch_lookup & ~ign
+        active_branch_lookup = active_branch_lookup & ~connect
     nodes_connected, branches_connected = (
         _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
-    if np.any(ign) and mode == 'hydraulics':
+    if np.any(connect) and mode == 'hydraulics':
         from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
         branch_active = branch_pit[:, ACTIVE].astype(bool)
         active = nodes_connected[from_nodes] & nodes_connected[to_nodes] & branch_active
-        branches_connected[ign & active] = True
+        branches_connected[connect & active] = True
     return nodes_connected, branches_connected
 
 
@@ -795,7 +795,7 @@ def check_infeed_number(node_pit):
         node_pit[slack_nodes, INFEED] = True
     infeed_nodes = node_pit[:, INFEED]
     if np.sum(infeed_nodes) != np.sum(slack_nodes):
-        logger.warning(r'The number of infeeding nodes and slacks do not match. This might cause problems.')
+        raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
 
 
 class PipeflowNotConverged(ppException):

@@ -10,7 +10,7 @@ from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, 
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
-                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE, IGN)
+                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE, VLRLCONNECT)
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -77,7 +77,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
         hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
-        hc_pit[:, IGN] = True
+        hc_pit[:, VLRLCONNECT] = True
         mask_q0 = qext == 0 & np.isnan(mdot)
         if np.any(mask_q0):
             hc_pit[mask_q0, ACTIVE] = False
