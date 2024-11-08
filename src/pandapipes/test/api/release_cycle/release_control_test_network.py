@@ -373,6 +373,6 @@ def add_ts_controllers(net):
 
 
 if __name__ == '__main__':
-    water_net = release_control_test_network_water(10,True)
-    gas_net = release_control_test_network_gas(10,True)
+    water_net = release_control_test_network_water(11,True)
+    gas_net = release_control_test_network_gas(11,True)
 
