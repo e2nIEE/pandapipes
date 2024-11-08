@@ -5,7 +5,7 @@
 import importlib.metadata
 
 __version__ = importlib.metadata.version("pandapipes")
-__format_version__ = '0.10.1'
+__format_version__ = '0.11.0'
 
 import pandas as pd
 import os
