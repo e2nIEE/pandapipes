@@ -6,8 +6,7 @@ import numpy as np
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
+from pandapipes.component_models._branch_models import BranchComponent
 
 try:
     import pandaplan.core.pplog as logging

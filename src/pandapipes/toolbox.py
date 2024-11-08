@@ -13,8 +13,8 @@ from pandapower.toolbox import dataframes_equal
 from pandapower.toolbox.result_info import clear_result_tables
 
 import pandapipes
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
+from pandapipes.component_models._branch_models import BranchComponent
+from pandapipes.component_models._node_element_models import NodeElementComponent
 from pandapipes.create import create_empty_network
 from pandapipes.idx_branch import branch_cols
 from pandapipes.idx_node import node_cols, \

@@ -4,10 +4,9 @@
 
 from pandapower.create import _get_index_with_check, load_std_type, _set_entries
 
-from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.converter.stanet.valve_pipe_component.valve_pipe_component import ValvePipe
 from pandapipes.create import _check_branch, _check_std_type
-from pandapipes.pandapipes_net import pandapipesNet
+from pandapipes.pandapipes_net import pandapipesNet, add_new_component
 
 
 def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.15e-3,

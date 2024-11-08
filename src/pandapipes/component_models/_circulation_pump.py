@@ -4,7 +4,7 @@
 
 from numpy import pi, int32
 
-from pandapipes.component_models.abstract_models.branch_element_models import BranchElementComponent
+from pandapipes.component_models._branch_element_models import BranchElementComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
 from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL

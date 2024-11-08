@@ -15,6 +15,7 @@ from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE 
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.component_models import COMPONENT_REGISTRY
 
 try:
     import numba
@@ -395,9 +396,9 @@ def initialize_pit(net):
     pit = create_empty_pit(net)
 
     for comp in net['component_list']:
-        comp.create_pit_node_entries(net, pit["node"])
-        comp.create_pit_branch_entries(net, pit["branch"])
-        comp.create_component_array(net, pit["components"])
+        COMPONENT_REGISTRY[comp].create_pit_node_entries(net, pit["node"])
+        COMPONENT_REGISTRY[comp].create_pit_branch_entries(net, pit["branch"])
+        COMPONENT_REGISTRY[comp].create_component_array(net, pit["components"])
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
@@ -441,7 +442,7 @@ def init_all_result_tables(net):
 
     """
     for comp in net['component_list']:
-        comp.init_results(net)
+        COMPONENT_REGISTRY[comp].init_results(net)
 
 
 def create_lookups(net):

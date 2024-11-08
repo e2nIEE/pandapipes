@@ -4,7 +4,7 @@
 
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
+from pandapipes.component_models._circulation_pump import CirculationPump
 from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, PL
 
 

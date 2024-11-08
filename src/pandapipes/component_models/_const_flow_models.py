@@ -4,7 +4,7 @@
 
 import numpy as np
 from numpy import dtype
-from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
+from pandapipes.component_models._node_element_models import NodeElementComponent
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option

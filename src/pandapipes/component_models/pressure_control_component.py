@@ -4,7 +4,7 @@
 
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.branch_element_models import BranchElementComponent
+from pandapipes.component_models._branch_element_models import BranchElementComponent
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, \
     BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH

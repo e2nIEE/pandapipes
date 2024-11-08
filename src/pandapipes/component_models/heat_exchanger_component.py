@@ -5,7 +5,7 @@
 from numpy import dtype
 
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_element_models import BranchElementComponent
+from pandapipes.component_models._branch_element_models import BranchElementComponent
 from pandapipes.idx_branch import QEXT, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals

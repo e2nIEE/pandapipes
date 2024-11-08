@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 from pandapower.topology.create_graph import add_edges, get_edge_table
 
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+from pandapipes.component_models._branch_models import BranchComponent
 
 try:
     import pandaplan.core.pplog as logging

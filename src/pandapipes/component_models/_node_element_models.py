@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from abc import abstractmethod
-from pandapipes.component_models.abstract_models.base_component import Component
+from pandapipes.component_models._base_component import Component
 from pandapipes.component_models.junction_component import Junction
 
 try:

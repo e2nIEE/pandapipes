@@ -4,7 +4,7 @@
 
 from numpy import dtype, bool_, float64, zeros
 
-from pandapipes.component_models.abstract_models import BranchElementComponent
+from pandapipes.component_models import BranchElementComponent
 from pandapipes.properties import get_fluid
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array

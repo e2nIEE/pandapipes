@@ -6,7 +6,7 @@ from operator import itemgetter
 
 from numpy import dtype, zeros, where, newaxis, float64, int32, array, divide, abs as abs_
 
-from pandapipes.component_models.abstract_models.branch_element_models import BranchElementComponent
+from pandapipes.component_models._branch_element_models import BranchElementComponent
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION

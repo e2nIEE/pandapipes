@@ -4,7 +4,7 @@
 
 from numpy import pi
 
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
+from pandapipes.component_models._branch_models import BranchComponent
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, LENGTH, K, TEXT, ALPHA, D, AREA
 from pandapipes.idx_node import TINIT as TINIT_NODE

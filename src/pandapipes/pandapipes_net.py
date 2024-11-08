@@ -8,10 +8,7 @@ import numpy as np
 import pandas as pd
 from numpy import dtype
 from pandapipes import __version__, __format_version__
-from pandapipes.component_models.junction_component import Junction
-from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.component_models.ext_grid_component import ExtGrid
-from pandapipes.component_models.component_toolbox import add_new_component
+from pandapipes.component_models import Junction, Pipe, ExtGrid, COMPONENT_REGISTRY
 from pandapower.auxiliary import ADict
 from pandas import Index
 
@@ -60,7 +57,7 @@ class pandapipesNet(ADict):
         if "component_list" in self:
             r += "\nand uses the following component models:"
             for component in self.component_list:
-                r += "\n   - %s" % component.__name__
+                r += "\n   - %s" % COMPONENT_REGISTRY[component].__class__.__name__
         return r
 
 
@@ -90,3 +87,40 @@ def add_default_components(net, overwrite=False):
                        ("recycle", "bool")]
         net['controller'] = pd.DataFrame(np.zeros(0, dtype=ctrl_dtypes),
                                          index=Index([], dtype=np.int64))
+
+def add_new_component(net, component, overwrite=False):
+    """
+
+    :param net:
+    :type net:
+    :param component: class (not instance) or table_name
+    :type component:
+    :param overwrite:
+    :type overwrite:
+    :return:
+    :rtype:
+    """
+    comp_instance = COMPONENT_REGISTRY[component]
+    name = comp_instance.table_name
+    if not overwrite and name in net:
+        # logger.info('%s is already in net. Try overwrite if you want to get a new entry' %name)
+        return
+    else:
+        if hasattr(comp_instance, 'geodata'):
+            geodata = comp_instance.geodata
+        else:
+            geodata = None
+
+        comp_input = comp_instance.get_component_input()
+        if name not in net:
+            net['component_list'].append(name)
+        net.update({name: comp_input})
+        if isinstance(net[name], list):
+            net[name] = pd.DataFrame(np.zeros(0, dtype=net[name]), index=[])
+        # init_empty_results_table(net, name, component.get_result_table(net))
+
+        if geodata is not None:
+            net.update({name + '_geodata': geodata})
+            if isinstance(net[name + '_geodata'], list):
+                net[name + '_geodata'] = pd.DataFrame(np.zeros(0, dtype=net[name + '_geodata']),
+                                                      index=[])

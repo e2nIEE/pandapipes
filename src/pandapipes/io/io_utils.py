@@ -12,7 +12,7 @@ from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
-from pandapipes.component_models.abstract_models.branch_models import Component
+from pandapipes.component_models._branch_models import Component
 from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 

@@ -5,7 +5,7 @@
 from abc import abstractmethod
 from numpy import array
 
-from pandapipes.component_models.abstract_models.base_component import Component
+from pandapipes.component_models._base_component import Component
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import MDOTINIT, branch_cols, TEXT
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option

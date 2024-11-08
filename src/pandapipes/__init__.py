@@ -14,6 +14,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 pp_dir = os.path.dirname(os.path.realpath(__file__))
 
 from pandapipes.properties.fluids import *
+from pandapipes.component_models.component_registry import *
 from pandapipes.create import *
 from pandapipes.io.file_io import *
 from pandapipes.pipeflow import *

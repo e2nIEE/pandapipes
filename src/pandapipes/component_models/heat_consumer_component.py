@@ -66,8 +66,8 @@ class HeatConsumer(BranchElementComponent):
         if any_(mask_q0):
             hc_pit[mask_q0, ACTIVE] = False
             logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
-                           r'Therefore, the defined temperature control cannot be maintained.' \
-                    %net[self.table_name].index[mask_q0])
+                           r'Therefore, the defined temperature control cannot be maintained.' %
+                           net[self.table_name].index[mask_q0])
         return hc_pit
 
     def create_component_array(self, net, component_pits):
