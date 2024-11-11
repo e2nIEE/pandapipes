@@ -5,7 +5,7 @@
 from pandapower.control import run_control as run_control_pandapower, \
     prepare_run_ctrl as prepare_run_control_pandapower
 import pandapipes as ppipe
-from pandapipes.pipeflow import PipeflowNotConverged
+from pandapipes.utils.internals import PipeflowNotConverged
 
 
 def run_control(net, ctrl_variables=None, max_iter=30, **kwargs):

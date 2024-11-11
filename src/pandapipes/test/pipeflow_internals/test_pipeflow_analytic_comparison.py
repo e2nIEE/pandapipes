@@ -12,9 +12,9 @@ import pandapipes
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
 from pandapipes.idx_node import PINIT, TINIT
-from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import _add_fluid_to_net
 from pandapipes.test import data_path
+from pandapipes.utils.internals import get_lookup
 
 
 def create_source_2pipes_sink(

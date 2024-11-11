@@ -7,13 +7,13 @@ from operator import itemgetter
 from numpy import dtype, zeros, where, newaxis, float64, int32, array, divide, abs as abs_
 
 from pandapipes.component_models._branch_element_models import BranchElementComponent
-from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.component_toolbox import get_component_array
+from pandapipes.component_models.component_toolbox import get_component_array, standard_branch_wo_internals_result_lookup
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
 from pandapipes.idx_branch import MDOTINIT, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
-from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
-from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.properties.fluids import get_fluid
+from pandapipes.utils.internals import get_net_option, get_lookup
+from pandapipes.utils.result_extraction import extract_branch_results_without_internals
 
 try:
     from pandaplan.core.pplog.logging import getLogger

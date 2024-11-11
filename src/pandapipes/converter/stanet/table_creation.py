@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 import pandapipes
-from pandapipes.component_models.component_toolbox import vrange
+from pandapipes.utils.internals import vrange
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
 try:

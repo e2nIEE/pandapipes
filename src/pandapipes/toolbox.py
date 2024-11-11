@@ -8,6 +8,7 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 from networkx import has_path
+
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
 from pandapower.toolbox.result_info import clear_result_tables
@@ -21,6 +22,7 @@ from pandapipes.idx_node import node_cols, \
     T as TYPE_T, P as TYPE_P, PC as TYPE_PC, L as TYPE_L
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
+from pandapipes.utils.internals import get_lookup
 
 try:
     import pandaplan.core.pplog as logging
@@ -591,11 +593,11 @@ def get_internal_tables_pandas(net, convert_types=True):
     node_lookup = get_pit_lookup("node")
     branch_lookup = get_pit_lookup("branch")
 
-    node_table_lookup = pandapipes.get_lookup(net, "node", "table")
+    node_table_lookup = get_lookup(net, "node", "table")
     node_table = pd.DataFrame(node_pit)
     node_table.rename(columns=node_lookup["indices"], inplace=True)
 
-    branch_table_lookup = pandapipes.get_lookup(net, "branch", "table")
+    branch_table_lookup = get_lookup(net, "branch", "table")
     branch_table = pd.DataFrame(branch_pit)
     branch_table.rename(columns=branch_lookup["indices"], inplace=True)
 

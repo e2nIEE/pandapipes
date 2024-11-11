@@ -7,8 +7,8 @@ import pytest
 
 import pandapipes
 from pandapipes.networks.simple_gas_networks import gas_versatility
-from pandapipes.pipeflow import PipeflowNotConverged
 from pandapipes.properties.fluids import FluidPropertyConstant
+from pandapipes.utils.internals import PipeflowNotConverged
 
 
 @pytest.mark.parametrize("use_numba", [True, False])

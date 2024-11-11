@@ -6,8 +6,8 @@ from numpy import dtype, isin, unique
 
 from pandapipes.component_models._node_element_models import NodeElementComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries
-from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
+from pandapipes.utils.internals import get_lookup
 
 
 class ExtGrid(NodeElementComponent):

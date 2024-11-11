@@ -4,8 +4,7 @@ from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import ELEMENT_IDX, FROM_NODE, TO_NODE, MDOTINIT, RE, \
     LAMBDA, PL, TOUTINIT, AREA, TEXT
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
-from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
+from pandapipes.utils.internals import get_table_number, _sum_by_group, get_net_option, get_lookup
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density
 

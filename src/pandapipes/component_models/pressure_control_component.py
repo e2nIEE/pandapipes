@@ -5,13 +5,13 @@
 from numpy import dtype
 
 from pandapipes.component_models._branch_element_models import BranchElementComponent
-from pandapipes.component_models import standard_branch_wo_internals_result_lookup
+from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, \
     BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE
-from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.utils.internals import get_lookup
+from pandapipes.utils.result_extraction import extract_branch_results_without_internals
 
 
 class PressureControlComponent(BranchElementComponent):

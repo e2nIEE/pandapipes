@@ -7,8 +7,8 @@ from pandapipes.idx_branch import LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, \
     LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE, \
     JAC_DERIV_DT_NODE, MDOTINIT, BRANCH_TYPE, CIRC
 from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
-from pandapipes.properties.fluids import get_fluid
+from pandapipes.utils import get_from_nodes_corrected, get_to_nodes_corrected
+from pandapipes.properties import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
     get_branch_cp
 
@@ -182,7 +182,7 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
 
     if friction_model == "colebrook":
         # TODO: move this import to top level if possible
-        from pandapipes.pipeflow import PipeflowNotConverged
+        from pandapipes.utils.internals import PipeflowNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
         dummy = (lengths != 0).astype(np.float64)
         converged, lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy, max_iter)

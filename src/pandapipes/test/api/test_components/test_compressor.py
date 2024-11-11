@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import pandapipes
-from pandapipes.component_models.component_toolbox import p_correction_height_air
+from pandapipes.utils.internals import p_correction_height_air
 
 
 @pytest.mark.parametrize("use_numba", [True, False])

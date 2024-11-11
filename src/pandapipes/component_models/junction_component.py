@@ -4,14 +4,11 @@
 
 from warnings import warn
 
-import numpy as np
-from numpy import dtype
+from numpy import dtype, array, int32, any as any_
+
 from pandapipes.component_models._node_models import NodeComponent
-from pandapipes.component_models.component_toolbox import p_correction_height_air
-from pandapipes.idx_node import L, ELEMENT_IDX, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
-    ACTIVE as ACTIVE_ND
-from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
-    get_lookup
+from pandapipes.idx_node import L, ELEMENT_IDX, PINIT, node_cols, HEIGHT, TINIT, PAMB, ACTIVE as ACTIVE_ND
+from pandapipes.utils.internals import add_table_lookup, get_table_number, get_lookup, p_correction_height_air
 
 
 class Junction(NodeComponent):

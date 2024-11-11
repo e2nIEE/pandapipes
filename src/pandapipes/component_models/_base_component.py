@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from abc import ABC, abstractmethod
-from pandapipes.component_models.component_toolbox import init_results_element
+from pandapipes.utils.internals import init_results_element
 
 
 class Component(ABC):

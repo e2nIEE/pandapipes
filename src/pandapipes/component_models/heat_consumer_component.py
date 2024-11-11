@@ -4,16 +4,18 @@
 
 from numpy import dtype, isnan, zeros, float64, any as any_
 
-from pandapipes.component_models import (get_fluid, BranchElementComponent, get_component_array,
-                                         standard_branch_wo_internals_result_lookup)
+from pandapipes.component_models._branch_element_models import BranchElementComponent
+from pandapipes.component_models.component_toolbox import get_component_array, \
+    standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
                                    JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE)
 from pandapipes.idx_node import TINIT
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
-from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_cp
+from pandapipes.utils.internals import get_lookup, get_from_nodes_corrected
+from pandapipes.utils.result_extraction import extract_branch_results_without_internals
+
 
 try:
     import pandaplan.core.pplog as logging

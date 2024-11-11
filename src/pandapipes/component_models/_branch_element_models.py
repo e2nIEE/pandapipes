@@ -5,11 +5,9 @@
 from numpy import pi
 
 from pandapipes.component_models._branch_models import BranchComponent
-
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, LENGTH, K, TEXT, ALPHA, D, AREA
 from pandapipes.idx_node import TINIT as TINIT_NODE
-
-from pandapipes.pf.pipeflow_setup import add_table_lookup
+from pandapipes.utils.internals import add_table_lookup
 
 
 class BranchElementComponent(BranchComponent):
