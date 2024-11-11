@@ -207,9 +207,12 @@ def initialize_pit(net):
     pit = create_empty_pit(net)
 
     for comp in net['component_list']:
-        COMPONENT_REGISTRY[comp].create_pit_node_entries(net, pit["node"])
-        COMPONENT_REGISTRY[comp].create_pit_branch_entries(net, pit["branch"])
-        COMPONENT_REGISTRY[comp].create_component_array(net, pit["components"])
+        if hasattr(COMPONENT_REGISTRY[comp], "create_pit_node_entries"):
+            COMPONENT_REGISTRY[comp].create_pit_node_entries(net, pit["node"])
+        if hasattr(COMPONENT_REGISTRY[comp], "create_pit_branch_entries"):
+            COMPONENT_REGISTRY[comp].create_pit_branch_entries(net, pit["branch"])
+        if hasattr(COMPONENT_REGISTRY[comp], "create_component_array"):
+            COMPONENT_REGISTRY[comp].create_component_array(net, pit["components"])
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
@@ -261,12 +264,14 @@ def create_lookups(net):
     internal_nodes_lookup = dict()
 
     for comp in net['component_list']:
-        branch_from, branch_table_nr = comp.create_branch_lookups(
-            net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_table_nr,
-            branch_from)
-        node_from, node_table_nr = comp.create_node_lookups(
-            net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from, node_table_nr,
-            internal_nodes_lookup)
+        if hasattr(COMPONENT_REGISTRY[comp], "create_branch_lookups"):
+            branch_from, branch_table_nr = COMPONENT_REGISTRY[comp].create_branch_lookups(
+                net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_table_nr,
+                branch_from)
+        if hasattr(COMPONENT_REGISTRY[comp], "create_node_lookups"):
+            node_from, node_table_nr = COMPONENT_REGISTRY[comp].create_node_lookups(
+                net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from, node_table_nr,
+                internal_nodes_lookup)
 
     net["_lookups"] = {"node_from_to": node_ft_lookups, "branch_from_to": branch_ft_lookups,
                        "node_table": node_table_lookups, "branch_table": branch_table_lookups,

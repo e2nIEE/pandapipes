@@ -15,7 +15,7 @@ class BranchComponent(Component):
 
     @property
     def from_to_node_cols(self):
-        return "return_junction", "flow_junction"
+        return "from_junction", "to_junction"
 
     @property
     def connected_node_type(self):
@@ -61,7 +61,7 @@ class BranchComponent(Component):
             return branch_component_pit, node_pit, [], []
 
         junction_idx_lookup = get_lookup(net, "node", "index")[
-            self.connected_node_type.table_name]
+            self.connected_node_type().table_name]
         fn_col, tn_col = self.from_to_node_cols
         from_nodes = junction_idx_lookup[net[self.table_name][fn_col].values]
         to_nodes = junction_idx_lookup[net[self.table_name][tn_col].values]

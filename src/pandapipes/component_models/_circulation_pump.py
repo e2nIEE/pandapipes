@@ -13,6 +13,10 @@ from pandapipes.utils.result_extraction import extract_branch_results_without_in
 
 
 class CirculationPump(BranchElementComponent):
+    @property
+    def from_to_node_cols(self):
+        return "return_junction", "flow_junction"
+
     def get_result_table(self, net):
         """
 

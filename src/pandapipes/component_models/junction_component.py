@@ -4,7 +4,7 @@
 
 from warnings import warn
 
-from numpy import dtype, array, int32, any as any_
+from numpy import dtype, array, int32, any as any_, ones, arange
 
 from pandapipes.component_models._node_models import NodeComponent
 from pandapipes.idx_node import L, ELEMENT_IDX, PINIT, node_cols, HEIGHT, TINIT, PAMB, ACTIVE as ACTIVE_ND
@@ -56,11 +56,11 @@ class Junction(NodeComponent):
         ft_lookups[self.table_name] = (current_start, end)
         add_table_lookup(table_lookup, self.table_name, current_table)
         if not table_len:
-            idx_lookups[self.table_name] = np.array([], dtype=np.int32)
-            idx_lookups[self.table_name][table_indices] = np.arange(table_len) + current_start
+            idx_lookups[self.table_name] = array([], dtype=int32)
+            idx_lookups[self.table_name][table_indices] = arange(table_len) + current_start
         else:
-            idx_lookups[self.table_name] = -np.ones(table_indices.max() + 1, dtype=np.int32)
-            idx_lookups[self.table_name][table_indices] = np.arange(table_len) + current_start
+            idx_lookups[self.table_name] = -ones(table_indices.max() + 1, dtype=int32)
+            idx_lookups[self.table_name][table_indices] = arange(table_len) + current_start
         return end, current_table + 1
 
     def create_pit_node_entries(self, net, node_pit):
@@ -79,7 +79,7 @@ class Junction(NodeComponent):
 
         junctions = net[self.table_name]
         junction_pit = node_pit[f:t, :]
-        junction_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
+        junction_pit[:, :] = array([table_nr, 0, L] + [0] * (node_cols - 3))
 
         junction_pit[:, ELEMENT_IDX] = junctions.index.values
         junction_pit[:, HEIGHT] = junctions.height_m.values
@@ -112,7 +112,7 @@ class Junction(NodeComponent):
         if mode in ["hydraulics", "sequential", "bidirectional"]:
             junctions_connected_hydraulic = get_lookup(net, "node", "active_hydraulics")[f:t]
 
-            if np.any(junction_pit[junctions_connected_hydraulic, PINIT] < 0):
+            if any_(junction_pit[junctions_connected_hydraulic, PINIT] < 0):
                 warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
                                  'as pressure is negative at nodes %s'
                                  % junction_pit[junction_pit[:, PINIT] < 0, ELEMENT_IDX]))

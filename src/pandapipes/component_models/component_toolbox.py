@@ -15,7 +15,7 @@ def set_fixed_node_entries(net, node_pit, junctions, types, values, node_comp, m
     if not len(junctions):
         return [], []
 
-    junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
+    junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name]
     use_numba = get_net_option(net, "use_numba")
 
     if mode == "p":

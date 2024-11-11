@@ -44,8 +44,8 @@ class ExtGrid(NodeElementComponent):
         p_values = ext_grids.p_bar.values
         t_values = ext_grids.t_k.values
         index_p = set_fixed_node_entries(
-            net, node_pit, junction, types, p_values, self.connected_node_type, 'p')
-        set_fixed_node_entries(net, node_pit, junction, types, t_values, self.connected_node_type, 't')
+            net, node_pit, junction, types, p_values, self.connected_node_type(), 'p')
+        set_fixed_node_entries(net, node_pit, junction, types, t_values, self.connected_node_type(), 't')
         node_pit[index_p, JAC_DERIV_MSL] = -1.
         node_pit[index_p, VAR_MASS_SLACK] = True
         return ext_grids, p_values
@@ -77,7 +77,7 @@ class ExtGrid(NodeElementComponent):
         p_grids = isin(ext_grids.type.values, ["p", "pt"]) & ext_grids.in_service.values
         junction = self._get_connected_junction(net).values
         # get indices in internal structure for junctions in ext_grid tables which are "active"
-        eg_nodes = get_lookup(net, "node", "index")[self.connected_node_type.table_name][
+        eg_nodes = get_lookup(net, "node", "index")[self.connected_node_type().table_name][
             junction[p_grids]]
         node_uni, inverse_nodes, counts = unique(eg_nodes, return_counts=True, return_inverse=True)
         sum_mass_flows = node_pit[node_uni, MDOTSLACKINIT]

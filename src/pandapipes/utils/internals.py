@@ -22,6 +22,16 @@ except ImportError:
 logger = getLogger(__name__)
 
 
+default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
+                   "tol_T": 1e-3, "tol_res": 1e-3, "max_iter_hyd": 10, "max_iter_therm": 10, "max_iter_bidirect": 10,
+                   "error_flag": False, "alpha": 1,
+                   "nonlinear_method": "constant", "mode": "hydraulics",
+                   "ambient_temperature": 293.15, "check_connectivity": True,
+                   "max_iter_colebrook": 10, "only_update_hydraulic_matrix": False,
+                   "reuse_internal_data": False, "use_numba": True,
+                   "quit_on_inconsistency_connectivity": False, "calc_compression_power": True}
+
+
 def check_infeed_number(node_pit):
     slack_nodes = node_pit[:, NODE_TYPE_T] == T
     if len(node_pit) == 1:

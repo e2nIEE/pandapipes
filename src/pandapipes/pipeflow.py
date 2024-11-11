@@ -17,7 +17,9 @@ from pandapipes.pf.pipeflow_setup import (
 )
 from pandapipes.utils.internals import check_infeed_number, PipeflowNotConverged, get_net_option, get_net_options, \
     set_net_option, get_lookup, set_user_pf_options, create_internal_results, write_internal_results
-from pandapipes.utils.result_extraction import extract_all_results, extract_results_active_pit
+from pandapipes.utils.result_extraction import extract_results_active_pit
+from pandapipes.pf.result_extraction import extract_all_results
+from pandapipes.component_models.component_registry import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging
@@ -236,12 +238,14 @@ def solve_hydraulics(net):
 
     branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
     for comp in net['component_list']:
-        comp.adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
-                                                   options)
+        if hasattr(COMPONENT_REGISTRY[comp], "adaption_before_derivatives_hydraulic"):
+            COMPONENT_REGISTRY[comp].adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
+                                                                           options)
     calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
     for comp in net['component_list']:
-        comp.adaption_after_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
-                                                  options)
+        if hasattr(COMPONENT_REGISTRY[comp], "adaption_after_derivatives_hydraulic"):
+            COMPONENT_REGISTRY[comp].adaption_after_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
+                                                                          options)
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
 
     m_init_old = branch_pit[:, MDOTINIT].copy()
@@ -282,10 +286,14 @@ def solve_temperature(net):
     branch_pit[:, FROM_NODE_T_SWITCHED] = branch_pit[:, MDOTINIT] < 0
 
     for comp in net['component_list']:
-        comp.adaption_before_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        if hasattr(COMPONENT_REGISTRY[comp], "adaption_before_derivatives_thermal"):
+            COMPONENT_REGISTRY[comp].adaption_before_derivatives_thermal(net, branch_pit, node_pit, branch_lookups,
+                                                                         options)
     calculate_derivatives_thermal(net, branch_pit, node_pit, options)
     for comp in net['component_list']:
-        comp.adaption_after_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        if hasattr(COMPONENT_REGISTRY[comp], "adaption_after_derivatives_thermal"):
+            COMPONENT_REGISTRY[comp].adaption_after_derivatives_thermal(net, branch_pit, node_pit, branch_lookups,
+                                                                        options)
     check_infeed_number(node_pit)
 
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
