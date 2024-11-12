@@ -23,7 +23,7 @@ from pandapipes.idx_node import node_cols, \
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
 from pandapipes.utils.internals import get_lookup
-from pandapipes.component_init import COMPONENT_REGISTRY
+from pandapipes.component_init import COMPONENT_REGISTRY, COMPONENT_LIST
 
 try:
     import pandaplan.core.pplog as logging
@@ -110,10 +110,6 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
-    from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
-        CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
-        Compressor, FlowControlComponent, ValvePipe
-    from pandapipes.component_models import Junction, MassStorage, HeatConsumer # todo: wieso sind diese Komponenten da nicht mit drinne?
     special_elements_junctions = [("press_control", "controlled_junction")]
     move_elements = {"n2b": [], "b2n": []}
     node_elements = []
@@ -121,11 +117,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     if net is not None:
         all_tables = {table_name: COMPONENT_REGISTRY[table_name].__class__ for table_name in net.component_list}
     else:
-        comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
-                     CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor,
-                     FlowControlComponent, ValvePipe]
-        all_tables = {COMPONENT_REGISTRY[comp].table_name: comp for comp in comp_list}
-    # todo: from_json anpassen, damit Netze die so geladen werden nicht die Klassen, sondern die Tabellennamen haben
+        all_tables = {COMPONENT_REGISTRY[comp].table_name: comp for comp in COMPONENT_LIST}
     ejts = set()
     if include_node_elements:
         node_elements = [tbl for tbl, comp in all_tables.items() if

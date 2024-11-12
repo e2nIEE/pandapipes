@@ -102,7 +102,7 @@ def get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         [np.empty_like(v_mps) for _ in range(6)]
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    for i in range(len(v_mps)):
+    for i, _ in enumerate(v_mps):
         t_from = node_pit[from_nodes[i], TINIT_NODE]
         t_to = branch_pit[i, TOUTINIT]
         tm = (t_from + t_to) / 2

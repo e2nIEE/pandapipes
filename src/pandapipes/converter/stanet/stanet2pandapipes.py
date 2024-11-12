@@ -14,7 +14,6 @@ from pandapipes.converter.stanet.table_creation import create_junctions_from_nod
     create_sinks_meters, create_sinks_from_nodes, create_control_components, \
     create_sinks_from_customers, create_pipes_house_connections
 from pandapipes.create import create_empty_network
-from pandapipes.component_init import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging

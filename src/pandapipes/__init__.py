@@ -18,7 +18,7 @@ from pandapipes.utils.internals import *
 from pandapipes.properties.fluids import *
 from pandapipes.component_models.component_registry import *
 from pandapipes.component_models import *
-from pandapipes.component_init import COMPONENT_REGISTRY
+from pandapipes.component_init import COMPONENT_REGISTRY, COMPONENT_LIST
 from pandapipes.create import *
 from pandapipes.io.file_io import *
 from pandapipes.pipeflow import *

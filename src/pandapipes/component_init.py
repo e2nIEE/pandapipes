@@ -7,10 +7,11 @@ from pandapipes.component_models import Junction, Pipe, ExtGrid, Sink, Source, V
     MassStorage, CirculationPumpMass, CirculationPumpPressure, Compressor, FlowControlComponent, HeatConsumer, \
     HeatExchanger, ValvePipe
 
-"""
-every high level Component from pandapipes should be initialized here
-"""
-COMPONENT_REGISTRY = ComponentRegistry(
-    [Junction, Pipe, ExtGrid, Sink, Source, Valve, Pump, PressureControlComponent, MassStorage,
-     CirculationPumpMass, CirculationPumpPressure, Compressor, FlowControlComponent, HeatConsumer,
-     HeatExchanger, ValvePipe]).registry
+
+# every high level Component from pandapipes should be initialized here
+
+COMPONENT_LIST = [Junction, Pipe, ExtGrid, Sink, Source, Valve, Pump, PressureControlComponent, MassStorage,
+                  CirculationPumpMass, CirculationPumpPressure, Compressor, FlowControlComponent, HeatConsumer,
+                  HeatExchanger, ValvePipe]
+
+COMPONENT_REGISTRY = ComponentRegistry(COMPONENT_LIST).registry
