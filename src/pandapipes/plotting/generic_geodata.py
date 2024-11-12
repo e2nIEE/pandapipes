@@ -51,9 +51,9 @@ def build_igraph_from_ppipes(net, junctions=None):
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
     for comp in net['component_list']:
-        if not issubclass(comp, BranchComponent):
+        if not issubclass(COMPONENT_REGISTRY[comp].__class__, BranchComponent):
             continue
-        fjc, tjc = COMPONENT_REGISTRY[comp].from_to_node_cols()
+        fjc, tjc = COMPONENT_REGISTRY[comp].from_to_node_cols
         mask = _get_element_mask_from_nodes(net, comp, [fjc, tjc], junctions)
         for comp_data in net[comp][mask].itertuples():
             weight = 0.001 if 'length_km' not in dir(comp_data) else getattr(comp_data, 'length_km')

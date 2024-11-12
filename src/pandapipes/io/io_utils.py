@@ -13,6 +13,7 @@ from pandapower.io_utils import with_signature, to_serializable, JSONSerializabl
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
 from pandapipes.component_models._branch_models import Component
+from pandapipes.component_init import COMPONENT_REGISTRY
 from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
 
@@ -93,7 +94,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 del self.obj["net"]
             return class_.from_dict(self.obj)
         if isclass(class_) and issubclass(class_, Component):
-            return class_
+            return COMPONENT_REGISTRY[class_].table_name
         else:
             # for non-pp objects, e.g. tuple
             return class_(self.obj, **self.d)

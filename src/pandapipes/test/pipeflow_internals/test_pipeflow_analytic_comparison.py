@@ -92,7 +92,7 @@ def test_gas_internal_nodes(use_numba):
         use_numba=use_numba,
     )
 
-    pipe_results = Pipe.get_internal_results(net, [0])
+    pipe_results = COMPONENT_REGISTRY[Pipe].get_internal_results(net, [0])
 
     data = pd.read_csv(
         os.path.join(data_path, "gas_sections_an.csv"),
@@ -164,7 +164,7 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
         use_numba=use_numba,
     )
 
-    pipe_results = Pipe.get_internal_results(net, [0])
+    pipe_results = COMPONENT_REGISTRY[Pipe].get_internal_results(net, [0])
 
     data = pd.read_csv(
         os.path.join(data_path, "Temperature_one_pipe_an.csv"),

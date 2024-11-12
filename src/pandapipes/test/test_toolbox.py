@@ -288,13 +288,13 @@ def test_pit_extraction():
 
         for table_name in net.component_list:
             if len(net[table_name]) > 0:
-                if issubclass(COMPONENT_REGISTRY[comp].__class__, NodeComponent):
+                if issubclass(COMPONENT_REGISTRY[table_name].__class__, NodeComponent):
                     assert table_name in node_table["TABLE_IDX"].values
                     assert np.all(np.isin(
                         net[table_name].index.values,
                         node_table.loc[node_table.TABLE_IDX == table_name].ELEMENT_IDX.values
                     ))
-                elif issubclass(COMPONENT_REGISTRY[comp].__class__, BranchComponent):
+                elif issubclass(COMPONENT_REGISTRY[table_name].__class__, BranchComponent):
                     assert table_name in branch_table["TABLE_IDX"].values
                     assert np.all(np.isin(
                         net[table_name].index.values,
