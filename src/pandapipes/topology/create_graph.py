@@ -7,6 +7,7 @@ import numpy as np
 from pandapower.topology.create_graph import add_edges, get_edge_table
 
 from pandapipes.component_models._branch_models import BranchComponent
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging
@@ -116,10 +117,9 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                                      "mass_circ_pumps", "pressure_circ_pumps", "valve_pipes",
                                      "flow_controls"]})
 
-    for comp in net.component_list:
-        if not issubclass(comp, BranchComponent):
+    for table_name in net.component_list:
+        if not issubclass(COMPONENT_REGISTRY[table_name].__class__, BranchComponent):
             continue
-        table_name = comp.table_name()
         include_kw = "%ss" % table_name
         if table_name.startswith("circ_pump"):
             include_kw = table_name.split("circ_pump")[-1][1:] + "_circ_pumps"
@@ -128,7 +128,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
             if respect_status_branches_all not in [True, False] else respect_status_branches_all
         # some formulation to add weight
         weight_getter = branch_params.get("weighting_%ss" % table_name, None)
-        add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter)
+        # todo: comp == table_name? was ist der unterschied in der folgenden Funktion?
+        add_branch_component(mg, net, table_name, include_comp, respect_status, weight_getter)
 
     # add all junctions that were not added when creating branches
     if len(mg.nodes()) < len(net.junction.index):
@@ -157,12 +158,12 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     return mg
 
 
-def add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter):
+def add_branch_component(mg, net, table_name, include_comp, respect_status, weight_getter):
     tab = get_edge_table(net, table_name, include_comp)
 
     if tab is not None:
-        in_service_name = comp.active_identifier()
-        from_col, to_col = comp.from_to_node_cols()
+        in_service_name = COMPONENT_REGISTRY[table_name].active_identifier
+        from_col, to_col = COMPONENT_REGISTRY[table_name].from_to_node_cols
         indices, parameter, in_service = init_par(tab, respect_status, in_service_name)
         indices[:, F_JUNCTION] = tab[from_col].values
         indices[:, T_JUNCTION] = tab[to_col].values

@@ -5,6 +5,7 @@
 from numpy import pi, int32
 
 from pandapipes.component_models._branch_element_models import BranchElementComponent
+from pandapipes.component_models.component_registry import ComponentRegistry
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
 from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
@@ -57,9 +58,10 @@ class CirculationPump(BranchElementComponent):
         types = circ_pump_tbl.type.values
         p_values = circ_pump_tbl.p_flow_bar.values
         t_values = circ_pump_tbl.t_flow_k.values
-        index_p = set_fixed_node_entries(
-            net, node_pit, junction, types, p_values, self.connected_node_type, 'p')
-        set_fixed_node_entries(net, node_pit, junction, types, t_values, self.connected_node_type, 't')
+        index_p = set_fixed_node_entries(net, node_pit, junction, types, p_values,
+                                         ComponentRegistry.get(self.connected_node_type), 'p')
+        set_fixed_node_entries(net, node_pit, junction, types, t_values,
+                               ComponentRegistry.get(self.connected_node_type), 't')
         node_pit[index_p, JAC_DERIV_MSL] = -1.
         return circ_pump_tbl, p_values
 

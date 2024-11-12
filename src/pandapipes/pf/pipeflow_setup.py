@@ -8,7 +8,7 @@ import inspect
 import numpy as np
 from scipy.sparse import coo_matrix, csgraph
 
-from pandapipes.component_models import COMPONENT_REGISTRY
+from pandapipes.component_init import COMPONENT_REGISTRY
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, ACTIVE as ACTIVE_BR
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND

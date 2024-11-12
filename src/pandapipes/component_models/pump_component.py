@@ -47,6 +47,7 @@ class Pump(BranchElementComponent):
         """
         pump_pit = super().create_pit_branch_entries(net, branch_pit)
         pump_pit[:, LC] = 0
+        return pump_pit
 
     def create_component_array(self, net, component_pits):
         """

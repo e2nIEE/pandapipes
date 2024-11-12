@@ -5,6 +5,7 @@
 from numpy import dtype, nan_to_num, isin
 
 from pandapipes.component_models._node_element_models import NodeElementComponent
+from pandapipes.component_models.component_registry import ComponentRegistry
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
 from pandapipes.utils.internals import get_net_option, get_lookup, _sum_by_group
 
@@ -27,7 +28,7 @@ class ConstFlow(NodeElementComponent):
         juncts, loads_sum = _sum_by_group(get_net_option(net, "use_numba"), loads.junction.values,
                                           mass_flow_loads)
         junction_idx_lookups = get_lookup(net, "node", "index")[
-            self.connected_node_type().table_name]
+            ComponentRegistry.get(self.connected_node_type).table_name]
         index = junction_idx_lookups[juncts]
         node_pit[index, LOAD] += loads_sum
 
@@ -50,7 +51,7 @@ class ConstFlow(NodeElementComponent):
         loads = net[self.table_name]
 
         is_loads = loads.in_service.values
-        fj, tj = get_lookup(net, "node", "from_to")[self.connected_node_type().table_name]
+        fj, tj = get_lookup(net, "node", "from_to")[ComponentRegistry.get(self.connected_node_type).table_name]
         junct_pit = net["_pit"]["node"][fj:tj, :]
         nodes_connected_hyd = get_lookup(net, "node", "active_hydraulics")[fj:tj]
         is_juncts = isin(loads.junction.values, junct_pit[nodes_connected_hyd, ELEMENT_IDX])

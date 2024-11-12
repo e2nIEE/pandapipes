@@ -17,6 +17,8 @@ pp_dir = os.path.dirname(os.path.realpath(__file__))
 from pandapipes.utils.internals import *
 from pandapipes.properties.fluids import *
 from pandapipes.component_models.component_registry import *
+from pandapipes.component_models import *
+from pandapipes.component_init import COMPONENT_REGISTRY
 from pandapipes.create import *
 from pandapipes.io.file_io import *
 from pandapipes.pipeflow import *

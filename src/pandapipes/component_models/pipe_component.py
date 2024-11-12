@@ -7,6 +7,7 @@ from numpy import dtype, int32, sum as sum_, any as any_, empty, repeat, arange,
     zeros, float64, where, all as all_, linspace, logical_or
 
 from pandapipes.component_models._branch_models import BranchComponent
+from pandapipes.component_models.component_registry import ComponentRegistry
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
     MDOTINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, ACTIVE, ELEMENT_IDX, TOUTINIT
@@ -148,7 +149,7 @@ class Pipe(BranchComponent):
 
         int_node_pit[:, ELEMENT_IDX] = arange(t - f)
 
-        junction_table_name = self.connected_node_type().table_name  # todo:
+        junction_table_name = ComponentRegistry.get(self.connected_node_type).table_name
         fj_name, tj_name = "from_" + junction_table_name, "to_" + junction_table_name
         f_junction, t_junction = ft_lookup[junction_table_name]
         junction_pit = node_pit[f_junction:t_junction, :]
@@ -253,7 +254,7 @@ class Pipe(BranchComponent):
             extract_branch_results_with_internals(
                 net, branch_results, self.table_name, res_nodes_from_hyd, res_nodes_from_ht,
                 res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, res_branch_ht, [],
-                self.connected_node_type().table_name, mode) #todo
+                ComponentRegistry.get(self.connected_node_type).table_name, mode)
         else:
             required_results_hyd = res_nodes_from_hyd + res_nodes_to_hyd + res_mean_hyd
             required_results_ht = res_nodes_from_ht + res_nodes_to_ht + res_branch_ht
@@ -423,7 +424,7 @@ class Pipe(BranchComponent):
         pipe_v_data = pipe_results["VINIT_MEAN"][pipe_v_data_idx, 1]
         node_pit = net["_pit"]["node"]
 
-        junction_idx_lookup = get_lookup(net, "node", "index")[self.connected_node_type().table_name]
+        junction_idx_lookup = get_lookup(net, "node", "index")[ComponentRegistry.get(self.connected_node_type).table_name]
         from_junction_nodes = junction_idx_lookup[net[self.table_name]["from_junction"].values]
         to_junction_nodes = junction_idx_lookup[net[self.table_name]["to_junction"].values]
         p_values = zeros(len(pipe_p_data[0]) + 2)

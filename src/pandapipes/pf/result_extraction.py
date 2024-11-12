@@ -5,7 +5,7 @@
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.utils.internals import get_net_option
 from pandapipes.utils.result_extraction import get_basic_branch_results, get_branch_results_gas_numba, get_branch_results_gas
-from pandapipes.component_models.component_registry import COMPONENT_REGISTRY
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 
 def extract_all_results(net, calculation_mode):

@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models._branch_models import BranchComponent
+from pandapipes.component_init import COMPONENT_REGISTRY
+import inspect
 import logging
 
 
@@ -23,11 +25,8 @@ def get_all_branch_component_models():
     all_branch_components = get_all_subclasses(BranchComponent)
     filtered = list()
     for bc in all_branch_components:
-        try:
-            bc.table_name()
+        if not inspect.isabstract(bc):
             filtered.append(bc)
-        except Exception as e:
-            logging.info(f"branch component {bc} has no table name {e}")
     return filtered
 
 
@@ -39,4 +38,4 @@ def get_all_branch_component_table_names():
     :rtype: list
     """
     cm = get_all_branch_component_models()
-    return [c.table_name() for c in cm]
+    return [COMPONENT_REGISTRY[c].table_name for c in cm]

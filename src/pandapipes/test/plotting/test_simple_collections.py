@@ -14,8 +14,8 @@ def test_simple_collections(base_net_is_with_pumps):
     net = copy.deepcopy(base_net_is_with_pumps)
     collections = plot.create_simple_collections(net, plot_sinks=True, plot_sources=True)
 
-    assert len(collections) == len([comp for comp in net["component_list"]
-                                    if not net[comp.table_name()].empty])
+    assert len(collections) == len([table_name for table_name in net["component_list"]
+                                    if not net[table_name].empty])
 
     assert len(collections["junction"].get_paths()) == len(net.junction)
     assert len(collections["pipe"].get_paths()) == len(net.pipe)
@@ -74,8 +74,8 @@ def test_simple_collections_out_of_service(base_net_oos_with_pumps):
 
     collections = plot.create_simple_collections(net, plot_sinks=True, plot_sources=True)
 
-    assert len(collections) == len([comp for comp in net["component_list"]
-                                    if not net[comp.table_name()].empty])
+    assert len(collections) == len([table_name for table_name in net["component_list"]
+                                    if not net[table_name].empty])
 
     assert len(collections["junction"].get_paths()) == len(net.junction[net.junction.in_service])
     assert len(collections["pipe"].get_paths()) == len(net.pipe[net.pipe.in_service])

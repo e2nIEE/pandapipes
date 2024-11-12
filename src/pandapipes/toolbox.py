@@ -23,6 +23,7 @@ from pandapipes.idx_node import node_cols, \
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
 from pandapipes.utils.internals import get_lookup
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging
@@ -111,20 +112,20 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     """
     from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
         CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
-        Compressor, FlowControlComponent
-    from pandapipes.converter.stanet.valve_pipe_component import ValvePipe
+        Compressor, FlowControlComponent, ValvePipe
+    from pandapipes.component_models import Junction, MassStorage, HeatConsumer # todo: wieso sind diese Komponenten da nicht mit drinne?
     special_elements_junctions = [("press_control", "controlled_junction")]
     move_elements = {"n2b": [], "b2n": []}
     node_elements = []
     branch_elements = []
     if net is not None:
-        all_tables = {comp.table_name(): comp for comp in net.component_list}
+        all_tables = {table_name: COMPONENT_REGISTRY[table_name].__class__ for table_name in net.component_list}
     else:
         comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
                      CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor,
                      FlowControlComponent, ValvePipe]
-        all_tables = {comp.table_name(): comp for comp in comp_list}
-
+        all_tables = {COMPONENT_REGISTRY[comp].table_name: comp for comp in comp_list}
+    # todo: from_json anpassen, damit Netze die so geladen werden nicht die Klassen, sondern die Tabellennamen haben
     ejts = set()
     if include_node_elements:
         node_elements = [tbl for tbl, comp in all_tables.items() if
@@ -134,9 +135,9 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
             ejts.update([(elm, "junction")])
 
     if include_branch_elements:
-        branch_elements = [(tbl, comp.from_to_node_cols()) for tbl, comp in all_tables.items()
+        branch_elements = [(tbl, COMPONENT_REGISTRY[comp].from_to_node_cols) for tbl, comp in all_tables.items()
                            if issubclass(comp, BranchComponent) and tbl not in move_elements["b2n"]]
-        branch_elements += [(me, all_tables[me].from_to_node_cols())
+        branch_elements += [(me, COMPONENT_REGISTRY[all_tables[me]].from_to_node_cols)
                             for me in move_elements["n2b"] if me in all_tables.keys()]
         for elm, from_to_cols in branch_elements:
             ejts.update([(elm, from_to_cols[0]), (elm, from_to_cols[1])])
@@ -417,8 +418,8 @@ def select_subnet(net, junctions, include_results=False, keep_everything_else=Fa
 def remove_empty_components(net):
     removed = set()
     for comp in net.component_list:
-        if net[comp.table_name()].empty:
-            del net[comp.table_name()]
+        if net[comp].empty:
+            del net[comp]
             removed.add(comp)
     net.component_list = [c for c in net.component_list if c not in removed]
 

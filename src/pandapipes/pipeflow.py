@@ -19,7 +19,7 @@ from pandapipes.utils.internals import check_infeed_number, PipeflowNotConverged
     set_net_option, get_lookup, set_user_pf_options, create_internal_results, write_internal_results
 from pandapipes.utils.result_extraction import extract_results_active_pit
 from pandapipes.pf.result_extraction import extract_all_results
-from pandapipes.component_models.component_registry import COMPONENT_REGISTRY
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging

@@ -9,6 +9,7 @@ from pandapower.plotting import draw_collections
 
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
+from pandapipes.component_init import COMPONENT_REGISTRY
 from pandapipes.component_models.pump_component import Pump
 from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
     create_valve_collection, create_source_collection, create_pressure_control_collection, \
@@ -312,9 +313,9 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
         collections["valve"] = valve_colls
 
     for pump_comp in [Pump, CirculationPumpPressure, CirculationPumpMass]:
-        pump_tbl = pump_comp.table_name()
+        pump_tbl = COMPONENT_REGISTRY[pump_comp].table_name
         if pump_tbl in net:
-            fjc, tjc = pump_comp.from_to_node_cols()
+            fjc, tjc = COMPONENT_REGISTRY[pump_comp].from_to_node_cols
             idx = net[pump_tbl][net[pump_tbl].in_service].index if respect_in_service else net[pump_tbl].index
             pump_colls = create_pump_collection(net, idx, table_name=pump_tbl,
                                                 size=pump_size, linewidths=pipe_width,

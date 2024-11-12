@@ -5,6 +5,7 @@
 from numpy import dtype
 
 from pandapipes.component_models._branch_element_models import BranchElementComponent
+from pandapipes.component_models.component_registry import ComponentRegistry
 from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, \
     BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH
@@ -28,7 +29,7 @@ class PressureControlComponent(BranchElementComponent):
         juncts = pcs['controlled_junction'].values[controlled]
         press = pcs['controlled_p_bar'].values[controlled]
         junction_idx_lookups = get_lookup(net, "node", "index")[
-            self.connected_node_type.table_name]
+            ComponentRegistry.get(self.connected_node_type).table_name]
         index_pc = junction_idx_lookups[juncts]
         node_pit[index_pc, NODE_TYPE] = PC_NODE
         node_pit[index_pc, PINIT] = press

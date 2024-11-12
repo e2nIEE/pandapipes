@@ -14,6 +14,7 @@ from pandapipes.converter.stanet.table_creation import create_junctions_from_nod
     create_sinks_meters, create_sinks_from_nodes, create_control_components, \
     create_sinks_from_customers, create_pipes_house_connections
 from pandapipes.create import create_empty_network
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging
@@ -198,8 +199,7 @@ def change_dtypes(net):
               "stanet_status": str,
               "v_stanet": np.float64}
 
-    for comp in net.component_list:
-        table_name = comp.table_name()
+    for table_name in net.component_list:
         if table_name not in net:
             continue
         for col, dt in dtypes.items():

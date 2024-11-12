@@ -7,7 +7,7 @@ from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
 from pandapipes.component_models._branch_models import BranchComponent
-from pandapipes.component_models.component_registry import COMPONENT_REGISTRY
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging
@@ -54,8 +54,8 @@ def build_igraph_from_ppipes(net, junctions=None):
         if not issubclass(comp, BranchComponent):
             continue
         fjc, tjc = COMPONENT_REGISTRY[comp].from_to_node_cols()
-        mask = _get_element_mask_from_nodes(net, COMPONENT_REGISTRY[comp].table_name, [fjc, tjc], junctions)
-        for comp_data in net[COMPONENT_REGISTRY[comp].table_name][mask].itertuples():
+        mask = _get_element_mask_from_nodes(net, comp, [fjc, tjc], junctions)
+        for comp_data in net[comp][mask].itertuples():
             weight = 0.001 if 'length_km' not in dir(comp_data) else getattr(comp_data, 'length_km')
             g.add_edge(pp_junction_mapping[getattr(comp_data, fjc)], pp_junction_mapping[getattr(comp_data, tjc)],
                        weight=weight)

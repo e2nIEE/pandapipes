@@ -9,6 +9,7 @@ from pandapipes.component_models._base_component import Component
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import MDOTINIT, branch_cols, TEXT
 from pandapipes.utils.internals import get_net_option, get_table_number, get_lookup
+from pandapipes.component_models.component_registry import ComponentRegistry
 
 
 class BranchComponent(Component):
@@ -61,7 +62,7 @@ class BranchComponent(Component):
             return branch_component_pit, node_pit, [], []
 
         junction_idx_lookup = get_lookup(net, "node", "index")[
-            self.connected_node_type().table_name]
+            ComponentRegistry.get(self.connected_node_type).table_name]
         fn_col, tn_col = self.from_to_node_cols
         from_nodes = junction_idx_lookup[net[self.table_name][fn_col].values]
         to_nodes = junction_idx_lookup[net[self.table_name][tn_col].values]

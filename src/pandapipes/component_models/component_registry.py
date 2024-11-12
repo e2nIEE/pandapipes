@@ -1,25 +1,16 @@
 # Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-"""
-jede Komponente die nicht abstrakt und im PF genutzt werden soll, muss im componentregistry registriert werden.
-Interne Komponenten werden automatisch hinzugefügt
-"""
 
 import os
-from pandapipes.component_models import Junction, Pipe, ExtGrid, Sink, Source, Valve, Pump, PressureControlComponent, \
-    MassStorage, CirculationPumpMass, CirculationPumpPressure, Compressor, FlowControlComponent, HeatConsumer, \
-    HeatExchanger
 
 
 class ComponentRegistry(object):
 
     registry = dict()
 
-    def __init__(self):
-        for comp in [Junction, Pipe, ExtGrid, Sink, Source, Valve, Pump, PressureControlComponent, MassStorage,
-                     CirculationPumpMass, CirculationPumpPressure, Compressor, FlowControlComponent, HeatConsumer,
-                     HeatExchanger]:
+    def __init__(self, comp_list):
+        for comp in comp_list:
             comp.__iscustom__ = False
             comp_instance = comp()
             self.registry[comp_instance.table_name] = comp_instance
@@ -36,8 +27,9 @@ class ComponentRegistry(object):
             return wrapped_class
         return wrapper
 
+    @classmethod
+    def get(cls, comp):
+        return cls.registry.get(comp, None)
+
 def register_component(cls):
     return ComponentRegistry.register()(cls)
-
-
-COMPONENT_REGISTRY = ComponentRegistry().registry
