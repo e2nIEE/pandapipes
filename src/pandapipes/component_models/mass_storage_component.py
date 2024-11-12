@@ -6,10 +6,8 @@ from numpy import dtype
 
 from pandapipes.component_models._const_flow_models import ConstFlow
 
-class MassStorage(ConstFlow):
-    """
 
-    """
+class MassStorage(ConstFlow):
     @property
     def table_name(self):
         return "mass_storage"
@@ -18,7 +16,6 @@ class MassStorage(ConstFlow):
     def sign(self):
         return 1
 
-    @classmethod
     def get_component_input(self):
         """
 

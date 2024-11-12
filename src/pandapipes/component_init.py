@@ -9,6 +9,7 @@ from pandapipes.component_models import Junction, Pipe, ExtGrid, Sink, Source, V
 
 
 # every high level Component from pandapipes should be initialized here
+# if pandapipes implements a new component, it needs to be added to the COMPONENT_LIST
 
 COMPONENT_LIST = [Junction, Pipe, ExtGrid, Sink, Source, Valve, Pump, PressureControlComponent, MassStorage,
                   CirculationPumpMass, CirculationPumpPressure, Compressor, FlowControlComponent, HeatConsumer,

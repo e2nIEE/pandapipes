@@ -45,7 +45,6 @@ class PipeflowNotConverged(ppException):
     """
     Exception being raised in case pipeflow did not converge.
     """
-    pass
 
 
 def get_net_option(net, option_name):
