@@ -29,6 +29,17 @@ class pandapipesNet(ADict):
             self.clear()
             self.update(**net.deepcopy())
 
+    def validate_components(self):
+        for component in self.component_list:
+            if component not in COMPONENT_REGISTRY:
+                logger.warning("This pandapipes net contains the external component '%s' which is "
+                               "not registered!" % component)
+        if "circ_pump_mass" in self.component_list and "flow_control" in self.component_list:
+            logger.warning("This pandapipes net contains a circulation pump mass and a flow controller "
+                           "which is not recommended and may lead to convergence problems. "
+                           "It is recommended to use a circulation pump with constant pressure lift."
+                           "For further informations see https://github.com/e2nIEE/pandapipes/discussions/627")
+
     def deepcopy(self):
         return copy.deepcopy(self)
 
@@ -58,7 +69,12 @@ class pandapipesNet(ADict):
         if "component_list" in self:
             r += "\nand uses the following component models:"
             for component in self.component_list:
-                r += "\n   - %s" % COMPONENT_REGISTRY[component].__class__.__name__
+                if component in COMPONENT_REGISTRY:
+                    r += "\n   - %s" % COMPONENT_REGISTRY[component].__class__.__name__
+                else:
+                    r += "\n   - __MissingExternalComponent__: '%s'" % component
+                    logger.warning("This pandapipes net contains the external component '%s' which is "
+                                   "not registered!" % component)
         return r
 
 

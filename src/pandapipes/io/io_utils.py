@@ -72,6 +72,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             entries =  {k: entries[k] for k in entries if k in self.obj}
             net = pandapipesNet(entries)
             net.update(self.obj)
+            net.validate_components()
             return net
 
     @from_serializable.register()
