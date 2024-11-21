@@ -2,27 +2,16 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapipes.component_models.abstract_models.base_component import Component
-
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
-
-logger = logging.getLogger(__name__)
+from abc import abstractmethod
+from pandapipes.component_models._base_component import Component
 
 
 class NodeComponent(Component):
     """
 
     """
-
-    @classmethod
-    def table_name(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
+    @abstractmethod
+    def create_node_lookups(self, net, ft_lookups, table_lookup, idx_lookups, current_start,
                             current_table, internal_nodes_lookup):
         """
         Function which creates node lookups.
@@ -43,10 +32,10 @@ class NodeComponent(Component):
         :type internal_nodes_lookup:
         :return: No Output.
         """
-        raise NotImplementedError
+        ...
 
-    @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
+    @abstractmethod
+    def create_pit_node_entries(self, net, node_pit):
         """
 
         :param net: The pandapipes network
@@ -55,16 +44,4 @@ class NodeComponent(Component):
         :type node_pit:
         :return: No Output.
         """
-        raise NotImplementedError
-
-    @classmethod
-    def get_component_input(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def get_result_table(cls, net):
-        raise NotImplementedError
-
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
-        raise NotImplementedError
+        ...

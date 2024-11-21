@@ -8,19 +8,22 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 from networkx import has_path
+
 from pandapower.auxiliary import get_indices
 from pandapower.toolbox import dataframes_equal
 from pandapower.toolbox.result_info import clear_result_tables
 
 import pandapipes
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
+from pandapipes.component_models._branch_models import BranchComponent
+from pandapipes.component_models._node_element_models import NodeElementComponent
 from pandapipes.create import create_empty_network
 from pandapipes.idx_branch import branch_cols
 from pandapipes.idx_node import node_cols, \
     T as TYPE_T, P as TYPE_P, PC as TYPE_PC, L as TYPE_L
 from pandapipes.pandapipes_net import pandapipesNet
 from pandapipes.topology import create_nxgraph
+from pandapipes.utils.internals import get_lookup
+from pandapipes.component_init import COMPONENT_REGISTRY, COMPONENT_LIST
 
 try:
     import pandaplan.core.pplog as logging
@@ -107,22 +110,14 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     :return: set of tuples with element names and column names
     :rtype: set
     """
-    from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
-        CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
-        Compressor, FlowControlComponent
-    from pandapipes.converter.stanet.valve_pipe_component import ValvePipe
     special_elements_junctions = [("press_control", "controlled_junction")]
     move_elements = {"n2b": [], "b2n": []}
     node_elements = []
     branch_elements = []
     if net is not None:
-        all_tables = {comp.table_name(): comp for comp in net.component_list}
+        all_tables = {table_name: COMPONENT_REGISTRY[table_name].__class__ for table_name in net.component_list}
     else:
-        comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
-                     CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor,
-                     FlowControlComponent, ValvePipe]
-        all_tables = {comp.table_name(): comp for comp in comp_list}
-
+        all_tables = {COMPONENT_REGISTRY[comp].table_name: comp for comp in COMPONENT_LIST}
     ejts = set()
     if include_node_elements:
         node_elements = [tbl for tbl, comp in all_tables.items() if
@@ -132,9 +127,9 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
             ejts.update([(elm, "junction")])
 
     if include_branch_elements:
-        branch_elements = [(tbl, comp.from_to_node_cols()) for tbl, comp in all_tables.items()
+        branch_elements = [(tbl, COMPONENT_REGISTRY[comp].from_to_node_cols) for tbl, comp in all_tables.items()
                            if issubclass(comp, BranchComponent) and tbl not in move_elements["b2n"]]
-        branch_elements += [(me, all_tables[me].from_to_node_cols())
+        branch_elements += [(me, COMPONENT_REGISTRY[all_tables[me]].from_to_node_cols)
                             for me in move_elements["n2b"] if me in all_tables.keys()]
         for elm, from_to_cols in branch_elements:
             ejts.update([(elm, from_to_cols[0]), (elm, from_to_cols[1])])
@@ -415,8 +410,8 @@ def select_subnet(net, junctions, include_results=False, keep_everything_else=Fa
 def remove_empty_components(net):
     removed = set()
     for comp in net.component_list:
-        if net[comp.table_name()].empty:
-            del net[comp.table_name()]
+        if net[comp].empty:
+            del net[comp]
             removed.add(comp)
     net.component_list = [c for c in net.component_list if c not in removed]
 
@@ -591,11 +586,11 @@ def get_internal_tables_pandas(net, convert_types=True):
     node_lookup = get_pit_lookup("node")
     branch_lookup = get_pit_lookup("branch")
 
-    node_table_lookup = pandapipes.get_lookup(net, "node", "table")
+    node_table_lookup = get_lookup(net, "node", "table")
     node_table = pd.DataFrame(node_pit)
     node_table.rename(columns=node_lookup["indices"], inplace=True)
 
-    branch_table_lookup = pandapipes.get_lookup(net, "branch", "table")
+    branch_table_lookup = get_lookup(net, "branch", "table")
     branch_table = pd.DataFrame(branch_pit)
     branch_table.rename(columns=branch_lookup["indices"], inplace=True)
 

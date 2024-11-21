@@ -198,8 +198,7 @@ def change_dtypes(net):
               "stanet_status": str,
               "v_stanet": np.float64}
 
-    for comp in net.component_list:
-        table_name = comp.table_name()
+    for table_name in net.component_list:
         if table_name not in net:
             continue
         for col, dt in dtypes.items():

@@ -2,7 +2,7 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
+from numpy import repeat, pi
 from numpy import dtype
 
 from pandapipes.component_models.junction_component import Junction
@@ -12,28 +12,19 @@ from pandapipes.properties.fluids import get_fluid
 
 
 class ValvePipe(Pipe):
-    @classmethod
-    def from_to_node_cols(cls):
-        return "from_junction", "to_junction"
-
-    @classmethod
-    def table_name(cls):
+    @property
+    def table_name(self):
         return "valve_pipe"
 
-    @classmethod
-    def internal_node_name(cls):
+    @property
+    def internal_node_name(self):
         return "valve_pipe_nodes"
 
-    @classmethod
-    def active_identifier(cls):
+    @property
+    def active_identifier(self):
         return "opened"
 
-    @classmethod
-    def get_connected_node_type(cls):
-        return Junction
-
-    @classmethod
-    def create_pit_branch_entries_table_specific(cls, net, comp_pit, internal_pipe_number):
+    def create_pit_branch_entries_table_specific(self, net, comp_pit, internal_pipe_number):
         """
 
         :param net: The pandapipes network
@@ -45,17 +36,16 @@ class ValvePipe(Pipe):
         :return:
         :rtype:
         """
-        comp_pit[:, LENGTH] = np.repeat(net[cls.table_name].length_km.values * 1000 /
+        comp_pit[:, LENGTH] = repeat(net[self.table_name].length_km.values * 1000 /
                                         internal_pipe_number, internal_pipe_number)
-        comp_pit[:, K] = np.repeat(net[cls.table_name].k_mm.values / 1000,
+        comp_pit[:, K] = repeat(net[self.table_name].k_mm.values / 1000,
                                    internal_pipe_number)
-        comp_pit[:, D] = np.repeat(net[cls.table_name].diameter_m.values, internal_pipe_number)
-        comp_pit[:, AREA] = comp_pit[:, D] ** 2 * np.pi / 4
-        comp_pit[:, LC] = np.repeat(net[cls.table_name].loss_coefficient.values,
+        comp_pit[:, D] = repeat(net[self.table_name].diameter_m.values, internal_pipe_number)
+        comp_pit[:, AREA] = comp_pit[:, D] ** 2 * pi / 4
+        comp_pit[:, LC] = repeat(net[self.table_name].loss_coefficient.values,
                                     internal_pipe_number)
 
-    @classmethod
-    def get_component_input(cls):
+    def get_component_input(self):
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
@@ -74,17 +64,7 @@ class ValvePipe(Pipe):
                 ("type", dtype(object)),
                 ('index', 'u4')]
 
-    @classmethod
-    def geodata(cls):
-        """
-
-        :return:
-        :rtype:
-        """
-        return [("coords", dtype(object))]
-
-    @classmethod
-    def get_result_table(cls, net):
+    def get_result_table(self, net):
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s",
                       "v_to_m_per_s",

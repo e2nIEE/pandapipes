@@ -6,8 +6,8 @@ import numpy as np
 from pandapower.plotting.generic_geodata import coords_from_igraph, \
     _prepare_geodata_table, _get_element_mask_from_nodes, _igraph_meshed
 
-from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
+from pandapipes.component_models._branch_models import BranchComponent
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 try:
     import pandaplan.core.pplog as logging
@@ -51,11 +51,11 @@ def build_igraph_from_ppipes(net, junctions=None):
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
     for comp in net['component_list']:
-        if not issubclass(comp, BranchComponent):
+        if not issubclass(COMPONENT_REGISTRY[comp].__class__, BranchComponent):
             continue
-        fjc, tjc = comp.from_to_node_cols()
-        mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
-        for comp_data in net[comp.table_name()][mask].itertuples():
+        fjc, tjc = COMPONENT_REGISTRY[comp].from_to_node_cols
+        mask = _get_element_mask_from_nodes(net, comp, [fjc, tjc], junctions)
+        for comp_data in net[comp][mask].itertuples():
             weight = 0.001 if 'length_km' not in dir(comp_data) else getattr(comp_data, 'length_km')
             g.add_edge(pp_junction_mapping[getattr(comp_data, fjc)], pp_junction_mapping[getattr(comp_data, tjc)],
                        weight=weight)

@@ -9,6 +9,7 @@ import pandas as pd
 
 import pandapipes as pp
 from pandapipes.component_models.pipe_component import Pipe
+from pandapipes.component_init import COMPONENT_REGISTRY
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -249,7 +250,7 @@ def retrieve_temperature_liquid(net):
         T_mean_om[i] = st.mean(T_om[i])
 
     for j in range(num_of_pipes):
-        pipe_res = Pipe.get_internal_results(net, [j])
+        pipe_res = COMPONENT_REGISTRY[Pipe].get_internal_results(net, [j])
         T_mean_pandapipes[j] = st.mean(pipe_res["TINIT"][:, 1])
 
     T_diff_mean = np.abs(1 - T_mean_pandapipes / T_mean_om)

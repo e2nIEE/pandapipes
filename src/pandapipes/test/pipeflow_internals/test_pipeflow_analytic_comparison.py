@@ -11,10 +11,11 @@ import pytest
 import pandapipes
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
+from pandapipes.component_init import COMPONENT_REGISTRY
 from pandapipes.idx_node import PINIT, TINIT
-from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import _add_fluid_to_net
 from pandapipes.test import data_path
+from pandapipes.utils.internals import get_lookup
 
 
 def create_source_2pipes_sink(
@@ -91,7 +92,7 @@ def test_gas_internal_nodes(use_numba):
         use_numba=use_numba,
     )
 
-    pipe_results = Pipe.get_internal_results(net, [0])
+    pipe_results = COMPONENT_REGISTRY[Pipe].get_internal_results(net, [0])
 
     data = pd.read_csv(
         os.path.join(data_path, "gas_sections_an.csv"),
@@ -110,7 +111,7 @@ def test_gas_internal_nodes(use_numba):
 
     node_pit = net["_pit"]["node"]
 
-    junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
+    junction_idx_lookup = get_lookup(net, "node", "index")[COMPONENT_REGISTRY[Junction].table_name]
     from_junction_nodes = junction_idx_lookup[net["pipe"]["from_junction"].values]
     to_junction_nodes = junction_idx_lookup[net["pipe"]["to_junction"].values]
 
@@ -163,7 +164,7 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
         use_numba=use_numba,
     )
 
-    pipe_results = Pipe.get_internal_results(net, [0])
+    pipe_results = COMPONENT_REGISTRY[Pipe].get_internal_results(net, [0])
 
     data = pd.read_csv(
         os.path.join(data_path, "Temperature_one_pipe_an.csv"),
@@ -178,7 +179,7 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
 
     node_pit = net["_pit"]["node"]
 
-    junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
+    junction_idx_lookup = get_lookup(net, "node", "index")[COMPONENT_REGISTRY[Junction].table_name]
     from_junction_nodes = junction_idx_lookup[net["pipe"]["from_junction"].values]
     to_junction_nodes = junction_idx_lookup[net["pipe"]["to_junction"].values]
 

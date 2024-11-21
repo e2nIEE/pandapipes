@@ -5,6 +5,7 @@
 from packaging import version
 
 from pandapipes import __format_version__, __version__
+from pandapipes.component_init import COMPONENT_REGISTRY
 from pandapipes.pandapipes_net import add_default_components
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
@@ -49,10 +50,10 @@ def _rename_columns(net):
         if "u_w_per_m2k" not in net["pipe"].columns:
             net["pipe"].rename(columns={"alpha_w_per_m2k": "u_w_per_m2k"}, inplace=True)
     for comp in [CirculationPumpMass, CirculationPumpPressure]:
-        cp_tbl = comp.table_name()
+        cp_tbl = COMPONENT_REGISTRY[comp].table_name
         if cp_tbl in net:
             old_cols = ["from_junction", "to_junction", "mdot_kg_per_s", "p_bar", "t_k"]
-            new_cols = list(comp.from_to_node_cols()) + ["mdot_flow_kg_per_s", "p_flow_bar",
+            new_cols = list(COMPONENT_REGISTRY[comp].from_to_node_cols) + ["mdot_flow_kg_per_s", "p_flow_bar",
                                                          "t_flow_k"]
             for old_col, new_col in list(zip(old_cols, new_cols)):
                 if old_col in net[cp_tbl].columns and new_col not in net[cp_tbl].columns:

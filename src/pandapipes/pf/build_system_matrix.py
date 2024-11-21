@@ -12,9 +12,8 @@ from pandapipes.idx_branch import (FROM_NODE, TO_NODE, JAC_DERIV_DM, JAC_DERIV_D
 
 from pandapipes.idx_node import (P, PC as PC_NODE, NODE_TYPE, T, NODE_TYPE_T, LOAD, LOAD_T, INFEED,
                                  MDOTSLACKINIT, JAC_DERIV_MSL)
-from pandapipes.pf.internals_toolbox import _sum_by_group_sorted, _sum_by_group, \
+from pandapipes.utils.internals import get_net_option, _sum_by_group, _sum_by_group_sorted, \
     get_from_nodes_corrected, get_to_nodes_corrected
-from pandapipes.pf.pipeflow_setup import get_net_option
 
 
 def build_system_matrix(net, branch_pit, node_pit, heat_mode):

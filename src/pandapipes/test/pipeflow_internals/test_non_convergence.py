@@ -7,8 +7,8 @@ import pytest
 
 import pandapipes
 from pandapipes.networks.simple_gas_networks import gas_versatility
-from pandapipes.pipeflow import PipeflowNotConverged
 from pandapipes.properties.fluids import FluidPropertyConstant
+from pandapipes.utils.internals import PipeflowNotConverged
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -18,8 +18,7 @@ def test_pipeflow_non_convergence(use_numba):
 
     max_iter_hyd = 8 if use_numba else 8
     pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
-    for comp in net["component_list"]:
-        table_name = comp.table_name()
+    for table_name in net["component_list"]:
         assert np.all(net["res_" + table_name].index == net[table_name].index)
         if table_name == "valve":
             continue
@@ -30,7 +29,6 @@ def test_pipeflow_non_convergence(use_numba):
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
                             use_numba=use_numba)
 
-    for comp in net["component_list"]:
-        table_name = comp.table_name()
+    for table_name in net["component_list"]:
         assert np.all(net["res_" + table_name].index == net[table_name].index)
         assert np.all(pd.isnull(net["res_" + table_name]))

@@ -2,56 +2,39 @@
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
-from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH
+from pandapipes.component_models._branch_element_models import BranchElementComponent
+from pandapipes.component_models.component_registry import ComponentRegistry
+from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, \
+    BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE
-from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.utils.internals import get_lookup
+from pandapipes.utils.result_extraction import extract_branch_results_without_internals
 
 
-class PressureControlComponent(BranchWZeroLengthComponent):
+class PressureControlComponent(BranchElementComponent):
     """
 
     """
-
-    @classmethod
-    def table_name(cls):
+    @property
+    def table_name(self):
         return "press_control"
 
-    @classmethod
-    def active_identifier(cls):
-        return "in_service"
-
-    @classmethod
-    def from_to_node_cols(cls):
-        return "from_junction", "to_junction"
-
-    @classmethod
-    def get_connected_node_type(cls):
-        return Junction
-
-    @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        pcs = net[cls.table_name()]
+    def create_pit_node_entries(self, net, node_pit):
+        pcs = net[self.table_name]
         controlled = pcs.in_service & pcs.control_active
         juncts = pcs['controlled_junction'].values[controlled]
         press = pcs['controlled_p_bar'].values[controlled]
         junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
+            ComponentRegistry.get(self.connected_node_type).table_name]
         index_pc = junction_idx_lookups[juncts]
         node_pit[index_pc, NODE_TYPE] = PC_NODE
         node_pit[index_pc, PINIT] = press
 
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
+    def create_pit_branch_entries(self, net, branch_pit):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
@@ -61,25 +44,22 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         pc_pit = super().create_pit_branch_entries(net, branch_pit)
-        pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC_BRANCH
-        pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
+        pc_pit[net[self.table_name].control_active.values, BRANCH_TYPE] = PC_BRANCH
+        pc_pit[:, LC] = net[self.table_name].loss_coefficient.values
 
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(self, net, branch_pit, node_pit, idx_lookups, options):
         pass
 
-    @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(self, net, branch_pit, node_pit, idx_lookups, options):
         # set all PC branches to derivatives to 0
-        f, t = idx_lookups[cls.table_name()]
+        f, t = idx_lookups[self.table_name]
         press_pit = branch_pit[f:t, :]
         pc_branch = press_pit[:, BRANCH_TYPE] == PC_BRANCH
         press_pit[pc_branch, JAC_DERIV_DP] = 0
         press_pit[pc_branch, JAC_DERIV_DP1] = 0
         press_pit[pc_branch, JAC_DERIV_DM] = 0
 
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(self, net, options, branch_results, mode):
         """
         Function that extracts certain results.
 
@@ -97,16 +77,15 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
-                                                 required_results_ht, cls.table_name(), mode)
+                                                 required_results_ht, self.table_name, mode)
 
-        res_table = net["res_" + cls.table_name()]
-        f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+        res_table = net["res_" + self.table_name]
+        f, t = get_lookup(net, "branch", "from_to")[self.table_name]
         p_to = branch_results["p_to"][f:t]
         p_from = branch_results["p_from"][f:t]
         res_table["deltap_bar"].values[:] = p_to - p_from
 
-    @classmethod
-    def get_component_input(cls):
+    def get_component_input(self):
         """
 
         Get component input.
@@ -124,8 +103,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
-    @classmethod
-    def get_result_table(cls, net):
+    def get_result_table(self, net):
         """
 
         Gets the result table.

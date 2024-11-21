@@ -8,8 +8,7 @@ import numpy as np
 import pytest
 
 import pandapipes
-from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pipeflow import PipeflowNotConverged
+from pandapipes.utils.internals import PipeflowNotConverged, get_lookup
 from pandapipes.pipeflow import logger as pf_logger
 
 try:

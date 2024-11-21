@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from pandapipes.pf.internals_toolbox import select_from_pit
+from pandapipes.utils.internals import select_from_pit
 
 
 def test_select_from_pit():

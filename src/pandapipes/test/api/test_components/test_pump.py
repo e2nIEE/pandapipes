@@ -199,7 +199,7 @@ def test_pump_bypass_high_vdot(use_numba):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_compression_power(use_numba):
     # based on example by "oporras"
-    from pandapipes.component_models import R_UNIVERSAL
+    from pandapipes.constants import R_UNIVERSAL
     from pandapipes.idx_node import PAMB
 
     height_asl_m = 2842

@@ -93,6 +93,7 @@ def from_pickle(filename):
     """
     net = pandapipesNet(get_raw_data_from_pickle(filename))
     transform_net_with_df_and_geo(net, ["junction_geodata"], ["pipe_geodata"])
+    net.validate_components()
     return net
 
 

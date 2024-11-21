@@ -16,6 +16,7 @@ from pandapipes.component_models import NodeComponent
 from pandapipes.idx_branch import branch_cols
 from pandapipes.idx_node import node_cols
 from pandapipes.test.api.test_convert_format import found_versions, folder, minimal_version_two_nets
+from pandapipes.component_init import COMPONENT_REGISTRY
 
 
 def create_base_net(oos):
@@ -239,7 +240,7 @@ def test_select_subnet(base_net_is_wo_pumps):
     assert len(same_net.component_list) == len(net.component_list)
     assert set(same_net.component_list) == set(net.component_list)
     for comp in net.component_list:
-        assert pandapower.dataframes_equal(net[comp.table_name()], same_net[comp.table_name()])
+        assert pandapower.dataframes_equal(net[comp], same_net[comp])
 
     same_net2 = pandapipes.select_subnet(net, net.junction.index, include_results=True,
                                          keep_everything_else=True)
@@ -247,21 +248,21 @@ def test_select_subnet(base_net_is_wo_pumps):
 
     # Remove everything
     empty = pandapipes.select_subnet(net, set())
-    for comp in net.component_list:
-        assert len(empty[comp.table_name()]) == 0
+    for table_name in net.component_list:
+        assert len(empty[table_name]) == 0
 
     empty2 = pandapipes.select_subnet(net, set(), remove_unused_components=True)
-    for comp in net.component_list:
-        assert comp.table_name() not in empty2
-        assert comp not in empty2.component_list
+    for table_name in net.component_list:
+        assert table_name not in empty2
+        assert table_name not in empty2.component_list
 
     # check length of results
     net = nw.gas_tcross2()
     max_iter_hyd = 2
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
     net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
-    for comp in net.component_list:
-        assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
+    for table_name in net.component_list:
+        assert len(net2["res_" + table_name]) == len(net2[table_name])
     assert len(net.junction) == len(net2.junction) + 3
 
 def test_pit_extraction():
@@ -285,20 +286,19 @@ def test_pit_extraction():
         assert node_table.shape[1] == node_cols
         assert branch_table.shape[1] == branch_cols
 
-        for comp in net.component_list:
-            tbl = comp.table_name()
-            if len(net[tbl]) > 0:
-                if issubclass(comp, NodeComponent):
-                    assert tbl in node_table["TABLE_IDX"].values
+        for table_name in net.component_list:
+            if len(net[table_name]) > 0:
+                if issubclass(COMPONENT_REGISTRY[table_name].__class__, NodeComponent):
+                    assert table_name in node_table["TABLE_IDX"].values
                     assert np.all(np.isin(
-                        net[tbl].index.values,
-                        node_table.loc[node_table.TABLE_IDX == tbl].ELEMENT_IDX.values
+                        net[table_name].index.values,
+                        node_table.loc[node_table.TABLE_IDX == table_name].ELEMENT_IDX.values
                     ))
-                elif issubclass(comp, BranchComponent):
-                    assert tbl in branch_table["TABLE_IDX"].values
+                elif issubclass(COMPONENT_REGISTRY[table_name].__class__, BranchComponent):
+                    assert table_name in branch_table["TABLE_IDX"].values
                     assert np.all(np.isin(
-                        net[tbl].index.values,
-                        branch_table.loc[branch_table.TABLE_IDX == tbl].ELEMENT_IDX.values
+                        net[table_name].index.values,
+                        branch_table.loc[branch_table.TABLE_IDX == table_name].ELEMENT_IDX.values
                     ))
 
 

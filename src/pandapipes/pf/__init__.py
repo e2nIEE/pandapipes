@@ -4,5 +4,5 @@
 
 
 from pandapipes.pf.build_system_matrix import *
-from pandapipes.pf.internals_toolbox import *
+from pandapipes.pf.result_extraction import *
 from pandapipes.pf.pipeflow_setup import *

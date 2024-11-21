@@ -4,27 +4,18 @@
 
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
-from pandapipes.component_models.junction_component import Junction
+from pandapipes.component_models._circulation_pump import CirculationPump
 from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, \
     LOAD_VEC_BRANCHES
-
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
-
-logger = logging.getLogger(__name__)
 
 
 class CirculationPumpMass(CirculationPump):
 
-    @classmethod
-    def table_name(cls):
+    @property
+    def table_name(self):
         return "circ_pump_mass"
 
-    @classmethod
-    def get_component_input(cls):
+    def get_component_input(self):
         """
 
         :return:
@@ -39,21 +30,11 @@ class CirculationPumpMass(CirculationPump):
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
-    @classmethod
-    def get_connected_node_type(cls):
-        return Junction
-
-    @classmethod
-    def active_identifier(cls):
-        return "in_service"
-
-    @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
+    def create_pit_branch_entries(self, net, branch_pit):
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
-        circ_pump_pit[:, MDOTINIT] = net[cls.table_name()].mdot_flow_kg_per_s.values
+        circ_pump_pit[:, MDOTINIT] = net[self.table_name].mdot_flow_kg_per_s.values
 
-    @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(self, net, branch_pit, node_pit, idx_lookups, options):
         # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
         # of velocity is allowed during the pipeflow iteration
         circ_pump_pit = super().adaption_after_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups, options)
