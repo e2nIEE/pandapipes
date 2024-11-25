@@ -40,9 +40,6 @@ class Compressor(Pump):
         :return: No Output.
         """
         compressor_pit = super(Pump, cls).create_pit_branch_entries(net, branch_pit)
-
-        compressor_pit[:, D] = 0.1
-        compressor_pit[:, AREA] = compressor_pit[:, D] ** 2 * np.pi / 4
         compressor_pit[:, LC] = 0
 
     @classmethod
