@@ -10,7 +10,7 @@ from pandapipes.properties import get_fluid
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES
+from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES, VLRLCONNECT
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -50,6 +50,7 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         """
         fc_branch_pit = super().create_pit_branch_entries(net, branch_pit)
         fc_branch_pit[:, MDOTINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values
+        fc_branch_pit[net[cls.table_name()].control_active, VLRLCONNECT] = True
 
     @classmethod
     def create_component_array(cls, net, component_pits):

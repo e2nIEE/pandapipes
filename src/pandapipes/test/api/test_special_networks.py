@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 
 import pandapipes
-from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, \
-    create_source
+from pandapipes.create import create_empty_network, create_junction, create_ext_grid, create_sink, create_source
+from pandapipes.pf.pipeflow_setup import get_net_option
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 from pandapipes.test.test_toolbox import create_net_changed_indices
 
@@ -121,6 +121,63 @@ def test_wild_indexing(create_net_changed_indices):
     net = copy.deepcopy(create_net_changed_indices)
     pandapipes.pipeflow(net)
     assert net.converged
+
+
+def test_valve_flow_contrl_heat_consumer():
+    net = pandapipes.create_empty_network(fluid='water')
+    j1, j2, j3, j4, j5, j6, j7, j8, j9 = pandapipes.create_junctions(net, 9, 5, 400)
+    pandapipes.create_circ_pump_const_pressure(net, j9, j1, 5, 2, 400)
+    pandapipes.create_valves(net, [j1, j4, j6, j8], [j2, j5, j7, j9], 0.1)
+    pandapipes.create_flow_control(net, j3, j2, 10)
+    pandapipes.create_heat_exchanger(net, j8, j3, -5000)
+    pandapipes.create_pipes_from_parameters(net, [j2, j7], [j4, j8], 0.1, 0.1)
+    pandapipes.create_heat_consumer(net, j5, j6, 10000, 10)
+    net.valve.loc[0, 'opened'] = False
+    pandapipes.pipeflow(net, mode='sequential')
+
+    amb_temp = get_net_option(net, 'ambient_temperature')
+
+    assert np.all(np.isclose(net.res_junction.loc[[j9, j8, j7, j6, j3], 'p_bar'].values, 3.))
+    assert np.all(np.isnan(net.res_junction.loc[[j5, j4, j2], 'p_bar']).values)
+    assert np.all(np.isclose(net.res_junction.loc[[j1], 'p_bar'].values, 5.))
+    assert np.all(np.isclose(net.res_junction.t_k.values[1:], amb_temp))
+
+    net.valve.loc[0, 'opened'] = True
+    net.valve.loc[3, 'opened'] = False
+    pandapipes.pipeflow(net, mode='sequential')
+
+    assert np.all(np.isclose(net.res_junction.loc[[j9], 'p_bar'].values, 3.))
+    assert np.all(np.isnan(net.res_junction.loc[[j8, j7, j6, j3], 'p_bar']).values)
+    assert np.all(np.isclose(net.res_junction.loc[[j1, j2, j4, j5], 'p_bar'].values, 5.))
+    assert np.all(np.isclose(net.res_junction.t_k.values[1:], amb_temp))
+
+    net.valve.loc[3, 'opened'] = True
+    net.valve.loc[1, 'opened'] = False
+    pandapipes.pipeflow(net, mode='sequential')
+
+    assert np.all(np.isclose(net.res_junction.loc[[j9, j8, j7, j6, j3], 'p_bar'].values, 3.))
+    assert np.all(np.isnan(net.res_junction.loc[[j5], 'p_bar']).values)
+    assert np.all(np.isclose(net.res_junction.loc[[j1, j2, j4], 'p_bar'].values, 5.))
+    assert np.all(np.isclose(net.res_junction.t_k.values[[j4, j5, j6, j7]], amb_temp))
+
+    net.valve.loc[1, 'opened'] = True
+    net.valve.loc[2, 'opened'] = False
+    pandapipes.pipeflow(net, mode='sequential')
+
+    assert np.all(np.isclose(net.res_junction.loc[[j9, j8, j7, j3], 'p_bar'].values, 3.))
+    assert np.all(np.isnan(net.res_junction.loc[[j6], 'p_bar']).values)
+    assert np.all(np.isclose(net.res_junction.loc[[j1, j2, j4, j5], 'p_bar'].values, 5.))
+    assert np.all(np.isclose(net.res_junction.t_k.values[[j4, j5, j6, j7]], amb_temp))
+
+    net.valve.loc[1, 'opened'] = False
+    pandapipes.pipeflow(net, mode='sequential')
+
+    assert np.all(np.isnan(net.res_junction.p_bar.values[4:6]))
+
+    net.valve.loc[:, 'opened'] = False
+    pandapipes.pipeflow(net, mode='sequential')
+
+    assert np.all(np.isnan(net.res_junction.p_bar.values[1:-1]))
 
 
 if __name__ == "__main__":
