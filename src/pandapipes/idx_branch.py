@@ -30,23 +30,22 @@ MDOTINIT = 18  # mass in  [m/s]
 MDOTINIT_T = 19
 FROM_NODE_T_SWITCHED = 20 # flag to indicate if the from and to node are switched in the thermal calculation
 TOUTINIT = 21  # Internal slot for outlet pipe temperature
+FLOW_RETURN_CONNECT = 22 # Make sure that return and flow side are connected to the central pump, respectively
 
-JAC_DERIV_DM = 22  # Slot for the derivative by mass
-JAC_DERIV_DP = 23  # Slot for the derivative by pressure from_node
-JAC_DERIV_DP1 = 24  # Slot for the derivative by pressure to_node
-JAC_DERIV_DM_NODE = 25  # Slot for the derivative by mass for the nodes connected to branch
-LOAD_VEC_BRANCHES = 26  # Slot for the load vector for the branches
-LOAD_VEC_NODES_FROM = 27  # Slot for the load vector of the from nodes connected to branch
-LOAD_VEC_NODES_TO = 28  # Slot for the load vector of the to nodes connected to branch
+JAC_DERIV_DM = 23  # Slot for the derivative by mass
+JAC_DERIV_DP = 24  # Slot for the derivative by pressure from_node
+JAC_DERIV_DP1 = 25  # Slot for the derivative by pressure to_node
+JAC_DERIV_DM_NODE = 26  # Slot for the derivative by mass for the nodes connected to branch
+LOAD_VEC_BRANCHES = 27  # Slot for the load vector for the branches
+LOAD_VEC_NODES_FROM = 28  # Slot for the load vector of the from nodes connected to branch
+LOAD_VEC_NODES_TO = 29  # Slot for the load vector of the to nodes connected to branch
 
-JAC_DERIV_DT = 29
-JAC_DERIV_DTOUT = 30
-JAC_DERIV_DT_NODE = 31  # Slot for the node equation derivative of T for the nodes branch is connected to
-JAC_DERIV_DTOUT_NODE = 32  # Slot for the node equation derivative of T for the corresponding branch
-LOAD_VEC_BRANCHES_T = 33
-LOAD_VEC_NODES_FROM_T = 34 # Slot for the load vector of the from nodes connected to branch
-LOAD_VEC_NODES_TO_T = 35 # Slot for the load vector of the to nodes connected to branch
-
-VLRLCONNECT = 36
+JAC_DERIV_DT = 30
+JAC_DERIV_DTOUT = 31
+JAC_DERIV_DT_NODE = 32  # Slot for the node equation derivative of T for the nodes branch is connected to
+JAC_DERIV_DTOUT_NODE = 33  # Slot for the node equation derivative of T for the corresponding branch
+LOAD_VEC_BRANCHES_T = 34
+LOAD_VEC_NODES_FROM_T = 35 # Slot for the load vector of the from nodes connected to branch
+LOAD_VEC_NODES_TO_T = 36 # Slot for the load vector of the to nodes connected to branch
 
 branch_cols = 37
