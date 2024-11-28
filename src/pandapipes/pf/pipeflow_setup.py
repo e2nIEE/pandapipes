@@ -10,7 +10,7 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, MDOTINIT, \
-    ACTIVE as ACTIVE_BR, VLRLCONNECT, ACTIVE, BRANCH_TYPE, CIRC
+    ACTIVE as ACTIVE_BR, FLOW_RETURN_CONNECT, ACTIVE, BRANCH_TYPE, CIRC
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group
@@ -619,7 +619,7 @@ def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
 
 def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
                                 mode="hydraulics"):
-    connect = branch_pit[:, VLRLCONNECT].astype(bool)
+    connect = branch_pit[:, FLOW_RETURN_CONNECT].astype(bool)
     circ = branch_pit[:, BRANCH_TYPE] == CIRC
     if np.any(circ) and mode == 'hydraulics':
         active_branch_lookup = active_branch_lookup & ~connect
