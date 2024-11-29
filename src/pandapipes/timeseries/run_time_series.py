@@ -39,9 +39,6 @@ def init_default_outputwriter(net, time_steps, **kwargs):
         net.output_writer.iat[0, 0] = output_writer
     if "output_writer" not in net or net.output_writer.iat[0, 0] is None:
         ow = OutputWriter(net, time_steps, output_path=tempfile.gettempdir(), log_variables=[])
-        ow.log_variable('res_sink', 'mdot_kg_per_s')
-        ow.log_variable('res_source', 'mdot_kg_per_s')
-        ow.log_variable('res_ext_grid', 'mdot_kg_per_s')
         ow.log_variable('res_pipe', 'v_mean_m_per_s')
         ow.log_variable('res_junction', 'p_bar')
         ow.log_variable('res_junction', 't_k')
