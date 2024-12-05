@@ -15,7 +15,7 @@ on:
     branches-ignore: [ master ]
 
 jobs:
-  build:
+  build_relying_tutorials:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -64,8 +64,12 @@ jobs:
           python -m pytest --nbmake -n=auto "./tutorials"
       - name: Install pandapower develop
         run: |
+          python -m pip uninstall pandapower
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
         shell: bash
+      - name: List all installed packages
+        run: |
+          python -m pip list
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.11' }}
         run: |
