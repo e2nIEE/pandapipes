@@ -58,7 +58,7 @@ test = [
     "setuptools; python_version >= '3.12'"
 ]
 all = [
-    "numpydoc", "sphinx=8.1.3", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
+    "numpydoc", "sphinx==8.1.3", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
     "plotly", "igraph", "pytest", "pytest-xdist", "pytest-split", "nbmake", "numba",
     "setuptools; python_version >= '3.12'"
 ]
