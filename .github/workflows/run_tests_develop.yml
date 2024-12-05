@@ -150,21 +150,19 @@ jobs:
 
   docs_check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ '3.11' ]
     steps:
       - uses: actions/checkout@v4
+
       - name: Install uv
         uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
-          enable-cache: true
-          cache-dependency-glob: "**/pyproject.toml"
-          python-version: ${{ matrix.python-version }}
-      - name: Check docs for Python ${{ matrix.python-version }}
-        uses: e2nIEE/sphinx-action@master
+          python-version: 3.11
+
+      - name: Generate requirements.txt
+        run: uv pip compile pyproject.toml --extra docs -o requirements.txt
+
+      - name: Check docs for Python 3.11
+        uses: ammaraskar/sphinx-action@7.4.7
         with:
-          pre-build-command: "apt update && apt upgrade -y && apt install -y build-essential gfortran cmake pkg-config libopenblas-dev;            
-            uv sync --extra docs;"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
