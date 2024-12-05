@@ -153,16 +153,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
-        with:
-          python-version: 3.11
-
-      - name: Generate requirements.txt
-        run: uv pip compile pyproject.toml --extra docs -o doc/requirements.txt
-
       - name: Check docs for Python 3.11
         uses: ammaraskar/sphinx-action@7.4.7
         with:
+          pre-build-command: "python -m pip install pyproject.toml --extra docs"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
