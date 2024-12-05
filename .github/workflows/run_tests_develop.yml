@@ -101,10 +101,6 @@ jobs:
 
   linting:
     runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.11']
-        os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -112,7 +108,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "**/pyproject.toml"
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.11
       - name: Install dependencies
         run: |
           uv sync --all-extras --dev
