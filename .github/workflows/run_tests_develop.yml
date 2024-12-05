@@ -156,6 +156,6 @@ jobs:
       - name: Check docs for Python 3.11
         uses: ammaraskar/sphinx-action@7.4.7
         with:
-          pre-build-command: "python -m pip install pyproject.toml --extra docs"
+          pre-build-command: "python -m pip install  .[docs]"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
