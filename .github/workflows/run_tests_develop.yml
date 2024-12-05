@@ -64,7 +64,7 @@ jobs:
           python -m pytest --nbmake -n=auto "./tutorials"
       - name: Install pandapower develop
         run: |
-          python -m pip uninstall pandapower
+          python -m pip uninstall pandapower -y
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
         shell: bash
       - name: List all installed packages
