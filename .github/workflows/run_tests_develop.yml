@@ -38,7 +38,7 @@ jobs:
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          uv pip uninstall numba -y
+          uv pip uninstall numba
           uv run pytest -n=auto
       - name: Test with pytest and Codecov
         if: ${{ matrix.python-version == '3.11' }}
@@ -96,7 +96,7 @@ jobs:
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          python -m pip uninstall numba -y
+          python -m pip uninstall numba
           python -m pytest -n=auto
 
   linting:
@@ -149,7 +149,7 @@ jobs:
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          uv pip uninstall numba -y
+          uv pip uninstall numba
           uv run pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
