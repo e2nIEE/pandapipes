@@ -96,8 +96,8 @@ jobs:
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          python -m pip uninstall numba
-          python -m pytest -n=auto
+          uv pip uninstall numba
+          uv run pytest -n=auto
 
   linting:
     runs-on: ${{ matrix.os }}
