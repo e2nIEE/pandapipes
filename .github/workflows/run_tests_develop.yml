@@ -100,7 +100,7 @@ jobs:
           uv run pytest -n=auto
 
   linting:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
