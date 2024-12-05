@@ -54,37 +54,32 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           verbose: true
-
-  relying:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-        os:  [ ubuntu-latest, windows-latest ]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Test tutorials with pytest
         run: |
-          python -m pip install --upgrade pip
+          python -m pytest --nbmake -n=auto "./tutorials"
+      - name: Test tutorials without numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          python -m pip uninstall numba -y
+          python -m pytest --nbmake -n=auto "./tutorials"
+      - name: Install pandapower develop
+        run: |
           python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
-          python -m pip install .["all"]
         shell: bash
-      - name: List all installed packages
-        run: |
-          python -m pip list
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.11' }}
         run: |
           python -m pytest
+      - name: Test without numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          python -m pip uninstall numba -y
+          python -m pytest -n=auto
       - name: Test with pytest and Codecov
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           python -m pip install pytest-cov
-          python -m pytest -n=auto --cov=./ --cov-report=xml
+          python -m pytest --cov=./ --cov-report=xml
       - name: Upload coverage to Codecov
         if: ${{ matrix.python-version == '3.11' }}
         uses: codecov/codecov-action@v4
@@ -100,18 +95,21 @@ jobs:
             'pandapipes/networks/network_files/**'
             '**.yml'
             '**.rst'
-      - name: Test without numba
+      - name: Test tutorials with pytest
+        run: |
+          python -m pytest --nbmake -n=auto "./tutorials"
+      - name: Test tutorials without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           python -m pip uninstall numba -y
-          python -m pytest -n=auto
+          python -m pytest --nbmake -n=auto "./tutorials"
 
   linting:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ['3.11']
-        os:  [ ubuntu-latest, windows-latest ]
+        os:  [ ubuntu-latest ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -135,35 +133,6 @@ jobs:
         run: |
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-  tutorial_tests:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-        os:  [ ubuntu-latest, windows-latest ]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install .["all"]
-        shell: bash
-      - name: List all installed packages
-        run: |
-          python -m pip list
-      - name: Test with pytest
-        run: |
-          python -m pytest --nbmake -n=auto "./tutorials"
-      - name: Test without numba
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          python -m pip uninstall numba -y
-          python -m pytest --nbmake -n=auto "./tutorials"
 
   docs_check:
     runs-on: ubuntu-latest
