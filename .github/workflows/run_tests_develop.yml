@@ -162,7 +162,7 @@ jobs:
         run: uv pip compile pyproject.toml --extra docs -o doc/requirements.txt
 
       - name: Check docs for Python 3.11
-        uses: ammaraskar/sphinx-action@7.4.7
+        uses: ammaraskar/sphinx-action@8.1.3
         with:
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
