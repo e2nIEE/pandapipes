@@ -138,7 +138,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv sync --extra test
+          uv sync --extra test --extra plotting
       - name: Test with pytest
         run: |
           uv run pytest --nbmake -n=auto "./tutorials"
