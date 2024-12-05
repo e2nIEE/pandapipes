@@ -159,7 +159,7 @@ jobs:
           python-version: 3.11
 
       - name: Generate requirements.txt
-        run: uv pip compile pyproject.toml --extra docs -o requirements.txt
+        run: uv pip compile pyproject.toml --extra docs -o doc/requirements.txt
 
       - name: Check docs for Python 3.11
         uses: ammaraskar/sphinx-action@7.4.7
