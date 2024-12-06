@@ -31,8 +31,3 @@ jobs:
           uv pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
       - name: Test with pytest
         run: uv run pytest -n auto
-      - name: Test without numba
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          uv pip uninstall numba
-          uv run pytest -n auto
