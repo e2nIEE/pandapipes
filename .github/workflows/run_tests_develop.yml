@@ -32,12 +32,12 @@ jobs:
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.11' }}
         run: |
-          uv run pytest
+          uv run pytest -n auto
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           uv pip uninstall numba
-          uv run pytest -n=auto
+          uv run pytest -n auto
       - name: Test with pytest and Codecov
         if: ${{ matrix.python-version == '3.11' }}
         run: |
@@ -45,9 +45,19 @@ jobs:
           uv run pytest --cov=./ --cov-report=xml
       - name: Upload coverage to Codecov
         if: ${{ matrix.python-version == '3.11' }}
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          dry_run: ${{ github.ref != 'refs/heads/develop' }}
+          exclude: |
+            '**/test/**'
+            '**/__init__.py'
+            'doc/**'
+            'tutorials/**'
+            'pandapipes/networks/network_files/**'
+            '**.yml'
+            '**.rst'
 
   linting:
     name: Linting
@@ -93,12 +103,12 @@ jobs:
           uv sync --extra test --extra plotting
       - name: Test with pytest
         run: |
-          uv run pytest --nbmake -n=auto "./tutorials"
+          uv run pytest --nbmake -n auto "./tutorials"
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           uv pip uninstall numba
-          uv run pytest --nbmake -n=auto "./tutorials"
+          uv run pytest --nbmake -n auto "./tutorials"
 
   docs_check:
     name: Sphinx docs check
