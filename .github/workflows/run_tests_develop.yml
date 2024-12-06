@@ -100,15 +100,21 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --extra test --extra plotting
+
+      - name: Test without numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          uv pip uninstall numba
+          uv run pytest --nbmake -n auto "./tutorials"
       - name: Test with pytest
         run: |
+          uv sync --extra test --extra plotting
           uv run pytest --nbmake -n auto "./tutorials"
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           uv pip uninstall numba
           uv run pytest --nbmake -n auto "./tutorials"
-
   docs_check:
     name: Sphinx docs check
     runs-on: ubuntu-latest
