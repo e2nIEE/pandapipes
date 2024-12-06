@@ -2,7 +2,6 @@
 # A coverage report will be created for the Python 3.9 version
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-
 name: ppipes_dev
 
 on:
@@ -118,6 +117,6 @@ jobs:
       - name: Check sphinx build
         uses: ammaraskar/sphinx-action@7.4.7
         with:
-          pre-build-command: "python -m pip install uv && uv pip install .[docs] --system"
+          pre-build-command: "python -m pip install uv && uv pip install .[docs] --system --link-mode=copy"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
