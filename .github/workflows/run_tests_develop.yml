@@ -10,6 +10,9 @@ on:
   pull_request:
     branches-ignore: [ master ]
 
+env:
+  UV_SYSTEM_PYTHON=1
+
 jobs:
   tests:
     name: Tests
@@ -23,11 +26,9 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
-          enable-cache: true
-          cache-dependency-glob: "**/pyproject.toml"
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: uv sync --extra test
+        run: uv pip install .
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.11' }}
         run: |
@@ -61,12 +62,10 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
-          enable-cache: true
-          cache-dependency-glob: "**/pyproject.toml"
           python-version: 3.11
       - name: Install dependencies
         run: |
-          uv sync
+          uv pip install .
           uv pip install flake8
       - name: Lint with flake8 (syntax errors and undefinded names)
         run: |
@@ -89,15 +88,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
-          enable-cache: true
-          cache-dependency-glob: "**/pyproject.toml"
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          uv sync --extra test --extra plotting
+        run: uv pip install .[test,plotting]
       - name: Test with pytest
         run: |
-          uv sync --extra test --extra plotting
+          uv pip install .[test,plotting]
           uv run pytest --nbmake -n auto "./tutorials"
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
