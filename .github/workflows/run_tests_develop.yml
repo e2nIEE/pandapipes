@@ -11,7 +11,7 @@ on:
     branches-ignore: [ master ]
 
 env:
-  UV_SYSTEM_PYTHON=1
+  UV_SYSTEM_PYTHON: 1
 
 jobs:
   tests:
