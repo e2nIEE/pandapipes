@@ -1,0 +1,34 @@
+# pandapipes-develop branch is designed to work with pandapower-master branch, but checks the ability to
+# work with pandapower-develop branch (relying tests, usually not required for merges) in order to avoid
+# problems in future releases
+
+name: ppipes_relying
+on:
+  pull_request:
+    types:
+      - closed
+  workflow_dispatch:
+
+jobs:
+  relying:
+    name: Relying tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        os:  [ ubuntu-latest, windows-latest ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          uv sync --extra test
+          uv pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
+      - name: List all installed packages
+        run: |
+          uv pip list
+      - name: Test with pytest
+        run: uv run pytest -n auto
