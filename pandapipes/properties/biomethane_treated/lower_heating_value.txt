@@ -1,1 +1,0 @@
-# lower heating value in kWh/kg (at normal conditions)
