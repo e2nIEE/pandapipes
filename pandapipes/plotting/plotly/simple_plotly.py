@@ -5,7 +5,7 @@
 import pandas as pd
 
 from pandapipes.plotting.plotly.traces import create_junction_trace, create_pipe_trace, \
-    create_valve_trace, create_compressor_trace
+    create_valve_trace, create_compressor_trace, create_press_control_trace
 from pandapower.plotting.plotly.simple_plotly import _simple_plotly_generic, draw_traces
 
 try:
@@ -129,15 +129,30 @@ def simple_plotly(net, use_pipe_geodata=None, on_map=False,
                                               auto_open=auto_open,
                                               showlegend=showlegend)
     if "valve" in net.keys() and len(net.valve) > 0:
+        if "source_name" in net.valve.columns:
+            info = net.valve.apply(lambda x: f"{x['name']} <br />{x['source_name']}", axis=1)
+        else:
+            info = None
         traces.extend(create_valve_trace(net, valves=net.valve.loc[net.valve.opened].index,
                                          size=valve_size, color=valve_color,
+                                         infofunc=info,
                                          trace_name="open valves"))
         traces.extend(create_valve_trace(net, valves=net.valve.loc[~net.valve.opened].index,
                                          size=valve_size, color=valve_color, dash="dot",
+                                         infofunc=info,
                                          trace_name="closed valves"))
 
     if "compressor" in net.keys() and len(net.compressor) > 0:
         traces.extend(create_compressor_trace(net, size=compressor_size, color=compressor_color))
+    if "press_control" in net.keys() and len(net.press_control) > 0:
+            traces.extend(
+                create_press_control_trace(net, size=compressor_size, color="cyan",
+                                           trace_name='compressors SPO',
+                                           legendgroup='compressors SPO'))
+            traces.extend(create_junction_trace(net, net.press_control.controlled_junction.values,
+                                                color="red", size=10,
+                                                trace_name="controlled junction",
+                                                legendgroup='compressors SPO'))
     if additional_traces:
         if isinstance(additional_traces, dict):
             traces.append(additional_traces)
