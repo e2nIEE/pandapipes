@@ -86,3 +86,28 @@ def create_compressor_trace(net, compressors=None, use_pipe_geodata=False, size=
                                 cmap_vals=cmap_vals, cmin=cmin, cmax=cmax, cpos=cpos,
                                 branch_element=branch_element, separator_element=separator_element,
                                 node_element=node_element, cmap_vals_category="compr_power_mw")
+
+
+def create_press_control_trace(net, compressors=None,  size=3.0,
+                                color='cyan', infofunc=None, trace_name='pressure controller',
+                                legendgroup='pressure controller'):
+    branch_element = "press_control"
+    node_element = "junction"
+    separator_element = "valve"
+    respect_valves = False
+    cmap = None
+    cbar_title = None
+    show_colorbar = True
+    cmap_vals = None
+    cmin = None
+    cmax = None
+    cpos = 1.1
+    use_pipe_geodata = False
+
+    return _create_branch_trace(net=net, branches=compressors, use_branch_geodata=use_pipe_geodata,
+                                respect_separators=respect_valves, width=size, color=color,
+                                infofunc=infofunc, trace_name=trace_name, legendgroup=legendgroup,
+                                cmap=cmap, cbar_title=cbar_title, show_colorbar=show_colorbar,
+                                cmap_vals=cmap_vals, cmin=cmin, cmax=cmax, cpos=cpos,
+                                branch_element=branch_element, separator_element=separator_element,
+                                node_element=node_element, cmap_vals_category="controlled_p_bar")
