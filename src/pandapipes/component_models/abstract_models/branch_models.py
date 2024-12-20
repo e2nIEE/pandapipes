@@ -5,7 +5,7 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.idx_branch import MDOTINIT, branch_cols, TEXT
+from pandapipes.idx_branch import MDOTINIT, branch_cols, TEXT, FLOW_RETURN_CONNECT
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 
 try:
@@ -90,6 +90,7 @@ class BranchComponent(Component):
         branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
         branch_component_pit[:, MDOTINIT] = 0.1
         branch_component_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
+        branch_component_pit[:, FLOW_RETURN_CONNECT] = False
         return branch_component_pit, node_pit, from_nodes, to_nodes
 
     @classmethod

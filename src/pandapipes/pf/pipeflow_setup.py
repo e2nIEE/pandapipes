@@ -10,9 +10,9 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, MDOTINIT, \
-    ACTIVE as ACTIVE_BR
+    ACTIVE as ACTIVE_BR, FLOW_RETURN_CONNECT, ACTIVE, BRANCH_TYPE, CIRC
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
-    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND
+    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
 
@@ -617,8 +617,24 @@ def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
                                        active_branch_lookup, mode=mode)
 
 
-def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes,
-                                active_node_lookup, active_branch_lookup, mode="hydraulics"):
+def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
+                                mode="hydraulics"):
+    connect = branch_pit[:, FLOW_RETURN_CONNECT].astype(bool)
+    circ = branch_pit[:, BRANCH_TYPE] == CIRC
+    if np.any(circ) and mode == 'hydraulics':
+        active_branch_lookup = active_branch_lookup & ~connect
+    nodes_connected, branches_connected = (
+        _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
+    if np.any(connect) and mode == 'hydraulics':
+        from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+        branch_active = branch_pit[:, ACTIVE].astype(bool)
+        active = nodes_connected[from_nodes] & nodes_connected[to_nodes] & branch_active
+        branches_connected[connect & active] = True
+    return nodes_connected, branches_connected
+
+
+def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode):
     len_nodes = len(node_pit)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
@@ -771,6 +787,15 @@ def reduce_pit(net, mode="hydraulics"):
             from_to_active_lookup[table] = (count, count + len_new)
             count += len_new
         net["_lookups"]["%s_from_to_active_%s" % (el, mode)] = from_to_active_lookup
+
+
+def check_infeed_number(node_pit):
+    slack_nodes = node_pit[:, NODE_TYPE_T] == T
+    if len(node_pit) == np.sum(slack_nodes):
+        node_pit[slack_nodes, INFEED] = True
+    infeed_nodes = node_pit[:, INFEED]
+    if np.sum(infeed_nodes) != np.sum(slack_nodes):
+        raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
 
 
 class PipeflowNotConverged(ppException):
