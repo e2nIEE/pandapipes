@@ -78,12 +78,15 @@ class HeatConsumer(BranchWZeroLengthComponent):
         treturn = net[cls.table_name()].treturn_k.values
         hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
         hc_pit[:, FLOW_RETURN_CONNECT] = True
-        mask_q0 = qext == 0 & np.isnan(mdot)
+        
+        # Ensure no flow occurs through the heat consumer when qext_w is zero
+        mask_q0 = qext == 0
         if np.any(mask_q0):
-            hc_pit[mask_q0, ACTIVE] = False
+            hc_pit[mask_q0, MDOTINIT] = 0  # Set mass flow to zero
             logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
-                           r'Therefore, the defined temperature control cannot be maintained.' \
+                           r'Setting mdot to zero to ensure no flow.' \
                     %net[cls.table_name()].index[mask_q0])
+        
         return hc_pit
 
     @classmethod
