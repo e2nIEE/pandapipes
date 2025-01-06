@@ -140,6 +140,20 @@ def get_derived_values(node_pit, from_nodes, to_nodes, use_numba):
     return calc_derived_values_np(node_pit, from_nodes, to_nodes)
 
 
+def calc_lambda_transition_area(lambda_laminar, lambda_turb, re, begin_transition_re=2000,
+                                end_transition_re=3000):
+    """
+    Linear interpolation in the transition area between laminar and turbulent flow. Critical
+    point is usually at Reynolds = 2300, thus the default transition area is around that point.
+    """
+    lambda_tot = lambda_laminar
+    share_turb = (re - begin_transition_re) / (end_transition_re - begin_transition_re)
+    lambda_transition = (1 - share_turb) * lambda_laminar + share_turb * lambda_turb
+    lambda_tot[(re >= begin_transition_re) & (re < end_transition_re)] = \
+        lambda_transition[(re >= begin_transition_re) & (re < end_transition_re)]
+    lambda_tot[re >= end_transition_re] = lambda_turb[re >= end_transition_re]
+    return lambda_tot
+
 def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
     """
     Function calculates the friction factor of a pipe. Turbulence is calculated based on
@@ -171,16 +185,19 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         from pandapipes.pf.derivative_toolbox_numba import calc_lambda_nikuradse_incomp_numba as \
             calc_lambda_nikuradse_incomp, colebrook_numba as colebrook, \
             calc_lambda_nikuradse_comp_numba as calc_lambda_nikuradse_comp
+        from pandapipes.pf.derivative_toolbox import calc_lambda_hofer_comp_np as calc_lambda_hofer_comp # numba version
+        # not yet implemented
     else:
         from pandapipes.pf.derivative_toolbox import calc_lambda_nikuradse_incomp_np as \
             calc_lambda_nikuradse_incomp, colebrook_np as colebrook, \
-            calc_lambda_nikuradse_comp_np as calc_lambda_nikuradse_comp
+            calc_lambda_nikuradse_comp_np as calc_lambda_nikuradse_comp, \
+            calc_lambda_hofer_comp_np as calc_lambda_hofer_comp
     if gas_mode:
         re, lambda_laminar, lambda_nikuradse = calc_lambda_nikuradse_comp(m, d, k, eta, area)
     else:
         re, lambda_laminar, lambda_nikuradse = calc_lambda_nikuradse_incomp(m, d, k, eta, area)
 
-    if friction_model == "colebrook":
+    if friction_model.lower() == "colebrook":
         # TODO: move this import to top level if possible
         from pandapipes.pipeflow import PipeflowNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
@@ -192,9 +209,14 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
                 "inconsistencies. The maximum iterations can be given as 'max_iter_colebrook' "
                 "argument to the pipeflow.")
         return lambda_colebrook, re
-    elif friction_model == "swamee-jain":
+    elif friction_model.lower() == "swamee-jain":
         lambda_swamee_jain = 0.25 / ((np.log10(k / (3.7 * d) + 5.74 / (re ** 0.9))) ** 2)
         return lambda_swamee_jain, re
+    elif friction_model.lower() == "hofer":
+        re, lambda_hofer = calc_lambda_hofer_comp(m, d, k, eta, area)
+        lambda_tot = calc_lambda_transition_area(lambda_laminar, lambda_hofer, re,
+                                                 begin_transition_re=2000, end_transition_re=4000)
+        return lambda_tot, re
     else:
         # lambda_tot = np.where(re > 2300, lambda_laminar + lambda_nikuradse, lambda_laminar)
         lambda_tot = lambda_laminar + lambda_nikuradse
@@ -203,12 +225,12 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
 
 def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     """
-    Function calculates the derivative of lambda with respect to v. Turbulence is calculated based
-    on Nikuradse. This should not be a problem as the pressure loss term will equal zero
-    (lambda * u^2).
+    Function calculates the derivative of lambda with respect to m (mass flow rate). Turbulence is
+    calculated based on Nikuradse. This should not be a problem as the pressure loss term will
+    equal zero (lambda * u^2).
 
-    :param v:
-    :type v:
+    :param m:
+    :type m:
     :param eta:
     :type eta:
     :param rho:
@@ -231,7 +253,8 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     lambda_der = np.zeros_like(m)
     pos = m != 0
 
-    if friction_model == "colebrook":
+    if friction_model.lower() in ["colebrook", "hofer"]: # hofer is explicit approximation of
+        # colebrook
         b_term[pos] = (2.51 * eta[pos] * area[pos] / (m[pos] * d[pos] * np.sqrt(lambda_pipe[pos])) +
                        k[pos] / (3.71 * d[pos]))
 
@@ -244,7 +267,7 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
         lambda_der[pos] = df_dm[pos] / df_dlambda[pos]
 
         return lambda_der
-    elif friction_model == "swamee-jain":
+    elif friction_model.lower() == "swamee-jain":
         param = (k[pos] / (3.7 * d[pos]) + 5.74 * ((eta[pos] * area[pos]) /
                  (np.abs(m[pos]) * d[pos])) ** 0.9)
         # 0.5 / (log(10) * log(param)^3 * param) * 5.166 * abs(eta)^0.9  / (abs(rho * d)^0.9

@@ -142,13 +142,15 @@ pipe sections.
 Friction models
 ^^^^^^^^^^^^^^^
 
-Three friction models are used to calculate the velocity dependent friction factor:
+For friction models are available to calculate the velocity dependent friction factor :math:`\lambda`:
 
-- Nikuradse
-- Prandtl-Colebrook
-- Swamee-Jain
+- Nikuradse ("nikuradse")
+- Prandtl-Colebrook ("colebrook")
+- Hofer ("hofer")
+- Swamee-Jain ("swamee-jain")
 
-Nikuradse is chosen by default. In this case, the friction factor is calculated by:
+They are set by the :code:`friction_model` parameter and the name given in parentheses.
+*Nikuradse* is chosen by default. In this case, the friction factor is calculated by:
 
 .. math::
    :nowrap:
@@ -161,7 +163,7 @@ Nikuradse is chosen by default. In this case, the friction factor is calculated 
 Note that in literature, Nikuradse is known as a model for turbulent flows. In pandapipes, the formula for the
 Nikuradse model is also applied for laminar flow.
 
-If Prandtl-Colebrook is selected, the friction factor is calculated iteratively according to
+If *Prandtl-Colebrook* (also known as Colebrook-White) is selected, the friction factor is calculated iteratively according to
 
 .. math::
    :nowrap:
@@ -173,7 +175,24 @@ If Prandtl-Colebrook is selected, the friction factor is calculated iteratively 
 Equations for pressure losses due to friction were taken from :cite:`Eberhard1990` and
 :cite:`Cerbe2008`.
 
-The equation according to Swamee-Jain :cite:`Swamee1976` is an approximation of the calculation method according
+The *Hofer-Equation* is an explicit approximation of the Prandtl-Colebrook method and defined as shown in
+:cite:`Benner.2019` (based on :cite:`Hofer.1973`)
+
+.. math::
+   :nowrap:
+
+   \begin{align*}
+    \lambda_H &= \frac{1}{(-2 \log (\frac{4.518}{Re} \cdot \log (\frac{Re}{7}) + \frac{k}{3.71 \cdot d}))^2}\\
+   \end{align*}
+
+Very small Reynolds numbers can lead to problems with the two nested log-functions.
+Thus, in pandapipes, the laminar :math:`\lambda_l = 64/Re` is applied for small Reynolds numbers
+(:math:`Re < \underline{Re}`) and :math:`\lambda_H` is used for high Reynolds numbers (:math:`Re > \overline{Re}`).
+In the transition area :math:`\underline{Re} \leq Re \leq \overline{Re}`, :math:`\lambda_H` is interpolated linearly.
+By default, the boundaries of this transition area are set to :math:`\underline{Re}=2000` and :math:`\overline{Re}=3000`.
+Note that the derivative used for Hofer is the same as for Prandtl-Colebrook.
+
+The equation according to *Swamee-Jain* :cite:`Swamee1976` is another approximation of the calculation method according
 to Prandtl-Colebrook. It is an explicit formula for the friction factor of the transition
 zone of turbulent flows in pipes and is defined as follows:
 

@@ -111,13 +111,38 @@ def calc_lambda_nikuradse_comp_numba(m, d, k, eta, area):
     lambda_nikuradse = np.empty_like(m)
     lambda_laminar = np.zeros_like(m)
     re = np.empty_like(m)
+    m_abs = np.abs(m)
     for i, mi in enumerate(m):
-        m_abs = np.abs(mi)
-        re[i] = np.divide(m_abs * d[i], eta[i] * area[i])
+        re[i] = (m_abs[i] * d[i]) / (eta[i] * area[i])
         if re[i] != 0:
-            lambda_laminar[i] = np.divide(64, re[i])
-        lambda_nikuradse[i] = np.divide(1, (2 * np.log10(np.divide(d[i], k[i])) + 1.14) ** 2)
+            lambda_laminar[i] = 64 / re[i]
+        lambda_nikuradse[i] = (2 * np.log10((d[i] / k[i])) + 1.14) ** -2
     return re, lambda_laminar, lambda_nikuradse
+
+
+@jit((float64[:], float64[:], float64[:], float64[:], float64[:], int64), nopython=True)
+def calc_lambda_hofer_comp_numba(m, d, k, eta, area, hofer_re_threshold=2000):
+    """Calculate Lambda acc. to Hofer-Equation (explicit version of Colebrook) [1].
+       Due to nested log10 operations, small Reynolds numbers must be avoided.
+       It is justified because the laminar Lambda (instead of Hofer) will be applied for small
+       Reynolds numbers anyway.
+
+       [1]: P. Hofer. Beurteilung von Fehlern in Rohrnetzberechnungen (Error evaluation in calculation
+           of pipelines). GWF–Gas/Erdgas, 114(3):113–119, 1973
+       """
+    lambda_hofer = np.zeros_like(m)
+    lambda_laminar = np.zeros_like(m)
+    re = np.empty_like(m)
+    m_abs = np.abs(m)
+    for i, mi in enumerate(m):
+        re[i] = (m_abs[i] * d[i]) / (eta[i] * area[i])
+        if re[i] != 0:
+            lambda_laminar[i] = 64 / re[i]
+        if re[i] >= hofer_re_threshold:
+            lambda_hofer[i] = (-2 * np.log10((4.518/re[i]) * np.log10(re[i]/7)
+                                             + (k[i] / (3.71 * d[i])))
+                               ) ** -2
+    return re, lambda_laminar, lambda_hofer
 
 
 @jit((float64[:], float64[:]), nopython=True, cache=False)
