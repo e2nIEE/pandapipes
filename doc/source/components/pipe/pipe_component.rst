@@ -156,7 +156,7 @@ They are set by the :code:`friction_model` parameter and the name given in paren
    :nowrap:
 
    \begin{align*}
-    \lambda &= \frac{64}{Re} + \frac{1}{(-2 \cdot \log (\frac{k}{3.71 \cdot d}))^2}\\
+    \lambda &= \frac{64}{Re} + \frac{1}{\left(-2 \cdot \log \left(\frac{k}{3.71 \cdot d}\right)\right)^2}\\
    \end{align*}
 
 
@@ -169,7 +169,7 @@ If *Prandtl-Colebrook* (also known as Colebrook-White) is selected, the friction
    :nowrap:
 
    \begin{align*}
-     \frac{1}{\sqrt{\lambda}} &= -2 \cdot \log (\frac{2.51}{Re \cdot \sqrt{\lambda}} + \frac{k}{3.71 \cdot d})\\
+     \frac{1}{\sqrt{\lambda}} &= -2 \cdot \log \left(\frac{2.51}{Re \cdot \sqrt{\lambda}} + \frac{k}{3.71 \cdot d}\right)\\
    \end{align*}
 
 Equations for pressure losses due to friction were taken from :cite:`Eberhard1990` and
@@ -182,7 +182,7 @@ The *Hofer-Equation* is an explicit approximation of the Prandtl-Colebrook metho
    :nowrap:
 
    \begin{align*}
-    \lambda_H &= \frac{1}{(-2 \log (\frac{4.518}{Re} \cdot \log (\frac{Re}{7}) + \frac{k}{3.71 \cdot d}))^2}\\
+    \lambda_H &= \frac{1}{(-2 \log \left(\frac{4.518}{Re} \cdot \log \left(\frac{Re}{7}) + \frac{k}{3.71 \cdot d}\right)\right)^2}\\
    \end{align*}
 
 Very small Reynolds numbers can lead to problems with the two nested log-functions.
@@ -200,7 +200,7 @@ zone of turbulent flows in pipes and is defined as follows:
    :nowrap:
 
    \begin{align*}
-    \lambda &= \frac{0.25}{(\log(\frac{k}{3.7 \cdot d} + \frac{5.74}{Re^{0.9}}))^2}\\
+    \lambda &= \frac{0.25}{\left(\log\left(\frac{k}{3.7 \cdot d} + \frac{5.74}{Re^{0.9}}\right)\right)^2}\\
    \end{align*}
 
 
