@@ -157,7 +157,7 @@ def calc_lambda_transition_area(lambda_laminar, lambda_turb, re, begin_transitio
 def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
     """
     Function calculates the friction factor of a pipe. Turbulence is calculated based on
-    Nikuradse. If v equals 0, a value of 0.001 is used in order to avoid division by zero.
+    Nikuradse. If m equals 0, a value of 0.001 is used in order to avoid division by zero.
     This should not be a problem as the pressure loss term will equal zero (lambda * u^2).
 
     :param m:
@@ -184,9 +184,8 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
     if options["use_numba"]:
         from pandapipes.pf.derivative_toolbox_numba import calc_lambda_nikuradse_incomp_numba as \
             calc_lambda_nikuradse_incomp, colebrook_numba as colebrook, \
-            calc_lambda_nikuradse_comp_numba as calc_lambda_nikuradse_comp
-        from pandapipes.pf.derivative_toolbox import calc_lambda_hofer_comp_np as calc_lambda_hofer_comp # numba version
-        # not yet implemented
+            calc_lambda_nikuradse_comp_numba as calc_lambda_nikuradse_comp, \
+            calc_lambda_hofer_comp_numba as calc_lambda_hofer_comp
     else:
         from pandapipes.pf.derivative_toolbox import calc_lambda_nikuradse_incomp_np as \
             calc_lambda_nikuradse_incomp, colebrook_np as colebrook, \
@@ -213,7 +212,7 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         lambda_swamee_jain = 0.25 / ((np.log10(k / (3.7 * d) + 5.74 / (re ** 0.9))) ** 2)
         return lambda_swamee_jain, re
     elif friction_model.lower() == "hofer":
-        re, lambda_hofer = calc_lambda_hofer_comp(m, d, k, eta, area)
+        re, lambda_laminar, lambda_hofer = calc_lambda_hofer_comp(m, d, k, eta, area)
         lambda_tot = calc_lambda_transition_area(lambda_laminar, lambda_hofer, re,
                                                  begin_transition_re=2000, end_transition_re=4000)
         return lambda_tot, re
@@ -251,7 +250,7 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     df_dm = np.zeros_like(m)
     df_dlambda = np.zeros_like(m)
     lambda_der = np.zeros_like(m)
-    pos = m != 0
+    pos = ~np.isclose(abs(m), 0)
 
     if friction_model.lower() in ["colebrook", "hofer"]: # hofer is explicit approximation of
         # colebrook

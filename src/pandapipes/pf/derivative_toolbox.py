@@ -110,7 +110,7 @@ def calc_lambda_hofer_comp_np(m, d, k, eta, area, hofer_re_threshold=2000):
     lambda_hofer = \
         np.divide(1, (-2 * np.log10((4.518/re_lower_lim) * np.log10(re_lower_lim/7) + (k / (3.71 * d)))) ** 2)
     lambda_hofer[re < hofer_re_threshold] = 0
-    return re, lambda_hofer
+    return re, lambda_laminar, lambda_hofer
 
 
 def calc_medium_pressure_with_derivative_np(p_init_i_abs, p_init_i1_abs):
