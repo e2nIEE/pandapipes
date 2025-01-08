@@ -202,11 +202,10 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit = branch_pit[f:t, :]
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
 
-        # Any MODE where TRETURN is given
-        mask_qr = consumer_array[:, cls.MODE] == cls.QE_TR
-        mask_ign = hc_pit[:, QEXT] == 0
-        mask = mask_qr & ~mask_ign
+        mask= consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask):
+            mask_ign = hc_pit[:, QEXT] == 0
+            mask = mask & ~mask_ign
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
             hc_pit[mask, JAC_DERIV_DTOUT] = 1
             hc_pit[mask, JAC_DERIV_DT] = 0
