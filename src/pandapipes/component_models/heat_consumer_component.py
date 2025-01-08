@@ -80,7 +80,6 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[:, FLOW_RETURN_CONNECT] = True
         mask_q0 = qext == 0 & np.isnan(mdot)
         if np.any(mask_q0):
-            hc_pit[mask_q0, ACTIVE] = False
             logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
                            r'Therefore, the defined temperature control cannot be maintained.' \
                     %net[cls.table_name()].index[mask_q0])
@@ -170,10 +169,12 @@ class HeatConsumer(BranchWZeroLengthComponent):
             t_out = hc_pit[:, TOUTINIT]
 
             df_dm = - cp * (t_out - t_in)
-            hc_pit[mask, LOAD_VEC_BRANCHES] = - hc_pit[mask, QEXT] + df_dm[mask] * hc_pit[mask, MDOTINIT]
             mask_equal = t_out == t_in
-            hc_pit[mask & mask_equal, MDOTINIT] = 0
-            hc_pit[mask & ~mask_equal, JAC_DERIV_DM] = df_dm[mask & ~mask_equal]
+            mask_zero = hc_pit[:, QEXT] == 0
+            mask_ign = mask_equal | mask_zero
+            hc_pit[mask & mask_ign, MDOTINIT] = 0
+            hc_pit[mask & ~mask_ign, JAC_DERIV_DM] = df_dm[mask & ~mask_ign]
+            hc_pit[mask, LOAD_VEC_BRANCHES] = - hc_pit[mask, QEXT] + df_dm[mask] * hc_pit[mask, MDOTINIT]
 
     @classmethod
     def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -202,7 +203,9 @@ class HeatConsumer(BranchWZeroLengthComponent):
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
 
         # Any MODE where TRETURN is given
-        mask = consumer_array[:, cls.MODE] == cls.QE_TR
+        mask_qr = consumer_array[:, cls.MODE] == cls.QE_TR
+        mask_ign = hc_pit[:, QEXT] == 0
+        mask = mask_qr & ~mask_ign
         if np.any(mask):
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
             hc_pit[mask, JAC_DERIV_DTOUT] = 1
