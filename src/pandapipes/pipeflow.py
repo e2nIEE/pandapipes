@@ -4,6 +4,7 @@
 
 import numpy as np
 from numpy import linalg
+import warnings
 from scipy.sparse.linalg import spsolve
 
 from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED
@@ -170,6 +171,13 @@ def hydraulics(net):
     # ---------------------------------------------------------------------------------------------
     net.converged = False
     reduce_pit(net, mode="hydraulics")
+    if hasattr(net, "_options") and "max_iter" in net._options.keys():
+        warnings.warn("The net option 'max_iter' is deprecated. Please use 'max_iter_hyd', 'max_iter_therm', "
+                      "or 'max_iter_bidirect' instead.",
+                      FutureWarning)
+        net._options["max_iter_hyd"] = max(net._options["max_iter_hyd"], net._options["max_iter"])
+        net._options["max_iter_therm"] = max(net._options["max_iter_therm"], net._options["max_iter"])
+        _ = net._options.pop("max_iter")
     if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
         net["_internal_data"] = dict()
     solver_vars = ['mdot', 'p', 'mdotslack']

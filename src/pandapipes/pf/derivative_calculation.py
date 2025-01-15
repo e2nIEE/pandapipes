@@ -156,24 +156,24 @@ def calc_lambda_transition_area(lambda_laminar, lambda_turb, re, begin_transitio
 
 def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
     """
-    Function calculates the friction factor of a pipe. Turbulence is calculated based on
-    Nikuradse. If m equals 0, a value of 0.001 is used in order to avoid division by zero.
-    This should not be a problem as the pressure loss term will equal zero (lambda * u^2).
+    Function calculates the friction factor of a pipe, considering laminar and turbulent flow.
+    Turbulence is calculated based on the friction model provided. If m equals 0, a value of 0.001 is used in order
+    to avoid division by zero. This should not be a problem as the pressure loss term will equal zero (lambda * u^2).
 
-    :param m:
+    :param m: mass flow rate
     :type m:
     :param eta:
     :type eta:
     :param rho:
     :type rho:
-    :param d:
+    :param d: inner pipe diameter
     :type d:
-    :param k:
+    :param k: roughness coefficient
     :type k:
     :param gas_mode:
     :type gas_mode:
-    :param friction_model:
-    :type friction_model:
+    :param friction_model: friction formula, one of "nikuradse", "colebrook", "hofer", "swamee-jain"
+    :type friction_model: str
     :param lengths:
     :type lengths:
     :param options:
@@ -225,8 +225,7 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
 def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     """
     Function calculates the derivative of lambda with respect to m (mass flow rate). Turbulence is
-    calculated based on Nikuradse. This should not be a problem as the pressure loss term will
-    equal zero (lambda * u^2).
+    calculated based on the friction model provided.
 
     :param m:
     :type m:

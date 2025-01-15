@@ -142,7 +142,7 @@ pipe sections.
 Friction models
 ^^^^^^^^^^^^^^^
 
-For friction models are available to calculate the velocity dependent friction factor :math:`\lambda`:
+Four friction models are available to calculate the velocity dependent friction factor :math:`\lambda`:
 
 - Nikuradse ("nikuradse")
 - Prandtl-Colebrook ("colebrook")

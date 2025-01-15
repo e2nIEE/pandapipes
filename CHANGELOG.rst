@@ -4,6 +4,9 @@ Change Log
 [upcoming release] - 2025-xx-xx
 -------------------------------
 - [ADDED] Hofer formula for friction factor "lambda"
+- [ADDED] deprecation warning for "max_iter" (use "max_iter_hyd" or "max_iter_therm" instead)
+- [CHANGED] default maximum iterations for hydraulic calculations now 30 instead of 10
+
 
 [0.11.0] - 2024-11-07
 -------------------------------

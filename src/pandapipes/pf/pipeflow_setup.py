@@ -33,8 +33,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
-                   "tol_T": 1e-3, "tol_res": 1e-3, "max_iter_hyd": 10, "max_iter_therm": 10, "max_iter_bidirect": 10,
+default_options = {"friction_model": "nikuradse",
+                   "tol_p": 1e-5, "tol_m": 1e-5, "tol_T": 1e-3, "tol_res": 1e-3,
+                   "max_iter_hyd": 30, "max_iter_therm": 10, "max_iter_bidirect": 10,
                    "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293.15, "check_connectivity": True,
@@ -235,7 +236,7 @@ def init_options(net, local_parameters):
                 calculation of the barometric formula
 
         - **friction_model** (str): "nikuradse" - The friction model that shall be used to identify\
-                the value for lambda (can be "nikuradse" or "colebrook")
+                the value for lambda (can be "nikuradse", "colebrook", "hofer", or "swamee-jain")
 
         - **alpha** (float): 1 - The step width for the Newton iterations. If the Newton steps \
                 shall be damped, **alpha** can be reduced. See also the **nonlinear_method** \
