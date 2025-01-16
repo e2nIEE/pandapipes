@@ -291,7 +291,8 @@ def solve_temperature(net):
     t_out_old = branch_pit[:, TOUTINIT].copy()
 
     if not check_infeed_number(node_pit):
-        return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], [np.nan]
+        return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], np.array([
+            np.nan])
 
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
