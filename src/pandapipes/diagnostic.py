@@ -133,6 +133,30 @@ def check_net(net, low_length_limit_km=0.01, check_scaling_factor=1e-5):
                 logger.warning(f"missing 'to' junctions:{missing_t}")
 
 
+def pipeflow_alpha_sweep(net, **kwargs):
+    """Run the pipeflow many times with different alpha (NR damping factor) settings between 0.1 and 1 in steps of 0.1"""
+    net.converged = False
+    alphas = [1]
+    for i in range(1, 10):
+        if i % 2 == 1:
+            alphas.append(round(1 - (i // 2) * 0.1, 1))
+        else:
+            alphas.append(round((i // 2) * 0.1, 1))
+    if kwargs is None:
+        kwargs = {}
+
+    for alpha in alphas:
+        kwargs.update({"alpha": alpha})
+        try:
+            pps.pipeflow(net, **kwargs)
+        except Exception as e:
+            logger.debug(f"Pipeflow did not converge with alpha = {alpha}.\nError: {e}")
+        if net.converged:
+            logger.info(f"Pipeflow did converge with alpha = {alpha}.")
+            return
+    logger.warn(f"Pipeflow did not converge with any alpha in {alphas}.")
+
+
 if __name__ == '__main__':
     import pandapipes.networks
     net = pandapipes.networks.schutterwald()
