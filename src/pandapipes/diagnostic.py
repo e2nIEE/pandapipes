@@ -155,15 +155,3 @@ def pipeflow_alpha_sweep(net, **kwargs):
             logger.info(f"Pipeflow did converge with alpha = {alpha}.")
             return
     logger.warn(f"Pipeflow did not converge with any alpha in {alphas}.")
-
-
-if __name__ == '__main__':
-    import pandapipes.networks
-    net = pandapipes.networks.schutterwald()
-    net.ext_grid.p_bar = 0.08
-    net.sink.loc[1505, "mdot_kg_per_s"] = 1000
-    try:
-        pandapipes.pipeflow(net)
-    except Exception as e:
-        print(f"pipeflow raised: \n {e}")
-    check_net(net)
