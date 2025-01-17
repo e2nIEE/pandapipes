@@ -148,10 +148,11 @@ def pipeflow_alpha_sweep(net, **kwargs):
     for alpha in alphas:
         kwargs.update({"alpha": alpha})
         try:
-            pps.pipeflow(net, **kwargs)
+            pp.pipeflow(net, **kwargs)
         except Exception as e:
             logger.debug(f"Pipeflow did not converge with alpha = {alpha}.\nError: {e}")
         if net.converged:
             logger.info(f"Pipeflow did converge with alpha = {alpha}.")
             return
-    logger.warn(f"Pipeflow did not converge with any alpha in {alphas}.")
+    logger.warning(f"Pipeflow did not converge with any alpha in {alphas}.")
+    
