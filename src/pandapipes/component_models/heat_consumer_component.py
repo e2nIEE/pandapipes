@@ -8,7 +8,7 @@ from numpy import dtype
 from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM, FROM_NODE,
+from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
                                    JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, FLOW_RETURN_CONNECT)
 from pandapipes.idx_node import TINIT
