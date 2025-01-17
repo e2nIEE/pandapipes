@@ -795,7 +795,8 @@ def check_infeed_number(node_pit):
         node_pit[slack_nodes, INFEED] = True
     infeed_nodes = node_pit[:, INFEED]
     if np.sum(infeed_nodes) != np.sum(slack_nodes):
-        raise PipeflowNotConverged(r'The number of infeeding nodes and slacks do not match')
+        return False
+    return True
 
 
 class PipeflowNotConverged(ppException):

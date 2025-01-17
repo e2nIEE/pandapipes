@@ -286,12 +286,15 @@ def solve_temperature(net):
     calculate_derivatives_thermal(net, branch_pit, node_pit, options)
     for comp in net['component_list']:
         comp.adaption_after_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
-    check_infeed_number(node_pit)
-
-    jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()
     t_out_old = branch_pit[:, TOUTINIT].copy()
+
+    if not check_infeed_number(node_pit):
+        return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], np.array([
+            np.nan])
+
+    jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     x = spsolve(jacobian, epsilon)
 
