@@ -77,16 +77,6 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
         mask_tr = ~np.isnan(treturn)
-        if np.any(mask_tr):
-            node_pit = net["_pit"]["node"]
-            fn = hc_pit[:, FROM_NODE].astype(int)
-            mask_err = treturn + 15 >= node_pit[fn, TINIT]
-            if np.any(mask_err):
-                logger.warning(r'The initial temperature of the following heat consumers %s '
-                               r'are below or close to their controlled return temperature. '
-                               r'This might cause a pipeflow failure. '
-                               r'Please adapt the initial temperature accordingly.'
-                               % net.heat_consumer.loc[mask_tr & mask_err].index.tolist())
         hc_pit[mask_tr, TOUTINIT] = treturn[mask_tr]
         hc_pit[:, FLOW_RETURN_CONNECT] = True
         mask_q0 = qext == 0 & np.isnan(mdot)
