@@ -10,7 +10,7 @@ from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, 
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
-                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE, FLOW_RETURN_CONNECT)
+                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, FLOW_RETURN_CONNECT)
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -76,7 +76,8 @@ class HeatConsumer(BranchWZeroLengthComponent):
         mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
-        hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
+        mask_tr = ~np.isnan(treturn)
+        hc_pit[mask_tr, TOUTINIT] = treturn[mask_tr]
         hc_pit[:, FLOW_RETURN_CONNECT] = True
         mask_q0 = qext == 0 & np.isnan(mdot)
         if np.any(mask_q0):
@@ -169,7 +170,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
             t_out = hc_pit[:, TOUTINIT]
 
             df_dm = - cp * (t_out - t_in)
-            mask_equal = t_out == t_in
+            mask_equal = t_out >= t_in
             mask_zero = hc_pit[:, QEXT] == 0
             mask_ign = mask_equal | mask_zero
             hc_pit[mask & mask_ign, MDOTINIT] = 0

@@ -86,7 +86,6 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
 
 
 def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
-    node_pit[:, INFEED] = False
     fluid = get_fluid(net)
     cp = get_branch_cp(fluid, node_pit, branch_pit)
     m_init_i = np.abs(branch_pit[:, MDOTINIT])
