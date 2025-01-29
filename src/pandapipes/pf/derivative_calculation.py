@@ -249,7 +249,7 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     df_dm = np.zeros_like(m)
     df_dlambda = np.zeros_like(m)
     lambda_der = np.zeros_like(m)
-    pos = ~np.isclose(abs(m), 0)
+    pos = ~np.isclose(m, 0)
 
     if friction_model.lower() in ["colebrook", "hofer"]: # hofer is explicit approximation of
         # colebrook

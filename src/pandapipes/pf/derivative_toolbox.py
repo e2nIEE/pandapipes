@@ -4,7 +4,6 @@
 
 import numpy as np
 from numpy import linalg
-from copy import deepcopy
 
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
@@ -104,12 +103,12 @@ def calc_lambda_hofer_comp_np(m, d, k, eta, area, hofer_re_threshold=2000):
         of pipelines). GWF–Gas/Erdgas, 114(3):113–119, 1973
     """
     lambda_laminar, re = calc_lambda_laminar(m, d, eta, area)
-    lambda_hofer = np.zeros_like(re)
-    re_lower_lim = deepcopy(re)
-    re_lower_lim[re < hofer_re_threshold] = hofer_re_threshold
-    lambda_hofer = \
-        np.divide(1, (-2 * np.log10((4.518/re_lower_lim) * np.log10(re_lower_lim/7) + (k / (3.71 * d)))) ** 2)
-    lambda_hofer[re < hofer_re_threshold] = 0
+    with np.errstate(invalid="ignore"):
+        lambda_hofer = np.where(
+            re >= hofer_re_threshold,
+            1 / (-2 * np.log10((4.518 / re) * np.log10(re / 7) + (k / (3.71 * d)))) ** 2,
+            0,
+        )
     return re, lambda_laminar, lambda_hofer
 
 
