@@ -10,7 +10,7 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, branch_cols, MDOTINIT, \
-    ACTIVE as ACTIVE_BR, FLOW_RETURN_CONNECT, ACTIVE, BRANCH_TYPE, CIRC
+    ACTIVE as ACTIVE_BR, FLOW_RETURN_CONNECT, BRANCH_TYPE, CIRC
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED
 from pandapipes.pf.internals_toolbox import _sum_by_group
@@ -296,8 +296,7 @@ def init_options(net, local_parameters):
         opts = _check_mode(opts)
         net["_options"].update(opts)
 
-
-    # the last layer is the layer of passeed parameters by the user, it is defined as the local
+    # the last layer is the layer of passed parameters by the user, it is defined as the local
     # existing parameters during the pipeflow call which diverges from the default parameters of the
     # function definition in the second layer
     params = dict()
@@ -319,6 +318,7 @@ def init_options(net, local_parameters):
             logger.info("numba is not installed. Install numba first before you set the 'use_numba'"
                         " flag to True. The pipeflow will be performed without numba speedup.")
         net["_options"]["use_numba"] = False
+
 
 def _iteration_check(opts):
     opts = copy.deepcopy(opts)
@@ -345,6 +345,7 @@ def _iteration_check(opts):
     opts.update(params)
     return opts
 
+
 def _check_mode(opts):
     opts = copy.deepcopy(opts)
     if 'mode' in opts and opts['mode'] == 'all':
@@ -353,6 +354,7 @@ def _check_mode(opts):
                        "For now 'all' is set equal to 'sequential'.")
         opts['mode'] = 'sequential'
     return opts
+
 
 def create_internal_results(net):
     """
@@ -629,7 +631,7 @@ def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_n
     if np.any(connect) and mode == 'hydraulics':
         from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-        branch_active = branch_pit[:, ACTIVE].astype(bool)
+        branch_active = branch_pit[:, ACTIVE_BR].astype(bool)
         active = nodes_connected[from_nodes] & nodes_connected[to_nodes] & branch_active
         branches_connected[connect & active] = True
     return nodes_connected, branches_connected

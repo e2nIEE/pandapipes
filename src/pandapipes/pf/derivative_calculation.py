@@ -154,6 +154,7 @@ def calc_lambda_transition_area(lambda_laminar, lambda_turb, re, begin_transitio
     lambda_tot[re >= end_transition_re] = lambda_turb[re >= end_transition_re]
     return lambda_tot
 
+
 def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
     """
     Function calculates the friction factor of a pipe, considering laminar and turbulent flow.
@@ -212,7 +213,7 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         lambda_swamee_jain = 0.25 / ((np.log10(k / (3.7 * d) + 5.74 / (re ** 0.9))) ** 2)
         return lambda_swamee_jain, re
     elif friction_model.lower() == "hofer":
-        re, lambda_laminar, lambda_hofer = calc_lambda_hofer_comp(m, d, k, eta, area)
+        re, lambda_laminar, lambda_hofer = calc_lambda_hofer_comp(m, d, k, eta, area, hofer_re_threshold=2000)
         lambda_tot = calc_lambda_transition_area(lambda_laminar, lambda_hofer, re,
                                                  begin_transition_re=2000, end_transition_re=4000)
         return lambda_tot, re

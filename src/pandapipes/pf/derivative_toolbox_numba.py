@@ -120,8 +120,8 @@ def calc_lambda_nikuradse_comp_numba(m, d, k, eta, area):
     return re, lambda_laminar, lambda_nikuradse
 
 
-@jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
-def calc_lambda_hofer_comp_numba(m, d, k, eta, area):
+@jit((float64[:], float64[:], float64[:], float64[:], float64[:], int64), nopython=True)
+def calc_lambda_hofer_comp_numba(m, d, k, eta, area, hofer_re_threshold=2000):
     """Calculate Lambda acc. to Hofer-Equation (explicit version of Colebrook) [1].
        Due to nested log10 operations, small Reynolds numbers must be avoided.
        It is justified because the laminar Lambda (instead of Hofer) will be applied for small
@@ -130,7 +130,6 @@ def calc_lambda_hofer_comp_numba(m, d, k, eta, area):
        [1]: P. Hofer. Beurteilung von Fehlern in Rohrnetzberechnungen (Error evaluation in calculation
            of pipelines). GWF–Gas/Erdgas, 114(3):113–119, 1973
        """
-    hofer_re_threshold = 2000
     lambda_hofer = np.zeros_like(m)
     lambda_laminar = np.zeros_like(m)
     re = np.empty_like(m)
