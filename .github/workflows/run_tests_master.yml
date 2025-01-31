@@ -20,27 +20,24 @@ jobs:
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install .["all"]
-        shell: bash
+        run: uv sync --extra test
       - name: List all installed packages
         run: |
-          python -m pip list
+          uv pip list
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.11' }}
         run: |
-          python -m pytest
+          uv run pytest -n auto
       - name: Test with pytest, Codecov and Coverage
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          python -m pip install pytest-cov
-          python -m pytest --nbmake -n=auto --cov=./ --cov-report=xml
+          uv pip install pytest-cov
+          uv run pytest --nbmake -n auto --cov=./ --cov-report=xml
           cp ./coverage.xml ./codecov_coverage.xml
       - name: Upload coverage to Codacy
         if: ${{ matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'}}
@@ -63,12 +60,6 @@ jobs:
             'pandapipes/networks/network_files/**'
             '**.yml'
             '**.rst'
-      - name: Test without numba
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          python -m pip uninstall numba -y
-          python -m pytest -n=auto
-
 
   relying:
     runs-on: ${{ matrix.os }}
@@ -78,29 +69,24 @@ jobs:
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install .["all"]
-        shell: bash
+          uv sync --extra test
+          uv pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
       - name: List all installed packages
         run: |
-          python -m pip list
+          uv pip list
       - name: Test with pytest
-        # if: ${{ matrix.python-version != '3.11' }}
+        if: ${{ matrix.python-version != '3.11' }}
         run: |
-          python -m pytest -n=auto
-      - name: Test without numba
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          python -m pip uninstall numba -y
-          python -m pytest -n=auto
+          uv run pytest -n auto
 
   tutorial_tests:
+    name: Tutorial tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -108,44 +94,34 @@ jobs:
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install .["all"]
-        shell: bash
+          uv sync --extra test --extra plotting
       - name: List all installed packages
         run: |
-          python -m pip list
+          uv pip list
       - name: Test with pytest
         run: |
-          python -m pytest --nbmake -n=auto "./tutorials"
+          uv run pytest --nbmake -n auto "./tutorials"
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          python -m pip uninstall numba -y
-          python -m pytest --nbmake -n=auto "./tutorials"
+          uv pip uninstall numba
+          uv run pytest --nbmake -n auto "./tutorials"
 
 
   docs_check:
+    name: Sphinx docs check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ '3.11' ]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Check sphinx build
+        uses: ammaraskar/sphinx-action@7.4.7
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Check docs for Python ${{ matrix.python-version }}
-        uses: e2nIEE/sphinx-action@master
-        with:
-          pre-build-command: "apt update && apt upgrade -y && apt install -y build-essential gfortran cmake pkg-config libopenblas-dev;
-            python -m pip install --upgrade pip;
-            python -m pip install .[docs];"
+          pre-build-command: "python -m pip install uv && uv pip install .[docs] --system --link-mode=copy"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"
