@@ -18,7 +18,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-_LIQUIDS = ["water"]
+_LIQUIDS = ["water", "PG25"]
 _GASES = ["air", "lgas", "hgas", "hydrogen", "methane", "biomethane_pure", "biomethane_treated"]
 
 
