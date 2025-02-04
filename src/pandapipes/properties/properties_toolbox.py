@@ -5,8 +5,9 @@
 import numpy as np
 
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import TOUTINIT, FROM_NODE_T, TO_NODE
+from pandapipes.idx_branch import TOUTINIT, TO_NODE
 from pandapipes.idx_node import TINIT, PINIT, PAMB
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 
 
 def calculate_mixture_viscosity(components_viscosities, components_molar_proportions,
@@ -149,7 +150,7 @@ def calculate_mass_fraction_from_molar_fraction(component_molar_proportions, com
 
 
 def get_branch_real_density(fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
+    from_nodes = get_from_nodes_corrected(branch_pit)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     if fluid.is_gas:
@@ -168,15 +169,15 @@ def get_branch_real_density(fluid, node_pit, branch_pit):
     return rho
 
 def get_branch_real_eta(fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
+    from_nodes = get_from_nodes_corrected(branch_pit)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
     eta = fluid.get_viscosity(tm)
     return eta
 
-def get_branch_cp(net, fluid, node_pit, branch_pit):
-    from_nodes = branch_pit[:, FROM_NODE_T].astype(np.int32)
+def get_branch_cp(fluid, node_pit, branch_pit):
+    from_nodes = get_from_nodes_corrected(branch_pit)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2

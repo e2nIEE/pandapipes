@@ -11,7 +11,7 @@ from pandapipes.pandapipes_net import pandapipesNet
 
 
 def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.15e-3,
-                      opened=True, loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293, qext_w=0.,
+                      opened=True, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293, qext_w=0.,
                       name=None, index=None, geodata=None, in_service=True, type="valve_pipe", **kwargs):
     """
     Creates a valve pipe element in net["valve_pipe"] from valve pipe parameters. In any case the
@@ -42,8 +42,8 @@ def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
+    :param u_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :type u_w_per_m2k: float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default 293
     :param qext_w: external heat feed-in to the pipe in [W]
@@ -83,7 +83,7 @@ def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": std_type, "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000,
          "k_mm": k_mm, "opened": opened, "loss_coefficient": loss_coefficient,
-         "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections, "in_service": bool(in_service), "type": type,
+         "u_w_per_m2k": u_w_per_m2k, "sections": sections, "in_service": bool(in_service), "type": type,
          "qext_w": qext_w, "text_k": text_k}
 
     _set_entries(net, "valve_pipe", index, **v, **kwargs)
@@ -95,7 +95,7 @@ def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm
 
 
 def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.15e-3,
-                                      opened=True, loss_coefficient=0, sections=1, alpha_w_per_m2k=0., text_k=293,
+                                      opened=True, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293,
                                       qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                       type="valve_pipe", **kwargs):
     """
@@ -126,8 +126,8 @@ def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
+    :param u_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :type u_w_per_m2k: float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default 293
     :param qext_w: external heat feed-in to the pipe in [W]
@@ -165,7 +165,7 @@ def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
          "opened": opened, "loss_coefficient": loss_coefficient,
-         "alpha_w_per_m2k": alpha_w_per_m2k, "sections": sections, "in_service": bool(in_service), "type": type,
+         "u_w_per_m2k": u_w_per_m2k, "sections": sections, "in_service": bool(in_service), "type": type,
          "qext_w": qext_w, "text_k": text_k}
 
     _set_entries(net, "valve_pipe", index, **v, **kwargs)

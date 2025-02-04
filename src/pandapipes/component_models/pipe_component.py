@@ -13,7 +13,7 @@ from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
     MDOTINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
 from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
-from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
+from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
 
@@ -112,7 +112,7 @@ class Pipe(BranchWInternalsComponent):
         set_entry_check_repeat(
             pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
         set_entry_check_repeat(
-            pipe_pit, ALPHA, net[tbl].alpha_w_per_m2k.values, internal_pipe_number, has_internals)
+            pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
         set_entry_check_repeat(
             pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
         set_entry_check_repeat(
@@ -122,6 +122,8 @@ class Pipe(BranchWInternalsComponent):
         set_entry_check_repeat(
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
 
+        nan_mask = np.isnan(pipe_pit[:, TEXT])
+        pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
         pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
         pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
 
@@ -131,26 +133,26 @@ class Pipe(BranchWInternalsComponent):
         res_nodes_from_ht = [("t_from_k", "temp_from")]
         res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
         res_nodes_to_ht = [("t_to_k", "temp_to")]
-        res_mean_hyd = [("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
-                        ("reynolds", "reynolds")]
+        res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds")]
+        res_branch_ht = [("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
             res_nodes_from_hyd.extend([("v_from_m_per_s", "v_gas_from"),
                                        ("normfactor_from", "normfactor_from")])
             res_nodes_to_hyd.extend([("v_to_m_per_s", "v_gas_to"),
                                      ("normfactor_to", "normfactor_to")])
-            res_mean_hyd.extend([("v_mean_m_per_s", "v_gas_mean")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_gas_mean"), ("vdot_norm_m3_per_s", "vf")])
         else:
-            res_mean_hyd.extend([("v_mean_m_per_s", "v_mps")])
+            res_mean_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
 
         if np.any(cls.get_internal_pipe_number(net) > 1):
             extract_branch_results_with_internals(
                 net, branch_results, cls.table_name(), res_nodes_from_hyd, res_nodes_from_ht,
-                res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, [],
+                res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, res_branch_ht, [],
                 cls.get_connected_node_type().table_name(), mode)
         else:
             required_results_hyd = res_nodes_from_hyd + res_nodes_to_hyd + res_mean_hyd
-            required_results_ht = res_nodes_from_ht + res_nodes_to_ht
+            required_results_ht = res_nodes_from_ht + res_nodes_to_ht + res_branch_ht
             extract_branch_results_without_internals(
                 net, branch_results, required_results_hyd, required_results_ht, cls.table_name(),
                 mode
@@ -264,7 +266,7 @@ class Pipe(BranchWInternalsComponent):
                 ("diameter_m", "f8"),
                 ("k_mm", "f8"),
                 ("loss_coefficient", "f8"),
-                ("alpha_w_per_m2k", 'f8'),
+                ("u_w_per_m2k", 'f8'),
                 ("text_k", 'f8'),
                 ("qext_w", 'f8'),
                 ("sections", "u4"),
@@ -292,12 +294,12 @@ class Pipe(BranchWInternalsComponent):
         """
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
-                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
                       "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds",
+            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
                       "lambda"]
         return output, True
 
