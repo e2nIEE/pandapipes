@@ -6,16 +6,15 @@ import numpy as np
 from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import (FROM_NODE, TO_NODE, FROM_NODE_T, TO_NODE_T, MDOTINIT, TOUTINIT,
-                                   MDOTINIT_T)
-from pandapipes.idx_node import PINIT, TINIT
+from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED
+from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import (calculate_derivatives_hydraulic,
                                                   calculate_derivatives_thermal)
 from pandapipes.pf.pipeflow_setup import (
     get_net_option, get_net_options, set_net_option, init_options, create_internal_results,
     write_internal_results, get_lookup, create_lookups, initialize_pit, reduce_pit,
-    set_user_pf_options, init_all_result_tables, identify_active_nodes_branches,
+    set_user_pf_options, init_all_result_tables, identify_active_nodes_branches, check_infeed_number,
     PipeflowNotConverged
 )
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
@@ -173,10 +172,10 @@ def hydraulics(net):
     reduce_pit(net, mode="hydraulics")
     if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
         net["_internal_data"] = dict()
-    solver_vars = ['mdot', 'p']
-    tol_p, tol_m = get_net_options(net, 'tol_m', 'tol_p')
-    newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p],
-                   ['branch', 'node'], 'max_iter_hyd')
+    solver_vars = ['mdot', 'p', 'mdotslack']
+    tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
+    newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p, tol_msl],
+                   ['branch', 'node', 'node'], 'max_iter_hyd')
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
 
@@ -247,13 +246,17 @@ def solve_hydraulics(net):
 
     m_init_old = branch_pit[:, MDOTINIT].copy()
     p_init_old = node_pit[:, PINIT].copy()
+    slack_nodes = np.where(node_pit[:, NODE_TYPE] == P)[0]
+    msl_init_old = node_pit[slack_nodes, MDOTSLACKINIT].copy()
 
     x = spsolve(jacobian, epsilon)
 
-    branch_pit[:, MDOTINIT] -= x[len(node_pit):]
+    branch_pit[:, MDOTINIT] -= x[len(node_pit):len(node_pit) + len(branch_pit)] * options["alpha"]
     node_pit[:, PINIT] -= x[:len(node_pit)] * options["alpha"]
+    node_pit[slack_nodes, MDOTSLACKINIT] -= x[len(node_pit) + len(branch_pit):]
 
-    return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old], epsilon
+    return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old, msl_init_old,
+            node_pit[slack_nodes, MDOTSLACKINIT]], epsilon
 
 
 def solve_temperature(net):
@@ -276,28 +279,27 @@ def solve_temperature(net):
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
     # to_node for temperature calculation
-    branch_pit[:, MDOTINIT_T] = branch_pit[:, MDOTINIT]
-    branch_pit[:, FROM_NODE_T] = branch_pit[:, FROM_NODE]
-    branch_pit[:, TO_NODE_T] = branch_pit[:, TO_NODE]
-    mask = branch_pit[:, MDOTINIT] < 0
-    branch_pit[mask, MDOTINIT_T] = -branch_pit[mask, MDOTINIT]
-    branch_pit[mask, FROM_NODE_T] = branch_pit[mask, TO_NODE]
-    branch_pit[mask, TO_NODE_T] = branch_pit[mask, FROM_NODE]
+    branch_pit[:, FROM_NODE_T_SWITCHED] = branch_pit[:, MDOTINIT] < 0
 
     for comp in net['component_list']:
         comp.adaption_before_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
     calculate_derivatives_thermal(net, branch_pit, node_pit, options)
     for comp in net['component_list']:
         comp.adaption_after_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
-    jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     t_init_old = node_pit[:, TINIT].copy()
     t_out_old = branch_pit[:, TOUTINIT].copy()
 
+    if not check_infeed_number(node_pit):
+        return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], np.array([
+            np.nan])
+
+    jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
+
     x = spsolve(jacobian, epsilon)
 
-    node_pit[:, TINIT] += x[:len(node_pit)] * options["alpha"]
-    branch_pit[:, TOUTINIT] += x[len(node_pit):]
+    node_pit[:, TINIT] -= x[:len(node_pit)] * options["alpha"]
+    branch_pit[:, TOUTINIT] -= x[len(node_pit):]
 
     return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], epsilon
 
@@ -344,9 +346,9 @@ def finalize_iteration(net, niter, residual_norm, nonlinear_method, errors, tols
             return
     elif nonlinear_method != "constant":
         logger.warning("No proper nonlinear method chosen. Using constant settings.")
-    converged = True
     for error, var, tol in zip(errors.values(), solver_vars, tols):
-        converged = converged and error[niter] <= tol
+        converged = error[niter] <= tol
+        if not converged: break
         logger.debug("error_%s: %s" % (var, error[niter]))
     net.converged = converged and residual_norm <= tol_res
 

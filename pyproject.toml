@@ -4,16 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pandapipes"
-version = "0.10.0"  # File format version '__format_version__' is tracked in __init__.py
+version = "0.12.0.dev1"  # File format version '__format_version__' is tracked in __init__.py
 authors=[
     { name = "Simon Ruben Drauz-Mauel", email = "simon.ruben.drauz-mauel@iee.fraunhofer.de" },
     { name = "Daniel Lohmeier", email = "daniel.lohmeier@retoflow.de" },
     { name = "Jolando Marius Kisse", email = "jolando.kisse@uni-kassel.de" }
 ]
 description = "A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids"
-readme = "README.md"
+readme = "README.rst"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -26,19 +26,19 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     # Add the specific Python versions supported here, e.g.:
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    "pandapower ~= 2.14.6",
+    "pandapower ~= 2.14.11",
     "matplotlib",
     "shapely",
 ]
 keywords = [
-    "network", "analysis", "optimization", "automation", "grid", "energy", "engineering", "simulation", "pipeflow", "pandapipes", "gas"
+    "network", "analysis", "optimization", "automation", "grid", "energy", "engineering",
+    "simulation", "pipeflow", "pandapipes", "gas"
 ]
 
 [project.urls]
@@ -51,13 +51,13 @@ Download = "https://pypi.org/project/pandapipes/#files"
 Changelog = "https://github.com/e2nIEE/pandapipes/blob/develop/CHANGELOG.rst"
 
 [project.optional-dependencies]
-docs = ["numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex", "sphinx-pyproject"]
+docs = ["numpydoc>=1.5.0", "sphinx>=5.3.0", "sphinx_rtd_theme>=1.1.1", "sphinxcontrib.bibtex>=2.5.0", "sphinx-pyproject"]
 plotting = ["plotly", "igraph"]
-test = ["pytest", "pytest-xdist", "nbmake"]
+test = ["pytest", "pytest-xdist", "pytest-split", "nbmake", "numba", "setuptools; python_version >= '3.12'"]
 all = [
-    "numpydoc", "sphinx", "sphinx_rtd_theme", "sphinxcontrib.bibtex",
+    "numpydoc>=1.5.0", "sphinx>=5.3.0", "sphinx_rtd_theme>=1.1.1", "sphinxcontrib.bibtex>=2.5.0", "sphinx-pyproject",
     "plotly", "igraph",
-    "pytest", "pytest-xdist", "nbmake"
+    "pytest", "pytest-xdist", "pytest-split", "nbmake", "numba","setuptools; python_version >= '3.12'"
 ]
 
 [tool.setuptools.packages.find]
