@@ -92,8 +92,8 @@ In gas flows, the velocity is typically not constant along a pipeline. For this 
 tables for pipes show more entries in comparison with the result tables for incompressible media.
 
 
-Temperature calculations (pipeflow option: mode = "sequential", mode = "bidrectional" or mode = "heat")
-=======================================================================================================
+Temperature calculations (pipeflow option: mode = "sequential", mode = "bidirectional" or mode = "heat")
+========================================================================================================
 
 Important parameters of the network main components (junctions and pipes) needed for the calculation
 are listed in the following table. The :ref:`component section <components>` of this manual contains

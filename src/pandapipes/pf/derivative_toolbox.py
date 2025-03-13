@@ -73,22 +73,43 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
     return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
-def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
+def calc_lambda_laminar(m, d, eta, area):
     m_abs = np.abs(m)
     re = np.divide(m_abs * d, eta * area)
     lambda_laminar = np.zeros_like(m)
     lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
+    return lambda_laminar, re
+
+
+def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
+    lambda_laminar, re = calc_lambda_laminar(m, d, eta, area)
     lambda_nikuradse = np.divide(1, (-2 * np.log10(k / (3.71 * d))) ** 2)
     return re, lambda_laminar, lambda_nikuradse
 
 
 def calc_lambda_nikuradse_comp_np(m, d, k, eta, area):
-    m_abs = np.abs(m)
-    re = np.divide(m_abs * d, eta * area)
-    lambda_laminar = np.zeros_like(m)
-    lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
+    lambda_laminar, re = calc_lambda_laminar(m, d, eta, area)
     lambda_nikuradse = np.divide(1, (2 * np.log10(d / k) + 1.14) ** 2)
     return re, lambda_laminar, lambda_nikuradse
+
+
+def calc_lambda_hofer_comp_np(m, d, k, eta, area, hofer_re_threshold=2000):
+    """Calculate Lambda acc. to Hofer-Equation (explicit version of Colebrook) [1].
+    Due to nested log10 operations, small Reynolds numbers must be avoided.
+    It is justified because the laminar Lambda (instead of Hofer) will be applied for small
+    Reynolds numbers anyway.
+
+    [1]: P. Hofer. Beurteilung von Fehlern in Rohrnetzberechnungen (Error evaluation in calculation
+        of pipelines). GWF–Gas/Erdgas, 114(3):113–119, 1973
+    """
+    lambda_laminar, re = calc_lambda_laminar(m, d, eta, area)
+    with np.errstate(invalid="ignore"):
+        lambda_hofer = np.where(
+            re >= hofer_re_threshold,
+            1 / (-2 * np.log10((4.518 / re) * np.log10(re / 7) + (k / (3.71 * d)))) ** 2,
+            0,
+        )
+    return re, lambda_laminar, lambda_hofer
 
 
 def calc_medium_pressure_with_derivative_np(p_init_i_abs, p_init_i1_abs):
