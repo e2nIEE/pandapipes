@@ -7,6 +7,7 @@ import json
 from copy import deepcopy
 from functools import partial
 from inspect import isclass
+from warnings import warn
 
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
@@ -41,7 +42,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     class_name = ''
     module_name = ''
 
-    def __init__(self, obj, d, ppipes_hook):
+    def __init__(self, obj, d, ppipes_hook, ignore_unknown_objects=False):
         """
 
         :param obj: object the data is written to
@@ -51,7 +52,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         :param ppipes_hook: a way how to handle non-default data
         :type ppipes_hook: funct
         """
-        super().__init__(obj, d, ppipes_hook)
+        super().__init__(obj, d, ppipes_hook, ignore_unknown_objects)
 
     @from_serializable.register(class_name="method")
     def method(self):
@@ -80,14 +81,26 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         except ModuleNotFoundError as e:
             if self.class_name in MODULE_CHANGES:
                 module = importlib.import_module(MODULE_CHANGES[self.class_name])
+            elif self.ignore_unknown_objects:
+                warn(f"Module {self.module_name} not found. Returning object as is.")
+                return json.loads(self.obj)
             else:
                 raise e
-        class_ = getattr(module, self.class_name)
+        try:
+            class_ = getattr(module, self.class_name)
+        except AttributeError as e:
+            if self.ignore_unknown_objects:
+                warn(f"Class {self.class_name} not found in module {self.module_name}. Returning object as is.")
+                return json.loads(self.obj)
+            else:
+                raise e
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
-                self.obj = json.loads(self.obj, cls=PPJSONDecoder,
-                                      object_hook=partial(pp_hook,
-                                                          registry_class=FromSerializableRegistryPpipe))
+                self.obj = json.loads(
+                    self.obj, cls=PPJSONDecoder,
+                    object_hook=partial(pp_hook, registry_class=FromSerializableRegistryPpipe,
+                                        ignore_unknown_objects=self.ignore_unknown_objects)
+                )
                 # backwards compatibility
             if "net" in self.obj:
                 del self.obj["net"]

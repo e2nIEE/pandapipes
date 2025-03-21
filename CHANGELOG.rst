@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[upcoming release] - 2025-..-..
+-------------------------------
+- [CHANGED] load JSON file with unknown objects as simple dicts is possible now
+
 [0.11.0] - 2024-11-07
 -------------------------------
 - [ADDED] heat_consumer plotting
