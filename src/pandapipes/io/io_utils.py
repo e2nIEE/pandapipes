@@ -41,7 +41,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     class_name = ''
     module_name = ''
 
-    def __init__(self, obj, d, ppipes_hook):
+    def __init__(self, obj, d, ppipes_hook, ignore_unknown_objects=False):
         """
 
         :param obj: object the data is written to
@@ -50,8 +50,10 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         :type d: any kind
         :param ppipes_hook: a way how to handle non-default data
         :type ppipes_hook: funct
+        :param ignore_unknown_objects: set if you want to ignore certain objects
+        :type ignore_unknown_objects: bool
         """
-        super().__init__(obj, d, ppipes_hook)
+        super().__init__(obj, d, ppipes_hook, ignore_unknown_objects)
 
     @from_serializable.register(class_name="method")
     def method(self):
