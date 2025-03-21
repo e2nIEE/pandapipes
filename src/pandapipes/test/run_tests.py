@@ -14,7 +14,6 @@ try:
     import coverage as cov
 except ImportError:
     pass
-from pandapower.test.run_tests import _get_cpus
 
 try:
     import pandaplan.core.pplog as logging
