@@ -40,14 +40,14 @@ def _get_test_dir(pp_module=None):
     return test_dir
 
 
-def run_tests(parallel=False, n_cpu=None, coverage=False):
+def run_tests(parallel=False, n_cpu='auto', coverage=False):
     """
     Function to execute all tests or the tests in a module.
 
     :param parallel: If true and pytest-xdist is installed, tests are run in parallel
     :type parallel: bool, default False
     :param n_cpu: number of CPUs to run the tests on in parallel. Only relevant for parallel runs.
-    :type n_cpu:int, default None
+    :type n_cpu: int, default 'auto'
     :param coverage: creates some coverage with coverage module
     :type coverage: bool, default False
     :return: No Output.
@@ -60,8 +60,6 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
         cov_tracker.start()
 
     if parallel:
-        if n_cpu is None:
-            n_cpu = _get_cpus()
         err = pytest.main([test_dir, "-xs", "-n", str(n_cpu)])
         if err == 4:
             raise ModuleNotFoundError("Parallel testing not possible. Please make sure that "
@@ -89,7 +87,7 @@ def run_tutorials(parallel=False, n_cpu=None):
     :param parallel: If true and pytest-xdist is installed, jupyter notebooks are run in parallel
     :type parallel: bool, default False
     :param n_cpu: number of CPUs to run the files on in parallel. Only relevant for parallel runs.
-    :type n_cpu: int, default None
+    :type n_cpu: int, default 'auto'
     :return: No return value.
     """
     try:
