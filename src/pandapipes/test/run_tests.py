@@ -5,6 +5,7 @@
 import os
 import shutil
 import tempfile
+from multiprocessing import cpu_count
 
 import pytest
 
@@ -14,7 +15,6 @@ try:
     import coverage as cov
 except ImportError:
     pass
-from pandapower.test.run_tests import _get_cpus
 
 try:
     import pandaplan.core.pplog as logging
@@ -28,6 +28,11 @@ logger = logging.getLogger()
 for handler in logger.handlers:
     logger.removeHandler(handler)
     logger.setLevel(logging.CRITICAL)
+
+
+def _get_cpus():
+    # returns of a string of all available CPUs - 1 or 1 if you only have one CPU
+    return str(cpu_count() - 1) if cpu_count() > 1 else str(1)
 
 
 def _get_test_dir(pp_module=None):
