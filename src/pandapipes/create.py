@@ -8,7 +8,7 @@ import pandas as pd
 from pandapower.auxiliary import _preserve_dtypes
 import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
-    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
+    _check_element, _check_multiple_elements, _set_multiple_entries, \
     _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
@@ -1790,11 +1790,11 @@ def create_fluid_from_lib(net, name, overwrite=True):
 
 
 def _check_multiple_junction_elements(net, junctions):
-    return _check_multiple_node_elements(net, junctions, node_table="junction", name="junctions")
+    return _check_multiple_elements(net, junctions, element="junction", name="junctions")
 
 
 def _check_junction_element(net, junction):
-    return _check_node_element(net, junction, node_table="junction")
+    return _check_element(net, junction, element="junction")
 
 
 def _check_branch(net, element_name, index, from_junction, to_junction):
