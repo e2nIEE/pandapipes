@@ -17,7 +17,8 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def build_igraph_from_ppipes(net, junctions=None):
+def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_km",
+                             edge_factories=None):
     """
     This function uses the igraph library to create an igraph graph for a given pandapipes network.
     Any branch component is respected.
@@ -44,21 +45,35 @@ def build_igraph_from_ppipes(net, junctions=None):
                           "`conda install igraph` "
                           "or from https://www.lfd.uci.edu/~gohlke/pythonlibs")
     g = ig.Graph(directed=True)
-    junction_index = net.junction.index if junctions is None else np.array(junctions)
+    junction_index = net.junction.index.to_numpy() if junctions is None else np.array(junctions)
     nr_junctions = len(junction_index)
     g.add_vertices(nr_junctions)
     g.vs["label"] = list(junction_index)
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
     for comp in net['component_list']:
-        if not issubclass(comp, BranchComponent):
+        if edge_factories is not None and comp.table_name() in edge_factories:
+            edge_factories[comp.table_name()](net, g, pp_junction_mapping)
+            continue
+        if not issubclass(comp, BranchComponent) or net[comp.table_name()].empty:
             continue
         fjc, tjc = comp.from_to_node_cols()
         mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
-        for comp_data in net[comp.table_name()][mask].itertuples():
-            weight = 0.001 if 'length_km' not in dir(comp_data) else getattr(comp_data, 'length_km')
-            g.add_edge(pp_junction_mapping[getattr(comp_data, fjc)], pp_junction_mapping[getattr(comp_data, tjc)],
-                       weight=weight)
+        fj = net[comp.table_name()][fjc].to_numpy()[mask]
+        tj = net[comp.table_name()][tjc].to_numpy()[mask]
+        if len(fj) == 0:
+            continue
+        if isinstance(weight_column_lookup, dict):
+            weight_col = weight_column_lookup.get(comp.table_name(), "length_km")
+        else:
+            weight_col = weight_column_lookup
+        if weight_col in net[comp.table_name()].columns:
+            weights = net[comp.table_name()].loc[mask, "length_km"].to_numpy()
+        else:
+            weights = np.ones(len(fj)) * 0.001
+
+        g.add_edges([[pp_junction_mapping[fj], pp_junction_mapping[tj]] for (fj, tj) in zip(fj, tj)],
+                    {"weight": weights})
 
     meshed = _igraph_meshed(g)
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]
@@ -66,7 +81,7 @@ def build_igraph_from_ppipes(net, junctions=None):
 
 
 def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="junction_geodata",
-                               junctions=None, overwrite=False):
+                               junctions=None, overwrite=False, **kwargs):
     """
     This function will add arbitrary geo-coordinates for all junctions based on an analysis of
     branches and rings. It will remove out of service junctions/pipes from the net. The coordinates
@@ -90,7 +105,7 @@ def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="ju
     _prepare_geodata_table(net, geodata_table, overwrite)
 
     if library == "igraph":
-        graph, meshed, roots = build_igraph_from_ppipes(net, junctions=junctions)
+        graph, meshed, roots = build_igraph_from_ppipes(net, junctions=junctions, **kwargs)
         coords = coords_from_igraph(graph, roots, meshed)
     elif library == "networkx":
         logger.warning("The networkx implementation is not working currently!")
