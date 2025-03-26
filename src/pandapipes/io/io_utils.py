@@ -3,19 +3,19 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import importlib
+import inspect
 import json
 from copy import deepcopy
 from functools import partial
 from inspect import isclass
 from warnings import warn
 
-from pandapower.io_utils import pp_hook
-from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
-    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
-
 from pandapipes.component_models.abstract_models.branch_models import Component
 from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
+from pandapower.io_utils import pp_hook
+from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
+    isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
 try:
     import pandaplan.core.pplog as logging
@@ -52,7 +52,12 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         :param ppipes_hook: a way how to handle non-default data
         :type ppipes_hook: funct
         """
-        super().__init__(obj, d, ppipes_hook, ignore_unknown_objects)
+        # for pandapower version < 3.0.0, ignore_unknown_objects is not passed
+        if "ignore_unknown_objects" in inspect.signature(super().__init__).parameters:
+            super().__init__(obj, d, ppipes_hook, ignore_unknown_objects=ignore_unknown_objects)
+        else:
+            super().__init__(obj, d, ppipes_hook)
+            self.ignore_unknown_objects = ignore_unknown_objects
 
     @from_serializable.register(class_name="method")
     def method(self):
