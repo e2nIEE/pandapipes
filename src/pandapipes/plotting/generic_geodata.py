@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_km",
-                             edge_factories=None):
+                             edge_factories_override=None, additional_edge_factories=None):
     """
     This function uses the igraph library to create an igraph graph for a given pandapipes network.
     Any branch component is respected.
@@ -52,8 +52,8 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
     for comp in net['component_list']:
-        if edge_factories is not None and comp.table_name() in edge_factories:
-            edge_factories[comp.table_name()](net, g, pp_junction_mapping)
+        if edge_factories_override is not None and comp.table_name() in edge_factories_override:
+            edge_factories_override[comp.table_name()](net, g, pp_junction_mapping, junction_index)
             continue
         if not issubclass(comp, BranchComponent) or net[comp.table_name()].empty:
             continue
@@ -74,6 +74,9 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
 
         g.add_edges([[pp_junction_mapping[fj], pp_junction_mapping[tj]] for (fj, tj) in zip(fj, tj)],
                     {"weight": weights})
+
+    for tbl, edge_factory in additional_edge_factories.items():
+        edge_factory(net, g, pp_junction_mapping, junction_index)
 
     meshed = _igraph_meshed(g)
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]
