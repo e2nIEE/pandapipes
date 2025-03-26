@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_km",
-                             edge_factories_override=None, additional_edge_factories=None):
+                             edge_factories_override=None, additional_edge_factories=None,
+                             exclude_elements=(), ignore_in_service_elements=()):
     """
     This function uses the igraph library to create an igraph graph for a given pandapipes network.
     Any branch component is respected.
@@ -52,23 +53,29 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
     pp_junction_mapping = dict(list(zip(junction_index, list(range(nr_junctions)))))
 
     for comp in net['component_list']:
-        if edge_factories_override is not None and comp.table_name() in edge_factories_override:
-            edge_factories_override[comp.table_name()](net, g, pp_junction_mapping, junction_index)
+        tbl = comp.table_name()
+        if tbl in exclude_elements:
             continue
-        if not issubclass(comp, BranchComponent) or net[comp.table_name()].empty:
+        if edge_factories_override is not None and tbl in edge_factories_override:
+            edge_factories_override[tbl](net, g, pp_junction_mapping, junction_index)
+            continue
+        if not issubclass(comp, BranchComponent) or net[tbl].empty:
             continue
         fjc, tjc = comp.from_to_node_cols()
-        mask = _get_element_mask_from_nodes(net, comp.table_name(), [fjc, tjc], junctions)
-        fj = net[comp.table_name()][fjc].to_numpy()[mask]
-        tj = net[comp.table_name()][tjc].to_numpy()[mask]
+        mask = _get_element_mask_from_nodes(net, tbl, [fjc, tjc], junctions)
+        if tbl not in ignore_in_service_elements:
+            active_col = comp.active_identifier()
+            mask &= net[tbl][active_col].to_numpy()
+        fj = net[tbl][fjc].to_numpy()[mask]
+        tj = net[tbl][tjc].to_numpy()[mask]
         if len(fj) == 0:
             continue
         if isinstance(weight_column_lookup, dict):
-            weight_col = weight_column_lookup.get(comp.table_name(), "length_km")
+            weight_col = weight_column_lookup.get(tbl, "length_km")
         else:
             weight_col = weight_column_lookup
-        if weight_col in net[comp.table_name()].columns:
-            weights = net[comp.table_name()].loc[mask, "length_km"].to_numpy()
+        if weight_col in net[tbl].columns:
+            weights = net[tbl][weight_col].to_numpy()[mask]
         else:
             weights = np.ones(len(fj)) * 0.001
 
