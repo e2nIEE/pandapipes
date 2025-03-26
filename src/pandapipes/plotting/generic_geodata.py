@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_km",
                              edge_factories_override=None, additional_edge_factories=None,
-                             exclude_elements=(), ignore_in_service_elements=()):
+                             exclude_branch_elements=(), ignore_in_service_branch_elements=()):
     """
     This function uses the igraph library to create an igraph graph for a given pandapipes network.
     Any branch component is respected.
@@ -54,7 +54,7 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
 
     for comp in net['component_list']:
         tbl = comp.table_name()
-        if tbl in exclude_elements:
+        if tbl in exclude_branch_elements:
             continue
         if edge_factories_override is not None and tbl in edge_factories_override:
             edge_factories_override[tbl](net, g, pp_junction_mapping, junction_index)
@@ -63,7 +63,7 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
             continue
         fjc, tjc = comp.from_to_node_cols()
         mask = _get_element_mask_from_nodes(net, tbl, [fjc, tjc], junctions)
-        if tbl not in ignore_in_service_elements:
+        if tbl not in ignore_in_service_branch_elements:
             active_col = comp.active_identifier()
             mask &= net[tbl][active_col].to_numpy()
         fj = net[tbl][fjc].to_numpy()[mask]
