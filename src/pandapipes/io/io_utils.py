@@ -101,10 +101,12 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 raise e
         if isclass(class_) and issubclass(class_, JSONSerializableClass):
             if isinstance(self.obj, str):
+                partial_args = {"registry_class": FromSerializableRegistryPpipe,}
+                if inspect.signature(pp_hook).parameters.get("ignore_unknown_objects"):
+                    partial_args["ignore_unknown_objects"] = self.ignore_unknown_objects
                 self.obj = json.loads(
                     self.obj, cls=PPJSONDecoder,
-                    object_hook=partial(pp_hook, registry_class=FromSerializableRegistryPpipe,
-                                        ignore_unknown_objects=self.ignore_unknown_objects)
+                    object_hook=partial(pp_hook, **partial_args)
                 )
                 # backwards compatibility
             if "net" in self.obj:
