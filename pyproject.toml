@@ -32,7 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    "pandapower ~= 3.1",
+    "pandapower >= 3.0",
     "matplotlib",
     "shapely",
 ]
