@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 
 import pandapipes
+from pandapipes.properties import get_fluid
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.component_models.component_toolbox import vrange
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
@@ -74,7 +76,7 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
         add_info["stanet_layer"] = node_table.LAYER.values.astype(str)
     temperatures = pd.Series(net_params["medium_temp_K"], index=node_table.index, dtype=np.float64)
     eg_ind = ((node_table.FSTATUS == '?') & (node_table.DSTATUS == '!')).values
-    eg_temps = node_table.loc[eg_ind, "TMESS"].values + 273.15
+    eg_temps = node_table.loc[eg_ind, "TMESS"].values.astype(float) + 273.15
     if net_params["calculate_temp"]:
         temperatures.loc[eg_ind] = eg_temps
     else:
@@ -91,7 +93,7 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
         stanet_active=node_table.ISACTIVE.values.astype(np.bool_),
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE], **add_info)
     for eg_junc, p_bar, t_k in zip(junction_indices[eg_ind], eg_press, eg_temps):
-        pandapipes.create_ext_grid(net, eg_junc, p_bar, t_k, type="pt",
+        pandapipes.create_ext_grid(net, eg_junc, float(p_bar), float(t_k), type="pt",
                                    stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE])
     index_mapping["nodes"] = dict(zip(stanet_nrs, junction_indices))
 
@@ -137,6 +139,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         add_info = dict()
         if add_layers:
             add_info["stanet_layer"] = str(row.LAYER)
+            add_info["construction_year"] = int(row.BAUJAHR) if 'BAUJAHR' in row else np.nan
         if stanet_like_valves:
             create_valve_pipe_from_parameters(
                 net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
@@ -246,9 +249,9 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers,
         if any(slider_valves.DM == 0):
             logger.warning(f"{sum(slider_valves.DM == 0)} sliders have an inner diameter of 0 m! "
                            f"The diameter will be set to 1 m.")
-            slider_valves.DM[slider_valves.DM == 0] = 1e3
+            slider_valves.loc[slider_valves.DM == 0, 'DM'] = 1e3
         pandapipes.create_valves(
-            net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
+            net, from_junctions, to_junctions, slider_valves.DM.values.astype(float) / 1000,
             opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
             loss_coefficient=slider_valves.ZETA.values, name=slider_valves.STANETID.values,
             type="slider_valve_" + valve_system,
@@ -321,6 +324,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     """
     if "controllers" not in stored_data:
         return
+    fluid = get_fluid(net)
     logger.info("Creating control components.")
     control_table = stored_data["controllers"]
     node_mapping = index_mapping["nodes"]
@@ -342,15 +346,24 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         logger.warning("There is an error in the control table! Please check the columns 'OFFEN',"
                        " 'ZU' and 'AKTIV', which should only contain 'J' or 'N'.")
 
-    control_active = (control_table.AKTIV.values == "J").astype(np.bool_)
-    if consider_controlled:
-        control_active &= ~fully_open
-    in_service = control_table.ISACTIVE.values.astype(np.bool_)
+    in_service = (control_table.AKTIV.values != "N").astype(np.bool_)
+    in_service &= control_table.ISACTIVE.values.astype(np.bool_)
     if consider_controlled:
         in_service &= ~(control_table.ZU.values == "J")
 
+    control_active = np.ones(len(control_table), dtype=bool)
+    if consider_controlled:
+        control_active &= ~fully_open
+
+    #todo: after implementing a new pressure controller RTYP should replace RSTATUS
+    is_nan = pd.isnull(control_table.RTYP.values)
+    is_pc_stat = control_table.RSTATUS.values[is_nan] == "P"
+    is_fc_stat = control_table.RSTATUS.values[is_nan] == "Q"
     is_pc = control_table.RTYP.values == "P"
     is_fc = control_table.RTYP.values == "Q"
+    is_pc[is_nan] |= is_pc_stat
+    is_fc[is_nan] |= is_fc_stat
+
     if not np.all(is_pc | is_fc):
         raise UserWarning("There are controllers of types %s that cannot be converted!" \
                                   % set(control_table.RTYP.values[~is_pc & ~is_fc]))
@@ -377,8 +390,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
             stanet_is_closed=fully_closed[is_pc],
             stanet_flow_kgps=flow[is_pc],
             stanet_active=control_table.ISACTIVE.values[is_pc].astype(np.bool_),
-            **add_info
-        )
+            max_mdot_kg_per_s=control_table.QSOLL.values[is_pc].astype(float) / 3600 * fluid.get_density(NORMAL_TEMPERATURE),
+            **add_info)
 
         drop_eg = net.ext_grid.loc[net.ext_grid.junction.isin(to_junctions[is_pc])].index
         net.ext_grid.drop(drop_eg, inplace=True)
@@ -563,15 +576,15 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
                          pipe_data.loc[pipe_nums, "ANFNR"].values[previous_different])
     con_to = np.insert(cons.RECNO.values, next_different_num + 1,
                        pipe_data.loc[pipe_nums, "ENDNR"].values[next_different])
-    vm_from = np.insert(cons.VMB.values, next_different_num, cons.VMA.values[next_different_num])
-    vm_to = np.insert(cons.VMA.values, next_different_num, cons.VMB.values[next_different_num])
+    vm_from = np.insert(cons.VMB.values.astype(float), next_different_num, cons.VMA.values[next_different_num].astype(float),)
+    vm_to = np.insert(cons.VMA.values.astype(float), next_different_num, cons.VMB.values[next_different_num].astype(float),)
     vm = (vm_from + vm_to) / 2
 
     pipe_sections = pd.DataFrame({
         "SNUM": pipe_numbers, "rel_length": rel_lengths, "start_pos": start_pos, "end_pos": end_pos,
         "from_type": type_from, "to_type": type_to, "from_node": con_from, "to_node": con_to,
         "full_geo": pipe_geodata.loc[pipe_numbers], "vm": vm,
-        "length": rel_lengths * pipe_data.RORL.loc[pipe_numbers].values,
+        "length": rel_lengths * pipe_data.RORL.loc[pipe_numbers].values.astype(float),
         "aux": np.ones(len(pipe_numbers), dtype=np.int32)
     })
     pipe_sections["section_no"] = pipe_sections.groupby("SNUM").aux.cumsum()
@@ -591,6 +604,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = pipes.LAYER.values.astype(str)
+        add_info["construction_year"] = pipes.BAUJAHR.values.astype(np.int32) if 'BAUJAHR' in pipes else np.nan
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
     text_k = 293
     if "TU" in pipes.columns:
@@ -600,7 +614,7 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         alpha = pipes.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
-        pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
+        pipes.DM.values.astype(float) / 1000, pipes.RAU.values.astype(float), pipes.ZETA.values.astype(float), type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
         u_w_per_m2k=alpha,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
@@ -723,6 +737,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = p_tbl.LAYER.values.astype(str)
+        add_info["construction_year"] = p_tbl.BAUJAHR.values.astype(np.int32) if 'BAUJAHR' in p_tbl else np.nan
     text_k = 293
     if "TU" in p_tbl.columns:
         text_k = p_tbl.TU.values.astype(np.float64) + 273.15
@@ -1044,6 +1059,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = hp_data.LAYER.values.astype(str)
+        add_info["construction_year"] = hp_data.BAUJAHR.values.astype(np.int32) if 'BAUJAHR' in hp_data else np.nan
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
     text_k = 293
     if "TU" in hp_data.columns:
