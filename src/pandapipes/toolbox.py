@@ -30,7 +30,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def nets_equal(net1, net2, check_only_results=False, exclude_elms=None, **kwargs):
+def nets_equal(net1, net2, check_only_results=False, exclude_elms=None, assume_geojson_strings=True, **kwargs):
     """
     Compares the DataFrames of two networks.
 
@@ -77,7 +77,8 @@ def nets_equal(net1, net2, check_only_results=False, exclude_elms=None, **kwargs
 
                 if isinstance(net1[df_name], pd.DataFrame) and isinstance(net2[df_name],
                                                                           pd.DataFrame):
-                    frames_equal = dataframes_equal(net1[df_name], net2[df_name], **kwargs)
+                    frames_equal = dataframes_equal(net1[df_name], net2[df_name],
+                                                    assume_geojson_strings=assume_geojson_strings, **kwargs)
                     eq &= frames_equal
 
                     if not frames_equal:
