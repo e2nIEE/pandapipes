@@ -51,11 +51,11 @@ Download = "https://pypi.org/project/pandapipes/#files"
 Changelog = "https://github.com/e2nIEE/pandapipes/blob/develop/CHANGELOG.rst"
 
 [project.optional-dependencies]
-docs = ["numpydoc>=1.5.0", "sphinx>=5.3.0", "sphinx_rtd_theme>=1.1.1", "sphinxcontrib.bibtex>=2.5.0", "sphinx-pyproject"]
+docs = ["numpydoc>=1.5.0", "sphinx>=5.3.0", "sphinx_rtd_theme>=1.1.1", "sphinxcontrib-bibtex>=2.5.0", "sphinx-pyproject"]
 plotting = ["plotly", "igraph"]
 test = ["pytest", "pytest-xdist", "pytest-split", "nbmake", "numba", "setuptools; python_version >= '3.12'"]
 all = [
-    "numpydoc>=1.5.0", "sphinx>=5.3.0", "sphinx_rtd_theme>=1.1.1", "sphinxcontrib.bibtex>=2.5.0", "sphinx-pyproject",
+    "numpydoc>=1.5.0", "sphinx>=5.3.0", "sphinx_rtd_theme>=1.1.1", "sphinxcontrib-bibtex>=2.5.0", "sphinx-pyproject",
     "plotly", "igraph",
     "pytest", "pytest-xdist", "pytest-split", "nbmake", "numba","setuptools; python_version >= '3.12'"
 ]
