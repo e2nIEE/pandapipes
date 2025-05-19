@@ -8,8 +8,7 @@ import pandas as pd
 from pandapower.auxiliary import _preserve_dtypes
 import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
-    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
-    _check_branch_element, _check_multiple_branch_elements
+    _set_multiple_entries, _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
     CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, Compressor, MassStorage
@@ -1692,7 +1691,7 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coeff
     _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
+               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
     return index
@@ -1763,7 +1762,7 @@ def create_heat_consumers(net, from_junctions, to_junctions, qext_w=None, contro
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
-               "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
+               "treturn_k": treturn_k, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "heat_consumer", index, **entries, **kwargs)
     return index
 
@@ -1789,12 +1788,17 @@ def create_fluid_from_lib(net, name, overwrite=True):
     _add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
 
 
-def _check_multiple_junction_elements(net, junctions):
-    return _check_multiple_node_elements(net, junctions, node_table="junction", name="junctions")
+def _check_multiple_junction_elements(net, nodes, node_table="junction", name="junctions"):
+    if np.any(~np.isin(nodes, net[node_table].index.values)):
+        node_not_exist = set(nodes) - set(net[node_table].index.values)
+        raise UserWarning("Cannot attach to %s %s, they do not exist" % (name, node_not_exist))
+    # return _check_multiple_node_elements(net, junctions, node_table="junction", name="junctions")
 
 
-def _check_junction_element(net, junction):
-    return _check_node_element(net, junction, node_table="junction")
+def _check_junction_element(net, node, node_table="junction"):
+    if node not in net[node_table].index.values:
+        raise UserWarning("Cannot attach to %s %s, %s does not exist" % (node_table, node, node_table))
+    # return _check_node_element(net, junction, node_table="junction")
 
 
 def _check_branch(net, element_name, index, from_junction, to_junction):

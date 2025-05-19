@@ -42,6 +42,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                    weighting_pumps=None,
                    include_flow_controls=True, respect_status_flow_controls=True,
                    weighting_flow_controls=None,
+                   include_heat_consumers=True, respect_status_heat_consumers=True,
+                   weighting_heat_consumers=None,
                    respect_status_junctions=True, nogojunctions=None, notravjunctions=None, multi=True,
                    respect_status_branches_all=None, **kwargs):
     """
@@ -114,7 +116,7 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc)) for par in branch_kw
                           for bc in ["pipes", "valves", "pumps", "press_controls",
                                      "mass_circ_pumps", "pressure_circ_pumps", "valve_pipes",
-                                     "flow_controls"]})
+                                     "flow_controls", "heat_consumers"]})
 
     for comp in net.component_list:
         if not issubclass(comp, BranchComponent):
