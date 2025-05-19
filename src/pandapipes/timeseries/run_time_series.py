@@ -5,12 +5,14 @@
 import tempfile
 
 from pandapower.control import NetCalculationNotConverged
-
-from pandapipes.pipeflow import PipeflowNotConverged, pipeflow
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.output_writer import OutputWriter
-from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup,\
-    run_loop
+from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup, \
+    run_loop, print_progress, run_time_step, _call_output_writer
+
+from pandapipes.control import run_control
+from pandapipes.pf.pipeflow_setup import set_user_pf_options
+from pandapipes.pipeflow import PipeflowNotConverged, pipeflow
 
 try:
     import pandaplan.core.pplog as logging
@@ -97,6 +99,28 @@ def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True
     return ts_variables
 
 
+def initialize_time_step(net, time_step, ts_variables, simulation_args):
+    if "transient" in simulation_args:
+        simulation_args["simulation_time_step"] = list(ts_variables["time_steps"]).index(time_step)
+
+
+def run_loop(net, ts_variables, run_control_fct=run_control, output_writer_fct=_call_output_writer, **kwargs):
+    """
+    runs the time series loop which calls pp.runpp (or another run function) in each iteration
+
+    Parameters
+    ----------
+    net - pandapower net
+    ts_variables - settings for time series
+
+    """
+    for i, time_step in enumerate(ts_variables["time_steps"]):
+        print_progress(i, time_step, ts_variables["time_steps"], ts_variables["verbose"], ts_variables=ts_variables,
+                       **kwargs)
+        initialize_time_step(net, time_step, ts_variables, kwargs)
+        run_time_step(net, time_step, ts_variables, run_control_fct, output_writer_fct, **kwargs)
+
+
 def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=True, **kwargs):
     """
     Time Series main function
@@ -120,7 +144,10 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :return: No output
     """
     ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
-
+    # A bad fix, need to sequence better - before the controllers are activated!
+    if "dt" in kwargs:
+        set_user_pf_options(net, dt=kwargs["dt"])
+    # net['_options']['dt'] = kwargs['dt']
     control_diagnostic(net)
     run_loop(net, ts_variables, **kwargs)
 

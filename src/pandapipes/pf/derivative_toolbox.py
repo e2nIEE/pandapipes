@@ -33,7 +33,7 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
     df_dp1 = np.ones_like(der_lambda) * (-1)
 
     df_dm_nodes = np.ones_like(der_lambda)
-    
+
     load_vec_nodes_from = branch_pit[:, MDOTINIT]
     load_vec_nodes_to = branch_pit[:, MDOTINIT]
 

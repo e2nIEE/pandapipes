@@ -225,3 +225,7 @@ def get_component_array(net, component_name, component_type="branch", mode='hydr
     f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
     in_service_elm = get_lookup(net, component_type, "active_%s"%mode)[f_all:t_all]
     return net["_pit"]["components"][component_name][in_service_elm]
+
+
+def get_std_type_lookup(net, table_name):
+    return np.array(list(net.std_types[table_name].keys()))
