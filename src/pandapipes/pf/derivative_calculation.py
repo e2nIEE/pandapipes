@@ -158,7 +158,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
             if np.any(mask):
                 branch_pit[mask, LOAD_VEC_BRANCHES_T] = (
                         rho[mask] * area[mask] * cp[mask] * (t_init_i1[mask] - tvor[mask]) * (1 / delta_t)
-                        - alpha[mask] * (t_amb[mask] - t_init_i1[mask])
+                        - alpha[mask] * (t_amb[mask] - t_init_i1[mask]) + qext[mask]
                 )
                 branch_pit[mask, JAC_DERIV_DT] = 0
                 branch_pit[mask, JAC_DERIV_DTOUT] = (rho[mask] * area[mask] * cp[mask] / delta_t +
