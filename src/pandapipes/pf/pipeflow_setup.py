@@ -97,12 +97,6 @@ def set_net_option(net, option_name, option_value):
     net["_options"][option_name] = option_value
 
 
-def warn_high_index(element_name, element_length, max_element_index):
-    if (element_length > 100 and max_element_index > 1000 * element_length) \
-            or (element_length <= 100 and max_element_index > 50000):
-        logger.warning("High index in %s table!!!" % element_name)
-
-
 def add_table_lookup(table_lookup, table_name, table_number):
     """
     Auxiliary function to add a lookup between table name in the pandapipes net and table number in

@@ -136,7 +136,8 @@ def get_pressures_numba(node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
 
 
 @jit(nopython=True)
-def get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to, p_abs_mean, v_mps):
+def get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,
+                      p_abs_mean, v_mps):
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         [np.empty_like(v_mps) for _ in range(6)]
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
@@ -315,10 +316,3 @@ def extract_results_active_pit(net, mode="hydraulics"):
         net["_pit"]["branch"][~branches_connected, TEXT]
     net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
         net["_active_pit"]["branch"][:, copied_branch_cols]
-
-
-def consider_heat(mode, results=None):
-    consider_ = mode in ["heat", 'sequential', 'bidirectional']
-    if results is None:
-        return consider_
-    return consider_ and any(r[2] for r in results)
