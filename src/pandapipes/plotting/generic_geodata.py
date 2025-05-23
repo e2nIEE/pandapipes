@@ -82,8 +82,9 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
         g.add_edges([[pp_junction_mapping[fj], pp_junction_mapping[tj]] for (fj, tj) in zip(fj, tj)],
                     {"weight": weights})
 
-    for tbl, edge_factory in additional_edge_factories.items():
-        edge_factory(net, g, pp_junction_mapping, junction_index)
+    if additional_edge_factories is not None:
+        for tbl, edge_factory in additional_edge_factories.items():
+            edge_factory(net, g, pp_junction_mapping, junction_index)
 
     meshed = _igraph_meshed(g)
     roots = [pp_junction_mapping[s] for s in net.ext_grid.junction.values if s in junction_index]
