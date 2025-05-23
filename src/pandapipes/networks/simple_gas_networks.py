@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+import warnings
 
 from pandapipes import pp_dir, drop_junctions
 from pandapipes.io.file_io import from_json
@@ -236,6 +237,12 @@ def gas_2eg_hnet(method="nikuradse"):
 
 # -------------- Schutterwald network --------------
 def schutterwald(include_houses=True, max_length_house_conn_m=None):
+    warnings.warn("Please use the method schutterwald_gas in future, as a heat network with the"
+                  " same name exists by now.", DeprecationWarning, stacklevel=2)
+    return schutterwald_gas(include_houses, max_length_house_conn_m)
+
+
+def schutterwald_gas(include_houses=True, max_length_house_conn_m=None):
     """
     Load natural gas distribution network for a town in the MV Oberrhein region (cf. pandapower).
 
