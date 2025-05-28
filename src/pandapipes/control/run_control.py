@@ -44,6 +44,3 @@ def prepare_run_ctrl(net, ctrl_variables, **kwargs):
     ctrl_variables["errors"] = (PipeflowNotConverged,)  # has to be a tuple
 
     return ctrl_variables
-
-
-
