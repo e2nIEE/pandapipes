@@ -83,13 +83,14 @@ class BranchWOInternalsComponent(BranchComponent):
         """
         branch_wo_internals_pit, node_pit, from_nodes, to_nodes \
             = super().create_pit_branch_entries(net, branch_pit)
-        branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
-        branch_wo_internals_pit[:, FROM_NODE] = from_nodes
-        branch_wo_internals_pit[:, TO_NODE] = to_nodes
-        branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             branch_wo_internals_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
-        branch_wo_internals_pit[:, T_OUT_OLD] = branch_wo_internals_pit[:, TOUTINIT]
+            branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
+            branch_wo_internals_pit[:, FROM_NODE] = from_nodes
+            branch_wo_internals_pit[:, TO_NODE] = to_nodes
+            branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
+        if get_net_option(net, "transient"):
+            branch_wo_internals_pit[:, T_OUT_OLD] = branch_wo_internals_pit[:, TOUTINIT]
         return branch_wo_internals_pit
 
     @classmethod

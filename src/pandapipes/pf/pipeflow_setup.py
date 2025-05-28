@@ -50,7 +50,7 @@ default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
                    "max_iter_colebrook": 10, "only_update_hydraulic_matrix": False,
                    "reuse_internal_data": False, "use_numba": True,
                    "quit_on_inconsistency_connectivity": False, "calc_compression_power": True,
-                   "transient": False, "simulation_time_step": 0, "dt": 60}
+                   "transient": False, "dt": None}
 
 
 def get_net_option(net, option_name):
@@ -396,11 +396,11 @@ def initialize_pit(net):
     :rtype: tuple(np.array)
 
     """
-    if get_net_option(net, "transient") and get_net_option(net, "simulation_time_step") != 0:
-        pit = net["_pit"]
-    else:
+    if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
         create_lookups(net)
         pit = create_empty_pit(net)
+    else:
+        pit = net["_pit"]
 
     for comp in net['component_list']:
         comp.create_pit_node_entries(net, pit["node"])
@@ -566,14 +566,11 @@ def identify_active_nodes_branches(net, hydraulic=True):
             fn = branch_pit[:, FROM_NODE].astype(np.int32)
             tn = branch_pit[:, TO_NODE].astype(np.int32)
             branches_zero = branches_zero_flow(branch_pit)
-            fn_tn, flow, sum_br = _sum_by_group(
-                get_net_option(net, "use_numba"),
-                np.concatenate([fn[branches_connected], tn[branches_connected]]),
-                np.concatenate([branches_zero[branches_connected], branches_zero[branches_connected]]).astype(np.int32),
-                np.ones(len(fn[branches_connected]) * 2, dtype=np.int32),
-            )
-            nodes_zero = np.copy(nodes_connected)
-            nodes_zero[fn_tn] = nodes_zero[fn_tn] & np.isclose(flow, sum_br, rtol=1e-10, atol=1e-3)
+            connected_branches_not_zero = branches_connected & ~branches_zero
+            nodes_zero = ~np.isin(
+                np.arange(len(nodes_connected)),
+                np.concatenate([fn[connected_branches_not_zero], tn[connected_branches_not_zero]])
+            ) & nodes_connected
             net["_lookups"]["node_zero_flow"] = nodes_zero
             net["_lookups"]["branch_zero_flow"] = branches_zero
     mode = "hydraulics" if hydraulic else "heat_transfer"

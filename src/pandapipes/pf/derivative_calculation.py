@@ -120,10 +120,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
     no_cp = branch_pit[:, BRANCH_TYPE] != CIRC
-    infeed_node = np.setdiff1d(from_nodes[no_cp], to_nodes[no_cp])
-
-    node_pit[:, INFEED] = False
-    node_pit[infeed_node, INFEED] = True
+    infeed_node = None
 
     node_pit[:, LOAD_T] = node_pit[:, LOAD] * cp_n * t_init_n + node_pit[:, MDOTSLACKINIT] * cp_n * t_init_n
     node_pit[:, JAC_DERIV_DT_LOAD] = - node_pit[:, LOAD] * cp_n
@@ -213,9 +210,6 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
             to_nodes_not_zero = to_nodes[no_cp & ~nodes_zero_fl[to_nodes]]
             infeed_node = np.setdiff1d(from_nodes_not_zero, to_nodes_not_zero)
 
-            node_pit[:, INFEED] = False
-            node_pit[infeed_node, INFEED] = True
-
     else:
         t_m = (t_init_i1 + t_init_i) / 2
         m_m = (m_init_i + m_init_i1) / 2
@@ -224,6 +218,11 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
         branch_pit[:, JAC_DERIV_DTOUT] = cp * m_m + alpha / 2 * length
         branch_pit[:, LOAD_VEC_BRANCHES_T] = cp * m_m * (-t_init_i + t_init_i1 - tl) - alpha * (
                     t_amb - t_m) * length + qext
+
+    if infeed_node is None:
+        infeed_node = np.setdiff1d(from_nodes[no_cp], to_nodes[no_cp])
+    node_pit[:, INFEED] = False
+    node_pit[infeed_node, INFEED] = True
 
     # This approach can be used if you consider the effect of sources with given temperature (checkout issue #656)
 
