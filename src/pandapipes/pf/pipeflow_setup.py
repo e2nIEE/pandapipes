@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import copy
-import inspect
 
 import numpy as np
 from pandapower.auxiliary import ppException
@@ -280,82 +279,57 @@ def init_options(net, local_parameters):
         >>> init_options(net)
 
     """
-    from pandapipes.pipeflow import pipeflow
+    opts = {
+        # Base layer: default options (lowest priority)
+        **default_options,
+        # Middle layer: network-level options (overrides defaults)
+        **net.user_pf_options,
+        # Top layer: call-specific parameters (highest priority)
+        **local_parameters,
+    }
 
-    # the base layer of the options consists of the default options
-    net["_options"] = copy.deepcopy(default_options)
-    excluded_params = {"net", "interactive_plotting", "t_start", "sol_vec", "kwargs"}
-
-    # the base layer is overwritten and extended by options given by the default parameters of the
-    # pipeflow function definition
-    args_pf = inspect.getfullargspec(pipeflow)
-    pf_func_options = dict(zip(args_pf.args[-len(args_pf.defaults):], args_pf.defaults))
-    pf_func_options = {k: pf_func_options[k] for k in set(pf_func_options.keys()) - excluded_params}
-    net["_options"].update(pf_func_options)
-
-    # the third layer is the user defined pipeflow options
-    if "user_pf_options" in net and len(net.user_pf_options) > 0:
-        opts = _iteration_check(net.user_pf_options)
-        opts = _check_mode(opts)
-        net["_options"].update(opts)
-
-
-    # the last layer is the layer of passed parameters by the user, it is defined as the local
-    # existing parameters during the pipeflow call which diverges from the default parameters of the
-    # function definition in the second layer
-    params = dict()
-    for k, v in local_parameters.items():
-        if k in excluded_params or (k in pf_func_options and pf_func_options[k] == v):
-            continue
-        params[k] = v
-
-    opts = _iteration_check(local_parameters["kwargs"])
-    opts = _check_mode(opts)
-    params.update(opts)
-    net["_options"].update(params)
-    net["_options"]["fluid"] = get_fluid(net).name
-    if not net["_options"]["only_update_hydraulic_matrix"]:
-        net["_options"]["reuse_internal_data"] = False
-
+    if not opts["only_update_hydraulic_matrix"]:
+        opts["reuse_internal_data"] = False
     if not numba_installed:
-        if net["_options"]["use_numba"]:
-            logger.info("numba is not installed. Install numba first before you set the 'use_numba'"
-                        " flag to True. The pipeflow will be performed without numba speedup.")
-        net["_options"]["use_numba"] = False
+        if opts["use_numba"]:
+            logger.info(
+                "numba is not installed. Install numba first before you set the 'use_numba'"
+                " flag to True. The pipeflow will be performed without numba speedup."
+            )
+        opts["use_numba"] = False
+    opts["fluid"] = get_fluid.name
+
+    net["_options"] = opts
+
 
 def _iteration_check(opts):
-    opts = copy.deepcopy(opts)
-    iter_defined = False
-    params = dict()
-    if 'iter' in opts:
-        params['max_iter_hyd'] = params['max_iter_therm'] = params['max_iter_bidirect'] = opts["iter"]
-        iter_defined = True
-    if 'max_iter_hyd' in opts:
-        max_iter_hyd = opts["max_iter_hyd"]
-        if iter_defined: logger.info("You defined 'iter' and 'max_iter_hyd. "
-                                     "'max_iter_hyd' will overwrite 'iter'")
-        params['max_iter_hyd'] = max_iter_hyd
-    if 'max_iter_therm' in opts:
-        max_iter_therm = opts["max_iter_therm"]
-        if iter_defined: logger.info("You defined 'iter' and 'max_iter_therm. "
-                                     "'max_iter_therm' will overwrite 'iter'")
-        params['max_iter_therm'] = max_iter_therm
-    if 'max_iter_bidirect' in opts:
-        max_iter_bidirect = opts["max_iter_bidirect"]
-        if iter_defined: logger.info("You defined 'iter' and 'max_iter_bidirect. "
-                                     "'max_iter_bidirect' will overwrite 'iter'")
-        params['max_iter_bidirect'] = max_iter_bidirect
-    opts.update(params)
-    return opts
+    modes = "hyd", "therm", "bidirect"
+    iter_key = "iter"
+    n_iter = opts.get(iter_key, None)
+    for mode in modes:
+        key = f"max_iter_{mode}"
+
+        if n_iter is not None:
+            # if both defined
+            if key in opts:
+                logger.info(f"Overwriting {iter_key!r} with {key!r}")
+            else:
+                opts[key] = n_iter
+        # none defined
+        elif key not in opts:
+            msg = f"Missing required parameter: {key!r}"
+            raise RuntimeError(msg)
+
 
 def _check_mode(opts):
-    opts = copy.deepcopy(opts)
-    if 'mode' in opts and opts['mode'] == 'all':
-        logger.warning("mode 'all' is deprecated and will be removed in a future release. "
-                       "Use 'sequential' or 'bidirectional' instead. "
-                       "For now 'all' is set equal to 'sequential'.")
-        opts['mode'] = 'sequential'
-    return opts
+    mode = opts.get("mode", None)
+    if mode == "all":
+        logger.warning(
+            "mode 'all' is deprecated and will be removed in a future release. "
+            "Use 'sequential' or 'bidirectional' instead. "
+            "For now 'all' is set equal to 'sequential'."
+        )
+        opts["mode"] = "sequential"
 
 def create_internal_results(net):
     """
