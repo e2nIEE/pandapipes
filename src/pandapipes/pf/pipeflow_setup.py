@@ -279,16 +279,22 @@ def init_options(net, **kwargs):
 
     """
     user_pf_options = net.get("user_pf_options", {})
-    default_opts, user_pf_options, kwargs = map(copy.deepcopy, (default_options, user_pf_options, kwargs))
-    *_, = map(_iteration_check, (user_pf_options, kwargs))
+
+    # prevent mutations
+    default_options_copy = copy.deepcopy(default_options)
+    user_pf_options_copy = copy.deepcopy(user_pf_options)
+    kwargs_copy = copy.deepcopy(kwargs)
+
+    for obj in (user_pf_options_copy, kwargs_copy):
+        _iteration_check(obj)
 
     opts = {
         # Base layer: default options (lowest priority)
-        **default_opts,
-        # Middle layer: network-level options (overrides defaults)
-        **user_pf_options,
+        **default_options_copy,
+        # Middle layer: net options (overrides defaults)
+        **user_pf_options_copy,
         # Top layer: call-specific parameters (highest priority)
-        **kwargs,
+        **kwargs_copy,
     }
 
     keys_to_exclude = {"interactive_plotting", "t_start"}
@@ -339,7 +345,7 @@ def _mode_check(opts):
             "mode 'all' is deprecated and will be removed in a future release. "
             "Use 'sequential' or 'bidirectional' instead. "
             "For now 'all' is set equal to 'sequential'.",
-            FutureWarning
+            FutureWarning,
         )
         opts["mode"] = "sequential"
 
