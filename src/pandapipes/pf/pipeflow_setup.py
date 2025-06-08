@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import copy
-import warnings
 
 import numpy as np
 from pandapower.auxiliary import ppException
@@ -305,10 +304,9 @@ def init_options(net, **kwargs):
         opts["reuse_internal_data"] = False
     if not numba_installed:
         if opts["use_numba"]:
-            warnings.warn(
+            logger.info(
                 "numba is not installed. Install numba first before you set the 'use_numba'"
                 " flag to True. The pipeflow will be performed without numba speedup.",
-                UserWarning,
             )
         opts["use_numba"] = False
     opts["fluid"] = get_fluid(net).name
@@ -330,9 +328,8 @@ def _iteration_check(opts):
         if n_iter is not None:
             # if both defined
             if key in opts:
-                warnings.warn(
-                    f"Overwriting {iter_key!r} with {key!r}",
-                    UserWarning,
+                logger.info(
+                    f"{key!r} will overwrite {iter_key!r}",
                 )
             else:
                 opts[key] = n_iter
@@ -340,11 +337,10 @@ def _iteration_check(opts):
 
 def _mode_check(opts):
     if opts["mode"] == "all":
-        warnings.warn(
+        logger.warning(
             "mode 'all' is deprecated and will be removed in a future release. "
             "Use 'sequential' or 'bidirectional' instead. "
             "For now 'all' is set equal to 'sequential'.",
-            FutureWarning,
         )
         opts["mode"] = "sequential"
 

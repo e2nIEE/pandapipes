@@ -136,9 +136,7 @@ def test_mixed_sources(curr_mode):
     modes = {"max_iter_hyd", "max_iter_therm", "max_iter_bidirect"} - {curr_mode}
     opts = {"iter": 5, curr_mode: 10}
 
-    with pytest.warns(UserWarning, match="Overwriting"):
-        _iteration_check(opts)
-
+    _iteration_check(opts)
     assert opts[curr_mode] == 10
     for mode in modes:
         assert opts[mode] == 5
