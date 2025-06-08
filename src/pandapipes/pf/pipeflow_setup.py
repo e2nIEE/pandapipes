@@ -339,8 +339,7 @@ def _iteration_check(opts):
 
 
 def _mode_check(opts):
-    mode = opts.get("mode", None)
-    if mode == "all":
+    if opts["mode"] == "all":
         warnings.warn(
             "mode 'all' is deprecated and will be removed in a future release. "
             "Use 'sequential' or 'bidirectional' instead. "
