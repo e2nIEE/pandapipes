@@ -284,8 +284,8 @@ def init_options(net, **kwargs):
     user_pf_options_copy = copy.deepcopy(user_pf_options)
     kwargs_copy = copy.deepcopy(kwargs)
 
-    for obj in (user_pf_options_copy, kwargs_copy):
-        _iteration_check(obj)
+    for options in (user_pf_options_copy, kwargs_copy):
+        _iteration_check(options)
 
     opts = {
         # Base layer: default options (lowest priority)
