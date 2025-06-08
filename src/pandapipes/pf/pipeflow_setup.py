@@ -210,7 +210,7 @@ def set_user_pf_options(net, reset=False, **kwargs):
     net.user_pf_options.update(kwargs)
 
 
-def init_options(net, local_parameters):
+def init_options(net, **kwargs):
     """
     Initializes physical and mathematical constants included in pandapipes. In addition, options
     for the nonlinear and time-dependent solver are also set.
@@ -272,22 +272,28 @@ def init_options(net, local_parameters):
 
     :param net: The pandapipesNet for which the options are initialized
     :type net: pandapipesNet
-    :param local_parameters: Dictionary with local parameters that were passed to the pipeflow call.
-    :type local_parameters: dict
     :return: No output
 
     :Example:
         >>> init_options(net)
 
     """
+    user_pf_options = net.get("user_pf_options", {})
+    default_opts, *aux_opts = map(copy.deepcopy, (default_options, user_pf_options, kwargs))
+    user_pf_options, kwargs = map(_iteration_check, aux_opts)
+
     opts = {
         # Base layer: default options (lowest priority)
-        **default_options,
+        **default_opts,
         # Middle layer: network-level options (overrides defaults)
-        **net.user_pf_options,
+        **user_pf_options,
         # Top layer: call-specific parameters (highest priority)
-        **local_parameters,
+        **kwargs,
     }
+
+    keys_to_exclude = {"interactive_plotting", "t_start"}
+    for k in keys_to_exclude:
+        opts.pop(k, None)
 
     if not opts["only_update_hydraulic_matrix"]:
         opts["reuse_internal_data"] = False
@@ -299,12 +305,16 @@ def init_options(net, local_parameters):
                 UserWarning,
             )
         opts["use_numba"] = False
-    opts["fluid"] = get_fluid.name
+    opts["fluid"] = get_fluid(net).name
+    _mode_check(opts)
 
     net["_options"] = opts
 
 
 def _iteration_check(opts):
+    if not opts:
+        return opts
+
     modes = "hyd", "therm", "bidirect"
     iter_key = "iter"
     n_iter = opts.get(iter_key, None)
@@ -320,13 +330,10 @@ def _iteration_check(opts):
                 )
             else:
                 opts[key] = n_iter
-        # none defined
-        elif key not in opts:
-            msg = f"Missing required parameter: {key!r}"
-            raise RuntimeError(msg)
+    return opts
 
 
-def _check_mode(opts):
+def _mode_check(opts):
     mode = opts.get("mode", None)
     if mode == "all":
         warnings.warn(
