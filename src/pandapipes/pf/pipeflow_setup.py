@@ -279,8 +279,8 @@ def init_options(net, **kwargs):
 
     """
     user_pf_options = net.get("user_pf_options", {})
-    default_opts, *aux_opts = map(copy.deepcopy, (default_options, user_pf_options, kwargs))
-    user_pf_options, kwargs = map(_iteration_check, aux_opts)
+    default_opts, user_pf_options, kwargs = map(copy.deepcopy, (default_options, user_pf_options, kwargs))
+    *_, = map(_iteration_check, (user_pf_options, kwargs))
 
     opts = {
         # Base layer: default options (lowest priority)
@@ -313,7 +313,7 @@ def init_options(net, **kwargs):
 
 def _iteration_check(opts):
     if not opts:
-        return opts
+        return
 
     modes = "hyd", "therm", "bidirect"
     iter_key = "iter"
@@ -330,7 +330,6 @@ def _iteration_check(opts):
                 )
             else:
                 opts[key] = n_iter
-    return opts
 
 
 def _mode_check(opts):
