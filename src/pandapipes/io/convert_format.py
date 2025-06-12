@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from packaging import version
+import numpy as np
 
 from pandapipes import __format_version__, __version__
 from pandapipes.pandapipes_net import add_default_components
@@ -60,6 +61,10 @@ def _rename_columns(net):
 
 
 def _add_missing_columns(net):
+    if "v_max_m_per_s" not in net.pipe:
+        net.pipe["v_max_m_per_s"] = np.nan
+    if "deltap_max_bar" not in net.pipe:
+        net.pipe["deltap_max_bar"] = np.nan
     if "initial_run" not in net.controller:
         net.controller.insert(4, 'initial_run', False)
         for _, ctrl in net.controller.iterrows():

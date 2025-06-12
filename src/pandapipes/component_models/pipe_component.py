@@ -11,7 +11,7 @@ from pandapipes.component_models.component_toolbox import set_entry_check_repeat
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
 from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, \
-    MDOTINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC
+    MDOTINIT, ALPHA, QEXT, TEXT, LOSS_COEFFICIENT as LC, V_MAX
 from pandapipes.idx_node import PINIT, TINIT as TINIT_NODE, PAMB
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
@@ -121,6 +121,8 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit, D, net[tbl].diameter_m.values, internal_pipe_number, has_internals)
         set_entry_check_repeat(
             pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
+        set_entry_check_repeat(
+            pipe_pit, V_MAX, net[tbl].v_max_m_per_s.values, internal_pipe_number, has_internals)
 
         nan_mask = np.isnan(pipe_pit[:, TEXT])
         pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
@@ -134,7 +136,11 @@ class Pipe(BranchWInternalsComponent):
         res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
         res_nodes_to_ht = [("t_to_k", "temp_to")]
         res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds")]
-        res_branch_ht = [("t_outlet_k", "t_outlet")]
+        diam_opt = get_net_option(net, 'diam_opt')
+        if diam_opt:
+            res_branch_ht = [("t_outlet_k", "t_outlet"), ("d_opt_m", "d_opt")]
+        else:
+            res_branch_ht = [("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
             res_nodes_from_hyd.extend([("v_from_m_per_s", "v_gas_from"),
@@ -270,6 +276,8 @@ class Pipe(BranchWInternalsComponent):
                 ("text_k", 'f8'),
                 ("qext_w", 'f8'),
                 ("sections", "u4"),
+                ("v_max_m_per_s", "f8"),
+                ("deltap_max_bar", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
 
@@ -292,15 +300,27 @@ class Pipe(BranchWInternalsComponent):
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
-                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
-                      "normfactor_to"]
+        diam_opt = get_net_option(net, 'diam_opt')
+        if diam_opt:
+            if get_fluid(net).is_gas:
+                output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                          "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                          "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                          "normfactor_to", "d_opt_m"]
+            else:
+                output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
+                          "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
+                          "lambda", "d_opt_m"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
-                      "lambda"]
+            if get_fluid(net).is_gas:
+                output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar",
+                          "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                          "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                          "normfactor_to"]
+            else:
+                output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
+                          "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
+                          "lambda"]
         return output, True
 
     @classmethod

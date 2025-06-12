@@ -8,12 +8,12 @@ from numpy import linalg
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, TOUTINIT, FROM_NODE
+    MDOTINIT, TOUTINIT, FROM_NODE, DELTAP_MAX
 from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE
 
 
 def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                    height_difference, rho):
+                                    height_difference, rho, diam_opt):
     # Formulas for pressure loss in incompressible flow
     # Use medium density ((rho_from + rho_to) / 2) for Darcy Weisbach according to
     # https://www.schweizer-fn.de/rohr/rohrleitung/rohrleitung.php#fluessigkeiten
@@ -24,24 +24,27 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
     friction_term = np.divide(branch_pit[:, LENGTH] * branch_pit[:, LAMBDA], branch_pit[:, D]) + branch_pit[:, LC]
     const_term = np.divide(1, branch_pit[:, AREA] ** 2 * rho * P_CONVERSION * 2)
 
-    df_dm = - const_term * (2 * m_init_abs * friction_term + der_lambda
-                            * np.divide(branch_pit[:, LENGTH], branch_pit[:, D]) * m_init2)
-
     load_vec = p_diff + branch_pit[:, PL] + const_height - const_term * m_init2 * friction_term
 
+    df_dm = - const_term * (2 * m_init_abs * friction_term + der_lambda
+                            * np.divide(branch_pit[:, LENGTH], branch_pit[:, D]) * m_init2)
     df_dp = np.ones_like(der_lambda)
     df_dp1 = np.ones_like(der_lambda) * (-1)
-
-    df_dm_nodes = np.ones_like(der_lambda)
 
     load_vec_nodes_from = branch_pit[:, MDOTINIT]
     load_vec_nodes_to = branch_pit[:, MDOTINIT]
 
+    df_dm_nodes = np.ones_like(der_lambda)
+
+    if diam_opt:
+        const_term = np.divide(16, np.pi * rho * P_CONVERSION * 2)
+        load_vec_d = branch_pit[:, DELTAP_MAX] - const_term * m_init2 * friction_term
+        df_dm_d = - m_init2 * const_term
     return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
 def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                  height_difference, comp_fact, der_comp, der_comp1, rho, rho_n):
+                                  height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, diam_opt):
     # Formulas for gas pressure loss according to laminar version
     m_init_abs = np.abs(branch_pit[:, MDOTINIT])
     m_init2 = branch_pit[:, MDOTINIT] * m_init_abs
@@ -69,6 +72,8 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
 
     load_vec_nodes_from = branch_pit[:, MDOTINIT]
     load_vec_nodes_to = branch_pit[:, MDOTINIT]
+    if diam_opt:
+        pass
 
     return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 

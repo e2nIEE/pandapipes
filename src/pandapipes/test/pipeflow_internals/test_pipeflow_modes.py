@@ -16,6 +16,7 @@ from pandapipes.idx_node import PINIT
 
 from pandapipes.properties import get_fluid
 from pandapipes.test import data_path
+from pandapipes.networks import schutterwald_gas, schutterwald_heat
 
 
 @pytest.fixture
@@ -118,3 +119,19 @@ def test_heat_only(use_numba):
     temp_diff = np.abs(1 - temp_net / temp_ntw)
 
     assert np.all(temp_diff < 0.01)
+
+@pytest.mark.parametrize("net", [schutterwald_gas, schutterwald_heat])
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_diam_opt_v(net, use_numba):
+    net = net()
+    net.pipe.v_max_m_per_s = 0.2
+    iteration = 0
+    tol_v = np.ones(len(net.pipe))
+    while np.any(np.abs(tol_v) >= 0.001) and (iteration <= 100):
+        pandapipes.pipeflow(net, diam_opt=True)
+        zero_mask = np.isclose(net.res_pipe.d_opt_m.values, 0, atol = 0.01)
+        net.pipe.loc[net.pipe.index[~zero_mask], 'diameter_m'] = net.res_pipe.loc[net.pipe.index[~zero_mask], 'd_opt_m']
+        tol_v = np.abs(net.res_pipe.loc[~zero_mask, 'v_mean_m_per_s']) - 0.2
+        iteration += 1
+    print(iteration)
+    assert np.allclose(np.abs(net.res_pipe.loc[net.pipe.index[~zero_mask], 'v_mean_m_per_s']), 0.2, atol=0.001)

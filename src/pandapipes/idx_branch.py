@@ -50,4 +50,7 @@ LOAD_VEC_NODES_TO_T = 36 # Slot for the load vector of the to nodes connected to
 
 T_OUT_OLD = 37
 
-branch_cols = 38
+V_MAX = 38
+DELTAP_MAX = 39
+
+branch_cols = 40

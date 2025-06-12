@@ -1,8 +1,9 @@
 import numpy as np
+import copy
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
 from pandapipes.idx_branch import (QEXT, ELEMENT_IDX, FROM_NODE, TO_NODE, MDOTINIT, RE, LAMBDA, PL,
-                                   TOUTINIT, AREA, TEXT, LOSS_COEFFICIENT as LC)
+                                   TOUTINIT, AREA, TEXT, LOSS_COEFFICIENT as LC, D, V_MAX)
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
@@ -41,11 +42,13 @@ def extract_all_results(net, calculation_mode):
                 normfactor_to, normfactor_mean = get_branch_results_gas(
                 net, branch_pit, node_pit, branch_results['from_nodes'], branch_results['to_nodes'],
                 branch_results['v_mps'], branch_results['p_from'], branch_results['p_to'])
+        d_opt = branch_results['d_opt']
+        d_opt *= np.sqrt(normfactor_mean)
         gas_branch_results = {
             "v_gas_from": v_gas_from, "v_gas_to": v_gas_to, "v_gas_mean": v_gas_mean,
             "p_from": branch_results['p_from'], "p_to": branch_results['p_to'], "p_abs_from": p_abs_from,
             "p_abs_to": p_abs_to, "p_abs_mean": p_abs_mean, "normfactor_from": normfactor_from,
-            "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean
+            "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean, "d_opt": d_opt
         }
         branch_results.update(gas_branch_results)
     for comp in net['component_list']:
@@ -63,12 +66,17 @@ def get_basic_branch_results(net, branch_pit, node_pit):
     else:
         vf = branch_pit[:, MDOTINIT] / get_branch_real_density(fluid, node_pit, branch_pit)
     v = vf / branch_pit[:, AREA]
+    d = copy.deepcopy(branch_pit[:, D])
+    vmax = branch_pit[:, V_MAX]
+    mask = np.isnan(vmax)
+    d[~mask] = np.sqrt(np.abs(np.divide(vf[~mask] * 4, vmax[~mask] * np.pi)))
     t_outlet = branch_pit[:, TOUTINIT]
     branch_results = {"v_mps": v, "mf_from": branch_pit[:, MDOTINIT], "mf_to": -branch_pit[:, MDOTINIT],
                       "vf": vf, "p_from": node_pit[from_nodes, PINIT], "p_to": node_pit[to_nodes, PINIT],
                       "from_nodes": from_nodes, "to_nodes": to_nodes,  "temp_from": t0, "temp_to": t1,
                       "reynolds": branch_pit[:, RE], "lambda": branch_pit[:, LAMBDA], "pl": branch_pit[:, PL],
-                      "t_outlet": t_outlet, "qext": branch_pit[:, QEXT], "loss_coeff": branch_pit[:, LC],}
+                      "t_outlet": t_outlet, "qext": branch_pit[:, QEXT], "loss_coeff": branch_pit[:, LC],
+                      "d_opt": d}
     return branch_results
 
 
