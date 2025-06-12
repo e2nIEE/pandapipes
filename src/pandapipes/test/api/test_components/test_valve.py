@@ -39,8 +39,8 @@ def test_valve(use_numba):
     pandapipes.create_pipe_from_parameters(net, j1, j7, diameter_m=.1, k_mm=1, length_km=.1,
                                            loss_coefficient=9000)
 
-    pandapipes.create_valve(net, j6, j2, diameter_m=0.1, opened=False)
-    pandapipes.create_valve(net, j7, j3, diameter_m=0.1, opened=True)
+    pandapipes.create_valve(net, j6, j2, et='j', diameter_m=0.1, opened=False)
+    pandapipes.create_valve(net, j7, j3, et='j', diameter_m=0.1, opened=True)
 
     pandapipes.create_sink(net, j5, 0.11667)
 

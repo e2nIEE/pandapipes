@@ -22,7 +22,7 @@ class Valve(BranchWZeroLengthComponent):
 
     @classmethod
     def from_to_node_cols(cls):
-        return "from_junction", "to_junction"
+        return "junction", "element"
 
     @classmethod
     def table_name(cls):
@@ -60,8 +60,9 @@ class Valve(BranchWZeroLengthComponent):
         :rtype:
         """
         return [("name", dtype(object)),
-                ("from_junction", "i8"),
-                ("to_junction", "i8"),
+                ("junction", "i8"),
+                ("element", "i8"),
+                ("et", dtype(object)),
                 ("diameter_m", "f8"),
                 ("opened", "bool"),
                 ("loss_coefficient", "f8"),

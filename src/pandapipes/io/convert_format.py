@@ -8,6 +8,7 @@ from pandapipes import __format_version__, __version__
 from pandapipes.pandapipes_net import add_default_components
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
+from pandapipes.component_models.valve_component import Valve
 
 try:
     import pandaplan.core.pplog as logging
@@ -57,6 +58,15 @@ def _rename_columns(net):
             for old_col, new_col in list(zip(old_cols, new_cols)):
                 if old_col in net[cp_tbl].columns and new_col not in net[cp_tbl].columns:
                     net[cp_tbl].rename(columns={old_col: new_col}, inplace=True)
+    if Valve.table_name() in net:
+        old_cols = ["from_junction", "to_junction"]
+        new_cols = list(Valve.from_to_node_cols())
+        for o, n in zip(old_cols, new_cols):
+            old_net = False
+            if o in net.valve:
+                net.valve.rename(columns={o: n}, inplace=True)
+                old_net = True
+            if old_net: net.valve['et'] = 'j'
 
 
 def _add_missing_columns(net):

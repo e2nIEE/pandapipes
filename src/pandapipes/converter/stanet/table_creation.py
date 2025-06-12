@@ -166,7 +166,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
                 stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info
             )
             pandapipes.create_valve(
-                net, j_aux, node_mapping[to_stanet_nr], diameter_m=float(row.DM / 1000),
+                net, j_aux, node_mapping[to_stanet_nr], et='j', diameter_m=float(row.DM / 1000),
                 opened=row.AUF == 'J', loss_coefficient=0,
                 name="valve_%s_%s" % ('aux_' + str(row.ENDNAM), str(row.ENDNAM)),
                 stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=np.nan,
@@ -248,7 +248,7 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers,
                            f"The diameter will be set to 1 m.")
             slider_valves.DM[slider_valves.DM == 0] = 1e3
         pandapipes.create_valves(
-            net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
+            net, from_junctions, to_junctions, et='j', diameter_m=slider_valves.DM.values / 1000,
             opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
             loss_coefficient=slider_valves.ZETA.values, name=slider_valves.STANETID.values,
             type="slider_valve_" + valve_system,

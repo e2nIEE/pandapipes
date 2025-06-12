@@ -94,9 +94,9 @@ def release_control_test_network(max_iter_hyd, save=False):
     pp.create_source(net, junction=11, mdot_kg_per_s=0.09, name="Source 3")
 
     # valves
-    pp.create_valve(net, from_junction=8, to_junction=9, diameter_m=0.1, opened=True,
+    pp.create_valve(net, junction=8, element=9, et='j', diameter_m=0.1, opened=True,
                     loss_coefficient=0, name="Valve 0", index=None, type="valve")
-    pp.create_valve(net, 9, 4, diameter_m=0.05, opened=True, name="Valve 1")
+    pp.create_valve(net, 9, 4, et='j', diameter_m=0.05, opened=True, name="Valve 1")
 
     # pump
     pp.create_pump_from_parameters(net, from_junction=8, to_junction=3, new_std_type_name="Pump",
@@ -215,9 +215,9 @@ def release_control_test_network_water(max_iter_hyd, save=False):
     pp.create_mass_storage(net, 5, mdot_kg_per_s=0.07, name="Mass Storage 0")
 
     # valves
-    pp.create_valve(net, from_junction=8, to_junction=9, diameter_m=0.1, opened=True,
+    pp.create_valve(net, junction=8, element=9, et="j", diameter_m=0.1, opened=True,
                     loss_coefficient=0, name="Valve 0", index=None, type="valve")
-    pp.create_valve(net, 9, 4, diameter_m=0.05, opened=True, name="Valve 1")
+    pp.create_valve(net, 9, 4, et="j",diameter_m=0.05, opened=True, name="Valve 1")
 
     # pump
     pp.create_pump_from_parameters(net, from_junction=8, to_junction=3, new_std_type_name="Pump",
@@ -325,9 +325,9 @@ def release_control_test_network_gas(max_iter_hyd, save=False):
     pp.create_mass_storage(net, 4, mdot_kg_per_s=0.07, name="Mass Storage 0")
 
     # valves
-    pp.create_valve(net, from_junction=1, to_junction=2, diameter_m=0.1, opened=True,
+    pp.create_valve(net, junction=1, element=2, et='j', diameter_m=0.1, opened=True,
                     loss_coefficient=0, name="Valve 0", index=None, type="valve")
-    pp.create_valve(net, 2, 5, diameter_m=0.05, opened=True, name="Valve 1")
+    pp.create_valve(net, junction=2, element=5, et='j', diameter_m=0.05, opened=True, name="Valve 1")
 
     # flow control
     pp.create_flow_control(net, 6, 7, controlled_mdot_kg_per_s=0.005, diameter_m=0.08)

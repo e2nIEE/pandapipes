@@ -127,7 +127,7 @@ def test_valve_flow_contrl_heat_consumer():
     net = pandapipes.create_empty_network(fluid='water')
     j1, j2, j3, j4, j5, j6, j7, j8, j9 = pandapipes.create_junctions(net, 9, 5, 400)
     pandapipes.create_circ_pump_const_pressure(net, j9, j1, 5, 2, 400)
-    pandapipes.create_valves(net, [j1, j4, j6, j8], [j2, j5, j7, j9], 0.1)
+    pandapipes.create_valves(net, [j1, j4, j6, j8], [j2, j5, j7, j9], 'j', 0.1)
     pandapipes.create_flow_control(net, j3, j2, 10)
     pandapipes.create_heat_exchanger(net, j8, j3, -5000)
     pandapipes.create_pipes_from_parameters(net, [j2, j7], [j4, j8], 0.1, 0.1)
