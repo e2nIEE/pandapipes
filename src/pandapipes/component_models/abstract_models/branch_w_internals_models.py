@@ -6,7 +6,7 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat, vinterp, \
-    p_correction_height_air
+    p_correction_height_air, get_internal_node_lookup_structure, get_internal_branch_lookup_structure
 from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, ELEMENT_IDX, TOUTINIT, T_OUT_OLD
 from pandapipes.idx_node import (
     L,
@@ -72,8 +72,12 @@ class BranchWInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
+    def get_internal_section_number(cls, net):
+        raise NotImplementedError
+
+    @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internal_nodes_lookup):
+                            current_table, internals):
         """
         Function which creates node lookups.
 
@@ -89,29 +93,25 @@ class BranchWInternalsComponent(BranchComponent):
         :type current_start:
         :param current_table:
         :type current_table:
-        :param internal_nodes_lookup:
-        :type internal_nodes_lookup:
+        :param internals:
+        :type internals:
         :return:
         :rtype:
         """
-        internal_nodes = cls.get_internal_pipe_number(net) - 1
-        end = current_start
-        ft_lookups[cls.table_name()] = None
+        internal_nodes = cls.get_internal_section_number(net) - 1
+        internal_nodes_num = int(np.sum(internal_nodes))
+        end = current_start + internal_nodes_num
+        add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
+        ft_lookups[cls.internal_node_name()] = (current_start, end)
         if np.any(internal_nodes > 0):
-            int_nodes_num = int(np.sum(internal_nodes))
-            internal_pipes = internal_nodes + 1
-            int_pipes_num = int(np.sum(internal_pipes))
-            end = current_start + int_nodes_num
-            add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
-            ft_lookups[cls.internal_node_name()] = (current_start, end)
-            return end, current_table + 1, internal_nodes, internal_pipes, int_nodes_num, \
-                int_pipes_num
-        else:
-            return end, current_table + 1, 0, 0, 0, 0
+            get_internal_node_lookup_structure(net, internals, cls.table_name(),
+                                               internal_nodes, internal_nodes_num,
+                                               current_start, end)
+        return end, current_table + 1
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
-                              current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
+                              current_table, internals):
         """
         Function which creates branch lookups.
 
@@ -123,16 +123,23 @@ class BranchWInternalsComponent(BranchComponent):
         :type table_lookup:
         :param idx_lookups:
         :type idx_lookups:
-        :param current_table:
-        :type current_table:
         :param current_start:
         :type current_start:
+        :param current_table:
+        :type current_table:
+        :param internals:
+        :type internals:
         :return:
         :rtype:
         """
-        end = current_start + int(np.sum(cls.get_internal_pipe_number(net)))
-        ft_lookups[cls.table_name()] = (current_start, end)
+        internal_branches = cls.get_internal_section_number(net)
+        internal_branches_num = int(np.sum(internal_branches))
+        end = current_start + internal_branches_num
         add_table_lookup(table_lookup, cls.table_name(), current_table)
+        ft_lookups[cls.table_name()] = (current_start, end)
+        if np.any(internal_branches > 1):
+            get_internal_branch_lookup_structure(net, internals, cls.table_name(),
+                                                 internal_branches, internal_branches_num)
         return end, current_table + 1
 
     @classmethod
@@ -155,7 +162,7 @@ class BranchWInternalsComponent(BranchComponent):
 
         int_node_pit = node_pit[f:t, :]
         int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
-        int_node_number = cls.get_internal_pipe_number(net) - 1
+        int_node_number = cls.get_internal_section_number(net) - 1
 
         int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
 
@@ -201,23 +208,23 @@ class BranchWInternalsComponent(BranchComponent):
         if not len(branch_w_internals_pit):
             return branch_w_internals_pit, np.array([], dtype=np.int32)
 
-        internal_pipe_number = cls.get_internal_pipe_number(net).astype(np.int32)
+        internal_section_number = cls.get_internal_section_number(net).astype(np.int32)
         node_ft_lookups = get_lookup(net, "node", "from_to")
 
         has_internals = cls.internal_node_name() in node_ft_lookups
         if has_internals:
             pipe_nodes_from, pipe_nodes_to = node_ft_lookups[cls.internal_node_name()]
             pipe_nodes_idx = np.arange(pipe_nodes_from, pipe_nodes_to)
-            insert_places = np.repeat(np.arange(len(from_nodes)), internal_pipe_number - 1)
+            insert_places = np.repeat(np.arange(len(from_nodes)), internal_section_number - 1)
             from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
             to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
 
         set_entry_check_repeat(
             branch_w_internals_pit, ELEMENT_IDX, net[cls.table_name()].index.values,
-            internal_pipe_number, has_internals)
+            internal_section_number, has_internals)
         set_entry_check_repeat(
             branch_w_internals_pit, ACTIVE, net[cls.table_name()][cls.active_identifier()].values,
-            internal_pipe_number, has_internals)
+            internal_section_number, has_internals)
         branch_w_internals_pit[:, FROM_NODE] = from_nodes
         branch_w_internals_pit[:, TO_NODE] = to_nodes
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
@@ -225,18 +232,7 @@ class BranchWInternalsComponent(BranchComponent):
         if get_net_option(net, "transient"):
             branch_w_internals_pit[:, T_OUT_OLD] = branch_w_internals_pit[:, TOUTINIT]
 
-        return branch_w_internals_pit, internal_pipe_number
-
-    @classmethod
-    def get_internal_pipe_number(cls, net):
-        """
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :return:
-        :rtype:
-        """
-        return np.array(net[cls.table_name()].sections.values)
+        return branch_w_internals_pit, internal_section_number
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

@@ -52,43 +52,15 @@ class Pipe(BranchWInternalsComponent):
         return Junction
 
     @classmethod
-    def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internal_nodes_lookup):
+    def get_internal_section_number(cls, net):
         """
-        Function which creates node lookups.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param ft_lookups:
-        :type ft_lookups:
-        :param table_lookup:
-        :type table_lookup:
-        :param idx_lookups:
-        :type idx_lookups:
-        :param current_start:
-        :type current_start:
-        :param current_table:
-        :type current_table:
-        :param internal_nodes_lookup:
-        :type internal_nodes_lookup:
         :return:
         :rtype:
         """
-        end, current_table, internal_nodes, internal_pipes, int_nodes_num, int_pipes_num = \
-            super().create_node_lookups(net, ft_lookups, table_lookup, idx_lookups,
-                                        current_start, current_table, internal_nodes_lookup)
-        if np.any(internal_nodes > 0):
-            internal_nodes_lookup["TPINIT"] = np.empty((int_nodes_num, 2), dtype=np.int32)
-            internal_nodes_lookup["TPINIT"][:, 0] = np.repeat(net[cls.table_name()].index,
-                                                              internal_nodes.astype(np.int32))
-            internal_nodes_lookup["TPINIT"][:, 1] = np.arange(current_start, end)
-
-            internal_nodes_lookup["VINIT"] = np.empty((int_pipes_num, 2), dtype=np.int32)
-            internal_nodes_lookup["VINIT"][:, 0] = np.repeat(net[cls.table_name()].index,
-                                                             internal_pipes.astype(np.int32))
-            internal_nodes_lookup["VINIT"][:, 1] = np.arange(int_pipes_num)
-
-        return end, current_table
+        return np.array(net[cls.table_name()].sections.values)
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -145,7 +117,7 @@ class Pipe(BranchWInternalsComponent):
         else:
             res_mean_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
 
-        if np.any(cls.get_internal_pipe_number(net) > 1):
+        if np.any(cls.get_internal_section_number(net) > 1):
             extract_branch_results_with_internals(
                 net, branch_results, cls.table_name(), res_nodes_from_hyd, res_nodes_from_ht,
                 res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, res_branch_ht, [],
@@ -171,7 +143,7 @@ class Pipe(BranchWInternalsComponent):
         :return: pipe_results
         :rtype:
         """
-        internal_sections = cls.get_internal_pipe_number(net)
+        internal_sections = cls.get_internal_section_number(net)
         internal_p_nodes = internal_sections - 1
         p_node_idx = np.repeat(pipe, internal_p_nodes[pipe])
         v_pipe_idx = np.repeat(pipe, internal_sections[pipe])
@@ -187,8 +159,8 @@ class Pipe(BranchWInternalsComponent):
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
             pipe_pit = net["_pit"]["branch"][f:t, :]
             node_pit = net["_pit"]["node"]
-            int_p_lookup = net["_lookups"]["internal_nodes_lookup"]["TPINIT"]
-            int_v_lookup = net["_lookups"]["internal_nodes_lookup"]["VINIT"]
+            int_p_lookup = net["_lookups"]["internal_nodes"][cls.table_name()]
+            int_v_lookup = net["_lookups"]["internal_branches"][cls.table_name()]
 
             selected_indices_p = []
             selected_indices_v = []

@@ -56,8 +56,8 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
-                              current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
+                              current_table, internals):
         """
         Function which creates branch lookups.
 
@@ -73,6 +73,8 @@ class BranchWOInternalsComponent(BranchComponent):
         :type current_table:
         :param current_start:
         :type current_start:
+        :param internals:
+        :type internals:
         :return:
         :rtype:
         """

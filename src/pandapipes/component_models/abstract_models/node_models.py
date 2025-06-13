@@ -23,7 +23,7 @@ class NodeComponent(Component):
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internal_nodes_lookup):
+                            current_table, internals):
         """
         Function which creates node lookups.
 
@@ -39,8 +39,8 @@ class NodeComponent(Component):
         :type current_start:
         :param current_table:
         :type current_table:
-        :param internal_nodes_lookup:
-        :type internal_nodes_lookup:
+        :param internals:
+        :type internals:
         :return: No Output.
         """
         raise NotImplementedError
