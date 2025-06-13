@@ -403,9 +403,9 @@ def initialize_pit(net):
         pit = net["_pit"]
 
     for comp in net['component_list']:
+        comp.create_component_array(net, pit["components"])
         comp.create_pit_node_entries(net, pit["node"])
         comp.create_pit_branch_entries(net, pit["branch"])
-        comp.create_component_array(net, pit["components"])
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
