@@ -206,7 +206,7 @@ class BranchWInternalsComponent(BranchComponent):
             = super().create_pit_branch_entries(net, branch_pit)
 
         if not len(branch_w_internals_pit):
-            return branch_w_internals_pit, np.array([], dtype=np.int32)
+            return branch_w_internals_pit
 
         internal_section_number = cls.get_internal_section_number(net).astype(np.int32)
         node_ft_lookups = get_lookup(net, "node", "from_to")
@@ -232,7 +232,7 @@ class BranchWInternalsComponent(BranchComponent):
         if get_net_option(net, "transient"):
             branch_w_internals_pit[:, T_OUT_OLD] = branch_w_internals_pit[:, TOUTINIT]
 
-        return branch_w_internals_pit, internal_section_number
+        return branch_w_internals_pit
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

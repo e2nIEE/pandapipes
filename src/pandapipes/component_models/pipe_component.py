@@ -73,8 +73,8 @@ class Pipe(BranchWInternalsComponent):
         :type branch_pit:
         :return: No Output.
         """
-        pipe_pit, internal_pipe_number = \
-            super().create_pit_branch_entries(net, branch_pit)
+        pipe_pit = super().create_pit_branch_entries(net, branch_pit)
+        internal_pipe_number = cls.get_internal_section_number(net).astype(np.int32)
 
         has_internals = np.any(internal_pipe_number > 1)
         tbl = cls.table_name()
