@@ -7,7 +7,8 @@ import numpy as np
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat, vinterp, \
     p_correction_height_air, get_internal_node_lookup_structure, get_internal_branch_lookup_structure
-from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, ELEMENT_IDX, TOUTINIT, T_OUT_OLD
+from pandapipes.idx_branch import ACTIVE, FROM_NODE, TO_NODE, ELEMENT_IDX, TOUTINIT, \
+    T_OUT_OLD, D, LOSS_COEFFICIENT as LC, AREA
 from pandapipes.idx_node import (
     L,
     node_cols,
@@ -72,8 +73,12 @@ class BranchWInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def get_internal_section_number(cls, net):
+    def get_internal_node_number(cls, net):
         raise NotImplementedError
+
+    @classmethod
+    def get_internal_branch_number(cls, net):
+        return NotImplementedError
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
@@ -98,7 +103,7 @@ class BranchWInternalsComponent(BranchComponent):
         :return:
         :rtype:
         """
-        internal_nodes = cls.get_internal_section_number(net) - 1
+        internal_nodes = cls.get_internal_node_number(net)
         internal_nodes_num = int(np.sum(internal_nodes))
         end = current_start + internal_nodes_num
         add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
@@ -132,7 +137,7 @@ class BranchWInternalsComponent(BranchComponent):
         :return:
         :rtype:
         """
-        internal_branches = cls.get_internal_section_number(net)
+        internal_branches = cls.get_internal_branch_number(net)
         internal_branches_num = int(np.sum(internal_branches))
         end = current_start + internal_branches_num
         add_table_lookup(table_lookup, cls.table_name(), current_table)
@@ -156,13 +161,13 @@ class BranchWInternalsComponent(BranchComponent):
         table_lookup = get_lookup(net, "node", "table")
         table_nr = get_table_number(table_lookup, cls.internal_node_name())
         if table_nr is None:
-            return None, 0, 0, None, None, None
+            return
         ft_lookup = get_lookup(net, "node", "from_to")
         f, t = ft_lookup[cls.internal_node_name()]
 
         int_node_pit = node_pit[f:t, :]
         int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
-        int_node_number = cls.get_internal_section_number(net) - 1
+        int_node_number = cls.get_internal_node_number(net)
 
         int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
 
@@ -189,7 +194,6 @@ class BranchWInternalsComponent(BranchComponent):
                 np.repeat(net[cls.table_name()][cls.active_identifier()].values, int_node_number)
         if get_net_option(net, "transient"):
             int_node_pit[:, TINIT_OLD] = int_node_pit[:, TINIT_NODE].astype(np.float64)
-        return table_nr, int_node_number, int_node_pit, junction_pit, fj_nodes, tj_nodes
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -208,27 +212,37 @@ class BranchWInternalsComponent(BranchComponent):
         if not len(branch_w_internals_pit):
             return branch_w_internals_pit
 
-        internal_section_number = cls.get_internal_section_number(net).astype(np.int32)
-        node_ft_lookups = get_lookup(net, "node", "from_to")
-
-        has_internals = cls.internal_node_name() in node_ft_lookups
-        if has_internals:
-            pipe_nodes_from, pipe_nodes_to = node_ft_lookups[cls.internal_node_name()]
-            pipe_nodes_idx = np.arange(pipe_nodes_from, pipe_nodes_to)
-            insert_places = np.repeat(np.arange(len(from_nodes)), internal_section_number - 1)
-            from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
-            to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
-
-        set_entry_check_repeat(
-            branch_w_internals_pit, ELEMENT_IDX, net[cls.table_name()].index.values,
-            internal_section_number, has_internals)
-        set_entry_check_repeat(
-            branch_w_internals_pit, ACTIVE, net[cls.table_name()][cls.active_identifier()].values,
-            internal_section_number, has_internals)
-        branch_w_internals_pit[:, FROM_NODE] = from_nodes
-        branch_w_internals_pit[:, TO_NODE] = to_nodes
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
+            internal_branch_number = cls.get_internal_branch_number(net)
+            internal_node_number = cls.get_internal_node_number(net)
+            node_ft_lookups = get_lookup(net, "node", "from_to")
+            has_internals = cls.internal_node_name() in node_ft_lookups
+            if has_internals:
+                pipe_nodes_from, pipe_nodes_to = node_ft_lookups[cls.internal_node_name()]
+                pipe_nodes_idx = np.arange(pipe_nodes_from, pipe_nodes_to)
+                insert_places = np.repeat(np.arange(len(from_nodes)), internal_node_number)
+                from_nodes = np.insert(from_nodes, insert_places + 1, pipe_nodes_idx)
+                to_nodes = np.insert(to_nodes, insert_places, pipe_nodes_idx)
+
+            branch_w_internals_pit[:, FROM_NODE] = from_nodes
+            branch_w_internals_pit[:, TO_NODE] = to_nodes
             branch_w_internals_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
+
+            tbl = cls.table_name()
+            set_entry_check_repeat(
+                branch_w_internals_pit, ELEMENT_IDX, net[tbl].index.values,
+                internal_branch_number, has_internals)
+            set_entry_check_repeat(
+                branch_w_internals_pit, ACTIVE, net[tbl][cls.active_identifier()].values,
+                internal_branch_number, has_internals)
+            set_entry_check_repeat(
+                branch_w_internals_pit, D, net[tbl].diameter_m.values,
+                internal_branch_number, has_internals)
+            set_entry_check_repeat(
+                branch_w_internals_pit, LC, net[tbl].loss_coefficient.values,
+                internal_branch_number, has_internals)
+
+            branch_w_internals_pit[:, AREA] = branch_w_internals_pit[:, D] ** 2 * np.pi / 4
         if get_net_option(net, "transient"):
             branch_w_internals_pit[:, T_OUT_OLD] = branch_w_internals_pit[:, TOUTINIT]
 

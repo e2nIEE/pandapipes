@@ -6,16 +6,16 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
-    BranchWOInternalsComponent
+from pandapipes.component_models.abstract_models.branch_w_internals_models import \
+    BranchWInternalsComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, LOSS_COEFFICIENT as LC
+from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.pf.pipeflow_setup import add_table_lookup
 
 
-class Valve(BranchWOInternalsComponent):
+class Valve(BranchWInternalsComponent):
     """
     Valves are branch elements that can separate two junctions.
     They have a length of 0, but can introduce a lumped pressure loss.
@@ -38,6 +38,10 @@ class Valve(BranchWOInternalsComponent):
         return Junction
 
     @classmethod
+    def internal_node_name(cls):
+        return "valve_nodes"
+
+    @classmethod
     def get_internal_node_number(cls, net):
         """
 
@@ -46,27 +50,23 @@ class Valve(BranchWOInternalsComponent):
         :return:
         :rtype:
         """
-        sections = np.empty(len(net[cls.table_name()]), dtype=np.int32)
 
-        return np.array(net[cls.table_name()].sections.values - 1)
+        int_nodes = np.empty(len(net[cls.table_name()]), dtype=np.int32)
+        int_nodes[net[cls.table_name()]['et'] == 'p'] = 1
+        int_nodes[net[cls.table_name()]['et'] == 'j'] = 0
+        return int_nodes
 
     @classmethod
-    def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internals):
-        end, current_table = super().create_node_lookups(net, ft_lookups, table_lookup, idx_lookups,
-                                                         current_start, current_table, internals)
-        mask_p = net[cls.table_name()].et == 'p'
-        ft_lookups[cls.table_name()] = None
-        if np.any(mask_p):
-            int_nodes_num = np.sum(mask_p)
-            end = current_start + int_nodes_num
-            add_table_lookup(table_lookup, 'valve_nodes', current_table)
-            ft_lookups['valve_nodes'] = (current_start, end)
-            return end, current_table
-        else:
-            end = current_start
-            return end, current_table + 1
+    def get_internal_branch_number(cls, net):
+        """
 
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return:
+        :rtype:
+        """
+
+        return np.ones(len(net[cls.table_name()]), dtype=np.int32)
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -80,9 +80,10 @@ class Valve(BranchWOInternalsComponent):
         :return: No Output.
         """
         valve_pit = super().create_pit_branch_entries(net, branch_pit)
-        valve_pit[:, D] = net[cls.table_name()].diameter_m.values
-        valve_pit[:, AREA] = valve_pit[:, D] ** 2 * np.pi / 4
-        valve_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
+        valve_pit[:, LENGTH] = 0
+        valve_pit[:, K] = 1000
+        valve_pit[:, TEXT] = 293.15
+        valve_pit[:, ALPHA] = 0
 
     @classmethod
     def get_component_input(cls):

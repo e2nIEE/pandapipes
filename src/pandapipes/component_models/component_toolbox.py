@@ -142,10 +142,7 @@ def add_new_component(net, component, overwrite=False):
 
 
 def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
-    if repeated:
-        pit[:, column] = np.repeat(entry, repeat_number)
-    else:
-        pit[:, column] = entry
+    pit[:, column] = np.repeat(entry, repeat_number) if repeated else entry
 
 
 def set_fixed_node_entries(net, node_pit, junctions, types, values, node_comp, mode):

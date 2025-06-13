@@ -52,7 +52,7 @@ class Pipe(BranchWInternalsComponent):
         return Junction
 
     @classmethod
-    def get_internal_section_number(cls, net):
+    def get_internal_node_number(cls, net):
         """
 
         :param net: The pandapipes network
@@ -60,7 +60,18 @@ class Pipe(BranchWInternalsComponent):
         :return:
         :rtype:
         """
-        return np.array(net[cls.table_name()].sections.values)
+        return cls.get_internal_branch_number(net) - 1
+
+    @classmethod
+    def get_internal_branch_number(cls, net):
+        """
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return:
+        :rtype:
+        """
+        return np.array(net[cls.table_name()].sections.values).astype(np.int32)
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -74,30 +85,27 @@ class Pipe(BranchWInternalsComponent):
         :return: No Output.
         """
         pipe_pit = super().create_pit_branch_entries(net, branch_pit)
-        internal_pipe_number = cls.get_internal_section_number(net).astype(np.int32)
 
-        has_internals = np.any(internal_pipe_number > 1)
-        tbl = cls.table_name()
-        set_entry_check_repeat(
-            pipe_pit, LENGTH, net[tbl].length_km.values * 1000 / internal_pipe_number,
-            internal_pipe_number, has_internals)
-        set_entry_check_repeat(
-            pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
-        set_entry_check_repeat(
-            pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
-        set_entry_check_repeat(
-            pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
-        set_entry_check_repeat(
-            pipe_pit, TEXT, net[tbl].text_k.values, internal_pipe_number, has_internals)
-        set_entry_check_repeat(
-            pipe_pit, D, net[tbl].diameter_m.values, internal_pipe_number, has_internals)
-        set_entry_check_repeat(
-            pipe_pit, LC, net[tbl].loss_coefficient.values, internal_pipe_number, has_internals)
+        if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
+            internal_pipe_number = cls.get_internal_branch_number(net)
 
-        nan_mask = np.isnan(pipe_pit[:, TEXT])
-        pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
-        pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
-        pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
+            has_internals = np.any(internal_pipe_number > 1)
+            tbl = cls.table_name()
+            set_entry_check_repeat(
+                pipe_pit, LENGTH, net[tbl].length_km.values * 1000 / internal_pipe_number,
+                internal_pipe_number, has_internals)
+            set_entry_check_repeat(
+                pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
+            set_entry_check_repeat(
+                pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
+            set_entry_check_repeat(
+                pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
+            set_entry_check_repeat(
+                pipe_pit, TEXT, net[tbl].text_k.values, internal_pipe_number, has_internals)
+            nan_mask = np.isnan(pipe_pit[:, TEXT])
+            pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
+            pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
+            pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -117,7 +125,7 @@ class Pipe(BranchWInternalsComponent):
         else:
             res_mean_hyd.extend([("v_mean_m_per_s", "v_mps"), ("vdot_m3_per_s", "vf")])
 
-        if np.any(cls.get_internal_section_number(net) > 1):
+        if np.any(cls.get_internal_node_number(net) > 0):
             extract_branch_results_with_internals(
                 net, branch_results, cls.table_name(), res_nodes_from_hyd, res_nodes_from_ht,
                 res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, res_branch_ht, [],
@@ -143,9 +151,9 @@ class Pipe(BranchWInternalsComponent):
         :return: pipe_results
         :rtype:
         """
-        internal_sections = cls.get_internal_section_number(net)
-        internal_p_nodes = internal_sections - 1
-        p_node_idx = np.repeat(pipe, internal_p_nodes[pipe])
+        internal_nodes = cls.get_internal_node_number(net)
+        internal_sections = internal_nodes + 1
+        p_node_idx = np.repeat(pipe, internal_nodes[pipe])
         v_pipe_idx = np.repeat(pipe, internal_sections[pipe])
         pipe_results = dict()
         pipe_results["PINIT"] = np.zeros((len(p_node_idx), 2), dtype=np.float64)
