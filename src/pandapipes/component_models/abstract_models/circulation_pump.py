@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import BranchWOInternalsComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
 from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
@@ -19,7 +19,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class CirculationPump(BranchWZeroLengthComponent):
+class CirculationPump(BranchWOInternalsComponent):
 
     @classmethod
     def table_name(cls):

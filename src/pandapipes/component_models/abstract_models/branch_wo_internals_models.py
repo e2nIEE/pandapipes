@@ -2,6 +2,7 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import numpy as np
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.idx_branch import (
     FROM_NODE,
@@ -10,6 +11,12 @@ from pandapipes.idx_branch import (
     ELEMENT_IDX,
     ACTIVE,
     T_OUT_OLD,
+    LENGTH,
+    K,
+    TEXT,
+    ALPHA,
+    D,
+    AREA
 )
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_net_option
@@ -42,6 +49,10 @@ class BranchWOInternalsComponent(BranchComponent):
 
     @classmethod
     def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_connected_node_type(cls):
         raise NotImplementedError
 
     @classmethod
@@ -91,14 +102,16 @@ class BranchWOInternalsComponent(BranchComponent):
             branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
         if get_net_option(net, "transient"):
             branch_wo_internals_pit[:, T_OUT_OLD] = branch_wo_internals_pit[:, TOUTINIT]
+        branch_wo_internals_pit[:, LENGTH] = 0
+        branch_wo_internals_pit[:, K] = 1000
+        branch_wo_internals_pit[:, TEXT] = 293.15
+        branch_wo_internals_pit[:, ALPHA] = 0
+        branch_wo_internals_pit[:, D] = 0.1
+        branch_wo_internals_pit[:, AREA] = branch_wo_internals_pit[:, D] ** 2 * np.pi / 4
         return branch_wo_internals_pit
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
-        raise NotImplementedError
-
-    @classmethod
-    def get_connected_node_type(cls):
         raise NotImplementedError
 
     @classmethod

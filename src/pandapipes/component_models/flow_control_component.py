@@ -5,7 +5,7 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models import BranchWOInternalsComponent
 from pandapipes.properties import get_fluid
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
@@ -15,7 +15,7 @@ from pandapipes.idx_branch import (JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MD
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
-class FlowControlComponent(BranchWZeroLengthComponent):
+class FlowControlComponent(BranchWOInternalsComponent):
     """
 
     """

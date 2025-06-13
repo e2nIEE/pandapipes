@@ -8,8 +8,8 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
 from pandapipes.component_models.component_toolbox import (
     get_component_array,
     get_std_type_lookup,
@@ -29,7 +29,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Pump(BranchWZeroLengthComponent):
+class Pump(BranchWOInternalsComponent):
     """
 
     """

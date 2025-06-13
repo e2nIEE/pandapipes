@@ -6,15 +6,15 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
 
 
-class Valve(BranchWZeroLengthComponent):
+class Valve(BranchWOInternalsComponent):
     """
     Valves are branch elements that can separate two junctions.
     They have a length of 0, but can introduce a lumped pressure loss.
