@@ -181,11 +181,11 @@ def test_create_valve(create_empty_net):
     assert net.valve.at[2, "loss_coefficient"] == 0
 
     with pytest.raises(UserWarning):
-        pandapipes.create_valve(net, 8, 9, 0.4, True, index=2)
+        pandapipes.create_valve(net, 8, 9, 'j', 0.4, True, index=2)
     with pytest.raises(UserWarning):
-        pandapipes.create_valve(net, 8, 10, 0.4, True)
+        pandapipes.create_valve(net, 8, 10, 'j', 0.4, True)
     with pytest.raises(ValueError):
-        pandapipes.create_valve(net, 8, 9, 0.4, True, geodata=[(0, 1), (1, 1), (2, 2)])
+        pandapipes.create_valve(net, 8, 9, 'j', 0.4, True, geodata=[(0, 1), (1, 1), (2, 2)])
 
 
 def test_create_pump(create_empty_net):

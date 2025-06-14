@@ -576,7 +576,19 @@ def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coeff
     add_new_component(net, Valve)
 
     index = _get_index_with_check(net, "valve", index)
-    _check_branch(net, "Valve", index, junction, element)
+
+    _check_element(net, junction, element='junction')
+    if et == "p":
+        elm_tab = 'pipe'
+        if element not in net[elm_tab].index:
+            raise UserWarning("Unknown pipe index")
+        if (not net[elm_tab]["from_junction"].loc[element] == junction and
+                not net[elm_tab]["to_junction"].loc[element] == junction):
+            raise UserWarning("Pipe %s not connected to junction %s" % (element, junction))
+    elif et == "j":
+        _check_element(net, element, element='junction')
+    else:
+        raise UserWarning("Unknown element type")
 
     v = {"name": name, "junction": junction, "element": element, "et": et, "diameter_m": diameter_m,
          "opened": opened, "loss_coefficient": loss_coefficient, "type": type}

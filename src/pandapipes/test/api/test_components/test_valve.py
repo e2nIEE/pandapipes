@@ -68,3 +68,65 @@ def test_valve(use_numba):
 
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff < 0.01)
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_valve_to_pipe(use_numba):
+    """
+
+        :return:
+        :rtype:
+        """
+    net = pandapipes.create_empty_network("net", add_stdtypes=True)
+
+    j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=5)
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=3)
+
+    pandapipes.create_ext_grid(net, j0, 5, 283.15, type="p")
+
+    p0 = pandapipes.create_pipe_from_parameters(net, j0, j1, diameter_m=.1, k_mm=1, length_km=1., index=10)
+
+    pandapipes.create_valve(net, j1, p0, et='p', diameter_m=0.1, opened=True, loss_coefficient=1000)
+    pandapipes.create_valve(net, j1, p0, et='p', diameter_m=0.1, opened=True, loss_coefficient=2000)
+
+    pandapipes.create_sink(net, j1, 0.11667)
+
+    pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
+
+    max_iter_hyd = 100 if use_numba else 100
+    pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
+                        mode="hydraulics", transient=False, nonlinear_method="automatic",
+                        tol_p=1e-8, tol_m=1e-8, use_numba=use_numba)
+
+    net2 = pandapipes.create_empty_network("net2", add_stdtypes=True)
+
+    j2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=5)
+    j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=3)
+    j4 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=12)
+
+    pandapipes.create_ext_grid(net2, j2, 5, 283.15, type="p")
+
+    pandapipes.create_pipe_from_parameters(net2, j2, j3, diameter_m=.1, k_mm=1, length_km=1., index=10)
+
+    pandapipes.create_valve(net2, j4, j3, et='j', diameter_m=0.1, opened=True, loss_coefficient=1000)
+    pandapipes.create_valve(net2, j4, j3, et='j', diameter_m=0.1, opened=True, loss_coefficient=2000)
+
+    pandapipes.create_sink(net2, j4, 0.11667)
+
+    pandapipes.create_fluid_from_lib(net2, "lgas", overwrite=True)
+
+    max_iter_hyd = 100 if use_numba else 100
+    pandapipes.pipeflow(net2, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
+                        mode="hydraulics", transient=False, nonlinear_method="automatic",
+                        tol_p=1e-8, tol_m=1e-8, use_numba=use_numba)
+
+    assert np.all(net.res_pipe.values == net2.res_pipe.values)
+    assert np.all(net.res_junction.loc[j0] == net2.res_junction.loc[j2])
+    assert np.all(net.res_junction.loc[j1] == net2.res_junction.loc[j4])
+    assert np.all(net.res_sink.values == net2.res_sink.values)
+    assert np.all(net.res_valve.values == net2.res_valve.values)
+    assert np.all(net.res_ext_grid.values == net2.res_ext_grid.values)
+
+
+if __name__ == '__main__':
+    test_valve_to_pipe(False)

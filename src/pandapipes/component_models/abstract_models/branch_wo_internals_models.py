@@ -3,23 +3,12 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.idx_branch import (
-    FROM_NODE,
-    TO_NODE,
-    TOUTINIT,
-    ELEMENT_IDX,
-    ACTIVE,
-    T_OUT_OLD,
-    LENGTH,
-    K,
-    TEXT,
-    ALPHA,
-    D,
-    AREA
-)
+from pandapipes.idx_branch import (FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, T_OUT_OLD, LENGTH, K, TEXT, ALPHA,
+                                   D, AREA)
 from pandapipes.idx_node import TINIT as TINIT_NODE
-from pandapipes.pf.pipeflow_setup import add_table_lookup, get_net_option
+from pandapipes.pf.pipeflow_setup import add_table_lookup, get_net_option, get_lookup
 
 try:
     import pandaplan.core.pplog as logging
@@ -56,8 +45,7 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                              current_table, internals):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start, current_table, internals):
         """
         Function which creates branch lookups.
 
@@ -94,8 +82,12 @@ class BranchWOInternalsComponent(BranchComponent):
         :type branch_pit:
         :return: No Output.
         """
-        branch_wo_internals_pit, node_pit, from_nodes, to_nodes \
-            = super().create_pit_branch_entries(net, branch_pit)
+        branch_wo_internals_pit, node_pit = super().create_pit_branch_entries(net, branch_pit)
+        junction_idx_lookup = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
+        fn_col, tn_col = cls.from_to_node_cols()
+        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+        to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
 
         if not len(branch_wo_internals_pit):
             return branch_wo_internals_pit

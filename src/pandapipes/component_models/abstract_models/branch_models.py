@@ -89,19 +89,14 @@ class BranchComponent(Component):
         branch_table_nr = get_table_number(get_lookup(net, "branch", "table"), cls.table_name())
         branch_component_pit = branch_pit[f:t, :]
         if not len(net[cls.table_name()]):
-            return branch_component_pit, node_pit, [], []
+            return branch_component_pit, node_pit
 
-        junction_idx_lookup = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        fn_col, tn_col = cls.from_to_node_cols()
-        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
-        to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
             branch_component_pit[:, MDOTINIT] = 0.1
             branch_component_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
             branch_component_pit[:, FLOW_RETURN_CONNECT] = False
-        return branch_component_pit, node_pit, from_nodes, to_nodes
+        return branch_component_pit, node_pit
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
