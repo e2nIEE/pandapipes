@@ -62,7 +62,7 @@ class BranchWInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def get_internal_node_number(cls, net):
+    def get_internal_node_number(cls, net, return_internal_only=True):
         raise NotImplementedError
 
     @classmethod
@@ -128,18 +128,8 @@ class BranchWInternalsComponent(BranchComponent):
         end = current_start + internal_branches_num
         add_table_lookup(table_lookup, cls.table_name(), current_table)
         ft_lookups[cls.table_name()] = (current_start, end)
-        if np.any(internal_branches > 1):
-            get_internal_branch_lookup_structure(net, internals, cls.table_name(), internal_branches,
-                                                 internal_branches_num)
-
-        table_indices = net[cls.table_name()].index
-        table_len = len(table_indices)
-        if not table_len:
-            idx_lookups[cls.table_name()] = np.array([], dtype=np.int32)
-            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
-        else:
-            idx_lookups[cls.table_name()] = -np.ones(table_indices.max() + 1, dtype=np.int32)
-            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
+        get_internal_branch_lookup_structure(net, internals, cls.table_name(), internal_branches,
+                                             internal_branches_num)
         return end, current_table + 1
 
     @classmethod

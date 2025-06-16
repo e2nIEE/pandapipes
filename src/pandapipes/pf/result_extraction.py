@@ -161,7 +161,7 @@ def get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs
 def extract_branch_results_with_internals(net, branch_results, table_name,
                                           res_nodes_from_hydraulics, res_nodes_from_heat,
                                           res_nodes_to_hydraulics, res_nodes_to_heat,
-                                          res_mean_hydraulics, res_branch_ht, res_mean_heat, node_name,
+                                          res_mean_hydraulics, res_branch_ht, res_mean_heat, internal_node_name,
                                           simulation_mode):
     # the result table to write results to
     res_table = net["res_" + table_name]
@@ -179,7 +179,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
     node_pit = net["_pit"]["node"]
 
     # the id of the external node table inside the node_pit (mostly this is "junction": 0)
-    ext_node_tbl_idx = get_table_number(get_lookup(net, "node", "table"), node_name)
+    ext_node_tbl_idx = get_table_number(get_lookup(net, "node", "table"), internal_node_name)
 
     for (result_mode, res_nodes_from, res_nodes_to, res_mean, res_branch) in [
         ("hydraulics", res_nodes_from_hydraulics, res_nodes_to_hydraulics, res_mean_hydraulics, []),
@@ -198,7 +198,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
             # single from_node that is the exterior node (e.g. junction vs. internal pipe_node)
             # result has to be extracted from the node_pit
             end_nodes = branch_results[node_name][f:t]
-            end_nodes_external = node_pit[end_nodes, TABLE_IDX_NODE] == ext_node_tbl_idx
+            end_nodes_external = node_pit[end_nodes, TABLE_IDX_NODE] != ext_node_tbl_idx
             considered = end_nodes_external & comp_connected
             external_active = comp_connected[end_nodes_external]
             for res_name, entry in res_ext:

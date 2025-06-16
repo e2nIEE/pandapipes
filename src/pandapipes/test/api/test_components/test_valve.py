@@ -81,6 +81,8 @@ def test_valve_to_pipe(use_numba):
 
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=5)
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=3)
+    j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=7)
+    j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15, index=20)
 
     pandapipes.create_ext_grid(net, j0, 5, 283.15, type="p")
 
@@ -89,7 +91,16 @@ def test_valve_to_pipe(use_numba):
     pandapipes.create_valve(net, j1, p0, et='p', diameter_m=0.1, opened=True, loss_coefficient=1000)
     pandapipes.create_valve(net, j1, p0, et='p', diameter_m=0.1, opened=True, loss_coefficient=2000)
 
-    pandapipes.create_sink(net, j1, 0.11667)
+    p1 = pandapipes.create_pipe_from_parameters(net, j2, j1, diameter_m=.1, k_mm=1, length_km=1., index=3)
+
+    pandapipes.create_valve(net, j2, p1, et='p', diameter_m=0.1, opened=True, loss_coefficient=500)
+    pandapipes.create_valve(net, j2, p1, et='p', diameter_m=0.1, opened=False, loss_coefficient=2000)
+
+    p2 = pandapipes.create_pipe_from_parameters(net, j3, j2, diameter_m=.1, k_mm=1, length_km=1., sections=10, index=5)
+
+    pandapipes.create_valve(net, j3, p2, et='p', diameter_m=0.1, opened=True, loss_coefficient=5000)
+
+    pandapipes.create_sink(net, j3, 0.11667)
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
@@ -100,18 +111,31 @@ def test_valve_to_pipe(use_numba):
 
     net2 = pandapipes.create_empty_network("net2", add_stdtypes=True)
 
-    j2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=5)
-    j3 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=3)
-    j4 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=12)
+    j0_2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=5)
+    j1_2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=3)
+    j2_2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=12)
+    j3_2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=7)
+    j4_2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=1)
+    j5_2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=13)
+    j6_2 = pandapipes.create_junction(net2, pn_bar=5, tfluid_k=283.15, index=6)
 
-    pandapipes.create_ext_grid(net2, j2, 5, 283.15, type="p")
+    pandapipes.create_ext_grid(net2, j0_2, 5, 283.15, type="p")
 
-    pandapipes.create_pipe_from_parameters(net2, j2, j3, diameter_m=.1, k_mm=1, length_km=1., index=10)
+    pandapipes.create_pipe_from_parameters(net2, j0_2, j1_2, diameter_m=.1, k_mm=1, length_km=1., index=10)
 
-    pandapipes.create_valve(net2, j4, j3, et='j', diameter_m=0.1, opened=True, loss_coefficient=1000)
-    pandapipes.create_valve(net2, j4, j3, et='j', diameter_m=0.1, opened=True, loss_coefficient=2000)
+    pandapipes.create_valve(net2, j2_2, j1_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=1000)
+    pandapipes.create_valve(net2, j2_2, j1_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=2000)
 
-    pandapipes.create_sink(net2, j4, 0.11667)
+    pandapipes.create_pipe_from_parameters(net2, j3_2, j2_2, diameter_m=.1, k_mm=1, length_km=1., index=3)
+
+    pandapipes.create_valve(net2, j4_2, j3_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=500)
+    pandapipes.create_valve(net2, j4_2, j3_2, et='j', diameter_m=0.1, opened=False, loss_coefficient=2000)
+
+    pandapipes.create_pipe_from_parameters(net2, j5_2, j4_2, diameter_m=.1, k_mm=1, length_km=1., sections=10, index=5)
+
+    pandapipes.create_valve(net2, j6_2, j5_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=5000)
+
+    pandapipes.create_sink(net2, j6_2, 0.11667)
 
     pandapipes.create_fluid_from_lib(net2, "lgas", overwrite=True)
 
@@ -120,12 +144,13 @@ def test_valve_to_pipe(use_numba):
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-8, tol_m=1e-8, use_numba=use_numba)
 
-    assert np.all(net.res_pipe.values == net2.res_pipe.values)
-    assert np.all(net.res_junction.loc[j0] == net2.res_junction.loc[j2])
-    assert np.all(net.res_junction.loc[j1] == net2.res_junction.loc[j4])
-    assert np.all(net.res_sink.values == net2.res_sink.values)
-    assert np.all(net.res_valve.values == net2.res_valve.values)
-    assert np.all(net.res_ext_grid.values == net2.res_ext_grid.values)
+    assert np.all(np.isclose(net.res_pipe.values, net2.res_pipe.values, equal_nan=True))
+    assert np.all(np.isclose(net.res_junction.loc[j0], net2.res_junction.loc[j0_2], equal_nan=True))
+    assert np.all(np.isclose(net.res_junction.loc[j1], net2.res_junction.loc[j2_2], equal_nan=True))
+    assert np.all(np.isclose(net.res_junction.loc[j2], net2.res_junction.loc[j4_2], equal_nan=True))
+    assert np.all(np.isclose(net.res_sink.values, net2.res_sink.values, equal_nan=True))
+    assert np.all(np.isclose(net.res_valve.values, net2.res_valve.values, equal_nan=True))
+    assert np.all(np.isclose(net.res_ext_grid.values, net2.res_ext_grid.values, equal_nan=True))
 
 
 if __name__ == '__main__':

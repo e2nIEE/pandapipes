@@ -52,7 +52,7 @@ class Pipe(BranchWInternalsComponent):
         return Junction
 
     @classmethod
-    def get_internal_node_number(cls, net):
+    def get_internal_node_number(cls, net, return_internal_only=True):
         """
 
         :param net: The pandapipes network
@@ -172,7 +172,7 @@ class Pipe(BranchWInternalsComponent):
         if np.any(cls.get_internal_node_number(net) > 0):
             extract_branch_results_with_internals(net, branch_results, cls.table_name(), res_nodes_from_hyd,
                 res_nodes_from_ht, res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, res_branch_ht, [],
-                cls.get_connected_node_type().table_name(), mode)
+                cls.internal_node_name(), mode)
         else:
             required_results_hyd = res_nodes_from_hyd + res_nodes_to_hyd + res_mean_hyd
             required_results_ht = res_nodes_from_ht + res_nodes_to_ht + res_branch_ht
