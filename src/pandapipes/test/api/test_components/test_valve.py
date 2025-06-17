@@ -39,8 +39,8 @@ def test_valve(use_numba):
     pandapipes.create_pipe_from_parameters(net, j1, j7, diameter_m=.1, k_mm=1, length_km=.1,
                                            loss_coefficient=9000)
 
-    pandapipes.create_valve(net, j6, j2, et='j', diameter_m=0.1, opened=False)
-    pandapipes.create_valve(net, j7, j3, et='j', diameter_m=0.1, opened=True)
+    pandapipes.create_valve(net, j6, j2, et='ju', diameter_m=0.1, opened=False)
+    pandapipes.create_valve(net, j7, j3, et='ju', diameter_m=0.1, opened=True)
 
     pandapipes.create_sink(net, j5, 0.11667)
 
@@ -88,17 +88,17 @@ def test_valve_to_pipe(use_numba):
 
     p0 = pandapipes.create_pipe_from_parameters(net, j0, j1, diameter_m=.1, k_mm=1, length_km=1., index=10)
 
-    pandapipes.create_valve(net, j1, p0, et='p', diameter_m=0.1, opened=True, loss_coefficient=1000)
-    pandapipes.create_valve(net, j1, p0, et='p', diameter_m=0.1, opened=True, loss_coefficient=2000)
+    pandapipes.create_valve(net, j1, p0, et='pi', diameter_m=0.1, opened=True, loss_coefficient=1000)
+    pandapipes.create_valve(net, j1, p0, et='pi', diameter_m=0.1, opened=True, loss_coefficient=2000)
 
     p1 = pandapipes.create_pipe_from_parameters(net, j2, j1, diameter_m=.1, k_mm=1, length_km=1., index=3)
 
-    pandapipes.create_valve(net, j2, p1, et='p', diameter_m=0.1, opened=True, loss_coefficient=500)
-    pandapipes.create_valve(net, j2, p1, et='p', diameter_m=0.1, opened=False, loss_coefficient=2000)
+    pandapipes.create_valve(net, j2, p1, et='pi', diameter_m=0.1, opened=True, loss_coefficient=500)
+    pandapipes.create_valve(net, j2, p1, et='pi', diameter_m=0.1, opened=False, loss_coefficient=2000)
 
     p2 = pandapipes.create_pipe_from_parameters(net, j3, j2, diameter_m=.1, k_mm=1, length_km=1., sections=10, index=5)
 
-    pandapipes.create_valve(net, j3, p2, et='p', diameter_m=0.1, opened=True, loss_coefficient=5000)
+    pandapipes.create_valve(net, j3, p2, et='pi', diameter_m=0.1, opened=True, loss_coefficient=5000)
 
     pandapipes.create_sink(net, j3, 0.11667)
 
@@ -123,17 +123,17 @@ def test_valve_to_pipe(use_numba):
 
     pandapipes.create_pipe_from_parameters(net2, j0_2, j1_2, diameter_m=.1, k_mm=1, length_km=1., index=10)
 
-    pandapipes.create_valve(net2, j2_2, j1_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=1000)
-    pandapipes.create_valve(net2, j2_2, j1_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=2000)
+    pandapipes.create_valve(net2, j2_2, j1_2, et='ju', diameter_m=0.1, opened=True, loss_coefficient=1000)
+    pandapipes.create_valve(net2, j2_2, j1_2, et='ju', diameter_m=0.1, opened=True, loss_coefficient=2000)
 
     pandapipes.create_pipe_from_parameters(net2, j3_2, j2_2, diameter_m=.1, k_mm=1, length_km=1., index=3)
 
-    pandapipes.create_valve(net2, j4_2, j3_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=500)
-    pandapipes.create_valve(net2, j4_2, j3_2, et='j', diameter_m=0.1, opened=False, loss_coefficient=2000)
+    pandapipes.create_valve(net2, j4_2, j3_2, et='ju', diameter_m=0.1, opened=True, loss_coefficient=500)
+    pandapipes.create_valve(net2, j4_2, j3_2, et='ju', diameter_m=0.1, opened=False, loss_coefficient=2000)
 
     pandapipes.create_pipe_from_parameters(net2, j5_2, j4_2, diameter_m=.1, k_mm=1, length_km=1., sections=10, index=5)
 
-    pandapipes.create_valve(net2, j6_2, j5_2, et='j', diameter_m=0.1, opened=True, loss_coefficient=5000)
+    pandapipes.create_valve(net2, j6_2, j5_2, et='ju', diameter_m=0.1, opened=True, loss_coefficient=5000)
 
     pandapipes.create_sink(net2, j6_2, 0.11667)
 

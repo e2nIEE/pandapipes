@@ -548,7 +548,7 @@ def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coeff
     :type junction: int
     :param element: ID of the element on the other side which the valve will be connected with
     :type element: int
-    :param et: element type: "p" = valve between junction and pipe, "j" = valve between two junctions
+    :param et: element type: "pi" = valve between junction and pipe, "ju" = valve between two junctions
     :type et: str
     :param diameter_m: The valve diameter in [m]
     :type diameter_m: float
@@ -570,7 +570,7 @@ def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coeff
     :rtype: int
 
     :Example:
-        >>> create_valve(net, 0, 1, et="j", diameter_m=4e-3, name="valve1")
+        >>> create_valve(net, 0, 1, et="ju", diameter_m=4e-3, name="valve1")
 
     """
     add_new_component(net, Valve)
@@ -578,14 +578,14 @@ def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coeff
     index = _get_index_with_check(net, "valve", index)
 
     _check_element(net, junction, element='junction')
-    if et == "p":
+    if et == "pi":
         elm_tab = 'pipe'
         if element not in net[elm_tab].index:
             raise UserWarning("Unknown pipe index")
         if (not net[elm_tab]["from_junction"].loc[element] == junction and
                 not net[elm_tab]["to_junction"].loc[element] == junction):
             raise UserWarning("Pipe %s not connected to junction %s" % (element, junction))
-    elif et == "j":
+    elif et == "ju":
         _check_element(net, element, element='junction')
     else:
         raise UserWarning("Unknown element type")
@@ -1486,7 +1486,7 @@ def create_valves(net, junctions, elements, et, diameter_m, opened=True, loss_co
     :param elements: IDs of the elements on the other side to which the valves will be \
             connected to
     :type elements: Iterable(int)
-    :param et: element type: "p" = valves between junction and pipe, "j" = valves between two junctions
+    :param et: element type: "pi" = valves between junction and pipe, "ju" = valves between two junctions
     :type et: Iterable(str) or str
     :param diameter_m: The valve diameters in [m]
     :type diameter_m: Iterable or float
@@ -1509,14 +1509,46 @@ def create_valves(net, junctions, elements, et, diameter_m, opened=True, loss_co
 
     :Example:
         >>> create_valves(net, junctions=[0, 1, 4], elements=[1, 5, 6],
-        >>>               opened=[True, False, True], et="j", diameter_m=4e-3,
+        >>>               opened=[True, False, True], et="ju", diameter_m=4e-3,
         >>>               name=["valve_%d" for d in range(3)])
 
     """
     add_new_component(net, Valve)
 
     index = _get_multiple_index_with_check(net, "valve", index, len(junctions))
-    _check_branches(net, junctions, elements, "valve")
+    _check_multiple_elements(net, junctions, "junction")
+    rel_els = ['ju', 'pi']
+    matcher = {'ju': ['junction', 'junctions'], 'pi': ['pipe', 'pipes']}
+    for typ in rel_els:
+        if et == typ:
+            _check_multiple_elements(net, elements, *matcher[typ])
+    if np.any(np.isin(et, rel_els)):
+        mask_all = np.array([False] * len(et))
+        for typ in rel_els:
+            et_arr = np.array(et)
+            el_arr = np.array(elements)
+            mask = et_arr == typ
+            mask_all |= mask
+            _check_multiple_elements(net, el_arr[mask], *matcher[typ])
+        not_def = ~mask_all
+        if np.any(not_def):
+            raise UserWarning('et type %s is not implemented' % et_arr[not_def])
+    else:
+        raise UserWarning('et type %s is not implemented' %et)
+
+    b_arr = np.array(junctions)[:, None]
+    el_arr = np.array(elements)
+    et_arr = np.array([et] * len(junctions) if isinstance(et, str) else et)
+    # Ensure switches are connected correctly.
+    for typ, table, joining_busses in [("pi", "pipe", ["from_junction", "to_junction"])]:
+        el = el_arr[et_arr == typ]
+        bs = net[table].loc[el, joining_busses].values
+        not_connected_mask = ~np.isin(b_arr[et_arr == typ], bs)
+        if np.any(not_connected_mask):
+            bus_element_pairs = zip(el_arr[et_arr == typ][:, None][not_connected_mask].tolist(),
+                                     b_arr[et_arr == typ][not_connected_mask].tolist())
+            raise UserWarning("%s not connected (%s element, bus): %s" %
+                              (table.capitalize(), table, list(bus_element_pairs)))
 
     entries = {"name": name, "junction": junctions, "element": elements, "et": et, "diameter_m": diameter_m,
                "opened": opened, "loss_coefficient": loss_coefficient, "type": type}

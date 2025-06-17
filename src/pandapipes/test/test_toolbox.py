@@ -67,7 +67,7 @@ def create_base_net(oos):
                                            length_km=1, diameter_m=0.3, name="Pipe 7",
                                            geodata=[(9, 0), (9, 4)])
 
-    pandapipes.create_valve(net, junction5, junction6, et='j', diameter_m=0.05,
+    pandapipes.create_valve(net, junction5, junction6, et='ju', diameter_m=0.05,
                             opened=True)
     pandapipes.create_heat_exchanger(net, junction3, junction8, diameter_m=0.3, qext_w=20000)
     pandapipes.create_sink(net, junction=junction4, mdot_kg_per_s=0.545, name="Sink 1")
