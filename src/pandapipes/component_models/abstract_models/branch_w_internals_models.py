@@ -94,7 +94,7 @@ class BranchWInternalsComponent(BranchComponent):
         internal_nodes = cls.get_internal_node_number(net)
         internal_nodes_num = int(np.sum(internal_nodes))
         end = current_start + internal_nodes_num
-        if np.any(internal_nodes > 0):
+        if internal_nodes_num > 0:
             add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
             ft_lookups[cls.internal_node_name()] = (current_start, end)
             get_internal_node_lookup_structure(net, internals, cls.table_name(), internal_nodes, internal_nodes_num,
@@ -151,7 +151,6 @@ class BranchWInternalsComponent(BranchComponent):
 
             int_node_pit = node_pit[f:t, :]
             int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
-            int_node_pit[:, ELEMENT_IDX] = np.arange(t - f)
             return int_node_pit
 
     @classmethod

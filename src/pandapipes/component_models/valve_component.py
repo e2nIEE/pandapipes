@@ -52,7 +52,7 @@ class Valve(BranchWInternalsComponent):
 
         int_nodes = np.zeros(len(net[cls.table_name()]), dtype=np.int32)
         mask_p = np.flatnonzero(net[cls.table_name()]['et'].values == 'p')
-        val = net[cls.table_name()][['junction', 'element']].iloc[mask_p].values
+        val = net[cls.table_name()][list(cls.from_to_node_cols())].values[mask_p]
         _, idx, inv = np.unique(val, return_index=True, return_inverse=True, axis=0)
         int_nodes[mask_p[idx]] = 1
         return int_nodes if return_internal_only else (int_nodes, inv)
