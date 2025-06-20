@@ -6,7 +6,7 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
-from pandapipes.idx_branch import D, AREA, LOAD_VEC_BRANCHES_T, TO_NODE, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, QEXT
+from pandapipes.idx_branch import D, AREA, LOAD_VEC_BRANCHES_T, TO_NODE, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, MDOTINIT
 from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL, NODE_TYPE_T, GE, TINIT
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
@@ -156,21 +156,31 @@ class CirculationPump(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
+        node_pit = net['_pit']['node']
+        branch_pit = net['_pit']['branch']
+        branch_lookups = get_lookup(net, "branch", "from_to")
+        f, t = branch_lookups[cls.table_name()]
+
+        mask = branch_pit[f:t, MDOTINIT] < 0
+        if np.any(mask):
+            raise UserWarning(r'Your grid is badly modelled and would lead to a direction change in heat generator {}')
 
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
                                                  cls.table_name(), mode)
 
-        node_pit = net['_pit']['node']
-        branch_pit = net['_pit']['branch']
-        branch_lookups = get_lookup(net, "branch", "from_to")
-        f, t = branch_lookups[cls.table_name()]
-
         res_table = net["res_" + cls.table_name()]
 
-        res_table['qext_w'].values[:] = branch_pit[f:t, QEXT]
         from_nodes = get_from_nodes_corrected(branch_pit[f:t])
         t_from = node_pit[from_nodes, TINIT]
         tout = branch_pit[f:t, TOUTINIT]
         res_table['deltat_k'].values[:] = t_from - tout
+
+        fluid = get_fluid(net)
+
+        cp_i = fluid.get_heat_capacity(t_from)
+        cp_i1 = fluid.get_heat_capacity(tout)
+
+        mass = np.abs(branch_pit[f:t, MDOTINIT])
+        res_table['qext_w'].values[:] = mass * (cp_i1 * tout - cp_i * t_from)
