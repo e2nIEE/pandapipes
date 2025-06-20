@@ -6,9 +6,10 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
-from pandapipes.idx_branch import D, AREA, BRANCH_TYPE, CIRC, LOAD_VEC_BRANCHES_T, TO_NODE
-from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
-from pandapipes.pf.pipeflow_setup import get_fluid
+from pandapipes.idx_branch import D, AREA, LOAD_VEC_BRANCHES_T, TO_NODE, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, QEXT
+from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL, NODE_TYPE_T, GE, TINIT
+from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 try:
@@ -42,11 +43,11 @@ class CirculationPump(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
+            output = ["p_from_bar", "p_to_bar", "t_from_k",
                       "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
                       "normfactor_from", "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
+            output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
                       "mdot_to_kg_per_s", "vdot_m3_per_s"]
         output += ['deltat_k', 'qext_w']
         return output, True
@@ -83,11 +84,10 @@ class CirculationPump(BranchWZeroLengthComponent):
         #       not contain "p", as this should not be allowed for this component
         types = circ_pump_tbl.type.values
         p_values = circ_pump_tbl.p_flow_bar.values
-        t_values = circ_pump_tbl.t_flow_k.values
         index_p = set_fixed_node_entries(
             net, node_pit, junction, types, p_values, cls.get_connected_node_type(), 'p')
-        set_fixed_node_entries(net, node_pit, junction, types, t_values, cls.get_connected_node_type(), 't')
         node_pit[index_p, JAC_DERIV_MSL] = -1.
+        node_pit[index_p, NODE_TYPE_T] = GE
         return circ_pump_tbl, p_values
 
     @classmethod
@@ -100,10 +100,11 @@ class CirculationPump(BranchWZeroLengthComponent):
         :type branch_pit:
         :return: No Output.
         """
+        circ_pump_tbl = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
         circ_pump_pit[:, D] = 0.1
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
-        circ_pump_pit[:, BRANCH_TYPE] = CIRC
+        circ_pump_pit[:, TOUTINIT] = circ_pump_tbl.t_flow_k.values
         return circ_pump_pit
 
     @classmethod
@@ -136,6 +137,9 @@ class CirculationPump(BranchWZeroLengthComponent):
         f, t = idx_lookups[cls.table_name()]
         circ_pump_pit = branch_pit[f:t, :]
         circ_pump_pit[:, LOAD_VEC_BRANCHES_T] = 0
+        circ_pump_pit[:, JAC_DERIV_DTOUT] = 1
+        circ_pump_pit[:, JAC_DERIV_DT] = 0
+
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -157,3 +161,16 @@ class CirculationPump(BranchWZeroLengthComponent):
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
                                                  cls.table_name(), mode)
+
+        node_pit = net['_pit']['node']
+        branch_pit = net['_pit']['branch']
+        branch_lookups = get_lookup(net, "branch", "from_to")
+        f, t = branch_lookups[cls.table_name()]
+
+        res_table = net["res_" + cls.table_name()]
+
+        res_table['qext_w'].values[:] = branch_pit[f:t, QEXT]
+        from_nodes = get_from_nodes_corrected(branch_pit[f:t])
+        t_from = node_pit[from_nodes, TINIT]
+        tout = branch_pit[f:t, TOUTINIT]
+        res_table['deltat_k'].values[:] = t_from - tout

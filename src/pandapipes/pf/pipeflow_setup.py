@@ -17,11 +17,9 @@ from pandapipes.idx_branch import (
     ACTIVE as ACTIVE_BR,
     FLOW_RETURN_CONNECT,
     ACTIVE,
-    BRANCH_TYPE,
-    CIRC,
 )
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
-    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED
+    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED, GE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
 
@@ -561,24 +559,27 @@ def identify_active_nodes_branches(net, hydraulic=True):
                 # set nodes oos that are not connected to any branches with flow > 0 (0.1 is arbitrary
                 # here, any value between 0 and 1 should work, excluding 0 and 1)
                 nodes_connected[fn_tn] = nodes_connected[fn_tn] & (flow > 0.1)
-
+        fn = branch_pit[:, FROM_NODE].astype(np.int32)
+        tn = branch_pit[:, TO_NODE].astype(np.int32)
+        branches_zero = branches_zero_flow(branch_pit)
+        connected_branches_not_zero = branches_connected & ~branches_zero
+        nodes_zero = ~np.isin(
+            np.arange(len(nodes_connected)),
+            np.concatenate([fn[connected_branches_not_zero], tn[connected_branches_not_zero]])
+        ) & nodes_connected
         if get_net_option(net, "transient"):
-            fn = branch_pit[:, FROM_NODE].astype(np.int32)
-            tn = branch_pit[:, TO_NODE].astype(np.int32)
-            branches_zero = branches_zero_flow(branch_pit)
-            connected_branches_not_zero = branches_connected & ~branches_zero
-            nodes_zero = ~np.isin(
-                np.arange(len(nodes_connected)),
-                np.concatenate([fn[connected_branches_not_zero], tn[connected_branches_not_zero]])
-            ) & nodes_connected
             net["_lookups"]["node_zero_flow"] = nodes_zero
             net["_lookups"]["branch_zero_flow"] = branches_zero
+        else:
+            mask_ge = node_pit[:, NODE_TYPE_T] == GE
+            nodes_connected[mask_ge] = ~nodes_zero[mask_ge]
+
     mode = "hydraulics" if hydraulic else "heat_transfer"
     if np.all(~nodes_connected):
         mode = 'hydraulic' if hydraulic else 'heat transfer'
         raise PipeflowNotConverged(" All nodes are set out of service. Probably they are not supplied."
                                    " Therefore, the %s pipeflow did not converge. "
-                                   " Have you forgotten to define an external grid?" % mode)
+                                   " Have you forgotten to define a supply component or is it not probably connected?" % mode)
     net["_lookups"]["node_active_" + mode] = nodes_connected
     net["_lookups"]["branch_active_" + mode] = branches_connected
 
@@ -656,7 +657,7 @@ def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
                                    & get_lookup(net, "branch", "active_hydraulics")
         active_node_lookup = node_pit[:, ACTIVE_ND].astype(np.bool_) \
                              & get_lookup(net, "node", "active_hydraulics")
-        slacks = np.where((node_pit[:, NODE_TYPE_T] == T) & active_node_lookup)[0]
+        slacks = np.where(((node_pit[:, NODE_TYPE_T] == T) | (node_pit[:, NODE_TYPE_T] == GE)) & active_node_lookup)[0]
 
     return perform_connectivity_search(net, node_pit, branch_pit, slacks, active_node_lookup,
                                        active_branch_lookup, mode=mode)
@@ -665,8 +666,9 @@ def check_connectivity(net, branch_pit, node_pit, mode="hydraulics"):
 def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
                                 mode="hydraulics"):
     connect = branch_pit[:, FLOW_RETURN_CONNECT].astype(bool)
-    circ = branch_pit[:, BRANCH_TYPE] == CIRC
-    if np.any(circ) and mode == 'hydraulics':
+    to_nodes = branch_pit[:, TO_NODE]
+    gen = node_pit[to_nodes.astype(int), NODE_TYPE_T] == GE
+    if np.any(gen) and mode == 'hydraulics':
         active_branch_lookup = active_branch_lookup & ~connect
     nodes_connected, branches_connected = (
         _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
@@ -832,6 +834,8 @@ def reduce_pit(net, mode="hydraulics"):
 
 def check_infeed_number(node_pit):
     slack_nodes = node_pit[:, NODE_TYPE_T] == T
+    if np.all(~slack_nodes):
+        return True
     if len(node_pit) == np.sum(slack_nodes):
         node_pit[slack_nodes, INFEED] = True
     infeed_nodes = node_pit[:, INFEED]
