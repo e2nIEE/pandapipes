@@ -569,7 +569,7 @@ def branches_connected_flow(branch_pit):
 
 
 def check_connectivity(net, branch_pit, node_pit,
-                       branches_connected, nodes_conneceted,
+                       branches_connected, nodes_connected,
                        mode="hydraulics"):
     """
     Perform a connectivity check which means that network nodes are identified that don't have any
@@ -596,10 +596,10 @@ def check_connectivity(net, branch_pit, node_pit,
     :type branch_pit: np.array
     :param node_pit: Internal array with node entries
     :type node_pit: np.array
-    :param branch_pit: Internal array with branch entries
-    :type branch_pit: np.array
-    :param node_pit: Internal array with node entries
-    :type node_pit: np.array
+    :param branches_connected: Array of bool if branches are connected or not
+    :type branches_connected: np.array(bool)
+    :param nodes_connected: Array of bool if nodes are connected or not
+    :type nodes_connected: np.array(bool)
     :param mode: two modes exist: "hydraulics" and "heat_transfer", representing the two modes of \
         the pipeflow calculation.
     :type mode: str
@@ -608,13 +608,12 @@ def check_connectivity(net, branch_pit, node_pit,
     :rtype: tuple(np.array)
     """
     if mode == "hydraulics":
-        slacks = np.where((node_pit[:, NODE_TYPE] == P) & nodes_conneceted)[0]
+        slacks = np.where((node_pit[:, NODE_TYPE] == P) & nodes_connected)[0]
     else:
-        slacks = np.where(((node_pit[:, NODE_TYPE_T] == T) | (node_pit[:, NODE_TYPE_T] == GE)) & nodes_conneceted)[0]
+        slacks = np.where(((node_pit[:, NODE_TYPE_T] == T) | (node_pit[:, NODE_TYPE_T] == GE)) & nodes_connected)[0]
 
     return perform_connectivity_search(net, node_pit, branch_pit, slacks,
-                                       nodes_conneceted,
-                                       branches_connected, mode=mode)
+                                       nodes_connected, branches_connected, mode=mode)
 
 
 def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
