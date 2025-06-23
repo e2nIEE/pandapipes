@@ -163,7 +163,8 @@ class CirculationPump(BranchWZeroLengthComponent):
 
         mask = branch_pit[f:t, MDOTINIT] < 0
         if np.any(mask):
-            raise UserWarning(r'Your grid is badly modelled and would lead to a direction change in heat generator {}')
+            raise UserWarning(r'Your grid is badly modelled and would lead to a direction change in circulation pump %s'
+                              % str(net[cls.table_name()].index[mask].tolist()))
 
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
@@ -182,5 +183,5 @@ class CirculationPump(BranchWZeroLengthComponent):
         cp_i = fluid.get_heat_capacity(t_from)
         cp_i1 = fluid.get_heat_capacity(tout)
 
-        mass = np.abs(branch_pit[f:t, MDOTINIT])
+        mass = branch_pit[f:t, MDOTINIT]
         res_table['qext_w'].values[:] = mass * (cp_i1 * tout - cp_i * t_from)
