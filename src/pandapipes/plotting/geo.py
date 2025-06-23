@@ -41,24 +41,25 @@ def convert_geodata_to_gis(net, epsg=31467, node_geodata=True, branch_geodata=Tr
     :return: No output.
     """
     if node_geodata:
-        net["bus_geodata"] = _node_geometries_from_geodata(net["bus_geodata"], epsg)
+        net["junction_geodata"] = _node_geometries_from_geodata(net["junction_geodata"], epsg)
     if branch_geodata:
-        net["line_geodata"] = _branch_geometries_from_geodata(net["line_geodata"], epsg)
+        net["pipe_geodata"] = _branch_geometries_from_geodata(net["pipe_geodata"], epsg)
     net["gis_epsg_code"] = epsg
 
 
-def convert_epsg_bus_geodata(net, epsg_in=4326, epsg_out=31467):
+def convert_epsg_junction_geodata(net, epsg_in=4326, epsg_out=31467):
     """
     Converts bus geodata in net from epsg_in to epsg_out
 
-    :param net: The pandapower network
-    :type net: pandapowerNet
+    :param net: The pandapipes network
+    :type net: pandapipesNet
     :param epsg_in: current epsg projection
     :type epsg_in: int, default 4326 (= WGS84)
     :param epsg_out: epsg projection to be transformed to
     :type epsg_out: int, default 31467 (= Gauss-Krüger Zone 3)
     :return: net - the given pandapower network (no copy!)
     """
-    net['bus_geodata'].loc[:, "x"], net['bus_geodata'].loc[:, "y"] = _convert_xy_epsg(
-        net['bus_geodata'].loc[:, "x"], net['bus_geodata'].loc[:, "y"], epsg_in, epsg_out)
+    net['junction_geodata'].loc[:, "x"], net['junction_geodata'].loc[:, "y"] = _convert_xy_epsg(
+        net['junction_geodata'].loc[:, "x"], net['junction_geodata'].loc[:, "y"], epsg_in, epsg_out
+    )
     return net

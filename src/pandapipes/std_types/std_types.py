@@ -42,7 +42,7 @@ def create_std_type(net, component, std_type_name, typedata, overwrite=False, ch
             if component in ["pump"]:
                 required = []
             else:
-                raise ValueError("Unkown component type %s" % component)
+                raise ValueError("Unknown component type %s" % component)
         for par in required:
             if par not in typedata:
                 raise UserWarning("%s is required as %s type parameter" % (par, component))
@@ -209,7 +209,7 @@ def change_std_type(net, cid, name, component):
 
 def create_pump_std_type(net, name, pump_object, overwrite=False):
     """
-    Create a new pump stdandard type object and add it to the pump standard types in net.
+    Create a new pump standard type object and add it to the pump standard types in net.
 
     :param net: The pandapipes network to which the standard type is added.
     :type net: pandapipesNet
