@@ -834,8 +834,6 @@ def reduce_pit(net, mode="hydraulics"):
 
 def check_infeed_number(node_pit):
     slack_nodes = node_pit[:, NODE_TYPE_T] == T
-    if np.all(~slack_nodes):
-        return True
     if len(node_pit) == np.sum(slack_nodes):
         node_pit[slack_nodes, INFEED] = True
     infeed_nodes = node_pit[:, INFEED]
