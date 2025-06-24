@@ -9,7 +9,7 @@ Naming Conventions
 
 .. tabularcolumns:: |l|l|
 .. csv-table:: 
-   :file: nameing1.csv
+   :file: naming1.csv
    :delim: ;
    :widths: 30, 30
 

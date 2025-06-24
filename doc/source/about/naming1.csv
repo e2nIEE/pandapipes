@@ -1,4 +1,4 @@
 **Parameter**;**Read As**
 p_bar;:math:`p` :math:`[bar]`
-alpha_w_per_m2k;:math:`\alpha` :math:`[\frac{W}{m^2 \cdot K}]`
+u_w_per_m2k;:math:`u` :math:`[\frac{W}{m^2 \cdot K}]`
 vdot_m3_per_s;:math:`\dot{V}` :math:`[\frac{m^3}{s}]`
