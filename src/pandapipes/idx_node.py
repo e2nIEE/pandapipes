@@ -7,6 +7,7 @@ P = 1  # Reference node, pressure is fixed
 L = 2  # All other nodes
 T = 3  # Reference node with fixed temperature, otherwise 0
 PC = 4  # Controlled node with fixed pressure p
+GE = 5
 
 # node indices
 TABLE_IDX = 0  # number of the table that this node belongs to

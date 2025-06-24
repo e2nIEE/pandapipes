@@ -238,11 +238,11 @@ class HeatConsumer(BranchWZeroLengthComponent):
         """
         if get_fluid(net).is_gas:
             output = ["p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
                       "normfactor_from", "normfactor_to"]
         else:
             output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda"]
+                      "mdot_to_kg_per_s", "vdot_m3_per_s"]
         output += ['deltat_k', 'qext_w']
         return output, True
 

@@ -3,8 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 # branch types
-CIRC = 1  # Circ pump branch
-PC = 2  # Pressure controller branch
+PC = 1  # Pressure controller branch
 
 # branch indices
 TABLE_IDX = 0  # number of the table that this branch belongs to
