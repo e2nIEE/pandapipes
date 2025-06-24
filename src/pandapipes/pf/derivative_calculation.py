@@ -4,7 +4,7 @@ from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import (LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES,
                                    JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM_NODE,
                                    T_OUT_OLD,
-                                   FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT,
+                                   FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, U, TL, QEXT,
                                    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT_NODE,
                                    LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO,
                                    LOAD_VEC_NODES_FROM_T,
@@ -116,7 +116,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     cp_n = fluid.get_heat_capacity(t_init_n)
     t_amb = branch_pit[:, TEXT]
     length = branch_pit[:, LENGTH]
-    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
+    alpha = branch_pit[:, U] * np.pi * branch_pit[:, D]
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
     infeed_node = None
