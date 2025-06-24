@@ -475,8 +475,8 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
+    :param u_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :type u_w_per_m2k: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default None, will be set equal to the net ambient temperature
     :param qext_w: external heat feed-in to the pipe in [W]
