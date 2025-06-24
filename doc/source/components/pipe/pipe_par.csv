@@ -7,7 +7,7 @@ length_km;float;:math:`>` 0;Length of the pipe [km]
 diameter_m;float;:math:`\gt` 0   ;Inner diameter of the pipe [m]
 k_mm;float;:math:`\gt` 0   ;Pipe roughness [mm]
 loss_coefficient;float;:math:`\geq` 0   ;An additional loss coefficient which might account for e.g. bends
-alpha_w_per_m2k;float;:math:`\geq` 0   ;Heat transfer coefficient [W/(m^2K)]
+u_w_per_m2k;float;:math:`\geq` 0   ;Overall heat transfer coefficient [W/(m^2K)]
 qext_w;float;:math:`>` 0   ;An additional heat flow entering or leaving the pipe [W]
 text_k;float;:math:`>` 0   ;The ambient temperature used for calculating heat losses [K]
 sections;integer;:math:`\geq` 1   ;The number of internal pipe sections
