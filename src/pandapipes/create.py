@@ -756,6 +756,9 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
         >>>                                 t_flow_k=350, type="p")
 
     """
+    logger.warning(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                   r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                   r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpPressure)
 
@@ -820,6 +823,9 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
         >>>                                  t_flow_k=350, type="pt")
 
     """
+    logger.warning(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                   r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                   r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpMass)
 
