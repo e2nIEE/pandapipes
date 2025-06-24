@@ -132,7 +132,7 @@ def schutterwald_heat(tflow_degC=70, treturn_degC=None, u_w_per_m2k=1.):
     :type tflow_degC: float
     :param treturn_degC: return temperature of the heat consumers in degrees C, default None
     :type treturn_degC: float | None
-    :param u_w_per_m2k: pipe heat transfer coefficient in W/m2K, default 1
+    :param u_w_per_m2k: pipe overall heat transfer coefficient in W/m2K, default 1
     :type u_w_per_m2k: float
     :return: heat distribution net
     :rtype: pandapipesNet
