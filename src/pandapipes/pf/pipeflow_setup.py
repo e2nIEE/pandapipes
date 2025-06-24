@@ -20,7 +20,6 @@ from pandapipes.idx_branch import (
 )
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED, GE
-from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -534,7 +533,7 @@ def identify_active_nodes_branches(net, hydraulic=True):
                                                                      mode="heat_transfer")
         fn = branch_pit[:, FROM_NODE].astype(np.int32)
         tn = branch_pit[:, TO_NODE].astype(np.int32)
-        branches_flow = branches_connected & branches_connected_flow(branch_pit)
+        branches_flow = branches_connected & branches_not_zero_flow(branch_pit)
         nodes_flow = np.isin(np.arange(len(nodes_connected)), np.concatenate([fn[branches_flow], tn[branches_flow]])
         ) & nodes_connected
 
@@ -555,7 +554,7 @@ def identify_active_nodes_branches(net, hydraulic=True):
     net["_lookups"]["branch_active_" + mode] = branches_connected
 
 
-def branches_connected_flow(branch_pit):
+def branches_not_zero_flow(branch_pit):
     """
     Simple function to identify branches with flow based on the calculated velocity.
 
@@ -565,7 +564,7 @@ def branches_connected_flow(branch_pit):
     :rtype: np.array
     """
     # TODO: is this formulation correct or could there be any caveats?
-    return ~np.isclose(branch_pit[:, MDOTINIT], 0, rtol=1e-10, atol=1e-10)
+    return ~np.isnan(branch_pit[:, MDOTINIT]) & ~np.isclose(branch_pit[:, MDOTINIT], 0, rtol=1e-10, atol=1e-10)
 
 
 def check_connectivity(net, branch_pit, node_pit,
@@ -618,19 +617,19 @@ def check_connectivity(net, branch_pit, node_pit,
 
 def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
                                 mode="hydraulics"):
-    connect = branch_pit[:, FLOW_RETURN_CONNECT].astype(bool)
-    to_nodes = branch_pit[:, TO_NODE]
-    gen = node_pit[to_nodes.astype(int), NODE_TYPE_T] == GE
-    if np.any(gen) and mode == 'hydraulics':
+    if mode == 'hydraulics':
+        connect = branch_pit[:, FLOW_RETURN_CONNECT].astype(bool)
         active_branch_lookup = active_branch_lookup & ~connect
-    nodes_connected, branches_connected = (
-        _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
-    if np.any(connect) and mode == 'hydraulics':
+        nodes_connected, branches_connected = (
+            _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
         from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
         to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
         branch_active = branch_pit[:, ACTIVE].astype(bool)
         active = nodes_connected[from_nodes] & nodes_connected[to_nodes] & branch_active
         branches_connected[connect & active] = True
+    else:
+        nodes_connected, branches_connected = (
+            _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
     return nodes_connected, branches_connected
 
 
