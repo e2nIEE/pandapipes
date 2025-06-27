@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pandapipes"
-version = "0.12.0.dev3"  # File format version '__format_version__' is tracked in __init__.py
+version = "0.12.0"  # File format version '__format_version__' is tracked in __init__.py
 authors=[
     { name = "Simon Ruben Drauz-Mauel", email = "simon.ruben.drauz-mauel@iee.fraunhofer.de" },
     { name = "Daniel Lohmeier", email = "daniel.lohmeier@retoflow.de" },
-    { name = "Jolando Marius Kisse", email = "jolando.kisse@uni-kassel.de" }
+    { name = "Jolando Marius Kisse", email = "jolando.kisse@uni-kassel.de" },
+    { name = "Erik Prade", email = "erik.prade@iee.fraunhofer.de" }
 ]
 description = "A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids"
 readme = "README.rst"
