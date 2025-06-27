@@ -123,7 +123,8 @@ def test_wild_indexing(create_net_changed_indices):
     assert net.converged
 
 
-def test_valve_flow_contrl_heat_consumer():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_valve_flow_contrl_heat_consumer(use_numba):
     net = pandapipes.create_empty_network(fluid='water')
     j1f, j2f, j3f, j4f, j1r, j2r, j3r, j4r, j5 = pandapipes.create_junctions(net, 9, 5, 400)
     pandapipes.create_circ_pump_const_pressure(net, j4r, j1f, 5, 2, 400)
@@ -135,11 +136,11 @@ def test_valve_flow_contrl_heat_consumer():
 
     net.valve.loc[0, 'opened'] = False
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='sequential')
+        pandapipes.pipeflow(net, mode='sequential', use_numba=use_numba)
 
     amb_temp = get_net_option(net, 'ambient_temperature')
 
-    pandapipes.pipeflow(net, mode='hydraulics')
+    pandapipes.pipeflow(net, mode='hydraulics', use_numba=use_numba)
 
     assert np.all(np.isclose(net.res_junction.loc[[j1r, j2r, j3r, j4r, j5], 'p_bar'].values, 3.))
     assert np.all(np.isnan(net.res_junction.loc[[j2f, j3f, j4f], 'p_bar']).values)
@@ -148,9 +149,9 @@ def test_valve_flow_contrl_heat_consumer():
     net.valve.loc[0, 'opened'] = True
     net.valve.loc[3, 'opened'] = False
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='sequential')
+        pandapipes.pipeflow(net, mode='sequential', use_numba=use_numba)
 
-    pandapipes.pipeflow(net, mode='hydraulics')
+    pandapipes.pipeflow(net, mode='hydraulics', use_numba=use_numba)
 
     assert np.all(np.isclose(net.res_junction.loc[[j4r], 'p_bar'].values, 3.))
     assert np.all(np.isnan(net.res_junction.loc[[j5, j1r, j2r, j3r], 'p_bar']).values)
@@ -158,7 +159,7 @@ def test_valve_flow_contrl_heat_consumer():
 
     net.valve.loc[3, 'opened'] = True
     net.valve.loc[1, 'opened'] = False
-    pandapipes.pipeflow(net, mode='sequential')
+    pandapipes.pipeflow(net, mode='sequential', use_numba=use_numba)
 
     assert np.all(np.isclose(net.res_junction.loc[[j4r, j3r, j2r, j1r, j5], 'p_bar'].values, 3.))
     assert np.all(np.isnan(net.res_junction.loc[[j4f], 'p_bar']).values)
@@ -167,7 +168,7 @@ def test_valve_flow_contrl_heat_consumer():
 
     net.valve.loc[1, 'opened'] = True
     net.valve.loc[2, 'opened'] = False
-    pandapipes.pipeflow(net, mode='sequential')
+    pandapipes.pipeflow(net, mode='sequential', use_numba=use_numba)
 
     assert np.all(np.isclose(net.res_junction.loc[[j4r, j3r, j2r, j5], 'p_bar'].values, 3.))
     assert np.all(np.isnan(net.res_junction.loc[[j1r], 'p_bar']).values)
@@ -175,13 +176,13 @@ def test_valve_flow_contrl_heat_consumer():
     assert np.all(np.isclose(net.res_junction.t_k.values[[j3f, j4f, j1r, j2r]], amb_temp))
 
     net.valve.loc[1, 'opened'] = False
-    pandapipes.pipeflow(net, mode='sequential')
+    pandapipes.pipeflow(net, mode='sequential', use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_junction.loc[[j1r, j4f], 'p_bar'].values))
 
     net.valve.loc[:, 'opened'] = False
     with pytest.raises(PipeflowNotConverged):
-        pandapipes.pipeflow(net, mode='sequential')
+        pandapipes.pipeflow(net, mode='sequential', use_numba=use_numba)
 
     assert np.all(np.isnan(net.res_junction.p_bar.values[1:-1]))
 
@@ -190,7 +191,7 @@ def test_valve_flow_contrl_heat_consumer():
     net.valve.loc[3, 'opened'] = False
     pandapipes.create_circ_pump_const_pressure(net, j3r, j1f, 5, 2, 400)
 
-    pandapipes.pipeflow(net, mode='sequential')
+    pandapipes.pipeflow(net, mode='sequential', use_numba=use_numba)
 
 
 
