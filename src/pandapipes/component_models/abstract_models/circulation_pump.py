@@ -161,7 +161,7 @@ class CirculationPump(BranchWZeroLengthComponent):
         branch_lookups = get_lookup(net, "branch", "from_to")
         f, t = branch_lookups[cls.table_name()]
 
-        mask = branch_pit[f:t, MDOTINIT] < 0
+        mask = (branch_pit[f:t, MDOTINIT] < 0) & ~np.isclose(branch_pit[f:t, MDOTINIT], 0)
         if np.any(mask):
             raise UserWarning(r'Your grid is badly modelled and would lead to a direction change in circulation pump %s'
                               % str(net[cls.table_name()].index[mask].tolist()))
