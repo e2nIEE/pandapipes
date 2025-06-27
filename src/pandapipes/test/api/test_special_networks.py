@@ -122,7 +122,7 @@ def test_wild_indexing(create_net_changed_indices):
     pandapipes.pipeflow(net)
     assert net.converged
 
-
+@pytest.mark.xfail(reason="The test grid is badly modelled and would lead to a direction change in circulation pump.")
 def test_valve_flow_contrl_heat_consumer():
     net = pandapipes.create_empty_network(fluid='water')
     j1f, j2f, j3f, j4f, j1r, j2r, j3r, j4r, j5 = pandapipes.create_junctions(net, 9, 5, 400)
