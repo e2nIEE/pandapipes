@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 from typing import Iterable
@@ -8,7 +8,7 @@ import pandas as pd
 from pandapower.auxiliary import _preserve_dtypes
 import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
-    _check_node_element, _check_multiple_node_elements, _set_multiple_entries, \
+    _check_element, _check_multiple_elements, _set_multiple_entries, \
     _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
@@ -756,6 +756,9 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
         >>>                                 t_flow_k=350, type="p")
 
     """
+    logger.info(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpPressure)
 
@@ -820,6 +823,9 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
         >>>                                  t_flow_k=350, type="pt")
 
     """
+    logger.info(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpMass)
 
@@ -1692,7 +1698,7 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coeff
     _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
+               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
     return index
@@ -1763,7 +1769,7 @@ def create_heat_consumers(net, from_junctions, to_junctions, qext_w=None, contro
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
-               "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
+               "treturn_k": treturn_k, "in_service": in_service, "type": type}
     _set_multiple_entries(net, "heat_consumer", index, **entries, **kwargs)
     return index
 
@@ -1790,11 +1796,11 @@ def create_fluid_from_lib(net, name, overwrite=True):
 
 
 def _check_multiple_junction_elements(net, junctions):
-    return _check_multiple_node_elements(net, junctions, node_table="junction", name="junctions")
+    return _check_multiple_elements(net, junctions, element="junction", name="junctions")
 
 
 def _check_junction_element(net, junction):
-    return _check_node_element(net, junction, node_table="junction")
+    return _check_element(net, junction, element="junction")
 
 
 def _check_branch(net, element_name, index, from_junction, to_junction):

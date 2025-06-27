@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -96,7 +96,7 @@ def from_pickle(filename):
     return net
 
 
-def from_json(filename, convert=True, encryption_key=None):
+def from_json(filename, convert=True, encryption_key=None, ignore_unknown_objects=False):
     """
     Load a pandapipes network from a JSON file or string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -108,6 +108,9 @@ def from_json(filename, convert=True, encryption_key=None):
     :type convert: bool
     :param encryption_key: if given, key to decrypt an encrypted pandapower network
     :type encryption_key: str
+    :param ignore_unknown_objects: if set to True, ignore any objects that cannot be deserialized \
+            instead of raising an error
+    :type ignore_unknown_objects: bool
     :return: net - The pandapipes network that was saved as JSON
     :rtype: pandapipesNet
 
@@ -123,10 +126,11 @@ def from_json(filename, convert=True, encryption_key=None):
     else:
         with open(filename) as fp:
             json_string = fp.read()
-    return from_json_string(json_string, convert=convert, encryption_key=encryption_key)
+    return from_json_string(json_string, convert=convert, encryption_key=encryption_key,
+                            ignore_unknown_objects=ignore_unknown_objects)
 
 
-def from_json_string(json_string, convert=False, encryption_key=None):
+def from_json_string(json_string, convert=False, encryption_key=None, ignore_unknown_objects=False):
     """
     Load a pandapipes network from a JSON string.
     The index of the returned network is not necessarily in the same order as the original network.
@@ -138,6 +142,9 @@ def from_json_string(json_string, convert=False, encryption_key=None):
     :type convert: bool
     :param encryption_key: if given, key to decrypt an encrypted pandapower network
     :type encryption_key: str
+    :param ignore_unknown_objects: if set to True, ignore any objects that cannot be deserialized \
+            instead of raising an error
+    :type ignore_unknown_objects: bool
     :return: net - The pandapipes network that was contained in the JSON string
     :rtype: pandapipesNet
 
@@ -149,7 +156,8 @@ def from_json_string(json_string, convert=False, encryption_key=None):
     if encryption_key is not None:
         json_string = decrypt_string(json_string, encryption_key)
 
-    net = json.loads(json_string, cls=PPJSONDecoder, registry_class=FromSerializableRegistryPpipe)
+    net = json.loads(json_string, cls=PPJSONDecoder, registry_class=FromSerializableRegistryPpipe,
+                     ignore_unknown_objects=ignore_unknown_objects)
 
     if convert and isinstance(net, pandapipesNet):
         convert_format(net)

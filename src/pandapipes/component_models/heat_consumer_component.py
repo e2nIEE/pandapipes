@@ -10,7 +10,7 @@ from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, 
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
-                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, ACTIVE)
+                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, FLOW_RETURN_CONNECT)
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -76,10 +76,11 @@ class HeatConsumer(BranchWZeroLengthComponent):
         mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
-        hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
+        mask_tr = ~np.isnan(treturn)
+        hc_pit[mask_tr, TOUTINIT] = treturn[mask_tr]
+        hc_pit[:, FLOW_RETURN_CONNECT] = True
         mask_q0 = qext == 0 & np.isnan(mdot)
         if np.any(mask_q0):
-            hc_pit[mask_q0, ACTIVE] = False
             logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
                            r'Therefore, the defined temperature control cannot be maintained.' \
                     %net[cls.table_name()].index[mask_q0])
@@ -169,10 +170,12 @@ class HeatConsumer(BranchWZeroLengthComponent):
             t_out = hc_pit[:, TOUTINIT]
 
             df_dm = - cp * (t_out - t_in)
+            mask_equal = t_out >= t_in
+            mask_zero = hc_pit[:, QEXT] == 0
+            mask_ign = mask_equal | mask_zero
+            hc_pit[mask & mask_ign, MDOTINIT] = 0
+            hc_pit[mask & ~mask_ign, JAC_DERIV_DM] = df_dm[mask & ~mask_ign]
             hc_pit[mask, LOAD_VEC_BRANCHES] = - hc_pit[mask, QEXT] + df_dm[mask] * hc_pit[mask, MDOTINIT]
-            mask_equal = t_out == t_in
-            hc_pit[mask & mask_equal, MDOTINIT] = 0
-            hc_pit[mask & ~mask_equal, JAC_DERIV_DM] = df_dm[mask & ~mask_equal]
 
     @classmethod
     def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -200,9 +203,10 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit = branch_pit[f:t, :]
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
 
-        # Any MODE where TRETURN is given
-        mask = consumer_array[:, cls.MODE] == cls.QE_TR
+        mask= consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask):
+            mask_ign = hc_pit[:, QEXT] == 0
+            mask = mask & ~mask_ign
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
             hc_pit[mask, JAC_DERIV_DTOUT] = 1
             hc_pit[mask, JAC_DERIV_DT] = 0
@@ -234,11 +238,11 @@ class HeatConsumer(BranchWZeroLengthComponent):
         """
         if get_fluid(net).is_gas:
             output = ["p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
                       "normfactor_from", "normfactor_to"]
         else:
             output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda"]
+                      "mdot_to_kg_per_s", "vdot_m3_per_s"]
         output += ['deltat_k', 'qext_w']
         return output, True
 

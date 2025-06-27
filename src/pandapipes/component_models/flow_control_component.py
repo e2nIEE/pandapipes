@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,8 @@ from pandapipes.properties import get_fluid
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES
+from pandapipes.idx_branch import (JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES,
+                                   FLOW_RETURN_CONNECT)
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
@@ -50,6 +51,7 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         """
         fc_branch_pit = super().create_pit_branch_entries(net, branch_pit)
         fc_branch_pit[:, MDOTINIT] = net[cls.table_name()].controlled_mdot_kg_per_s.values
+        fc_branch_pit[net[cls.table_name()].control_active, FLOW_RETURN_CONNECT] = True
 
     @classmethod
     def create_component_array(cls, net, component_pits):
@@ -122,10 +124,9 @@ class FlowControlComponent(BranchWZeroLengthComponent):
         if get_fluid(net).is_gas:
             output = ["p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "vdot_norm_m3_per_s", "normfactor_from",
                       "normfactor_to"]
         else:
             output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
-                      "lambda"]
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s"]
         return output, True
