@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 from typing import Iterable
@@ -756,6 +756,9 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
         >>>                                 t_flow_k=350, type="p")
 
     """
+    logger.info(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpPressure)
 
@@ -820,6 +823,9 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
         >>>                                  t_flow_k=350, type="pt")
 
     """
+    logger.info(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpMass)
 
