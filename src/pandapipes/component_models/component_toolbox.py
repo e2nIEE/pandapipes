@@ -15,17 +15,12 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.pf.internals_toolbox import _sum_by_group
 
 
-def get_internal_node_lookup_structure(net, internals, table_name, internal_nodes,
-                                       internal_nodes_number, node_start, node_end):
-    internals[table_name] = np.empty((internal_nodes_number, 2), dtype=np.int32)
-    internals[table_name][:, 0] = np.repeat(net[table_name].index, internal_nodes.astype(np.int32))
-    internals[table_name][:, 1] = np.arange(node_start, node_end)
-
-def get_internal_branch_lookup_structure(net, internals, table_name, internal_branches,
-                                         internal_branches_number):
-    internals[table_name] = np.empty((internal_branches_number, 2), dtype=np.int32)
-    internals[table_name][:, 0] = np.repeat(net[table_name].index, internal_branches.astype(np.int32))
-    internals[table_name][:, 1] = np.arange(internal_branches_number)
+def get_internal_lookup_structure(internals, table_name, internal_elements, start=0):
+    internals[table_name] = np.empty((len(internal_elements), 2), dtype=np.int32)
+    end = np.cumsum(internal_elements) - 1 + start
+    diff = internal_elements - 1
+    internals[table_name][:, 0] = end - diff
+    internals[table_name][:, 1] = end
 
 def p_correction_height_air(height):
     """

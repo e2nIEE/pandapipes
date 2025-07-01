@@ -55,7 +55,7 @@ class Valve(BranchWInternalsComponent):
         val = net[cls.table_name()][list(cls.from_to_node_cols())].values[mask_p]
         _, idx, inv = np.unique(val, return_index=True, return_inverse=True, axis=0)
         int_nodes[mask_p[idx]] = 1
-        return int_nodes if return_internal_only else (int_nodes, inv)
+        return int_nodes if return_internal_only else (int_nodes, inv, mask_p)
 
     @classmethod
     def get_internal_branch_number(cls, net):
@@ -74,23 +74,23 @@ class Valve(BranchWInternalsComponent):
         int_node_pit = super().create_pit_node_entries(net, node_pit)
         if int_node_pit is not None:
             if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
+                int_node_number = cls.get_internal_node_number(net)
                 junction_table_name = cls.get_connected_node_type().table_name()
                 ft_lookup = get_lookup(net, "node", "from_to")
                 fj_name, _ = cls.from_to_node_cols()
                 f_junction, t_junction = ft_lookup[junction_table_name]
                 junction_pit = node_pit[f_junction:t_junction, :]
-                internal_nodes_lookups = net._lookups['internal_nodes'][cls.table_name()]
-                from_junctions = net[cls.table_name()].loc[internal_nodes_lookups[:, 0], fj_name].values.astype(
-                    np.int32)
-                active = net[cls.table_name()].loc[internal_nodes_lookups[:, 0], cls.active_identifier()].values
+
+                from_junctions = net[cls.table_name()][fj_name].values.astype(np.int32)
                 junction_indices = get_lookup(net, "node", "index")[junction_table_name]
-                fj_nodes = junction_indices[from_junctions]
+                junct_pit_index = junction_indices[from_junctions]
+                fj_nodes = np.repeat(junct_pit_index, int_node_number)
 
                 int_node_pit[:, TINIT_NODE] = junction_pit[fj_nodes, TINIT_NODE]
                 int_node_pit[:, HEIGHT] = junction_pit[fj_nodes, HEIGHT]
                 int_node_pit[:, PINIT] = junction_pit[fj_nodes, PINIT]
                 int_node_pit[:, PAMB] = junction_pit[fj_nodes, PAMB]
-                int_node_pit[:, ACTIVE_ND] = active
+                int_node_pit[:, ACTIVE_ND] = junction_pit[fj_nodes, ACTIVE_ND]
             if get_net_option(net, "transient"):
                 int_node_pit[:, TINIT_OLD] = int_node_pit[:, TINIT_NODE].astype(np.float64)
 
@@ -107,32 +107,31 @@ class Valve(BranchWInternalsComponent):
         """
         valve_pit, node_pit = super().create_pit_branch_entries(net, branch_pit)
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-            internal_node_number, inverse_index = cls.get_internal_node_number(net, False)
+            internal_node_number, inverse_index, mask_p = cls.get_internal_node_number(net, False)
 
             fn_col, tn_col = cls.from_to_node_cols()
             junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
             from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+            to_elements = net[cls.table_name()][tn_col].values
+            to_nodes = junction_idx_lookup[to_elements]
             has_internals = np.any(internal_node_number > 0)
             if has_internals:
                 f, t = get_lookup(net, "branch", "from_to")['pipe']
                 pipe_pit = branch_pit[f:t, :]
-                internal_pipe_lookup = net._lookups['internal_branches']['pipe']
-                internal_nodes_lookups = net._lookups['internal_nodes'][cls.table_name()]
-                mask_p = internal_node_number.astype(bool)
-                pit_idx, lookup_idx = (np.where(
-                    net[cls.table_name()].loc[mask_p, 'element'].values == internal_pipe_lookup[:, 0][:, None]))
-                to_juncts = net['pipe'].loc[net[cls.table_name()].loc[mask_p, 'element'], 'to_junction'].values[
-                    lookup_idx]
-                change_to_nodes = net[cls.table_name()].loc[mask_p, 'junction'].values[lookup_idx] == to_juncts
-                same_pos = lookup_idx[:-1] - lookup_idx[1:]
-                first_occ = [True] + (same_pos != 0).tolist()
-                last_occ = (same_pos != 0).tolist() + [True]
-                to_nodes = internal_nodes_lookups[:, 1][lookup_idx]
-                pipe_pit[pit_idx[change_to_nodes & last_occ], TO_NODE] = to_nodes[change_to_nodes & last_occ]
-                pipe_pit[pit_idx[~change_to_nodes & first_occ], FROM_NODE] = to_nodes[~change_to_nodes & first_occ]
-                to_nodes = to_nodes[inverse_index]
-            else:
-                to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
+                pipe_idx_lookup = get_lookup(net, "branch", "index")['pipe']
+                mask_p_uni = internal_node_number.astype(bool)
+                pipes = pipe_idx_lookup[to_elements[mask_p_uni]]
+
+                internal = net['_lookups']['internal_branches']['pipe']
+                fn_pipe = pipe_pit[internal[pipes, 0], FROM_NODE]
+                fp = np.where(fn_pipe == from_nodes[mask_p_uni], True, False)
+
+                f, t = get_lookup(net, "node", "from_to")['valve_nodes']
+                valve_nodes = np.arange(f, t)
+                pipe_pit[internal[pipes[fp], 0], FROM_NODE] = valve_nodes[fp]
+                pipe_pit[internal[pipes[~fp], 1], TO_NODE] = valve_nodes[~fp]
+
+                to_nodes[mask_p] = valve_nodes[inverse_index]
 
             valve_pit[:, FROM_NODE] = from_nodes
             valve_pit[:, TO_NODE] = to_nodes

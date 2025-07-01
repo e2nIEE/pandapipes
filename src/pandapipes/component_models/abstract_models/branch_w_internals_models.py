@@ -5,8 +5,7 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.component_models.component_toolbox import set_entry_check_repeat, get_internal_node_lookup_structure, \
-    get_internal_branch_lookup_structure
+from pandapipes.component_models.component_toolbox import set_entry_check_repeat, get_internal_lookup_structure
 from pandapipes.idx_branch import ACTIVE, ELEMENT_IDX, D, LOSS_COEFFICIENT as LC, AREA
 from pandapipes.idx_node import L, node_cols
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number, get_net_option
@@ -97,8 +96,7 @@ class BranchWInternalsComponent(BranchComponent):
         if internal_nodes_num > 0:
             add_table_lookup(table_lookup, cls.internal_node_name(), current_table)
             ft_lookups[cls.internal_node_name()] = (current_start, end)
-            get_internal_node_lookup_structure(net, internals, cls.table_name(), internal_nodes, internal_nodes_num,
-                                               current_start, end)
+            get_internal_lookup_structure(internals, cls.table_name(), internal_nodes, current_start)
         return end, current_table + 1
 
     @classmethod
@@ -128,8 +126,15 @@ class BranchWInternalsComponent(BranchComponent):
         end = current_start + internal_branches_num
         add_table_lookup(table_lookup, cls.table_name(), current_table)
         ft_lookups[cls.table_name()] = (current_start, end)
-        get_internal_branch_lookup_structure(net, internals, cls.table_name(), internal_branches,
-                                             internal_branches_num)
+        get_internal_lookup_structure(internals, cls.table_name(), internal_branches)
+        table_indices = net[cls.table_name()].index
+        table_len = len(table_indices)
+        if not table_len:
+            idx_lookups[cls.table_name()] = np.array([], dtype=np.int32)
+            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
+        else:
+            idx_lookups[cls.table_name()] = -np.ones(table_indices.max() + 1, dtype=np.int32)
+            idx_lookups[cls.table_name()][table_indices] = np.arange(table_len) + current_start
         return end, current_table + 1
 
     @classmethod

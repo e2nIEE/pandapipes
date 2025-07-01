@@ -211,17 +211,12 @@ class Pipe(BranchWInternalsComponent):
             int_p_lookup = net["_lookups"]["internal_nodes"][cls.table_name()]
             int_v_lookup = net["_lookups"]["internal_branches"][cls.table_name()]
 
-            selected_indices_p = []
-            selected_indices_v = []
-            for i in pipe:
-                selected_indices_p.append(np.where(int_p_lookup[:, 0] == i, True, False))
-                selected_indices_v.append(np.where(int_v_lookup[:, 0] == i, True, False))
+            pipe_lookup_index = get_lookup(net, 'branch', 'index')['pipe'][pipe]
 
-            selected_indices_p_final = np.logical_or.reduce(selected_indices_p[:])
-            selected_indices_v_final = np.logical_or.reduce(selected_indices_v[:])
-
-            p_nodes = int_p_lookup[:, 1][selected_indices_p_final]
-            m_nodes = int_v_lookup[:, 1][selected_indices_v_final]
+            p_nodes = int_p_lookup[pipe_lookup_index]
+            p_nodes = [np.arange(x, y + 1) for x,y in zip(p_nodes[:, 0], p_nodes[:, 1])]
+            m_nodes = int_v_lookup[pipe_lookup_index]
+            m_nodes = [np.arange(x, y + 1) for x,y in zip(m_nodes[:, 0], m_nodes[:, 1])]
 
             v_pipe_data = pipe_pit[m_nodes, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE) / pipe_pit[m_nodes, AREA]
             p_node_data = node_pit[p_nodes, PINIT]
