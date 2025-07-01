@@ -5,8 +5,8 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import D, AREA, \
@@ -17,7 +17,7 @@ from pandapipes.pf.result_extraction import extract_branch_results_without_inter
 from pandapipes.properties.fluids import get_fluid
 
 
-class PressureControlComponent(BranchWZeroLengthComponent):
+class PressureControlComponent(BranchWOInternalsComponent):
     """
 
     """

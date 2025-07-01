@@ -414,7 +414,7 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     valve_table = net.valve.loc[valves]
 
     coords, valves_with_geo = coords_from_node_geodata(
-        valves, valve_table.from_junction.values, valve_table.to_junction.values,
+        valves, valve_table.junction.values, valve_table.element.values,
         junction_geodata if junction_geodata is not None else net["junction_geodata"], "valve",
         "Junction")
 

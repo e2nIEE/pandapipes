@@ -6,8 +6,8 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class HeatExchanger(BranchWZeroLengthComponent):
+class HeatExchanger(BranchWOInternalsComponent):
 
     @classmethod
     def from_to_node_cols(cls):

@@ -476,21 +476,22 @@ def create_lookups(net):
     branch_ft_lookups, branch_idx_lookups, branch_from, branch_table_nr = dict(), dict(), 0, 0
     branch_table_lookups = {"t2n": dict(), "n2t": dict()}
     node_table_lookups = {"t2n": dict(), "n2t": dict()}
-    internal_nodes_lookup = dict()
+    internal_nodes = dict()
+    internal_branches = dict()
 
     for comp in net['component_list']:
         branch_from, branch_table_nr = comp.create_branch_lookups(
-            net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_table_nr,
-            branch_from)
+            net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_from, branch_table_nr,
+            internal_branches)
         node_from, node_table_nr = comp.create_node_lookups(
             net, node_ft_lookups, node_table_lookups, node_idx_lookups, node_from, node_table_nr,
-            internal_nodes_lookup)
+            internal_nodes)
 
     net["_lookups"] = {"node_from_to": node_ft_lookups, "branch_from_to": branch_ft_lookups,
                        "node_table": node_table_lookups, "branch_table": branch_table_lookups,
                        "node_index": node_idx_lookups, "branch_index": branch_idx_lookups,
                        "node_length": node_from, "branch_length": branch_from,
-                       "internal_nodes_lookup": internal_nodes_lookup}
+                       "internal_nodes": internal_nodes, "internal_branches": internal_branches}
 
 
 def identify_active_nodes_branches(net, hydraulic=True):
