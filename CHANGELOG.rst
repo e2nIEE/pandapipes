@@ -4,6 +4,7 @@ Change Log
 [upcoming release] - 2025-..-..
 -------------------------------
 - [CHANGED] load JSON file with unknown objects as simple dicts is possible now
+- [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
 
 [0.11.0] - 2024-11-07
 -------------------------------
