@@ -8,7 +8,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models.branch_w_internals_models import BranchWInternalsComponent
 from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA, FROM_NODE, TO_NODE, TOUTINIT
+from pandapipes.idx_branch import LENGTH, K, TEXT, U, FROM_NODE, TO_NODE, TOUTINIT
 from pandapipes.idx_node import TINIT as TINIT_NODE, HEIGHT, PINIT, ACTIVE as ACTIVE_ND, PAMB, TINIT_OLD
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -139,7 +139,7 @@ class Valve(BranchWInternalsComponent):
             valve_pit[:, LENGTH] = 0
             valve_pit[:, K] = 1000
             valve_pit[:, TEXT] = 293.15
-            valve_pit[:, ALPHA] = 0
+            valve_pit[:, U] = 0
 
     @classmethod
     def get_component_input(cls):

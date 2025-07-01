@@ -4,6 +4,7 @@ Change Log
 [upcoming release] - 2025-..-..
 -------------------------------
 - [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
+- [CHANGED] completed renaming of `alpha_w_per_m2k` to `u_w_per_m2k`
 
 [0.12.0] - 2025-06-27
 -------------------------------
