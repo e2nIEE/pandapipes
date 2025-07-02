@@ -49,7 +49,7 @@ def load_net():
                                            diameter_m=0.05, name="Pipe 5",
                                            geodata=[(7, -4), (7, -3), (5, -3)])
 
-    pandapipes.create_valve(net, from_junction=j5, to_junction=j6, diameter_m=0.05,
+    pandapipes.create_valve(net, junction=j5, element=j6, et='ju', diameter_m=0.05,
                             opened=True)
 
     pandapipes.create_sink(net, junction=j4, mdot_kg_per_s=5.45e-5, name="Sink 1")

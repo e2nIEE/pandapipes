@@ -169,22 +169,23 @@ def test_create_valve(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     pandapipes.create_junction(net, 1, 293, index=8, geodata=(0, 1))
     pandapipes.create_junction(net, 1, 293, index=9, geodata=(2, 2))
-    pandapipes.create_valve(net, 8, 9, 0.4, True, index=2)
+    pandapipes.create_valve(net, 8, 9, 'ju', 0.4, True, index=2)
 
     assert len(net.junction) == 2
     assert len(net.valve) == 1
     assert np.all(net.valve.index == [2])
-    assert net.valve.at[2, "from_junction"] == 8
-    assert net.valve.at[2, "to_junction"] == 9
+    assert net.valve.at[2, "junction"] == 8
+    assert net.valve.at[2, "element"] == 9
+    assert net.valve.at[2, "et"] == 'ju'
     assert net.valve.at[2, "diameter_m"] == 0.4
     assert net.valve.at[2, "loss_coefficient"] == 0
 
     with pytest.raises(UserWarning):
-        pandapipes.create_valve(net, 8, 9, 0.4, True, index=2)
+        pandapipes.create_valve(net, 8, 9, 'ju', 0.4, True, index=2)
     with pytest.raises(UserWarning):
-        pandapipes.create_valve(net, 8, 10, 0.4, True)
+        pandapipes.create_valve(net, 8, 10, 'ju', 0.4, True)
     with pytest.raises(ValueError):
-        pandapipes.create_valve(net, 8, 9, 0.4, True, geodata=[(0, 1), (1, 1), (2, 2)])
+        pandapipes.create_valve(net, 8, 9, 'ju', 0.4, True, geodata=[(0, 1), (1, 1), (2, 2)])
 
 
 def test_create_pump(create_empty_net):
@@ -527,7 +528,7 @@ def test_create_valves(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
-    pandapipes.create_valves(net, [j1, j1], [j2, j2], 0.2)
+    pandapipes.create_valves(net, [j1, j1], [j2, j2], 'ju', 0.2)
     assert len(net.valve) == 2
     assert len(set(net.valve.diameter_m)) == 1
     assert np.all(net.valve.diameter_m == [0.2, 0.2])
@@ -537,7 +538,7 @@ def test_create_valves(create_empty_net):
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
     v = pandapipes.create_valves(
-        net, [j1, j1], [j2, j2], diameter_m=0.8, opened=False, name="test", new_col=0.01,
+        net, [j1, j1], [j2, j2], et='ju', diameter_m=0.8, opened=False, name="test", new_col=0.01,
         loss_coefficient=0.3, type="v")
 
     assert len(net.valve) == 2
@@ -557,7 +558,7 @@ def test_create_valves(create_empty_net):
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
     v = pandapipes.create_valves(
-        net, [j1, j1], [j2, j2], diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
+        net, [j1, j1], [j2, j2], et='ju', diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
         type=["va1", "va2"], loss_coefficient=[0.3, 0.5], new_col=[0.01, 1.9])
 
     assert len(net.valve) == 2
@@ -579,7 +580,7 @@ def test_create_valves(create_empty_net):
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
     v = pandapipes.create_valves(
-        net, [j1, j1], [j2, j2], diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
+        net, [j1, j1], [j2, j2], et='ju', diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
         type=["va1", "va2"], loss_coefficient=[0.3, 0.5], new_col=[0.01, 1.9], index=[1, 5])
 
     assert len(net.valve) == 2
@@ -593,14 +594,14 @@ def test_create_valves_raise_except(create_empty_net):
     j2 = pandapipes.create_junction(net, 3, 273)
     j3 = pandapipes.create_junction(net, 3, 273)
 
-    with pytest.raises(UserWarning, match=r"trying to attach to non existing junctions"):
-        pandapipes.create_valves(net, [1, 3], [4, 5], diameter_m=0.8, opened=False, name="test",
+    with pytest.raises(UserWarning, match=r"Cannot attach to buses \{3\}, they do not exist"):
+        pandapipes.create_valves(net, [1, 3], [4, 5], et='ju', diameter_m=0.8, opened=False, name="test",
                                  loss_coefficient=0.3)
 
-    pandapipes.create_valves(net, [j1, j1], [j2, j3], diameter_m=0.8, opened=False, name="test",
+    pandapipes.create_valves(net, [j1, j1], [j2, j3], et='ju', diameter_m=0.8, opened=False, name="test",
                              loss_coefficient=0.3, index=[0, 1])
     with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
-        pandapipes.create_valves(net, [j1, j1], [j2, j3], diameter_m=0.8, opened=False,
+        pandapipes.create_valves(net, [j1, j1], [j2, j3], et='ju',diameter_m=0.8, opened=False,
                                  name="test", loss_coefficient=0.3, index=[0, 1])
 
 

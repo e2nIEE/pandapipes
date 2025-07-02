@@ -1,6 +1,10 @@
 Change Log
 =============
 
+[upcoming release] - 2025-..-..
+-------------------------------
+- [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
+
 [0.12.0] - 2025-06-27
 -------------------------------
 - [ADDED] transient heat transfer timeseries simulation

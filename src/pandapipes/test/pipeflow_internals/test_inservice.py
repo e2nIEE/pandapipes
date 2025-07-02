@@ -48,8 +48,8 @@ def create_test_net():
                                            in_service=False)
     pandapipes.create_pipe_from_parameters(net, j1, j5, 0.1, 0.1, sections=2, u_w_per_m2k=5)
 
-    pandapipes.create_valve(net, j1, j4, 0.1)
-    pandapipes.create_valve(net, j4, j5, 0.1, opened=False)
+    pandapipes.create_valve(net, j1, j4, 'ju', 0.1)
+    pandapipes.create_valve(net, j4, j5, 'ju', 0.1, opened=False)
 
     pandapipes.create_sink(net, j2, mdot_kg_per_s=0.1)
     pandapipes.create_sink(net, j3, mdot_kg_per_s=0.1)
@@ -92,8 +92,8 @@ def complex_heat_connectivity_grid():
     pandapipes.create_pipe_from_parameters(net, j8, j10, 0.1, 0.1, u_w_per_m2k=5, index=1)
     pandapipes.create_pipe_from_parameters(net, j9, j10, 0.1, 0.1, u_w_per_m2k=5, index=2)
 
-    pandapipes.create_valve(net, j5, j6, 0.1, index=10)
-    pandapipes.create_valve(net, j4, j5, 0.1, opened=False, index=12)
+    pandapipes.create_valve(net, j5, j6, 'ju',0.1, index=10)
+    pandapipes.create_valve(net, j4, j5, 'ju',0.1, opened=False, index=12)
 
     pandapipes.create_sink(net, j3, mdot_kg_per_s=0.1, index=3)
     pandapipes.create_sink(net, j4, mdot_kg_per_s=0.1, index=4)
@@ -116,7 +116,7 @@ def create_mixed_indexing_grid():
     pandapipes.create_pipes_from_parameters(
         net, [1, 5, 3, 14, 14, 8], [3, 3, 10, 6, 9, 7], 0.5, 0.12, sections=[1, 1, 1, 2, 3, 1],
         index=[0, 3, 10, 7, 6, 8])
-    pandapipes.create_valves(net, [3, 10, 6], [14, 12, 15], 0.2, index=[3, 5, 2])
+    pandapipes.create_valves(net, [3, 10, 6], [14, 12, 15], 'ju', 0.2, index=[3, 5, 2])
     pandapipes.create_pressure_control(net, 9, 8, 8, 0.7)
     pandapipes.create_sinks(net, [10, 6, 15, 7], 0.1, index=[3, 5, 1, 2],
                             in_service=[True, False, True, True])
