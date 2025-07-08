@@ -83,13 +83,14 @@ def _on_map_test(x, y):
 def create_mapbox_figure(net, mapbox_access_token=None, map_style="streets", zoom=10,
                          pipe_temperature_coloring=False, pipe_temperature_field="t_to_k",
                          pipe_color=None, show_colorbar=False, 
-                         pipe_temperature_colorscale=[[0, "blue"], [1, "red"]]):
+                         pipe_temperature_colorscale=[[0, "blue"], [1, "red"]],
+                         renderer='browser'):  # Keep parameter for documentation
     """
     Create an interactive Plotly Mapbox figure for a pandapipes network.
     
     The function gathers geodata from all network components. For components that
     do not have dedicated geodata (e.g. sinks, sources, heat exchangers, valves, pumps,
-    compressors), the referenced junction geodata (or midpoints between “from” and “to” nodes)
+    compressors), the referenced junction geodata (or midpoints between "from" and "to" nodes)
     are used.
     
     Parameters
@@ -122,6 +123,9 @@ def create_mapbox_figure(net, mapbox_access_token=None, map_style="streets", zoo
          If True (and pipe_temperature_coloring is True), a colorbar is added to the figure.
     pipe_temperature_colorscale : list, optional
          The colorscale to use for the colorbar (default: [[0, "blue"], [1, "red"]]).
+    renderer : str, optional
+         The Plotly renderer to use for display (default: 'browser'). Options include
+         'browser', 'notebook', 'json', etc.
     
     Returns
     -------

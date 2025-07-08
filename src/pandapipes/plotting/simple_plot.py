@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from itertools import chain
-
+import plotly.io as pio
 import matplotlib.pyplot as plt
 from pandapower.plotting import draw_collections
 
@@ -37,6 +37,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                 # New parameters for pipe temperature-based coloring:
                 pipe_temperature_coloring=False, pipe_temperature_field="t_to_k",
                 show_colorbar=False, pipe_temperature_colorscale=[[0, "blue"], [1, "red"]],
+                renderer='browser',  # Add renderer parameter with browser default
                 **kwargs):
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
@@ -59,6 +60,9 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
             If True and pipe_temperature_coloring is enabled, a colorbar is shown.
       - pipe_temperature_colorscale : list
             The colorscale for the colorbar (default: [[0, "blue"], [1, "red"]]).
+      - renderer : str
+            The Plotly renderer to use for display (default: 'browser'). Options include
+            'browser', 'notebook', 'json', etc.
             
     All other parameters remain as in the original implementation.
     """
@@ -73,10 +77,13 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
             pipe_temperature_field=pipe_temperature_field,
             pipe_color=pipe_color,
             show_colorbar=show_colorbar,
-            pipe_temperature_colorscale=pipe_temperature_colorscale
+            pipe_temperature_colorscale=pipe_temperature_colorscale,
+            renderer=renderer  # Pass renderer to mapbox_plot
         )
         if show_plot:
-            fig.show()
+            
+            pio.renderers.default = renderer  # Set the renderer
+            fig.show()  # Show with the specified renderer
         return fig
 
     # --- Original matplotlib-based plotting ---
