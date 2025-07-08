@@ -4,7 +4,10 @@ Change Log
 [upcoming release] - 2025-..-..
 -------------------------------
 - [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
-
+- [ADDED] mapbox_plot module for visualizing networks using Mapbox
+- [ADDED] colormaps.py (adapted from pandapower) to enable future colormap support for plotting
+- [ADDED] mapbox_plotting tutorial notebook demonstrating new Mapbox-based visualization
+- [CHANGED] simple_plot extended to accept Mapbox-related parameters
 [0.12.0] - 2025-06-27
 -------------------------------
 - [ADDED] transient heat transfer timeseries simulation
