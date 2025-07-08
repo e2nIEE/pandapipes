@@ -3,7 +3,28 @@ Change Log
 
 [upcoming release] - 2025-..-..
 -------------------------------
-- [CHANGED] load JSON file with unknown objects as simple dicts is possible now
+- [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
+
+[0.12.0] - 2025-06-27
+-------------------------------
+- [ADDED] transient heat transfer timeseries simulation
+- [ADDED] pressure_control_trace in simple_plotly
+- [ADDED] explicit call of Sphinx-Config file
+- [ADDED] possibility for heat consumer to be considered in nxgraph
+- [CHANGED] loading of JSON files with unknown objects as simple dicts is possible now
+- [CHANGED] GitHub Actions test workflow to speed up execution time
+- [CHANGED] removed duplicated code from calculate_darivates_thermal
+- [CHANGED] variable names "VLRLCONNECT" to "FLOW_RETURN_CONNECT"
+- [CHANGED] heat_consumer improved stability
+- [CHANGED] e2n renaming in documentation
+- [CHANGED] Correct controller documentation
+- [CHANGED] avoid bool(in_service) for bulk create functions
+- [CHANGED] buildup igraph
+- [CHANGED] default output writer to log only existing components to avoid errors
+- [FIXED] docs_check test pipeline
+- [FIXED] a bug in bidirectional calculation for timeseries calculations for timesteps with qext_w=0
+- [FIXED] imports and dependencies from pandapower
+- [FIXED] correction of how to handle input temperature at circ pumps
 
 [0.11.0] - 2024-11-07
 -------------------------------

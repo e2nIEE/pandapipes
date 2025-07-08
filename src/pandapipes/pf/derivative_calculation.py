@@ -9,7 +9,7 @@ from pandapipes.idx_branch import (LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES,
                                    LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO,
                                    LOAD_VEC_NODES_FROM_T,
                                    LOAD_VEC_NODES_TO_T, JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE,
-                                   MDOTINIT, BRANCH_TYPE, CIRC)
+                                   MDOTINIT)
 from pandapipes.idx_node import (
     TINIT as TINIT_NODE,
     INFEED,
@@ -119,7 +119,6 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
-    no_cp = branch_pit[:, BRANCH_TYPE] != CIRC
     infeed_node = None
 
     node_pit[:, LOAD_T] = node_pit[:, LOAD] * cp_n * t_init_n + node_pit[:, MDOTSLACKINIT] * cp_n * t_init_n
@@ -206,8 +205,8 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
             branch_pit[fn_zero, LOAD_VEC_NODES_FROM_T] = 0
             branch_pit[tn_zero, LOAD_VEC_NODES_TO_T] = 0
 
-            from_nodes_not_zero = from_nodes[no_cp & ~nodes_zero_fl[from_nodes]]
-            to_nodes_not_zero = to_nodes[no_cp & ~nodes_zero_fl[to_nodes]]
+            from_nodes_not_zero = from_nodes[~nodes_zero_fl[from_nodes]]
+            to_nodes_not_zero = to_nodes[~nodes_zero_fl[to_nodes]]
             infeed_node = np.setdiff1d(from_nodes_not_zero, to_nodes_not_zero)
 
     else:
@@ -220,7 +219,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
                     t_amb - t_m) * length + qext
 
     if infeed_node is None:
-        infeed_node = np.setdiff1d(from_nodes[no_cp], to_nodes[no_cp])
+        infeed_node = np.setdiff1d(from_nodes, to_nodes)
     node_pit[:, INFEED] = False
     node_pit[infeed_node, INFEED] = True
 

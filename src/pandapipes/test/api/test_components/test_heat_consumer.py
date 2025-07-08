@@ -66,7 +66,7 @@ def test_heat_consumer_equivalence2():
 
     juncs = pandapipes.create_junctions(net, 6, pn_bar=5, tfluid_k=286, system=["flow"] * 3 + ["return"] * 3)
     pandapipes.create_pipes_from_parameters(net, juncs[[0, 1, 3, 4]], juncs[[1, 2, 4, 5]], k_mm=0.1, length_km=1,
-                                            diameter_m=0.1022, system=["flow"] * 2 + ["return"] * 2, alpha_w_per_m2k=10,
+                                            diameter_m=0.1022, system=["flow"] * 2 + ["return"] * 2, u_w_per_m2k=10,
                                             text_k=273.15)
     pandapipes.create_circ_pump_const_pressure(net, juncs[-1], juncs[0], 5, 2, 300, type='pt')
 
@@ -176,7 +176,7 @@ def test_heat_consumer_qext_zero():
 
     juncs = pandapipes.create_junctions(net, 6, pn_bar=5, tfluid_k=286, system=["flow"] * 3 + ["return"] * 3)
     pandapipes.create_pipes_from_parameters(net, juncs[[0, 1, 3, 4]], juncs[[1, 2, 4, 5]], k_mm=0.1, length_km=1,
-                                            diameter_m=0.1022, system=["flow"] * 2 + ["return"] * 2, alpha_w_per_m2k=10,
+                                            diameter_m=0.1022, system=["flow"] * 2 + ["return"] * 2, u_w_per_m2k=10,
                                             text_k=273.15)
     pandapipes.create_circ_pump_const_pressure(net, juncs[-1], juncs[0], 5, 2, 300, type='pt')
 
@@ -192,7 +192,7 @@ def test_heat_consumer_result_extraction():
 
     juncs = pandapipes.create_junctions(net, 6, pn_bar=5, tfluid_k=286, system=["flow"] * 3 + ["return"] * 3)
     pandapipes.create_pipes_from_parameters(net, juncs[[0, 1, 3, 4]], juncs[[1, 2, 4, 5]], k_mm=0.1, length_km=1,
-                                            diameter_m=0.1022, system=["flow"] * 2 + ["return"] * 2, alpha_w_per_m2k=10,
+                                            diameter_m=0.1022, system=["flow"] * 2 + ["return"] * 2, u_w_per_m2k=10,
                                             text_k=273.15)
     pandapipes.create_circ_pump_const_pressure(net, juncs[-1], juncs[0], 5, 2, 300, type='pt')
     pandapipes.create_heat_consumer(net, juncs[1], juncs[4], treturn_k=263.4459264973806, qext_w=7500)
@@ -201,7 +201,7 @@ def test_heat_consumer_result_extraction():
     # create not connected pipe to test for active inactive missmatch
     pandapipes.create_junctions(net, 2, pn_bar=5, tfluid_k=286)
     pandapipes.create_pipe_from_parameters(net, 6, 7, k_mm=0.1, length_km=1,
-                                           diameter_m=0.1022, alpha_w_per_m2k=10, text_k=273.15)
+                                           diameter_m=0.1022, u_w_per_m2k=10, text_k=273.15)
 
     pandapipes.pipeflow(net, mode="bidirectional", iter=13)
 

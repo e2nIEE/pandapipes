@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -414,7 +414,7 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     valve_table = net.valve.loc[valves]
 
     coords, valves_with_geo = coords_from_node_geodata(
-        valves, valve_table.from_junction.values, valve_table.to_junction.values,
+        valves, valve_table.junction.values, valve_table.element.values,
         junction_geodata if junction_geodata is not None else net["junction_geodata"], "valve",
         "Junction")
 
