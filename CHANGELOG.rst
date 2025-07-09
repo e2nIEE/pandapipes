@@ -8,6 +8,8 @@ Change Log
 - [ADDED] colormaps.py (adapted from pandapower) to enable future colormap support for plotting
 - [ADDED] mapbox_plotting tutorial notebook demonstrating new Mapbox-based visualization
 - [CHANGED] simple_plot extended to accept Mapbox-related parameters
+- [ADDED] test_mapbox.py with unit tests for Mapbox-based plotting functionality
+
 [0.12.0] - 2025-06-27
 -------------------------------
 - [ADDED] transient heat transfer timeseries simulation
