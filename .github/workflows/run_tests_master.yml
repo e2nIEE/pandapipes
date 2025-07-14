@@ -37,7 +37,7 @@ jobs:
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           uv pip install pytest-cov
-          uv run pytest --nbmake -n auto --cov=./ --cov-report=xml
+          uv run pytest -n auto --cov=./ --cov-report=xml
           cp ./coverage.xml ./codecov_coverage.xml
       - name: Upload coverage to Codacy
         if: ${{ matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'}}

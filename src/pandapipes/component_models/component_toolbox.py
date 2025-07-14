@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -14,6 +14,13 @@ from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.pf.internals_toolbox import _sum_by_group
 
+
+def get_internal_lookup_structure(internals, table_name, internal_elements, start=0):
+    internals[table_name] = np.empty((len(internal_elements), 2), dtype=np.int32)
+    end = np.cumsum(internal_elements) - 1 + start
+    diff = internal_elements - 1
+    internals[table_name][:, 0] = end - diff
+    internals[table_name][:, 1] = end
 
 def p_correction_height_air(height):
     """
@@ -130,10 +137,7 @@ def add_new_component(net, component, overwrite=False):
 
 
 def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
-    if repeated:
-        pit[:, column] = np.repeat(entry, repeat_number)
-    else:
-        pit[:, column] = entry
+    pit[:, column] = np.repeat(entry, repeat_number) if repeated else entry
 
 
 def set_fixed_node_entries(net, node_pit, junctions, types, values, node_comp, mode):
