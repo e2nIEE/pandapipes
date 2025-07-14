@@ -1,16 +1,16 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries, \
-    get_mass_flow_at_nodes
-from pandapipes.idx_branch import D, AREA, ACTIVE
-from pandapipes.idx_node import PINIT
-from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import BranchWOInternalsComponent
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
+from pandapipes.idx_branch import D, AREA, LOAD_VEC_BRANCHES_T, TO_NODE, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, MDOTINIT
+from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL, NODE_TYPE_T, GE, TINIT
+from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
+from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 try:
     import pandaplan.core.pplog as logging
@@ -20,7 +20,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class CirculationPump(BranchWZeroLengthComponent):
+class CirculationPump(BranchWOInternalsComponent):
 
     @classmethod
     def table_name(cls):
@@ -34,13 +34,23 @@ class CirculationPump(BranchWZeroLengthComponent):
     def get_result_table(cls, net):
         """
 
+        Gets the result table.
+
         :param net: The pandapipes network
         :type net: pandapipesNet
         :return: (columns, all_float) - the column names and whether they are all float type. Only
                 if False, returns columns as tuples also specifying the dtypes
         :rtype: (list, bool)
         """
-        return ["mdot_flow_kg_per_s", "deltap_bar"], True
+        if get_fluid(net).is_gas:
+            output = ["p_from_bar", "p_to_bar", "t_from_k",
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
+                      "normfactor_from", "normfactor_to"]
+        else:
+            output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
+                      "mdot_to_kg_per_s", "vdot_m3_per_s"]
+        output += ['deltat_k', 'qext_w']
+        return output, True
 
     @classmethod
     def active_identifier(cls):
@@ -72,10 +82,13 @@ class CirculationPump(BranchWZeroLengthComponent):
 
         # TODO: there should be a warning, if any p_bar value is not given or any of the types does
         #       not contain "p", as this should not be allowed for this component
-        press = circ_pump_tbl.p_flow_bar.values
-        set_fixed_node_entries(net, node_pit, junction, circ_pump_tbl.type.values, press,
-                               circ_pump_tbl.t_flow_k.values, cls.get_connected_node_type())
-        return circ_pump_tbl, press
+        types = circ_pump_tbl.type.values
+        p_values = circ_pump_tbl.p_flow_bar.values
+        index_p = set_fixed_node_entries(
+            net, node_pit, junction, types, p_values, cls.get_connected_node_type(), 'p')
+        node_pit[index_p, JAC_DERIV_MSL] = -1.
+        node_pit[index_p, NODE_TYPE_T] = GE
+        return circ_pump_tbl, p_values
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -87,10 +100,46 @@ class CirculationPump(BranchWZeroLengthComponent):
         :type branch_pit:
         :return: No Output.
         """
+        circ_pump_tbl = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
         circ_pump_pit[:, D] = 0.1
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
-        circ_pump_pit[:, ACTIVE] = False
+        circ_pump_pit[:, TOUTINIT] = circ_pump_tbl.t_flow_k.values
+        return circ_pump_pit
+
+    @classmethod
+    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+        """
+        Function which creates pit branch entries with a specific table.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_pit:
+        :type branch_pit:
+        :return: No Output.
+        """
+        f, t = idx_lookups[cls.table_name()]
+        circ_pump_pit = branch_pit[f:t, :]
+        tn = circ_pump_pit[:, TO_NODE].astype(np.int32)
+        mask = node_pit[tn, VAR_MASS_SLACK].astype(bool)
+        node_pit[tn[~mask], MDOTSLACKINIT] = 0
+        return circ_pump_pit
+
+    @classmethod
+    def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+        """
+        Function which creates pit branch entries with a specific table.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param branch_pit:
+        :type branch_pit:
+        :return: No Output.
+        """
+        f, t = idx_lookups[cls.table_name()]
+        circ_pump_pit = branch_pit[f:t, :]
+        circ_pump_pit[:, LOAD_VEC_BRANCHES_T] = 0
+        circ_pump_pit[:, JAC_DERIV_DTOUT] = 1
+        circ_pump_pit[:, JAC_DERIV_DT] = 0
+
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -107,34 +156,32 @@ class CirculationPump(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        circ_pump_tbl = net[cls.table_name()]
+        node_pit = net['_pit']['node']
+        branch_pit = net['_pit']['branch']
+        branch_lookups = get_lookup(net, "branch", "from_to")
+        f, t = branch_lookups[cls.table_name()]
 
-        if len(circ_pump_tbl) == 0:
-            return
+        mask = (branch_pit[f:t, MDOTINIT] < 0) & ~np.isclose(branch_pit[f:t, MDOTINIT], 0)
+        if np.any(mask):
+            raise UserWarning(r'Your grid is badly modelled and would lead to a direction change in circulation pump %s'
+                              % str(net[cls.table_name()].index[mask].tolist()))
+
+        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
+
+        extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
+                                                 cls.table_name(), mode)
 
         res_table = net["res_" + cls.table_name()]
 
-        branch_pit = net['_pit']['branch']
-        node_pit = net["_pit"]["node"]
+        from_nodes = get_from_nodes_corrected(branch_pit[f:t])
+        t_from = node_pit[from_nodes, TINIT]
+        tout = branch_pit[f:t, TOUTINIT]
+        res_table['deltat_k'].values[:] = t_from - tout
 
-        junction_lookup = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        fn_col, tn_col = cls.from_to_node_cols()
-        # get indices in internal structure for flow_junctions in circ_pump tables which are
-        # "active"
-        flow_junctions = circ_pump_tbl[tn_col].values
-        flow_nodes = junction_lookup[flow_junctions]
-        in_service = circ_pump_tbl.in_service.values
-        p_grids = np.isin(circ_pump_tbl.type.values, ["p", "pt"]) & in_service
-        sum_mass_flows, inverse_nodes, counts = get_mass_flow_at_nodes(net, node_pit, branch_pit,
-                                                                       flow_nodes[p_grids], cls)
+        fluid = get_fluid(net)
 
-        # positive results mean that the circ_pump feeds in, negative means that the ext grid
-        # extracts (like a load)
-        res_table["mdot_flow_kg_per_s"].values[p_grids] = - (sum_mass_flows / counts)[inverse_nodes]
+        cp_i = fluid.get_heat_capacity(t_from)
+        cp_i1 = fluid.get_heat_capacity(tout)
 
-        return_junctions = circ_pump_tbl[fn_col].values
-        return_nodes = junction_lookup[return_junctions]
-
-        deltap_bar = node_pit[flow_nodes, PINIT] - node_pit[return_nodes, PINIT]
-        res_table["deltap_bar"].values[in_service] = deltap_bar[in_service]
+        mass = branch_pit[f:t, MDOTINIT]
+        res_table['qext_w'].values[:] = mass * (cp_i1 * tout - cp_i * t_from)

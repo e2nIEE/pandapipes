@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,9 +6,9 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.component_models.component_toolbox import set_fixed_node_entries, \
-    get_mass_flow_at_nodes
+from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
 
 try:
     import pandaplan.core.pplog as logging
@@ -55,11 +55,15 @@ class ExtGrid(NodeElementComponent):
         ext_grids = ext_grids[ext_grids[cls.active_identifier()].values]
 
         junction = ext_grids[cls.get_node_col()].values
-        press = ext_grids.p_bar.values
-        set_fixed_node_entries(net, node_pit, junction, ext_grids.type.values, press,
-                               ext_grids.t_k.values, cls.get_connected_node_type())
-
-        return ext_grids, press
+        types = ext_grids.type.values
+        p_values = ext_grids.p_bar.values
+        t_values = ext_grids.t_k.values
+        index_p = set_fixed_node_entries(
+            net, node_pit, junction, types, p_values, cls.get_connected_node_type(), 'p')
+        set_fixed_node_entries(net, node_pit, junction, types, t_values, cls.get_connected_node_type(), 't')
+        node_pit[index_p, JAC_DERIV_MSL] = -1.
+        node_pit[index_p, VAR_MASS_SLACK] = True
+        return ext_grids, p_values
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -91,8 +95,8 @@ class ExtGrid(NodeElementComponent):
         # get indices in internal structure for junctions in ext_grid tables which are "active"
         eg_nodes = get_lookup(net, "node", "index")[cls.get_connected_node_type().table_name()][
             junction[p_grids]]
-        sum_mass_flows, inverse_nodes, counts = get_mass_flow_at_nodes(net, node_pit, branch_pit,
-                                                                       eg_nodes, cls)
+        node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True, return_inverse=True)
+        sum_mass_flows = node_pit[node_uni, MDOTSLACKINIT]
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load)

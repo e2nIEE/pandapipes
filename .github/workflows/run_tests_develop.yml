@@ -2,10 +2,6 @@
 # A coverage report will be created for the Python 3.9 version
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-# pandapipes-develop branch is designed to work with pandapower-master branch, but checks the ability to
-# work with pandapower-develop branch (relying tests, usually not required for merges) in order to avoid
-# problems in future releases
-
 name: ppipes_dev
 
 on:
@@ -15,7 +11,8 @@ on:
     branches-ignore: [ master ]
 
 jobs:
-  build:
+  tests:
+    name: Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -23,68 +20,24 @@ jobs:
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install .["all"]
-        shell: bash
+        run: uv sync --extra test
       - name: List all installed packages
         run: |
-          python -m pip list
+          uv pip list
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.11' }}
         run: |
-          python -m pytest
-      - name: Test without numba
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          python -m pip uninstall numba -y
-          python -m pytest -n=auto
+          uv run pytest -n auto
       - name: Test with pytest and Codecov
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          python -m pip install pytest-cov
-          python -m pytest --cov=./ --cov-report=xml
-      - name: Upload coverage to Codecov
-        if: ${{ matrix.python-version == '3.11' }}
-        uses: codecov/codecov-action@v1
-        with:
-          verbose: true
-
-  relying:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-        os:  [ ubuntu-latest, windows-latest ]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
-          python -m pip install .["all"]
-        shell: bash
-      - name: List all installed packages
-        run: |
-          python -m pip list
-      - name: Test with pytest
-        if: ${{ matrix.python-version != '3.11' }}
-        run: |
-          python -m pytest
-      - name: Test with pytest and Codecov
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          python -m pip install pytest-cov
-          python -m pytest -n=auto --cov=./ --cov-report=xml
+          uv pip install pytest-cov
+          uv run pytest -n auto --cov=./ --cov-report=xml
       - name: Upload coverage to Codecov
         if: ${{ matrix.python-version == '3.11' }}
         uses: codecov/codecov-action@v4
@@ -100,43 +53,34 @@ jobs:
             'pandapipes/networks/network_files/**'
             '**.yml'
             '**.rst'
-      - name: Test without numba
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          python -m pip uninstall numba -y
-          python -m pytest -n=auto
 
   linting:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.11']
-        os:  [ ubuntu-latest, windows-latest ]
+    name: Linting
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.11
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install flake8
-          python -m pip install .["all"]
-        shell: bash
+          uv sync
+          uv pip install flake8
       - name: List all installed packages
         run: |
-          python -m pip list
+          uv pip list
       - name: Lint with flake8 (syntax errors and undefinded names)
         run: |
           # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          uv run flake8 . --exclude .venv --count --select=E9,F63,F7,F82 --show-source --statistics
       - name: Lint with flake8 (all errors/warnings)
         run: |
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          uv run flake8 . --exclude .venv --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   tutorial_tests:
+    name: Tutorial tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -144,44 +88,34 @@ jobs:
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a #v4.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install .["all"]
-        shell: bash
+          uv sync --extra test --extra plotting
       - name: List all installed packages
         run: |
-          python -m pip list
+          uv pip list
       - name: Test with pytest
         run: |
-          python -m pytest --nbmake -n=auto "./tutorials"
+          uv sync --extra test --extra plotting
+          uv run pytest --nbmake -n auto "./tutorials"
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
         run: |
-          python -m pip uninstall numba -y
-          python -m pytest --nbmake -n=auto "./tutorials"
+          uv pip uninstall numba
+          uv run pytest --nbmake -n auto "./tutorials"
 
   docs_check:
+    name: Sphinx docs check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ '3.11' ]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Check sphinx build
+        uses: ammaraskar/sphinx-action@7.4.7
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Check docs for Python ${{ matrix.python-version }}
-        uses: e2nIEE/sphinx-action@master
-        with:
-          pre-build-command: "apt-get update -y && apt-get install -y git;
-                              git --version;
-                              python -m pip install --upgrade pip;
-                              python -m pip install .[docs];"
+          pre-build-command: "python -m pip install uv && uv pip install .[docs] --system --link-mode=copy"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -33,10 +33,11 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
     df_dp1 = np.ones_like(der_lambda) * (-1)
 
     df_dm_nodes = np.ones_like(der_lambda)
-    
-    load_vec_nodes = branch_pit[:, MDOTINIT]
 
-    return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
+    load_vec_nodes_from = branch_pit[:, MDOTINIT]
+    load_vec_nodes_to = branch_pit[:, MDOTINIT]
+
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
 def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
@@ -65,8 +66,11 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
                - normal_term * comp_fact * m_init2 * friction_term * p_sum_div * tm
 
     df_dm_nodes = np.ones_like(lambda_)
-    load_vec_nodes = branch_pit[:, MDOTINIT]
-    return load_vec, load_vec_nodes, df_dm, df_dm_nodes, df_dp, df_dp1
+
+    load_vec_nodes_from = branch_pit[:, MDOTINIT]
+    load_vec_nodes_to = branch_pit[:, MDOTINIT]
+
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
 
 def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
