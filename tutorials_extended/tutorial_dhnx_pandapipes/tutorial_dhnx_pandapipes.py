@@ -42,8 +42,9 @@ Requirements:
 
 Contributors:
 
-- Joris Zimmermann
-- Johannes Röder
+- Joris Zimmermann (original tutorial)
+- Johannes Röder (original tutorial)
+- Carl Ritzenhoff (update)
 
 """
 import logging
@@ -64,12 +65,6 @@ from dhnx.input_output import load_invest_options
 from dhnx.gistools.connect_points import process_geometry
 from dhnx.optimization.precalc_hydraulic import v_max_bisection,\
     calc_mass_flow, calc_power, calc_pipe_loss
-
-import os
-os.environ['TCL_LIBRARY'] = r'C:\Users\carl\AppData\Local\Programs\Python\Python313\tcl\tcl8.6'
-os.environ['TK_LIBRARY'] = r'C:\Users\carl\AppData\Local\Programs\Python\Python313\tcl\tk8.6'
-
-import tkinter
 
 logger.define_logging(
     screen_level=logging.INFO,
@@ -97,7 +92,7 @@ logger.define_logging(
 # and the import them again in your Python script with geopandas.
 
 # We set use_cache of osmnx it False to avoid cache in the repository
-#ox.config(use_cache=False)
+ox.settings.use_cache = False
 
 # For getting the OSM data, first, define a bounding box polygon from a list
 # of lat/lon coordinates, that contains the district you are considering.
@@ -432,9 +427,9 @@ network.is_consistent()
 # because the starting point of one line is not exactly the ending point of
 # the other line.
 
-#network.nx_graph = network.to_nx_undirected_graph()
-#g = network.nx_graph
-#nx.is_connected(g)
+network.nx_graph = network.to_nx_undirected_graph()
+g = network.nx_graph
+nx.is_connected(g)
 
 # If `nx.is_connected(g)` returns false, you can use the following lines
 # to find out of how many networks your geometry consists, and which ids
@@ -442,10 +437,10 @@ network.is_consistent()
 # and manually fix the geometry.
 
 # Number of networks
-#print(len(sorted(nx.connected_components(g), key=len, reverse=True)))
+print(len(sorted(nx.connected_components(g), key=len, reverse=True)))
 
 # Components of the network
-#print([c for c in sorted(nx.connected_components(g), key=len, reverse=True)])
+print([c for c in sorted(nx.connected_components(g), key=len, reverse=True)])
 
 # Now, we have all data collected and checked, and we continue with the DHNx
 # investment optimisation
