@@ -116,7 +116,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
     """
     if "valves" not in stored_data:
         return
-    logger.info("Creating all vallves with their pipes.")
+    logger.info("Creating all valves with their pipes.")
     node_mapping = index_mapping["nodes"]
     valves = stored_data['valves']
     for row in valves.itertuples():
@@ -391,12 +391,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         if add_layers:
             add_info["stanet_layer"] = control_table.LAYER.values[is_fc].astype(str)
         mdot = control_table.QSOLL.values[is_fc].astype(np.float64) * net_params["rho"] / 3600
-        # TODO: how to derive a meaningful diameter? Generally, it is not really of importance, even
-        #       in pandapipes, it is just an information and a parameter to convert between outer
-        #       and inner calculation values.
-        diameter = control_table.DN.where(pd.notnull(control_table.DN), 0.5)[is_fc]
         pandapipes.create_flow_controls(
-            net, from_junctions[is_fc], to_junctions[is_fc], mdot, diameter,
+            net, from_junctions[is_fc], to_junctions[is_fc], mdot,
             name=names[is_fc],
             in_service=in_service[is_fc],
             control_active=control_active[is_fc],
