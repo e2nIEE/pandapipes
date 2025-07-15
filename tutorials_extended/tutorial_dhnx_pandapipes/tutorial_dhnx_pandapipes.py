@@ -44,7 +44,7 @@ Contributors:
 
 - Joris Zimmermann (original tutorial)
 - Johannes Röder (original tutorial)
-- Carl Ritzenhoff (update)
+- Carl Ritzenhoff (updated version)
 
 """
 import logging
