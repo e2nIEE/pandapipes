@@ -595,14 +595,14 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     text_k = 293
     if "TU" in pipes.columns:
         text_k = pipes.TU.values.astype(np.float64) + 273.15
-    alpha = 0
+    u_overall = 0
     if "WDZAHL" in pipes.columns:
-        alpha = pipes.WDZAHL.values.astype(np.float64)
+        u_overall = pipes.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
         pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
-        u_w_per_m2k=alpha,
+        u_w_per_m2k=u_overall,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             pipes.ANFNAM.values, pipes.ENDNAM.values, pipe_sections.section_no.values)],
         stanet_nr=pipes.RECNO.values, stanet_id=pipes.STANETID.values,
@@ -726,16 +726,16 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     text_k = 293
     if "TU" in p_tbl.columns:
         text_k = p_tbl.TU.values.astype(np.float64) + 273.15
-    alpha = 0
+    u_overall = 0
     if "WDZAHL" in p_tbl.columns:
-        alpha = p_tbl.WDZAHL.values.astype(np.float64)
+        u_overall = p_tbl.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
         type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
         name=["pipe_%s_%s" % (anf, end) for anf, end in zip(from_names[valid], to_names[valid])],
-        u_w_per_m2k=alpha, text_k=text_k, stanet_nr=p_tbl.RECNO.values.astype(np.int32),
+        u_w_per_m2k=u_overall, text_k=text_k, stanet_nr=p_tbl.RECNO.values.astype(np.int32),
         stanet_id=p_tbl.STANETID.values.astype(str), v_stanet=p_tbl.VM.values, geodata=geodata,
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=p_tbl.ISACTIVE.values.astype(np.bool_),
@@ -1048,14 +1048,14 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     text_k = 293
     if "TU" in hp_data.columns:
         text_k = hp_data.TU.values.astype(np.float64) + 273.15
-    alpha = 0
+    u_overall = 0
     if "WDZAHL" in hp_data.columns:
-        alpha = hp_data.WDZAHL.values.astype(np.float64)
+        u_overall = hp_data.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
         hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
-        u_w_per_m2k=alpha, geodata=hp_data.section_geo.values,
+        u_w_per_m2k=u_overall, geodata=hp_data.section_geo.values,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
             hp_data.CLIENTID.values, hp_data.CLIENT2ID.values, hp_data.section_no.values)],
         stanet_std_type=hp_data.ROHRTYP.values, stanet_nr=hp_data.RECNO.values,
