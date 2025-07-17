@@ -4,6 +4,8 @@ Change Log
 [upcoming release] - 2025-..-..
 -------------------------------
 - [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
+- [ADDED] tutorial for combining the DHNx package and pandapipes
+- [CHANGED] Improve readability of setting pipeflow options
 
 [0.12.0] - 2025-06-27
 -------------------------------
