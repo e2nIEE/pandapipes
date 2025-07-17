@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -171,14 +171,8 @@ def retrieve_velocity_liquid(net, element="pipe"):
     v_valid = pd.notnull(v_om)
     v_om = v_om.loc[v_valid]
     v_om[v_om == 0] += 0.0001
-
-    if element == "pipe":
-        v_mean_pandapipes = net.res_pipe.v_mean_m_per_s.loc[v_valid].values.astype(
-            np.float64).round(4)
-
-    if element == "valve":
-        v_mean_pandapipes = net.res_valve.v_mean_m_per_s.loc[v_valid].values.astype(
-            np.float64).round(4)
+    v_mean_pandapipes = net['res_%s' %element].v_mean_m_per_s.loc[v_valid].values.astype(
+        np.float64).round(4)
 
     v_mean_pandapipes[v_mean_pandapipes == 0] += 0.0001
 

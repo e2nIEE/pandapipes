@@ -21,7 +21,7 @@ The following fluids currently exist in the library:
    A particularity of injecting biomethane in the gas grid in Germany is the addition of LPG to enhance
    the Wobbe-Index and the heating value of the gas and thus make it equivalent to the (high-calorific) natural gas transported
    in the grid. This addition is done in a gas treatment unit (Biogaseinspeiseanlage) upstream of the biomethane
-   feed-in junction. The properties of the biomethane(s) were computed based on the package `CoolProp <http://www.coolprop.org/)>`_.
+   feed-in junction. The properties of the biomethane(s) were computed based on the package `CoolProp <http://www.coolprop.org/>`_.
 
    .. csv-table::
       :file: composition.csv

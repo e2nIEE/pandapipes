@@ -1,22 +1,23 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
+from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import D, AREA, \
-    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, BRANCH_TYPE, LOSS_COEFFICIENT as LC
-from pandapipes.idx_node import PINIT, NODE_TYPE, PC
+    JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH
+from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
 
 
-class PressureControlComponent(BranchWZeroLengthComponent):
+class PressureControlComponent(BranchWOInternalsComponent):
     """
 
     """
@@ -46,7 +47,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         junction_idx_lookups = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
         index_pc = junction_idx_lookups[juncts]
-        node_pit[index_pc, NODE_TYPE] = PC
+        node_pit[index_pc, NODE_TYPE] = PC_NODE
         node_pit[index_pc, PINIT] = press
 
     @classmethod
@@ -60,9 +61,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :return: No Output.
         """
         pc_pit = super().create_pit_branch_entries(net, branch_pit)
-        pc_pit[:, D] = 0.1
-        pc_pit[:, AREA] = pc_pit[:, D] ** 2 * np.pi / 4
-        pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC
+        pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC_BRANCH
         pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
 
     @classmethod
@@ -74,7 +73,7 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         # set all PC branches to derivatives to 0
         f, t = idx_lookups[cls.table_name()]
         press_pit = branch_pit[f:t, :]
-        pc_branch = press_pit[:, BRANCH_TYPE] == PC
+        pc_branch = press_pit[:, BRANCH_TYPE] == PC_BRANCH
         press_pit[pc_branch, JAC_DERIV_DP] = 0
         press_pit[pc_branch, JAC_DERIV_DP1] = 0
         press_pit[pc_branch, JAC_DERIV_DM] = 0
@@ -94,19 +93,8 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :type options:
         :return: No Output.
         """
-        required_results_hyd = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_from_kg_per_s", "mf_from"),
-            ("mdot_to_kg_per_s", "mf_to"), ("vdot_norm_m3_per_s", "vf")
-        ]
-        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to"), ("t_outlet_k", "t_outlet")]
 
-        if get_fluid(net).is_gas:
-            required_results_hyd.extend([
-                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
-            ])
-        else:
-            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
+        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
@@ -149,11 +137,11 @@ class PressureControlComponent(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "p_from_bar", "p_to_bar",
+            output = ["p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
+            output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s"]
         output += ["deltap_bar"]
         return output, True

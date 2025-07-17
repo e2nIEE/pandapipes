@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -116,7 +116,7 @@ class ValvePipe(Pipe):
                       "p_to_mw",
                       "mdot_from_kg_per_s",
                       "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s",
+                      "vdot_m3_per_s",
                       "reynolds",
                       "lambda",
                       "loading_percent"]

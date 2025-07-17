@@ -5,20 +5,26 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
+from pandapipes.component_models import (get_fluid, BranchWOInternalsComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import (D, AREA, MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
+from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
                                    JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
-                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T)
+                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, FLOW_RETURN_CONNECT)
 from pandapipes.idx_node import TINIT
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
+try:
+    import pandaplan.core.pplog as logging
+except ImportError:
+    import logging
 
-class HeatConsumer(BranchWZeroLengthComponent):
+logger = logging.getLogger(__name__)
+
+class HeatConsumer(BranchWOInternalsComponent):
     """
 
     """
@@ -65,14 +71,19 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :return: No Output.
         """
         hc_pit = super().create_pit_branch_entries(net, branch_pit)
-        hc_pit[:, D] = net[cls.table_name()].diameter_m.values
-        hc_pit[:, AREA] = hc_pit[:, D] ** 2 * np.pi / 4
         qext = net[cls.table_name()].qext_w.values
         hc_pit[~np.isnan(qext), QEXT] = qext[~np.isnan(qext)]
         mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
         hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
         treturn = net[cls.table_name()].treturn_k.values
-        hc_pit[~np.isnan(treturn), TOUTINIT] = treturn[~np.isnan(treturn)]
+        mask_tr = ~np.isnan(treturn)
+        hc_pit[mask_tr, TOUTINIT] = treturn[mask_tr]
+        hc_pit[:, FLOW_RETURN_CONNECT] = True
+        mask_q0 = qext == 0 & np.isnan(mdot)
+        if np.any(mask_q0):
+            logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
+                           r'Therefore, the defined temperature control cannot be maintained.' \
+                    %net[cls.table_name()].index[mask_q0])
         return hc_pit
 
     @classmethod
@@ -91,6 +102,9 @@ class HeatConsumer(BranchWZeroLengthComponent):
         tbl = net[cls.table_name()]
         consumer_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
         consumer_array[:, cls.DELTAT] = tbl.deltat_k.values
+        consumer_array[:, cls.TRETURN] = tbl.treturn_k.values
+        consumer_array[:, cls.QEXT] = tbl.qext_w.values
+        consumer_array[:, cls.MASS] = tbl.controlled_mdot_kg_per_s.values
         mf = tbl.controlled_mdot_kg_per_s.values
         tr = tbl.treturn_k.values
         dt = tbl.deltat_k.values
@@ -156,10 +170,12 @@ class HeatConsumer(BranchWZeroLengthComponent):
             t_out = hc_pit[:, TOUTINIT]
 
             df_dm = - cp * (t_out - t_in)
+            mask_equal = t_out >= t_in
+            mask_zero = hc_pit[:, QEXT] == 0
+            mask_ign = mask_equal | mask_zero
+            hc_pit[mask & mask_ign, MDOTINIT] = 0
+            hc_pit[mask & ~mask_ign, JAC_DERIV_DM] = df_dm[mask & ~mask_ign]
             hc_pit[mask, LOAD_VEC_BRANCHES] = - hc_pit[mask, QEXT] + df_dm[mask] * hc_pit[mask, MDOTINIT]
-            mask_equal = t_out == t_in
-            hc_pit[mask & mask_equal, MDOTINIT] = 0
-            hc_pit[mask & ~mask_equal, JAC_DERIV_DM] = df_dm[mask & ~mask_equal]
 
     @classmethod
     def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
@@ -177,7 +193,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
             from_nodes = get_from_nodes_corrected(hc_pit[mask])
             t_in = node_pit[from_nodes, TINIT]
-            t_out = hc_pit[mask, TOUTINIT]
+            t_out = consumer_array[mask, cls.TRETURN]
             q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * (t_in - t_out)
             hc_pit[mask, QEXT] = q_ext
 
@@ -187,9 +203,10 @@ class HeatConsumer(BranchWZeroLengthComponent):
         hc_pit = branch_pit[f:t, :]
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
 
-        # Any MODE where TRETURN is given
-        mask = np.isin(consumer_array[:, cls.MODE], [cls.MF_TR, cls.QE_TR])
+        mask= consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask):
+            mask_ign = hc_pit[:, QEXT] == 0
+            mask = mask & ~mask_ign
             hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
             hc_pit[mask, JAC_DERIV_DTOUT] = 1
             hc_pit[mask, JAC_DERIV_DT] = 0
@@ -204,7 +221,7 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :rtype:
         """
         return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("qext_w", "f8"),
-                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"), ("diameter_m", "f8"),
+                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"),
                 ("in_service", "bool"), ("type", dtype(object))]
 
     @classmethod
@@ -220,12 +237,12 @@ class HeatConsumer(BranchWZeroLengthComponent):
         :rtype: (list, bool)
         """
         if get_fluid(net).is_gas:
-            output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda",
+            output = ["p_from_bar", "p_to_bar", "t_from_k",
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
                       "normfactor_from", "normfactor_to"]
         else:
-            output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
-                      "mdot_to_kg_per_s", "vdot_norm_m3_per_s", "reynolds", "lambda"]
+            output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s",
+                      "mdot_to_kg_per_s", "vdot_m3_per_s"]
         output += ['deltat_k', 'qext_w']
         return output, True
 

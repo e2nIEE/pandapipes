@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -73,6 +73,9 @@ def release_control_test_network(max_iter_hyd, save=False):
     pp.create_ext_grid(net, junction=0, p_bar=3, t_k=300, name="External Grid 0", in_service=True,
                        index=None, type="pt")
     pp.create_ext_grid(net, 1, p_bar=5, t_k=350, name="External Grid 1", type="pt")
+    pp.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", in_service=True,
+                       index=None, type="pt")
+    pp.create_ext_grid(net, 5, p_bar=5, t_k=290, name="External Grid 3", type="pt")
 
     # sinks
     pp.create_sink(net, junction=2, mdot_kg_per_s=0.2, scaling=1., name="Sink 0", index=None,
@@ -91,9 +94,9 @@ def release_control_test_network(max_iter_hyd, save=False):
     pp.create_source(net, junction=11, mdot_kg_per_s=0.09, name="Source 3")
 
     # valves
-    pp.create_valve(net, from_junction=8, to_junction=9, diameter_m=0.1, opened=True,
+    pp.create_valve(net, junction=8, element=9, et='ju', diameter_m=0.1, opened=True,
                     loss_coefficient=0, name="Valve 0", index=None, type="valve")
-    pp.create_valve(net, 9, 4, diameter_m=0.05, opened=True, name="Valve 1")
+    pp.create_valve(net, 9, 4, et='ju', diameter_m=0.05, opened=True, name="Valve 1")
 
     # pump
     pp.create_pump_from_parameters(net, from_junction=8, to_junction=3, new_std_type_name="Pump",
@@ -189,6 +192,9 @@ def release_control_test_network_water(max_iter_hyd, save=False):
     pp.create_ext_grid(net, junction=0, p_bar=3, t_k=300, name="External Grid 0", in_service=True,
                        index=None, type="pt")
     pp.create_ext_grid(net, 1, p_bar=5, t_k=350, name="External Grid 1", type="pt")
+    pp.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", in_service=True,
+                       index=None, type="pt")
+    pp.create_ext_grid(net, 5, p_bar=5, t_k=290, name="External Grid 3", type="pt")
 
     # sinks
     pp.create_sink(net, junction=2, mdot_kg_per_s=0.2, scaling=1., name="Sink 0", index=None,
@@ -209,9 +215,9 @@ def release_control_test_network_water(max_iter_hyd, save=False):
     pp.create_mass_storage(net, 5, mdot_kg_per_s=0.07, name="Mass Storage 0")
 
     # valves
-    pp.create_valve(net, from_junction=8, to_junction=9, diameter_m=0.1, opened=True,
+    pp.create_valve(net, junction=8, element=9, et="ju", diameter_m=0.1, opened=True,
                     loss_coefficient=0, name="Valve 0", index=None, type="valve")
-    pp.create_valve(net, 9, 4, diameter_m=0.05, opened=True, name="Valve 1")
+    pp.create_valve(net, 9, 4, et="ju",diameter_m=0.05, opened=True, name="Valve 1")
 
     # pump
     pp.create_pump_from_parameters(net, from_junction=8, to_junction=3, new_std_type_name="Pump",
@@ -319,9 +325,9 @@ def release_control_test_network_gas(max_iter_hyd, save=False):
     pp.create_mass_storage(net, 4, mdot_kg_per_s=0.07, name="Mass Storage 0")
 
     # valves
-    pp.create_valve(net, from_junction=1, to_junction=2, diameter_m=0.1, opened=True,
+    pp.create_valve(net, junction=1, element=2, et='ju', diameter_m=0.1, opened=True,
                     loss_coefficient=0, name="Valve 0", index=None, type="valve")
-    pp.create_valve(net, 2, 5, diameter_m=0.05, opened=True, name="Valve 1")
+    pp.create_valve(net, junction=2, element=5, et='ju', diameter_m=0.05, opened=True, name="Valve 1")
 
     # flow control
     pp.create_flow_control(net, 6, 7, controlled_mdot_kg_per_s=0.005, diameter_m=0.08)
@@ -367,6 +373,6 @@ def add_ts_controllers(net):
 
 
 if __name__ == '__main__':
-    water_net = release_control_test_network_water(10,True)
-    gas_net = release_control_test_network_gas(10,True)
+    water_net = release_control_test_network_water(11,True)
+    gas_net = release_control_test_network_gas(11,True)
 

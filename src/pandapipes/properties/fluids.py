@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -100,7 +100,7 @@ class Fluid(JSONSerializableClass):
         :param at_values: Value for which the property should be returned
         :type at_values:
         :return: Returns property at the certain value
-        :rtype: pandapipes.FluidProperty
+        :rtype: float, array
         """
 
         if property_name not in self.all_properties:
@@ -319,7 +319,7 @@ class FluidPropertyConstant(FluidProperty):
         :param args: Name of the property
         :type args: str
         :return: Value of the property
-        :rtype: float
+        :rtype: float, array
 
         :Example:
             >>> heat_capacity = get_fluid(net).all_properties["heat_capacity"].get_at_value(293.15)
@@ -563,7 +563,7 @@ class FluidPropertySutherland(FluidProperty):
         :param arg: Name of the property
         :type arg: str
         :return: Value of the property
-        :rtype: float
+        :rtype: float, array
 
         :Example:
             >>> viscosity = get_fluid(net).get_property("viscosity")
