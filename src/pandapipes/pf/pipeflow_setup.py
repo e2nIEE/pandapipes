@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import copy
-import inspect
 
 import numpy as np
 from pandapower.auxiliary import ppException
@@ -207,7 +206,7 @@ def set_user_pf_options(net, reset=False, **kwargs):
     net.user_pf_options.update(kwargs)
 
 
-def init_options(net, local_parameters):
+def init_options(net, **kwargs):
     """
     Initializes physical and mathematical constants included in pandapipes. In addition, options
     for the nonlinear and time-dependent solver are also set.
@@ -269,90 +268,78 @@ def init_options(net, local_parameters):
 
     :param net: The pandapipesNet for which the options are initialized
     :type net: pandapipesNet
-    :param local_parameters: Dictionary with local parameters that were passed to the pipeflow call.
-    :type local_parameters: dict
     :return: No output
 
     :Example:
         >>> init_options(net)
 
     """
-    from pandapipes.pipeflow import pipeflow
+    user_pf_options = net.get("user_pf_options", {})
 
-    # the base layer of the options consists of the default options
-    net["_options"] = copy.deepcopy(default_options)
-    excluded_params = {"net", "interactive_plotting", "t_start", "sol_vec", "kwargs"}
+    # prevent mutations
+    default_options_copy = copy.deepcopy(default_options)
+    user_pf_options_copy = copy.deepcopy(user_pf_options)
+    kwargs_copy = copy.deepcopy(kwargs)
 
-    # the base layer is overwritten and extended by options given by the default parameters of the
-    # pipeflow function definition
-    args_pf = inspect.getfullargspec(pipeflow)
-    pf_func_options = dict(zip(args_pf.args[-len(args_pf.defaults):], args_pf.defaults))
-    pf_func_options = {k: pf_func_options[k] for k in set(pf_func_options.keys()) - excluded_params}
-    net["_options"].update(pf_func_options)
+    for options in (user_pf_options_copy, kwargs_copy):
+        _iteration_check(options)
 
-    # the third layer is the user defined pipeflow options
-    if "user_pf_options" in net and len(net.user_pf_options) > 0:
-        opts = _iteration_check(net.user_pf_options)
-        opts = _check_mode(opts)
-        net["_options"].update(opts)
+    opts = {
+        # Base layer: default options (lowest priority)
+        **default_options_copy,
+        # Middle layer: net options (overrides defaults)
+        **user_pf_options_copy,
+        # Top layer: call-specific parameters (highest priority)
+        **kwargs_copy,
+    }
 
+    keys_to_exclude = {"interactive_plotting", "t_start"}
+    for k in keys_to_exclude:
+        opts.pop(k, None)
 
-    # the last layer is the layer of passed parameters by the user, it is defined as the local
-    # existing parameters during the pipeflow call which diverges from the default parameters of the
-    # function definition in the second layer
-    params = dict()
-    for k, v in local_parameters.items():
-        if k in excluded_params or (k in pf_func_options and pf_func_options[k] == v):
-            continue
-        params[k] = v
-
-    opts = _iteration_check(local_parameters["kwargs"])
-    opts = _check_mode(opts)
-    params.update(opts)
-    net["_options"].update(params)
-    net["_options"]["fluid"] = get_fluid(net).name
-    if not net["_options"]["only_update_hydraulic_matrix"]:
-        net["_options"]["reuse_internal_data"] = False
-
+    if not opts["only_update_hydraulic_matrix"]:
+        opts["reuse_internal_data"] = False
     if not numba_installed:
-        if net["_options"]["use_numba"]:
-            logger.info("numba is not installed. Install numba first before you set the 'use_numba'"
-                        " flag to True. The pipeflow will be performed without numba speedup.")
-        net["_options"]["use_numba"] = False
+        if opts["use_numba"]:
+            logger.info(
+                "numba is not installed. Install numba first before you set the 'use_numba'"
+                " flag to True. The pipeflow will be performed without numba speedup.",
+            )
+        opts["use_numba"] = False
+    opts["fluid"] = get_fluid(net).name
+    _mode_check(opts)
+
+    net["_options"] = opts
+
 
 def _iteration_check(opts):
-    opts = copy.deepcopy(opts)
-    iter_defined = False
-    params = dict()
-    if 'iter' in opts:
-        params['max_iter_hyd'] = params['max_iter_therm'] = params['max_iter_bidirect'] = opts["iter"]
-        iter_defined = True
-    if 'max_iter_hyd' in opts:
-        max_iter_hyd = opts["max_iter_hyd"]
-        if iter_defined: logger.info("You defined 'iter' and 'max_iter_hyd. "
-                                     "'max_iter_hyd' will overwrite 'iter'")
-        params['max_iter_hyd'] = max_iter_hyd
-    if 'max_iter_therm' in opts:
-        max_iter_therm = opts["max_iter_therm"]
-        if iter_defined: logger.info("You defined 'iter' and 'max_iter_therm. "
-                                     "'max_iter_therm' will overwrite 'iter'")
-        params['max_iter_therm'] = max_iter_therm
-    if 'max_iter_bidirect' in opts:
-        max_iter_bidirect = opts["max_iter_bidirect"]
-        if iter_defined: logger.info("You defined 'iter' and 'max_iter_bidirect. "
-                                     "'max_iter_bidirect' will overwrite 'iter'")
-        params['max_iter_bidirect'] = max_iter_bidirect
-    opts.update(params)
-    return opts
+    if not opts:
+        return
 
-def _check_mode(opts):
-    opts = copy.deepcopy(opts)
-    if 'mode' in opts and opts['mode'] == 'all':
-        logger.warning("mode 'all' is deprecated and will be removed in a future release. "
-                       "Use 'sequential' or 'bidirectional' instead. "
-                       "For now 'all' is set equal to 'sequential'.")
-        opts['mode'] = 'sequential'
-    return opts
+    modes = "hyd", "therm", "bidirect"
+    iter_key = "iter"
+    n_iter = opts.get(iter_key, None)
+    for mode in modes:
+        key = f"max_iter_{mode}"
+
+        if n_iter is not None:
+            # if both defined
+            if key in opts:
+                logger.info(
+                    f"{key!r} will overwrite {iter_key!r}",
+                )
+            else:
+                opts[key] = n_iter
+
+
+def _mode_check(opts):
+    if opts["mode"] == "all":
+        logger.warning(
+            "mode 'all' is deprecated and will be removed in a future release. "
+            "Use 'sequential' or 'bidirectional' instead. "
+            "For now 'all' is set equal to 'sequential'.",
+        )
+        opts["mode"] = "sequential"
 
 def create_internal_results(net):
     """
