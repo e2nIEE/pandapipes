@@ -154,6 +154,20 @@ class Valve(BranchWInternalsComponent):
 
     @classmethod
     def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
+        """
+        Class method to extract pipeflow results from the internal structure into the results table.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
+        :return: No Output.
+        :rtype: None
+        """
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         required_results_hyd.extend([("v_mean_m_per_s", "v_mps"), ("lambda", "lambda"), ("reynolds", "reynolds")])

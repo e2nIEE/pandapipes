@@ -67,8 +67,8 @@ class HeatExchanger(BranchWOInternalsComponent):
         :type options: dict
         :param branch_results: important branch results
         :type branch_results: dict
-        :param mode: simulation mode
-        :type mode: str
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
         :return: No Output.
         :rtype: None
         """
