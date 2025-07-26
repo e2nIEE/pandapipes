@@ -220,6 +220,8 @@ def get_component_array(net, component_name, component_type="branch", domain: Ph
     :type component_name: str
     :param component_type: Type of component that is considered ("branch" or "node")
     :type component_type: str, default "branch"
+    :param domain: Physical domain for the calculation (hydraulics or heat_transfer)
+    :type domain: PhysDomain, default PhysDomain.HYD
     :param only_active: If True, only return entries of active elements (included in _active_pit)
     :type only_active: bool
     :return: component_array - internal array of the component

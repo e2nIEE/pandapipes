@@ -247,9 +247,9 @@ def init_options(net, **kwargs):
                  same in each iteration) or "automatic", in which case **alpha** is adapted \
                  automatically with respect to the convergence behaviour.
 
-        - **mode** (str): "hydraulics" - Define the calculation mode: what shall be calculated - \
-                solely hydraulics ('hydraulics'), solely heat transfer('heat') or both combined sequentially \
-                ('sequential') or bidirectionally ('bidirectional').
+        - **sym_mode** (str): SimMode.HYD - Define the simulation mode: what shall be calculated - \
+                solely hydraulics (SimMode.HYD), solely heat transfer (SimMode.HEAT) or both combined sequentially \
+                (SimMode.SEQ) or bidirectionally (SimMode.BIDIR).
 
         - **only_update_hydraulic_matrix** (bool): False - If True, the system matrix is not \
                 created in every iteration, but only the data is updated according to a lookup that\
@@ -591,9 +591,8 @@ def check_connectivity(net, branch_pit, node_pit,
     :type branches_connected: np.array(bool)
     :param nodes_connected: Array of bool if nodes are connected or not
     :type nodes_connected: np.array(bool)
-    :param mode: two modes exist: "hydraulics" and "heat_transfer", representing the two modes of \
-        the pipeflow calculation.
-    :type mode: str
+    :param domain: Physical domain for the calculation (hydraulics or heat_transfer)
+    :type domain: PhysDomain, default PhysDomain.HYD
     :return: (nodes_connected, branches_connected) - Lookups of np.arrays stating which of the
             internal nodes and branches are reachable from any of the hyd_slacks (np mask).
     :rtype: tuple(np.array)
@@ -609,6 +608,25 @@ def check_connectivity(net, branch_pit, node_pit,
 
 def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
                                 domain: PhysDomain = PhysDomain.HYD):
+    """
+    :param net: The pandapipesNet for which to perform the check
+    :type net: pandapipesNet
+    :param node_pit: Internal array with node entries
+    :type node_pit: np.array
+    :param branch_pit: Internal array with branch entries
+    :type branch_pit: np.array
+    :param slack_nodes:
+    :type slack_nodes:
+    :param active_node_lookup:
+    :type active_node_lookup:
+    :param active_branch_lookup:
+    :type active_branch_lookup:
+    :param domain: Physical domain for the calculation (hydraulics or heat_transfer)
+    :type domain: PhysDomain, default PhysDomain.HYD
+    :return: (nodes_connected, branches_connected) - Lookups of np.arrays stating which of the
+            internal nodes and branches are reachable from any of the hyd_slacks (np mask).
+    :rtype: tuple(np.array)
+    """
     if domain == PhysDomain.HYD:
         connect = branch_pit[:, FLOW_RETURN_CONNECT].astype(bool)
         active_branch_lookup = active_branch_lookup & ~connect
@@ -626,6 +644,25 @@ def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_n
 
 
 def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, domain: PhysDomain):
+    """
+    :param net: The pandapipesNet for which to perform the check
+    :type net: pandapipesNet
+    :param branch_pit: Internal array with branch entries
+    :type branch_pit: np.array
+    :param node_pit: Internal array with node entries
+    :type node_pit: np.array
+    :param active_branch_lookup:
+    :type active_branch_lookup:
+    :param active_node_lookup:
+    :type active_node_lookup:
+    :param slack_nodes:
+    :type slack_nodes:
+    :param domain: Physical domain for the calculation (hydraulics or heat_transfer)
+    :type domain: PhysDomain
+    :return: (nodes_connected, branches_connected) - Lookups of np.arrays stating which of the
+            internal nodes and branches are reachable from any of the hyd_slacks (np mask).
+    :rtype: tuple(np.array)
+    """
     len_nodes = len(node_pit)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
@@ -712,9 +749,8 @@ def reduce_pit(net, domain: PhysDomain = PhysDomain.HYD):
 
     :param net: The pandapipesNet for which the pit shall be reduced
     :type net: pandapipesNet
-    :param mode: the mode of the calculation (either "hydraulics" or "heat_transfer") for storing /\
-        retrieving correct lookups
-    :type mode: str, default "hydraulics"
+    :param domain: Physical domain for the calculation (hydraulics or heat_transfer)
+    :type domain: PhysDomain, default PhysDomain.HYD
     :return: No output
     """
 

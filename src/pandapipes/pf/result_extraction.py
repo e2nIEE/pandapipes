@@ -23,8 +23,8 @@ def extract_all_results(net, sim_mode: SimMode):
 
     :param net: pandapipes net for which to extract results into net.res_xy
     :type net: pandapipesNet
-    :param calculation_mode: mode of the simulation (e.g. "hydraulics" or "heat" or "sequential" or "bidirectional")
-    :type calculation_mode: str
+    :param sim_mode: Simulation mode determining which results to extract.
+    :type sim_mode: SimMode
     :return: No output
 
     """
@@ -164,6 +164,38 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
                                           res_nodes_to_hydraulics, res_nodes_to_heat,
                                           res_mean_hydraulics, res_branch_ht, res_mean_heat, internal_node_name,
                                           sim_mode: SimMode):
+    """
+    Extract the results from the branch result array derived from the pit to the result table of the
+    net (only for branch components with internal nodes). Here, we need to consider which results
+    exist for hydraulic calculation and for heat transfer calculation (wrt. connectivity).
+
+    :param net: The pandapipes net that the internal structure belongs to
+    :type net: pandapipesNet
+    :param branch_results: Important branch results from the internal pit structure
+    :type branch_results: dict[np.ndarray]
+    :param table_name: The name of the table that the results should be written to
+    :type table_name: str
+    :param res_nodes_from_hydraulics:
+    :type res_nodes_from_hydraulics:
+    :param res_nodes_from_heat:
+    :type res_nodes_from_heat:
+    :param res_nodes_to_hydraulics:
+    :type res_nodes_to_hydraulics:
+    :param res_nodes_to_heat:
+    :type res_nodes_to_heat:
+    :param res_mean_hydraulics:
+    :type res_mean_hydraulics:
+    :param res_branch_ht:
+    :type res_branch_ht:
+    :param res_mean_heat:
+    :type res_mean_heat:
+    :param internal_node_name:
+    :type internal_node_name:
+    :param sim_mode: Simulation mode determining which results to extract.
+    :type sim_mode: SimMode
+    :return: No output
+    :rtype: None
+    """
     # the result table to write results to
     res_table = net["res_" + table_name]
 
@@ -250,9 +282,8 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
     :type required_results_heat: list[tuple]
     :param table_name: The name of the table that the results should be written to
     :type table_name: str
-    :param simulation_mode: simulation mode (e.g. "hydraulics", "heat", "sequential", "bidirectional"); defines whether results from \
-        hydraulic or temperature calculation are transferred
-    :type simulation_mode: str
+    :param sim_mode: Simulation mode determining which results to extract.
+    :type sim_mode: SimMode
     :return: No output
     :rtype: None
     """
@@ -287,8 +318,8 @@ def extract_results_active_pit(net, domain: PhysDomain = PhysDomain.HYD):
 
     :param net: The pandapipes net that the internal structure belongs to
     :type net: pandapipesNet
-    :param mode: defines whether results from hydraulic or temperature calculation are transferred
-    :type mode: str, default "hydraulics"
+    :param domain: Physical domain for the calculation (hydraulics or heat_transfer)
+    :type domain: PhysDomain, default PhysDomain.HYD
     :return: No output
 
     """

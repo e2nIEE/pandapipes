@@ -113,6 +113,24 @@ def use_given_hydraulic_results(net, sol_vec):
 
 
 def newton_raphson(net, funct, sim_mode: SimMode, solver_vars, tols, pit_names, iter_name):
+    """
+    :param net: A pandapipes net
+    :type net: pandapipesNet
+    :param funct:
+    :type funct:
+    :param sim_mode: Simulation mode for the pipeflow
+    :type sim_mode: SimMode
+    :param solver_vars:
+    :type solver_vars:
+    :param tols:
+    :type tols:
+    :param pit_names:
+    :type pit_names:
+    :param iter_name:
+    :type iter_name:
+    :return: No output.
+    :rtype: None
+    """
     max_iter, nonlinear_method, tol_res = get_net_options(
         net, iter_name, "nonlinear_method", "tol_res"
     )
