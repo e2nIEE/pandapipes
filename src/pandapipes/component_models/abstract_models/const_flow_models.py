@@ -8,7 +8,7 @@ from pandapipes.component_models.abstract_models.node_element_models import Node
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
-
+from pandapipes.enums import SimMode
 
 class ConstFlow(NodeElementComponent):
 
@@ -51,7 +51,7 @@ class ConstFlow(NodeElementComponent):
         node_pit[index, LOAD] += loads_sum
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
         Function that extracts certain results.
 

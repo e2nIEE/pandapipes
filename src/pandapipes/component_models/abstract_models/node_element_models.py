@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.abstract_models.base_component import Component
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -51,5 +52,5 @@ class NodeElementComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         raise NotImplementedError

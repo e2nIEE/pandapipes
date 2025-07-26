@@ -20,6 +20,7 @@ from pandapipes.idx_branch import MDOTINIT, AREA, LOSS_COEFFICIENT as LC, FROM_N
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -122,7 +123,7 @@ class Pump(BranchWOInternalsComponent):
             pump_branch_pit[:, PL] = pl
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
         Function that extracts certain results.
 
@@ -141,7 +142,7 @@ class Pump(BranchWOInternalsComponent):
         required_results_hyd.extend([("deltap_bar", "pl")])
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
-                                                 required_results_ht, cls.table_name(), mode)
+                                                 required_results_ht, cls.table_name(), sim_mode)
 
         calc_compr_pow = options['calc_compression_power']
         if calc_compr_pow:

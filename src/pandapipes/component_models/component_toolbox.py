@@ -13,6 +13,7 @@ from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
                                  PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD)
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.enums import PhysDomain, SimMode
 
 
 def get_internal_lookup_structure(internals, table_name, internal_elements, start=0):
@@ -209,7 +210,7 @@ def standard_branch_wo_internals_result_lookup(net):
     return required_results_hyd, required_results_ht
 
 
-def get_component_array(net, component_name, component_type="branch", mode='hydraulics', only_active=True):
+def get_component_array(net, component_name, component_type="branch", domain: PhysDomain = PhysDomain.HYD, only_active=True):
     """
     Returns the internal array of a component.
 
@@ -227,7 +228,7 @@ def get_component_array(net, component_name, component_type="branch", mode='hydr
     if not only_active:
         return net["_pit"]["components"][component_name]
     f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
-    in_service_elm = get_lookup(net, component_type, "active_%s"%mode)[f_all:t_all]
+    in_service_elm = get_lookup(net, component_type, "active_%s" % domain)[f_all:t_all]
     return net["_pit"]["components"][component_name][in_service_elm]
 
 

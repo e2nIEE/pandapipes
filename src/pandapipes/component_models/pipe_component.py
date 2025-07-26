@@ -16,6 +16,7 @@ from pandapipes.idx_node import (TINIT as TINIT_NODE, HEIGHT, PINIT, PAMB, ACTIV
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -154,7 +155,7 @@ class Pipe(BranchWInternalsComponent):
             pipe_pit[:, T_OUT_OLD] = pipe_pit[:, TOUTINIT]
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         res_nodes_from_hyd = [("p_from_bar", "p_from"), ("mdot_from_kg_per_s", "mf_from")]
         res_nodes_from_ht = [("t_from_k", "temp_from")]
         res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
@@ -172,12 +173,12 @@ class Pipe(BranchWInternalsComponent):
         if np.any(cls.get_internal_node_number(net) > 0):
             extract_branch_results_with_internals(net, branch_results, cls.table_name(), res_nodes_from_hyd,
                 res_nodes_from_ht, res_nodes_to_hyd, res_nodes_to_ht, res_mean_hyd, res_branch_ht, [],
-                cls.internal_node_name(), mode)
+                cls.internal_node_name(), sim_mode)
         else:
             required_results_hyd = res_nodes_from_hyd + res_nodes_to_hyd + res_mean_hyd
             required_results_ht = res_nodes_from_ht + res_nodes_to_ht + res_branch_ht
             extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-                cls.table_name(), mode)
+                cls.table_name(), sim_mode)
 
     @classmethod
     def get_internal_results(cls, net, pipe):

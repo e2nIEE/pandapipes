@@ -9,6 +9,7 @@ from pandapipes.idx_branch import (FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, AC
                                    D, AREA)
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_net_option, get_lookup
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -113,5 +114,5 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         raise NotImplementedError

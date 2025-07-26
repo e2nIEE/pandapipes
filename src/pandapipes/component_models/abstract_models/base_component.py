@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.component_toolbox import init_results_element
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -33,7 +34,7 @@ class Component:
         return res_table
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
         Function that extracts certain results.
 

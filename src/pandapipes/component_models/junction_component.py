@@ -15,7 +15,7 @@ from pandapipes.idx_node import L, ELEMENT_IDX, PINIT, node_cols, HEIGHT, TINIT,
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
 from pandapipes.pf.pipeflow_setup import get_net_option
-
+from pandapipes.enums import SimMode
 
 class Junction(NodeComponent):
     """
@@ -98,7 +98,7 @@ class Junction(NodeComponent):
             junction_pit[:, TINIT_OLD] = junction_pit[:, TINIT]
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
         Function that extracts certain results.
 
@@ -129,7 +129,7 @@ class Junction(NodeComponent):
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         junction_pit = net["_pit"]["node"][f:t, :]
 
-        if mode in ["hydraulics", "sequential", "bidirectional"]:
+        if sim_mode in {SimMode.HYD, SimMode.SEQ, SimMode.BIDIR}:
             junctions_connected_hydraulic = get_lookup(net, "node", "active_hydraulics")[f:t]
 
             if np.any(junction_pit[junctions_connected_hydraulic, PINIT] < 0):

@@ -9,6 +9,7 @@ from pandapipes.component_models.abstract_models.node_element_models import Node
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -66,7 +67,7 @@ class ExtGrid(NodeElementComponent):
         return ext_grids, p_values
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
         Function that extracts certain results.
 

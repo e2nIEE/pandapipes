@@ -10,6 +10,7 @@ import pandas as pd
 import pandapipes
 from pandapipes.converter.stanet.table_creation import CLIENT_TYPES_OF_NODES
 from pandapipes.properties.fluids import FluidPropertySutherland, _add_fluid_to_net
+from pandapipes.enums import SimMode
 
 try:
     from shapely.geometry import Point, LineString
@@ -182,8 +183,8 @@ def get_net_params(net, stored_data):
     net_params["t_sutherland"] = net_data.at[0, "TS"]
     net_params["t0_sutherland"] = net_data.at[0, "T0"]
     net_params["calculate_temp"] = str(net_data.at[0, "TEMPCALC"]) == "J"
-    pp_calc_mode = "sequential" if net_params["calculate_temp"] else "hydraulics"
-    pandapipes.set_user_pf_options(net, mode=pp_calc_mode)
+    pp_calc_mode = SimMode.SEQ if net_params["calculate_temp"] else SimMode.HYD
+    pandapipes.set_user_pf_options(net, sym_mode=pp_calc_mode)
     net_params["medium_temp_C"] = net_data.at[0, "TEMP"]
     net_params["medium_temp_K"] = net_data.at[0, "TEMP"] + 273.15
     net_params["calculation_results_valid"] = not bool(net_data.at[0, "CALCDIRTY"])

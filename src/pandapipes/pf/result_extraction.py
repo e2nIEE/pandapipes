@@ -8,6 +8,7 @@ from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density
+from pandapipes.enums import PhysDomain, SimMode
 
 try:
     from numba import jit
@@ -15,7 +16,7 @@ except ImportError:
     from pandapower.pf.no_numba import jit
 
 
-def extract_all_results(net, calculation_mode):
+def extract_all_results(net, sim_mode: SimMode):
     """
     Extract results from branch pit and node pit and write them to the different tables of the net,\
     as defined by the component models.
@@ -49,7 +50,7 @@ def extract_all_results(net, calculation_mode):
         }
         branch_results.update(gas_branch_results)
     for comp in net['component_list']:
-        comp.extract_results(net, net["_options"], branch_results, calculation_mode)
+        comp.extract_results(net, net["_options"], branch_results, sim_mode)
 
 
 def get_basic_branch_results(net, branch_pit, node_pit):
@@ -162,7 +163,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
                                           res_nodes_from_hydraulics, res_nodes_from_heat,
                                           res_nodes_to_hydraulics, res_nodes_to_heat,
                                           res_mean_hydraulics, res_branch_ht, res_mean_heat, internal_node_name,
-                                          simulation_mode):
+                                          sim_mode: SimMode):
     # the result table to write results to
     res_table = net["res_" + table_name]
 
@@ -181,15 +182,15 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
     # the id of the external node table inside the node_pit (mostly this is "junction": 0)
     ext_node_tbl_idx = get_table_number(get_lookup(net, "node", "table"), internal_node_name)
 
-    for (result_mode, res_nodes_from, res_nodes_to, res_mean, res_branch) in [
-        ("hydraulics", res_nodes_from_hydraulics, res_nodes_to_hydraulics, res_mean_hydraulics, []),
-        ("heat", res_nodes_from_heat, res_nodes_to_heat, res_mean_heat, res_branch_ht)
+    for (domain, res_nodes_from, res_nodes_to, res_mean, res_branch) in [
+        (PhysDomain.HYD, res_nodes_from_hydraulics, res_nodes_to_hydraulics, res_mean_hydraulics, []),
+        (PhysDomain.HEAT, res_nodes_from_heat, res_nodes_to_heat, res_mean_heat, res_branch_ht)
     ]:
-        if result_mode == "hydraulics" and simulation_mode == "heat":
+        if domain == PhysDomain.HYD and sim_mode == SimMode.HEAT:
             continue
-        lookup_name = "hydraulics"
-        if result_mode == "heat" and simulation_mode in ["heat", "sequential", "bidirectional"]:
-            lookup_name = "heat_transfer"
+        lookup_name = PhysDomain.HYD
+        if domain == PhysDomain.HEAT and sim_mode in {SimMode.HEAT, SimMode.SEQ, SimMode.BIDIR}:
+            lookup_name = PhysDomain.HEAT
         comp_connected = get_lookup(net, "branch", "active_" + lookup_name)[f:t]
         for (res_ext, node_name) in ((res_nodes_from, "from_nodes"), (res_nodes_to, "to_nodes")):
             if len(res_ext) == 0:
@@ -230,9 +231,8 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
             for i, (res_name, entry) in enumerate(res_branch):
                 res_table[res_name].values[pt] = branch_results[entry][indices_last_section]
 
-
 def extract_branch_results_without_internals(net, branch_results, required_results_hydraulic,
-                                             required_results_heat, table_name, simulation_mode):
+                                             required_results_heat, table_name, sim_mode: SimMode):
     """
     Extract the results from the branch result array derived from the pit to the result table of the
     net (only for branch components without internal nodes). Here, we need to consider which results
@@ -260,19 +260,19 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
     f, t = get_lookup(net, "branch", "from_to")[table_name]
 
     # extract hydraulic results
-    if simulation_mode in ["hydraulics", 'sequential', "bidirectional"]:
+    if sim_mode in {SimMode.HYD, SimMode.SEQ, SimMode.BIDIR}:
         # lookup for connected branch elements (hydraulic results)
         comp_connected_hyd = get_lookup(net, "branch", "active_hydraulics")[f:t]
         for res_name, entry in required_results_hydraulic:
             res_table[res_name].values[:][comp_connected_hyd] = \
                 branch_results[entry][f:t][comp_connected_hyd]
-        if simulation_mode == "hydraulics":
+        if sim_mode == SimMode.HYD:
             for res_name, entry in required_results_heat:
                 res_table[res_name].values[:][comp_connected_hyd] = \
                     branch_results[entry][f:t][comp_connected_hyd]
 
     # extract heat transfer results
-    if simulation_mode in ["heat", 'sequential', "bidirectional"]:
+    if sim_mode in {SimMode.HEAT, SimMode.SEQ, SimMode.BIDIR}:
         # lookup for connected branch elements (heat transfer results)
         comp_connected_ht = get_lookup(net, "branch", "active_heat_transfer")[f:t]
         for res_name, entry in required_results_heat:
@@ -280,7 +280,7 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
                 branch_results[entry][f:t][comp_connected_ht]
 
 
-def extract_results_active_pit(net, mode="hydraulics"):
+def extract_results_active_pit(net, domain: PhysDomain = PhysDomain.HYD):
     """
     Extract the pipeflow results from the internal pit structure ("_active_pit") to the general pit
     structure.
@@ -292,16 +292,16 @@ def extract_results_active_pit(net, mode="hydraulics"):
     :return: No output
 
     """
-    nodes_connected = get_lookup(net, "node", "active_" + mode)
-    branches_connected = get_lookup(net, "branch", "active_" + mode)
-    result_node_col = PINIT if mode == "hydraulics" else TINIT_NODE
-    not_affected_node_col = TINIT_NODE if mode == "hydraulics" else PINIT
+    nodes_connected = get_lookup(net, "node", "active_" + domain)
+    branches_connected = get_lookup(net, "branch", "active_" + domain)
+    result_node_col = PINIT if domain == PhysDomain.HYD else TINIT_NODE
+    not_affected_node_col = TINIT_NODE if domain == PhysDomain.HYD else PINIT
     copied_node_cols = np.array([i for i in range(net["_pit"]["node"].shape[1])
                                  if i not in [not_affected_node_col]])
     rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
 
-    result_branch_col = MDOTINIT if mode == "hydraulics" else TOUTINIT
-    not_affected_branch_col = TOUTINIT if mode == "hydraulics" else MDOTINIT
+    result_branch_col = MDOTINIT if domain == PhysDomain.HYD else TOUTINIT
+    not_affected_branch_col = TOUTINIT if domain == PhysDomain.HYD else MDOTINIT
     copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
                                    if i not in [FROM_NODE, TO_NODE,
                                                 not_affected_branch_col]])
@@ -309,10 +309,10 @@ def extract_results_active_pit(net, mode="hydraulics"):
 
     amb = get_net_option(net, 'ambient_temperature')
 
-    net["_pit"]["node"][~nodes_connected, result_node_col] = np.nan if mode == "hydraulics" else amb
+    net["_pit"]["node"][~nodes_connected, result_node_col] = np.nan if domain == PhysDomain.HYD else amb
     net["_pit"]["node"][rows_nodes[:, np.newaxis], copied_node_cols[np.newaxis, :]] = \
         net["_active_pit"]["node"][:, copied_node_cols]
-    net["_pit"]["branch"][~branches_connected, result_branch_col] = np.nan if mode == "hydraulics" else \
+    net["_pit"]["branch"][~branches_connected, result_branch_col] = np.nan if domain == PhysDomain.HYD else \
         net["_pit"]["branch"][~branches_connected, TEXT]
     net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
         net["_active_pit"]["branch"][:, copied_branch_cols]

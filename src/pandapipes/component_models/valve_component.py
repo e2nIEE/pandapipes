@@ -12,6 +12,7 @@ from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA, FROM_NODE, TO_NODE, TO
 from pandapipes.idx_node import TINIT as TINIT_NODE, HEIGHT, PINIT, ACTIVE as ACTIVE_ND, PAMB, TINIT_OLD
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.enums import SimMode
 
 
 class Valve(BranchWInternalsComponent):
@@ -152,7 +153,7 @@ class Valve(BranchWInternalsComponent):
                 ("diameter_m", "f8"), ("opened", "bool"), ("loss_coefficient", "f8"), ("type", dtype(object))]
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         required_results_hyd.extend([("v_mean_m_per_s", "v_mps"), ("lambda", "lambda"), ("reynolds", "reynolds")])
@@ -161,7 +162,7 @@ class Valve(BranchWInternalsComponent):
             required_results_hyd.extend([("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to")])
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-                                                 cls.table_name(), mode)
+                                                 cls.table_name(), sim_mode)
 
     @classmethod
     def get_result_table(cls, net):
