@@ -13,7 +13,7 @@ from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
                                  PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD)
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.enums import PhysDomain, SimMode
+from pandapipes.enums import PhysDomain
 
 
 def get_internal_lookup_structure(internals, table_name, internal_elements, start=0):
