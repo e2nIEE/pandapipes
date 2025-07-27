@@ -21,7 +21,7 @@ class SimMode(str, enum.Enum):
     HEAT = "heat"
     SEQ = "sequential"
     BIDIR = "bidirectional"
-    ALL = "ALL"
+    ALL = "all"
 
     def __str__(self):
         """str representation of SimMode member.
