@@ -159,21 +159,21 @@ def get_branch_real_density(fluid, node_pit, branch_pit):
         to_p = node_pit[to_nodes, PINIT] + node_pit[to_nodes, PAMB]
         normal_rho = fluid.get_density(NORMAL_TEMPERATURE)
         from_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * from_p,
-                             t_from * NORMAL_PRESSURE * fluid.get_compressibility(from_p))
+                             t_from * NORMAL_PRESSURE * fluid.get_compressibility(from_p, t_from))
         to_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * to_p,
-                           t_to * NORMAL_PRESSURE * fluid.get_compressibility(to_p))
+                           t_to * NORMAL_PRESSURE * fluid.get_compressibility(to_p, t_to))
     else:
         from_rho = fluid.get_density(t_from)
         to_rho = fluid.get_density(t_to)
     rho = (from_rho + to_rho) / 2
     return rho
 
-def get_branch_real_eta(fluid, node_pit, branch_pit):
+def get_branch_real_eta(fluid, node_pit, branch_pit, pm):
     from_nodes = get_from_nodes_corrected(branch_pit)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
-    eta = fluid.get_viscosity(tm)
+    eta = fluid.get_viscosity(tm, pm=pm)
     return eta
 
 def get_branch_cp(fluid, node_pit, branch_pit):

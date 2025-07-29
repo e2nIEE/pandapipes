@@ -42,11 +42,36 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     :type options:
     :return: No Output.
     """
+    if options["use_numba"]:
+        from pandapipes.pf.derivative_toolbox_numba import (
+            derivatives_hydraulic_incomp_numba as derivatives_hydraulic_incomp,
+            derivatives_hydraulic_comp_numba as derivatives_hydraulic_comp,
+            calc_medium_pressure_with_derivative_numba as calc_medium_pressure_with_derivative
+        )
+    else:
+        from pandapipes.pf.derivative_toolbox import (
+            derivatives_hydraulic_incomp_np as derivatives_hydraulic_incomp,
+            derivatives_hydraulic_comp_np as derivatives_hydraulic_comp,
+            calc_medium_pressure_with_derivative_np as calc_medium_pressure_with_derivative
+        )
     fluid = get_fluid(net)
     gas_mode = fluid.is_gas
     friction_model = options["friction_model"]
+
+    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+    tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = \
+        get_derived_values(node_pit, from_nodes, to_nodes, options["use_numba"])
+
+    if gas_mode:
+        p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(
+            p_init_i_abs, p_init_i1_abs
+        )
+    else:
+        p_m, der_pm, der_pm1 = (p_init_i_abs + p_init_i1_abs) / 2, None, None
+
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
-    eta = get_branch_real_eta(fluid, node_pit, branch_pit)
+    eta = get_branch_real_eta(fluid, node_pit, branch_pit, pm)
 
     # Darcy Friction factor: lambda
     lambda_, re = calc_lambda(
@@ -56,37 +81,18 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
                                  branch_pit[:, D], branch_pit[:, K], friction_model, lambda_, branch_pit[:, AREA])
     branch_pit[:, RE] = re
     branch_pit[:, LAMBDA] = lambda_
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = \
-        get_derived_values(node_pit, from_nodes, to_nodes, options["use_numba"])
 
     if not gas_mode:
-        if options["use_numba"]:
-            from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_incomp_numba \
-                as derivatives_hydraulic_incomp
-        else:
-            from pandapipes.pf.derivative_toolbox import derivatives_hydraulic_incomp_np \
-                as derivatives_hydraulic_incomp
-
         load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1 = (
             derivatives_hydraulic_incomp(
             branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho))
     else:
-        if options["use_numba"]:
-            from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
-                as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_numba as \
-                calc_medium_pressure_with_derivative
-        else:
-            from pandapipes.pf.derivative_toolbox import derivatives_hydraulic_comp_np \
-                as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
-                calc_medium_pressure_with_derivative
-        p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
         rho_n = np.full(len(branch_pit), fluid.get_density(NORMAL_TEMPERATURE))
         comp_fact = fluid.get_compressibility(p_m)
+        der_comp = fluid.get_der_compressibility()
         # TODO: this might not be required
-        der_comp = fluid.get_der_compressibility() * der_p_m
-        der_comp1 = fluid.get_der_compressibility() * der_p_m1
+        der_comp = der_comp * der_p_m
+        der_comp1 = der_comp * der_p_m1
         load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1 = (
             derivatives_hydraulic_comp(
             node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
