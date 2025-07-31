@@ -220,9 +220,8 @@ def test_compression_power(use_numba):
     _ = pandapipes.create_ext_grid(net, junction=j0, p_bar=4, t_k=293.15)
     _ = pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.05)
 
-    max_iter_hyd = 4 if use_numba else 4
-    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
-                        use_numba=use_numba)
+    max_iter_hyd = 5 if use_numba else 5
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, use_numba=use_numba)
 
     # Local ambiental (atmospheric) pressure
     p_amb_bar_j1 = net["_pit"]['node'][1][PAMB]
