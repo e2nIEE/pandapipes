@@ -173,7 +173,7 @@ def get_branch_real_eta(fluid, node_pit, branch_pit, pm):
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
-    eta = fluid.get_viscosity(tm, pm=pm)
+    eta = fluid.get_viscosity(tm, p_bar=pm)
     return eta
 
 def get_branch_cp(fluid, node_pit, branch_pit):

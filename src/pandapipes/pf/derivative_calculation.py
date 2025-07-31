@@ -71,7 +71,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
         p_m, der_pm, der_pm1 = (p_init_i_abs + p_init_i1_abs) / 2, None, None
 
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
-    eta = get_branch_real_eta(fluid, node_pit, branch_pit, pm)
+    eta = get_branch_real_eta(fluid, node_pit, branch_pit, p_m)
 
     # Darcy Friction factor: lambda
     lambda_, re = calc_lambda(
