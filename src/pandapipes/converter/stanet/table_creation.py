@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -221,6 +221,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         net,
         j_aux,
         to_juncs,
+        et="ju",
         diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,
         opened=valid_valves.AUF.to_numpy() == "J",
         loss_coefficient=0,
@@ -307,7 +308,7 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers,
                            f"The diameter will be set to 1 m.")
             slider_valves.DM[slider_valves.DM == 0] = 1e3
         pandapipes.create_valves(
-            net, from_junctions, to_junctions, slider_valves.DM.values / 1000,
+            net, from_junctions, to_junctions, et='ju', diameter_m=slider_valves.DM.values / 1000,
             opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
             loss_coefficient=slider_valves.ZETA.values, name=slider_valves.STANETID.values,
             type="slider_valve_" + valve_system,

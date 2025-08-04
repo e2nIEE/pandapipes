@@ -1,11 +1,11 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models import BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models import BranchWOInternalsComponent
 from pandapipes.properties import get_fluid
 from pandapipes.component_models.component_toolbox import \
     standard_branch_wo_internals_result_lookup, get_component_array
@@ -15,7 +15,7 @@ from pandapipes.idx_branch import (JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MD
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
 
-class FlowControlComponent(BranchWZeroLengthComponent):
+class FlowControlComponent(BranchWOInternalsComponent):
     """
 
     """
