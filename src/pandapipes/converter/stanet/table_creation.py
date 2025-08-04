@@ -130,16 +130,20 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
     contained_to = to_stanet_nr.isin(node_mapping)
     valid = (contained_from & contained_to).to_numpy()
     if np.any(~contained_from):
+        vn = valve_name[~contained_from]
+        fn = from_name[~contained_from]
+        fst = from_stanet_nr[~contained_from]
         logger.warning(
             f"The following valves cannot be created, because the from junctions are missing in the"
-            f"table: {list(zip(valve_name[~contained_from], from_name[~contained_from], 
-                               from_stanet_nr[~contained_from]))}"
+            f"table: {list(zip(vn, fn, fst))}"
         )
     if np.any(~contained_to):
+        vn = valve_name[~contained_to]
+        tn = to_name[~contained_to]
+        tst = to_stanet_nr[~contained_to]
         logger.warning(
             f"The following valves cannot be created, because the to junctions are missing in the"
-            f"table: {list(zip(valve_name[~contained_to], to_name[~contained_to], 
-                               to_stanet_nr[~contained_to]))}"
+            f"table: {list(zip(vn, tn, tst))}"
         )
     if not np.any(valid):
         logger.warning("No valves can be created due to missing junctions in the table.")
