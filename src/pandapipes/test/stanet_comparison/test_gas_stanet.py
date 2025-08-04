@@ -142,7 +142,7 @@ def test_case_meshed_pumps(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_n(use_numba, log_results=False):
     net = nw.gas_meshed_two_valves(method="n")
-    max_iter_hyd = 6 if use_numba else 6
+    max_iter_hyd = 5 if use_numba else 5
     p_diff, v_diff_abs = pipeflow_stanet_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd,
@@ -155,7 +155,7 @@ def test_case_meshed_2valves_n(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_pc(use_numba, log_results=False):
     net = nw.gas_meshed_two_valves(method="pc")
-    max_iter_hyd = 6 if use_numba else 6
+    max_iter_hyd = 5 if use_numba else 5
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
                                                     max_iter_hyd=max_iter_hyd,
                                                     friction_model="colebrook",
@@ -215,7 +215,7 @@ def test_case_one_pipe2_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.gas_one_pipe2(method="n")
-    max_iter_hyd = 5 if use_numba else 5
+    max_iter_hyd = 4 if use_numba else 4
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
                                                     max_iter_hyd=max_iter_hyd,
                                                     use_numba=use_numba)

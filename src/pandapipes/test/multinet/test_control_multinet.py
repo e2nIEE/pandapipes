@@ -61,7 +61,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
-    max_iter_hyd = 8
+    max_iter_hyd = 7
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
     # nets must not be changed
@@ -411,7 +411,7 @@ def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
-    max_iter_hyd = 8
+    max_iter_hyd = 7
     run_control(mn, ctrl_variables={"nets": {"power": {"run": runpp_with_mark},
                                              "gas": {"run": pipeflow_with_mark}}},
                 max_iter_hyd=max_iter_hyd)

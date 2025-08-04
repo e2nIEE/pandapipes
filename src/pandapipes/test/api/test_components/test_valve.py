@@ -46,7 +46,7 @@ def test_valve(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas", overwrite=True)
 
-    max_iter_hyd = 8 if use_numba else 8
+    max_iter_hyd = 8 if use_numba else 7
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd, friction_model="nikuradse",
                         mode="hydraulics", transient=False, nonlinear_method="automatic",
                         tol_p=1e-8, tol_m=1e-8, use_numba=use_numba)
