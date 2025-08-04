@@ -69,7 +69,7 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
             p_init_i_abs, p_init_i1_abs
         )
     else:
-        p_m, der_pm, der_pm1 = (p_init_i_abs + p_init_i1_abs) / 2, None, None
+        p_m, der_p_m, der_p_m1 = (p_init_i_abs + p_init_i1_abs) / 2, None, None
 
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
     eta = get_branch_real_eta(fluid, node_pit, branch_pit, p_m)
