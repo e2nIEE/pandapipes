@@ -155,7 +155,7 @@ def get_branch_real_density(fluid, node_pit, branch_pit):
     t_to = branch_pit[:, TOUTINIT]
     if fluid.is_gas:
         from_p = node_pit[from_nodes, PINIT] + node_pit[from_nodes, PAMB]
-        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+        to_nodes = get_to_nodes_corrected(branch_pit)
         to_p = node_pit[to_nodes, PINIT] + node_pit[to_nodes, PAMB]
         normal_rho = fluid.get_density(NORMAL_TEMPERATURE)
         from_rho = np.divide(normal_rho * NORMAL_TEMPERATURE * from_p,

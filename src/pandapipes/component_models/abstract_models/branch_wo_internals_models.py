@@ -99,7 +99,7 @@ class BranchWOInternalsComponent(BranchComponent):
             branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
             branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
             branch_wo_internals_pit[:, LENGTH] = 0
-            branch_wo_internals_pit[:, K] = 1000
+            branch_wo_internals_pit[:, K] = 1e-3
             branch_wo_internals_pit[:, TEXT] = 293.15
             branch_wo_internals_pit[:, ALPHA] = 0
             branch_wo_internals_pit[:, D] = 0.1
