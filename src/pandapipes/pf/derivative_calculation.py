@@ -393,6 +393,11 @@ def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths):
     res = newton(colebrook_white_implicit, lambda_res[mask],
                  maxiter=max_iter, args=(re[mask], k[mask], d[mask]), tol=1e-4, full_output=True)
 
-    lambda_res[mask] = res.root
+    if lambda_res[mask].size == 1:
+        lambda_res[mask] = res[0]
+        converged = res[1].converged
+    else:
+        lambda_res[mask] = res.root
+        converged = np.all(res.converged)
 
-    return np.all(res.converged), lambda_res
+    return converged, lambda_res
