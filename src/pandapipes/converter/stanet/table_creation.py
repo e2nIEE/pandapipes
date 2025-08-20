@@ -116,62 +116,126 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
     """
     if "valves" not in stored_data:
         return
-    logger.info("Creating all vallves with their pipes.")
+    logger.info("Creating all valves with their pipes.")
     node_mapping = index_mapping["nodes"]
     valves = stored_data['valves']
-    for row in valves.itertuples():
-        valve_name = str(row.STANETID)
-        from_stanet_nr, to_stanet_nr = int(row.ANFNR), int(row.ENDNR)
-        from_name, to_name = str(row.ANFNAM), str(row.ENDNAM)
-        contained = [from_stanet_nr in node_mapping, to_stanet_nr in node_mapping]
-        if not all(contained):
-            if not contained[0]:
-                logger.warning("The valve and pipe %s cannot be created, because the from junction"
-                               " %s (%d) is missing in the pandapipes net."
-                               % (valve_name, from_name, from_stanet_nr))
-            if not contained[1]:
-                logger.warning("The valve and pipe %s cannot be created, because the to junction"
-                               " %s (%d) is missing in the pandapipes net."
-                               % (valve_name, to_name, to_stanet_nr))
-            continue
-        add_info = dict()
-        if add_layers:
-            add_info["stanet_layer"] = str(row.LAYER)
-        if stanet_like_valves:
+
+    valve_name = valves.STANETID.astype(str)
+    from_stanet_nr = valves.ANFNR.astype(np.int64)
+    to_stanet_nr = valves.ENDNR.astype(np.int64)
+    from_name = valves.ANFNAM.astype(str)
+    to_name = valves.ENDNAM.astype(str)
+
+    contained_from = from_stanet_nr.isin(node_mapping)
+    contained_to = to_stanet_nr.isin(node_mapping)
+    valid = (contained_from & contained_to).to_numpy()
+    if np.any(~contained_from):
+        vn = valve_name[~contained_from]
+        fn = from_name[~contained_from]
+        fst = from_stanet_nr[~contained_from]
+        logger.warning(
+            f"The following valves cannot be created, because the from junctions are missing in the"
+            f"table: {list(zip(vn, fn, fst))}"
+        )
+    if np.any(~contained_to):
+        vn = valve_name[~contained_to]
+        tn = to_name[~contained_to]
+        tst = to_stanet_nr[~contained_to]
+        logger.warning(
+            f"The following valves cannot be created, because the to junctions are missing in the"
+            f"table: {list(zip(vn, tn, tst))}"
+        )
+    if not np.any(valid):
+        logger.warning("No valves can be created due to missing junctions in the table.")
+        return
+
+    from_juncs = np.array([node_mapping[fr] for fr in from_stanet_nr[valid]])
+    to_juncs = np.array([node_mapping[to] for to in to_stanet_nr[valid]])
+    valid_valves = valves[valid].copy()
+
+    if stanet_like_valves:
+        for fjunc, tjunc, row in zip(from_juncs, to_juncs, valid_valves.itertuples()):
+            add_info = dict()
+            if add_layers:
+                add_info["stanet_layer"] = str(row.LAYER)
             create_valve_pipe_from_parameters(
-                net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
-                length_km=row.RORL / 1000, diameter_m=float(row.DM / 1000), k_mm=row.RAU,
-                opened=row.AUF == 'J', loss_coefficient=row.ZETA,
-                name="valve_pipe_%s_%s" % (row.ANFNAM, row.ENDNAM), in_service=bool(row.ISACTIVE),
-                stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID),  v_stanet=row.VM, **add_info
+                net,
+                fjunc,
+                tjunc,
+                length_km=row.RORL / 1000,
+                diameter_m=float(row.DM / 1000),
+                k_mm=row.RAU,
+                opened=row.AUF == "J",
+                loss_coefficient=row.ZETA,
+                name="valve_pipe_%s_%s" % (row.ANFNAM, row.ENDNAM),
+                in_service=bool(row.ISACTIVE),
+                stanet_nr=int(row.RECNO),
+                stanet_id=str(row.STANETID),
+                v_stanet=row.VM,
+                **add_info,
             )
-        else:
-            j_ref = net.junction.loc[node_mapping[from_stanet_nr], :]
-            j_ref_geodata = net.junction_geodata.loc[node_mapping[from_stanet_nr], :]
-            j_aux = pandapipes.create_junction(
-                net, np.nan, tfluid_k=net_params["medium_temp_K"], height_m=j_ref['height_m'],
-                name='aux_' + j_ref['stanet_id'], geodata=(j_ref_geodata.x, j_ref_geodata.y),
-                stanet_nr=-999, stanet_id='aux_' + j_ref['stanet_id'], p_stanet=np.nan,
-                stanet_active=bool(row.ISACTIVE), **add_info
-            )
-            text_k = 293
-            if hasattr(row, "TU"):
-                text_k = row.TU + 273.15
-            pandapipes.create_pipe_from_parameters(
-                net, node_mapping[from_stanet_nr], j_aux, length_km=row.RORL / 1000,
-                diameter_m=float(row.DM / 1000), k_mm=row.RAU, loss_coefficient=row.ZETA,
-                name="pipe_%s_%s" % (str(row.ANFNAM), 'aux_' + str(row.ENDNAM)),
-                text_k=text_k, in_service=bool(row.ISACTIVE), stanet_nr=-999,
-                stanet_id='pipe_valve_' + str(row.STANETID), v_stanet=row.VM,
-                stanet_active=bool(row.ISACTIVE), stanet_valid=False, **add_info
-            )
-            pandapipes.create_valve(
-                net, j_aux, node_mapping[to_stanet_nr], et='ju', diameter_m=float(row.DM / 1000),
-                opened=row.AUF == 'J', loss_coefficient=0,
-                name="valve_%s_%s" % ('aux_' + str(row.ENDNAM), str(row.ENDNAM)),
-                stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=np.nan,
-                stanet_active=bool(row.ISACTIVE), **add_info
-            )
+        return
+
+    add_info = dict()
+    if add_layers:
+        add_info["stanet_layer"] = valid_valves.LAYER.astype(str).to_numpy()
+    j_ref = net.junction.loc[from_juncs, :]
+    aux_stanet = "aux_" + j_ref["stanet_id"].to_numpy()
+    j_aux = pandapipes.create_junctions(
+        net,
+        len(from_juncs),
+        np.nan,
+        tfluid_k=net_params["medium_temp_K"],
+        height_m=j_ref["height_m"].to_numpy(),
+        name=aux_stanet,
+        geodata=net.junction_geodata.loc[from_juncs, ["x", "y"]].to_numpy(),
+        stanet_nr=-999,
+        stanet_id=aux_stanet,
+        p_stanet=np.nan,
+        stanet_active=valid_valves.ISACTIVE.to_numpy().astype(np.bool_),
+        stanet_valid=False,
+        **add_info,
+    )
+    text_k = 293
+    if "TU" in valid_valves.columns:
+        text_k = valid_valves.TU.to_numpy() + 273.15
+    pipe_names = [f"pipe_{fn}_{tn}" for fn, tn in zip(from_name.to_numpy()[valid], aux_stanet)]
+    in_service = valid_valves.ISACTIVE.to_numpy().astype(np.bool_)
+    pandapipes.create_pipes_from_parameters(
+        net,
+        from_juncs,
+        j_aux,
+        length_km=valid_valves.RORL.to_numpy().astype(np.float64) / 1000,
+        diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,
+        k_mm=valid_valves.RAU.to_numpy().astype(np.float64),
+        loss_coefficient=valid_valves.ZETA.to_numpy().astype(np.float64),
+        name=pipe_names,
+        text_k=text_k,
+        in_service=in_service,
+        stanet_nr=-999,
+        stanet_id="pipe_valve_" + valid_valves.STANETID.to_numpy().astype(str),
+        v_stanet=valid_valves.VM.to_numpy().astype(np.float64),
+        stanet_active=in_service,
+        stanet_valid=False,
+        **add_info,
+    )
+    valve_names = ("aux_" + valid_valves.ENDNAM.to_numpy().astype(str) + "_"
+                   + valid_valves.ENDNAM.to_numpy().astype(str))
+    pandapipes.create_valves(
+        net,
+        j_aux,
+        to_juncs,
+        et="ju",
+        diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,
+        opened=valid_valves.AUF.to_numpy() == "J",
+        loss_coefficient=0,
+        name=valve_names,
+        stanet_nr=valid_valves.RECNO.to_numpy().astype(np.int64),
+        stanet_id=valid_valves.STANETID.to_numpy().astype(str),
+        v_stanet=np.nan,
+        stanet_active=in_service,
+        **add_info,
+    )
 
 
 def create_slider_valves(net, stored_data, index_mapping, add_layers,
@@ -391,12 +455,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         if add_layers:
             add_info["stanet_layer"] = control_table.LAYER.values[is_fc].astype(str)
         mdot = control_table.QSOLL.values[is_fc].astype(np.float64) * net_params["rho"] / 3600
-        # TODO: how to derive a meaningful diameter? Generally, it is not really of importance, even
-        #       in pandapipes, it is just an information and a parameter to convert between outer
-        #       and inner calculation values.
-        diameter = control_table.DN.where(pd.notnull(control_table.DN), 0.5)[is_fc]
         pandapipes.create_flow_controls(
-            net, from_junctions[is_fc], to_junctions[is_fc], mdot, diameter,
+            net, from_junctions[is_fc], to_junctions[is_fc], mdot,
             name=names[is_fc],
             in_service=in_service[is_fc],
             control_active=control_active[is_fc],
