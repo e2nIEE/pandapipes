@@ -277,18 +277,43 @@ def create_continuous_junction_index(net, start=0, store_old_index=False):
     :return: junction_lookup - mapping of old to new index
     :rtype: dict
     """
-    net.junction.sort_index(inplace=True)
-    if store_old_index:
-        net.junction["old_index"] = net.junction.index.values
-    new_junction_idxs = list(np.arange(start, len(net.junction) + start))
-    junction_lookup = dict(zip(net["junction"].index.values, new_junction_idxs))
-    reindex_junctions(net, junction_lookup)
+    junction_lookup = create_continuous_element_index(net, "junction", start, store_old_index=store_old_index)
     return junction_lookup
 
-
-def create_continuous_elements_index(net, start=0, add_df_to_reindex=None):
+def create_continuous_element_index(net, element, start=0, store_old_index=False):
     """
-    Creating a continuous index for all the elements, starting at zero and replaces all references
+    Creates a continuous element index starting at 'start' and replaces all
+    references of old indices by the new ones.
+
+    :param net: pandapipes network
+    :type net: pandapipesNet
+    :param element: pandapipes element
+    :type element: str
+    :param start: index begins with "start"
+    :type start: int, default 0
+    :param store_old_index: if True, stores the old index in e.g. net.junction["old_index"]
+    :type store_old_index: bool, default False
+    :return: junction_lookup - mapping of old to new index
+    :rtype: dict
+    """
+    net[element].sort_index(inplace=True)
+    if store_old_index:
+        net[element]["old_index"] = net[element].index.values
+    new_index = list(np.arange(start, len(net[element]) + start))
+    lookup = dict(zip(net["junction"].index.values, new_index))
+    if element in net and isinstance(net[element], pd.DataFrame):
+        if element in ["junction_geodata", "pipe_geodata"]:
+            logger.info(element + " don't need to bo included to 'add_df_to_reindex'. It is " +
+                        "already included by element=='" + element.split("_")[0] + "'.")
+        else:
+            reindex_elements(net, element, new_index)
+    else:
+        logger.debug("No indices could be changed for element '%s'." % element)
+    return lookup
+
+def create_continuous_elements_index(net, start=0, add_df_to_reindex=None, store_old_index=False):
+    """
+    Creating a continuous index for all the elements and replaces all references
     of old indices by the new ones.
 
     :param net: pandapipes network with unodered indices
@@ -298,6 +323,8 @@ def create_continuous_elements_index(net, start=0, add_df_to_reindex=None):
     :param add_df_to_reindex: by default all useful pandapower elements for power flow will be\
           selected. Customized DataFrames can also be considered here.
     :type add_df_to_reindex: iterable, default None
+    :param store_old_index: if True, stores the old index in e.g. net.junction["old_index"]
+    :type store_old_index: bool, default False
     :return: net - pandapipes network with odered and continuous indices
     :rtype: pandapipesNet
     """
@@ -311,20 +338,10 @@ def create_continuous_elements_index(net, start=0, add_df_to_reindex=None):
     elements |= add_df_to_reindex
 
     # run reindex_elements() for all elements
+    lookups = dict()
     for elm in list(elements):
-        net[elm].sort_index(inplace=True)
-        new_index = list(np.arange(start, len(net[elm]) + start))
-
-        if elm in net and isinstance(net[elm], pd.DataFrame):
-            if elm in ["junction_geodata", "pipe_geodata"]:
-                logger.info(elm + " don't need to bo included to 'add_df_to_reindex'. It is " +
-                            "already included by elm=='" + elm.split("_")[0] + "'.")
-            else:
-                reindex_elements(net, elm, new_index)
-        else:
-            logger.debug("No indices could be changed for element '%s'." % elm)
-
-    return net
+        lookups[elm] = create_continuous_element_index(net, elm, start, store_old_index=store_old_index)
+    return lookups
 
 
 def fuse_junctions(net, j1, j2, drop=True):
