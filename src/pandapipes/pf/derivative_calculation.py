@@ -26,6 +26,7 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
     get_branch_cp
+from scipy.optimize import newton
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -42,51 +43,57 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     :type options:
     :return: No Output.
     """
+    if options["use_numba"]:
+        from pandapipes.pf.derivative_toolbox_numba import (
+            derivatives_hydraulic_incomp_numba as derivatives_hydraulic_incomp,
+            derivatives_hydraulic_comp_numba as derivatives_hydraulic_comp,
+            calc_medium_pressure_with_derivative_numba as calc_medium_pressure_with_derivative
+        )
+    else:
+        from pandapipes.pf.derivative_toolbox import (
+            derivatives_hydraulic_incomp_np as derivatives_hydraulic_incomp,
+            derivatives_hydraulic_comp_np as derivatives_hydraulic_comp,
+            calc_medium_pressure_with_derivative_np as calc_medium_pressure_with_derivative
+        )
     fluid = get_fluid(net)
     gas_mode = fluid.is_gas
     friction_model = options["friction_model"]
-    rho = get_branch_real_density(fluid, node_pit, branch_pit)
-    eta = get_branch_real_eta(fluid, node_pit, branch_pit)
 
-    # Darcy Friction factor: lambda
-    lambda_, re = calc_lambda(
-        branch_pit[:, MDOTINIT], eta, branch_pit[:, D],
-        branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options, branch_pit[:, AREA])
-    der_lambda = calc_der_lambda(branch_pit[:, MDOTINIT], eta,
-                                 branch_pit[:, D], branch_pit[:, K], friction_model, lambda_, branch_pit[:, AREA])
-    branch_pit[:, RE] = re
-    branch_pit[:, LAMBDA] = lambda_
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
     tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = \
         get_derived_values(node_pit, from_nodes, to_nodes, options["use_numba"])
 
-    if not gas_mode:
-        if options["use_numba"]:
-            from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_incomp_numba \
-                as derivatives_hydraulic_incomp
-        else:
-            from pandapipes.pf.derivative_toolbox import derivatives_hydraulic_incomp_np \
-                as derivatives_hydraulic_incomp
+    if gas_mode:
+        p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(
+            p_init_i_abs, p_init_i1_abs
+        )
+    else:
+        p_m, der_p_m, der_p_m1 = (p_init_i_abs + p_init_i1_abs) / 2, None, None
 
+    rho = get_branch_real_density(fluid, node_pit, branch_pit)
+    eta = get_branch_real_eta(fluid, node_pit, branch_pit, p_m)
+
+    # Darcy Friction factor: lambda
+    lambda_, re = calc_lambda(
+        branch_pit[:, MDOTINIT], eta, branch_pit[:, D],
+        branch_pit[:, K], gas_mode, friction_model, branch_pit[:, LENGTH], options, branch_pit[:, AREA])
+    der_lambda = calc_der_lambda(branch_pit[:, MDOTINIT], eta, branch_pit[:, D], branch_pit[:, K],
+                                 friction_model, lambda_, branch_pit[:, AREA], re, branch_pit[:, LENGTH])
+    branch_pit[:, RE] = re
+    branch_pit[:, LAMBDA] = lambda_
+
+    if not gas_mode:
         load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1 = (
             derivatives_hydraulic_incomp(
             branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho))
     else:
-        if options["use_numba"]:
-            from pandapipes.pf.derivative_toolbox_numba import derivatives_hydraulic_comp_numba \
-                as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_numba as \
-                calc_medium_pressure_with_derivative
-        else:
-            from pandapipes.pf.derivative_toolbox import derivatives_hydraulic_comp_np \
-                as derivatives_hydraulic_comp, calc_medium_pressure_with_derivative_np as \
-                calc_medium_pressure_with_derivative
-        p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
         rho_n = np.full(len(branch_pit), fluid.get_density(NORMAL_TEMPERATURE))
-        comp_fact = fluid.get_compressibility(p_m)
+        comp_fact = fluid.get_compressibility(p_m, tinit_branch)
+        dc = fluid.get_der_compressibility()
         # TODO: this might not be required
-        der_comp = fluid.get_der_compressibility() * der_p_m
-        der_comp1 = fluid.get_der_compressibility() * der_p_m1
+        der_comp = dc * der_p_m
+        der_comp1 = dc * der_p_m1
         load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1 = (
             derivatives_hydraulic_comp(
             node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference,
@@ -287,8 +294,7 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         # TODO: move this import to top level if possible
         from pandapipes.pipeflow import PipeflowNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
-        dummy = (lengths != 0).astype(np.float64)
-        converged, lambda_colebrook = colebrook(re, d, k, lambda_nikuradse, dummy, max_iter)
+        converged, lambda_colebrook = colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths)
         if not converged:
             raise PipeflowNotConverged(
                 "The Colebrook-White algorithm did not converge. There might be model "
@@ -305,7 +311,7 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         return lambda_tot, re
 
 
-def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
+def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area, re, lengths):
     """
     Function calculates the derivative of lambda with respect to v. Turbulence is calculated based
     on Nikuradse. This should not be a problem as the pressure loss term will equal zero
@@ -333,9 +339,10 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     df_dm = np.zeros_like(m)
     df_dlambda = np.zeros_like(m)
     lambda_der = np.zeros_like(m)
-    pos = ~np.isclose(m, 0)
+    pos = ~np.isclose(re, 0)
 
     if friction_model == "colebrook":
+        pos &= ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)
         b_term[pos] = (2.51 * eta[pos] * area[pos] / (m[pos] * d[pos] * np.sqrt(lambda_pipe[pos])) +
                        k[pos] / (3.71 * d[pos]))
 
@@ -359,3 +366,38 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area):
     else:
         lambda_der[pos] = -(64 * eta[pos] * area[pos]) / (m[pos] ** 2 * d[pos])
         return lambda_der
+
+
+def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths):
+    """
+
+    :param re:
+    :type re:
+    :param d:
+    :type d:
+    :param k:
+    :type k:
+    :param lambda_nikuradse:
+    :type lambda_nikuradse:
+    :param max_iter:
+    :type max_iter:
+    :return: lambda_cb
+    :rtype:
+    """
+    def colebrook_white_implicit(lambda_cb, re_nz, k_nz, d_nz):
+        return lambda_cb ** (-1 / 2) + 2 * np.log10(2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz))
+
+    mask = ~np.isclose(re, 0) & ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)
+    lambda_res = lambda_nikuradse
+
+    res = newton(colebrook_white_implicit, lambda_res[mask],
+                 maxiter=max_iter, args=(re[mask], k[mask], d[mask]), tol=1e-4, full_output=True)
+
+    if lambda_res[mask].size == 1:
+        lambda_res[mask] = res[0]
+        converged = res[1].converged
+    else:
+        lambda_res[mask] = res.root
+        converged = np.all(res.converged)
+
+    return converged, lambda_res
