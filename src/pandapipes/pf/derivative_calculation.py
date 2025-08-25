@@ -278,13 +278,15 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
     :rtype:
     """
     if options["use_numba"]:
-        from pandapipes.pf.derivative_toolbox_numba import calc_lambda_nikuradse_incomp_numba as \
-            calc_lambda_nikuradse_incomp, colebrook_numba as colebrook, \
+        from pandapipes.pf.derivative_toolbox_numba import (
+            calc_lambda_nikuradse_incomp_numba as calc_lambda_nikuradse_incomp,
             calc_lambda_nikuradse_comp_numba as calc_lambda_nikuradse_comp
+        )
     else:
-        from pandapipes.pf.derivative_toolbox import calc_lambda_nikuradse_incomp_np as \
-            calc_lambda_nikuradse_incomp, colebrook_np as colebrook, \
+        from pandapipes.pf.derivative_toolbox import (
+            calc_lambda_nikuradse_incomp_np as  calc_lambda_nikuradse_incomp,
             calc_lambda_nikuradse_comp_np as calc_lambda_nikuradse_comp
+        )
     if gas_mode:
         re, lambda_laminar, lambda_nikuradse = calc_lambda_nikuradse_comp(m, d, k, eta, area)
     else:
@@ -370,28 +372,50 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area, re, lengths
 
 def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths):
     """
+    Function calculates the friction factor of a pipe using the Colebrook-White equation. It is an
+    implicit equation which is solved using the Newton-Raphson method. For pipes with zero flow or
+    zero length, the initial guess is returned. This should be uncritical, as the pressure loss
+    term will equal zero (lambda * u^2 * l / d).
 
-    :param re:
-    :type re:
-    :param d:
-    :type d:
-    :param k:
-    :type k:
-    :param lambda_nikuradse:
-    :type lambda_nikuradse:
-    :param max_iter:
-    :type max_iter:
-    :return: lambda_cb
-    :rtype:
+    :param re: Reynolds number [dimensionless]
+    :type re: np.array
+    :param d: Diameter [m]
+    :type d: np.array
+    :param k: Roughness [m]
+    :type k: np.array
+    :param lambda_nikuradse: Initial guess for lambda (from Nikuradse)
+    :type lambda_nikuradse: np.array
+    :param max_iter: Maximum number of iterations for the Colebrook-White calculation
+    :type max_iter: int
+    :param lengths: Length of the pipes [m] - only used to identify zero-length pipes
+    :type lengths: np.array
+    :return: lambda_cb, converged
+    1. lambda_cb: Friction factor according to Colebrook-White
+    2. converged: True, if the Colebrook-White calculation converged for all pipes
+    :rtype: (np.array, bool)
     """
     def colebrook_white_implicit(lambda_cb, re_nz, k_nz, d_nz):
         return lambda_cb ** (-1 / 2) + 2 * np.log10(2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz))
+
+    def cw_derivative(lambda_cb, re_nz, k_nz, d_nz):
+        return -1 / 2 * lambda_cb ** (-3 / 2) - (2.51 / re_nz) * lambda_cb ** (-3 / 2) \
+                        / (np.log(10) * (2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz)))
+
+    # def cw_derivative_2(lambda_cb, re_nz, k_nz, d_nz):
+    #     c = 2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz)
+    #     b = 2.51 / re_nz
+    #     return 3 / 4 * lambda_cb ** (-5 / 2) - (
+    #             b * (np.log(10) * c * (- 3 / 2 * lambda_cb ** (- 5 / 2))
+    #                  + lambda_cb ** (-3 / 2) * np.log(10) * b / (2 * lambda_cb ** (3 / 2)))
+    #             / (np.log(10) * c) ** 2
+    #     )
 
     mask = ~np.isclose(re, 0) & ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)
     lambda_res = lambda_nikuradse
 
     res = newton(colebrook_white_implicit, lambda_res[mask],
-                 maxiter=max_iter, args=(re[mask], k[mask], d[mask]), tol=1e-4, full_output=True)
+                 maxiter=max_iter, args=(re[mask], k[mask], d[mask]), tol=1e-4, full_output=True,
+                 fprime=cw_derivative)  # , fprime2=cw_derivative_2)
 
     if lambda_res[mask].size == 1:
         lambda_res[mask] = res[0]
