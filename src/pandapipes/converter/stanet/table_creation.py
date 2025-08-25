@@ -180,7 +180,19 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
     if add_layers:
         add_info["stanet_layer"] = valid_valves.LAYER.astype(str).to_numpy()
     j_ref = net.junction.loc[from_juncs, :]
-    aux_stanet = "aux_" + j_ref["stanet_id"].to_numpy()
+    aux_stanet = "aux_junction_" + j_ref["stanet_id"].to_numpy()
+    text_k = 293
+    if "TU" in valid_valves.columns:
+        text_k = valid_valves.TU.to_numpy() + 273.15
+    if "NAME" in valid_valves.columns:
+        # if the valve has a name, we use it as the valve name
+        valve_names = valid_valves.NAME.to_numpy().astype(str)
+        pipe_names = "aux_pipe_" + valve_names
+        aux_stanet = aux_stanet + " (" + valve_names.astype(str) + ")"
+    else:
+        valve_names = ("aux_" + valid_valves.ENDNAM.to_numpy().astype(str) + "_"
+                       + valid_valves.ENDNAM.to_numpy().astype(str))
+        pipe_names = [f"pipe_{fn}_{tn}" for fn, tn in zip(from_name.to_numpy()[valid], aux_stanet)]
     j_aux = pandapipes.create_junctions(
         net,
         len(from_juncs),
@@ -196,10 +208,6 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         stanet_valid=False,
         **add_info,
     )
-    text_k = 293
-    if "TU" in valid_valves.columns:
-        text_k = valid_valves.TU.to_numpy() + 273.15
-    pipe_names = [f"pipe_{fn}_{tn}" for fn, tn in zip(from_name.to_numpy()[valid], aux_stanet)]
     in_service = valid_valves.ISACTIVE.to_numpy().astype(np.bool_)
     pandapipes.create_pipes_from_parameters(
         net,
@@ -219,8 +227,6 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         stanet_valid=False,
         **add_info,
     )
-    valve_names = ("aux_" + valid_valves.ENDNAM.to_numpy().astype(str) + "_"
-                   + valid_valves.ENDNAM.to_numpy().astype(str))
     pandapipes.create_valves(
         net,
         j_aux,
@@ -341,7 +347,10 @@ def create_pumps(net, pump_table, index_mapping, add_layers):
     node_mapping = index_mapping["nodes"]
     pumps = pump_table
     for row in pumps.itertuples():
-        pump_name = str(row.STANETID)
+        pump_id = str(row.STANETID)
+        pump_name = pump_id
+        if hasattr(row, "NAME"):
+            pump_name = str(row.NAME)
         from_stanet_nr, to_stanet_nr = int(row.ANFNR), int(row.ENDNR)
         from_name, to_name = str(row.ANFNAM), str(row.ENDNAM)
         contained = [from_stanet_nr in node_mapping, to_stanet_nr in node_mapping]
@@ -361,8 +370,8 @@ def create_pumps(net, pump_table, index_mapping, add_layers):
         pandapipes.create_pump(
             net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr],
             std_type=row.PUMPENTYP, in_service=bool(row.EIN == 'J'), stanet_nr=int(row.RECNO),
-            stanet_id=str(row.STANETID),  ps_stanet=-row.DP, stanet_active=bool(row.ISACTIVE),
-            **add_info
+            stanet_id=pump_id,  ps_stanet=-row.DP, stanet_active=bool(row.ISACTIVE),
+            name=pump_name, **add_info
         )
 
 
