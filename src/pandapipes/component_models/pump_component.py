@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,13 +7,16 @@ from operator import itemgetter
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.component_toolbox import get_component_array
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
+from pandapipes.component_models.component_toolbox import (
+    get_component_array,
+    get_std_type_lookup,
+)
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import MDOTINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
+from pandapipes.idx_branch import MDOTINIT, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -26,7 +29,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Pump(BranchWZeroLengthComponent):
+class Pump(BranchWOInternalsComponent):
     """
 
     """
@@ -215,7 +218,3 @@ class Pump(BranchWZeroLengthComponent):
             output += ["compr_power_mw"]
 
         return output, True
-
-
-def get_std_type_lookup(net, table_name):
-    return np.array(list(net.std_types[table_name].keys()))

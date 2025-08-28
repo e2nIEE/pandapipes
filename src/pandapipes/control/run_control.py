@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -44,6 +44,3 @@ def prepare_run_ctrl(net, ctrl_variables, **kwargs):
     ctrl_variables["errors"] = (PipeflowNotConverged,)  # has to be a tuple
 
     return ctrl_variables
-
-
-

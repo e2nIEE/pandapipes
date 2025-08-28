@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -33,7 +33,7 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
     df_dp1 = np.ones_like(der_lambda) * (-1)
 
     df_dm_nodes = np.ones_like(der_lambda)
-    
+
     load_vec_nodes_from = branch_pit[:, MDOTINIT]
     load_vec_nodes_to = branch_pit[:, MDOTINIT]
 
