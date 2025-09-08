@@ -144,7 +144,8 @@ class Pipe(BranchWInternalsComponent):
                 internal_pipe_number, has_internals)
             set_entry_check_repeat(pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
             set_entry_check_repeat(pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
-            set_entry_check_repeat(pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
+            set_entry_check_repeat(pipe_pit, QEXT, net[tbl].qext_w.values / internal_pipe_number,
+                                   internal_pipe_number, has_internals)
             set_entry_check_repeat(pipe_pit, TEXT, net[tbl].text_k.values, internal_pipe_number, has_internals)
             nan_mask = np.isnan(pipe_pit[:, TEXT])
             pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
