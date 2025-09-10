@@ -27,7 +27,7 @@ def get_col_value(net, branch_table, column_name):
 
 
 def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
-                   weighting_pipes=(get_col_value, ("pipe", "length_km")),
+                   weighting_pipes=(get_col_value, ("length_km",)),
                    include_valves=True, respect_status_valves=True,
                    weighting_valves=None,
                    include_compressors=True, respect_status_compressors=True,
