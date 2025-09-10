@@ -22,8 +22,8 @@ WEIGHT = 0
 logger = logging.getLogger(__name__)
 
 
-def get_col_value(net, table_name, column_name):
-    return net[table_name][column_name].values
+def get_col_value(net, branch_table, column_name):
+    return branch_table[column_name].to_numpy()
 
 
 def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
@@ -169,7 +169,7 @@ def add_branch_component(comp, mg, net, table_name, include_comp, respect_status
         indices[:, F_JUNCTION] = tab[from_col].values
         indices[:, T_JUNCTION] = tab[to_col].values
         if weight_getter is not None:
-            parameter[:, WEIGHT] = weight_getter[0](net, *weight_getter[1])
+            parameter[:, WEIGHT] = weight_getter[0](net, tab, *weight_getter[1])
         add_edges(mg, indices, parameter, in_service, net, table_name)
 
 
