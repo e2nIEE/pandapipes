@@ -3,6 +3,12 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from itertools import chain
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+    class StrEnum(str, Enum):
+        pass
 
 import numpy as np
 import pandas as pd
@@ -38,6 +44,12 @@ CLIENT_TYPES_OF_NODES = {NODE_TYPE: "nodes", HOUSE_TYPE: "houses",
                          HOUSE_CONNECTION_TYPE: "house_connections", METER_TYPE: "meters",
                          HOUSE_NODE_TYPE: "house_nodes"}
 CLIENT_TYPES_OF_PIPES = {MAIN_PIPE_TYPE: "main", HOUSE_PIPE_TYPE: "house"}
+
+
+class ValveMode(StrEnum):
+    STANET_LIKE = "stanet_like"
+    VALVE_ONLY = "valve_only"
+    SEPARATE_PIPE = "separate_pipe"
 
 
 def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add_layers):
@@ -96,19 +108,22 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
     index_mapping["nodes"] = dict(zip(stanet_nrs, junction_indices))
 
 
-def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_like_valves, add_layers):
+def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mode, add_layers):
     """
     Creates pandapipes valves and pipes from STANET data.
-    :param net:
-    :type net:
-    :param stored_data:
-    :type stored_data:
-    :param index_mapping:
-    :type index_mapping:
-    :param net_params:
-    :type net_params:
-    :param stanet_like_valves:
-    :type stanet_like_valves:
+    :param net: pipe network
+    :type net: pandapipesNet
+    :param stored_data: dictionary of STANET element tables
+    :type stored_data: dict[str, pd.DataFrame]
+    :param index_mapping: mapping between STANET and pandapipes indices (nodes)
+    :type index_mapping: dict
+    :param net_params: network parameters
+    :type net_params: dict
+    :param valve_mode: one of
+            - "stanet_like": create special valve_pipe component
+            - "valve_only": create only the valve, neglecting the valve length in STANET
+            - "separate_pipe": create valve and pipe separately
+    :type valve_mode:
     :param add_layers:
     :type add_layers:
     :return:
@@ -153,7 +168,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
     to_juncs = np.array([node_mapping[to] for to in to_stanet_nr[valid]])
     valid_valves = valves[valid].copy()
 
-    if stanet_like_valves:
+    if valve_mode == ValveMode.STANET_LIKE:
         for fjunc, tjunc, row in zip(from_juncs, to_juncs, valid_valves.itertuples()):
             add_info = dict()
             if add_layers:
@@ -193,43 +208,51 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_li
         valve_names = ("aux_" + valid_valves.ENDNAM.to_numpy().astype(str) + "_"
                        + valid_valves.ENDNAM.to_numpy().astype(str))
         pipe_names = [f"pipe_{fn}_{tn}" for fn, tn in zip(from_name.to_numpy()[valid], aux_stanet)]
-    j_aux = pandapipes.create_junctions(
-        net,
-        len(from_juncs),
-        np.nan,
-        tfluid_k=net_params["medium_temp_K"],
-        height_m=j_ref["height_m"].to_numpy(),
-        name=aux_stanet,
-        geodata=net.junction_geodata.loc[from_juncs, ["x", "y"]].to_numpy(),
-        stanet_nr=-999,
-        stanet_id=aux_stanet,
-        p_stanet=np.nan,
-        stanet_active=valid_valves.ISACTIVE.to_numpy().astype(np.bool_),
-        stanet_valid=False,
-        **add_info,
-    )
-    in_service = valid_valves.ISACTIVE.to_numpy().astype(np.bool_)
-    pandapipes.create_pipes_from_parameters(
-        net,
-        from_juncs,
-        j_aux,
-        length_km=valid_valves.RORL.to_numpy().astype(np.float64) / 1000,
-        diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,
-        k_mm=valid_valves.RAU.to_numpy().astype(np.float64),
-        loss_coefficient=valid_valves.ZETA.to_numpy().astype(np.float64),
-        name=pipe_names,
-        text_k=text_k,
-        in_service=in_service,
-        stanet_nr=-999,
-        stanet_id="pipe_valve_" + valid_valves.STANETID.to_numpy().astype(str),
-        v_stanet=valid_valves.VM.to_numpy().astype(np.float64),
-        stanet_active=in_service,
-        stanet_valid=False,
-        **add_info,
-    )
+
+    fj = from_juncs
+    if valve_mode == ValveMode.SEPARATE_PIPE:
+        j_aux = pandapipes.create_junctions(
+            net,
+            len(from_juncs),
+            np.nan,
+            tfluid_k=net_params["medium_temp_K"],
+            height_m=j_ref["height_m"].to_numpy(),
+            name=aux_stanet,
+            geodata=net.junction_geodata.loc[from_juncs, ["x", "y"]].to_numpy(),
+            stanet_nr=-999,
+            stanet_id=aux_stanet,
+            p_stanet=np.nan,
+            stanet_active=valid_valves.ISACTIVE.to_numpy().astype(np.bool_),
+            stanet_valid=False,
+            **add_info,
+        )
+        in_service = valid_valves.ISACTIVE.to_numpy().astype(np.bool_)
+        pandapipes.create_pipes_from_parameters(
+            net,
+            from_juncs,
+            j_aux,
+            length_km=valid_valves.RORL.to_numpy().astype(np.float64) / 1000,
+            diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,
+            k_mm=valid_valves.RAU.to_numpy().astype(np.float64),
+            loss_coefficient=valid_valves.ZETA.to_numpy().astype(np.float64),
+            name=pipe_names,
+            text_k=text_k,
+            in_service=in_service,
+            stanet_nr=-999,
+            stanet_id="pipe_valve_" + valid_valves.STANETID.to_numpy().astype(str),
+            v_stanet=valid_valves.VM.to_numpy().astype(np.float64),
+            stanet_active=in_service,
+            stanet_valid=False,
+            **add_info,
+        )
+        fj = j_aux
+    else:
+        if valve_mode != ValveMode.VALVE_ONLY:
+            logger.warning(f"The valve mode '{valve_mode}' is not known. The valve mode "
+                            f"'{ValveMode.VALVE_ONLY}' will be used.")
     pandapipes.create_valves(
         net,
-        j_aux,
+        fj,
         to_juncs,
         et="ju",
         diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,

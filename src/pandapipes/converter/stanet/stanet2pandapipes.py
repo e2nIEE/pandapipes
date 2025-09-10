@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 #         - maybe it will be necessary to remove deleted data from the STANET tables, otherwise they
 #           might be inserted into the pandapipes net erroneously
 def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connections=True,
-                         stanet_like_valves=False, read_options=None, add_layers=True,
+                         valve_mode="stanet_like", read_options=None, add_layers=True,
                          guess_slider_valve_types=False, **kwargs):
     """Converts STANET csv-file to pandapipesNet.
 
@@ -58,6 +58,8 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
     :rtype: pandapipesNet
     """
     net = create_empty_network(name=name)
+
+    valve_mode = derive_valve_mode(valve_mode, kwargs)
 
     # stored_data contains different dataframes read from the STANET CSV file for different
     # components, such as junctions, pipes etc., but in the raw STANET form
@@ -101,7 +103,7 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
 
     # valves always have a length in STANET, therefore, they are created as valve with pipe in
     # pandapipes
-    create_valve_and_pipe(net, stored_data, index_mapping, net_params, stanet_like_valves, add_layers)
+    create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mode, add_layers)
 
     create_slider_valves(net, stored_data, index_mapping, add_layers, guess_slider_valve_types)
 
@@ -205,3 +207,13 @@ def change_dtypes(net):
         for col, dt in dtypes.items():
             if col in net[table_name]:
                 net[table_name][col] = net[table_name][col].astype(dt)
+
+
+def derive_valve_mode(valve_mode, kwargs):
+    if "stanet_like_valves" in kwargs:
+        logger.warning("The parameter 'stanet_like_valves' is deprecated. Please use "
+                       "'valve_mode' instead.")
+        stanet_like_valves = kwargs.pop("stanet_like_valves")
+        valve_mode = "stanet_like" if stanet_like_valves else "separate_pipe"
+
+    return ValveMode(valve_mode.lower())
