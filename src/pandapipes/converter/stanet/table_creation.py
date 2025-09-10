@@ -123,11 +123,11 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
             - "stanet_like": create special valve_pipe component
             - "valve_only": create only the valve, neglecting the valve length in STANET
             - "separate_pipe": create valve and pipe separately
-    :type valve_mode:
-    :param add_layers:
-    :type add_layers:
-    :return:
-    :rtype:
+    :type valve_mode: ValveMode
+    :param add_layers: whether to add layer info
+    :type add_layers: bool
+    :return: No output
+    :rtype: None
     """
     if "valves" not in stored_data:
         return

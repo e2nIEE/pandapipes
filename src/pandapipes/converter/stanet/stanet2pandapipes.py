@@ -8,12 +8,23 @@ import pandas as pd
 
 from pandapipes.converter.stanet.preparing_steps import get_net_params, get_pipe_geo, \
     connection_pipe_section_table, get_stanet_raw_data, create_meter_table, create_house_table
-from pandapipes.converter.stanet.table_creation import create_junctions_from_nodes, \
-    create_valve_and_pipe, create_pumps, create_junctions_from_connections, \
-    create_pipes_from_connections, create_heat_exchangers_stanet, create_slider_valves, \
-    create_pipes_from_remaining_pipe_table, create_nodes_house_connections, \
-    create_sinks_meters, create_sinks_from_nodes, create_control_components, \
-    create_sinks_from_customers, create_pipes_house_connections
+from pandapipes.converter.stanet.table_creation import (
+    create_junctions_from_nodes,
+    create_valve_and_pipe,
+    create_pumps,
+    create_junctions_from_connections,
+    create_pipes_from_connections,
+    create_heat_exchangers_stanet,
+    create_slider_valves,
+    create_pipes_from_remaining_pipe_table,
+    create_nodes_house_connections,
+    create_sinks_meters,
+    create_sinks_from_nodes,
+    create_control_components,
+    create_sinks_from_customers,
+    create_pipes_house_connections,
+    ValveMode,
+)
 from pandapipes.create import create_empty_network
 
 try:
@@ -43,9 +54,11 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
     :param remove_unused_household_connections: if True, the intermediate nodes on pipes that are \
             not connected to any households will be skipped.
     :type remove_unused_household_connections: bool, default True
-    :param stanet_like_valves: whether pipes with valves should be treated as one component
-            (valve_pipe) or split into separate pipes and valves (common pandapipes practice)
-    :type stanet_like_valves: bool, default False
+    :param valve_mode: one of
+            - "stanet_like": create special valve_pipe component
+            - "valve_only": create only the valve, neglecting the valve length in STANET
+            - "separate_pipe": create valve and pipe separately
+    :type valve_mode: ValveMode | str, default "stanet_like"
     :param read_options: Additional kwargs for the tables to be read with pd.read_csv. If None, no\
             kwargs will be handed over.
     :type read_options: dict, default None
