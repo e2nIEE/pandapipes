@@ -1,6 +1,7 @@
 # Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -211,8 +212,8 @@ def change_dtypes(net):
 
 def derive_valve_mode(valve_mode, kwargs):
     if "stanet_like_valves" in kwargs:
-        logger.warning("The parameter 'stanet_like_valves' is deprecated. Please use "
-                       "'valve_mode' instead.")
+        warnings.warn("The parameter 'stanet_like_valves' is deprecated. Please use "
+                       "'valve_mode' instead.", DeprecationWarning)
         stanet_like_valves = kwargs.pop("stanet_like_valves")
         valve_mode = "stanet_like" if stanet_like_valves else "separate_pipe"
 
