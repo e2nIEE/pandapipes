@@ -209,6 +209,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
                        + valid_valves.ENDNAM.to_numpy().astype(str))
         pipe_names = [f"pipe_{fn}_{tn}" for fn, tn in zip(from_name.to_numpy()[valid], aux_stanet)]
 
+    in_service = valid_valves.ISACTIVE.to_numpy().astype(np.bool_)
     fj = from_juncs
     if valve_mode == ValveMode.SEPARATE_PIPE:
         j_aux = pandapipes.create_junctions(
@@ -222,11 +223,10 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
             stanet_nr=-999,
             stanet_id=aux_stanet,
             p_stanet=np.nan,
-            stanet_active=valid_valves.ISACTIVE.to_numpy().astype(np.bool_),
+            stanet_active=in_service,
             stanet_valid=False,
             **add_info,
         )
-        in_service = valid_valves.ISACTIVE.to_numpy().astype(np.bool_)
         pandapipes.create_pipes_from_parameters(
             net,
             from_juncs,
