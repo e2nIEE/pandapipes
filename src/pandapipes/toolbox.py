@@ -340,7 +340,7 @@ def create_continuous_elements_index(net, start=0, add_df_to_reindex=None, store
     for elm in list(elements):
         if elm in ["junction_geodata", "pipe_geodata"]:
             logger.info(f"The table {elm} doesn't need to be included to 'add_df_to_reindex'. It is "
-                        f"already included by element=='{elm.split("_")[0]}'.")
+                        f"already included by element==\'{elm.split('_')[0]}\'.")
         else:
             lookups[elm] = create_continuous_element_index(net, elm, start, store_old_index=store_old_index)
     return lookups
