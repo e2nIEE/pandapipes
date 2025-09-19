@@ -378,7 +378,7 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
 
 
 def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0,
-                sections=1, text_k=0, qext_w=0., name=None, index=None,
+                sections=1, text_k=0, name=None, index=None,
                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -403,8 +403,6 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     :type sections: int, default 1
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default None, will be set equal to the net ambient temperature
-    :param qext_w: External heat feed-in to the pipe in [W]
-    :type qext_w: float, default 0
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -434,15 +432,25 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     _check_branch(net, "Pipe", index, from_junction, to_junction)
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
-    if "alpha_w_per_m2k" in kwargs:
-        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k. U is extracted from the std_type"
-                      , DeprecationWarning)
+    if "qext_w" in kwargs:
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
+                      "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
+                      "of the heat transfer calculation", DeprecationWarning)
+        del kwargs['qext_w']
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
+
+    if "alpha_w_per_m2k" in kwargs:
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k "
+                      "and is in future directly extracted from the std_type."
+                      , DeprecationWarning)
+        pipe_parameter['u_w_per_m2k'] = kwargs['alpha_w_per_m2k']
+        del kwargs["alpha_w_per_m2k"]
+
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
          "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
          "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'], "sections": sections,
-         "in_service": bool(in_service), "type": type, "qext_w": qext_w, "text_k": text_k}
+         "in_service": bool(in_service), "type": type, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
 
     if geodata is not None:
@@ -452,7 +460,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
 
 
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                sections=1, u_w_per_m2k=0., text_k=None, qext_w=0., name=None, index=None,
+                                sections=1, u_w_per_m2k=0., text_k=None, name=None, index=None,
                                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -475,12 +483,10 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param alpha_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
-    :type alpha_w_per_m2k: float, default 0
+    :param u_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :type u_w_per_m2k: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default None, will be set equal to the net ambient temperature
-    :param qext_w: external heat feed-in to the pipe in [W]
-    :type qext_w: float, default 0
     :param name: A name tag for this pipe
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -508,15 +514,22 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
 
-
-    #Check if alpha parameter was declared (Alpha has been changed to U)
     if 'alpha_w_per_m2k' in kwargs:
-
-        if u_w_per_m2k == 0:
+        if u_w_per_m2k == 0.:
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
+            warnings.warn(
+                "The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.",
+                DeprecationWarning)
+            del kwargs['alpha_w_per_m2k']
+        else:
+            raise UserWarning(r"u_w_per_m2k and alpha_w_per_m2k have been both defined by you causing ambiguity. "
+                              r"Please make sure to define only one!")
 
-        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.",
-                      DeprecationWarning)
+    if "qext_w" in kwargs:
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
+                      "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
+                      "of the heat transfer calculation", DeprecationWarning)
+        del kwargs['qext_w']
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
@@ -1307,7 +1320,7 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
 
 
 def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2,
-                 loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None, qext_w=0.,
+                 loss_coefficient=0, sections=1, text_k=None,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
@@ -1334,12 +1347,8 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
-    :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
-    :param qext_w: External heat feed-in to the pipes in [W]
-    :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
     :type name: Iterable or str, default None
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
@@ -1373,7 +1382,21 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     _check_branches(net, from_junctions, to_junctions, "pipe")
     _check_std_type(net, std_type, "pipe", "create_pipes")
 
+    if "qext_w" in kwargs:
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
+                      "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
+                      "of the heat transfer calculation")
+        del kwargs['qext_w']
+
     pipe_parameters = load_std_type(net, std_type, "pipe")
+
+    if "alpha_w_per_m2k" in kwargs:
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k "
+                      "and is in future directly extracted from the std_type."
+                      , DeprecationWarning)
+        pipe_parameters['u_w_per_m2k'] = kwargs['alpha_w_per_m2k']
+        del kwargs["alpha_w_per_m2k"]
+
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": std_type, "length_km": length_km,
                "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
@@ -1389,7 +1412,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
 
 def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2,
                                  loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None,
-                                 qext_w=0., name=None, index=None, geodata=None, in_service=True,
+                                 name=None, index=None, geodata=None, in_service=True,
                                  type="pipe", **kwargs):
     """
     Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
@@ -1419,8 +1442,6 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
-    :param qext_w: External heat feed-in to the pipes in [W]
-    :type qext_w: Iterable or float, default 0
     :param name: Name tags for these pipes
     :type name: Iterable or str, default None
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
@@ -1453,13 +1474,20 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     _check_branches(net, from_junctions, to_junctions, "pipe")
 
     if 'alpha_w_per_m2k' in kwargs:
-
-        if (not isinstance(u_w_per_m2k, Iterable) and isinstance(u_w_per_m2k, float)
-                and u_w_per_m2k == 0.):
+        if u_w_per_m2k == 0.:
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
+            warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
+                          "It will be removed in future.", DeprecationWarning)
+        else:
+            raise UserWarning(r"u_w_per_m2k and alpha_w_per_m2k have been both defined by you causing ambiguity. "
+                              r"Please make sure to define only one!")
+        del kwargs["alpha_w_per_m2k"]
 
-        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
-                      "It will be removed in future.", DeprecationWarning)
+    if "qext_w" in kwargs:
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
+                      "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
+                      "of the heat transfer calculation", DeprecationWarning)
+        del kwargs['qext_w']
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
