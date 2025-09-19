@@ -219,7 +219,7 @@ def test_reindex_pipes():
     new_pipe_idxs = np.array(list(net.pipe.index)) + to_add
     lookup = dict(zip(net["pipe"].index.values, new_pipe_idxs))
     # a more complexe junction_lookup of course should also work, but this one is easy to check
-    _ = pandapipes.reindex_pipes(net, lookup)
+    pandapipes.reindex_pipes(net, lookup)
 
     assert np.all(net["pipe"].index == net_orig["pipe"].index + to_add)
     assert np.all(net["valve"]["element"].to_numpy() ==  net_orig["valve"]["element"].to_numpy() + to_add)

@@ -109,7 +109,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     """
     from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
         CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
-        Compressor, FlowControlComponent
+        Compressor, FlowControlComponent, MassStorage, HeatConsumer
     from pandapipes.converter.stanet.valve_pipe_component import ValvePipe
     special_elements_junctions = [("press_control", "controlled_junction")]
     move_elements = {"n2b": [], "b2n": []}
@@ -120,7 +120,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     else:
         comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
                      CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor,
-                     FlowControlComponent, ValvePipe]
+                     FlowControlComponent, ValvePipe, HeatConsumer, MassStorage]
         all_tables = {comp.table_name(): comp for comp in comp_list}
 
     ejts = set()
@@ -339,8 +339,8 @@ def create_continuous_elements_index(net, start=0, add_df_to_reindex=None, store
     lookups = dict()
     for elm in list(elements):
         if elm in ["junction_geodata", "pipe_geodata"]:
-            logger.info(elm + " don't need to bo included to 'add_df_to_reindex'. It is " +
-                        "already included by element=='" + elm.split("_")[0] + "'.")
+            logger.info(f"The table {elm} doesn't need to be included to 'add_df_to_reindex'. It is "
+                        f"already included by element=='{elm.split("_")[0]}'.")
         else:
             lookups[elm] = create_continuous_element_index(net, elm, start, store_old_index=store_old_index)
     return lookups
