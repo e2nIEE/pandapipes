@@ -522,9 +522,6 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
                 "The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k." "It will be removed in future.",
                 DeprecationWarning)
             del kwargs['alpha_w_per_m2k']
-        else:
-            raise UserWarning(r"u_w_per_m2k and alpha_w_per_m2k have been both defined by you causing ambiguity. "
-                              r"Please make sure to define only one!")
 
     if "qext_w" in kwargs:
         warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
@@ -536,7 +533,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
          "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
          "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
          "sections": sections, "in_service": bool(in_service),
-         "type": type, "qext_w": qext_w, "text_k": text_k}
+         "type": type, "text_k": text_k}
 
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '
@@ -1414,7 +1411,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
                "diameter_m": pipe_parameters["inner_diameter_m"],
                "k_mm": pipe_parameters["k_mm"],
                "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameters["u_w_per_m2k"] ,
-               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
+               "sections": sections, "in_service": in_service, "type": type,
                "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
@@ -1491,9 +1488,6 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
             warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
                           "It will be removed in future.", DeprecationWarning)
-        else:
-            raise UserWarning(r"u_w_per_m2k and alpha_w_per_m2k have been both defined by you causing ambiguity. "
-                              r"Please make sure to define only one!")
         del kwargs["alpha_w_per_m2k"]
 
     if "qext_w" in kwargs:
