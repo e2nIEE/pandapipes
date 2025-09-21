@@ -22,6 +22,7 @@ from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, load_std_type
 from pandapipes.deprecations import deprecated_input, input_handler_valve
+from pandapipes.toolbox import retrieve_u
 
 try:
     import pandaplan.core.pplog as logging
@@ -439,6 +440,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
         del kwargs['qext_w']
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
+    retrieve_u(pipe_parameter)
 
     from pandapipes.toolbox import _deprecation_check_u, _deprecation_check_k
     u = _deprecation_check_u(kwargs)
@@ -1390,6 +1392,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
         for s in std_type:
             _check_std_type(net, s, "pipe", "create_pipes")
             params = load_std_type(net, s, "pipe")
+            retrieve_u(params)
             u = _deprecation_check_u(kwargs)
             k = _deprecation_check_k(kwargs)
             pipe_parameters["u_w_per_m2k"] += [u if u is not None else params["u_w_per_m2k"]]
@@ -1398,6 +1401,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
     else:
         _check_std_type(net, std_type, "pipe", "create_pipes")
         pipe_parameters = load_std_type(net, std_type, "pipe")
+        retrieve_u(pipe_parameters)
         u = _deprecation_check_u(kwargs)
         k = _deprecation_check_k(kwargs)
         if u is not None:
