@@ -16,7 +16,7 @@ from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtG
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.component_models.flow_control_component import FlowControlComponent
 from pandapipes.component_models.heat_consumer_component import HeatConsumer
-from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components, Sector
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
@@ -31,7 +31,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def create_empty_network(name="", fluid=None, add_stdtypes=True):
+def create_empty_network(name="", fluid=None, add_stdtypes=True, sector=Sector.ALL):
     """
     This function initializes the pandapipes datastructure.
 
@@ -44,17 +44,20 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     :type fluid: Fluid or str, default None
     :param add_stdtypes: Flag whether to add a dictionary of typical pump and pipe std types
     :type add_stdtypes: bool, default True
+    :param sector: sector the net is assigned to
+    :type sector: Sector, default Sector.ALL
+
     :return: net - pandapipesNet with empty tables
     :rtype: pandapipesNet
 
     :Example:
-        >>> net1 = create_empty_network("my_first_pandapipesNet", "lgas")
+        >>> net1 = create_empty_network("my_first_pandapipesNet", "lgas", sector=Sector.GAS)
         >>> net2 = create_empty_network()
 
     """
-    net = pandapipesNet(get_basic_net_entries())
+    net = pandapipesNet(get_basic_net_entries(name, sector))
     add_default_components(net, True)
-    net['name'] = name
+
     if add_stdtypes:
         add_basic_std_types(net)
 
@@ -377,7 +380,7 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
     return index
 
 
-def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, loss_coefficient=0,
+def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coefficient=0,
                 sections=1, text_k=0, name=None, index=None,
                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
@@ -393,9 +396,6 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     :type std_type: str
     :param length_km: Length of the pipe in [km]
     :type length_km: float
-    :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
-            pipes) and 0.3 (old steel pipelines)
-    :type k_mm: float, default 0.2
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float, default 0
     :param sections: The number of internal pipe sections. Important for gas and temperature\
@@ -447,8 +447,14 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
         pipe_parameter['u_w_per_m2k'] = kwargs['alpha_w_per_m2k']
         del kwargs["alpha_w_per_m2k"]
 
+    if "k_mm" in kwargs:
+        warnings.warn("The parameter k_mm is in future directly extracted from the std_type."
+                      , DeprecationWarning)
+        pipe_parameter['k_mm'] = kwargs['k_mm']
+        del kwargs["k_mm"]
+
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
-         "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
+         "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": pipe_parameter['k_mm'],
          "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'], "sections": sections,
          "in_service": bool(in_service), "type": type, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
@@ -1319,7 +1325,7 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
     return index
 
 
-def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.2,
+def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
                  loss_coefficient=0, sections=1, text_k=None,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
     """
@@ -1339,9 +1345,6 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     :type std_type: str
     :param length_km: Lengths of the pipes in [km]
     :type length_km: Iterable or float
-    :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
-            pipes) and 0.3 (old steel pipelines)
-    :type k_mm: Iterable or float, default 0.2
     :param loss_coefficient: Additional pressure loss coefficients, introduced by e.g. bends
     :type loss_coefficient: Iterable or float, default 0
     :param sections: The number of internal pipe sections. Important for gas and temperature\
@@ -1396,6 +1399,12 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
                       , DeprecationWarning)
         pipe_parameters['u_w_per_m2k'] = kwargs['alpha_w_per_m2k']
         del kwargs["alpha_w_per_m2k"]
+
+    if "k_mm" in kwargs:
+        warnings.warn("The parameter k_mm is in future directly extracted from the std_type."
+                      , DeprecationWarning)
+        pipe_parameters['k_mm'] = kwargs['k_mm']
+        del kwargs["k_mm"]
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": std_type, "length_km": length_km,
@@ -1474,7 +1483,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     _check_branches(net, from_junctions, to_junctions, "pipe")
 
     if 'alpha_w_per_m2k' in kwargs:
-        if u_w_per_m2k == 0.:
+        if isinstance(u_w_per_m2k, float) and u_w_per_m2k == 0.:
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
             warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
                           "It will be removed in future.", DeprecationWarning)
