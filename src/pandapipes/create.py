@@ -440,18 +440,13 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
 
     pipe_parameter = load_std_type(net, std_type, "pipe")
 
-    if "alpha_w_per_m2k" in kwargs:
-        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k "
-                      "and is in future directly extracted from the std_type."
-                      , DeprecationWarning)
-        pipe_parameter['u_w_per_m2k'] = kwargs['alpha_w_per_m2k']
-        del kwargs["alpha_w_per_m2k"]
-
-    if "k_mm" in kwargs:
-        warnings.warn("The parameter k_mm is in future directly extracted from the std_type."
-                      , DeprecationWarning)
-        pipe_parameter['k_mm'] = kwargs['k_mm']
-        del kwargs["k_mm"]
+    from pandapipes.toolbox import _deprecation_check_u, _deprecation_check_k
+    u = _deprecation_check_u(kwargs)
+    k = _deprecation_check_k(kwargs)
+    if u is not None:
+        pipe_parameter["u_w_per_m2k"] = u
+    if k is not None:
+        pipe_parameter["k_mm"] = k
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
          "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": pipe_parameter['k_mm'],
@@ -1391,25 +1386,34 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
                       "of the heat transfer calculation")
         del kwargs['qext_w']
 
-    pipe_parameters = load_std_type(net, std_type, "pipe")
+    from pandapipes.toolbox import _deprecation_check_u, _deprecation_check_k
 
-    if "alpha_w_per_m2k" in kwargs:
-        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k "
-                      "and is in future directly extracted from the std_type."
-                      , DeprecationWarning)
-        pipe_parameters['u_w_per_m2k'] = kwargs['alpha_w_per_m2k']
-        del kwargs["alpha_w_per_m2k"]
-
-    if "k_mm" in kwargs:
-        warnings.warn("The parameter k_mm is in future directly extracted from the std_type."
-                      , DeprecationWarning)
-        pipe_parameters['k_mm'] = kwargs['k_mm']
-        del kwargs["k_mm"]
+    if isinstance(std_type, Iterable) and not isinstance(std_type, str):
+        pipe_parameters = {"inner_diameter_m": [], "k_mm": [], "u_w_per_m2k": []}
+        for s in std_type:
+            _check_std_type(net, s, "pipe", "create_pipes")
+            params = load_std_type(net, s, "pipe")
+            u = _deprecation_check_u(kwargs)
+            k = _deprecation_check_k(kwargs)
+            pipe_parameters["u_w_per_m2k"] += [u if u is not None else params["u_w_per_m2k"]]
+            pipe_parameters["k_mm"] += [k if k is not None else params["k_mm"]]
+            pipe_parameters["inner_diameter_m"] += [params["inner_diameter_m"] / 1000.]
+    else:
+        _check_std_type(net, std_type, "pipe", "create_pipes")
+        pipe_parameters = load_std_type(net, std_type, "pipe")
+        u = _deprecation_check_u(kwargs)
+        k = _deprecation_check_k(kwargs)
+        if u is not None:
+            pipe_parameters["u_w_per_m2k"] = u
+        if k is not None:
+            pipe_parameters["k_mm"] = k
+        pipe_parameters["inner_diameter_m"] = pipe_parameters["inner_diameter_mm"] / 1000.
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": std_type, "length_km": length_km,
-               "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
-               "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
+               "diameter_m": pipe_parameters["inner_diameter_m"],
+               "k_mm": pipe_parameters["k_mm"],
+               "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameters["u_w_per_m2k"] ,
                "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
                "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)

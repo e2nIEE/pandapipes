@@ -4,6 +4,7 @@
 import copy
 import os
 from collections.abc import Iterable
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -617,3 +618,29 @@ def get_internal_tables_pandas(net, convert_types=True):
                         tbl[col] = tbl[col].astype(np.bool_)
 
     return node_table, branch_table
+
+def _deprecation_check_u(kwargs):
+    if ("alpha_w_per_m2k" in kwargs) and not ("u_w_per_m2k" in kwargs):
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k "
+                      "and is in future directly extracted from the std_type."
+                      , DeprecationWarning)
+        u = kwargs['alpha_w_per_m2k']
+        del kwargs["alpha_w_per_m2k"]
+    elif "u_w_per_m2k" in kwargs:
+        warnings.warn(f"The parameter u_w_per_m2k is in future directly extracted from the std_type."
+                      , DeprecationWarning)
+        u = kwargs["u_w_per_m2k"]
+        del kwargs["u_w_per_m2k"]
+    else:
+        u = None
+    return u
+
+def _deprecation_check_k(kwargs):
+    if 'k_mm' in kwargs:
+        warnings.warn(f"The parameter k_mm is in future directly extracted from the std_type."
+                      , DeprecationWarning)
+        k = kwargs['k_mm']
+        del kwargs['k_mm']
+    else:
+        k = None
+    return k
