@@ -109,7 +109,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     """
     from pandapipes.component_models import Sink, Source, ExtGrid, Pipe, Valve, Pump, \
         CirculationPumpMass, CirculationPumpPressure, HeatExchanger, PressureControlComponent, \
-        Compressor, FlowControlComponent
+        Compressor, FlowControlComponent, MassStorage, HeatConsumer
     from pandapipes.converter.stanet.valve_pipe_component import ValvePipe
     special_elements_junctions = [("press_control", "controlled_junction")]
     move_elements = {"n2b": [], "b2n": []}
@@ -120,7 +120,7 @@ def element_junction_tuples(include_node_elements=True, include_branch_elements=
     else:
         comp_list = [Sink, Source, ExtGrid, Pipe, Valve, Pump, CirculationPumpMass,
                      CirculationPumpPressure, HeatExchanger, PressureControlComponent, Compressor,
-                     FlowControlComponent, ValvePipe]
+                     FlowControlComponent, ValvePipe, HeatConsumer, MassStorage]
         all_tables = {comp.table_name(): comp for comp in comp_list}
 
     ejts = set()
@@ -194,34 +194,28 @@ def reindex_junctions(net, junction_lookup):
     :rtype: dict
     """
 
-    not_fitting_junction_lookup_keys = set(junction_lookup.keys()) - set(net.junction.index)
-    if len(not_fitting_junction_lookup_keys):
-        logger.error("These junction indices are unknown to net. Thus, they cannot be reindexed: " +
-                     str(not_fitting_junction_lookup_keys))
-
-    missing_junction_indices = sorted(set(net.junction.index) - set(junction_lookup.keys()))
-    if len(missing_junction_indices):
-        duplicates = set(missing_junction_indices).intersection(set(junction_lookup.values()))
-        if len(duplicates):
-            logger.error("The junctions %s are not listed in junction_lookup but their index is "
-                         "used as a new index. This would result in duplicated junction indices."
-                         % (str(duplicates)))
-        else:
-            junction_lookup.update({j: j for j in missing_junction_indices})
-
-    net.junction.index = get_indices(net.junction.index, junction_lookup)
-    if hasattr(net, "res_junction"):
-        net.res_junction.index = get_indices(net.res_junction.index, junction_lookup)
-
-    for element, value in element_junction_tuples(net=net):
-        if element in net.keys():
-            net[element][value] = get_indices(net[element][value], junction_lookup)
-    net["junction_geodata"].set_index(get_indices(net["junction_geodata"].index, junction_lookup),
-                                      inplace=True)
+    junction_lookup = reindex_elements(net, "junction", lookup=junction_lookup)
     return junction_lookup
 
 
-def reindex_elements(net, element, new_indices, old_indices=None):
+def reindex_pipes(net, pipe_lookup):
+    """
+    Changes the index of net.pipe and considers the new pipe indices in pandapipes valve table.
+
+    :param net: pandapipes network
+    :type net: pandapipesNet
+    :param pipe_lookup: the keys are the old pipe indices, the values the new pipe \
+            indices
+    :type pipe_lookup: dict
+    :return: pipe_lookup - the finally reindexed pipe lookup (with corrections if necessary)
+    :rtype: dict
+    """
+
+    pipe_lookup = reindex_elements(net, "pipe", lookup=pipe_lookup)
+    return pipe_lookup
+
+
+def reindex_elements(net, element, lookup):
     """
     Changes the index of net[element].
 
@@ -229,39 +223,50 @@ def reindex_elements(net, element, new_indices, old_indices=None):
     :type net: pandapipesNet
     :param element: name of the element table
     :type element: str
-    :param new_indices: list of new indices
-    :type new_indices: iterable
-    :param old_indices: list of old/previous indices which will be replaced. If None, all indices\
-            are considered.
-    :type old_indices: iterable, default None
+    :param lookup: the keys are the old indices, the values the new indices
+    :type lookup: dict
     :return: No output.
     """
 
-    old_indices = old_indices if old_indices is not None else net[element].index
-    if not len(new_indices) or not net[element].shape[0]:
-        return
-    if len(new_indices) != len(old_indices):
-        raise UserWarning("The length of new indices to replace existing ones for %s does not "
-                          "match: %d (new) vs. %d (old)."
-                          % (element, len(new_indices), len(old_indices)))
-    lookup = dict(zip(old_indices, new_indices))
+    if element not in net:
+        return lookup
+    not_fitting_lookup_keys = set(lookup.keys()) - set(net[element].index)
+    if len(not_fitting_lookup_keys):
+        logger.error(f"These {element} indices are unknown to net. Thus, they cannot be reindexed: " +
+                     str(not_fitting_lookup_keys))
 
-    if element == "junction":
-        reindex_junctions(net, lookup)
-        return
+    missing_indices = sorted(set(net[element].index) - set(lookup.keys()))
+    if len(missing_indices):
+        duplicates = set(missing_indices).intersection(set(lookup.values()))
+        if len(duplicates):
+            logger.error(f"The {element} %s are not listed in the lookup but their index is "
+                         "used as a new index. This would result in duplicated indices."
+                         % (str(duplicates)))
+        else:
+            lookup.update({j: j for j in missing_indices})
 
     # --- reindex
-    net[element]["index"] = net[element].index
-    net[element].loc[old_indices, "index"] = get_indices(old_indices, lookup)
-    net[element].set_index("index", inplace=True)
+    net[element].index = get_indices(net[element].index, lookup)
 
     # --- adapt geodata index
-    geotable = element + "_geodata"
-    if geotable in net and net[geotable].shape[0]:
-        net[geotable]["index"] = net[geotable].index
-        net[geotable].loc[old_indices, "index"] = get_indices(old_indices, lookup)
-        net[geotable].set_index("index", inplace=True)
+    geo_table = element + "_geodata"
+    if geo_table  in net and net[geo_table ].shape[0]:
+        net[geo_table ].index = get_indices(net[geo_table ].index, lookup)
 
+    res_table = "res_" + element
+    if hasattr(net, res_table):
+        net[res_table].index = get_indices(net[res_table].index, lookup)
+
+    if element == "junction":
+        for element, value in element_junction_tuples(net=net):
+            if element in net.keys():
+                net[element][value] = get_indices(net[element][value], lookup)
+    elif element == "pipe":
+        if "valve" in net:
+            pipe_valves = net["valve"].loc[net["valve"]["et"] == "pi", "element"]
+            net["valve"].loc[pipe_valves.index, "element"] = get_indices(pipe_valves, lookup)
+
+    return lookup
 
 def create_continuous_junction_index(net, start=0, store_old_index=False):
     """
@@ -296,17 +301,15 @@ def create_continuous_element_index(net, element, start=0, store_old_index=False
     :return: junction_lookup - mapping of old to new index
     :rtype: dict
     """
+    if element not in net:
+        return
     net[element].sort_index(inplace=True)
     if store_old_index:
         net[element]["old_index"] = net[element].index.values
     new_index = list(np.arange(start, len(net[element]) + start))
-    lookup = dict(zip(net["junction"].index.values, new_index))
+    lookup = dict(zip(net[element].index.values, new_index))
     if element in net and isinstance(net[element], pd.DataFrame):
-        if element in ["junction_geodata", "pipe_geodata"]:
-            logger.info(element + " don't need to bo included to 'add_df_to_reindex'. It is " +
-                        "already included by element=='" + element.split("_")[0] + "'.")
-        else:
-            reindex_elements(net, element, new_index)
+        lookup = reindex_elements(net, element, lookup)
     else:
         logger.debug("No indices could be changed for element '%s'." % element)
     return lookup
@@ -330,17 +333,16 @@ def create_continuous_elements_index(net, start=0, add_df_to_reindex=None, store
     """
     add_df_to_reindex = set() if add_df_to_reindex is None else set(add_df_to_reindex)
     elements = pp_elements(include_res_elements=True, net=net)
-
-    # create continuous junction index
-    create_continuous_junction_index(net, start=start)
-    elements -= {"junction", "junction_geodata", "res_junction"}
-
     elements |= add_df_to_reindex
 
     # run reindex_elements() for all elements
     lookups = dict()
     for elm in list(elements):
-        lookups[elm] = create_continuous_element_index(net, elm, start, store_old_index=store_old_index)
+        if elm in ["junction_geodata", "pipe_geodata"]:
+            logger.info(f"The table {elm} doesn't need to be included to 'add_df_to_reindex'. It is "
+                        f"already included by element==\'{elm.split('_')[0]}\'.")
+        else:
+            lookups[elm] = create_continuous_element_index(net, elm, start, store_old_index=store_old_index)
     return lookups
 
 
