@@ -26,6 +26,10 @@ from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
     get_branch_cp
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
@@ -212,6 +216,14 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
             infeed_node = np.setdiff1d(from_nodes_not_zero, to_nodes_not_zero)
 
     else:
+        zero_length_mask = np.isclose(branch_pit[:, LENGTH], 0, rtol=1e-6, atol=1e-10)
+        if np.any(zero_length_mask & np.abs(branch_pit[:, QEXT]) > 1e-12):
+            logger.warning(
+                "A branch with zero length has a non zero external heat load. This might lead to "
+                "errors in the calculation, as the overlap of temperature reduction from heat "
+                "losses to ambient and a constant heat flux cannot be solved with the implmented "
+                "method."
+            )
 
         branch_pit[:, LOAD_VEC_BRANCHES_T] = (
                 t_amb + (t_init_i - t_amb) * np.exp(- alpha * length / (cp * mdot))
