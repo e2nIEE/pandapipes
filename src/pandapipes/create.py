@@ -35,7 +35,7 @@ def _set_entries(net, table, index, preserve_dtypes=True, **entries):
     dtypes = None
     if preserve_dtypes:
         # only get dtypes of columns that are set and that are already present in the table
-        dtypes = net[table][intersect1d(net[table].columns, list(entries.keys()))].dtypes
+        dtypes = net[table][np.intersect1d(net[table].columns, list(entries.keys()))].dtypes
 
     for col, val in entries.items():
         net[table].at[index, col] = val
