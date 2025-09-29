@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pandapower.auxiliary import _preserve_dtypes
 import warnings
-from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
+from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, \
     _check_element, _check_multiple_elements, _set_multiple_entries, \
     _check_branch_element, _check_multiple_branch_elements
 
@@ -29,6 +29,20 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _set_entries(net, table, index, preserve_dtypes=True, **entries):
+    dtypes = None
+    if preserve_dtypes:
+        # only get dtypes of columns that are set and that are already present in the table
+        dtypes = net[table][intersect1d(net[table].columns, list(entries.keys()))].dtypes
+
+    for col, val in entries.items():
+        net[table].at[index, col] = val
+
+    # and preserve dtypes
+    if preserve_dtypes:
+        _preserve_dtypes(net[table], dtypes)
 
 
 def create_empty_network(name="", fluid=None, add_stdtypes=True):
