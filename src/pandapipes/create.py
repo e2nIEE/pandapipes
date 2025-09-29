@@ -8,7 +8,7 @@ import pandas as pd
 from pandapower.auxiliary import _preserve_dtypes
 import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, \
-    _check_element, _check_multiple_elements, _set_multiple_entries, \
+    _check_element, _check_multiple_elements, \
     _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
@@ -39,6 +39,47 @@ def _set_entries(net, table, index, preserve_dtypes=True, **entries):
 
     for col, val in entries.items():
         net[table].at[index, col] = val
+
+    # and preserve dtypes
+    if preserve_dtypes:
+        _preserve_dtypes(net[table], dtypes)
+
+
+def _set_multiple_entries(net, table, index, preserve_dtypes=True, defaults_to_fill=None,
+                          **entries):
+    dtypes = None
+    if preserve_dtypes:
+        # store dtypes
+        dtypes = net[table].dtypes
+
+    def check_entry(val):
+        if isinstance(val, pd.Series) and not np_all(isin(val.index, index)):
+            return val.values
+        elif isinstance(val, set) and len(val) == len(index):
+            return list(val)
+        return val
+
+    entries = {k: check_entry(v) for k, v in entries.items()}
+
+    dd = pd.DataFrame(index=index, columns=net[table].columns)
+    dd = dd.assign(**entries)
+
+    # defaults_to_fill needed due to pandas bug https://github.com/pandas-dev/pandas/issues/46662:
+    # concat adds new bool columns as object dtype -> fix it by setting default value to net[table]
+    if defaults_to_fill is not None:
+        for col, val in defaults_to_fill:
+            if col in dd.columns and col not in net[table].columns:
+                net[table][col] = val
+
+    # extend the table by the frame we just created
+    if len(net[table]):
+        net[table] = pd.concat([net[table], dd[dd.columns[~dd.isnull().all()]]], sort=False)
+    else:
+        dd_columns = dd.columns[~dd.isnull().all()]
+        complete_columns = list(net[table].columns) + list(dd_columns.difference(net[table].columns))
+        empty_dict = {key: empty_defaults_per_dtype(dtype) for key, dtype in net[table][net[
+            table].columns.difference(dd_columns)].dtypes.to_dict().items()}
+        net[table] = dd[dd_columns].assign(**empty_dict)[complete_columns]
 
     # and preserve dtypes
     if preserve_dtypes:
