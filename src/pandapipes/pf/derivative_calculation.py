@@ -217,7 +217,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
 
     else:
         zero_length_mask = np.isclose(branch_pit[:, LENGTH], 0, rtol=1e-6, atol=1e-10)
-        if np.any(zero_length_mask & np.abs(branch_pit[:, QEXT]) > 1e-12):
+        if np.any(zero_length_mask & (np.abs(branch_pit[:, QEXT]) > 1e-12)):
             logger.warning(
                 "A branch with zero length has a non zero external heat load. This might lead to "
                 "errors in the calculation, as the overlap of temperature reduction from heat "
