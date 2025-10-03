@@ -75,7 +75,7 @@
     "pipe": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"alpha_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0],\"data\":[[\"pipe_D24_D25\",0,1,null,2.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015D56A23BF8FB\",0.0629]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"u_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0],\"data\":[[\"pipe_D24_D25\",0,1,null,2.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015D56A23BF8FB\",0.0629]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -86,7 +86,7 @@
         "diameter_m": "float64",
         "k_mm": "float64",
         "loss_coefficient": "float64",
-        "alpha_w_per_m2k": "float64",
+        "u_w_per_m2k": "float64",
         "text_k": "float64",
         "qext_w": "float64",
         "sections": "uint32",

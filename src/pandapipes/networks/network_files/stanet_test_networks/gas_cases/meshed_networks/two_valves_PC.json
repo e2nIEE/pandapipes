@@ -81,7 +81,7 @@
     "pipe": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"alpha_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4,5],\"data\":[[\"pipe_K1016_K1017\",0,1,null,1.0,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015D662DEDCE23\",3.0609],[\"pipe_K1019_K1022\",3,4,null,0.5,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025D66335C3ACA\",5.6151],[\"pipe_K1018_K1022\",2,4,null,0.5,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035D66335E4951\",0.0],[\"pipe_K1023_K1022\",5,4,null,0.35,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000045D66336522F0\",-5.6826],[\"pipe_K1017_aux_K1018\",1,6,null,0.1,0.1,0.1,9000.0,0.0,293.0,0.0,1,true,\"pipe\",null,null,\"pipe_valve_VEN0000015D662E228A16\",0.0],[\"pipe_K1017_aux_K1019\",1,7,null,0.1,0.1,0.1,9000.0,0.0,293.0,0.0,1,true,\"pipe\",null,null,\"pipe_valve_VEN0000025D67A4A37CA3\",3.8596]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"u_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4,5],\"data\":[[\"pipe_K1016_K1017\",0,1,null,1.0,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015D662DEDCE23\",3.0609],[\"pipe_K1019_K1022\",3,4,null,0.5,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025D66335C3ACA\",5.6151],[\"pipe_K1018_K1022\",2,4,null,0.5,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035D66335E4951\",0.0],[\"pipe_K1023_K1022\",5,4,null,0.35,0.1,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000045D66336522F0\",-5.6826],[\"pipe_K1017_aux_K1018\",1,6,null,0.1,0.1,0.1,9000.0,0.0,293.0,0.0,1,true,\"pipe\",null,null,\"pipe_valve_VEN0000015D662E228A16\",0.0],[\"pipe_K1017_aux_K1019\",1,7,null,0.1,0.1,0.1,9000.0,0.0,293.0,0.0,1,true,\"pipe\",null,null,\"pipe_valve_VEN0000025D67A4A37CA3\",3.8596]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -92,7 +92,7 @@
         "diameter_m": "float64",
         "k_mm": "float64",
         "loss_coefficient": "float64",
-        "alpha_w_per_m2k": "float64",
+        "u_w_per_m2k": "float64",
         "text_k": "float64",
         "qext_w": "float64",
         "sections": "uint32",
