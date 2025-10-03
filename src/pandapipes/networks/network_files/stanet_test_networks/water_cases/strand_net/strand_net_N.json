@@ -75,7 +75,7 @@
     "pipe": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"alpha_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4,5,6,7],\"data\":[[\"pipe_K1_K2\",0,1,null,0.01,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015DC2BC2D7012\",0.1768],[\"pipe_K2_K4\",1,3,null,10.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025DC2BC37AF0E\",0.1886],[\"pipe_K2_K3\",1,2,null,0.02,0.15,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035DC2BC3A98B6\",0.1886],[\"pipe_K3_K5\",2,4,null,5.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000045DC2BC3BF47D\",0.1258],[\"pipe_K1_K6\",0,5,null,0.005,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,5.0,\"LEI0000055DC2BC3D2A48\",0.168],[\"pipe_K6_K7\",5,6,null,8.4,0.5,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,6.0,\"LEI0000065DC2BC3FA8E6\",0.0156],[\"pipe_K7_K8\",6,7,null,0.5,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,7.0,\"LEI0000075DC2BC40368B\",0.1258],[\"pipe_K7_K9\",6,8,null,1.7,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,8.0,\"LEI0000085DC2BC42D9F3\",0.1886]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"u_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4,5,6,7],\"data\":[[\"pipe_K1_K2\",0,1,null,0.01,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015DC2BC2D7012\",0.1768],[\"pipe_K2_K4\",1,3,null,10.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025DC2BC37AF0E\",0.1886],[\"pipe_K2_K3\",1,2,null,0.02,0.15,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035DC2BC3A98B6\",0.1886],[\"pipe_K3_K5\",2,4,null,5.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000045DC2BC3BF47D\",0.1258],[\"pipe_K1_K6\",0,5,null,0.005,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,5.0,\"LEI0000055DC2BC3D2A48\",0.168],[\"pipe_K6_K7\",5,6,null,8.4,0.5,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,6.0,\"LEI0000065DC2BC3FA8E6\",0.0156],[\"pipe_K7_K8\",6,7,null,0.5,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,7.0,\"LEI0000075DC2BC40368B\",0.1258],[\"pipe_K7_K9\",6,8,null,1.7,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,8.0,\"LEI0000085DC2BC42D9F3\",0.1886]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -86,7 +86,7 @@
         "diameter_m": "float64",
         "k_mm": "float64",
         "loss_coefficient": "float64",
-        "alpha_w_per_m2k": "float64",
+        "u_w_per_m2k": "float64",
         "text_k": "float64",
         "qext_w": "float64",
         "sections": "uint32",
