@@ -77,7 +77,7 @@ def _set_multiple_entries(net, table, index, preserve_dtypes=True, defaults_to_f
         dtypes = net[table].dtypes
 
     def check_entry(val):
-        if isinstance(val, pd.Series) and not np.all(isin(val.index, index)):
+        if isinstance(val, pd.Series) and not np.all(np.isin(val.index, index)):
             return val.values
         elif isinstance(val, set) and len(val) == len(index):
             return list(val)
