@@ -5,7 +5,6 @@ from typing import Iterable
 
 import numpy as np
 import pandas as pd
-from pandapower.auxiliary import _preserve_dtypes
 import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, \
     _check_element, _check_multiple_elements, \
@@ -29,6 +28,30 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _preserve_dtypes(df, dtypes):
+    for item, dtype in list(dtypes.items()):
+        if df.dtypes.at[item] != dtype:
+            if (dtype == bool or dtype == np.bool_) and np.any(df[item].isnull()):
+                raise UserWarning(f"Encountered NaN value(s) in a boolean column {item}! "
+                                  f"NaN are casted to True by default, which can lead to errors. "
+                                  f"Replace NaN values with True or False first.")
+            try:
+                df[item] = df[item].astype(dtype)
+            except ValueError:
+                df[item] = df[item].astype(float)
+
+
+def empty_defaults_per_dtype(dtype):
+    if is_numeric_dtype(dtype):
+        return np.nan
+    elif is_string_dtype(dtype):
+        return ""
+    elif is_object_dtype(dtype):
+        return None
+    else:
+        raise NotImplementedError(f"{dtype=} is not implemented in _empty_defaults()")
 
 
 def _set_entries(net, table, index, preserve_dtypes=True, **entries):
