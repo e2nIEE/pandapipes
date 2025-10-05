@@ -6,6 +6,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 import warnings
+from pandas.api.types import is_numeric_dtype, is_string_dtype, is_object_dtype
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, \
     _check_element, _check_multiple_elements, \
     _check_branch_element, _check_multiple_branch_elements
