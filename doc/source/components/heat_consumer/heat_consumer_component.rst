@@ -1,5 +1,5 @@
 ==============
-Heat Exchanger
+Heat Consumer
 ==============
 
 Create Function
@@ -11,7 +11,7 @@ For creating a single heat consumer unit:
 
 .. autofunction:: pandapipes.create_heat_consumer
 
-For creating multiple heat exchangers at once:
+For creating multiple heat consumers at once:
 
 .. autofunction:: pandapipes.create_heat_consumers
 
