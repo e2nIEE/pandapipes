@@ -28,7 +28,7 @@ config = SphinxConfig("../../pyproject.toml")
 # -- Project information -----------------------------------------------------
 
 project = config.name
-copyright = '2020-2024 by Fraunhofer Institute for Energy Economics \
+copyright = '2020-2025 by Fraunhofer Institute for Energy Economics \
              and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.'
 
 

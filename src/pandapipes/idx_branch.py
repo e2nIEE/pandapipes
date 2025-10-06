@@ -1,10 +1,9 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 # branch types
-CIRC = 1  # Circ pump branch
-PC = 2  # Pressure controller branch
+PC = 1  # Pressure controller branch
 
 # branch indices
 TABLE_IDX = 0  # number of the table that this branch belongs to
@@ -48,4 +47,6 @@ LOAD_VEC_BRANCHES_T = 34
 LOAD_VEC_NODES_FROM_T = 35 # Slot for the load vector of the from nodes connected to branch
 LOAD_VEC_NODES_TO_T = 36 # Slot for the load vector of the to nodes connected to branch
 
-branch_cols = 37
+T_OUT_OLD = 37
+
+branch_cols = 38

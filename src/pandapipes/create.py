@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 from typing import Iterable
@@ -8,7 +8,8 @@ import pandas as pd
 from pandapower.auxiliary import _preserve_dtypes
 import warnings
 from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
-    _set_multiple_entries, _check_branch_element, _check_multiple_branch_elements
+    _check_element, _check_multiple_elements, _set_multiple_entries, \
+    _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
     CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, Compressor, MassStorage
@@ -20,6 +21,7 @@ from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, load_std_type
+from pandapipes.deprecations import deprecated_input, input_handler_valve
 
 try:
     import pandaplan.core.pplog as logging
@@ -534,17 +536,20 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     return index
 
 
-def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
+@deprecated_input(input_handler=input_handler_valve)
+def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
                  type='valve', **kwargs):
     """
     Creates a valve element in net["valve"] from valve parameters.
 
     :param net: The net for which this valve should be created
     :type net: pandapipesNet
-    :param from_junction: ID of the junction on one side which the valve will be connected with
-    :type from_junction: int
-    :param to_junction: ID of the junction on the other side which the valve will be connected with
-    :type to_junction: int
+    :param junction: ID of the junction on one side which the valve will be connected with
+    :type junction: int
+    :param element: ID of the element on the other side which the valve will be connected with
+    :type element: int
+    :param et: element type: "pi" = valve between junction and pipe, "ju" = valve between two junctions
+    :type et: str
     :param diameter_m: The valve diameter in [m]
     :type diameter_m: float
     :param opened: Flag to show if the valve is opened and allows for fluid flow or if it is closed\
@@ -565,15 +570,27 @@ def create_valve(net, from_junction, to_junction, diameter_m, opened=True, loss_
     :rtype: int
 
     :Example:
-        >>> create_valve(net, 0, 1, diameter_m=4e-3, name="valve1")
+        >>> create_valve(net, 0, 1, et="ju", diameter_m=4e-3, name="valve1")
 
     """
     add_new_component(net, Valve)
 
     index = _get_index_with_check(net, "valve", index)
-    _check_branch(net, "Valve", index, from_junction, to_junction)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "diameter_m": diameter_m,
+    _check_element(net, junction, element='junction')
+    if et == "pi":
+        elm_tab = 'pipe'
+        if element not in net[elm_tab].index:
+            raise UserWarning("Unknown pipe index")
+        if (not net[elm_tab]["from_junction"].loc[element] == junction and
+                not net[elm_tab]["to_junction"].loc[element] == junction):
+            raise UserWarning("Pipe %s not connected to junction %s" % (element, junction))
+    elif et == "ju":
+        _check_element(net, element, element='junction')
+    else:
+        raise UserWarning("Unknown element type")
+
+    v = {"name": name, "junction": junction, "element": element, "et": et, "diameter_m": diameter_m,
          "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
     _set_entries(net, "valve", index, **v, **kwargs)
 
@@ -755,6 +772,9 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
         >>>                                 t_flow_k=350, type="p")
 
     """
+    logger.info(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpPressure)
 
@@ -819,6 +839,9 @@ def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow
         >>>                                  t_flow_k=350, type="pt")
 
     """
+    logger.info(r"The circulation pump's behaviour has changed. Rather than setting a slack temperature node, "
+                r"the outlet temperature of the circulation pump is now fixed. In most cases this does not change, "
+                r"the outcome, but be aware of the adaptations!")
 
     add_new_component(net, CirculationPumpMass)
 
@@ -1134,6 +1157,8 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
         net.junction_geodata.loc[index, ["x", "y"]] = geodata
 
     return index
+
+
 
 
 def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='sink',
@@ -1452,21 +1477,23 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
         _add_multiple_branch_geodata(net, "pipe", geodata, index)
     return index
 
-
-def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
+@deprecated_input(input_handler=input_handler_valve, multiple=True)
+def create_valves(net, junctions, elements, et, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
                   type='valve', **kwargs):
     """
-    Convenience function for creating many valves at once. Parameters 'from_junctions' and \
-    'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
+    Convenience function for creating many valves at once. Parameters 'junctions' and \
+    'elements' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values.
 
     :param net: The net for which these valves should be created
     :type net: pandapipesNet
-    :param from_junctions: IDs of the junctions on one side which the valves will be connected to
-    :type from_junctions: Iterable(int)
-    :param to_junctions: IDs of the junctions on the other side to which the valves will be \
+    :param junctions: IDs of the junctions on one side which the valves will be connected to
+    :type junctions: Iterable(int)
+    :param elements: IDs of the elements on the other side to which the valves will be \
             connected to
-    :type to_junctions: Iterable(int)
+    :type elements: Iterable(int)
+    :param et: element type: "pi" = valves between junction and pipe, "ju" = valves between two junctions
+    :type et: Iterable(str) or str
     :param diameter_m: The valve diameters in [m]
     :type diameter_m: Iterable or float
     :param opened: Flag to show if the valves are opened and allow for fluid flow or if they are\
@@ -1487,17 +1514,49 @@ def create_valves(net, from_junctions, to_junctions, diameter_m, opened=True, lo
     :rtype: array(int)
 
     :Example:
-        >>> create_valves(net, from_junctions=[0, 1, 4], to_junctions=[1, 5, 6],
-        >>>               opened=[True, False, True], diameter_m=4e-3,
+        >>> create_valves(net, junctions=[0, 1, 4], elements=[1, 5, 6],
+        >>>               opened=[True, False, True], et="ju", diameter_m=4e-3,
         >>>               name=["valve_%d" for d in range(3)])
 
     """
     add_new_component(net, Valve)
 
-    index = _get_multiple_index_with_check(net, "valve", index, len(from_junctions))
-    _check_branches(net, from_junctions, to_junctions, "valve")
+    index = _get_multiple_index_with_check(net, "valve", index, len(junctions))
+    _check_multiple_elements(net, junctions, "junction")
+    rel_els = ['ju', 'pi']
+    matcher = {'ju': ['junction', 'junctions'], 'pi': ['pipe', 'pipes']}
+    for typ in rel_els:
+        if et == typ:
+            _check_multiple_elements(net, elements, *matcher[typ])
+    if np.any(np.isin(et, rel_els)):
+        mask_all = np.array([False] * len(et))
+        for typ in rel_els:
+            et_arr = np.array(et)
+            el_arr = np.array(elements)
+            mask = et_arr == typ
+            mask_all |= mask
+            _check_multiple_elements(net, el_arr[mask], *matcher[typ])
+        not_def = ~mask_all
+        if np.any(not_def):
+            raise UserWarning('et type %s is not implemented' % et_arr[not_def])
+    else:
+        raise UserWarning('et type %s is not implemented' %et)
 
-    entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions, "diameter_m": diameter_m,
+    b_arr = np.array(junctions)[:, None]
+    el_arr = np.array(elements)
+    et_arr = np.array([et] * len(junctions) if isinstance(et, str) else et)
+    # Ensure switches are connected correctly.
+    for typ, table, joining_busses in [("pi", "pipe", ["from_junction", "to_junction"])]:
+        el = el_arr[et_arr == typ]
+        bs = net[table].loc[el, joining_busses].values
+        not_connected_mask = ~np.isin(b_arr[et_arr == typ], bs)
+        if np.any(not_connected_mask):
+            bus_element_pairs = zip(el_arr[et_arr == typ][:, None][not_connected_mask].tolist(),
+                                     b_arr[et_arr == typ][not_connected_mask].tolist())
+            raise UserWarning("%s not connected (%s element, bus): %s" %
+                              (table.capitalize(), table, list(bus_element_pairs)))
+
+    entries = {"name": name, "junction": junctions, "element": elements, "et": et, "diameter_m": diameter_m,
                "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
     _set_multiple_entries(net, "valve", index, **entries, **kwargs)
 
@@ -1788,17 +1847,12 @@ def create_fluid_from_lib(net, name, overwrite=True):
     _add_fluid_to_net(net, call_lib(name), overwrite=overwrite)
 
 
-def _check_multiple_junction_elements(net, nodes, node_table="junction", name="junctions"):
-    if np.any(~np.isin(nodes, net[node_table].index.values)):
-        node_not_exist = set(nodes) - set(net[node_table].index.values)
-        raise UserWarning("Cannot attach to %s %s, they do not exist" % (name, node_not_exist))
-    # return _check_multiple_node_elements(net, junctions, node_table="junction", name="junctions")
+def _check_multiple_junction_elements(net, junctions):
+    return _check_multiple_elements(net, junctions, element="junction", name="junctions")
 
 
-def _check_junction_element(net, node, node_table="junction"):
-    if node not in net[node_table].index.values:
-        raise UserWarning("Cannot attach to %s %s, %s does not exist" % (node_table, node, node_table))
-    # return _check_node_element(net, junction, node_table="junction")
+def _check_junction_element(net, junction):
+    return _check_element(net, junction, element="junction")
 
 
 def _check_branch(net, element_name, index, from_junction, to_junction):

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -191,7 +191,8 @@ def get_net_params(net, stored_data):
     net_params["comp_factor"] = net_data.at[0, "KPAR"]
     net_params["friction_model"] = int(net_data.at[0, "LAM"])
     net_params["max_iterations"] = int(net_data.at[0, "IMAX"])
-    net_params["compress_model"] = compressibility_models[int(net_data.at[0, "KFAKT"])]
+    if "KFAKT" in net_data.columns:
+        net_params["compress_model"] = compressibility_models.get(int(net_data.at[0, "KFAKT"]), "linear")
     if net_params["friction_model"] not in known_friction_models.keys():
         known_str = " or ".join("%s (%d)" % (m_name.capitalize(), m_nr)
                                 for m_nr, m_name in known_friction_models.items())
