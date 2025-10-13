@@ -37,6 +37,7 @@ following documentation:
     components/storage/storage_component
     components/ext_grid/ext_grid_component
     components/heat_exchanger/heat_exchanger_component
+    components/heat_consumer/heat_consumer_component
     components/pump/pump_component
     components/circulation_pump_mass/circ_pump_mass_component
     components/circulation_pump_pressure/circ_pump_pressure_component
