@@ -76,7 +76,7 @@
     "pipe": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"alpha_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4],\"data\":[[\"pipe_K1030_K1031\",0,1,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015D67E94AEC23\",2.0603],[\"pipe_K1031_K1032\",1,2,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025D67E94D98F6\",2.1949],[\"pipe_K1036_K1037\",3,4,null,0.25,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035D67E967E7D7\",2.1391],[\"pipe_K1037_K1038\",4,5,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000045D67E9695EE6\",2.1949],[\"pipe_K1031_K1037\",1,4,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,5.0,\"LEI0000055D67E96E6CED\",-0.0402]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"u_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4],\"data\":[[\"pipe_K1030_K1031\",0,1,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015D67E94AEC23\",2.0603],[\"pipe_K1031_K1032\",1,2,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025D67E94D98F6\",2.1949],[\"pipe_K1036_K1037\",3,4,null,0.25,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035D67E967E7D7\",2.1391],[\"pipe_K1037_K1038\",4,5,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000045D67E9695EE6\",2.1949],[\"pipe_K1031_K1037\",1,4,null,0.5,0.04,0.1,2000.0,0.0,293.0,0.0,1,true,\"pipe\",null,5.0,\"LEI0000055D67E96E6CED\",-0.0402]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -87,7 +87,7 @@
         "diameter_m": "float64",
         "k_mm": "float64",
         "loss_coefficient": "float64",
-        "alpha_w_per_m2k": "float64",
+        "u_w_per_m2k": "float64",
         "text_k": "float64",
         "qext_w": "float64",
         "sections": "uint32",

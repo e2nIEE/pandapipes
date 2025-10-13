@@ -4,7 +4,7 @@ from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import (LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES,
                                    JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM_NODE,
                                    T_OUT_OLD,
-                                   FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, ALPHA, TL, QEXT,
+                                   FROM_NODE, TO_NODE, TOUTINIT, TEXT, AREA, U, TL, QEXT,
                                    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT_NODE,
                                    LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO,
                                    LOAD_VEC_NODES_FROM_T,
@@ -116,7 +116,7 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
     cp_n = fluid.get_heat_capacity(t_init_n)
     t_amb = branch_pit[:, TEXT]
     length = branch_pit[:, LENGTH]
-    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
+    u_overall = branch_pit[:, U] * np.pi * branch_pit[:, D]
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
     infeed_node = None
@@ -139,11 +139,11 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
         branch_pit[:, LOAD_VEC_BRANCHES_T] = (
                 rho * area * cp * (t_init_i1 - tvor) * (1 / delta_t) * length
                 + cp * m_init_i * (-t_init_i + t_init_i1 - tl)
-                - alpha * (t_amb - t_init_i1) * length + qext
+                - u_overall * (t_amb - t_init_i1) * length + qext
         )
 
         branch_pit[:, JAC_DERIV_DT] = - cp * m_init_i
-        branch_pit[:, JAC_DERIV_DTOUT] = rho * area * cp / delta_t * length + cp * m_init_i + alpha
+        branch_pit[:, JAC_DERIV_DTOUT] = rho * area * cp / delta_t * length + cp * m_init_i + u_overall
 
         branches_active_ht = get_lookup(net, "branch", "active_heat_transfer")
         branches_zero_fl = get_lookup(net, "branch", "zero_flow")[branches_active_ht]
@@ -154,11 +154,11 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
             if np.any(mask):
                 branch_pit[mask, LOAD_VEC_BRANCHES_T] = (
                         rho[mask] * area[mask] * cp[mask] * (t_init_i1[mask] - tvor[mask]) * (1 / delta_t)
-                        - alpha[mask] * (t_amb[mask] - t_init_i1[mask]) + qext[mask]
+                        - u_overall[mask] * (t_amb[mask] - t_init_i1[mask]) + qext[mask]
                 )
                 branch_pit[mask, JAC_DERIV_DT] = 0
                 branch_pit[mask, JAC_DERIV_DTOUT] = (rho[mask] * area[mask] * cp[mask] / delta_t +
-                                                     alpha[mask])
+                                                     u_overall[mask])
 
         nodes_active_ht = get_lookup(net, "node", "active_heat_transfer")
         nodes_zero_fl = get_lookup(net, "node", "zero_flow")[nodes_active_ht]
@@ -173,14 +173,14 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
 
             fn_eq = (rho[fn_zero] * area[fn_zero] * cp[fn_zero] * (1 / delta_t)
                      * (t_init_i[fn_zero] - t_from_node_vor_zero)
-                     - alpha[fn_zero] * (t_amb[fn_zero] - t_init_i[fn_zero]))
+                     - u_overall[fn_zero] * (t_amb[fn_zero] - t_init_i[fn_zero]))
 
             tn_eq = (rho[tn_zero] * area[tn_zero] * cp[tn_zero] * (1 / delta_t)
                      * (t_to_node - t_to_node_vor_zero)
-                     - alpha[tn_zero] * (t_amb[tn_zero] - t_to_node))
+                     - u_overall[tn_zero] * (t_amb[tn_zero] - t_to_node))
 
-            fn_deriv = (rho[fn_zero] * area[fn_zero] * cp[fn_zero] * (1 / delta_t) + alpha[fn_zero])
-            tn_deriv = (rho[tn_zero] * area[tn_zero] * cp[tn_zero] * (1 / delta_t) + alpha[tn_zero])
+            fn_deriv = (rho[fn_zero] * area[fn_zero] * cp[fn_zero] * (1 / delta_t) + u_overall[fn_zero])
+            tn_deriv = (rho[tn_zero] * area[tn_zero] * cp[tn_zero] * (1 / delta_t) + u_overall[tn_zero])
 
             fn_nodes, fn_eq_sum, fn_deriv_sum= _sum_by_group(
                 get_net_option(net, "use_numba"),
@@ -213,9 +213,9 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, _):
         t_m = (t_init_i1 + t_init_i) / 2
         m_m = (m_init_i + m_init_i1) / 2
 
-        branch_pit[:, JAC_DERIV_DT] = - cp * m_m + alpha / 2 * length
-        branch_pit[:, JAC_DERIV_DTOUT] = cp * m_m + alpha / 2 * length
-        branch_pit[:, LOAD_VEC_BRANCHES_T] = cp * m_m * (-t_init_i + t_init_i1 - tl) - alpha * (
+        branch_pit[:, JAC_DERIV_DT] = - cp * m_m + u_overall / 2 * length
+        branch_pit[:, JAC_DERIV_DTOUT] = cp * m_m + u_overall / 2 * length
+        branch_pit[:, LOAD_VEC_BRANCHES_T] = cp * m_m * (-t_init_i + t_init_i1 - tl) - u_overall * (
                     t_amb - t_m) * length + qext
 
     if infeed_node is None:

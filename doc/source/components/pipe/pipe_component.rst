@@ -209,7 +209,7 @@ The heat losses are described by
    :nowrap:
 
    \begin{align*}
-    Q_\text{loss} &= \alpha \cdot l \cdot \Pi \cdot d \cdot (T - T_\text{ext})\\
+    Q_\text{loss} &= u \cdot l \cdot \Pi \cdot d \cdot (T - T_\text{ext})\\
    \end{align*}
 
 

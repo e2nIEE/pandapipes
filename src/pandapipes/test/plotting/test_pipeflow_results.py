@@ -59,9 +59,9 @@ def test_results_gas_velocity_entries():
     pp.create_sink(net, junction=j3, mdot_kg_per_s=0.04, name="Sink")
     pp.create_sink(net, junction=j4, mdot_kg_per_s=0.05, name="Sink")
 
-    pp.create_pipe_from_parameters(net, j1, j2, 1, 75e-3, k_mm=.1, sections=3, alpha_w_per_m2k=5, text_k=293.15)
-    pp.create_pipe_from_parameters(net, j2, j3, 1, 60e-3, k_mm=.1, sections=4, alpha_w_per_m2k=5, text_k=293.15)
-    pp.create_pipe_from_parameters(net, j2, j4, 1, 60e-3, k_mm=.1, sections=6, alpha_w_per_m2k=5, text_k=293.15)
+    pp.create_pipe_from_parameters(net, j1, j2, 1, 75e-3, k_mm=.1, sections=3, u_w_per_m2k=5, text_k=293.15)
+    pp.create_pipe_from_parameters(net, j2, j3, 1, 60e-3, k_mm=.1, sections=4, u_w_per_m2k=5, text_k=293.15)
+    pp.create_pipe_from_parameters(net, j2, j4, 1, 60e-3, k_mm=.1, sections=6, u_w_per_m2k=5, text_k=293.15)
 
 
     pp.pipeflow(net)

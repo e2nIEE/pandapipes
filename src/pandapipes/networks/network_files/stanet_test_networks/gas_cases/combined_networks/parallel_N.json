@@ -76,7 +76,7 @@
     "pipe": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"alpha_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4,5,6],\"data\":[[\"pipe_D52_D53\",0,1,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015BCEE268F8DE\",0.3905],[\"pipe_D53_D54\",1,2,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025BCEE45351D2\",0.1504],[\"pipe_D54_D55\",2,3,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035BCEE456C6D4\",0.3915],[\"pipe_D55_D57\",3,4,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000055BCEE46160B7\",0.196],[\"pipe_D53_D54\",1,2,null,5.0,0.05,0.5,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,5.0,\"LEI0000065BCEE4677D71\",0.1257],[\"pipe_D53_D54\",1,2,null,5.0,0.05,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,6.0,\"LEI0000075BCEE46A4E5C\",0.115],[\"pipe_D55_D58\",3,5,null,5.0,0.05,0.5,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,7.0,\"LEI0000075BD2F1A6913F\",0.196]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"u_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"stanet_std_type\",\"stanet_nr\",\"stanet_id\",\"v_stanet\"],\"index\":[0,1,2,3,4,5,6],\"data\":[[\"pipe_D52_D53\",0,1,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,1.0,\"LEI0000015BCEE268F8DE\",0.3905],[\"pipe_D53_D54\",1,2,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,2.0,\"LEI0000025BCEE45351D2\",0.1504],[\"pipe_D54_D55\",2,3,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,3.0,\"LEI0000035BCEE456C6D4\",0.3915],[\"pipe_D55_D57\",3,4,null,5.0,0.05,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,4.0,\"LEI0000055BCEE46160B7\",0.196],[\"pipe_D53_D54\",1,2,null,5.0,0.05,0.5,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,5.0,\"LEI0000065BCEE4677D71\",0.1257],[\"pipe_D53_D54\",1,2,null,5.0,0.05,1.0,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,6.0,\"LEI0000075BCEE46A4E5C\",0.115],[\"pipe_D55_D58\",3,5,null,5.0,0.05,0.5,0.0,0.0,293.0,0.0,1,true,\"pipe\",null,7.0,\"LEI0000075BD2F1A6913F\",0.196]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -87,7 +87,7 @@
         "diameter_m": "float64",
         "k_mm": "float64",
         "loss_coefficient": "float64",
-        "alpha_w_per_m2k": "float64",
+        "u_w_per_m2k": "float64",
         "text_k": "float64",
         "qext_w": "float64",
         "sections": "uint32",

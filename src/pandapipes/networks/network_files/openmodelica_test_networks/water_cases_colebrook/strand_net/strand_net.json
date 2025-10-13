@@ -73,7 +73,7 @@
     "pipe": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"alpha_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"v_om\"],\"index\":[0,1,2,3,4,5,6,7],\"data\":[[null,0,1,null,0.01,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.177338588426757],[null,0,2,null,0.005,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.168761900103933],[null,1,3,null,10.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.188869669353686],[null,1,4,null,0.02,0.15,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.189319956296157],[null,2,5,null,8.4,0.5,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.015625699793446],[null,4,6,null,5.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.126969619562896],[null,5,7,null,0.5,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.126969152525411],[null,5,8,null,1.7,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.188867070532241]]}",
+      "_object": "{\"columns\":[\"name\",\"from_junction\",\"to_junction\",\"std_type\",\"length_km\",\"diameter_m\",\"k_mm\",\"loss_coefficient\",\"u_w_per_m2k\",\"text_k\",\"qext_w\",\"sections\",\"in_service\",\"type\",\"v_om\"],\"index\":[0,1,2,3,4,5,6,7],\"data\":[[null,0,1,null,0.01,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.177338588426757],[null,0,2,null,0.005,0.2,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.168761900103933],[null,1,3,null,10.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.188869669353686],[null,1,4,null,0.02,0.15,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.189319956296157],[null,2,5,null,8.4,0.5,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.015625699793446],[null,4,6,null,5.0,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.126969619562896],[null,5,7,null,0.5,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.126969152525411],[null,5,8,null,1.7,0.075,0.1,0.0,0.0,293.0,0.0,1,true,\"pipe\",0.188867070532241]]}",
       "orient": "split",
       "dtype": {
         "name": "object",
@@ -84,7 +84,7 @@
         "diameter_m": "float64",
         "k_mm": "float64",
         "loss_coefficient": "float64",
-        "alpha_w_per_m2k": "float64",
+        "u_w_per_m2k": "float64",
         "text_k": "float64",
         "qext_w": "float64",
         "sections": "uint32",
