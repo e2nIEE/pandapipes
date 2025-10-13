@@ -1480,9 +1480,9 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
         del kwargs["alpha_w_per_m2k"]
 
     if "qext_w" in kwargs:
-        warnings.warn("Due to the consideration of the ambient temperature, qext_w has "
-                      "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
-                      "of the heat transfer calculation", DeprecationWarning)
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has"
+                      " been removed as it was deemed ambiguous. This allows an improvement of the physical model"
+                      " of the heat transfer calculation", DeprecationWarning)
         del kwargs['qext_w']
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
