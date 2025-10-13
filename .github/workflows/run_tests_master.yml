@@ -75,7 +75,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv sync --extra test
+          uv sync --extra test --extra fileio
           uv pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
       - name: List all installed packages
         run: |
@@ -100,7 +100,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv sync --extra test --extra plotting
+          uv sync --extra test --extra plotting --extra fileio
       - name: List all installed packages
         run: |
           uv pip list
