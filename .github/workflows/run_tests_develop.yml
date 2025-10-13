@@ -65,7 +65,7 @@ jobs:
           python-version: 3.11
       - name: Install dependencies
         run: |
-          uv sync
+          uv sync --extra fileio
           uv pip install flake8
       - name: List all installed packages
         run: |

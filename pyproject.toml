@@ -60,6 +60,7 @@ all = [
     "plotly", "igraph",
     "pytest", "pytest-xdist", "pytest-split", "nbmake", "numba","setuptools; python_version >= '3.12'"
 ]
+fileio = ["pandapower[fileio]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
