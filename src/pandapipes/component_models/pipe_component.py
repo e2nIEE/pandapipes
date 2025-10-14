@@ -273,7 +273,7 @@ class Pipe(BranchWInternalsComponent):
         """
         return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("std_type", dtype(object)),
                 ("length_km", "f8"), ("diameter_m", "f8"), ("k_mm", "f8"), ("loss_coefficient", "f8"),
-                ("u_w_per_m2k", 'f8'), ("text_k", 'f8'), ("qext_w", 'f8'), ("sections", "u4"), ("in_service", 'bool'),
+                ("u_w_per_m2k", 'f8'), ("text_k", 'f8'), ("sections", "u4"), ("in_service", 'bool'),
                 ("type", dtype(object))]
 
     @classmethod
