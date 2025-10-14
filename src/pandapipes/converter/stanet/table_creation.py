@@ -479,7 +479,11 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         drop_eg = net.ext_grid.loc[net.ext_grid.junction.isin(to_junctions[is_pc])].index
         net.ext_grid.drop(drop_eg, inplace=True)
         net.junction.loc[to_junctions[is_pc], "pn_bar"] = np.nan
-        pandapipes.reindex_elements(net, "ext_grid", np.arange(len(net.ext_grid)))
+        pandapipes.reindex_elements(
+            net,
+            "ext_grid",
+            dict(zip(net.ext_grid.index, np.arange(len(net.ext_grid))))
+        )
 
     if np.any(is_fc):
         logger.info("Creating flow controllers.")
