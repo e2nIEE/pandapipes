@@ -1,8 +1,21 @@
 import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.idx_branch import (QEXT, ELEMENT_IDX, FROM_NODE, TO_NODE, MDOTINIT, RE, LAMBDA, PL,
-                                   TOUTINIT, AREA, TEXT, LOSS_COEFFICIENT as LC)
+from pandapipes.idx_branch import (
+    QEXT,
+    ELEMENT_IDX,
+    FROM_NODE,
+    TO_NODE,
+    MDOTINIT,
+    RE,
+    LAMBDA,
+    PL,
+    TOUTINIT,
+    AREA,
+    TEXT,
+    LOSS_COEFFICIENT as LC,
+    FROM_NODE_T_SWITCHED,
+)
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
@@ -82,9 +95,10 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
                        / (p_abs_from[mask] ** 2 - p_abs_to[mask] ** 2)
 
     fluid = get_fluid(net)
-    # TODO: this is only allowed without temperature calculation (assumed for gases)
+    switched_t = branch_pit[:, FROM_NODE_T_SWITCHED].astype(np.bool_)
     t_from = node_pit[from_nodes, TINIT_NODE]
-    t_to = node_pit[to_nodes, TINIT_NODE]
+    t_from[switched_t] = node_pit[to_nodes[switched_t], TINIT_NODE]
+    t_to = branch_pit[:, TOUTINIT]
     tm = (t_from + t_to) / 2
     numerator_from = NORMAL_PRESSURE * t_from / NORMAL_TEMPERATURE
     numerator_to = NORMAL_PRESSURE * t_to / NORMAL_TEMPERATURE
@@ -110,9 +124,10 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
     fluid = get_fluid(net)
     args_from, args_to, args_mean = [p_abs_from], [p_abs_to], [p_abs_mean]
     if hasattr(fluid.all_properties["compressibility"], "allow_2d"):
-        # TODO: this is only allowed without temperature calculation
+        switched_t = branch_pit[:, FROM_NODE_T_SWITCHED].astype(np.bool_)
         t_from = node_pit[from_nodes, TINIT_NODE]
-        t_to = node_pit[to_nodes, TINIT_NODE]
+        t_from[switched_t] = node_pit[to_nodes[switched_t], TINIT_NODE]
+        t_to = branch_pit[:, TOUTINIT]
         args_from.append(t_from)
         args_to.append(t_to)
         args_mean.append((t_from + t_to) / 2)

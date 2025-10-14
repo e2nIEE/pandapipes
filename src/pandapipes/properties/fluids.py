@@ -120,7 +120,7 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("density", temperature)
 
-    def get_viscosity(self, temperature, p_bar):
+    def get_viscosity(self, temperature, p_bar=None):
         """
         This function returns the viscosity at a certain temperature.
 
