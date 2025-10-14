@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapipes.component_models.abstract_models.base_component import Component
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -66,5 +67,19 @@ class NodeComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
+        """
+        Class method to extract pipeflow results from the internal structure into the results table.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
+        :return: No Output.
+        :rtype: None
+        """
         raise NotImplementedError

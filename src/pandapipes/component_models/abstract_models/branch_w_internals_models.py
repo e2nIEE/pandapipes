@@ -9,6 +9,7 @@ from pandapipes.component_models.component_toolbox import set_entry_check_repeat
 from pandapipes.idx_branch import ACTIVE, ELEMENT_IDX, D, LOSS_COEFFICIENT as LC, AREA
 from pandapipes.idx_node import L, node_cols
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number, get_net_option
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -193,7 +194,21 @@ class BranchWInternalsComponent(BranchComponent):
         return branch_w_internals_pit, node_pit
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
+        """
+        Class method to extract pipeflow results from the internal structure into the results table.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
+        :return: No Output.
+        :rtype: None
+        """
         raise NotImplementedError
 
     @classmethod

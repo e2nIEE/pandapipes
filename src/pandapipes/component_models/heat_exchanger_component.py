@@ -12,6 +12,7 @@ from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.enums import SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -56,7 +57,7 @@ class HeatExchanger(BranchWOInternalsComponent):
         heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
         Class method to extract pipeflow results from the internal structure into the results table.
 
@@ -66,15 +67,15 @@ class HeatExchanger(BranchWOInternalsComponent):
         :type options: dict
         :param branch_results: important branch results
         :type branch_results: dict
-        :param mode: simulation mode
-        :type mode: str
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
         :return: No Output.
         :rtype: None
         """
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
-                                                 required_results_ht, cls.table_name(), mode)
+                                                 required_results_ht, cls.table_name(), sim_mode)
 
     @classmethod
     def get_component_input(cls):

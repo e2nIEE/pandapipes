@@ -16,6 +16,7 @@ from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.properties_toolbox import get_branch_cp
+from pandapipes.enums import SimMode, PhysDomain
 
 try:
     import pandaplan.core.pplog as logging
@@ -181,7 +182,7 @@ class HeatConsumer(BranchWOInternalsComponent):
     def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
         f, t = idx_lookups[cls.table_name()]
         hc_pit = branch_pit[f:t, :]
-        consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
+        consumer_array = get_component_array(net, cls.table_name(), domain=PhysDomain.HEAT)
         mask = consumer_array[:, cls.MODE] == cls.MF_DT
         if np.any(mask):
             cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
@@ -201,7 +202,7 @@ class HeatConsumer(BranchWOInternalsComponent):
     def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
         f, t = idx_lookups[cls.table_name()]
         hc_pit = branch_pit[f:t, :]
-        consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
+        consumer_array = get_component_array(net, cls.table_name(), domain=PhysDomain.HEAT)
 
         mask= consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask):
@@ -247,24 +248,25 @@ class HeatConsumer(BranchWOInternalsComponent):
         return output, True
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
+        Class method to extract pipeflow results from the internal structure into the results table.
 
-        :param net:
-        :type net:
-        :param options:
-        :type options:
-        :param branch_results:
-        :type branch_results:
-        :param mode:
-        :type mode:
-        :return:
-        :rtype:
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
+        :return: No Output.
+        :rtype: None
         """
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-            cls.table_name(), mode)
+            cls.table_name(), sim_mode)
 
         node_pit = net['_pit']['node']
         branch_pit = net['_pit']['branch']

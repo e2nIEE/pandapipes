@@ -18,6 +18,7 @@ from pandapipes.pf.pipeflow_setup import (
     check_infeed_number, PipeflowNotConverged
 )
 from pandapipes.pf.result_extraction import extract_all_results, extract_results_active_pit
+from pandapipes.enums import PhysDomain, SimMode
 
 try:
     import pandaplan.core.pplog as logging
@@ -63,7 +64,6 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     # Init physical constants and options
     init_options(net, **kwargs)
-    calculation_mode = get_net_option(net, "mode")
 
     # init result tables
     net.converged = False
@@ -72,10 +72,10 @@ def pipeflow(net, sol_vec=None, **kwargs):
     create_lookups(net)
     initialize_pit(net)
 
-    calculation_mode = get_net_option(net, "mode")
-    calculate_hydraulics = calculation_mode in ["hydraulics", 'sequential']
-    calculate_heat = calculation_mode in ["heat", 'sequential']
-    calculate_bidrect = calculation_mode == "bidirectional"
+    sim_mode = SimMode(get_net_option(net, "sim_mode"))
+    calculate_hydraulics = sim_mode in {SimMode.HYD, SimMode.SEQ}
+    calculate_heat = sim_mode in {SimMode.HEAT, SimMode.SEQ}
+    calculate_bidirect = sim_mode == SimMode.BIDIR
 
 
     # TODO: This is not necessary in every time step, but we need the result! The result of the
@@ -84,12 +84,12 @@ def pipeflow(net, sol_vec=None, **kwargs):
     # determine the active node/branch heat transfer lookup
     identify_active_nodes_branches(net)
 
-    if calculation_mode == 'heat':
+    if sim_mode == SimMode.HEAT:
         use_given_hydraulic_results(net, sol_vec)
 
-    if not (calculate_hydraulics | calculate_heat | calculate_bidrect):
+    if not (calculate_hydraulics | calculate_heat | calculate_bidirect):
         raise UserWarning("No proper calculation mode chosen.")
-    elif calculate_bidrect:
+    elif calculate_bidirect:
         bidirectional(net)
     else:
         if calculate_hydraulics:
@@ -97,7 +97,7 @@ def pipeflow(net, sol_vec=None, **kwargs):
         if calculate_heat:
             heat_transfer(net)
 
-    extract_all_results(net, calculation_mode)
+    extract_all_results(net, sim_mode)
 
 
 def use_given_hydraulic_results(net, sol_vec):
@@ -112,7 +112,25 @@ def use_given_hydraulic_results(net, sol_vec):
         branch_pit[:, MDOTINIT] = sol_vec[len(node_pit):]
 
 
-def newton_raphson(net, funct, mode, solver_vars, tols, pit_names, iter_name):
+def newton_raphson(net, funct, sim_mode: SimMode, solver_vars, tols, pit_names, iter_name):
+    """
+    :param net: A pandapipes net
+    :type net: pandapipesNet
+    :param funct:
+    :type funct:
+    :param sim_mode: Simulation mode for the pipeflow
+    :type sim_mode: SimMode
+    :param solver_vars:
+    :type solver_vars:
+    :param tols:
+    :type tols:
+    :param pit_names:
+    :type pit_names:
+    :param iter_name:
+    :type iter_name:
+    :return: No output.
+    :rtype: None
+    """
     max_iter, nonlinear_method, tol_res = get_net_options(
         net, iter_name, "nonlinear_method", "tol_res"
     )
@@ -156,10 +174,10 @@ def newton_raphson(net, funct, mode, solver_vars, tols, pit_names, iter_name):
         niter += 1
     write_internal_results(net, **errors)
     kwargs = dict()
-    kwargs['residual_norm_%s' % mode] = residual_norm
-    kwargs['iterations_%s' % mode] = niter
+    kwargs['residual_norm_%s' % sim_mode] = residual_norm
+    kwargs['iterations_%s' % sim_mode] = niter
     write_internal_results(net, **kwargs)
-    log_final_results(net, mode, niter, residual_norm, solver_vars, tols)
+    log_final_results(net, sim_mode, niter, residual_norm, solver_vars, tols)
 
 
 def bidirectional(net):
@@ -169,7 +187,7 @@ def bidirectional(net):
     solver_vars = ['mdot', 'p', 'TOUT', 'T']
     tol_m, tol_p, tol_temp = get_net_options(net, 'tol_m', 'tol_p', 'tol_T')
     newton_raphson(
-        net, solve_bidirectional, 'bidirectional', solver_vars, [tol_m, tol_p, tol_temp, tol_temp],
+        net, solve_bidirectional, SimMode.BIDIR, solver_vars, [tol_m, tol_p, tol_temp, tol_temp],
         ['branch', 'node', 'branch', 'node'], 'max_iter_bidirect'
     )
     if net.converged:
@@ -184,12 +202,12 @@ def hydraulics(net):
     # Start of nonlinear loop
     # ---------------------------------------------------------------------------------------------
     net.converged = False
-    reduce_pit(net, mode="hydraulics")
+    reduce_pit(net, domain=PhysDomain.HYD)
     if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
         net["_internal_data"] = dict()
     solver_vars = ['mdot', 'p', 'mdotslack']
     tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
-    newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p, tol_msl],
+    newton_raphson(net, solve_hydraulics, SimMode.HYD, solver_vars, [tol_m, tol_p, tol_msl],
                    ['branch', 'node', 'node'], 'max_iter_hyd')
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
@@ -200,7 +218,7 @@ def hydraulics(net):
     if not net.converged:
         msg = "The hydraulic calculation did not converge to a solution."
         raise PipeflowNotConverged(msg)
-    extract_results_active_pit(net, mode="hydraulics")
+    extract_results_active_pit(net, domain=PhysDomain.HYD)
 
 
 def heat_transfer(net):
@@ -208,28 +226,28 @@ def heat_transfer(net):
     # ---------------------------------------------------------------------------------------------
     net.converged = False
     identify_active_nodes_branches(net, False)
-    reduce_pit(net, mode="heat_transfer")
+    reduce_pit(net, domain=PhysDomain.HEAT)
     if net.fluid.is_gas:
         logger.info("Caution! Temperature calculation does currently not affect hydraulic "
                     "properties!")
     solver_vars = ['Tout', 'T']
     tol_temp = next(get_net_options(net, 'tol_T'))
-    newton_raphson(net, solve_temperature, 'heat', solver_vars, [tol_temp, tol_temp], ['branch', 'node'],
+    newton_raphson(net, solve_temperature, SimMode.HEAT, solver_vars, [tol_temp, tol_temp], ['branch', 'node'],
                    'max_iter_therm')
     if not net.converged:
         msg = "The heat transfer calculation did not converge to a solution."
         raise PipeflowNotConverged(msg)
-    extract_results_active_pit(net, mode="heat_transfer")
+    extract_results_active_pit(net, domain=PhysDomain.HEAT)
 
 
 def solve_bidirectional(net):
-    reduce_pit(net, mode="hydraulics")
+    reduce_pit(net, domain=PhysDomain.HYD)
     res_hyd, residual_hyd = solve_hydraulics(net)
-    extract_results_active_pit(net, mode="hydraulics")
+    extract_results_active_pit(net, domain=PhysDomain.HYD)
     identify_active_nodes_branches(net, False)
-    reduce_pit(net, mode="heat_transfer")
+    reduce_pit(net, domain=PhysDomain.HEAT)
     res_heat, residual_heat = solve_temperature(net)
-    extract_results_active_pit(net, mode="heat_transfer")
+    extract_results_active_pit(net, domain=PhysDomain.HEAT)
     residual = np.concatenate([residual_hyd, residual_heat])
     res = res_hyd + res_heat
     return res, residual

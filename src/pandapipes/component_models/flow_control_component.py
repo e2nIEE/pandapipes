@@ -13,6 +13,7 @@ from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import (JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, MDOTINIT, LOAD_VEC_BRANCHES,
                                    FLOW_RETURN_CONNECT)
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.enums import SimMode
 
 
 class FlowControlComponent(BranchWOInternalsComponent):
@@ -86,11 +87,25 @@ class FlowControlComponent(BranchWOInternalsComponent):
         fc_branch_pit[active, LOAD_VEC_BRANCHES] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
+        """
+        Class method to extract pipeflow results from the internal structure into the results table.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
+        :return: No Output.
+        :rtype: None
+        """
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
-                                                 required_results_ht, cls.table_name(), mode)
+                                                 required_results_ht, cls.table_name(), sim_mode)
 
     @classmethod
     def get_component_input(cls):

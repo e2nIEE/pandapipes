@@ -15,6 +15,7 @@ from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.enums import SimMode
 
 
 class PressureControlComponent(BranchWOInternalsComponent):
@@ -79,25 +80,25 @@ class PressureControlComponent(BranchWOInternalsComponent):
         press_pit[pc_branch, JAC_DERIV_DM] = 0
 
     @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
+    def extract_results(cls, net, options, branch_results, sim_mode: SimMode):
         """
-        Function that extracts certain results.
+        Class method to extract pipeflow results from the internal structure into the results table.
 
-        :param mode:
-        :type mode:
-        :param branch_results:
-        :type branch_results:
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param options:
-        :type options:
+        :param options: pipeflow options
+        :type options: dict
+        :param branch_results: important branch results
+        :type branch_results: dict
+        :param sim_mode: Simulation mode determining which results to extract.
+        :type sim_mode: SimMode
         :return: No Output.
+        :rtype: None
         """
-
         required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
-                                                 required_results_ht, cls.table_name(), mode)
+                                                 required_results_ht, cls.table_name(), sim_mode)
 
         res_table = net["res_" + cls.table_name()]
         f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
