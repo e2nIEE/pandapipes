@@ -1459,7 +1459,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     _check_std_type(net, std_type, "pipe", "create_pipes")
 
     if "qext_w" in kwargs:
-        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has "
                       "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
                       "of the heat transfer calculation")
         del kwargs['qext_w']
