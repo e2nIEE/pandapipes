@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: uv sync --extra test --extra fileio
+        run: uv sync --extra test
       - name: List all installed packages
         run: |
           uv pip list
@@ -65,7 +65,7 @@ jobs:
           python-version: 3.11
       - name: Install dependencies
         run: |
-          uv sync --extra fileio
+          uv sync
           uv pip install flake8
       - name: List all installed packages
         run: |
