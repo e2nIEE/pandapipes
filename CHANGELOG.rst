@@ -6,6 +6,7 @@ Change Log
 - [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
 - [ADDED] tutorial for combining the DHNx package and pandapipes
 - [CHANGED] Improve readability of setting pipeflow options
+- [FIXED] Default compressibility model in STANET converter now set to "linear" to avoid Exceptions
 - [CHANGED] Colebrook-White friction model now uses scipy.optimize.newton for solving the equation
 - [CHANGED] Fluid properties compressibility and viscosity can now process pressure and temperature as inputs, if given the "allow_2d" attribute
 
