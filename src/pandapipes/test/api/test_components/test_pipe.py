@@ -102,11 +102,7 @@ def test_pipe_sections_temperature(use_numba):
     pandapipes.create_fluid_from_lib(net, "water")
 
     net2 = copy.deepcopy(net)
-    net3 = copy.deepcopy(net)
     net2.pipe.sections = 100
-    net4 = copy.deepcopy(net2)
-    net4.pipe.qext_w = 10000
-    net3.pipe.qext_w = 10000
 
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 3 if use_numba else 3
@@ -118,8 +114,13 @@ def test_pipe_sections_temperature(use_numba):
     }
     pandapipes.pipeflow(net, **pf_args)
     pandapipes.pipeflow(net2, **pf_args)
-    pandapipes.pipeflow(net3, **pf_args)
-    pandapipes.pipeflow(net4, **pf_args)
+
+    assert np.allclose(
+        net.res_junction.p_bar.to_numpy(), net2.res_junction.p_bar.to_numpy(), rtol=1e-4, atol=1e-5
+    )
+    assert np.allclose(
+        net.res_junction.t_k.to_numpy(), net2.res_junction.t_k.to_numpy(), rtol=1e-3, atol=1e-3
+    )
 
 
 @pytest.fixture
