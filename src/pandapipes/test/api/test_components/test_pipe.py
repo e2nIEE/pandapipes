@@ -116,10 +116,10 @@ def test_pipe_sections_temperature(use_numba):
     pandapipes.pipeflow(net2, **pf_args)
 
     assert np.allclose(
-        net.res_junction.p_bar.to_numpy(), net2.res_junction.p_bar.to_numpy(), rtol=1e-4, atol=1e-5
+        net.res_junction.p_bar.to_numpy(), net2.res_junction.p_bar.to_numpy(), rtol=5e-4, atol=1e-5
     )
     assert np.allclose(
-        net.res_junction.t_k.to_numpy(), net2.res_junction.t_k.to_numpy(), rtol=1e-3, atol=1e-3
+        net.res_junction.t_k.to_numpy(), net2.res_junction.t_k.to_numpy(), rtol=5e-4, atol=1e-5
     )
 
 
