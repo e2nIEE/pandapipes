@@ -6,6 +6,7 @@ Change Log
 - [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
 - [ADDED] tutorial for combining the DHNx package and pandapipes
 - [CHANGED] Improve readability of setting pipeflow options
+- [FIXED] Default compressibility model in STANET converter now set to "linear" to avoid Exceptions
 
 [0.12.0] - 2025-06-27
 -------------------------------
