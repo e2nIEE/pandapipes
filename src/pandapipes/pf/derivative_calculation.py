@@ -401,15 +401,6 @@ def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths):
         return -1 / 2 * lambda_cb ** (-3 / 2) - (2.51 / re_nz) * lambda_cb ** (-3 / 2) \
                         / (np.log(10) * (2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz)))
 
-    # def cw_derivative_2(lambda_cb, re_nz, k_nz, d_nz):
-    #     c = 2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz)
-    #     b = 2.51 / re_nz
-    #     return 3 / 4 * lambda_cb ** (-5 / 2) - (
-    #             b * (np.log(10) * c * (- 3 / 2 * lambda_cb ** (- 5 / 2))
-    #                  + lambda_cb ** (-3 / 2) * np.log(10) * b / (2 * lambda_cb ** (3 / 2)))
-    #             / (np.log(10) * c) ** 2
-    #     )
-
     mask = ~np.isclose(re, 0) & ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)
     lambda_res = lambda_nikuradse
 
