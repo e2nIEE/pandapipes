@@ -27,6 +27,10 @@ from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, \
     get_branch_cp
 from scipy.optimize import newton
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
