@@ -9,6 +9,7 @@ Change Log
 - [FIXED] Default compressibility model in STANET converter now set to "linear" to avoid Exceptions
 - [CHANGED] Colebrook-White friction model now uses scipy.optimize.newton for solving the equation
 - [CHANGED] Fluid properties compressibility and viscosity can now process pressure and temperature as inputs, if given the "allow_2d" attribute
+- [CHANGED] Temperature change along pipes now based on exponential function and does not use qext_w anymore
 
 [0.12.0] - 2025-06-27
 -------------------------------
