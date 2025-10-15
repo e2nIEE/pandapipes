@@ -10,7 +10,7 @@ from pandapipes.component_models.abstract_models import BranchWInternalsComponen
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat, vinterp, p_correction_height_air
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, MDOTINIT, ALPHA, QEXT, TEXT, TOUTINIT, \
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, MDOTINIT, ALPHA, TEXT, TOUTINIT, \
     T_OUT_OLD
 from pandapipes.idx_node import (TINIT as TINIT_NODE, HEIGHT, PINIT, PAMB, ACTIVE as ACTIVE_ND, TINIT_OLD, )
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option
@@ -144,7 +144,6 @@ class Pipe(BranchWInternalsComponent):
                 internal_pipe_number, has_internals)
             set_entry_check_repeat(pipe_pit, K, net[tbl].k_mm.values / 1000, internal_pipe_number, has_internals)
             set_entry_check_repeat(pipe_pit, ALPHA, net[tbl].u_w_per_m2k.values, internal_pipe_number, has_internals)
-            set_entry_check_repeat(pipe_pit, QEXT, net[tbl].qext_w.values, internal_pipe_number, has_internals)
             set_entry_check_repeat(pipe_pit, TEXT, net[tbl].text_k.values, internal_pipe_number, has_internals)
             nan_mask = np.isnan(pipe_pit[:, TEXT])
             pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
@@ -274,7 +273,7 @@ class Pipe(BranchWInternalsComponent):
         """
         return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("std_type", dtype(object)),
                 ("length_km", "f8"), ("diameter_m", "f8"), ("k_mm", "f8"), ("loss_coefficient", "f8"),
-                ("u_w_per_m2k", 'f8'), ("text_k", 'f8'), ("qext_w", 'f8'), ("sections", "u4"), ("in_service", 'bool'),
+                ("u_w_per_m2k", 'f8'), ("text_k", 'f8'), ("sections", "u4"), ("in_service", 'bool'),
                 ("type", dtype(object))]
 
     @classmethod
