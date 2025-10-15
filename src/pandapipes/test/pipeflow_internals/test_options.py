@@ -82,7 +82,7 @@ def test_iter(create_test_net, use_numba):
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 3 if use_numba else 3
 
-    pandapipes.set_user_pf_options(net, iter=2)
+    pandapipes.set_user_pf_options(net, iter=2, use_numba=use_numba, tol_T=1e-4)
 
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, mode='sequential')
