@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: uv sync --extra test
+        run: uv sync --extra test --extra fileio
       - name: List all installed packages
         run: |
           uv pip list
@@ -94,7 +94,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv sync --extra test --extra plotting
+          uv sync --all-extras
       - name: List all installed packages
         run: |
           uv pip list
