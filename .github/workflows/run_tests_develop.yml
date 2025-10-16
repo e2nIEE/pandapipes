@@ -94,13 +94,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv sync --all-extras
+          uv sync --extra all
       - name: List all installed packages
         run: |
           uv pip list
       - name: Test with pytest
         run: |
-          uv sync --extra test --extra plotting
+          uv sync --extra test --extra plotting --extra fileio
           uv run pytest --nbmake -n auto "./tutorials"
       - name: Test without numba
         if: ${{ matrix.python-version == '3.11' }}
