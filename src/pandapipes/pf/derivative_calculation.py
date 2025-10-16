@@ -310,7 +310,10 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         # TODO: move this import to top level if possible
         from pandapipes.pipeflow import PipeflowNotConverged
         max_iter = options.get("max_iter_colebrook", 100)
-        converged, lambda_colebrook = colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths)
+        tolerance = options.get("tolerance_colebrook", 1e-4)
+        converged, lambda_colebrook = colebrook_white(
+            re, d, k, lambda_nikuradse, max_iter, lengths, tolerance
+        )
         if not converged:
             raise PipeflowNotConverged(
                 "The Colebrook-White algorithm did not converge. There might be model "
@@ -384,7 +387,8 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area, re, lengths
         return lambda_der
 
 
-def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths):
+def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths,
+                    tolerance=1e-4):
     """
     Function calculates the friction factor of a pipe using the Colebrook-White equation. It is an
     implicit equation which is solved using the Newton-Raphson method. For pipes with zero flow or
@@ -403,6 +407,8 @@ def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths):
     :type max_iter: int
     :param lengths: Length of the pipes [m] - only used to identify zero-length pipes
     :type lengths: np.array
+    :param tolerance: Tolerance for the Colebrook-White calculation
+    :type tolerance: float
     :return: lambda_cb, converged
     1. lambda_cb: Friction factor according to Colebrook-White
     2. converged: True, if the Colebrook-White calculation converged for all pipes
@@ -419,7 +425,7 @@ def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths):
     lambda_res = lambda_nikuradse
 
     res = newton(colebrook_white_implicit, lambda_res[mask],
-                 maxiter=max_iter, args=(re[mask], k[mask], d[mask]), tol=1e-4, full_output=True,
+                 maxiter=max_iter, args=(re[mask], k[mask], d[mask]), tol=tolerance, full_output=True,
                  fprime=cw_derivative)  # , fprime2=cw_derivative_2)
 
     if lambda_res[mask].size == 1:
