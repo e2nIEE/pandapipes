@@ -137,7 +137,7 @@ class Valve(BranchWInternalsComponent):
             valve_pit[:, TO_NODE] = to_nodes
             valve_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
             valve_pit[:, LENGTH] = 0
-            valve_pit[:, K] = 1000
+            valve_pit[:, K] = 1e-3
             valve_pit[:, TEXT] = 293.15
             valve_pit[:, ALPHA] = 0
 
