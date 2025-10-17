@@ -4,6 +4,11 @@ Change Log
 [upcoming release] - 2025-..-..
 -------------------------------
 - [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
+- [ADDED] mapbox_plot module for visualizing networks using Mapbox
+- [ADDED] colormaps.py (adapted from pandapower) to enable future colormap support for plotting
+- [ADDED] mapbox_plotting tutorial notebook demonstrating new Mapbox-based visualization
+- [CHANGED] simple_plot extended to accept Mapbox-related parameters
+- [ADDED] test_mapbox.py with unit tests for Mapbox-based plotting functionality
 - [ADDED] tutorial for combining the DHNx package and pandapipes
 - [CHANGED] Improve readability of setting pipeflow options
 - [FIXED] Default compressibility model in STANET converter now set to "linear" to avoid Exceptions

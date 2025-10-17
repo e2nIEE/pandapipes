@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from itertools import chain
-
+import plotly.io as pio
 import matplotlib.pyplot as plt
 from pandapower.plotting import draw_collections
 
@@ -32,84 +32,61 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                 heat_consumer_size=1.0, scale_size=True, junction_color="r", pipe_color='silver',
                 ext_grid_color='orange', valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
                 pressure_control_color='silver', compressor_color='silver', flow_control_color='silver',
-                heat_consumer_color='silver',library="igraph", show_plot=True, ax=None, **kwargs):
+                heat_consumer_color='silver', library="igraph", show_plot=True, ax=None,
+                use_mapbox=False, mapbox_access_token=None, map_style="streets", zoom=10,
+                # New parameters for pipe temperature-based coloring:
+                pipe_temperature_coloring=False, pipe_temperature_field="t_to_k",
+                show_colorbar=False, pipe_temperature_colorscale=[[0, "blue"], [1, "red"]],
+                renderer='browser',  # Add renderer parameter with browser default
+                **kwargs):
     """
     Plots a pandapipes network as simple as possible. If no geodata is available, artificial
-    geodata is generated. For advanced plotting see
-    the `tutorial <https://github.com/e2nIEE/pandapipes/blob/master/tutorials/simple_plot.ipynb>`_.
-
-    :param net: The pandapipes format network.
-    :type net: pandapipesNet
-    :param respect_valves: Respect valves if artificial geodata is created. \
-            Note: This Flag is ignored if plot_line_switches is True
-    :type respect_valves: bool default False
-    :param respect_in_service: Respect only components which are in service.
-    :type respect_in_service: bool default True
-    :param pipe_width: Width of pipes
-    :type pipe_width: float, default 5.0
-    :param junction_size: Relative size of junctions to plot. The value junction_size is multiplied\
-            with mean_distance_between_buses, which equals the distance between the max geoocord\
-            and the min divided by 200
-    :type junction_size: float, default 1.0
-    :param ext_grid_size: Relative size of ext_grids to plot. See bus sizes for details. Note: \
-            ext_grids are plottet as rectangles
-    :type ext_grid_size: float, default 1.0
-    :param plot_sinks: Flag to decide whether sink symbols should be drawn.
-    :type plot_sinks: bool, default False
-    :param plot_sources: Flag to decide whether source symbols should be drawn.
-    :type plot_sources: bool, default False
-    :param sink_size: Relative size of sinks to plot.
-    :type sink_size: float, default 1.0
-    :param source_size: Relative size of sources to plot.
-    :type source_size: float, default 1.0
-    :param valve_size: Relative size of valves to plot.
-    :type valve_size: float, default 1.0
-    :param pump_size: Relative size of pumps to plot.
-    :type pump_size: float, default 1.0
-    :param heat_exchanger_size: Relative size of heat_exchanger to plot.
-    :type heat_exchanger_size: float, default 1.0
-    :param pressure_control_size: Relative size of pres_control to plot.
-    :type pressure_control_size: float, default 1.0
-    :param compressor_size: Relative size of compressor to plot.
-    :type compressor_size: float, default 1.0
-    :param flow_control_size: Relative size of flow_control to plot.
-    :type flow_control_size: float, default 1.0
-    :param heat_consumer_size: Relative size of heat_consumer to plot.
-    :type heat_consumer_size: float, default 1.0
-    :param scale_size: Flag if junction_size, ext_grid_size, valve_size- and distance will be \
-            scaled with respect to grid mean distances
-    :type scale_size: bool, default True
-    :param junction_color: Junction Color. See also matplotlib or seaborn documentation on how to\
-            choose colors.
-    :type junction_color: str, tuple, default "r"
-    :param pipe_color: Pipe color
-    :type pipe_color: str, tuple, default "silver"
-    :param ext_grid_color: External grid color
-    :type ext_grid_color: str, tuple, default "orange"
-    :param valve_color: Valve Color.
-    :type valve_color: str, tuple, default "silver"
-    :param pump_color: Pump Color.
-    :type pump_color: str, tuple, default "silver"
-    :param heat_exchanger_color: Heat Exchanger Color.
-    :type heat_exchanger_color: str, tuple, default "silver"
-    :param pressure_control_color: Pressure Control Color.
-    :type pressure_control_color: str, tuple, default "silver"
-    :param compressor_color: Compressor Color.
-    :type compressor_color: str, tuple, default "silver"
-    :param flow_control_color: Flow Control Color.
-    :type flow_control_color: str, tuple, default "silver"
-    :param heat_consumer_color: heat_consumer Color.
-    :type heat_consumer_color: str, tuple, default "silver"
-    :param library: Library name to create generic coordinates (case of missing geodata). Choose\
-            "igraph" to use igraph package or "networkx" to use networkx package.
-    :type library: str, default "igraph"
-    :param show_plot: If True, show plot at the end of plotting
-    :type show_plot: bool, default True
-    :param ax: matplotlib axis to plot to
-    :type ax: object, default None
-    :return: ax - Axes of figure
-
+    geodata is generated. For advanced plotting see the tutorial.
+    
+    Additional parameters:
+      - use_mapbox : bool
+            If True, plot the network on an interactive Mapbox map using Plotly.
+      - mapbox_access_token : str
+            Mapbox token to use. If None, the environment variable or stored token is used.
+      - map_style : str
+            Mapbox style (e.g. "streets", "light", "dark", "satellite").
+      - zoom : int
+            Initial zoom level for the Mapbox plot.
+      - pipe_temperature_coloring : bool
+            If True, pipes are colored based on the temperature values in net.res_pipe.
+      - pipe_temperature_field : str
+            The field in net.res_pipe to use for temperature (default: "t_to_k").
+      - show_colorbar : bool
+            If True and pipe_temperature_coloring is enabled, a colorbar is shown.
+      - pipe_temperature_colorscale : list
+            The colorscale for the colorbar (default: [[0, "blue"], [1, "red"]]).
+      - renderer : str
+            The Plotly renderer to use for display (default: 'browser'). Options include
+            'browser', 'notebook', 'json', etc.
+            
+    All other parameters remain as in the original implementation.
     """
+    if use_mapbox:
+        from pandapipes.plotting import mapbox_plot
+        fig = mapbox_plot.create_mapbox_figure(
+            net,
+            mapbox_access_token=mapbox_access_token,
+            map_style=map_style,
+            zoom=zoom,
+            pipe_temperature_coloring=pipe_temperature_coloring,
+            pipe_temperature_field=pipe_temperature_field,
+            pipe_color=pipe_color,
+            show_colorbar=show_colorbar,
+            pipe_temperature_colorscale=pipe_temperature_colorscale,
+            renderer=renderer  # Pass renderer to mapbox_plot
+        )
+        if show_plot:
+            
+            pio.renderers.default = renderer  # Set the renderer
+            fig.show()  # Show with the specified renderer
+        return fig
+
+    # --- Original matplotlib-based plotting ---
     collections = create_simple_collections(net,
                                             respect_valves=respect_valves,
                                             respect_in_service=respect_in_service,
@@ -141,7 +118,7 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                                             library=library,
                                             as_dict=False, **kwargs)
     ax = draw_collections(collections, ax=ax)
-
+    
     if show_plot:
         plt.show()
     return ax
