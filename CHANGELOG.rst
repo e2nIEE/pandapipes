@@ -9,6 +9,12 @@ Change Log
 - [ADDED] mapbox_plotting tutorial notebook demonstrating new Mapbox-based visualization
 - [CHANGED] simple_plot extended to accept Mapbox-related parameters
 - [ADDED] test_mapbox.py with unit tests for Mapbox-based plotting functionality
+- [ADDED] tutorial for combining the DHNx package and pandapipes
+- [CHANGED] Improve readability of setting pipeflow options
+- [FIXED] Default compressibility model in STANET converter now set to "linear" to avoid Exceptions
+- [CHANGED] Colebrook-White friction model now uses scipy.optimize.newton for solving the equation
+- [CHANGED] Fluid properties compressibility and viscosity can now process pressure and temperature as inputs, if given the "allow_2d" attribute
+- [CHANGED] Temperature change along pipes now based on exponential function and does not use qext_w anymore
 
 [0.12.0] - 2025-06-27
 -------------------------------

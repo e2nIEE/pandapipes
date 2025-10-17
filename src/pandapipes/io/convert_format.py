@@ -61,15 +61,15 @@ def _rename_columns(net):
     if Valve.table_name() in net:
         old_cols = ["from_junction", "to_junction"]
         new_cols = list(Valve.from_to_node_cols())
+        old_net = False
         for o, n in zip(old_cols, new_cols):
-            old_net = False
             if o in net[Valve.table_name()]:
                 net[Valve.table_name()].rename(columns={o: n}, inplace=True)
                 old_net = True
-            if old_net:
-                if 'et' in net[Valve.table_name()]:
-                    logger.warning(r"'et' is a new required variable for valves. Therefore, 'et' will be overwritten.")
-                net[Valve.table_name()]['et'] = 'j'
+        if old_net:
+            if 'et' in net[Valve.table_name()]:
+                logger.warning(r"'et' is a new required variable for valves. Therefore, 'et' will be overwritten.")
+            net[Valve.table_name()]['et'] = 'ju'
 
 
 def _add_missing_columns(net):
