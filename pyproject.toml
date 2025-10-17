@@ -36,7 +36,6 @@ dependencies = [
     "pandapower >= 3.1",
     "matplotlib",
     "shapely",
-    "plotly = ^5.0"
 ]
 keywords = [
     "network", "analysis", "optimization", "automation", "grid", "energy", "engineering",
