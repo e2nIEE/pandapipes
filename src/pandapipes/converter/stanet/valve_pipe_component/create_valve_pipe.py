@@ -1,8 +1,9 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-from pandapower.create import _get_index_with_check, load_std_type, _set_entries
+from pandapower.create import _get_index_with_check, load_std_type
+from pandapipes.create import _set_entries
 
 from pandapipes.component_models.component_toolbox import add_new_component
 from pandapipes.converter.stanet.valve_pipe_component.valve_pipe_component import ValvePipe

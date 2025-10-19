@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -58,13 +58,11 @@ def pipeflow(net, sol_vec=None, **kwargs):
         >>> pipeflow(net, mode="hydraulics")
 
     """
-    local_params = dict(locals())
-
     # Inputs & initialization of variables
     # ------------------------------------------------------------------------------------------
 
     # Init physical constants and options
-    init_options(net, local_params)
+    init_options(net, **kwargs)
     calculation_mode = get_net_option(net, "mode")
 
     # init result tables

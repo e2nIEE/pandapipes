@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@ import pytest
 import pandapipes
 import pandapipes.pf.pipeflow_setup
 from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
+from pandapipes.pf.pipeflow_setup import _iteration_check
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 
 
@@ -81,7 +82,7 @@ def test_iter(create_test_net, use_numba):
     max_iter_hyd = 3 if use_numba else 3
     max_iter_therm = 3 if use_numba else 3
 
-    pandapipes.set_user_pf_options(net, iter=2)
+    pandapipes.set_user_pf_options(net, iter=2, use_numba=use_numba, tol_T=1e-4)
 
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, mode='sequential')
@@ -107,6 +108,48 @@ def test_iter(create_test_net, use_numba):
 
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, mode='sequential', iter=2)
+
+
+# _iteration_check tests
+
+
+def test_iter_fallback():
+    opts = {"iter": 5}
+    _iteration_check(opts)
+    assert opts == {
+        "iter": 5,
+        "max_iter_hyd": 5,
+        "max_iter_therm": 5,
+        "max_iter_bidirect": 5,
+    }
+
+
+@pytest.mark.parametrize(
+    "curr_mode",
+    [
+        "max_iter_hyd",
+        "max_iter_therm",
+        "max_iter_bidirect",
+    ],
+)
+def test_mixed_sources(curr_mode):
+    modes = {"max_iter_hyd", "max_iter_therm", "max_iter_bidirect"} - {curr_mode}
+    opts = {"iter": 5, curr_mode: 10}
+
+    _iteration_check(opts)
+    assert opts[curr_mode] == 10
+    for mode in modes:
+        assert opts[mode] == 5
+
+def test_empty_source():
+    opts = {}
+    _iteration_check(opts)
+    assert not opts
+
+def test_unrelated_key():
+    opts = {"unrelated_key": "some_value"}
+    _iteration_check(opts)
+    assert opts == {"unrelated_key": "some_value"}
 
 
 if __name__ == '__main__':

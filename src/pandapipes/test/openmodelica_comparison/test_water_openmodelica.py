@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -236,9 +236,10 @@ def test_case_one_pipe_3_sj(use_numba, log_results=False):
 def test_case_strand_net_cross3ext_pc(use_numba, log_results=False):
     net = nw.water_strand_cross()
     max_iter_hyd = 16 if use_numba else 16
-    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
-                                                          max_iter_hyd=max_iter_hyd,
-                                                          use_numba=use_numba)
+    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(
+        net, log_results, max_iter_hyd=max_iter_hyd, use_numba=use_numba,
+        max_iter_colebrook=15
+    )
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
 
@@ -247,9 +248,10 @@ def test_case_strand_net_cross3ext_pc(use_numba, log_results=False):
 def test_case_strand_net_cross3ext_sj(use_numba, log_results=False):
     net = nw.water_strand_cross(method="swamee-jain")
     max_iter_hyd = 16 if use_numba else 16
-    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
-                                                          max_iter_hyd=max_iter_hyd,
-                                                          use_numba=use_numba)
+    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(
+        net, log_results, max_iter_hyd=max_iter_hyd, use_numba=use_numba,
+        max_iter_colebrook=15
+    )
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
 

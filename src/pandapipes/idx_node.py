@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ P = 1  # Reference node, pressure is fixed
 L = 2  # All other nodes
 T = 3  # Reference node with fixed temperature, otherwise 0
 PC = 4  # Controlled node with fixed pressure p
+GE = 5
 
 # node indices
 TABLE_IDX = 0  # number of the table that this node belongs to

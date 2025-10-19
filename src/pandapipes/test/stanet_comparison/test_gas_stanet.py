@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -110,10 +110,10 @@ def test_case_meshed_delta_pc(use_numba, log_results=False):
     """
     net = nw.gas_meshed_delta()
     max_iter_hyd = 13 if use_numba else 13
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
-                                                    max_iter_hyd=max_iter_hyd,
-                                                    friction_model="colebrook",
-                                                    use_numba=use_numba)
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(
+        net, log_results, max_iter_hyd=max_iter_hyd, friction_model="colebrook",
+        use_numba=use_numba, max_iter_colebrook=12,
+    )
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
