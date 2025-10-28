@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 #           might be inserted into the pandapipes net erroneously
 def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connections=True,
                          valve_mode="stanet_like", read_options=None, add_layers=True,
-                         guess_slider_valve_types=False, **kwargs):
+                         guess_slider_valve_types=False, decimal='.', **kwargs):
     """Converts STANET csv-file to pandapipesNet.
 
     :param stanet_path: path to csv-file exported from STANET
@@ -77,7 +77,7 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
 
     # stored_data contains different dataframes read from the STANET CSV file for different
     # components, such as junctions, pipes etc., but in the raw STANET form
-    stored_data = get_stanet_raw_data(stanet_path, read_options, add_layers)
+    stored_data = get_stanet_raw_data(stanet_path, read_options, add_layers, decimal=decimal)
 
     logger.info("Getting global calculation parameters.")
 
@@ -203,8 +203,8 @@ def add_rated_p_values(net, **kwargs):
     else:
         net.junction.loc[pd.isnull(net.junction.pn_bar), 'pn_bar'] = \
             np.mean(junctions_with_p_rated.pn_bar.values)
-        raise UserWarning("Adding the rated pressure to the grid nodes with several feed-ins or "
-                          "pressure levels is critical and should be re-considered in the future.")
+        logger.warning("Adding the rated pressure to the grid nodes with several feed-ins or "
+                       "pressure levels is critical and should be re-considered in the future.")
 
 
 def change_dtypes(net):

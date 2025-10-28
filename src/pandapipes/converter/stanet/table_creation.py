@@ -479,7 +479,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         drop_eg = net.ext_grid.loc[net.ext_grid.junction.isin(to_junctions[is_pc])].index
         net.ext_grid.drop(drop_eg, inplace=True)
         net.junction.loc[to_junctions[is_pc], "pn_bar"] = np.nan
-        pandapipes.reindex_elements(net, "ext_grid", np.arange(len(net.ext_grid)))
+        pandapipes.reindex_elements(net, "ext_grid", dict(zip(net.ext_grid.index, np.arange(len(net.ext_grid)))))
 
     if np.any(is_fc):
         logger.info("Creating flow controllers.")
@@ -683,6 +683,8 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = pipes.LAYER.values.astype(str)
+        add_info['stanet_year'] = pipes.BAUJAHR.values.astype(str)
+        add_info['stanet_material'] = pipes.MATERIAL.values
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
     text_k = 293
     if "TU" in pipes.columns:
@@ -815,6 +817,8 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = p_tbl.LAYER.values.astype(str)
+        add_info['stanet_year'] = p_tbl.BAUJAHR.values.astype(str)
+        add_info['stanet_material'] = p_tbl.MATERIAL.values
     text_k = 293
     if "TU" in p_tbl.columns:
         text_k = p_tbl.TU.values.astype(np.float64) + 273.15
