@@ -687,8 +687,6 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = pipes.LAYER.values.astype(str)
-        add_info['stanet_year'] = pipes.BAUJAHR.values.astype(str)
-        add_info['stanet_material'] = pipes.MATERIAL.values
     # TODO: v_stanet might have to be extended by house connections VMA and VMB
     text_k = 293
     if "TU" in pipes.columns:
@@ -708,6 +706,8 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=pipes.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~pipes.CALCBAD.values.astype(np.bool_),
+        stanet_year=pipes.BAUJAHR.values.astype(str),
+        stanet_material=pipes.MATERIAL.values.astype(str),
         **add_info
     )
 
@@ -821,8 +821,6 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
     add_info = dict()
     if add_layers:
         add_info["stanet_layer"] = p_tbl.LAYER.values.astype(str)
-        add_info['stanet_year'] = p_tbl.BAUJAHR.values.astype(str)
-        add_info['stanet_material'] = p_tbl.MATERIAL.values
     text_k = 293
     if "TU" in p_tbl.columns:
         text_k = p_tbl.TU.values.astype(np.float64) + 273.15
@@ -840,6 +838,8 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=p_tbl.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~p_tbl.CALCBAD.values.astype(np.bool_),
+        stanet_year=pipes.BAUJAHR.values.astype(str),
+        stanet_material=pipes.MATERIAL.values.astype(str),
         **add_info
     )
 
