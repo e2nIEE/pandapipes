@@ -81,6 +81,7 @@ def _data_source():
 def _compare_results(ow):
     test_res_ext_grid = pd.read_csv(os.path.join(data_path, 'test_time_series_results', 'res_ext_grid',
         'mdot_kg_per_s.csv'), sep=';', index_col=0)
+    np.concatenate(ow.np_results["res_ext_grid.mdot_kg_per_s"])
     res_ext_grid = ow.np_results["res_ext_grid.mdot_kg_per_s"]
     res_ext_grid = res_ext_grid[~np.isclose(res_ext_grid, 0)]
     test_res_ext_grid = test_res_ext_grid.values[~np.isclose(test_res_ext_grid.values, 0)]
@@ -139,7 +140,7 @@ def _output_writer(net, time_steps, ow_path=None):
         ('res_pipe', 'reynolds'), ('res_pipe', 'lambda'),
         ('res_sink', 'mdot_kg_per_s'), ('res_source', 'mdot_kg_per_s'),
         ('res_ext_grid', 'mdot_kg_per_s')]
-    ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables)
+    ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables, output_file_type='.csv')
     return ow
 
 
@@ -153,8 +154,8 @@ def test_time_series():
     _prepare_grid(net)
     time_steps = range(25)
     # _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
-    _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-    max_iter_hyd=8
+    _output_writer(net, time_steps)
+    max_iter_hyd = 9
     run_timeseries(net, time_steps, max_iter_hyd=max_iter_hyd, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
@@ -170,7 +171,7 @@ def test_time_series_default_ow():
     _prepare_grid(net)
     time_steps = range(25)
     init_default_outputwriter(net, time_steps)
-    max_iter_hyd = 8
+    max_iter_hyd = 9
     run_timeseries(net, time_steps, max_iter_hyd=max_iter_hyd, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)

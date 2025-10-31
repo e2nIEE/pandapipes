@@ -24,7 +24,7 @@ def test_schutterwald():
     net2 = networks.schutterwald_gas(False, None)
     assert net2.sink.empty
     assert len(net2.pipe.loc[net2.pipe.type == "house_connection"]) == 0
-    max_iter_hyd = 2
+    max_iter_hyd = 3
     pandapipes.pipeflow(net2, max_iter_hyd=max_iter_hyd)
     assert net2.converged
 

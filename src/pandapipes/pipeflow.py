@@ -63,7 +63,6 @@ def pipeflow(net, sol_vec=None, **kwargs):
 
     # Init physical constants and options
     init_options(net, **kwargs)
-    calculation_mode = get_net_option(net, "mode")
 
     # init result tables
     net.converged = False
@@ -139,8 +138,8 @@ def newton_raphson(net, funct, mode, solver_vars, tols, pit_names, iter_name):
         logger.debug("niter %d" % niter)
 
         # solve_hydraulics is where the calculation takes place
-        results, residual = funct(net)
-        residual_norm = linalg.norm(residual / len(residual))
+        results, residual, filtered = funct(net)
+        residual_norm = np.max(np.abs(residual))
         logger.debug("residual: %s" % residual_norm.round(4))
         pos = np.arange(len(solver_vars) * 2)
         results = np.array(results, object)
@@ -148,10 +147,10 @@ def newton_raphson(net, funct, mode, solver_vars, tols, pit_names, iter_name):
         vals_old = results[pos[1::2]]
         for var, val_new, val_old in zip(solver_vars, vals_new, vals_old):
             dval = val_new - val_old
-            errors[var].append(linalg.norm(dval) / len(dval) if len(dval) else 0)
+            errors[var].append(np.max(np.abs(dval)) if len(dval) else 0)
         finalize_iteration(
             net, niter, residual_norm, nonlinear_method, errors=errors, tols=tols, tol_res=tol_res,
-            vals_old=vals_old, solver_vars=solver_vars, pit_names=pit_names
+            vals_old=vals_old, solver_vars=solver_vars, pit_names=pit_names, filtered=filtered
         )
         niter += 1
     write_internal_results(net, **errors)
@@ -224,15 +223,16 @@ def heat_transfer(net):
 
 def solve_bidirectional(net):
     reduce_pit(net, mode="hydraulics")
-    res_hyd, residual_hyd = solve_hydraulics(net)
+    res_hyd, residual_hyd, filter_hyd = solve_hydraulics(net)
     extract_results_active_pit(net, mode="hydraulics")
     identify_active_nodes_branches(net, False)
     reduce_pit(net, mode="heat_transfer")
-    res_heat, residual_heat = solve_temperature(net)
+    res_heat, residual_heat, filter_heat = solve_temperature(net)
     extract_results_active_pit(net, mode="heat_transfer")
     residual = np.concatenate([residual_hyd, residual_heat])
     res = res_hyd + res_heat
-    return res, residual
+    filtered = filter_hyd + filter_heat
+    return res, residual, filtered
 
 
 def solve_hydraulics(net):
@@ -274,8 +274,9 @@ def solve_hydraulics(net):
     node_pit[:, PINIT] -= x[:len(node_pit)] * options["alpha"]
     node_pit[slack_nodes, MDOTSLACKINIT] -= x[len(node_pit) + len(branch_pit):]
 
+    filtered = [None, None, slack_nodes]
     return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old, msl_init_old,
-            node_pit[slack_nodes, MDOTSLACKINIT]], epsilon
+            node_pit[slack_nodes, MDOTSLACKINIT]], epsilon, filtered
 
 
 def solve_temperature(net):
@@ -308,10 +309,10 @@ def solve_temperature(net):
 
     t_init_old = node_pit[:, TINIT].copy()
     t_out_old = branch_pit[:, TOUTINIT].copy()
-
+    filtered = [None, None]
     if not check_infeed_number(node_pit):
         return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], np.array([
-            np.nan])
+            np.nan]), filtered
 
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
@@ -320,7 +321,7 @@ def solve_temperature(net):
     node_pit[:, TINIT] -= x[:len(node_pit)] * options["alpha"]
     branch_pit[:, TOUTINIT] -= x[len(node_pit):] * options["alpha"]
 
-    return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], epsilon
+    return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], epsilon, filtered
 
 
 def set_damping_factor(net, niter, errors):
@@ -349,17 +350,20 @@ def set_damping_factor(net, niter, errors):
 
 
 def finalize_iteration(net, niter, residual_norm, nonlinear_method, errors, tols, tol_res, vals_old,
-                       solver_vars, pit_names):
+                       solver_vars, pit_names, filtered):
     # Control of damping factor
     if nonlinear_method == "automatic":
         errors_increased = set_damping_factor(net, niter, errors)
         logger.debug("alpha: %s" % get_net_option(net, "alpha"))
-        for error_increased, var, val, pit in zip(errors_increased, solver_vars, vals_old,
-                                                  pit_names):
+        for error_increased, var, val, pit, f in zip(errors_increased, solver_vars, vals_old,
+                                                  pit_names, filtered):
             if error_increased:
+                if f is None:
                 # todo: not working in bidirectional mode as bidirectional is not distinguishing \
                 #  between hydraulics and heat transfer active pit
-                net["_active_pit"][pit][:, globals()[var.upper() + 'INIT']] = val
+                    net["_active_pit"][pit][:, globals()[var.upper() + 'INIT']] = val
+                else:
+                    net["_active_pit"][pit][f, globals()[var.upper() + 'INIT']] = val
         if get_net_option(net, "alpha") != 1:
             net.converged = False
             return
