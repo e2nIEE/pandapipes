@@ -25,7 +25,7 @@ class BadPointPressureLiftController(BasicCtrl):
         min_pflow (float, optional): Minimum flow pressure in bar. Defaults to 3.5.
         **kwargs: Additional keyword arguments.
     """
-    def __init__(self, net, circ_pump_pressure_idx=0, target_dp_min_bar=1, tolerance=0.2, 
+    def __init__(self, net, circ_pump_pressure_idx=0, target_dp_min_bar=1, tolerance=0.2,
                  proportional_gain=0.2, min_plift=1.5, min_pflow=3.5, **kwargs):
         super(BadPointPressureLiftController, self).__init__(net, **kwargs)
         self.circ_pump_pressure_idx = circ_pump_pressure_idx
@@ -50,7 +50,7 @@ class BadPointPressureLiftController(BasicCtrl):
         Returns:
             tuple: The minimum pressure difference and the index of the worst point.
         """
-        
+
         dp = []
 
         for idx, qext, p_from, p_to in zip(net.heat_consumer.index, net.heat_consumer["qext_w"], 
@@ -131,13 +131,13 @@ class BadPointPressureLiftController(BasicCtrl):
         current_pflow_bar = net.circ_pump_pressure["p_flow_bar"].at[self.circ_pump_pressure_idx]
 
         dp_error = self.target_dp_min_bar - current_dp_bar
-        
+
         plift_adjustment = dp_error * self.proportional_gain
-        pflow_adjustment = dp_error * self.proportional_gain        
+        pflow_adjustment = dp_error * self.proportional_gain
 
         new_plift = current_plift_bar + plift_adjustment
         new_pflow = current_pflow_bar + pflow_adjustment
-        
+
         net.circ_pump_pressure["plift_bar"].at[self.circ_pump_pressure_idx] = new_plift
         net.circ_pump_pressure["p_flow_bar"].at[self.circ_pump_pressure_idx] = new_pflow
 
