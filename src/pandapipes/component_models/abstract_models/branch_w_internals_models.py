@@ -6,7 +6,14 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat, get_internal_lookup_structure
-from pandapipes.idx_branch import ACTIVE, ELEMENT_IDX, D, LOSS_COEFFICIENT as LC, AREA
+from pandapipes.idx_branch import (
+    ACTIVE,
+    ELEMENT_IDX,
+    D,
+    LOSS_COEFFICIENT as LC,
+    AREA,
+    QEXT,
+)
 from pandapipes.idx_node import L, node_cols
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number, get_net_option
 
@@ -190,6 +197,7 @@ class BranchWInternalsComponent(BranchComponent):
                 has_internals)
 
             branch_w_internals_pit[:, AREA] = branch_w_internals_pit[:, D] ** 2 * np.pi / 4
+            branch_w_internals_pit[:, QEXT] = 0.0
         return branch_w_internals_pit, node_pit
 
     @classmethod

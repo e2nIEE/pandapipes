@@ -5,6 +5,7 @@
 import json
 import os
 import pickle
+from typing import Union
 
 from pandapower.io_utils import PPJSONEncoder, to_dict_with_coord_transform, \
     get_raw_data_from_pickle, transform_net_with_df_and_geo, PPJSONDecoder
@@ -44,7 +45,13 @@ def to_pickle(net, filename):
         pickle.dump(save_net, f, protocol=2)  # use protocol 2 for py2 / py3 compatibility
 
 
-def to_json(net, filename=None, encryption_key=None):
+def to_json(
+    net: pandapipesNet,
+    filename: Union[str, None] = None,
+    encryption_key: Union[str, None] = None,
+    indent: Union[int, str, None] = 2,
+    sort_keys: bool = False,
+):
     """
     Saves a pandapipes Network in JSON format. The index columns of all pandas DataFrames will be
     saved in ascending order. net elements which name begins with "_" (internal elements) will not
@@ -57,6 +64,11 @@ def to_json(net, filename=None, encryption_key=None):
     :type filename: str, file-object, default None
     :param encryption_key: If given, the pandapipes network is stored as an encrypted json string
     :type encryption_key: str, default None
+    :param indent: indentation to use for the json. String or amount of spaces to use, defaut 2
+    :type indent: int or str or None
+    :param sort_keys: sort dictionaries by key, default False
+    :type sort_keys: bool
+
     :return: JSON string of the Network (only if filename is None)
 
     :Example:
@@ -64,12 +76,12 @@ def to_json(net, filename=None, encryption_key=None):
         >>> pandapipes.to_json(net, "example.json")
 
     """
-    json_string = json.dumps(net, cls=PPJSONEncoder, indent=2, isinstance_func=isinstance_partial)
+    json_string = json.dumps(net, cls=PPJSONEncoder, indent=indent, isinstance_func=isinstance_partial, sort_keys=sort_keys)
     if encryption_key is not None:
         json_string = encrypt_string(json_string, encryption_key)
     if filename is None:
         return json_string
-    if hasattr(filename, 'write'):
+    if hasattr(filename, "write"):
         filename.write(json_string)
     else:
         with open(filename, "w") as fp:
