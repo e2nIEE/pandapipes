@@ -53,7 +53,7 @@ class BadPointPressureLiftController(BasicCtrl):
 
         dp = []
 
-        for idx, qext, p_from, p_to in zip(net.heat_consumer.index, net.heat_consumer["qext_w"], 
+        for idx, qext, p_from, p_to in zip(net.heat_consumer.index, net.heat_consumer["qext_w"],
                                            net.res_heat_consumer["p_from_bar"], net.res_heat_consumer["p_to_bar"]):
             if qext != 0:
                 dp_diff = p_from - p_to
@@ -96,7 +96,7 @@ class BadPointPressureLiftController(BasicCtrl):
 
         if all(net.heat_consumer["qext_w"] == 0):
             return True
-        
+
         current_dp_bar = net.res_heat_consumer["p_from_bar"].at[self.heat_consumer_idx] - \
                         net.res_heat_consumer["p_to_bar"].at[self.heat_consumer_idx]
 
