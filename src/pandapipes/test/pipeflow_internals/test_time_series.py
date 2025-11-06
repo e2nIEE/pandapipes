@@ -81,7 +81,6 @@ def _data_source():
 def _compare_results(ow):
     test_res_ext_grid = pd.read_csv(os.path.join(data_path, 'test_time_series_results', 'res_ext_grid',
         'mdot_kg_per_s.csv'), sep=';', index_col=0)
-    np.concatenate(ow.np_results["res_ext_grid.mdot_kg_per_s"])
     res_ext_grid = ow.np_results["res_ext_grid.mdot_kg_per_s"]
     res_ext_grid = res_ext_grid[~np.isclose(res_ext_grid, 0)]
     test_res_ext_grid = test_res_ext_grid.values[~np.isclose(test_res_ext_grid.values, 0)]

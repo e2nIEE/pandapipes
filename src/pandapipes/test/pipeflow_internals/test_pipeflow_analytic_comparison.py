@@ -535,7 +535,6 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
 
     temp_pandapipes = net.res_junction["t_k"]
     temp_diff = np.abs(1 - temp_pandapipes / temp_an)
-    return net
     assert np.all(temp_diff < 0.01)
 
 
@@ -586,7 +585,6 @@ def test_example_hot_water():
 
 
 if __name__ == "__main__":
-    #pytest.main(
-    #    [r"pandapipes/test/pipflow_internals/test_pipeflow_analytic_comparison.py"]
-    #)
-    net = test_temperature_internal_nodes_masche_1load_changed_direction(True)
+    pytest.main(
+        [r"pandapipes/test/pipflow_internals/test_pipeflow_analytic_comparison.py"]
+    )
