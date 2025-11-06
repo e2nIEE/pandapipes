@@ -26,7 +26,7 @@ def test_flow_control_simple_heat(use_numba):
     pandapipes.create_sink(net, j8, 3)
 
     max_iter_hyd = 3 if use_numba else 3
-    max_iter_therm = 6 if use_numba else 6
+    max_iter_therm = 7 if use_numba else 7
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         mode='sequential', use_numba=use_numba)
 

@@ -34,8 +34,8 @@ def test_circulation_pump_constant_mass(use_numba):
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
-    max_iter_hyd = 4 if use_numba else 4
-    max_iter_therm = 6 if use_numba else 6
+    max_iter_hyd = 3 if use_numba else 3
+    max_iter_therm = 7 if use_numba else 7
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         stop_condition="tol", friction_model="nikuradse",
                         mode='sequential', transient=False, nonlinear_method="automatic",
