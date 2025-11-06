@@ -16,7 +16,7 @@ possible to work with the default fluids:
 - ``hydrogen``,
 - ``methane``,
 - ``water``,
-- ``biomethane_pure`` and ``biomathane_treated`` (see `here <https://pandapipes.readthedocs.io/en/latest/fluid_properties/fluids.html>`_ for the compositions),
+- ``biomethane_pure`` and ``biomethane_treated`` (see `here <https://pandapipes.readthedocs.io/en/latest/fluid_properties/fluids.html>`_ for the compositions),
 - ``air``.
 
 The values are loaded from txt-files in
