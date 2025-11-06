@@ -706,6 +706,8 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=pipes.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~pipes.CALCBAD.values.astype(np.bool_),
+        stanet_year=pipes.BAUJAHR.values.astype(str),
+        stanet_material=pipes.MATERIAL.values.astype(str),
         **add_info
     )
 
@@ -836,6 +838,8 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE],
         stanet_active=p_tbl.ISACTIVE.values.astype(np.bool_),
         stanet_valid=~p_tbl.CALCBAD.values.astype(np.bool_),
+        stanet_year=p_tbl.BAUJAHR.values.astype(str),
+        stanet_material=p_tbl.MATERIAL.values.astype(str),
         **add_info
     )
 
