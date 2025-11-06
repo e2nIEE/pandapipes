@@ -283,7 +283,7 @@ def test_select_subnet(base_net_is_wo_pumps):
 
     # check length of results
     net = nw.gas_tcross2()
-    max_iter_hyd = 2
+    max_iter_hyd = 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
     net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
     for comp in net.component_list:
@@ -303,7 +303,7 @@ def test_pit_extraction():
         if not "_gas" in name:
             pandapipes.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", index=None)
             pandapipes.create_ext_grid(net, junction=5, p_bar=5, t_k=290, name="External Grid 3")
-        max_iter_hyd = 11 if '_water' in name else 5
+        max_iter_hyd = 11 if '_water' in name else 6
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
         node_table, branch_table = pandapipes.get_internal_tables_pandas(net)
