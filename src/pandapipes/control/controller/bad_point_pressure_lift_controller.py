@@ -50,20 +50,20 @@ class BadPointPressureLiftController(BasicCtrl):
         Returns:
             tuple: The minimum pressure difference and the index of the worst point.
         """
-
-        dp = []
-
-        for idx, qext, p_from, p_to in zip(net.heat_consumer.index, net.heat_consumer["qext_w"],
-                                           net.res_heat_consumer["p_from_bar"], net.res_heat_consumer["p_to_bar"]):
-            if qext != 0:
-                dp_diff = p_from - p_to
-                dp.append((dp_diff, idx))
-
-        if not dp:
+        # Calculate pressure difference for all heat consumers with heat flow
+        diff = net.res_heat_consumer["p_from_bar"] - net.res_heat_consumer["p_to_bar"]
+        
+        # Filter out heat consumers with no heat flow
+        qext = net.heat_consumer["qext_w"]
+        active_consumers = qext != 0
+        
+        if not active_consumers.any():
             return 0, -1
-
+        
         # Find the minimum delta p where the heat flow is not zero
-        dp_min, idx_min = min(dp, key=lambda x: x[0])
+        diff_active = diff[active_consumers]
+        dp_min = diff_active.min()
+        idx_min = diff_active.idxmin()
 
         return dp_min, idx_min
 
@@ -120,8 +120,8 @@ class BadPointPressureLiftController(BasicCtrl):
         if all(net.heat_consumer["qext_w"] == 0):
             # Switch to standby mode
             print("No heat flow detected. Switching to standby mode.")
-            net.circ_pump_pressure.loc[:, "plift_bar"] = self.min_plift  # Minimum lift pressure
-            net.circ_pump_pressure.loc[:, "p_flow_bar"] = self.min_pflow  # Minimum flow pressure
+            net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"] = self.min_plift  # Minimum lift pressure
+            net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "p_flow_bar"] = self.min_pflow  # Minimum flow pressure
             return super(BadPointPressureLiftController, self).control_step(net)
 
         # Check whether the heat flow in the heat exchanger is zero
