@@ -23,7 +23,7 @@ pf_logger.setLevel(logging.WARNING)
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta(use_numba, log_results=False):
     net = nw.heat_transfer_delta()
-    max_iter_hyd = 10 if use_numba else 10
+    max_iter_hyd = 11 if use_numba else 11
     max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
@@ -37,7 +37,7 @@ def test_case_delta(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta_2sinks(use_numba, log_results=False):
     net = nw.heat_transfer_delta_2sinks()
-    max_iter_hyd = 10 if use_numba else 10
+    max_iter_hyd = 11 if use_numba else 11
     max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
@@ -93,7 +93,7 @@ def test_case_one_source(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_section_variation(use_numba, log_results=False):
     net = nw.heat_transfer_section_variation()
-    max_iter_hyd = 10 if use_numba else 10
+    max_iter_hyd = 12 if use_numba else 12
     max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,

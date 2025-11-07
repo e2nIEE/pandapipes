@@ -181,12 +181,11 @@ class BranchWInternalsComponent(BranchComponent):
         if not len(branch_w_internals_pit):
             return branch_w_internals_pit, node_pit
 
+        tbl = cls.table_name()
+        node_ft_lookups = get_lookup(net, "node", "from_to")
+        has_internals = cls.internal_node_name() in node_ft_lookups
+        internal_branch_number = cls.get_internal_branch_number(net)
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-            internal_branch_number = cls.get_internal_branch_number(net)
-            node_ft_lookups = get_lookup(net, "node", "from_to")
-            has_internals = cls.internal_node_name() in node_ft_lookups
-
-            tbl = cls.table_name()
             set_entry_check_repeat(branch_w_internals_pit, ELEMENT_IDX, net[tbl].index.values, internal_branch_number,
                 has_internals)
             set_entry_check_repeat(branch_w_internals_pit, ACTIVE, net[tbl][cls.active_identifier()].values,
