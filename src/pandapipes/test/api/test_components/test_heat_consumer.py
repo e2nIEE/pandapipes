@@ -77,25 +77,25 @@ def test_heat_consumer_equivalence2():
 
     pandapipes.create_heat_consumer(net, juncs[1], juncs[4], controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net, juncs[2], juncs[3], controlled_mdot_kg_per_s=mdot[1], qext_w=qext[1])
-    pandapipes.pipeflow(net, mode="bidirectional", iter=6)
+    pandapipes.pipeflow(net, mode="bidirectional", iter=7)
     tout1 = net.res_heat_consumer.t_outlet_k.iloc[1]
     dt1 = net.res_heat_consumer.deltat_k.iloc[1]
 
     pandapipes.create_heat_consumer(net2, juncs[1], juncs[4], controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net2, juncs[2], juncs[3], treturn_k=tout1, qext_w=qext[1])
-    pandapipes.pipeflow(net2, mode="bidirectional", iter=23)
+    pandapipes.pipeflow(net2, mode="bidirectional", iter=24)
 
     pandapipes.create_heat_consumer(net3, juncs[1], juncs[4], controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net3, juncs[2], juncs[3], deltat_k=dt1, qext_w=qext[1])
-    pandapipes.pipeflow(net3, mode="bidirectional", iter=6)
+    pandapipes.pipeflow(net3, mode="bidirectional", iter=7)
 
     pandapipes.create_heat_consumer(net4, juncs[1], juncs[4], controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net4, juncs[2], juncs[3], controlled_mdot_kg_per_s=mdot[1], treturn_k=tout1)
-    pandapipes.pipeflow(net4, mode="bidirectional", iter=7)
+    pandapipes.pipeflow(net4, mode="bidirectional", iter=9)
 
     pandapipes.create_heat_consumer(net5, juncs[1], juncs[4], controlled_mdot_kg_per_s=mdot[0], qext_w=qext[0])
     pandapipes.create_heat_consumer(net5, juncs[2], juncs[3], controlled_mdot_kg_per_s=mdot[1], deltat_k=dt1)
-    pandapipes.pipeflow(net5, mode="bidirectional", iter=6)
+    pandapipes.pipeflow(net5, mode="bidirectional", iter=7)
 
     assert np.allclose(net2.res_junction, net.res_junction)
     assert np.allclose(net2.res_pipe, net.res_pipe)

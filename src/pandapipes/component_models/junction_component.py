@@ -89,13 +89,12 @@ class Junction(NodeComponent):
             junction_pit[:, TINIT] = junctions.tfluid_k.values
             junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
             junction_pit[:, ACTIVE_ND] = junctions.in_service.values
+            junction_pit[:, TINIT_OLD] = junctions.tfluid_k.values
         else:
             junction_pit[:, EXT_GRID_OCCURENCE] = 0
             junction_pit[:, EXT_GRID_OCCURENCE_T] = 0
             junction_pit[:, LOAD] = 0
-
-        if get_net_option(net, "transient"):
-            junction_pit[:, TINIT_OLD] = junction_pit[:, TINIT]
+            junction_pit[:, TINIT_OLD] = junctions.told_k.values
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
