@@ -180,6 +180,7 @@ def get_branch_cp(fluid, node_pit, branch_pit):
     from_nodes = get_from_nodes_corrected(branch_pit)
     t_from = node_pit[from_nodes, TINIT]
     t_to = branch_pit[:, TOUTINIT]
-    tm = (t_from + t_to) / 2
-    cp = fluid.get_heat_capacity(tm)
+    cp_from = fluid.get_heat_capacity(t_from)
+    cp_to = fluid.get_heat_capacity(t_to)
+    cp = (cp_from + cp_to) / 2
     return cp
