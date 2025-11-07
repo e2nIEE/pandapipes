@@ -120,8 +120,8 @@ class BadPointPressureLiftController(BasicCtrl):
         if all(net.heat_consumer["qext_w"] == 0):
             # Switch to standby mode
             print("No heat flow detected. Switching to standby mode.")
-            net.circ_pump_pressure["plift_bar"].iloc[:] = self.min_plift  # Minimum lift pressure
-            net.circ_pump_pressure["p_flow_bar"].iloc[:] = self.min_pflow  # Minimum flow pressure
+            net.circ_pump_pressure.loc[:, "plift_bar"] = self.min_plift  # Minimum lift pressure
+            net.circ_pump_pressure.loc[:, "p_flow_bar"] = self.min_pflow  # Minimum flow pressure
             return super(BadPointPressureLiftController, self).control_step(net)
 
         # Check whether the heat flow in the heat exchanger is zero
