@@ -2,28 +2,37 @@ from pandapower.control.basic_controller import BasicCtrl
 
 class BadPointPressureLiftController(BasicCtrl):
     """
-    A controller for maintaining the pressure difference at the worst point (German: Differenzdruckregelung im Schlechtpunkt) in the network.
+    A controller for maintaining the pressure difference at the worst point 
+    (German: Differenzdruckregelung im Schlechtpunkt) in the network.
     
     The BadPointPressureLiftController is a custom controller designed for district heating networks 
     modeled with pandapipes. Its main purpose is to maintain a minimum pressure difference at the 
     network's "worst point"—the heat exchanger with the lowest pressure difference (Schlechtpunktregelung).
 
     Key Features:
+
     - **Automatic Worst Point Detection:** Identifies the heat exchanger with the lowest pressure difference where heat flow is present.
     - **Pressure Regulation:** Adjusts the circulation pump's lift and flow pressures to ensure the pressure difference at the worst point meets a specified minimum target.
     - **Proportional Control:** Uses a proportional gain to determine the adjustment magnitude based on the deviation from the target pressure difference.
     - **Standby Mode:** If no heat flow is detected, the controller switches the pump to a standby mode with minimum lift and flow pressures.
     - **Convergence Check:** Determines if the pressure difference is within a specified tolerance of the target, signaling convergence.
 
-    Args:
-        net (pandapipesNet): The pandapipes network.
-        circ_pump_pressure_idx (int, optional): Index of the circulation pump. Defaults to 0.
-        target_dp_min_bar (float, optional): Target minimum pressure difference in bar. Defaults to 1.
-        tolerance (float, optional): Tolerance for pressure difference. Defaults to 0.2.
-        proportional_gain (float, optional): Proportional gain for the controller. Defaults to 0.2.
-        min_plift (float, optional): Minimum lift pressure in bar. Defaults to 1.5.
-        min_pflow (float, optional): Minimum flow pressure in bar. Defaults to 3.5.
-        **kwargs: Additional keyword arguments.
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param circ_pump_pressure_idx: Index of the circulation pump, defaults to 0
+    :type circ_pump_pressure_idx: int, optional
+    :param target_dp_min_bar: Target minimum pressure difference in bar, defaults to 1
+    :type target_dp_min_bar: float, optional
+    :param tolerance: Tolerance for pressure difference, defaults to 0.2
+    :type tolerance: float, optional
+    :param proportional_gain: Proportional gain for the controller, defaults to 0.2
+    :type proportional_gain: float, optional
+    :param min_plift: Minimum lift pressure in bar, defaults to 1.5
+    :type min_plift: float, optional
+    :param min_pflow: Minimum flow pressure in bar, defaults to 3.5
+    :type min_pflow: float, optional
+    :param kwargs: Additional keyword arguments
+    :type kwargs: dict, optional
     """
     def __init__(self, net, circ_pump_pressure_idx=0, target_dp_min_bar=1, tolerance=0.2,
                  proportional_gain=0.2, min_plift=1.5, min_pflow=3.5, **kwargs):
@@ -42,13 +51,13 @@ class BadPointPressureLiftController(BasicCtrl):
 
     def calculate_worst_point(self, net):
         """
-        Calculate the worst point in the heating network, defined as the heat exchanger with the lowest pressure difference.
+        Calculate the worst point in the heating network, defined as the heat exchanger 
+        with the lowest pressure difference.
 
-        Args:
-            net (pandapipesNet): The pandapipes network.
-
-        Returns:
-            tuple: The minimum pressure difference and the index of the worst point.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: Tuple of (minimum pressure difference, index of worst point)
+        :rtype: tuple(float, int)
         """
         # Calculate pressure difference for all heat consumers with heat flow
         diff = net.res_heat_consumer["p_from_bar"] - net.res_heat_consumer["p_to_bar"]
@@ -71,12 +80,12 @@ class BadPointPressureLiftController(BasicCtrl):
         """
         Reset the iteration counter at the start of each time step.
 
-        Args:
-            net (pandapipesNet): The pandapipes network.
-            time_step (int): The current time step.
-
-        Returns:
-            int: The current time step.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param time_step: The current time step
+        :type time_step: int
+        :return: The current time step
+        :rtype: int
         """
         self.iteration = 0  # reset iteration counter
         self.dp_min, self.heat_consumer_idx = self.calculate_worst_point(net)
@@ -87,11 +96,10 @@ class BadPointPressureLiftController(BasicCtrl):
         """
         Check if the controller has converged.
 
-        Args:
-            net (pandapipesNet): The pandapipes network.
-
-        Returns:
-            bool: True if converged, False otherwise.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: True if converged, False otherwise
+        :rtype: bool
         """
 
         if all(net.heat_consumer["qext_w"] == 0):
@@ -110,8 +118,8 @@ class BadPointPressureLiftController(BasicCtrl):
         """
         Adjust the pump pressure to maintain the target pressure difference.
 
-        Args:
-            net (pandapipesNet): The pandapipes network.
+        :param net: The pandapipes network
+        :type net: pandapipesNet
         """
         # Increment iteration counter
         self.iteration += 1
