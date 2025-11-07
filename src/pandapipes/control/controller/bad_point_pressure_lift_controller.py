@@ -61,14 +61,14 @@ class BadPointPressureLiftController(BasicCtrl):
         """
         # Calculate pressure difference for all heat consumers with heat flow
         diff = net.res_heat_consumer["p_from_bar"] - net.res_heat_consumer["p_to_bar"]
-        
+
         # Filter out heat consumers with no heat flow
         qext = net.heat_consumer["qext_w"]
         active_consumers = qext != 0
-        
+
         if not active_consumers.any():
             return 0, -1
-        
+
         # Find the minimum delta p where the heat flow is not zero
         diff_active = diff[active_consumers]
         dp_min = diff_active.min()
