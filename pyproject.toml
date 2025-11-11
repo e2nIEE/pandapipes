@@ -14,7 +14,7 @@ authors=[
 description = "A pipeflow calculation tool that complements pandapower in the simulation of multi energy grids"
 readme = "README.rst"
 license = { file = "LICENSE" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
