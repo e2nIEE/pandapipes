@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
-from numpy import linalg
 from scipy.sparse.linalg import spsolve
 
 from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED

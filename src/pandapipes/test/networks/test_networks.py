@@ -79,7 +79,7 @@ def test_schutterwald_heat_transient():
     ])
 
     run_timeseries(net, continue_on_divergence=False, verbose=True,
-                   mode="sequential", transient=True, dt=dt_simulation, iter=200, use_numba=True)
+                   mode="bidirectional", transient=True, dt=dt_simulation, iter=200, use_numba=True)
 
     mg = top.create_nxgraph(net, include_heat_consumers=False, include_pressure_circ_pumps=False)
 
