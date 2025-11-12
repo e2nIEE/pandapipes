@@ -162,7 +162,8 @@ class BranchWInternalsComponent(BranchComponent):
             f, t = ft_lookup[cls.internal_node_name()]
 
             int_node_pit = node_pit[f:t, :]
-            int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
+            if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
+                int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
             return int_node_pit
 
     @classmethod
