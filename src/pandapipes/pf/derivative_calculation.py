@@ -204,7 +204,7 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         paramA = (-2.457*np.log((7/re)**0.9 + 0.27*k/d))**16
         paramB = (37530/re)**16
         lambda_churchill = 8*((8/re)**12 + 1/(paramA+paramB)**1.5)**(1/12)
-        return lambda_churchill
+        return lambda_churchill, re
 
     else:
         # lambda_tot = np.where(re > 2300, lambda_laminar + lambda_nikuradse, lambda_laminar)
