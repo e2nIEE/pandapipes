@@ -134,7 +134,11 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True, sector=Sector.A
         >>> net2 = create_empty_network()
 
     """
-    net = pandapipesNet(get_basic_net_entries(name, sector))
+    net = pandapipesNet(get_basic_net_entries())
+
+    net.update({"name": name})
+    net.update({"sector": sector})
+
     add_default_components(net, True)
 
     if add_stdtypes:

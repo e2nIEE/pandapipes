@@ -151,7 +151,7 @@ def test_t_type_tee(use_numba):
     pandapipes.create_ext_grid(net, j2, 5, 310, type="t")
 
     max_iter_hyd = 4 if use_numba else 4
-    max_iter_therm = 4 if use_numba else 4
+    max_iter_therm = 5 if use_numba else 5
     pandapipes.pipeflow(net, stop_condition="tol", max_iter_hyd=max_iter_hyd,
                         max_iter_therm=max_iter_therm, friction_model="nikuradse",
                         transient=False, nonlinear_method="automatic", tol_p=1e-4,

@@ -13,6 +13,7 @@ from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
                                  PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD)
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandas import Index
 
 
 def get_internal_lookup_structure(internals, table_name, internal_elements, start=0):
@@ -126,14 +127,14 @@ def add_new_component(net, component, overwrite=False):
             net['component_list'].append(component)
         net.update({name: comp_input})
         if isinstance(net[name], list):
-            net[name] = pd.DataFrame(np.zeros(0, dtype=net[name]), index=[])
+            net[name] = pd.DataFrame(np.zeros(0, dtype=net[name]), index=Index([], dtype=np.int64))
         # init_empty_results_table(net, name, component.get_result_table(net))
 
         if geodata is not None:
             net.update({name + '_geodata': geodata})
             if isinstance(net[name + '_geodata'], list):
                 net[name + '_geodata'] = pd.DataFrame(np.zeros(0, dtype=net[name + '_geodata']),
-                                                      index=[])
+                                                      index=Index([], dtype=np.int64))
 
 
 def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):

@@ -99,16 +99,15 @@ class pandapipesNet(ADict):
         return r
 
 
-def get_basic_net_entries(name, sector):
+def get_basic_net_entries():
     return {
         "fluid": None,
         "converged": False,
-        "name": name,
+        "name": "",
         "version": __version__,
         "format_version": __format_version__,
         "component_list": [],
-        "sector": sector}
-
+        "sector": ""}
 
 def get_basic_gas_components():
     return Junction, Pipe, Valve, Pump, Sink, Source, Compressor, FlowControlComponent, PressureControlComponent, MassStorage, ExtGrid

@@ -22,6 +22,7 @@ def convert_format(net):
     """
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
+    _add_sector(net)
     add_default_components(net, overwrite=False)
     format_version = version.parse(__format_version__)
     # For possible problems with this line of code, please check out
@@ -33,7 +34,6 @@ def convert_format(net):
     _rename_columns(net)
     _add_missing_columns(net)
     _rename_attributes(net)
-    _add_sector(net)
     net.version = __version__
     net.format_version = __format_version__
     return net
