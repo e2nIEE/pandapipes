@@ -13,7 +13,7 @@ from pandapower.create import _get_multiple_index_with_check, _get_index_with_ch
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
     CirculationPumpPressure, CirculationPumpMass, PressureControlComponent, Compressor, MassStorage
-from pandapipes.component_models.component_toolbox import add_new_component
+from pandapipes.component_models.component_toolbox import add_new_component, retrieve_u
 from pandapipes.component_models.flow_control_component import FlowControlComponent
 from pandapipes.component_models.heat_consumer_component import HeatConsumer
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components, Sector
@@ -22,7 +22,6 @@ from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, load_std_type
 from pandapipes.deprecations import deprecated_input, input_handler_valve
-from pandapipes.toolbox import retrieve_u
 
 try:
     import pandaplan.core.pplog as logging
