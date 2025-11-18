@@ -5,10 +5,10 @@ from typing import Iterable
 
 import numpy as np
 import pandas as pd
-from pandapower.auxiliary import _preserve_dtypes
 import warnings
-from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, _set_entries, \
-    _check_element, _check_multiple_elements, _set_multiple_entries, \
+from pandas.api.types import is_numeric_dtype, is_string_dtype, is_object_dtype
+from pandapower.create import _get_multiple_index_with_check, _get_index_with_check, \
+    _check_element, _check_multiple_elements, \
     _check_branch_element, _check_multiple_branch_elements
 
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, HeatExchanger, Valve, \
@@ -30,6 +30,85 @@ except ImportError:
     import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _preserve_dtypes(df, dtypes):
+    for item, dtype in list(dtypes.items()):
+        if df.dtypes.at[item] != dtype:
+            if (dtype == bool or dtype == np.bool_) and np.any(df[item].isnull()):
+                raise UserWarning(f"Encountered NaN value(s) in a boolean column {item}! "
+                                  f"NaN are casted to True by default, which can lead to errors. "
+                                  f"Replace NaN values with True or False first.")
+            try:
+                df[item] = df[item].astype(dtype)
+            except ValueError:
+                df[item] = df[item].astype(float)
+
+
+def empty_defaults_per_dtype(dtype):
+    if is_numeric_dtype(dtype):
+        return np.nan
+    elif is_string_dtype(dtype):
+        return ""
+    elif is_object_dtype(dtype):
+        return None
+    else:
+        raise NotImplementedError(f"{dtype=} is not implemented in _empty_defaults()")
+
+
+def _set_entries(net, table, index, preserve_dtypes=True, **entries):
+    dtypes = None
+    if preserve_dtypes:
+        # only get dtypes of columns that are set and that are already present in the table
+        dtypes = net[table][np.intersect1d(net[table].columns, list(entries.keys()))].dtypes
+
+    for col, val in entries.items():
+        net[table].at[index, col] = val
+
+    # and preserve dtypes
+    if preserve_dtypes:
+        _preserve_dtypes(net[table], dtypes)
+
+
+def _set_multiple_entries(net, table, index, preserve_dtypes=True, defaults_to_fill=None,
+                          **entries):
+    dtypes = None
+    if preserve_dtypes:
+        # store dtypes
+        dtypes = net[table].dtypes
+
+    def check_entry(val):
+        if isinstance(val, pd.Series) and not np.all(np.isin(val.index, index)):
+            return val.values
+        elif isinstance(val, set) and len(val) == len(index):
+            return list(val)
+        return val
+
+    entries = {k: check_entry(v) for k, v in entries.items()}
+
+    dd = pd.DataFrame(index=index, columns=net[table].columns)
+    dd = dd.assign(**entries)
+
+    # defaults_to_fill needed due to pandas bug https://github.com/pandas-dev/pandas/issues/46662:
+    # concat adds new bool columns as object dtype -> fix it by setting default value to net[table]
+    if defaults_to_fill is not None:
+        for col, val in defaults_to_fill:
+            if col in dd.columns and col not in net[table].columns:
+                net[table][col] = val
+
+    # extend the table by the frame we just created
+    if len(net[table]):
+        net[table] = pd.concat([net[table], dd[dd.columns[~dd.isnull().all()]]], sort=False)
+    else:
+        dd_columns = dd.columns[~dd.isnull().all()]
+        complete_columns = list(net[table].columns) + list(dd_columns.difference(net[table].columns))
+        empty_dict = {key: empty_defaults_per_dtype(dtype) for key, dtype in net[table][net[
+            table].columns.difference(dd_columns)].dtypes.to_dict().items()}
+        net[table] = dd[dd_columns].assign(**empty_dict)[complete_columns]
+
+    # and preserve dtypes
+    if preserve_dtypes:
+        _preserve_dtypes(net[table], dtypes)
 
 
 def create_empty_network(name="", fluid=None, add_stdtypes=True, sector=Sector.ALL):
@@ -434,7 +513,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
     _check_std_type(net, std_type, "pipe", "create_pipe")
 
     if "qext_w" in kwargs:
-        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has "
                       "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
                       "of the heat transfer calculation", DeprecationWarning)
         del kwargs['qext_w']
@@ -526,7 +605,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
             del kwargs['alpha_w_per_m2k']
 
     if "qext_w" in kwargs:
-        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has "
                       "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
                       "of the heat transfer calculation", DeprecationWarning)
         del kwargs['qext_w']
@@ -1488,23 +1567,25 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     _check_branches(net, from_junctions, to_junctions, "pipe")
 
     if 'alpha_w_per_m2k' in kwargs:
-        if isinstance(u_w_per_m2k, float) and u_w_per_m2k == 0.:
+        warnings.warn(
+            "The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
+            "It will be removed in future.",
+            DeprecationWarning,
+        )
+        if not isinstance(u_w_per_m2k, Iterable) and u_w_per_m2k == 0.:
             u_w_per_m2k = kwargs['alpha_w_per_m2k']
-            warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k."
-                          "It will be removed in future.", DeprecationWarning)
         del kwargs["alpha_w_per_m2k"]
 
     if "qext_w" in kwargs:
-        warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
-                      "been removed as it was deemed ambiguous. This allows an improvement of the physical model "
-                      "of the heat transfer calculation", DeprecationWarning)
+        warnings.warn("Due to the consideration of the ambient temperature, qext_w has"
+                      " been removed as it was deemed ambiguous. This allows an improvement of the physical model"
+                      " of the heat transfer calculation", DeprecationWarning)
         del kwargs['qext_w']
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
                "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
-               "sections": sections, "in_service": in_service, "type": type, "qext_w": qext_w,
-               "text_k": text_k}
+               "sections": sections, "in_service": in_service, "type": type, "text_k": text_k}
 
     if 'std_type' in kwargs:
         raise UserWarning('you have defined a std_type, however, using this function you can only '

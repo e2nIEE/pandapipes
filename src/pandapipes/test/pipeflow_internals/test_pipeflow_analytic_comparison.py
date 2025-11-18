@@ -452,7 +452,7 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
     max_iter_hyd = 3 if use_numba else 3
-    max_iter_therm = 5 if use_numba else 5
+    max_iter_therm = 6 if use_numba else 6
     pandapipes.pipeflow(
         net,
         stop_condition="tol",
@@ -509,8 +509,8 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     pandapipes.create_ext_grid(net, j0, p_bar=5, t_k=350, type="pt")
     pandapipes.create_sink(net, j3, mdot_kg_per_s=1)
 
-    max_iter_hyd = 5 if use_numba else 5
-    max_iter_therm = 4 if use_numba else 4
+    max_iter_hyd = 6 if use_numba else 6
+    max_iter_therm = 5 if use_numba else 5
     pandapipes.pipeflow(
         net,
         stop_condition="tol",
@@ -535,8 +535,9 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
 
     temp_pandapipes = net.res_junction["t_k"]
     temp_diff = np.abs(1 - temp_pandapipes / temp_an)
-
     assert np.all(temp_diff < 0.01)
+
+
 
 
 def test_example_hot_water():

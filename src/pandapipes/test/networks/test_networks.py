@@ -24,7 +24,7 @@ def test_schutterwald():
     net2 = networks.schutterwald_gas(False, None)
     assert net2.sink.empty
     assert len(net2.pipe.loc[net2.pipe.type == "house_connection"]) == 0
-    max_iter_hyd = 2
+    max_iter_hyd = 3
     pandapipes.pipeflow(net2, max_iter_hyd=max_iter_hyd)
     assert net2.converged
 
@@ -79,7 +79,7 @@ def test_schutterwald_heat_transient():
     ])
 
     run_timeseries(net, continue_on_divergence=False, verbose=True,
-                   mode="sequential", transient=True, dt=dt_simulation, iter=200, use_numba=True)
+                   mode="bidirectional", transient=True, dt=dt_simulation, iter=200, use_numba=True)
 
     mg = top.create_nxgraph(net, include_heat_consumers=False, include_pressure_circ_pumps=False)
 

@@ -1,18 +1,21 @@
 import numpy as np
 from numpy import linalg
 
+from pandapipes import MDOTSLACKINIT
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, FROM_NODE, TO_NODE, TOUTINIT
-from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
+    MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, T_OUT_OLD
+from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE, LOAD, TINIT_OLD
+from pandapipes.pf.internals_toolbox import _sum_by_group
 
 try:
     from numba import jit
-    from numba import int32, float64, int64
+    from numba import int32, float64, int64, bool, optional, none
 except ImportError:
     from pandapower.pf.no_numba import jit
-    from numpy import int32, float64, int64
+    from numpy import int32, float64, int64, bool
+    from typing import Optional as optional
 
 
 @jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
@@ -91,16 +94,143 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         load_vec_nodes_to[i] = branch_pit[i][MDOTINIT]
     return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
+@jit
+def _make_lookup(to_nodes, zero_flow_branches):
+    # Erstelle ein bool-Array mit Größe = max Wert + 1
+    max_val = np.max(to_nodes)
+    lookup = np.zeros(max_val + 1, dtype=np.bool_)
+    # Markiere, welche Werte in to_nodes vorkommen
+    for i in range(len(to_nodes)):
+        if ~zero_flow_branches[i]:
+            lookup[to_nodes[i]] = True
+    return lookup
+
+@jit
+def _check_membership(from_node, zero_flow_branch, lookup):
+    if (from_node < len(lookup)) & ~zero_flow_branch:
+        result = lookup[from_node]
+    elif zero_flow_branch:
+        result = True
+    else:
+        result = False
+    return result
+
+@jit((float64[:, :], float64[:, :],
+      int32[:], int32[:],
+      float64[:], float64[:], float64[:],
+      float64[:], float64[:], float64[:], float64[:],
+      float64[:], optional(float64), bool,
+      bool[:], bool[:]), nopython=True, cache=False)
+def derivatives_thermal_numba(node_pit, branch_pit,
+                              from_nodes, to_nodes,
+                              t_init_i, t_init_i1, t_init_n,
+                              cp_i, cp_i1, cp_n, cp,
+                              rho, dt, transient,
+                              zero_flow_branches, zero_flow_nodes):
+    n = cp_n.shape[0]
+    b = cp_i.shape[0]
+
+    lookup = _make_lookup(to_nodes, zero_flow_branches)
+
+    fn = np.zeros_like(cp_n)
+    dfn_dt = np.zeros_like(cp_n)
+    dfn_dts = np.zeros_like(cp_n)
+    infeed = np.zeros_like(cp_n, dtype=np.bool_)
+
+    fbf = np.zeros_like(cp_i)
+    fbt = np.zeros_like(cp_i)
+    fb = np.zeros_like(cp_i)
+    dfbn_dt = np.zeros_like(cp_i)
+    dfbn_dtout = np.zeros_like(cp_i)
+    dfb_dt = np.zeros_like(cp_i)
+    dfb_dtout = np.zeros_like(cp_i)
+
+    for i in range(n):
+        fn[i] = node_pit[i][LOAD] * cp_n[i] * t_init_n[i] + node_pit[i][MDOTSLACKINIT] * cp_n[i] * t_init_n[i]
+        dfn_dt[i] = -1. * node_pit[i][LOAD] * cp_n[i]
+        dfn_dts[i] = -1. * node_pit[i][MDOTSLACKINIT] * cp_n[i]
+        if zero_flow_nodes[i]:
+            fn[i] = 0
+            dfn_dt[i] = 0
+            dfn_dts[i] = 0
+
+    for i in range(b):
+        # this is not required currently, but useful when implementing leakages
+        # m_init_i = np.abs(branch_pit[:, MDOTINIT])
+        # m_init_i1 = np.abs(branch_pit[:, MDOTINIT])
+        mdot = np.abs(branch_pit[i][MDOTINIT])
+        t_amb = branch_pit[i][TEXT]
+        length = branch_pit[i][LENGTH]
+        alpha = branch_pit[i][ALPHA] * np.pi * branch_pit[i][D]
+        tl = branch_pit[i][TL]
+        qext = branch_pit[i][QEXT]
+
+        fbf[i] = mdot * t_init_i[i] * cp_i[i]
+        fbt[i] = mdot * t_init_i1[i] * cp_i1[i]
+        dfbn_dt[i] = -1. * mdot * cp_i[i]
+        dfbn_dtout[i] = mdot * cp_i1[i]
+
+        if transient:
+            area = branch_pit[i][AREA]
+            tvor = branch_pit[i][T_OUT_OLD]
+
+            fb[i] = (
+                    rho[i] * area * cp[i] * (t_init_i1[i] - tvor) * (1 / dt) * length
+                    + cp[i] * mdot * (-t_init_i[i] + t_init_i1[i] - tl)
+                    - alpha * (t_amb - t_init_i1[i]) * length + qext
+            )
+
+            dfb_dt[i] = - cp[i] * mdot
+            dfb_dtout[i] = rho[i] * area * cp[i] / dt * length + cp[i] * mdot + alpha
+
+            if zero_flow_branches[i] & np.isclose(branch_pit[i][LENGTH], 0):
+                fb[i] = rho[i] * area * cp[i] * (t_init_i1[i] - tvor) * (1 / dt) - alpha * (t_amb - t_init_i1[i]) + qext
+                dfb_dt[i] = 0
+                dfb_dtout[i] = rho[i] * area * cp[i] / dt + alpha
+
+            fn_zero = zero_flow_nodes[from_nodes[i]]
+            tn_zero = zero_flow_nodes[to_nodes[i]]
+            if fn_zero:
+                t_from_node_vor_zero = node_pit[from_nodes[i], TINIT_OLD]
+                fn_eq = (rho[i] * area * cp[i] * (1 / dt) * (t_init_i[i] - t_from_node_vor_zero)
+                         - alpha * (t_amb - t_init_i[i]))
+                fn_deriv = rho[i] * area * cp[i] * (1 / dt) + alpha
+                dfn_dt[from_nodes[i]] -= fn_deriv
+                fn[from_nodes[i]] += fn_eq
+                fbf[i] = 0
+                dfbn_dt[i] = 0
+            if tn_zero:
+                t_to_node_vor_zero = node_pit[to_nodes[i], TINIT_OLD]
+                t_to_node = node_pit[to_nodes[i], TINIT_NODE]
+                tn_eq = (rho[i] * area * cp[i] * (1 / dt) * (t_to_node - t_to_node_vor_zero)
+                         - alpha * (t_amb - t_to_node))
+                tn_deriv = (rho[i]* area * cp[i] * (1 / dt) + alpha)
+                dfn_dt[to_nodes[i]] -= tn_deriv
+                fn[to_nodes[i]] += tn_eq
+                fbt[i] = 0
+                dfbn_dtout[i] = 0
+        else:
+            fb[i] = (
+                    t_amb + (t_init_i[i] - t_amb) * np.exp(- alpha * length / (cp[i] * mdot))
+                    - t_init_i1[i] + tl - qext / (cp[i] * mdot)
+            )
+            dfb_dt[i] = np.exp(- alpha * length / (cp[i] * mdot))
+            dfb_dtout[i] = -1
+
+        infeed[from_nodes[i]] = ~_check_membership(from_nodes[i], zero_flow_branches[i], lookup)
+
+    return fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbn_dt, dfbn_dtout, infeed
+
 
 @jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
 def calc_lambda_nikuradse_incomp_numba(m, d, k, eta, area):
-    lambda_nikuradse = np.empty_like(m)
+    lambda_nikuradse = np.zeros_like(m)
     lambda_laminar = np.zeros_like(m)
-    re = np.empty_like(m)
+    re = np.zeros_like(m)
     m_abs = np.abs(m)
     for i in range(m.shape[0]):
         re[i] = np.divide(m_abs[i] * d[i], eta[i] * area[i])
-        if re[i] != 0:
+        if ~np.isclose(re [i], 0):
             lambda_laminar[i] = 64 / re[i]
         lambda_nikuradse[i] = np.power(-2 * np.log10(k[i] / (3.71 * d[i])), -2)
     return re, lambda_laminar, lambda_nikuradse
@@ -108,13 +238,13 @@ def calc_lambda_nikuradse_incomp_numba(m, d, k, eta, area):
 
 @jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
 def calc_lambda_nikuradse_comp_numba(m, d, k, eta, area):
-    lambda_nikuradse = np.empty_like(m)
+    lambda_nikuradse = np.zeros_like(m)
     lambda_laminar = np.zeros_like(m)
-    re = np.empty_like(m)
+    re = np.zeros_like(m)
     for i, mi in enumerate(m):
         m_abs = np.abs(mi)
         re[i] = np.divide(m_abs * d[i], eta[i] * area[i])
-        if re[i] != 0:
+        if ~np.isclose(re [i], 0):
             lambda_laminar[i] = np.divide(64, re[i])
         lambda_nikuradse[i] = np.divide(1, (2 * np.log10(np.divide(d[i], k[i])) + 1.14) ** 2)
     return re, lambda_laminar, lambda_nikuradse

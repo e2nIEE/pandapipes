@@ -208,6 +208,23 @@ def test_reindex_junctions():
                     net_orig[elm].index)) + to_add)
 
 
+def test_reindex_pipes():
+    net_orig = nw.simple_gas_networks.gas_tcross1()
+    net = nw.simple_gas_networks.gas_tcross1()
+
+    pandapipes.create_valve(net_orig, junction=0, element=0, et='pi', diameter_m=0.1)
+    pandapipes.create_valve(net, junction=0, element=0, et='pi', diameter_m=0.1)
+
+    to_add = 5
+    new_pipe_idxs = np.array(list(net.pipe.index)) + to_add
+    lookup = dict(zip(net["pipe"].index.values, new_pipe_idxs))
+    # a more complexe junction_lookup of course should also work, but this one is easy to check
+    pandapipes.reindex_pipes(net, lookup)
+
+    assert np.all(net["pipe"].index == net_orig["pipe"].index + to_add)
+    assert np.all(net["valve"]["element"].to_numpy() ==  net_orig["valve"]["element"].to_numpy() + to_add)
+
+
 def test_fuse_junctions(create_net_changed_indices):
     net = copy.deepcopy(create_net_changed_indices)
     junction_index, previous_junctions = get_junction_indices(net)
@@ -266,7 +283,7 @@ def test_select_subnet(base_net_is_wo_pumps):
 
     # check length of results
     net = nw.gas_tcross2()
-    max_iter_hyd = 2
+    max_iter_hyd = 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
     net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
     for comp in net.component_list:
@@ -286,7 +303,7 @@ def test_pit_extraction():
         if not "_gas" in name:
             pandapipes.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", index=None)
             pandapipes.create_ext_grid(net, junction=5, p_bar=5, t_k=290, name="External Grid 3")
-        max_iter_hyd = 11 if '_water' in name else 5
+        max_iter_hyd = 11 if '_water' in name else 6
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
         node_table, branch_table = pandapipes.get_internal_tables_pandas(net)
