@@ -233,3 +233,12 @@ def get_component_array(net, component_name, component_type="branch", mode='hydr
 
 def get_std_type_lookup(net, table_name):
     return np.array(list(net.std_types[table_name].keys()))
+
+
+def retrieve_u(params):
+    if not np.isnan(params["u_w_per_m2k"]) and not np.isnan(params["u_w_per_mk"]):
+        raise UserWarning(r'u_w_per_m2k and u_w_per_mk have been both defined. '
+                          r'This might lead to problems due to ambiguity! '
+                          r'Delete one value and update your standard type!')
+    elif not np.isnan(params["u_w_per_mk"]):
+        params["u_w_per_m2k"] = params["u_w_per_mk"] / (params["outer_diameter_mm"] * np.pi) * 1000.
