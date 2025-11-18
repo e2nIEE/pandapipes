@@ -663,11 +663,3 @@ def _deprecation_check_k(kwargs):
     else:
         k = None
     return k
-
-def retrieve_u(params):
-    if not np.isnan(params["u_w_per_m2k"]) and not np.isnan(params["u_w_per_mk"]):
-        raise UserWarning(r'u_w_per_m2k and u_w_per_mk have been both defined. '
-                          r'This might lead to problems due to ambugity! '
-                          r'Delete one value and update your standard type!')
-    elif not np.isnan(params["u_w_per_mk"]):
-        params["u_w_per_m2k"] = params["u_w_per_mk"] / (params["outer_diameter_mm"] * np.pi) * 1000.
