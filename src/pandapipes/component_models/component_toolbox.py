@@ -237,6 +237,10 @@ def get_std_type_lookup(net, table_name):
 
 
 def retrieve_u(params):
+    if not "u_w_per_m2k" in params:
+        params["u_w_per_m2k"] = np.nan
+    if not "u_w_per_mk" in params:
+        params["u_w_per_mk"] = np.nan
     if not np.isnan(params["u_w_per_m2k"]) and not np.isnan(params["u_w_per_mk"]):
         raise UserWarning(r'u_w_per_m2k and u_w_per_mk have been both defined. '
                           r'This might lead to problems due to ambiguity! '

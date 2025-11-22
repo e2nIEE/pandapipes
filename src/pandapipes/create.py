@@ -1459,7 +1459,6 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
     nr_pipes = len(from_junctions)
     index = _get_multiple_index_with_check(net, "pipe", index, nr_pipes)
     _check_branches(net, from_junctions, to_junctions, "pipe")
-    _check_std_type(net, std_type, "pipe", "create_pipes")
 
     if "qext_w" in kwargs:
         warnings.warn("Due to the consideration of the ambient temperature, qext_w has " 
@@ -1479,7 +1478,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
             k = _deprecation_check_k(kwargs)
             pipe_parameters["u_w_per_m2k"] += [u if u is not None else params["u_w_per_m2k"]]
             pipe_parameters["k_mm"] += [k if k is not None else params["k_mm"]]
-            pipe_parameters["inner_diameter_m"] += [params["inner_diameter_m"] / 1000.]
+            pipe_parameters["inner_diameter_m"] += [params["inner_diameter_mm"] / 1000.]
     else:
         _check_std_type(net, std_type, "pipe", "create_pipes")
         pipe_parameters = load_std_type(net, std_type, "pipe")
