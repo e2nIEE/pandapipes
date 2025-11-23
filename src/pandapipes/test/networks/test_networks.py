@@ -15,17 +15,18 @@ from pandapipes.timeseries.run_time_series import run_timeseries
 from pandapipes import topology as top
 
 
-def test_schutterwald():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_schutterwald(use_numba):
     net = networks.schutterwald_gas(True, None)
     max_iter_hyd = 3
-    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert net.converged
 
     net2 = networks.schutterwald_gas(False, None)
     assert net2.sink.empty
     assert len(net2.pipe.loc[net2.pipe.type == "house_connection"]) == 0
     max_iter_hyd = 3
-    pandapipes.pipeflow(net2, max_iter_hyd=max_iter_hyd)
+    pandapipes.pipeflow(net2, max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert net2.converged
 
     net3 = networks.schutterwald_gas(True, 30)
@@ -33,18 +34,20 @@ def test_schutterwald():
     assert net3.pipe.loc[net3.pipe.in_service & (net3.pipe.type == "house_connection"),
                          "length_km"].max() <= 0.03
     max_iter_hyd = 3
-    pandapipes.pipeflow(net3, max_iter_hyd=max_iter_hyd)
+    pandapipes.pipeflow(net3, max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert net3.converged
 
 
-def test_schutterwald_heat():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_schutterwald_heat(use_numba):
     net = networks.schutterwald_heat(80)
-    pandapipes.pipeflow(net, mode="sequential")
+    pandapipes.pipeflow(net, mode="sequential", use_numba=use_numba)
     assert np.all(net.res_junction.p_bar.to_numpy() > 0)
     assert np.all(net.res_junction.t_k.to_numpy() > net.user_pf_options["ambient_temperature"] - 0.01)
 
 
-def test_schutterwald_heat_transient():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_schutterwald_heat_transient(use_numba):
     net = networks.schutterwald_heat(80)
     dt_simulation = 120
 
@@ -79,7 +82,7 @@ def test_schutterwald_heat_transient():
     ])
 
     run_timeseries(net, continue_on_divergence=False, verbose=True,
-                   mode="bidirectional", transient=True, dt=dt_simulation, iter=200, use_numba=True)
+                   mode="bidirectional", transient=True, dt=dt_simulation, iter=200, use_numba=use_numba)
 
     mg = top.create_nxgraph(net, include_heat_consumers=False, include_pressure_circ_pumps=False)
 

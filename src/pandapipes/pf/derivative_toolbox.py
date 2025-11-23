@@ -9,8 +9,10 @@ from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, TOUTINIT, FROM_NODE, TEXT, ALPHA, TL, QEXT, T_OUT_OLD, LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T
+    MDOTINIT, TOUTINIT, FROM_NODE, TO_NODE, TEXT, ALPHA, TL, QEXT, T_OUT_OLD, \
+    LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T
 from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE, LOAD, MDOTSLACKINIT, TINIT_OLD
+from pandapipes.pf.pipeflow_setup import get_net_option
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +82,8 @@ def derivatives_thermal_np(node_pit, branch_pit,
                               t_init_i, t_init_i1, t_init_n,
                               cp_i, cp_i1, cp_n, cp,
                               rho, dt, transient,
-                              zero_flow_branches, zero_flow_nodes):
+                              branches_active, nodes_active,
+                              amb):
     # this is not required currently, but useful when implementing leakages
     # m_init_i = np.abs(branch_pit[:, MDOTINIT])
     # m_init_i1 = np.abs(branch_pit[:, MDOTINIT])
@@ -91,8 +94,19 @@ def derivatives_thermal_np(node_pit, branch_pit,
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
 
-    fn = node_pit[:, LOAD] * cp_n * t_init_n + node_pit[:, MDOTSLACKINIT] * cp_n * t_init_n
-    dfn_dt = - node_pit[:, LOAD] * cp_n
+    branches_flow = _branches_not_zero_flow(branch_pit)
+    # ToDo: Is it relevant to consider slack streams?
+    nodes_flow = np.isin(np.arange(np.sum(nodes_active)),
+                         np.concatenate([from_nodes[branches_flow], to_nodes[branches_flow]]))
+
+    fn = np.zeros_like(cp_n)
+    fn[nodes_flow] = (node_pit[nodes_flow, LOAD] * cp_n[nodes_flow] * t_init_n[nodes_flow] +
+                      node_pit[nodes_flow, MDOTSLACKINIT] * cp_n[nodes_flow] * t_init_n[nodes_flow])
+    fn[~nodes_flow] = amb - t_init_n[~nodes_flow]
+
+    dfn_dt = np.zeros_like(cp_n)
+    dfn_dt[nodes_flow] = - node_pit[nodes_flow, LOAD] * cp_n[nodes_flow]
+    dfn_dt[~nodes_flow] = np.ones_like(cp_n[~nodes_flow])
     dfn_dts = - node_pit[:, MDOTSLACKINIT] * cp_n
 
     fbf = mdot * t_init_i * cp_i
@@ -114,10 +128,10 @@ def derivatives_thermal_np(node_pit, branch_pit,
         dfb_dt = - cp * mdot
         dfb_dtout = rho * area * cp / dt * length + cp * mdot + alpha
 
-        if np.any(zero_flow_branches):
+        if np.any(~branches_flow):
             # TODO: maybe replace this statement with a component lookup
             zero_length = np.isclose(branch_pit[:, LENGTH], 0, rtol=1e-6, atol=1e-10)
-            mask = zero_length & zero_flow_branches
+            mask = zero_length & ~branches_flow
             if np.any(mask):
                 fb[mask] = (
                         rho[mask] * area[mask] * cp[mask] * (t_init_i1[mask] - tvor[mask]) * (1 / dt)
@@ -127,9 +141,9 @@ def derivatives_thermal_np(node_pit, branch_pit,
                 dfb_dtout[mask] = (rho[mask] * area[mask] * cp[mask] / dt +
                                                      alpha[mask])
 
-        if np.any(zero_flow_nodes):
-            fn_zero = zero_flow_nodes[from_nodes]
-            tn_zero = zero_flow_nodes[to_nodes]
+        if np.any(~nodes_flow):
+            fn_zero = ~nodes_flow[from_nodes]
+            tn_zero = ~nodes_flow[to_nodes]
 
             t_from_node_vor_zero = node_pit[from_nodes[fn_zero], TINIT_OLD]
             t_to_node_vor_zero = node_pit[to_nodes[tn_zero], TINIT_OLD]
@@ -154,13 +168,13 @@ def derivatives_thermal_np(node_pit, branch_pit,
                 to_nodes[tn_zero], tn_eq, tn_deriv
             )
 
-            fn[zero_flow_nodes] = 0
+            fn[~nodes_flow] = 0
             fn[fn_nodes] += fn_eq_sum
             fn[tn_nodes] += tn_eq_sum
-            dfn_dt[zero_flow_nodes] = 0
+            dfn_dt[~nodes_flow] = 0
             dfn_dt[fn_nodes] -= fn_deriv_sum
             dfn_dt[tn_nodes] -= tn_deriv_sum
-            dfn_dts[zero_flow_nodes] = 0
+            dfn_dts[~nodes_flow] = 0
 
             fbf[fn_zero] = 0
             fbt[tn_zero] = 0
@@ -176,14 +190,22 @@ def derivatives_thermal_np(node_pit, branch_pit,
                 "method."
             )
 
-        fb = (
-                t_amb + (t_init_i - t_amb) * np.exp(- alpha * length / (cp * mdot))
-                - t_init_i1 + tl - qext / (cp * mdot)
+        fb = np.zeros_like(cp)
+        fb[branches_flow] = (
+                t_amb[branches_flow] + (t_init_i[branches_flow]  - t_amb[branches_flow])
+                * np.exp(- alpha[branches_flow] * length[branches_flow]  / (cp[branches_flow] * mdot[branches_flow]))
+                - t_init_i1[branches_flow] + tl[branches_flow]
+                - qext[branches_flow] / (cp[branches_flow] * mdot[branches_flow])
         )
-        dfb_dt = np.exp(- alpha * length / (cp * mdot))
-        dfb_dtout = - np.ones_like(cp_i)
+        fb[~branches_flow] = amb - t_init_i1[~branches_flow]
 
-    infeed = np.setdiff1d(from_nodes[~zero_flow_branches], to_nodes[~zero_flow_branches])
+        dfb_dt = np.zeros_like(cp)
+        dfb_dt[branches_flow] = np.exp(- alpha[branches_flow] * length[branches_flow] /
+                                       (cp[branches_flow] * mdot[branches_flow]))
+
+        dfb_dtout = - np.ones_like(cp)
+
+    infeed = np.setdiff1d(from_nodes[branches_flow], to_nodes[branches_flow])
 
 
     # This approach can be used if you consider the effect of sources with given temperature (checkout issue #656)
@@ -301,3 +323,15 @@ def calc_derived_values_np(node_pit, from_nodes, to_nodes):
     p_init_i_abs = node_pit[from_nodes, PINIT] + node_pit[from_nodes, PAMB]
     p_init_i1_abs = node_pit[to_nodes, PINIT] + node_pit[to_nodes, PAMB]
     return tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs
+
+def _branches_not_zero_flow(branch_pit):
+    """
+    Simple function to identify branches with flow based on the calculated velocity.
+
+    :param branch_pit: The pandapipes internal table of the network (including hydraulics results)
+    :type branch_pit: np.array
+    :return: branches_connected_flow - lookup array if branch is connected wrt. flow
+    :rtype: np.array
+    """
+    # TODO: is this formulation correct or could there be any caveats?
+    return ~np.isnan(branch_pit[:, MDOTINIT]) & ~np.isclose(branch_pit[:, MDOTINIT], 0, rtol=1e-10, atol=1e-10)

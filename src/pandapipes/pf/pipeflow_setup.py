@@ -519,17 +519,6 @@ def identify_active_nodes_branches(net, hydraulic=True):
             nodes_connected, branches_connected = check_connectivity(net, branch_pit, node_pit,
                                                                      branches_connected, nodes_connected,
                                                                      mode="heat_transfer")
-        fn = branch_pit[:, FROM_NODE].astype(np.int32)
-        tn = branch_pit[:, TO_NODE].astype(np.int32)
-        branches_flow = branches_not_zero_flow(branch_pit)
-        nodes_flow = np.isin(np.arange(len(nodes_connected)), np.concatenate([fn[branches_flow], tn[branches_flow]]))
-
-        if get_net_option(net, "transient"):
-            net["_lookups"]["branch_zero_flow"] = ~branches_flow & branches_connected
-            net["_lookups"]["node_zero_flow"] = ~nodes_flow & nodes_connected
-        else:
-            branches_connected = branches_flow & branches_connected
-            nodes_connected = nodes_flow & nodes_connected
 
     mode = "hydraulics" if hydraulic else "heat_transfer"
     if np.all(~nodes_connected):
@@ -539,19 +528,6 @@ def identify_active_nodes_branches(net, hydraulic=True):
                                    " Have you forgotten to define a supply component or is it not properly connected?" % mode)
     net["_lookups"]["node_active_" + mode] = nodes_connected
     net["_lookups"]["branch_active_" + mode] = branches_connected
-
-
-def branches_not_zero_flow(branch_pit):
-    """
-    Simple function to identify branches with flow based on the calculated velocity.
-
-    :param branch_pit: The pandapipes internal table of the network (including hydraulics results)
-    :type branch_pit: np.array
-    :return: branches_connected_flow - lookup array if branch is connected wrt. flow
-    :rtype: np.array
-    """
-    # TODO: is this formulation correct or could there be any caveats?
-    return ~np.isnan(branch_pit[:, MDOTINIT]) & ~np.isclose(branch_pit[:, MDOTINIT], 0, rtol=1e-10, atol=1e-10)
 
 
 def check_connectivity(net, branch_pit, node_pit,
