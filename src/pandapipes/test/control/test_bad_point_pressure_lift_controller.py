@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 import pandapipes as pp
 from pandapipes.control import BadPointPressureLiftController
+from pandapipes.control.run_control import run_control
 
 @pytest.fixture
 def district_heating_net():
@@ -38,29 +39,38 @@ def district_heating_net():
     return net
 
 def test_bad_point_pressure_lift_controller(district_heating_net):
-    """Test that controller maintains target pressure difference at worst point."""
+    """Test that controller maintains target pressure difference at worst point (default mode: fixed_preturn)."""
     net = district_heating_net
     target_dp = 1.5
     tolerance = 0.1
 
-    # Add controller to network
+    # Add controller to network with default mode (fixed_preturn)
     controller = BadPointPressureLiftController(net, target_dp_min_bar=target_dp,
                                                 tolerance=tolerance, proportional_gain=0.3)
     net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
 
+    # Get initial return pressure
+    initial_pflow = net.circ_pump_pressure["p_flow_bar"].iloc[0]
+    initial_plift = net.circ_pump_pressure["plift_bar"].iloc[0]
+    initial_preturn = initial_pflow - initial_plift
+
     # Run pipeflow with control
-    for _ in range(5):
-        pp.pipeflow(net, mode="bidirectional", iter=100)
-        if controller.is_converged(net):
-            break
+
+    run_control(net, mode="bidirectional", max_iter=100)
 
     # Verify convergence and target achievement
     dp_min, worst_point_idx = controller.calculate_worst_point(net)
+    final_pflow = net.circ_pump_pressure["p_flow_bar"].iloc[0]
+    final_plift = net.circ_pump_pressure["plift_bar"].iloc[0]
+    final_preturn = final_pflow - final_plift
 
     assert net.converged, "Network should converge with controller"
     assert worst_point_idx >= 0, "Controller should identify worst point"
     assert abs(dp_min - target_dp) < tolerance, \
         f"Controller should reach target {target_dp} bar, got {dp_min:.3f} bar"
+    # In fixed_preturn mode, return pressure should remain constant
+    assert abs(final_preturn - initial_preturn) < 0.01, \
+        f"Return pressure should remain constant in fixed_preturn mode, changed by {final_preturn - initial_preturn:.4f} bar"
 
 def test_bad_point_controller_standby_mode(district_heating_net):
     """Test that controller enters standby mode when no heat demand is present."""
@@ -76,6 +86,41 @@ def test_bad_point_controller_standby_mode(district_heating_net):
     # Verify standby mode sets minimum pressures
     assert net.circ_pump_pressure["plift_bar"].iloc[0] == 1.5
     assert net.circ_pump_pressure["p_flow_bar"].iloc[0] == 3.5
+
+def test_bad_point_controller_fixed_pflow_mode(district_heating_net):
+    """Test that controller works correctly in fixed_pflow mode."""
+    net = district_heating_net
+    target_dp = 1.5
+    tolerance = 0.1
+
+    # Add controller in fixed_pflow mode
+    controller = BadPointPressureLiftController(net, target_dp_min_bar=target_dp,
+                                                tolerance=tolerance, proportional_gain=0.3,
+                                                mode='fixed_pflow', min_preturn=2.0)
+    net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
+
+    # Get initial values
+    initial_pflow = net.circ_pump_pressure["p_flow_bar"].iloc[0]
+
+    # Run pipeflow with control
+    run_control(net, mode="bidirectional", max_iter=100)
+
+    # Verify convergence and target achievement
+    dp_min, worst_point_idx = controller.calculate_worst_point(net)
+    final_pflow = net.circ_pump_pressure["p_flow_bar"].iloc[0]
+    final_plift = net.circ_pump_pressure["plift_bar"].iloc[0]
+    final_preturn = final_pflow - final_plift
+
+    assert net.converged, "Network should converge with controller"
+    assert worst_point_idx >= 0, "Controller should identify worst point"
+    assert abs(dp_min - target_dp) < tolerance, \
+        f"Controller should reach target {target_dp} bar, got {dp_min:.3f} bar"
+    # In fixed_pflow mode, flow pressure should remain constant
+    assert abs(final_pflow - initial_pflow) < 0.01, \
+        f"Flow pressure should remain constant in fixed_pflow mode, changed by {final_pflow - initial_pflow:.4f} bar"
+    # Return pressure should not fall below minimum
+    assert final_preturn >= 2.0 - 0.01, \
+        f"Return pressure should not fall below min_preturn (2.0 bar), got {final_preturn:.4f} bar"
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
