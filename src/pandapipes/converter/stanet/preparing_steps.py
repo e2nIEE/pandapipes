@@ -48,7 +48,7 @@ DEFAULT_STANET_KEYWORDS = {
 
 
 def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_line_info=False,
-                        keywords=None):
+                        keywords=None, decimal='.'):
     """
     Extract raw data from STANET file.
     :param stanet_path:  Path to STANET .csv file
@@ -119,7 +119,7 @@ def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_
         read_args.update(read_options.get(key, dict()))
         logger.debug("Reading CSV table %s into pandas." % key)
         data = pd.read_csv(stanet_path, encoding=encoding, sep=';', index_col=False,
-                           skiprows=rows[:from_line] + rows[to_line:], **read_args)
+                           skiprows=rows[:from_line] + rows[to_line:], decimal=decimal, **read_args)
         data.columns = [col[1:] if isinstance(col, str) and col.startswith("!")
                         else col for col in data.columns]
         stored_data[key] = data
@@ -191,7 +191,8 @@ def get_net_params(net, stored_data):
     net_params["comp_factor"] = net_data.at[0, "KPAR"]
     net_params["friction_model"] = int(net_data.at[0, "LAM"])
     net_params["max_iterations"] = int(net_data.at[0, "IMAX"])
-    net_params["compress_model"] = compressibility_models[int(net_data.at[0, "KFAKT"])]
+    if "KFAKT" in net_data.columns:
+        net_params["compress_model"] = compressibility_models.get(int(net_data.at[0, "KFAKT"]), "linear")
     if net_params["friction_model"] not in known_friction_models.keys():
         known_str = " or ".join("%s (%d)" % (m_name.capitalize(), m_nr)
                                 for m_nr, m_name in known_friction_models.items())

@@ -6,7 +6,14 @@ import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat, get_internal_lookup_structure
-from pandapipes.idx_branch import ACTIVE, ELEMENT_IDX, D, LOSS_COEFFICIENT as LC, AREA
+from pandapipes.idx_branch import (
+    ACTIVE,
+    ELEMENT_IDX,
+    D,
+    LOSS_COEFFICIENT as LC,
+    AREA,
+    QEXT,
+)
 from pandapipes.idx_node import L, node_cols
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_lookup, get_table_number, get_net_option
 
@@ -155,7 +162,8 @@ class BranchWInternalsComponent(BranchComponent):
             f, t = ft_lookup[cls.internal_node_name()]
 
             int_node_pit = node_pit[f:t, :]
-            int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
+            if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
+                int_node_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
             return int_node_pit
 
     @classmethod
@@ -174,12 +182,11 @@ class BranchWInternalsComponent(BranchComponent):
         if not len(branch_w_internals_pit):
             return branch_w_internals_pit, node_pit
 
+        tbl = cls.table_name()
+        node_ft_lookups = get_lookup(net, "node", "from_to")
+        has_internals = cls.internal_node_name() in node_ft_lookups
+        internal_branch_number = cls.get_internal_branch_number(net)
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-            internal_branch_number = cls.get_internal_branch_number(net)
-            node_ft_lookups = get_lookup(net, "node", "from_to")
-            has_internals = cls.internal_node_name() in node_ft_lookups
-
-            tbl = cls.table_name()
             set_entry_check_repeat(branch_w_internals_pit, ELEMENT_IDX, net[tbl].index.values, internal_branch_number,
                 has_internals)
             set_entry_check_repeat(branch_w_internals_pit, ACTIVE, net[tbl][cls.active_identifier()].values,
@@ -190,6 +197,7 @@ class BranchWInternalsComponent(BranchComponent):
                 has_internals)
 
             branch_w_internals_pit[:, AREA] = branch_w_internals_pit[:, D] ** 2 * np.pi / 4
+            branch_w_internals_pit[:, QEXT] = 0.0
         return branch_w_internals_pit, node_pit
 
     @classmethod

@@ -2,14 +2,17 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import logging
 import numpy as np
 from numpy import linalg
-
+from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, TOUTINIT, FROM_NODE
-from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE
+    MDOTINIT, TOUTINIT, FROM_NODE, TEXT, ALPHA, TL, QEXT, T_OUT_OLD, LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T
+from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE, LOAD, MDOTSLACKINIT, TINIT_OLD
+
+logger = logging.getLogger(__name__)
 
 
 def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
@@ -71,6 +74,129 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
     load_vec_nodes_to = branch_pit[:, MDOTINIT]
 
     return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
+
+def derivatives_thermal_np(node_pit, branch_pit,
+                              from_nodes, to_nodes,
+                              t_init_i, t_init_i1, t_init_n,
+                              cp_i, cp_i1, cp_n, cp,
+                              rho, dt, transient,
+                              zero_flow_branches, zero_flow_nodes):
+    # this is not required currently, but useful when implementing leakages
+    # m_init_i = np.abs(branch_pit[:, MDOTINIT])
+    # m_init_i1 = np.abs(branch_pit[:, MDOTINIT])
+    mdot = np.abs(branch_pit[:, MDOTINIT])
+    t_amb = branch_pit[:, TEXT]
+    length = branch_pit[:, LENGTH]
+    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
+    tl = branch_pit[:, TL]
+    qext = branch_pit[:, QEXT]
+
+    fn = node_pit[:, LOAD] * cp_n * t_init_n + node_pit[:, MDOTSLACKINIT] * cp_n * t_init_n
+    dfn_dt = - node_pit[:, LOAD] * cp_n
+    dfn_dts = - node_pit[:, MDOTSLACKINIT] * cp_n
+
+    fbf = mdot * t_init_i * cp_i
+    fbt = mdot * t_init_i1 * cp_i1
+    dfbn_dt = - mdot * cp_i
+    dfbn_dtout = mdot * cp_i1
+
+
+    if transient:
+        area = branch_pit[:, AREA]
+        tvor = branch_pit[:, T_OUT_OLD]
+
+        fb = (
+                rho * area * cp * (t_init_i1 - tvor) * (1 / dt) * length
+                + cp * mdot * (-t_init_i + t_init_i1 - tl)
+                - alpha * (t_amb - t_init_i1) * length + qext
+        )
+
+        dfb_dt = - cp * mdot
+        dfb_dtout = rho * area * cp / dt * length + cp * mdot + alpha
+
+        if np.any(zero_flow_branches):
+            # TODO: maybe replace this statement with a component lookup
+            zero_length = np.isclose(branch_pit[:, LENGTH], 0, rtol=1e-6, atol=1e-10)
+            mask = zero_length & zero_flow_branches
+            if np.any(mask):
+                fb[mask] = (
+                        rho[mask] * area[mask] * cp[mask] * (t_init_i1[mask] - tvor[mask]) * (1 / dt)
+                        - alpha[mask] * (t_amb[mask] - t_init_i1[mask]) + qext[mask]
+                )
+                dfb_dt[mask] = 0
+                dfb_dtout[mask] = (rho[mask] * area[mask] * cp[mask] / dt +
+                                                     alpha[mask])
+
+        if np.any(zero_flow_nodes):
+            fn_zero = zero_flow_nodes[from_nodes]
+            tn_zero = zero_flow_nodes[to_nodes]
+
+            t_from_node_vor_zero = node_pit[from_nodes[fn_zero], TINIT_OLD]
+            t_to_node_vor_zero = node_pit[to_nodes[tn_zero], TINIT_OLD]
+            t_to_node = node_pit[to_nodes[tn_zero], TINIT_NODE]
+
+            fn_eq = (rho[fn_zero] * area[fn_zero] * cp[fn_zero] * (1 / dt)
+                     * (t_init_i[fn_zero] - t_from_node_vor_zero)
+                     - alpha[fn_zero] * (t_amb[fn_zero] - t_init_i[fn_zero]))
+
+            tn_eq = (rho[tn_zero] * area[tn_zero] * cp[tn_zero] * (1 / dt)
+                     * (t_to_node - t_to_node_vor_zero)
+                     - alpha[tn_zero] * (t_amb[tn_zero] - t_to_node))
+
+            fn_deriv = (rho[fn_zero] * area[fn_zero] * cp[fn_zero] * (1 / dt) + alpha[fn_zero])
+            tn_deriv = (rho[tn_zero] * area[tn_zero] * cp[tn_zero] * (1 / dt) + alpha[tn_zero])
+
+            fn_nodes, fn_eq_sum, fn_deriv_sum= _sum_by_group(False,
+                from_nodes[fn_zero], fn_eq, fn_deriv
+            )
+
+            tn_nodes, tn_eq_sum, tn_deriv_sum = _sum_by_group(False,
+                to_nodes[tn_zero], tn_eq, tn_deriv
+            )
+
+            fn[zero_flow_nodes] = 0
+            fn[fn_nodes] += fn_eq_sum
+            fn[tn_nodes] += tn_eq_sum
+            dfn_dt[zero_flow_nodes] = 0
+            dfn_dt[fn_nodes] -= fn_deriv_sum
+            dfn_dt[tn_nodes] -= tn_deriv_sum
+            dfn_dts[zero_flow_nodes] = 0
+
+            fbf[fn_zero] = 0
+            fbt[tn_zero] = 0
+            dfbn_dt[fn_zero] = 0
+            dfbn_dtout[tn_zero] = 0
+    else:
+        non_zero_length_mask = ~np.isclose(branch_pit[:, LENGTH], 0, rtol=1e-6, atol=1e-10)
+        if np.any(non_zero_length_mask & (np.abs(branch_pit[:, QEXT]) > 1e-12)):
+            logger.warning(
+                "A branch with non zero length has a non zero external heat load. This might lead "
+                "to errors in the calculation, as the overlap of temperature reduction from heat "
+                "losses to ambient and a constant heat flux cannot be solved with the implmented "
+                "method."
+            )
+
+        fb = (
+                t_amb + (t_init_i - t_amb) * np.exp(- alpha * length / (cp * mdot))
+                - t_init_i1 + tl - qext / (cp * mdot)
+        )
+        dfb_dt = np.exp(- alpha * length / (cp * mdot))
+        dfb_dtout = - np.ones_like(cp_i)
+
+    infeed = np.setdiff1d(from_nodes[~zero_flow_branches], to_nodes[~zero_flow_branches])
+
+
+    # This approach can be used if you consider the effect of sources with given temperature (checkout issue #656)
+
+    # branch_pit[:, LOAD_VEC_NODES_FROM_T] = mdot * t_init_i * cp_i
+    # --> cp_i is calculated by fluid.get_heat_capacity(t_init_i)
+    # branch_pit[:, LOAD_VEC_NODES_TO_T] = mdot * t_init_i1 * cp_i1
+    # --> still missing is the derivative of loads
+    # t_init = node_pit[:, TINIT_NODE]
+    # cp_n = fluid.get_heat_capacity(t_init)
+    # node_pit[:, LOAD_T] = cp_n * node_pit[:, LOAD] * t_init
+
+    return fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbn_dt, dfbn_dtout, infeed
 
 
 def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):

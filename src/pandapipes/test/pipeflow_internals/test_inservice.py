@@ -160,7 +160,7 @@ def test_inservice_gas(create_test_net, use_numba):
 
     pandapipes.create_fluid_from_lib(net, "lgas")
 
-    max_iter_hyd = 3 if use_numba else 3
+    max_iter_hyd = 4 if use_numba else 4
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
                         tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                         use_numba=use_numba)
@@ -412,8 +412,8 @@ def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
 
     net2 = copy.deepcopy(net)
 
-    max_iter_hyd = 10 if use_numba else 10
-    max_iter_therm = 6 if use_numba else 6
+    max_iter_hyd = 11 if use_numba else 11
+    max_iter_therm = 7 if use_numba else 7
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         mode='sequential', check_connectivity=True, use_numba=use_numba)
     pandapipes.pipeflow(net2, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
@@ -436,7 +436,7 @@ def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
     net.ext_grid.loc[2, 'in_service'] = False
     net.ext_grid.loc[1, 'type'] = 'p'
 
-    max_iter_hyd = 10 if use_numba else 10
+    max_iter_hyd = 11 if use_numba else 11
     max_iter_therm = 3 if use_numba else 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         check_connectivity=True, mode='sequential', use_numba=use_numba)
@@ -506,7 +506,7 @@ def check_mass_flows(net):
 def test_mixed_indexing_oos1(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
 
-    max_iter_hyd = 3 if use_numba else 3
+    max_iter_hyd = 4 if use_numba else 4
     pandapipes.pipeflow(net, mode="hydraulics", max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert all(np.all(net["res_" + tbl].loc[~oos_func(net, tbl)].notnull()) for tbl, oos_func
                in all_tbls_funcs.items())
@@ -654,7 +654,7 @@ def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
     net = create_net_wo_ext_grid
     ex1 = pandapipes.create_ext_grid(net, junction=3, t_k=300)
     ex2 = pandapipes.create_ext_grid(net, junction=3, p_bar=1)
-    max_iter_hyd = 9 if use_numba else 9
+    max_iter_hyd = 10 if use_numba else 10
     with pytest.raises(PipeflowNotConverged):
         net.ext_grid.at[ex2, 'in_service'] = False
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",

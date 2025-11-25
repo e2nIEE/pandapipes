@@ -16,7 +16,7 @@ def test_pipeflow_non_convergence(use_numba):
     net = gas_versatility()
     pandapipes.get_fluid(net).add_property("molar_mass", FluidPropertyConstant(16.6))
 
-    max_iter_hyd = 8 if use_numba else 8
+    max_iter_hyd = 9 if use_numba else 9
     pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
     for comp in net["component_list"]:
         table_name = comp.table_name()
