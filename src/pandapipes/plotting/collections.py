@@ -414,15 +414,19 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     valve_table = net.valve.loc[valves]
 
     #check because of new valve structure
+
     pipe_from = net.pipe["from_junction"].to_numpy()
     pipe_to = net.pipe["to_junction"].to_numpy()
     elements = valve_table["element"].to_numpy()
-    et = valve_table["et"].to_numpy()
     junction = valve_table["junction"].to_numpy()
-    # Pick the junction that does NOT match valve_table["junction"]
-    chosen = np.where(pipe_from[elements] == junction, pipe_to[elements], pipe_from[elements])
-    element_values = np.where(et == "pi", chosen, elements)
-
+    et = valve_table["et"].to_numpy()
+    element_values = elements.copy()
+    pi_mask = et == "pi"
+    element_values[pi_mask] = np.where(
+        pipe_from[elements[pi_mask]] == junction[pi_mask],
+        pipe_to[elements[pi_mask]],
+        pipe_from[elements[pi_mask]]
+    )
 
     coords, valves_with_geo = coords_from_node_geodata(
         valves, valve_table.junction.values, element_values,
