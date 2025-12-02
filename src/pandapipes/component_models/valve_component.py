@@ -113,7 +113,7 @@ class Valve(BranchWInternalsComponent):
             from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
             to_nodes = np.zeros_like(from_nodes, dtype=int)
             mask_j = net[cls.table_name()].et == 'ju'
-            to_elements = net[cls.table_name()][tn_col]
+            to_elements = net[cls.table_name()][tn_col].values
             to_nodes[mask_j] = junction_idx_lookup[to_elements[mask_j]]
             has_internals = np.any(internal_node_number > 0)
             if has_internals:
