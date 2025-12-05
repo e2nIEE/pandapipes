@@ -54,8 +54,11 @@ class Valve(BranchWInternalsComponent):
         mask_p = np.flatnonzero(net[cls.table_name()]['et'].values == 'pi')
         val = net[cls.table_name()][list(cls.from_to_node_cols())].values[mask_p]
         _, idx, inv = np.unique(val, return_index=True, return_inverse=True, axis=0)
+        idx_inv = np.empty_like(idx)
+        order = np.argsort(idx)
+        idx_inv[order] = np.arange(len(idx))
         int_nodes[mask_p[idx]] = 1
-        return int_nodes if return_internal_only else (int_nodes, inv, mask_p)
+        return int_nodes if return_internal_only else (int_nodes, idx_inv[inv], mask_p)
 
     @classmethod
     def get_internal_branch_number(cls, net):
