@@ -54,8 +54,11 @@ class Valve(BranchWInternalsComponent):
         mask_p = np.flatnonzero(net[cls.table_name()]['et'].values == 'pi')
         val = net[cls.table_name()][list(cls.from_to_node_cols())].values[mask_p]
         _, idx, inv = np.unique(val, return_index=True, return_inverse=True, axis=0)
+        idx_inv = np.empty_like(idx)
+        order = np.argsort(idx)
+        idx_inv[order] = np.arange(len(idx))
         int_nodes[mask_p[idx]] = 1
-        return int_nodes if return_internal_only else (int_nodes, inv, mask_p)
+        return int_nodes if return_internal_only else (int_nodes, idx_inv[inv], mask_p)
 
     @classmethod
     def get_internal_branch_number(cls, net):
@@ -111,8 +114,10 @@ class Valve(BranchWInternalsComponent):
             fn_col, tn_col = cls.from_to_node_cols()
             junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
             from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+            to_nodes = np.zeros_like(from_nodes, dtype=int)
+            mask_j = net[cls.table_name()].et == 'ju'
             to_elements = net[cls.table_name()][tn_col].values
-            to_nodes = junction_idx_lookup[to_elements]
+            to_nodes[mask_j] = junction_idx_lookup[to_elements[mask_j]]
             has_internals = np.any(internal_node_number > 0)
             if has_internals:
                 f, t = get_lookup(net, "branch", "from_to")['pipe']
