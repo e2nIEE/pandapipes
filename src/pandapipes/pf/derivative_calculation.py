@@ -4,7 +4,8 @@ from pandapipes.idx_branch import (LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, 
                                    JAC_DERIV_DP1, JAC_DERIV_DM_NODE, FROM_NODE, TO_NODE, TOUTINIT, AREA,
                                    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT_NODE,
                                    LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T,
-                                   JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE, MDOTINIT)
+                                   JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE, MDOTINIT,
+                                   JAC_DERIV_DM_TO_NODE, JAC_DERIV_T_DM, JAC_DERIV_DM_FROM_NODE)
 from pandapipes.idx_node import (TINIT as TINIT_NODE, INFEED, LOAD_T, JAC_DERIV_DT_LOAD, JAC_DERIV_DT_SLACK,
                                  )
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
@@ -108,12 +109,9 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
     amb = get_net_option(net, 'ambient_temperature')
 
-    nodes_active_ht = get_lookup(net, "node", "active_heat_transfer")
-    branches_active_ht = get_lookup(net, "branch", "active_heat_transfer")
-
-    fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbn_dt, dfbn_dtout, infeed = (
+    fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbf_dt, dfbt_dtout, infeed = (
         derivatives_termal(node_pit, branch_pit, from_nodes, to_nodes, t_init_i, t_init_i1, t_init_n, cp_i, cp_i1, cp_n,
-                           cp, rho, dt, transient, branches_active_ht, nodes_active_ht, amb))
+                           cp, rho, dt, transient, amb))
 
     node_pit[:, LOAD_T] = fn
     node_pit[:, JAC_DERIV_DT_LOAD] = dfn_dt
@@ -125,8 +123,8 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
 
     branch_pit[:, LOAD_VEC_NODES_FROM_T] = fbf
     branch_pit[:, LOAD_VEC_NODES_TO_T] = fbt
-    branch_pit[:, JAC_DERIV_DT_NODE] = dfbn_dt
-    branch_pit[:, JAC_DERIV_DTOUT_NODE] = dfbn_dtout
+    branch_pit[:, JAC_DERIV_DT_NODE] = dfbf_dt
+    branch_pit[:, JAC_DERIV_DTOUT_NODE] = dfbt_dtout
 
     node_pit[:, INFEED] = False
     node_pit[infeed, INFEED] = True

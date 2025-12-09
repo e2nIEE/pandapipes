@@ -58,7 +58,8 @@ def test_heat_consumer_equivalence_bulk(simple_heat_net):
     assert np.allclose(net.res_junction.values, net2.res_junction.iloc[:-2, :].values)
 
 
-def test_heat_consumer_equivalence2():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_heat_consumer_equivalence2(use_numba):
     net = pandapipes.create_empty_network("net", add_stdtypes=False, fluid="water")
 
     mdot = [1, 1]

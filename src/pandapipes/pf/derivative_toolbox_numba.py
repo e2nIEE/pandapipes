@@ -7,7 +7,6 @@ from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRES
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
     MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, T_OUT_OLD
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE, LOAD, TINIT_OLD
-from pandapipes.pf.internals_toolbox import _sum_by_group
 
 try:
     from numba import jit
@@ -87,7 +86,7 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         df_dp[i] = 1. - const_term * p_sum_div * (der_comp[i] - comp_fact[i] * p_sum_div)
         df_dp1[i] = -1. - const_term * p_sum_div * (der_comp1[i] - comp_fact[i] * p_sum_div)
 
-        df_dm[i] = -1. * normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_init_abs * friction_term \
+        df_dm[i] = -1. * normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_init_abs * friction_term
             + np.divide(der_lambda[i] * branch_pit[i][LENGTH] * m_init2, branch_pit[i][D]))
 
         load_vec_nodes_from[i] = branch_pit[i][MDOTINIT]
@@ -116,14 +115,12 @@ def _make_lookups(branch_pit, to_nodes, from_nodes):
       int32[:], int32[:],
       float64[:], float64[:], float64[:],
       float64[:], float64[:], float64[:], float64[:],
-      float64[:], optional(float64), bool,
-      bool[:], bool[:], float64), nopython=True, cache=False)
+      float64[:], optional(float64), bool, float64), nopython=True, cache=False)
 def derivatives_thermal_numba(node_pit, branch_pit,
                               from_nodes, to_nodes,
                               t_init_i, t_init_i1, t_init_n,
                               cp_i, cp_i1, cp_n, cp,
                               rho, dt, transient,
-                              branches_active, nodes_active,
                               amb):
     n = cp_n.shape[0]
     b = cp_i.shape[0]
@@ -139,8 +136,8 @@ def derivatives_thermal_numba(node_pit, branch_pit,
     fbf = np.zeros_like(cp_i)
     fbt = np.zeros_like(cp_i)
     fb = np.zeros_like(cp_i)
-    dfbn_dt = np.zeros_like(cp_i)
-    dfbn_dtout = np.zeros_like(cp_i)
+    dfbf_dt = np.zeros_like(cp_i)
+    dfbt_dtout = np.zeros_like(cp_i)
     dfb_dt = np.zeros_like(cp_i)
     dfb_dtout = np.zeros_like(cp_i)
 
@@ -172,8 +169,8 @@ def derivatives_thermal_numba(node_pit, branch_pit,
 
         fbf[i] = mdot * t_init_i[i] * cp_i[i]
         fbt[i] = mdot * t_init_i1[i] * cp_i1[i]
-        dfbn_dt[i] = -1. * mdot * cp_i[i]
-        dfbn_dtout[i] = mdot * cp_i1[i]
+        dfbf_dt[i] = -1. * mdot * cp_i[i]
+        dfbt_dtout[i] = mdot * cp_i1[i]
 
         if transient:
             area = branch_pit[i][AREA]
@@ -203,7 +200,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
                 dfn_dt[from_nodes[i]] -= fn_deriv
                 fn[from_nodes[i]] += fn_eq
                 fbf[i] = 0
-                dfbn_dt[i] = 0
+                dfbf_dt[i] = 0
             if tn_zero:
                 t_to_node_vor_zero = node_pit[to_nodes[i], TINIT_OLD]
                 t_to_node = node_pit[to_nodes[i], TINIT_NODE]
@@ -213,7 +210,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
                 dfn_dt[to_nodes[i]] -= tn_deriv
                 fn[to_nodes[i]] += tn_eq
                 fbt[i] = 0
-                dfbn_dtout[i] = 0
+                dfbt_dtout[i] = 0
         else:
             if branches_flow[i]:
                 fb[i] = (
@@ -228,7 +225,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
             result_from = club_to[from_nodes[i]] if (from_nodes[i] < len(club_to)) else False
             infeed[from_nodes[i]] = ~result_from
 
-    return fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbn_dt, dfbn_dtout, infeed
+    return fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbf_dt, dfbt_dtout, infeed
 
 
 @jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)

@@ -82,7 +82,6 @@ def derivatives_thermal_np(node_pit, branch_pit,
                               t_init_i, t_init_i1, t_init_n,
                               cp_i, cp_i1, cp_n, cp,
                               rho, dt, transient,
-                              branches_active, nodes_active,
                               amb):
     # this is not required currently, but useful when implementing leakages
     # m_init_i = np.abs(branch_pit[:, MDOTINIT])
@@ -96,7 +95,7 @@ def derivatives_thermal_np(node_pit, branch_pit,
 
     branches_flow = _branches_not_zero_flow(branch_pit)
     # ToDo: Is it relevant to consider slack streams?
-    nodes_flow = np.isin(np.arange(np.sum(nodes_active)),
+    nodes_flow = np.isin(np.arange(len(node_pit)),
                          np.concatenate([from_nodes[branches_flow], to_nodes[branches_flow]]))
 
     fn = np.zeros_like(cp_n)
@@ -111,9 +110,8 @@ def derivatives_thermal_np(node_pit, branch_pit,
 
     fbf = mdot * t_init_i * cp_i
     fbt = mdot * t_init_i1 * cp_i1
-    dfbn_dt = - mdot * cp_i
-    dfbn_dtout = mdot * cp_i1
-
+    dfbf_dt = - mdot * cp_i
+    dfbt_dtout = mdot * cp_i1
 
     if transient:
         area = branch_pit[:, AREA]
@@ -178,8 +176,8 @@ def derivatives_thermal_np(node_pit, branch_pit,
 
             fbf[fn_zero] = 0
             fbt[tn_zero] = 0
-            dfbn_dt[fn_zero] = 0
-            dfbn_dtout[tn_zero] = 0
+            dfbf_dt[fn_zero] = 0
+            dfbt_dtout[tn_zero] = 0
     else:
         non_zero_length_mask = ~np.isclose(branch_pit[:, LENGTH], 0, rtol=1e-6, atol=1e-10)
         if np.any(non_zero_length_mask & (np.abs(branch_pit[:, QEXT]) > 1e-12)):
@@ -218,7 +216,7 @@ def derivatives_thermal_np(node_pit, branch_pit,
     # cp_n = fluid.get_heat_capacity(t_init)
     # node_pit[:, LOAD_T] = cp_n * node_pit[:, LOAD] * t_init
 
-    return fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbn_dt, dfbn_dtout, infeed
+    return fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbf_dt, dfbt_dtout, infeed
 
 
 def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
