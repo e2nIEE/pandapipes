@@ -4,8 +4,7 @@ from pandapipes.idx_branch import (LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, 
                                    JAC_DERIV_DP1, JAC_DERIV_DM_NODE, FROM_NODE, TO_NODE, TOUTINIT, AREA,
                                    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT_NODE,
                                    LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T,
-                                   JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE, MDOTINIT,
-                                   JAC_DERIV_DM_TO_NODE, JAC_DERIV_T_DM, JAC_DERIV_DM_FROM_NODE)
+                                   JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE, MDOTINIT)
 from pandapipes.idx_node import (TINIT as TINIT_NODE, INFEED, LOAD_T, JAC_DERIV_DT_LOAD, JAC_DERIV_DT_SLACK,
                                  )
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
