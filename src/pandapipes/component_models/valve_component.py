@@ -112,13 +112,13 @@ class Valve(BranchWInternalsComponent):
 
         fn_col, tn_col = cls.from_to_node_cols()
         junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
+        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
         to_nodes = np.zeros_like(from_nodes, dtype=int)
         mask_j = net[cls.table_name()].et == 'ju'
         to_elements = net[cls.table_name()][tn_col].values
         to_nodes[mask_j] = junction_idx_lookup[to_elements[mask_j]]
 
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-            from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
             has_internals = np.any(internal_node_number > 0)
             if has_internals:
                 f, t = get_lookup(net, "branch", "from_to")['pipe']
