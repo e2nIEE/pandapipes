@@ -88,13 +88,13 @@ class Pipe(BranchWInternalsComponent):
             junction_indices = get_lookup(net, "node", "index")[junction_table_name]
             fj_nodes = junction_indices[from_junctions]
             tj_nodes = junction_indices[to_junctions]
+            int_node_pit[:, TINIT_NODE] = vinterp(junction_pit[fj_nodes, TINIT_NODE],
+                                                  junction_pit[tj_nodes, TINIT_NODE], int_node_number)
+            int_node_pit[:, PINIT] = vinterp(junction_pit[fj_nodes, PINIT], junction_pit[tj_nodes, PINIT],
+                                             int_node_number)
             if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-                int_node_pit[:, TINIT_NODE] = vinterp(junction_pit[fj_nodes, TINIT_NODE],
-                                                      junction_pit[tj_nodes, TINIT_NODE], int_node_number)
                 int_node_pit[:, HEIGHT] = vinterp(junction_pit[fj_nodes, HEIGHT], junction_pit[tj_nodes, HEIGHT],
                                                   int_node_number)
-                int_node_pit[:, PINIT] = vinterp(junction_pit[fj_nodes, PINIT], junction_pit[tj_nodes, PINIT],
-                                                 int_node_number)
                 int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
                 int_node_pit[:, ACTIVE_ND] = np.repeat(net[cls.table_name()][cls.active_identifier()].values,
                                                        int_node_number)
@@ -135,7 +135,6 @@ class Pipe(BranchWInternalsComponent):
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             pipe_pit[:, FROM_NODE] = from_nodes
             pipe_pit[:, TO_NODE] = to_nodes
-            pipe_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
 
             tbl = cls.table_name()
             set_entry_check_repeat(pipe_pit, LENGTH, net[tbl].length_km.values * 1000 / internal_pipe_number,
@@ -146,9 +145,11 @@ class Pipe(BranchWInternalsComponent):
             nan_mask = np.isnan(pipe_pit[:, TEXT])
             pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
             pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
-            pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
         if get_net_option(net, "transient"):
             pipe_pit[:, T_OUT_OLD] =  node_pit[to_nodes, TINIT_OLD]
+
+        pipe_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
+        pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

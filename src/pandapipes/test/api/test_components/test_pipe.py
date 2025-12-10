@@ -156,3 +156,20 @@ def test_namechange_pipes_from_parameters(create_net_3_juncs):
         pandapipes.create_pipes_from_parameters(net, [0, 1], [1, 2], length_km, diameter_m,
                                                 alpha_w_per_m2k=alpha, u_w_per_m2k=np.array(u))
         assert net.pipe.u_w_per_m2k.values.tolist() == u
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_zero_flow_pipes(use_numba):
+    net = pandapipes.create_empty_network("net", add_stdtypes=False)
+    d = 209.1e-3
+    pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)
+    pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)
+    pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 6.0, d, k_mm=.5, sections=1, u_w_per_m2k=5, text_k=285.15)
+    pandapipes.create_pipe_from_parameters(net, 1, 2, 6.0, d, k_mm=.5, sections=1, u_w_per_m2k=5, text_k=285.15)
+    pandapipes.create_ext_grid(net, 0, p_bar=5, t_k=385.15, type="pt")
+    pandapipes.create_sink(net, 1, mdot_kg_per_s=2)
+    pandapipes.create_fluid_from_lib(net, "water")
+    pandapipes.pipeflow(net, mode='bidirectional', iter=5, use_numba=use_numba)
+    assert net.res_pipe.t_outlet_k.at[1] == 293.15
+    assert net.res_junction.t_k.at[2] == 293.15
