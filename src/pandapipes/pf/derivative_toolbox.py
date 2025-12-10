@@ -9,10 +9,8 @@ from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, TOUTINIT, FROM_NODE, TO_NODE, TEXT, ALPHA, TL, QEXT, T_OUT_OLD, \
-    LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T
+    MDOTINIT, TOUTINIT, FROM_NODE, TEXT, ALPHA, TL, QEXT, T_OUT_OLD
 from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE, LOAD, MDOTSLACKINIT, TINIT_OLD
-from pandapipes.pf.pipeflow_setup import get_net_option
 
 logger = logging.getLogger(__name__)
 
