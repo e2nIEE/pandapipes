@@ -171,7 +171,7 @@ def get_net_params(net, stored_data):
     :return: net parameters
     :rtype:
     """
-    known_friction_models = {1: "swamee-jain", 3: "nikuradse", 5: "colebrook"}
+    known_friction_models = {1: "swamee-jain", 3: "nikuradse", 5: "colebrook", 7:"churchill"}
     compressibility_models = {0: "linear", 1: "AGA", 2: "GERG-88"}
     net_params = dict()
     net_data = stored_data["net_parameters"]
