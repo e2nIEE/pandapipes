@@ -1131,7 +1131,7 @@ def create_throttle_valve(net, from_junction, to_junction, controlled_junction, 
                 'settings at the junctions are kept. Therefore, energy is induced/retrieved to meet these '
                 'constraints.')
 
-    add_new_component(net, ThrottleValveComponent)
+    add_new_component(net, ThrottleValve)
 
     index = _get_index_with_check(net, "throttle_valve", index)
 
