@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,12 +6,21 @@ import numpy as np
 import pandas as pd
 
 from pandapipes import get_fluid
-from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, HEIGHT_EXPONENT
-from pandapipes.idx_node import EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T, PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, \
-    MDOTSLACKINIT, JAC_DERIV_MSL, CIRC_PUMP_OCCURENCE
-from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.constants import NORMAL_PRESSURE, TEMP_GRADIENT_KPM, AVG_TEMPERATURE_K, \
+    HEIGHT_EXPONENT
+from pandapipes.idx_branch import LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, FROM_NODE, TO_NODE
+from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
+                                 PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD)
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
+from pandapipes.pf.internals_toolbox import _sum_by_group
 
+
+def get_internal_lookup_structure(internals, table_name, internal_elements, start=0):
+    internals[table_name] = np.empty((len(internal_elements), 2), dtype=np.int32)
+    end = np.cumsum(internal_elements) - 1 + start
+    diff = internal_elements - 1
+    internals[table_name][:, 0] = end - diff
+    internals[table_name][:, 1] = end
 
 def p_correction_height_air(height):
     """
@@ -21,7 +30,8 @@ def p_correction_height_air(height):
     :return:
     :rtype:
     """
-    return NORMAL_PRESSURE * np.power(1 - height * TEMP_GRADIENT_KPM / AVG_TEMPERATURE_K, HEIGHT_EXPONENT)
+    return NORMAL_PRESSURE * np.power(1 - height * TEMP_GRADIENT_KPM / AVG_TEMPERATURE_K,
+                                      HEIGHT_EXPONENT)
 
 
 def vinterp(min_vals, max_vals, lengths):
@@ -81,10 +91,12 @@ def init_results_element(net, element, output, all_float):
     """
     res_element = "res_" + element
     if all_float:
-        net[res_element] = pd.DataFrame(np.NAN, columns=output, index=net[element].index, dtype=np.float64)
+        net[res_element] = pd.DataFrame(np.nan, columns=output, index=net[element].index,
+                                        dtype=np.float64)
     else:
         net[res_element] = pd.DataFrame(np.zeros(0, dtype=output), index=[])
-        net[res_element] = pd.DataFrame(np.NaN, index=net[element].index, columns=net[res_element].columns)
+        net[res_element] = pd.DataFrame(np.nan, index=net[element].index,
+                                        columns=net[res_element].columns)
 
 
 def add_new_component(net, component, overwrite=False):
@@ -120,57 +132,79 @@ def add_new_component(net, component, overwrite=False):
         if geodata is not None:
             net.update({name + '_geodata': geodata})
             if isinstance(net[name + '_geodata'], list):
-                net[name + '_geodata'] = pd.DataFrame(np.zeros(0, dtype=net[name + '_geodata']), index=[])
+                net[name + '_geodata'] = pd.DataFrame(np.zeros(0, dtype=net[name + '_geodata']),
+                                                      index=[])
 
 
 def set_entry_check_repeat(pit, column, entry, repeat_number, repeated=True):
-    if repeated:
-        pit[:, column] = np.repeat(entry, repeat_number)
-    else:
-        pit[:, column] = entry
+    pit[:, column] = np.repeat(entry, repeat_number) if repeated else entry
 
 
-def set_fixed_node_entries(net, node_pit, junctions, eg_types, p_values, t_values, node_comp, mode="sequential",
-                           circ_pump=False):
+def set_fixed_node_entries(net, node_pit, junctions, types, values, node_comp, mode):
+    if not len(junctions):
+        return [], []
+
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
-    for eg_type in ("p", "t"):
-        if eg_type not in mode and mode != "sequential" and mode != "bidrectional":
-            continue
-        if eg_type == "p":
-            val_col, type_col, eg_count_col, typ, valid_types, values = PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p",
-                                                                                                                  "pt"], p_values
-        else:
-            val_col, type_col, eg_count_col, typ, valid_types, values = TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, [
-                "t", "pt"], t_values
-        mask = np.isin(eg_types, valid_types)
-        if not np.any(mask):
-            continue
-        use_numba = get_net_option(net, "use_numba")
-        juncts, press_sum, number = _sum_by_group(use_numba, junctions[mask], values[mask],
-                                                  np.ones_like(values[mask], dtype=np.int32))
-        index = junction_idx_lookups[juncts]
-        node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, eg_count_col] + press_sum) / (
-                number + node_pit[index, eg_count_col])
-        node_pit[index, type_col] = typ
-        node_pit[index, eg_count_col] += number
-        if eg_type == 'p':
-            node_pit[index, JAC_DERIV_MSL] = -1.
-        if circ_pump and eg_type == 'p':
-            node_pit[index, CIRC_PUMP_OCCURENCE] += number
+    use_numba = get_net_option(net, "use_numba")
+
+    if mode == "p":
+        val_col, type_col, count_col, typ, valid_types, values = \
+            PINIT, NODE_TYPE, EXT_GRID_OCCURENCE, P, ["p", "pt"], values
+    elif mode == "t":
+        val_col, type_col, count_col, typ, valid_types, values = \
+            TINIT, NODE_TYPE_T, EXT_GRID_OCCURENCE_T, T, ["t", "pt"], values
+    else:
+        raise UserWarning(r'The mode %s is not supported. Choose either mode "p" or "t"' % mode)
+
+    mask = np.isin(types, valid_types)
+
+    juncts, val_sum, number = _sum_by_group(use_numba, junctions[mask], values[mask],
+                                            np.ones_like(values[mask], dtype=np.int32))
+
+    index = junction_idx_lookups[juncts]
+
+    node_pit[index, val_col] = (node_pit[index, val_col] * node_pit[index, count_col] + val_sum) / \
+                               (number + node_pit[index, count_col])
+
+    node_pit[index, count_col] += number
+    node_pit[index, type_col] = typ
+
+    return index
+
+
+def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
+    node_uni, inverse_nodes, counts = np.unique(eg_nodes, return_counts=True, return_inverse=True)
+    eg_from_branches = np.isin(branch_pit[:, FROM_NODE], node_uni)
+    eg_to_branches = np.isin(branch_pit[:, TO_NODE], node_uni)
+    from_nodes = branch_pit[eg_from_branches, FROM_NODE]
+    to_nodes = branch_pit[eg_to_branches, TO_NODE]
+    mass_flow_from = branch_pit[eg_from_branches, LOAD_VEC_NODES_FROM]
+    mass_flow_to = branch_pit[eg_to_branches, LOAD_VEC_NODES_TO]
+    loads = node_pit[node_uni, LOAD]
+    all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
+    all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
+    nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes,
+                                          all_mass_flows)
+    if not np.all(nodes == node_uni):
+        raise UserWarning("In component %s: Something went wrong with the mass flow balance. "
+                          "Please report this error at github." % comp.__name__)
+    return sum_mass_flows, inverse_nodes, counts
 
 
 def standard_branch_wo_internals_result_lookup(net):
-    required_results_hyd = [("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
-                            ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("lambda", "lambda"),
-                            ("reynolds", "reynolds")]
-    required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
+    required_results_hyd = [
+        ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
+        ("mdot_from_kg_per_s", "mf_from")
+    ]
+    required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to"), ("t_outlet_k", "t_outlet")]
 
     if get_fluid(net).is_gas:
-        required_results_hyd.extend(
-            [("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"), ("v_mean_m_per_s", "v_gas_mean"),
-             ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")])
+        required_results_hyd.extend([
+            ("normfactor_from", "normfactor_from"),
+            ("normfactor_to", "normfactor_to"), ("vdot_norm_m3_per_s", "vf")
+        ])
     else:
-        required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
+        required_results_hyd.extend([("vdot_m3_per_s", "vf")])
 
     return required_results_hyd, required_results_ht
 
@@ -192,4 +226,10 @@ def get_component_array(net, component_name, component_type="branch", mode='hydr
     """
     if not only_active:
         return net["_pit"]["components"][component_name]
-    return net["_active_pit"]["components"][component_name]
+    f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
+    in_service_elm = get_lookup(net, component_type, "active_%s"%mode)[f_all:t_all]
+    return net["_pit"]["components"][component_name][in_service_elm]
+
+
+def get_std_type_lookup(net, table_name):
+    return np.array(list(net.std_types[table_name].keys()))

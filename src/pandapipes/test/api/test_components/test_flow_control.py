@@ -12,21 +12,21 @@ def test_flow_control_simple_heat(use_numba):
     j1, j2, j3, j4, j5, j6, j7, j8 = j
 
     p12, p25, p48, p74 = pandapipes.create_pipes_from_parameters(
-        net, [j1, j2, j4, j7], [j2, j5, j8, j4], 0.2, 0.1, k_mm=0.1, alpha_w_per_m2k=20.,
+        net, [j1, j2, j4, j7], [j2, j5, j8, j4], 0.2, 0.1, k_mm=0.1, u_w_per_m2k=20.,
         text_k=280)
 
     pandapipes.create_heat_exchanger(net, j3, j4, 0.1, 50000, 1)
     pandapipes.create_heat_exchanger(net, j6, j7, 0.1, 50000, 1)
 
-    pandapipes.create_flow_control(net, j2, j3, 2, 0.1)
-    pandapipes.create_flow_control(net, j5, j6, 2, 0.1, control_active=False)
+    pandapipes.create_flow_control(net, j2, j3, 2)
+    pandapipes.create_flow_control(net, j5, j6, 2, control_active=False)
 
     pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=360, type="pt")
 
     pandapipes.create_sink(net, j8, 3)
 
     max_iter_hyd = 3 if use_numba else 3
-    max_iter_therm = 6 if use_numba else 6
+    max_iter_therm = 7 if use_numba else 7
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         mode='sequential', use_numba=use_numba)
 

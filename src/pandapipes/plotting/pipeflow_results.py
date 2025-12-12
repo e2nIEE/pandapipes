@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -54,7 +54,7 @@ def plot_pressure_profile(net, ax=None, x0_junctions=None, plot_pressure_control
         axis to plot to, by default None
     x0_junctions : Any[list[int], pd.Index[int]], optional
         list of junction indices which should be at position x0. If None, all in service slack junctions are considered,
-        by default None
+        by default None. For circ pumps, if no x0_junctions are given the flow junctions are chosen automatically.
     plot_pressure_controller : bool, optional
         Whether vertical lines should be plotted to display the pressure drop of the pressure controller,
         by default True

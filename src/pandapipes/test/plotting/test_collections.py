@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -38,20 +38,20 @@ def test_collection_lengths():
 
     pandapipes.create_pipe_from_parameters(net, j1, j2, 0.1, diameter_m=d, k_mm=0.1,
                                            geodata=[(0, 0), (2, 0)])
-    pandapipes.create_valve(net, j2, j3, diameter_m=d, opened=True, loss_coefficient=5e3)
-    pandapipes.create_valve(net, j2, j4, diameter_m=d, opened=False, loss_coefficient=0.01)
-    pandapipes.create_valve(net, j2, j5, diameter_m=d, opened=False, loss_coefficient=0.01)
+    pandapipes.create_valve(net, j2, j3, 'ju', diameter_m=d, opened=True, loss_coefficient=5e3)
+    pandapipes.create_valve(net, j2, j4, 'ju', diameter_m=d, opened=False, loss_coefficient=0.01)
+    pandapipes.create_valve(net, j2, j5, 'ju', diameter_m=d, opened=False, loss_coefficient=0.01)
     pandapipes.create_pipe_from_parameters(net, j3, j6, 0.1, diameter_m=d, k_mm=0.1,
                                            geodata=[(4, 2), (6, 2), (6, 0)])
     pandapipes.create_pipe_from_parameters(net, j4, j6, 0.2, diameter_m=d, k_mm=0.1,
                                            geodata=[(4, 0), (6, 0)])
     pandapipes.create_pipe_from_parameters(net, j5, j6, 0.2, diameter_m=d, k_mm=0.1,
                                            geodata=[(4, -2), (6, -2), (6, 0)])
-    pandapipes.create_heat_exchanger(net, j6, j7, d, qext_w=20000)
+    pandapipes.create_heat_exchanger(net, j6, j7, qext_w=20000)
     pandapipes.create_pump_from_parameters(net, j7, j8, 'P1')
     pandapipes.create_pressure_control(net, j8, j9, j9, 10.)
-    pandapipes.create_flow_control(net, j9, j10, 0.5, 0.1)
-    pandapipes.create_flow_control(net, j9, j11, 0.5, 0.1, control_active=False)
+    pandapipes.create_flow_control(net, j9, j10, 0.5)
+    pandapipes.create_flow_control(net, j9, j11, 0.5, control_active=False)
 
     pipe_coll_direct = plot.create_pipe_collection(net, use_junction_geodata=True)
     pipe_coll_real = plot.create_pipe_collection(net)

@@ -1,5 +1,5 @@
 
-.. image:: https://www.pandapipes.org/images/pp.svg
+.. image:: ./doc/source/pics/pp.svg
    :target: https://www.pandapipes.org
    :width: 300em
    :alt: logo
@@ -53,10 +53,10 @@ Getting started:
 
 pandapipes is a development of the Department for Distribution System Operation at the Fraunhofer
 Institute for Energy Economics and Energy System Technology (IEE), Kassel, and the research group
-Energy Management and Power System Operation, University of Kassel.
+Department for Sustainable Electrical Energy Systems (e2n), University of Kassel.
 
 
-.. image:: https://upload.wikimedia.org/wikipedia/commons/e/ee/FraunhoferIEELogo.gif
+.. image:: ./doc/source/pics/iee.png
     :target: https://www.iee.fraunhofer.de/en.html
     :width: 350
 
@@ -68,8 +68,8 @@ Energy Management and Power System Operation, University of Kassel.
 
 |
 
-.. image:: https://www.uni-kassel.de/eecs/index.php?eID=dumpFile&t=p&p=1674&token=b0509afe2e7c4e41d7cdad83edd0ce49af9fceaa
-    :target: https://www.uni-kassel.de/eecs/en/sections/energiemanagement-und-betrieb-elektrischer-netze/home
+.. image:: ./doc/source/pics/e2n.png
+    :target: https://www.uni-kassel.de/eecs/en/e2n/home
     :width: 250
 
 |

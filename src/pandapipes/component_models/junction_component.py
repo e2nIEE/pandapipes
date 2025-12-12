@@ -1,17 +1,20 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from warnings import warn
 
 import numpy as np
+import pandas as pd
 from numpy import dtype
+
 from pandapipes.component_models.abstract_models.node_models import NodeComponent
 from pandapipes.component_models.component_toolbox import p_correction_height_air
 from pandapipes.idx_node import L, ELEMENT_IDX, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
-    ACTIVE as ACTIVE_ND
+    ACTIVE as ACTIVE_ND, TINIT_OLD, EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T, LOAD
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
+from pandapipes.pf.pipeflow_setup import get_net_option
 
 
 class Junction(NodeComponent):
@@ -25,7 +28,7 @@ class Junction(NodeComponent):
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internal_nodes_lookup):
+                            current_table, internals):
         """
         Function which creates node lookups.
 
@@ -41,8 +44,8 @@ class Junction(NodeComponent):
         :type current_start:
         :param current_table:
         :type current_table:
-        :param internal_nodes_lookup:
-        :type internal_nodes_lookup:
+        :param internals:
+        :type internals:
         :return:
         :rtype:
         """
@@ -76,14 +79,22 @@ class Junction(NodeComponent):
 
         junctions = net[cls.table_name()]
         junction_pit = node_pit[f:t, :]
-        junction_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
 
-        junction_pit[:, ELEMENT_IDX] = junctions.index.values
-        junction_pit[:, HEIGHT] = junctions.height_m.values
-        junction_pit[:, PINIT] = junctions.pn_bar.values
+        if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
+            junction_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
+            junction_pit[:, ELEMENT_IDX] = junctions.index.values
+            junction_pit[:, HEIGHT] = junctions.height_m.values
+            junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
+            junction_pit[:, ACTIVE_ND] = junctions.in_service.values
+            junction_pit[:, TINIT_OLD] = junctions.tfluid_k.values
+        else:
+            junction_pit[:, EXT_GRID_OCCURENCE] = 0
+            junction_pit[:, EXT_GRID_OCCURENCE_T] = 0
+            junction_pit[:, LOAD] = 0
+            junction_pit[:, TINIT_OLD] = junctions.told_k.values
+
         junction_pit[:, TINIT] = junctions.tfluid_k.values
-        junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
-        junction_pit[:, ACTIVE_ND] = junctions.in_service.values
+        junction_pit[:, PINIT] = junctions.pn_bar.values
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -103,6 +114,16 @@ class Junction(NodeComponent):
         :return: No Output.
         """
         res_table = net["res_" + cls.table_name()]
+
+        if get_net_option(net, "transient"):
+            # output, all_float = cls.get_result_table(net)
+            # TODO: This must be made more precise in different components
+            net["res_internal"] = pd.DataFrame(
+                np.nan, columns=["t_k"], index=np.arange(len(net["_active_pit"]["node"][:,
+                                                           TINIT])),
+                dtype=np.float64
+            )
+            net["res_internal"]["t_k"] = net["_active_pit"]["node"][:, TINIT]
 
         f, t = get_lookup(net, "node", "from_to")[cls.table_name()]
         junction_pit = net["_pit"]["node"][f:t, :]

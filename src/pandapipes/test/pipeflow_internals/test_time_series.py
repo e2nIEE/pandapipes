@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -139,7 +139,7 @@ def _output_writer(net, time_steps, ow_path=None):
         ('res_pipe', 'reynolds'), ('res_pipe', 'lambda'),
         ('res_sink', 'mdot_kg_per_s'), ('res_source', 'mdot_kg_per_s'),
         ('res_ext_grid', 'mdot_kg_per_s')]
-    ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables)
+    ow = OutputWriter(net, time_steps, output_path=ow_path, log_variables=log_variables, output_file_type='.csv')
     return ow
 
 
@@ -153,8 +153,8 @@ def test_time_series():
     _prepare_grid(net)
     time_steps = range(25)
     # _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
-    _output_writer(net, time_steps, ow_path=tempfile.gettempdir())
-    max_iter_hyd=8
+    _output_writer(net, time_steps)
+    max_iter_hyd = 9
     run_timeseries(net, time_steps, max_iter_hyd=max_iter_hyd, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
@@ -170,7 +170,7 @@ def test_time_series_default_ow():
     _prepare_grid(net)
     time_steps = range(25)
     init_default_outputwriter(net, time_steps)
-    max_iter_hyd = 8
+    max_iter_hyd = 9
     run_timeseries(net, time_steps, max_iter_hyd=max_iter_hyd, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)

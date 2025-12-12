@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -69,7 +69,7 @@ class ValvePipe(Pipe):
                 ("max_vdot_m3_per_s", 'f8'),
                 ("max_v_m_per_s", 'f8'),
                 ("in_service", 'bool'),
-                ("alpha_w_per_m2k", 'f8'),
+                ("u_w_per_m2k", 'f8'),
                 ("qext_w", 'f8'),
                 ("type", dtype(object)),
                 ('index', 'u4')]
@@ -93,6 +93,7 @@ class ValvePipe(Pipe):
                       "p_to_bar",
                       "t_from_k",
                       "t_to_k",
+                      "t_outlet_k",
                       "p_from_mw",
                       "p_to_mw",
                       "mdot_from_kg_per_s",
@@ -110,11 +111,12 @@ class ValvePipe(Pipe):
                       "p_to_bar",
                       "t_from_k",
                       "t_to_k",
+                      "t_outlet_k",
                       "p_from_mw",
                       "p_to_mw",
                       "mdot_from_kg_per_s",
                       "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s",
+                      "vdot_m3_per_s",
                       "reynolds",
                       "lambda",
                       "loading_percent"]

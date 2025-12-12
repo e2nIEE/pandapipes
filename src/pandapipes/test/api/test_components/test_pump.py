@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -220,7 +220,7 @@ def test_compression_power(use_numba):
     _ = pandapipes.create_ext_grid(net, junction=j0, p_bar=4, t_k=293.15)
     _ = pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=0.05)
 
-    max_iter_hyd = 4 if use_numba else 4
+    max_iter_hyd = 5 if use_numba else 5
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd,
                         use_numba=use_numba)
 

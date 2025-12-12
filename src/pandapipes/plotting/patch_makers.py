@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -218,3 +218,115 @@ def pressure_control_patches(coords, size, **kwargs):
         lines.append([plr, pur])
 
     return lines, polys, {}
+
+def heat_consumer_patches(coords, size, **kwargs):
+    """
+    Creates patches for matplotlib plotting of heat consumer component
+    :param coords:
+    :type coords:
+    :param size:
+    :type size:
+    :param kwargs:
+    :type kwargs:
+    :return:
+    :rtype:
+    """
+    polys, lines = [], []
+    facecolor = kwargs.get("patch_facecolor", "w")
+    edgecolor = kwargs.get("patch_edgecolor", "k")
+    facecolors = get_color_list(facecolor, len(coords))
+    edgecolors = get_color_list(edgecolor, len(coords))
+    lw = kwargs.get("linewidths", 2.)
+
+    for geodata, face_col, edge_col in zip(coords, facecolors, edgecolors):
+        p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
+        diff = p2 - p1
+        m = 3 * size / 4
+        direc = diff / np.sqrt(diff[0] ** 2 + diff[1] ** 2)
+        normal = np.array([-direc[1], direc[0]])
+        circle_center = p1 + diff / 2
+        triangle_center = circle_center + direc * size
+        radius = size
+        rectangle_size = 5 * size
+        triangle1, triangle2 = create_triangles(triangle_center + direc * radius, size/1.7, direc, normal, edgecolor)
+        polys.append(triangle1)
+        polys.append(triangle2)
+
+        path1 = (p1 + diff / 2 + direc * m / 2) + normal * (size * 9 / 8)
+        path2 = p1 + diff / 2 + direc * m / 2 - normal*size/5
+        path3 = p1 + diff / 2 + normal * size / 3
+        path4 = p1 + diff / 2 - direc * m / 2 - normal*size/5
+        path5 = (p1 + diff / 2 - direc * m / 2) + normal * (size * 9 / 8)
+
+        path = [path1, path2, path3, path4, path5]
+          # np.sqrt(diff[0]**2+diff[1]**2)/15
+
+        pa = Path(path)
+        polys.append(PathPatch(pa, fill=False, lw=lw, edgecolor=edge_col))
+
+        angle = np.arctan2(*diff)
+        vec_size = _rotate_dim2(np.array([0, size]), angle)
+        vec_size_or = _rotate_dim2(np.array([0, size * 1.2/2]), angle + np.pi / 2)
+        pll = p1 + diff / 2 - vec_size + vec_size_or
+
+
+        polys.append(Rectangle(pll, rectangle_size, rectangle_size/4, angle=np.rad2deg(-angle + np.pi / 2),
+                               edgecolor=edgecolor, facecolor='none', lw=lw))
+
+        lines.append([p2, p1])
+
+    return lines, polys, {}
+
+
+def create_triangles(center, size, direc, normal, edgecolor):
+    """
+    Creates a pathpatch for triangles
+    :param center:
+    :type center:
+    :param size:
+    :type size:
+    :param direc:
+    :type direc:
+    :param normal:
+    :type normal:
+    :param edgecolor:
+    :type edgecolor:
+    :return:
+    :rtype:
+    """
+
+    radius = size
+
+    # Create the first triangle
+    verts1 = [
+        center + direc * radius,  # top
+        center + normal * radius,  # bottom left
+        center - normal * radius,  # bottom right
+        center + direc * radius  # back to top
+    ]
+    codes1 = [
+        Path.MOVETO,
+        Path.LINETO,
+        Path.LINETO,
+        Path.CLOSEPOLY
+    ]
+
+    # Create the second triangle mirrored at the peak
+    mirrored_center = center + 2 * direc * radius
+    verts2 = [
+        mirrored_center - direc * radius,  # top
+        mirrored_center + normal * radius,  # bottom left
+        mirrored_center - normal * radius,  # bottom right
+        mirrored_center - direc * radius  # back to top
+    ]
+    codes2 = [
+        Path.MOVETO,
+        Path.LINETO,
+        Path.LINETO,
+        Path.CLOSEPOLY
+    ]
+
+    path1 = Path(verts1, codes1)
+    path2 = Path(verts2, codes2)
+
+    return PathPatch(path1, fill=False, lw=2, edgecolor=edgecolor), PathPatch(path2, fill=False, lw=2, edgecolor=edgecolor)

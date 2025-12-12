@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -100,7 +100,7 @@ class Fluid(JSONSerializableClass):
         :param at_values: Value for which the property should be returned
         :type at_values:
         :return: Returns property at the certain value
-        :rtype: pandapipes.FluidProperty
+        :rtype: float, array
         """
 
         if property_name not in self.all_properties:
@@ -120,17 +120,25 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("density", temperature)
 
-    def get_viscosity(self, temperature):
+    def get_viscosity(self, temperature, p_bar=None):
         """
         This function returns the viscosity at a certain temperature.
 
         :param temperature: Temperature at which the viscosity is queried
-        :type temperature: float
+        :type temperature: float or array of floats
+        :param p_bar: Pressure at which the viscosity is queried
+        :type p_bar: float or array of floats
         :return: Viscosity at the required temperature
 
         """
-
-        return self.get_property("viscosity", temperature)
+        visc_prop = self.all_properties.get("viscosity")
+        if visc_prop is None:
+            raise UserWarning("The viscosity property was not defined for the fluid %s"
+                              % self.name)
+        args = [temperature]
+        if p_bar is not None and getattr(visc_prop, "allow_2d", False):
+            args.append(p_bar)
+        return visc_prop.get_at_value(*args)
 
     def get_heat_capacity(self, temperature):
         """
@@ -154,17 +162,25 @@ class Fluid(JSONSerializableClass):
 
         return self.get_property("molar_mass")
 
-    def get_compressibility(self, p_bar):
+    def get_compressibility(self, p_bar, t_k=None):
         """
         This function returns the compressibility at a certain pressure.
 
         :param p_bar: pressure at which the compressibility is queried
         :type p_bar: float or array of floats
+        :param t_k: temperature at which the compressibility is queried (optional)
+        :type t_k: float or array of floats or None
         :return: compressibility at the required pressure
 
         """
-
-        return self.get_property("compressibility", p_bar)
+        comp_prop = self.all_properties.get("compressibility")
+        if comp_prop is None:
+            raise UserWarning("The compressibility property was not defined for the fluid %s"
+                              % self.name)
+        args = [p_bar]
+        if t_k is not None and getattr(comp_prop, "allow_2d", False):
+            args.append(t_k)
+        return comp_prop.get_at_value(*args)
 
     def get_der_compressibility(self):
         """
@@ -319,7 +335,7 @@ class FluidPropertyConstant(FluidProperty):
         :param args: Name of the property
         :type args: str
         :return: Value of the property
-        :rtype: float
+        :rtype: float, array
 
         :Example:
             >>> heat_capacity = get_fluid(net).all_properties["heat_capacity"].get_at_value(293.15)
@@ -563,7 +579,7 @@ class FluidPropertySutherland(FluidProperty):
         :param arg: Name of the property
         :type arg: str
         :return: Value of the property
-        :rtype: float
+        :rtype: float, array
 
         :Example:
             >>> viscosity = get_fluid(net).get_property("viscosity")

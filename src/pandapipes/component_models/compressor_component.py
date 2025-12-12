@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -40,9 +40,6 @@ class Compressor(Pump):
         :return: No Output.
         """
         compressor_pit = super(Pump, cls).create_pit_branch_entries(net, branch_pit)
-
-        compressor_pit[:, D] = 0.1
-        compressor_pit[:, AREA] = compressor_pit[:, D] ** 2 * np.pi / 4
         compressor_pit[:, LC] = 0
 
     @classmethod

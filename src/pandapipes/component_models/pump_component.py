@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,12 +7,16 @@ from operator import itemgetter
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
-from pandapipes.component_models.component_toolbox import get_component_array
+from pandapipes.component_models import standard_branch_wo_internals_result_lookup
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
+from pandapipes.component_models.component_toolbox import (
+    get_component_array,
+    get_std_type_lookup,
+)
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSAL, P_CONVERSION
-from pandapipes.idx_branch import MDOTINIT, D, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
+from pandapipes.idx_branch import MDOTINIT, AREA, LOSS_COEFFICIENT as LC, FROM_NODE, PL
 from pandapipes.idx_node import PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
@@ -25,7 +29,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Pump(BranchWZeroLengthComponent):
+class Pump(BranchWOInternalsComponent):
     """
 
     """
@@ -61,8 +65,6 @@ class Pump(BranchWZeroLengthComponent):
         :return: No Output.
         """
         pump_pit = super().create_pit_branch_entries(net, branch_pit)
-        pump_pit[:, D] = 0.1
-        pump_pit[:, AREA] = pump_pit[:, D] ** 2 * np.pi / 4
         pump_pit[:, LC] = 0
 
     @classmethod
@@ -107,7 +109,7 @@ class Pump(BranchWZeroLengthComponent):
         v_mps = pump_branch_pit[:, MDOTINIT] / pump_branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
         if fluid.is_gas:
             # consider volume flow at inlet
-            normfactor_from = numerator_from * fluid.get_property("compressibility", p_from) \
+            normfactor_from = numerator_from * fluid.get_compressibility(p_from, t_from) \
                               / (p_from * NORMAL_TEMPERATURE)
             v_from = v_mps * normfactor_from
         else:
@@ -134,25 +136,14 @@ class Pump(BranchWZeroLengthComponent):
         :type mode:
         :return: No Output.
         """
-        calc_compr_pow = options['calc_compression_power']
 
-        required_results_hyd = [
-            ("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to"),
-            ("mdot_from_kg_per_s", "mf_from"), ("vdot_norm_m3_per_s", "vf"), ("deltap_bar", "pl"),
-        ]
-        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
-
-        if get_fluid(net).is_gas:
-            required_results_hyd.extend([
-                ("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"),
-                ("normfactor_from", "normfactor_from"), ("normfactor_to", "normfactor_to")
-            ])
-        else:
-            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
+        required_results_hyd, required_results_ht = standard_branch_wo_internals_result_lookup(net)
+        required_results_hyd.extend([("deltap_bar", "pl")])
 
         extract_branch_results_without_internals(net, branch_results, required_results_hyd,
                                                  required_results_ht, cls.table_name(), mode)
 
+        calc_compr_pow = options['calc_compression_power']
         if calc_compr_pow:
             f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
             from_nodes = branch_results["from_nodes"][f:t]
@@ -164,7 +155,7 @@ class Pump(BranchWZeroLengthComponent):
                 t0 = net["_pit"]["node"][from_nodes, TINIT_NODE]
                 mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
-                compr = get_fluid(net).get_property("compressibility", p_from)
+                compr = get_fluid(net).get_compressibility(p_from, t0)
                 try:
                     molar_mass = net.fluid.get_molar_mass()  # [g/mol]
                 except UserWarning:
@@ -217,19 +208,13 @@ class Pump(BranchWZeroLengthComponent):
 
         if get_fluid(net).is_gas:
             output = ["deltap_bar",
-                      "v_from_m_per_s", "v_to_m_per_s",
                       "p_from_bar", "p_to_bar",
-                      "t_from_k", "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
+                      "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
                       "vdot_norm_m3_per_s", "normfactor_from", "normfactor_to"]
-            # TODO: inwieweit sind diese Angaben bei imaginärem Durchmesser sinnvoll?
         else:
-            output = ["deltap_bar", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
-                      "t_to_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s"]
+            output = ["deltap_bar", "p_from_bar", "p_to_bar", "t_from_k",
+                      "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s"]
         if calc_compr_pow:
             output += ["compr_power_mw"]
 
         return output, True
-
-
-def get_std_type_lookup(net, table_name):
-    return np.array(list(net.std_types[table_name].keys()))

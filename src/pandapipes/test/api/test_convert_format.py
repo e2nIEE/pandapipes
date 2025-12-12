@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -26,21 +26,21 @@ from pandapipes.test.api.release_cycle.release_control_test_network import relea
 def test_convert_format(pp_version, use_numba):
     if version.parse(pp_version) >= version.parse(minimal_version_two_nets):
         names = ["_gas", "_water"]
-        net_gas = release_control_test_network_gas(max_iter_hyd=5)
+        net_gas = release_control_test_network_gas(max_iter_hyd=6)
         net_water = release_control_test_network_water(max_iter_hyd=11)
     else:
         names = [""]
-        net_old = release_control_test_network(max_iter_hyd=11)
+        net_old = release_control_test_network(max_iter_hyd=12)
     for name in names:
         if "_gas" in name:
             net_ref = net_gas
-            max_iter_hyd = 5 if use_numba else 5
+            max_iter_hyd = 6 if use_numba else 6
         elif "_water" in name:
             net_ref = net_water
             max_iter_hyd = 11 if use_numba else 11
         else:
             net_ref = net_old
-            max_iter_hyd = 11 if use_numba else 11
+            max_iter_hyd = 12 if use_numba else 12
         filename = os.path.join(folder, "example_%s%s.json" % (pp_version, name))
         if not os.path.isfile(filename):
             raise ValueError("File for %s grid of version %s does not exist" % (name, pp_version))

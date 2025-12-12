@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -48,7 +48,7 @@ DEFAULT_STANET_KEYWORDS = {
 
 
 def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_line_info=False,
-                        keywords=None):
+                        keywords=None, decimal='.'):
     """
     Extract raw data from STANET file.
     :param stanet_path:  Path to STANET .csv file
@@ -119,7 +119,7 @@ def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_
         read_args.update(read_options.get(key, dict()))
         logger.debug("Reading CSV table %s into pandas." % key)
         data = pd.read_csv(stanet_path, encoding=encoding, sep=';', index_col=False,
-                           skiprows=rows[:from_line] + rows[to_line:], **read_args)
+                           skiprows=rows[:from_line] + rows[to_line:], decimal=decimal, **read_args)
         data.columns = [col[1:] if isinstance(col, str) and col.startswith("!")
                         else col for col in data.columns]
         stored_data[key] = data
@@ -191,7 +191,8 @@ def get_net_params(net, stored_data):
     net_params["comp_factor"] = float(net_data.at[0, "KPAR"])
     net_params["friction_model"] = int(net_data.at[0, "LAM"])
     net_params["max_iterations"] = int(net_data.at[0, "IMAX"])
-    net_params["compress_model"] = compressibility_models[int(net_data.at[0, "KFAKT"])]
+    if "KFAKT" in net_data.columns:
+        net_params["compress_model"] = compressibility_models.get(int(net_data.at[0, "KFAKT"]), "linear")
     if net_params["friction_model"] not in known_friction_models.keys():
         known_str = " or ".join("%s (%d)" % (m_name.capitalize(), m_nr)
                                 for m_nr, m_name in known_friction_models.items())
@@ -241,7 +242,7 @@ def adapt_pipe_data_according_to_nodes(pipe_data, pipes_to_check, node_geo, pipe
     node_val = node_geo.loc[pipe_data.loc[pipes_to_check, node_nr].values, node_name].values
 
     if pipe_name not in pipe_data.columns:
-        pipe_data[pipe_name] = np.NaN
+        pipe_data[pipe_name] = np.nan
         pipe_data.loc[pipes_to_check, pipe_name] = node_val
     current_pipe_data = pipe_data.loc[pipes_to_check]
     if not np.allclose(node_val, current_pipe_data[pipe_name].values):
@@ -403,9 +404,9 @@ def connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata,
         #     but requires checks (e.g. positioning on pipe, max. 2 valves per pipe)
         c2 = stored_data["slider_valves"].loc[:, [c for c in required_columns if c not in
                                                   ["PRECH", "VMA", "VMB"]]]
-        c2["PRECH"] = np.NaN
-        c2["VMA"] = np.NaN
-        c2["VMB"] = np.NaN
+        c2["PRECH"] = np.nan
+        c2["VMA"] = np.nan
+        c2["VMB"] = np.nan
         c2["type"] = "slider_valves"
         connections = pd.concat([connections, c2], ignore_index=True)
 

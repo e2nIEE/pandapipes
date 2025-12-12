@@ -1,11 +1,11 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 import pandas as pd
 from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
-    pump_patches, pressure_control_patches, compressor_patches, flow_control_patches
+    pump_patches, pressure_control_patches, compressor_patches, flow_control_patches, heat_consumer_patches
 from pandapipes.plotting.plotting_toolbox import coords_from_node_geodata
 from pandapower.plotting.collections import _create_node_collection, add_cmap_to_collection, \
     _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection
@@ -414,7 +414,7 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
     valve_table = net.valve.loc[valves]
 
     coords, valves_with_geo = coords_from_node_geodata(
-        valves, valve_table.from_junction.values, valve_table.to_junction.values,
+        valves, valve_table.junction.values, valve_table.element.values,
         junction_geodata if junction_geodata is not None else net["junction_geodata"], "valve",
         "Junction")
 
@@ -660,6 +660,57 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor', size=
     infos = list(np.repeat([infofunc(i) for i in range(len(cmprs_with_geo))], 2)) \
         if infofunc is not None else []
     pc, lc = _create_complex_branch_collection(coords, compressor_patches, size, infos,
+                                               picker=picker, linewidths=linewidths,
+                                               patch_edgecolor=color, line_color=color,
+                                               **kwargs)
+
+    return pc, lc
+
+def create_heat_consumer_collection(net, hec=None, table_name='heat_consumer', size=5.,
+                                 junction_geodata=None, color='k', infofunc=None, picker=False,
+                                 **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes heat_consumers. Heat consumers are
+    plotted in the center between two junctions.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param hec: The heat consumers for which the collections are created. If None, all heat consumers
+                 which have entries in the respective junction geodata will be plotted.
+    :type hec: list, default None
+    :param size: Patch size
+    :type size: float, default 5.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
+    :type junction_geodata: pandas.DataFrame, default None
+    :param colors: Color or list of colors for every compressor
+    :type colors: iterable, float, default None
+    :param infofunc: infofunction for the patch element
+    :type infofunc: function, default None
+    :param picker: Picker argument passed to the patch collection
+    :type picker: bool, default False
+    :param kwargs: Keyword arguments are passed to the patch function
+    :return: lc - line collection, pc - patch collection
+
+    """
+    hec = get_index_array(hec, net[table_name].index)
+    hec_table = net[table_name].loc[hec]
+
+    coords, hec_with_geo = coords_from_node_geodata(
+        hec, hec_table.from_junction.values, hec_table.to_junction.values,
+        junction_geodata if junction_geodata is not None else net["junction_geodata"], table_name,
+        "Junction")
+
+    if len(hec_with_geo) == 0:
+        return None
+
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(hec_with_geo))], 2)) \
+        if infofunc is not None else []
+    pc, lc = _create_complex_branch_collection(coords, heat_consumer_patches, size, infos,
                                                picker=picker, linewidths=linewidths,
                                                patch_edgecolor=color, line_color=color,
                                                **kwargs)

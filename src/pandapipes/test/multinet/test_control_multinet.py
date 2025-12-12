@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -61,7 +61,7 @@ def test_p2g_single(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
-    max_iter_hyd = 7
+    max_iter_hyd = 8
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
     # nets must not be changed
@@ -152,7 +152,7 @@ def test_g2g_single(get_gas_example):
     eta = 0.65
     GasToGasConversion(mn, g2g_id_cons, g2g_id_prod, efficiency=eta, name_gas_net_from='hgas_net',
                        name_gas_net_to='hydrogen_net')
-    max_iter_hyd = 7
+    max_iter_hyd = 8
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
     fluid1 = pandapipes.get_fluid(net_gas1)
@@ -173,7 +173,7 @@ def test_g2g_single(get_gas_example):
     # check scaling functionality
     scaling_factor = 0.5
     net_gas1.sink.loc[g2g_id_cons, 'scaling'] = scaling_factor
-    max_iter_hyd = 8
+    max_iter_hyd = 9
     run_control(mn, max_iter_hyd=max_iter_hyd)
     assert np.isclose(net_gas2.source.at[g2g_id_prod, "mdot_kg_per_s"],
                       (gas1_cons_kg_per_s * scaling_factor * fluid1.all_properties["hhv"].value
@@ -204,7 +204,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_ids_el, p2g_ids_gas, efficiency=eta)
 
-    max_iter_hyd = 8
+    max_iter_hyd = 9
     # run control should read/write values with .loc
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
@@ -224,7 +224,7 @@ def test_p2g_multiple(get_gas_example, get_power_example_simple):
     scaling_factor = 0.5
     net_power.load.loc[p2g_ids_el, 'scaling'] = scaling_factor
 
-    max_iter_hyd = 6
+    max_iter_hyd = 7
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
     assert np.allclose(net_gas.source.loc[p2g_ids_gas, "mdot_kg_per_s"],
@@ -309,7 +309,7 @@ def test_g2g_multiple(get_gas_example):
     eta = 0.65
     GasToGasConversion(mn, g2g_ids_cons, g2g_ids_prod, efficiency=eta, name_gas_net_from='hgas_net',
                        name_gas_net_to='hydrogen_net')
-    max_iter_hyd = 6
+    max_iter_hyd = 7
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
     fluid1 = pandapipes.get_fluid(net_gas1)
@@ -360,7 +360,7 @@ def test_const_p2g_control(get_gas_example, get_power_example_simple):
     ConstControl(net_power, 'load', 'p_mw', 1)
     ConstControl(net_power, 'sgen', 'p_mw', 0)
 
-    max_iter_hyd = 8
+    max_iter_hyd = 10
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
     assert np.all(net_power.res_load.p_mw.values == power_load)
@@ -387,7 +387,7 @@ def test_run_control_wo_controller(get_gas_example, get_power_example_simple):
 
     add_nets_to_multinet(mn, power=net_power, gas=net_gas)
 
-    max_iter_hyd = 8
+    max_iter_hyd = 10
     run_control(mn, max_iter_hyd=max_iter_hyd)
 
 
@@ -411,7 +411,7 @@ def test_p2g_single_run_parameter(get_gas_example, get_power_example_simple):
     eta = 0.5
     P2GControlMultiEnergy(mn, p2g_id_el, p2g_id_gas, efficiency=eta)
 
-    max_iter_hyd = 7
+    max_iter_hyd = 8
     run_control(mn, ctrl_variables={"nets": {"power": {"run": runpp_with_mark},
                                              "gas": {"run": pipeflow_with_mark}}},
                 max_iter_hyd=max_iter_hyd)

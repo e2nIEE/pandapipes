@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 import os
@@ -29,14 +29,14 @@ def test_circulation_pump_constant_pressure(use_numba):
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370,
                                            diameter_m=0.1022)
     pandapipes.create_circ_pump_const_pressure(net, j4, j1, 5, 2, 300, type='pt')
-    pandapipes.create_heat_exchanger(net, j2, j3, 0.1, qext_w=200000)
+    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000)
     pandapipes.create_sink(net, j1, 2)
     pandapipes.create_source(net, j4, 2)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
     max_iter_hyd = 8 if use_numba else 8
-    max_iter_therm = 4 if use_numba else 4
+    max_iter_therm = 7 if use_numba else 7
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         stop_condition="tol", friction_model="nikuradse",
                         mode='sequential', transient=False, nonlinear_method="automatic",

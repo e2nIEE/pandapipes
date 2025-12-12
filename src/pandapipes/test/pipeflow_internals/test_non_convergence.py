@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 import numpy as np
@@ -16,7 +16,7 @@ def test_pipeflow_non_convergence(use_numba):
     net = gas_versatility()
     pandapipes.get_fluid(net).add_property("molar_mass", FluidPropertyConstant(16.6))
 
-    max_iter_hyd = 8 if use_numba else 8
+    max_iter_hyd = 9 if use_numba else 9
     pandapipes.pipeflow(net, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
     for comp in net["component_list"]:
         table_name = comp.table_name()

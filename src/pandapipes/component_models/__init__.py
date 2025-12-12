@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -16,4 +16,6 @@ from pandapipes.component_models.pressure_control_component import *
 from pandapipes.component_models.compressor_component import *
 from pandapipes.component_models.flow_control_component import *
 from pandapipes.component_models.mass_storage_component import *
+from pandapipes.component_models.heat_consumer_component import *
+from pandapipes.component_models.component_toolbox import *
 from pandapipes.component_models.throttle_valve_component import *
