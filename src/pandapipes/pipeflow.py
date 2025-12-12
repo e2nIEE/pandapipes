@@ -274,8 +274,8 @@ def solve_hydraulics(net):
     node_pit[slack_nodes, MDOTSLACKINIT] -= x[len(node_pit) + len(branch_pit):]
 
     filtered = [None, None, slack_nodes]
-    return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old, msl_init_old,
-            node_pit[slack_nodes, MDOTSLACKINIT]], epsilon, filtered
+    return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old, node_pit[slack_nodes, MDOTSLACKINIT]
+            ,msl_init_old], epsilon, filtered
 
 
 def solve_temperature(net):
