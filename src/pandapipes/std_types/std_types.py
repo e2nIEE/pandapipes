@@ -6,9 +6,11 @@ import os
 import warnings
 import re
 
+import numpy as np
 import pandas as pd
 from pandapipes import pp_dir
 from pandapipes.std_types.std_type_class import get_data, PumpStdType
+from pandapipes.pandapipes_net import SectorMap
 
 try:
     import pandaplan.core.pplog as logging
@@ -238,10 +240,13 @@ def add_basic_std_types(net):
     pump_files = os.listdir(os.path.join(pp_dir, "std_types", "library", "Pump"))
     for pump_file in pump_files:
         pump_name = str(pump_file.split(".")[0])
-        pump = PumpStdType.from_path(pump_name, os.path.join(pp_dir, "std_types", "library", "Pump",
-                                                             pump_file))
-        create_pump_std_type(net, pump_name, pump, True)
+        pump = PumpStdType.from_path(pump_name, os.path.join(pp_dir, "std_types", "library", "Pump", pump_file))
+        for p in pump.sector.split(','):
+            if p in SectorMap[net.sector]:
+                create_pump_std_type(net, pump_name, pump, True)
 
     pipe_file = os.path.join(pp_dir, "std_types", "library", "Pipe.csv")
-    data = get_data(pipe_file, "pipe").to_dict()
-    create_std_types(net, "pipe", data, True)
+    data = get_data(pipe_file, "pipe")
+    sector = data.loc["sector", :].str.split(',').explode()
+    cols = sector.index[np.isin(sector, SectorMap[net.sector])].drop_duplicates()
+    create_std_types(net, "pipe", data[cols].to_dict(), True)

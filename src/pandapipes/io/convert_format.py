@@ -5,7 +5,7 @@
 from packaging import version
 
 from pandapipes import __format_version__, __version__
-from pandapipes.pandapipes_net import add_default_components
+from pandapipes.pandapipes_net import add_default_components, Sector
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 from pandapipes.component_models.valve_component import Valve
@@ -22,6 +22,7 @@ def convert_format(net):
     """
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
+    _add_sector(net)
     add_default_components(net, overwrite=False)
     format_version = version.parse(__format_version__)
     # For possible problems with this line of code, please check out
@@ -86,3 +87,8 @@ def _rename_attributes(net):
     if "std_type" in net and "std_types" not in net:
         net["std_types"] = net["std_type"]
         del net["std_type"]
+
+
+def _add_sector(net):
+    if "sector" not in net:
+        net["sector"] = Sector.ALL
