@@ -7,7 +7,8 @@ from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models.pressure_control_component import PressureControlComponent
 from pandapipes.idx_branch import BRANCH_TYPE, LOAD_VEC_BRANCHES, JAC_DERIV_DM, JAC_DERIV_DP, JAC_DERIV_DP1, ACTIVE, \
     TO_NODE, FROM_NODE, MDOTINIT
-from pandapipes.idx_node import PINIT, NODE_TYPE, PC, L
+from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE, L
+from pandapipes.idx_branch import PC as PC_BRANCH
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.properties.fluids import get_fluid
@@ -49,8 +50,8 @@ class ThrottleValve(PressureControlComponent):
         """
         tbl = net[cls.table_name()]
         pc_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
-        pc_array[net[cls.table_name()].control_active.values, cls.PC] = PC
-        pc_branch = pc_array[:, cls.PC] == PC
+        pc_array[net[cls.table_name()].control_active.values, cls.PC] = cls.PC
+        pc_branch = pc_array[:, cls.PC] == cls.PC
         pc_array[pc_branch, cls.MODE] = cls.PCTRL
         pc_array[pc_branch, cls.PINIT] = tbl['controlled_p_bar'].values[pc_branch]
         pc_array[pc_branch, cls.JUNCTS] = tbl['controlled_junction'].values[pc_branch]
@@ -62,8 +63,8 @@ class ThrottleValve(PressureControlComponent):
         f, t = idx_lookups[cls.table_name()]
         pc_pit = branch_pit[f:t, :]
         pc_array = get_component_array(net, cls.table_name())
-        pc_branch = pc_array[:, cls.PC] == PC
-        pc_pit[pc_branch, BRANCH_TYPE] = PC
+        pc_branch = pc_array[:, cls.PC] == cls.PC
+        pc_pit[pc_branch, BRANCH_TYPE] = PC_BRANCH
         mask_maxv = (pc_array[:, cls.MODE] == cls.MAXVEXT)
         if any(mask_maxv):
             pc_pit[mask_maxv, MDOTINIT] = pc_array[mask_maxv, cls.MAXV]
@@ -75,20 +76,20 @@ class ThrottleValve(PressureControlComponent):
         f, t = idx_lookups[cls.table_name()]
         pc_pit = branch_pit[f:t, :]
         pc_array = get_component_array(net, cls.table_name())
-        pc_branch = pc_pit[:, BRANCH_TYPE] == PC
+        pc_branch = pc_pit[:, BRANCH_TYPE] == PC_BRANCH
         mask_ctrl = (pc_array[:, cls.MODE] == cls.PCTRL) & pc_branch
         mask_open = (pc_array[:, cls.MODE] == cls.OPEN) & pc_branch
         mask_maxv = (pc_array[:, cls.MODE] == cls.MAXVEXT) & pc_branch
 
         if any(mask_ctrl):
-            pc_pit[mask_ctrl, BRANCH_TYPE] = PC
+            pc_pit[mask_ctrl, BRANCH_TYPE] = PC_BRANCH
             pc_pit[mask_ctrl, JAC_DERIV_DP] = 0
             pc_pit[mask_ctrl, JAC_DERIV_DP1] = 0
             pc_pit[mask_ctrl, JAC_DERIV_DM] = 0
             pc_pit[mask_ctrl, LOAD_VEC_BRANCHES] = 0.
 
             index_pc = junction_idx_lookups[pc_array[mask_ctrl, cls.JUNCTS].astype(np.int32)]
-            node_pit[index_pc, NODE_TYPE] = PC
+            node_pit[index_pc, NODE_TYPE] = PC_NODE
 
         if any(mask_maxv):
             pc_pit[mask_maxv, JAC_DERIV_DP] = 0
@@ -97,10 +98,10 @@ class ThrottleValve(PressureControlComponent):
             pc_pit[mask_maxv, LOAD_VEC_BRANCHES] = 0
             index_pc = junction_idx_lookups[pc_array[mask_maxv, cls.JUNCTS].astype(np.int32)]
             node_pit[index_pc, NODE_TYPE] = L
-            pc_pit[mask_maxv, BRANCH_TYPE] = L
+            pc_pit[mask_maxv, BRANCH_TYPE] = 0
 
         if any(mask_open):
-            pc_pit[mask_open, BRANCH_TYPE] = L
+            pc_pit[mask_open, BRANCH_TYPE] = 0
             index_pc = junction_idx_lookups[pc_array[mask_open, cls.JUNCTS].astype(np.int32)]
             node_pit[index_pc, NODE_TYPE] = L
 
@@ -115,7 +116,7 @@ class ThrottleValve(PressureControlComponent):
         pc_pit = branch_pit[f:t, :]
         pc_array = get_component_array(net, cls.table_name())
 
-        pc_branch = pc_pit[:, BRANCH_TYPE] == PC
+        pc_branch = pc_pit[:, BRANCH_TYPE] == PC_BRANCH
         to_nodes = pc_pit[:, TO_NODE].astype(np.int32)
         from_nodes = pc_pit[:, FROM_NODE].astype(np.int32)
         p_to = node_pit[to_nodes, PINIT]
@@ -157,38 +158,3 @@ class ThrottleValve(PressureControlComponent):
                 rerun = True
 
         return rerun
-
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
-        """
-        Function that extracts certain results.
-
-        :param mode:
-        :type mode:
-        :param branch_results:
-        :type branch_results:
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param options:
-        :type options:
-        :return: No Output.
-        """
-        required_results_hyd = [("p_from_bar", "p_from"), ("p_to_bar", "p_to"), ("mdot_from_kg_per_s", "mf_from"),
-                                ("mdot_to_kg_per_s", "mf_to"), ("vdot_norm_m3_per_s", "vf")]
-        required_results_ht = [("t_from_k", "temp_from"), ("t_to_k", "temp_to")]
-
-        if get_fluid(net).is_gas:
-            required_results_hyd.extend(
-                [("v_from_m_per_s", "v_gas_from"), ("v_to_m_per_s", "v_gas_to"), ("normfactor_from", "normfactor_from"),
-                 ("normfactor_to", "normfactor_to")])
-        else:
-            required_results_hyd.extend([("v_mean_m_per_s", "v_mps")])
-
-        extract_branch_results_without_internals(net, branch_results, required_results_hyd, required_results_ht,
-                                                 cls.table_name(), mode)
-
-        res_table = net["res_" + cls.table_name()]
-        f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
-        p_to = branch_results["p_to"][f:t]
-        p_from = branch_results["p_from"][f:t]
-        res_table["deltap_bar"].values[:] = p_to - p_from

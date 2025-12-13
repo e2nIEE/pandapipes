@@ -80,8 +80,6 @@ def _add_missing_columns(net):
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
             else:
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow
-    if 'press_control' in net and 'max_mdot_kg_per_s' not in net.press_control:
-        net.press_control.insert(7, 'max_mdot_kg_per_s', None)
 
 
 def _rename_attributes(net):
