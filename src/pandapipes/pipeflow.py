@@ -5,8 +5,8 @@
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED
-from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P
+from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED, ACTIVE as ACTIVE_BRANCH
+from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P, ACTIVE as ACTIVE_NODE
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import (calculate_derivatives_hydraulic,
                                                   calculate_derivatives_thermal)
@@ -192,14 +192,6 @@ def hydraulics(net):
     if net.converged:
         set_user_pf_options(net, hyd_flag=True)
 
-        rerun = False
-        for comp in net['component_list']:
-            rerun |= comp.rerun_hydraulics(net)
-        if rerun:
-            extract_results_active_pit(net, 'hydraulics')
-            identify_active_nodes_branches(net)
-            hydraulics(net)
-
     if not get_net_option(net, "reuse_internal_data"):
         net.pop("_internal_data", None)
 
@@ -264,17 +256,20 @@ def solve_hydraulics(net):
 
     """
     options = net["_options"]
-    branch_pit = net["_active_pit"]["branch"]
-    node_pit = net["_active_pit"]["node"]
 
-    branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
-    for comp in net['component_list']:
-        comp.adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
-                                                   options)
-    calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
-    for comp in net['component_list']:
-        comp.adaption_after_derivatives_hydraulic(
-            net, branch_pit, node_pit, branch_lookups, options)
+    connected_restarted = True
+    while connected_restarted:
+        branch_pit = net["_active_pit"]["branch"]
+        node_pit = net["_active_pit"]["node"]
+        branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
+        for comp in net['component_list']:
+            comp.adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
+                                                       options)
+        calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
+        for comp in net['component_list']:
+            comp.adaption_after_derivatives_hydraulic(
+                net, branch_pit, node_pit, branch_lookups, options)
+        connected_restarted = _restart_connectivity_check(net)
     # epsilon is node [pressure] slack nodes and load vector branch prsr difference
     # jacobian is the derivatives
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
@@ -294,6 +289,29 @@ def solve_hydraulics(net):
     filtered = [None, None, slack_nodes]
     return [branch_pit[:, MDOTINIT], m_init_old, node_pit[:, PINIT], p_init_old, node_pit[slack_nodes, MDOTSLACKINIT]
             ,msl_init_old], epsilon, filtered
+
+def _restart_connectivity_check(net):
+    connected_restarted = False
+    nodes_connected = get_lookup(net, "node", "active_hydraulics")
+    branches_connected = get_lookup(net, "branch", "active_hydraulics")
+    rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
+    rows_branches = np.arange(net["_pit"]["branch"].shape[0])[branches_connected]
+    active_node_pit = net["_active_pit"]["node"][:, ACTIVE_NODE]
+    active_branch_pit = net["_active_pit"]["branch"][:, ACTIVE_BRANCH]
+    node_pit = net["_pit"]["node"][rows_nodes, ACTIVE_NODE]
+    branch_pit = net["_pit"]["branch"][rows_branches, ACTIVE_BRANCH]
+    mask_diff_node = active_node_pit != node_pit
+    mask_diff_branch = active_branch_pit != branch_pit
+    if np.any(mask_diff_node):
+        net["_pit"]["node"][rows_nodes, ACTIVE_NODE] = active_node_pit
+        connected_restarted = True
+    if np.any(mask_diff_branch):
+        net["_pit"]["branch"][rows_branches, ACTIVE_BRANCH] = active_branch_pit
+        connected_restarted = True
+    if connected_restarted:
+        identify_active_nodes_branches(net, True)
+        reduce_pit(net, mode='hydraulics')
+    return connected_restarted
 
 
 def solve_temperature(net):

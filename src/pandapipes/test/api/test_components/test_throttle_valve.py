@@ -1,5 +1,6 @@
 import pandapipes
 import pytest
+import numpy as np
 
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_throttle_line(use_numba):
@@ -38,8 +39,8 @@ def test_throttle_default(use_numba):
 def test_throttle_max_mdot(use_numba):
     net = pandapipes.create_empty_network(fluid='water')
     j1, j2, j3, j4 = pandapipes.create_junctions(net, 4, 3, 300)
-    pandapipes.create_circ_pump_const_pressure(net, j4, j1, 10, 8)
+    pandapipes.create_circ_pump_const_pressure(net, j4, j1,  10, 8)
     pandapipes.create_pipes_from_parameters(net, [j1, j2, j3], [j2, j4,  j4], 0.1, 0.1)
-    pandapipes.create_pressure_control(net, j2, j3, j3, 3, loss_coefficient=0.5, max_mdot_kg_per_s=10)
+    pandapipes.create_throttle_valve(net, j2, j3, j3, 3, loss_coefficient=0.5, max_mdot_kg_per_s=10)
     pandapipes.pipeflow(net, use_numba=use_numba)
-    assert net.res_press_control.mdot_from_kg_per_s.values == 10
+    assert net.res_throttle_valve.mdot_from_kg_per_s.values == 10
