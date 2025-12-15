@@ -32,7 +32,7 @@ def test_throttle_default(use_numba):
     pandapipes.create_sink(net, j2, 4)
     pandapipes.create_throttle_valve(net, j1, j2, j2, 3, loss_coefficient=0.5)
     pandapipes.pipeflow(net, use_numba=use_numba)
-    assert net.res_junction.at[j2, 'p_bar'] == 3
+    assert np.isclose(net.res_junction.at[j2, 'p_bar'], 3)
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -43,4 +43,8 @@ def test_throttle_max_mdot(use_numba):
     pandapipes.create_pipes_from_parameters(net, [j1, j2, j3], [j2, j4,  j4], 0.1, 0.1)
     pandapipes.create_throttle_valve(net, j2, j3, j3, 3, loss_coefficient=0.5, max_mdot_kg_per_s=10)
     pandapipes.pipeflow(net, use_numba=use_numba)
-    assert net.res_throttle_valve.mdot_from_kg_per_s.values == 10
+    assert np.isclose(net.res_throttle_valve.mdot_from_kg_per_s.values, 10)
+
+
+if __name__ == '__main__':
+    n = pytest.main(["test_throttle_valve.py"])

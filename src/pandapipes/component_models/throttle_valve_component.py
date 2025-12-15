@@ -10,8 +10,6 @@ from pandapipes.idx_branch import BRANCH_TYPE, LOAD_VEC_BRANCHES, JAC_DERIV_DM, 
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE, L
 from pandapipes.idx_branch import PC as PC_BRANCH
 from pandapipes.pf.pipeflow_setup import get_lookup
-from pandapipes.pf.result_extraction import extract_branch_results_without_internals
-from pandapipes.properties.fluids import get_fluid
 
 
 class ThrottleValve(PressureControlComponent):
@@ -98,7 +96,8 @@ class ThrottleValve(PressureControlComponent):
         pc_pit[pc_reverse, ACTIVE] = False
 
         # maximum mass flow
-        mask_maxv = pc_array[:, cls.MAXV] <= pc_pit[:, MDOTINIT]
+        mask_maxv = (pc_array[:, cls.MAXV] < pc_pit[:, MDOTINIT]) | np.isclose(pc_array[:, cls.MAXV], pc_pit[:, MDOTINIT])
+
         index_pc = junction_idx_lookups[pc_array[mask_maxv, cls.JUNCTS].astype(np.int32)]
 
         pc_pit[mask_maxv, BRANCH_TYPE] = 0
