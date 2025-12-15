@@ -539,7 +539,7 @@ def test_mixed_indexing_oos2(create_mixed_indexing_grid, use_numba):
     net.pipe.at[10, "in_service"] = False
     oos_juncs = [10, 12]
 
-    max_iter_hyd = 3 if use_numba else 3
+    max_iter_hyd = 4 if use_numba else 4
     with pytest.raises(PipeflowNotConverged):
         pandapipes.pipeflow(net, mode="hydraulics",
                             max_iter_hyd=max_iter_hyd,
