@@ -215,15 +215,6 @@ def heat_transfer(net):
     newton_raphson(net, solve_temperature, 'heat', solver_vars, [tol_temp, tol_temp], ['branch', 'node'],
                    'max_iter_therm')
 
-    if net.converged:
-        rerun = False
-        for comp in net['component_list']:
-            rerun |= comp.rerun_heat_transfer(net)
-        if rerun:
-            extract_results_active_pit(net, mode="heat_transfer")
-            identify_active_nodes_branches(net, False)
-            heat_transfer(net)
-
     if not net.converged:
         msg = "The heat transfer calculation did not converge to a solution."
         raise PipeflowNotConverged(msg)
