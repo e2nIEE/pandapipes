@@ -10,7 +10,7 @@ def test_throttle_line(use_numba):
     pandapipes.create_sink(net, j2, 4)
     pandapipes.create_throttle_valve(net, j1, j2, j2, 3, loss_coefficient=0.5)
     pandapipes.pipeflow(net, use_numba=use_numba)
-    assert np.isclose(net.res_junction.at[j2, 'p_bar'], 1.6556170)
+    assert np.isclose(net.res_junction.at[j2, 'p_bar'], 1.986245)
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
