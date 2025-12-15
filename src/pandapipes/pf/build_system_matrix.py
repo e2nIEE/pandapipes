@@ -260,7 +260,7 @@ def build_system_matrix(net, branch_pit, node_pit, heat_mode):
         load_vector[fn_unique] -= fn_sums
         load_vector[tn_unique] += tn_sums
         load_vector[slack_nodes] = 0
-        load_vector[pc_matrix_indices] = branch_pit[pc_branch_mask, LOAD_VEC_BRANCHES]
+        load_vector[pc_matrix_indices] = 0
 
         load_vector[slack_mass_matrix_indices] = node_pit[slack_nodes, LOAD] * (-1)
         fsb_unique, fsb_sums = _sum_by_group(use_numba, slack_masses_from,
