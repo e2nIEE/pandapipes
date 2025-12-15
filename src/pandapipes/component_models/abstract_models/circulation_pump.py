@@ -115,7 +115,7 @@ class CirculationPump(BranchWOInternalsComponent):
         juncts = circ_pump_tbl[cls.from_to_node_cols()[1]].values
         to_nodes = junction_idx_lookups[juncts]
         circ_pump_pit[mask_t, TOUTINIT] = circ_pump_tbl.t_flow_k.values[mask_t]
-        circ_pump_pit[~mask_t, TOUTINIT] = node_pit[to_nodes, TINIT]
+        circ_pump_pit[~mask_t, TOUTINIT] = node_pit[to_nodes[~mask_t], TINIT]
         return circ_pump_pit
 
     @classmethod
