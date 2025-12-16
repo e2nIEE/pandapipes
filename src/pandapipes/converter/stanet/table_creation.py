@@ -20,6 +20,7 @@ from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_f
 try:
     from shapely.geometry import LineString
     from shapely.ops import substring
+    from shapely import Point
     SHAPELY_INSTALLED = True
 except ImportError:
     SHAPELY_INSTALLED = False
@@ -456,6 +457,9 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         add_info = dict()
         if add_layers:
             add_info["stanet_layer"] = control_table.LAYER.values[is_pc].astype(str)
+        add_geo = kwargs.pop('add_geodata', False)
+        if add_geo:
+            add_info['geodata'] = control_table[['XRECHTS', 'YHOCH']].T.apply(Point)
         pandapipes.create_pressure_controls(
             net, from_junctions[is_pc], to_junctions[is_pc], to_junctions[is_pc],
             control_table.PMESS.astype(np.float64).values[is_pc],

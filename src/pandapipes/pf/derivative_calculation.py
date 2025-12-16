@@ -106,19 +106,11 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     transient = get_net_option(net, "transient")
     dt = get_net_option(net, "dt")
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
+    amb = get_net_option(net, 'ambient_temperature')
 
-    nodes_active_ht = get_lookup(net, "node", "active_heat_transfer")
-    branches_active_ht = get_lookup(net, "branch", "active_heat_transfer")
-    if transient:
-        nodes_zero_fl = get_lookup(net, "node", "zero_flow")[nodes_active_ht]
-        branches_zero_fl = get_lookup(net, "branch", "zero_flow")[branches_active_ht]
-    else:
-        nodes_zero_fl = np.zeros_like(nodes_active_ht, dtype=bool)[nodes_active_ht]
-        branches_zero_fl = np.zeros_like(branches_active_ht, dtype=bool)[branches_active_ht]
-
-    fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbn_dt, dfbn_dtout, infeed = (
+    fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbf_dt, dfbt_dtout, infeed = (
         derivatives_termal(node_pit, branch_pit, from_nodes, to_nodes, t_init_i, t_init_i1, t_init_n, cp_i, cp_i1, cp_n,
-                           cp, rho, dt, transient, branches_zero_fl, nodes_zero_fl))
+                           cp, rho, dt, transient, amb))
 
     node_pit[:, LOAD_T] = fn
     node_pit[:, JAC_DERIV_DT_LOAD] = dfn_dt
@@ -130,8 +122,8 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
 
     branch_pit[:, LOAD_VEC_NODES_FROM_T] = fbf
     branch_pit[:, LOAD_VEC_NODES_TO_T] = fbt
-    branch_pit[:, JAC_DERIV_DT_NODE] = dfbn_dt
-    branch_pit[:, JAC_DERIV_DTOUT_NODE] = dfbn_dtout
+    branch_pit[:, JAC_DERIV_DT_NODE] = dfbf_dt
+    branch_pit[:, JAC_DERIV_DTOUT_NODE] = dfbt_dtout
 
     node_pit[:, INFEED] = False
     node_pit[infeed, INFEED] = True
