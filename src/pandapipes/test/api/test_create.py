@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -169,22 +169,23 @@ def test_create_valve(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     pandapipes.create_junction(net, 1, 293, index=8, geodata=(0, 1))
     pandapipes.create_junction(net, 1, 293, index=9, geodata=(2, 2))
-    pandapipes.create_valve(net, 8, 9, 0.4, True, index=2)
+    pandapipes.create_valve(net, 8, 9, 'ju', 0.4, True, index=2)
 
     assert len(net.junction) == 2
     assert len(net.valve) == 1
     assert np.all(net.valve.index == [2])
-    assert net.valve.at[2, "from_junction"] == 8
-    assert net.valve.at[2, "to_junction"] == 9
+    assert net.valve.at[2, "junction"] == 8
+    assert net.valve.at[2, "element"] == 9
+    assert net.valve.at[2, "et"] == 'ju'
     assert net.valve.at[2, "diameter_m"] == 0.4
     assert net.valve.at[2, "loss_coefficient"] == 0
 
     with pytest.raises(UserWarning):
-        pandapipes.create_valve(net, 8, 9, 0.4, True, index=2)
+        pandapipes.create_valve(net, 8, 9, 'ju', 0.4, True, index=2)
     with pytest.raises(UserWarning):
-        pandapipes.create_valve(net, 8, 10, 0.4, True)
+        pandapipes.create_valve(net, 8, 10, 'ju', 0.4, True)
     with pytest.raises(ValueError):
-        pandapipes.create_valve(net, 8, 9, 0.4, True, geodata=[(0, 1), (1, 1), (2, 2)])
+        pandapipes.create_valve(net, 8, 9, 'ju', 0.4, True, geodata=[(0, 1), (1, 1), (2, 2)])
 
 
 def test_create_pump(create_empty_net):
@@ -314,7 +315,7 @@ def test_create_pipes_from_parameters(create_empty_net):
     p = pandapipes.create_pipes_from_parameters(
         net, [j1, j1], [j2, j2], length_km=5, diameter_m=0.8, in_service=False,
         geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-        u_w_per_m2k=0.1, text_k=273, qext_w=0.01)
+        u_w_per_m2k=0.1, text_k=273)
 
     assert len(net.pipe) == 2
     assert len(net.pipe_geodata) == 2
@@ -338,8 +339,6 @@ def test_create_pipes_from_parameters(create_empty_net):
     assert net.pipe.at[p[1], "u_w_per_m2k"] == 0.1
     assert net.pipe.at[p[0], "text_k"] == 273
     assert net.pipe.at[p[1], "text_k"] == 273
-    assert net.pipe.at[p[0], "qext_w"] == 0.01
-    assert net.pipe.at[p[1], "qext_w"] == 0.01
 
     # setting params as array
     net = copy.deepcopy(create_empty_net)
@@ -350,7 +349,7 @@ def test_create_pipes_from_parameters(create_empty_net):
         in_service=[True, False],
         geodata=[[(10, 10), (20, 20)], [(100, 10), (200, 20)]], name=["p1", "p2"],
         k_mm=[0.01, 0.02], loss_coefficient=[0.3, 0.5], sections=[1, 2],
-        u_w_per_m2k=[0.1, 0.2], text_k=[273, 274], qext_w=[0.01, 0.02])
+        u_w_per_m2k=[0.1, 0.2], text_k=[273, 274])
 
     assert len(net.pipe) == 2
     assert len(net.pipe_geodata) == 2
@@ -374,8 +373,6 @@ def test_create_pipes_from_parameters(create_empty_net):
     assert net.pipe.at[p[1], "sections"] == 2
     assert net.pipe.at[p[0], "text_k"] == 273
     assert net.pipe.at[p[1], "text_k"] == 274
-    assert net.pipe.at[p[0], "qext_w"] == 0.01
-    assert net.pipe.at[p[1], "qext_w"] == 0.02
 
 
 def test_create_pipes_from_parameters_raise_except(create_empty_net):
@@ -388,17 +385,17 @@ def test_create_pipes_from_parameters_raise_except(create_empty_net):
         pandapipes.create_pipes_from_parameters(
             net, [1, 3], [4, 5], length_km=5, diameter_m=0.8, in_service=False,
             geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-            u_w_per_m2k=0.1, text_k=273, qext_w=0.01)
+            u_w_per_m2k=0.1, text_k=273)
 
     pandapipes.create_pipes_from_parameters(
         net, [j1, j1], [j2, j3], length_km=5, diameter_m=0.8, in_service=False,
         geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-        u_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+        u_w_per_m2k=0.1, text_k=273, index=[0, 1])
     with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
         pandapipes.create_pipes_from_parameters(
             net, [j1, j1], [j2, j3], length_km=5, diameter_m=0.8, in_service=False,
             geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-            u_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+            u_w_per_m2k=0.1, text_k=273, index=[0, 1])
 
 
 def test_create_pipes(create_empty_net):
@@ -431,8 +428,8 @@ def test_create_pipes(create_empty_net):
     j2 = pandapipes.create_junction(net, 3, 273)
     p = pandapipes.create_pipes(
         net, [j1, j1], [j2, j2], std_type="80_GGG", length_km=5, in_service=False,
-        geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-        u_w_per_m2k=0.1, text_k=273, qext_w=0.01)
+        geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2, text_k=273
+    )
 
     assert len(net.pipe) == 2
     assert len(net.pipe_geodata) == 2
@@ -454,12 +451,8 @@ def test_create_pipes(create_empty_net):
     assert net.pipe.at[p[1], "diameter_m"] == 0.086
     assert net.pipe.at[p[0], "sections"] == 2
     assert net.pipe.at[p[1], "sections"] == 2
-    assert net.pipe.at[p[0], "u_w_per_m2k"] == 0.1
-    assert net.pipe.at[p[1], "u_w_per_m2k"] == 0.1
     assert net.pipe.at[p[0], "text_k"] == 273
     assert net.pipe.at[p[1], "text_k"] == 273
-    assert net.pipe.at[p[0], "qext_w"] == 0.01
-    assert net.pipe.at[p[1], "qext_w"] == 0.01
 
     # setting params as array
     net = copy.deepcopy(create_empty_net)
@@ -467,9 +460,9 @@ def test_create_pipes(create_empty_net):
     j2 = pandapipes.create_junction(net, 3, 273)
     p = pandapipes.create_pipes(
         net, [j1, j1], [j2, j2], std_type="80_GGG", length_km=[1, 5], in_service=[True, False],
-        geodata=[[(10, 10), (20, 20)], [(100, 10), (200, 20)]], name=["p1", "p2"],
-        k_mm=[0.01, 0.02], loss_coefficient=[0.3, 0.5], sections=[1, 2],
-        u_w_per_m2k=[0.1, 0.2], text_k=[273, 274], qext_w=[0.01, 0.02])
+        geodata=[[(10, 10), (20, 20)], [(100, 10), (200, 20)]], name=["p1", "p2"], k_mm=[0.01, 0.02],
+        loss_coefficient=[0.3, 0.5], sections=[1, 2], text_k=[273, 274]
+    )
 
     assert len(net.pipe) == 2
     assert len(net.pipe_geodata) == 2
@@ -489,14 +482,10 @@ def test_create_pipes(create_empty_net):
     assert net.pipe.at[p[1], "k_mm"] == 0.02
     assert net.pipe.at[p[0], "loss_coefficient"] == 0.3
     assert net.pipe.at[p[1], "loss_coefficient"] == 0.5
-    assert net.pipe.at[p[0], "u_w_per_m2k"] == 0.1
-    assert net.pipe.at[p[1], "u_w_per_m2k"] == 0.2
     assert net.pipe.at[p[0], "sections"] == 1
     assert net.pipe.at[p[1], "sections"] == 2
     assert net.pipe.at[p[0], "text_k"] == 273
     assert net.pipe.at[p[1], "text_k"] == 274
-    assert net.pipe.at[p[0], "qext_w"] == 0.01
-    assert net.pipe.at[p[1], "qext_w"] == 0.02
 
 
 def test_create_pipes_raise_except(create_empty_net):
@@ -509,17 +498,17 @@ def test_create_pipes_raise_except(create_empty_net):
         pandapipes.create_pipes(
             net, [1, 3], [4, 5], std_type="80_GGG", length_km=5, in_service=False,
             geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-            u_w_per_m2k=0.1, text_k=273, qext_w=0.01)
+            u_w_per_m2k=0.1, text_k=273)
 
     pandapipes.create_pipes(
         net, [j1, j1], [j2, j3], std_type="80_GGG", length_km=5, in_service=False,
         geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-        u_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+        text_k=273, index=[0, 1])
     with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
         pandapipes.create_pipes(
             net, [j1, j1], [j2, j3], std_type="80_GGG", length_km=5, in_service=False,
             geodata=[(10, 10), (20, 20)], name="test", k_mm=0.01, loss_coefficient=0.3, sections=2,
-            u_w_per_m2k=0.1, text_k=273, qext_w=0.01, index=[0, 1])
+            text_k=273, index=[0, 1])
 
 
 def test_create_valves(create_empty_net):
@@ -527,7 +516,7 @@ def test_create_valves(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
-    pandapipes.create_valves(net, [j1, j1], [j2, j2], 0.2)
+    pandapipes.create_valves(net, [j1, j1], [j2, j2], 'ju', 0.2)
     assert len(net.valve) == 2
     assert len(set(net.valve.diameter_m)) == 1
     assert np.all(net.valve.diameter_m == [0.2, 0.2])
@@ -537,7 +526,7 @@ def test_create_valves(create_empty_net):
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
     v = pandapipes.create_valves(
-        net, [j1, j1], [j2, j2], diameter_m=0.8, opened=False, name="test", new_col=0.01,
+        net, [j1, j1], [j2, j2], et='ju', diameter_m=0.8, opened=False, name="test", new_col=0.01,
         loss_coefficient=0.3, type="v")
 
     assert len(net.valve) == 2
@@ -557,7 +546,7 @@ def test_create_valves(create_empty_net):
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
     v = pandapipes.create_valves(
-        net, [j1, j1], [j2, j2], diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
+        net, [j1, j1], [j2, j2], et='ju', diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
         type=["va1", "va2"], loss_coefficient=[0.3, 0.5], new_col=[0.01, 1.9])
 
     assert len(net.valve) == 2
@@ -579,7 +568,7 @@ def test_create_valves(create_empty_net):
     j1 = pandapipes.create_junction(net, 3, 273)
     j2 = pandapipes.create_junction(net, 3, 273)
     v = pandapipes.create_valves(
-        net, [j1, j1], [j2, j2], diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
+        net, [j1, j1], [j2, j2], et='ju', diameter_m=[0.8, 0.7], opened=[True, False], name=["v1", "v2"],
         type=["va1", "va2"], loss_coefficient=[0.3, 0.5], new_col=[0.01, 1.9], index=[1, 5])
 
     assert len(net.valve) == 2
@@ -593,14 +582,14 @@ def test_create_valves_raise_except(create_empty_net):
     j2 = pandapipes.create_junction(net, 3, 273)
     j3 = pandapipes.create_junction(net, 3, 273)
 
-    with pytest.raises(UserWarning, match=r"trying to attach to non existing junctions"):
-        pandapipes.create_valves(net, [1, 3], [4, 5], diameter_m=0.8, opened=False, name="test",
+    with pytest.raises(UserWarning, match=r"Cannot attach to buses \{3\}, they do not exist"):
+        pandapipes.create_valves(net, [1, 3], [4, 5], et='ju', diameter_m=0.8, opened=False, name="test",
                                  loss_coefficient=0.3)
 
-    pandapipes.create_valves(net, [j1, j1], [j2, j3], diameter_m=0.8, opened=False, name="test",
+    pandapipes.create_valves(net, [j1, j1], [j2, j3], et='ju', diameter_m=0.8, opened=False, name="test",
                              loss_coefficient=0.3, index=[0, 1])
     with pytest.raises(UserWarning, match=r"with indexes \[0 1\] already exist"):
-        pandapipes.create_valves(net, [j1, j1], [j2, j3], diameter_m=0.8, opened=False,
+        pandapipes.create_valves(net, [j1, j1], [j2, j3], et='ju',diameter_m=0.8, opened=False,
                                  name="test", loss_coefficient=0.3, index=[0, 1])
 
 

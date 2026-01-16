@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -8,8 +8,8 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
 from pandapipes.component_models.component_toolbox import (
     get_component_array,
     get_std_type_lookup,
@@ -29,7 +29,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Pump(BranchWZeroLengthComponent):
+class Pump(BranchWOInternalsComponent):
     """
 
     """
@@ -109,7 +109,7 @@ class Pump(BranchWZeroLengthComponent):
         v_mps = pump_branch_pit[:, MDOTINIT] / pump_branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
         if fluid.is_gas:
             # consider volume flow at inlet
-            normfactor_from = numerator_from * fluid.get_property("compressibility", p_from) \
+            normfactor_from = numerator_from * fluid.get_compressibility(p_from, t_from) \
                               / (p_from * NORMAL_TEMPERATURE)
             v_from = v_mps * normfactor_from
         else:
@@ -155,7 +155,7 @@ class Pump(BranchWZeroLengthComponent):
                 t0 = net["_pit"]["node"][from_nodes, TINIT_NODE]
                 mf_sum_int = branch_results["mf_from"][f:t]
                 # calculate ideal compression power
-                compr = get_fluid(net).get_property("compressibility", p_from)
+                compr = get_fluid(net).get_compressibility(p_from, t0)
                 try:
                     molar_mass = net.fluid.get_molar_mass()  # [g/mol]
                 except UserWarning:

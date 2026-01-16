@@ -5,7 +5,7 @@
 import numpy as np
 from numpy import dtype
 
-from pandapipes.component_models import (get_fluid, BranchWZeroLengthComponent, get_component_array,
+from pandapipes.component_models import (get_fluid, BranchWOInternalsComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
@@ -24,7 +24,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-class HeatConsumer(BranchWZeroLengthComponent):
+class HeatConsumer(BranchWOInternalsComponent):
     """
 
     """

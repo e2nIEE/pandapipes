@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -60,15 +60,15 @@ class P2GControlMultiEnergy(Controller):
     :type kwargs: any
     """
     def __init__(self, multinet, element_index_power, element_index_gas, efficiency,
-                 name_power_net='power', name_gas_net='gas',
-                 in_service=True, order=0, level=0,
-                 drop_same_existing_ctrl=False, initial_run=True, **kwargs):
+                 name_power_net='power', name_gas_net='gas', in_service=True, order=0, level=0,
+                 drop_same_existing_ctrl=False, initial_run=True, name="P2GControlMultiEnergy"):
         """
         see class docstring
         """
-        super().__init__(multinet, in_service, order, level,
-                         drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
-                         **kwargs)
+        super().__init__(
+            multinet, name, in_service, order, level, drop_same_existing_ctrl=drop_same_existing_ctrl,
+            initial_run=initial_run,
+        )
 
         self.elm_idx_power = element_index_power
         self.elm_idx_gas = element_index_gas
@@ -183,15 +183,15 @@ class G2PControlMultiEnergy(Controller):
 
     def __init__(self, multinet, element_index_power, element_index_gas, efficiency,
                  name_power_net='power', name_gas_net='gas', element_type_power="sgen",
-                 in_service=True, order=0,
-                 level=0, drop_same_existing_ctrl=False, initial_run=True,
-                 calc_gas_from_power=False, **kwargs):
+                 in_service=True, order=0, level=0, drop_same_existing_ctrl=False, initial_run=True,
+                 calc_gas_from_power=False, name="G2PControlMultiEnergy"):
         """
         see class docstring
         """
-        super().__init__(multinet, in_service, order, level,
-                         drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
-                         **kwargs)
+        super().__init__(
+            multinet, name, in_service, order, level, drop_same_existing_ctrl=drop_same_existing_ctrl,
+            initial_run=initial_run,
+        )
 
         self.elm_idx_power = element_index_power
         self.elm_idx_gas = element_index_gas
@@ -320,13 +320,14 @@ class GasToGasConversion(Controller):
 
     def __init__(self, multinet, element_index_from, element_index_to, efficiency,
                  name_gas_net_from='gas1', name_gas_net_to='gas2', in_service=True, order=0,
-                 level=0, drop_same_existing_ctrl=False, initial_run=True, **kwargs):
+                 level=0, drop_same_existing_ctrl=False, initial_run=True, name="GasToGasConverter"):
         """
         see class docstring
         """
-        super().__init__(multinet, in_service, order, level,
-                         drop_same_existing_ctrl=drop_same_existing_ctrl, initial_run=initial_run,
-                         **kwargs)
+        super().__init__(
+            multinet, name, in_service, order, level, drop_same_existing_ctrl=drop_same_existing_ctrl,
+            initial_run=initial_run,
+        )
 
         self.element_index_from = element_index_from
         self.element_index_to = element_index_to

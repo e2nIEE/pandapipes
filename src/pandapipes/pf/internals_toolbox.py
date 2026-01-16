@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -77,6 +77,23 @@ def _sum_by_group_np(indices, *values):
     return _sum_by_group_sorted(indices, *val)
 
 
+def _sum_by_group_numba(indices, *values):
+    if len(indices) == 0:
+        return tuple([indices] + list(values))
+    # idea: shift this into numba function and raise ValueError if condition not accepted,
+    # has not yet worked...
+    ind_dt = indices.dtype
+    indices = indices.astype(np.int32)
+    max_ind = max_nb(indices)
+    if (max_ind < 1e5 or max_ind < 2 * len(indices)) and max_ind < 10 * len(indices):
+        dtypes = [v.dtype for v in values]
+        val_arr = np.array(list(values), dtype=np.float64).transpose()
+        new_ind, new_arr = _sum_values_by_index(indices, val_arr, max_ind, len(indices),
+                                                len(values))
+        return tuple([new_ind.astype(ind_dt)]
+                     + [new_arr[:, i].astype(dtypes[i]) for i in range(len(values))])
+    return _sum_by_group_np(indices, *values)
+
 def _sum_by_group(use_numba, indices, *values):
     """
     Auxiliary function to sum up values by some given indices (both as numpy arrays).
@@ -95,21 +112,8 @@ def _sum_by_group(use_numba, indices, *values):
     elif not numba_installed:
         logger.info("The numba import did not work out, it will not be used.")
         return _sum_by_group_np(indices, *values)
-    if len(indices) == 0:
-        return tuple([indices] + list(values))
-    # idea: shift this into numba function and raise ValueError if condition not accepted,
-    # has not yet worked...
-    ind_dt = indices.dtype
-    indices = indices.astype(np.int32)
-    max_ind = max_nb(indices)
-    if (max_ind < 1e5 or max_ind < 2 * len(indices)) and max_ind < 10 * len(indices):
-        dtypes = [v.dtype for v in values]
-        val_arr = np.array(list(values), dtype=np.float64).transpose()
-        new_ind, new_arr = _sum_values_by_index(indices, val_arr, max_ind, len(indices),
-                                                len(values))
-        return tuple([new_ind.astype(ind_dt)]
-                     + [new_arr[:, i].astype(dtypes[i]) for i in range(len(values))])
-    return _sum_by_group_np(indices, *values)
+    else:
+        return _sum_by_group_numba(indices, *values)
 
 
 def select_from_pit(table_index_array, input_array, data):

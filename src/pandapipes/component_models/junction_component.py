@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -28,7 +28,7 @@ class Junction(NodeComponent):
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internal_nodes_lookup):
+                            current_table, internals):
         """
         Function which creates node lookups.
 
@@ -44,8 +44,8 @@ class Junction(NodeComponent):
         :type current_start:
         :param current_table:
         :type current_table:
-        :param internal_nodes_lookup:
-        :type internal_nodes_lookup:
+        :param internals:
+        :type internals:
         :return:
         :rtype:
         """
@@ -82,20 +82,19 @@ class Junction(NodeComponent):
 
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             junction_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
-            junction_pit[:, TINIT] = junctions.tfluid_k.values
             junction_pit[:, ELEMENT_IDX] = junctions.index.values
             junction_pit[:, HEIGHT] = junctions.height_m.values
-            junction_pit[:, PINIT] = junctions.pn_bar.values
-            junction_pit[:, TINIT] = junctions.tfluid_k.values
             junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
             junction_pit[:, ACTIVE_ND] = junctions.in_service.values
+            junction_pit[:, TINIT_OLD] = junctions.tfluid_k.values
         else:
             junction_pit[:, EXT_GRID_OCCURENCE] = 0
             junction_pit[:, EXT_GRID_OCCURENCE_T] = 0
             junction_pit[:, LOAD] = 0
+            junction_pit[:, TINIT_OLD] = junctions.told_k.values
 
-        if get_net_option(net, "transient"):
-            junction_pit[:, TINIT_OLD] = junction_pit[:, TINIT]
+        junction_pit[:, TINIT] = junctions.tfluid_k.values
+        junction_pit[:, PINIT] = junctions.pn_bar.values
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ pf_logger.setLevel(logging.WARNING)
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta(use_numba, log_results=False):
     net = nw.heat_transfer_delta()
-    max_iter_hyd = 10 if use_numba else 10
+    max_iter_hyd = 11 if use_numba else 11
     max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
@@ -37,7 +37,7 @@ def test_case_delta(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta_2sinks(use_numba, log_results=False):
     net = nw.heat_transfer_delta_2sinks()
-    max_iter_hyd = 10 if use_numba else 10
+    max_iter_hyd = 11 if use_numba else 11
     max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
@@ -93,12 +93,12 @@ def test_case_one_source(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_section_variation(use_numba, log_results=False):
     net = nw.heat_transfer_section_variation()
-    max_iter_hyd = 10 if use_numba else 10
+    max_iter_hyd = 12 if use_numba else 12
     max_iter_therm = 2 if use_numba else 2
     p_diff, v_diff_abs, temp_diff_mean = pipeflow_openmodelica_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
-        mode='sequential', use_numba=use_numba)
+        mode='sequential', use_numba=use_numba, max_iter_colebrook=12)
     # all values of temp_diff_mean are zero except one with about 0.025
     assert np.all(temp_diff_mean < 0.03)
     assert np.all(p_diff < 0.022)

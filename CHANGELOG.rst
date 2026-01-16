@@ -1,5 +1,26 @@
 Change Log
 =============
+[upcoming release] - 2026-..-..
+-------------------------------
+
+[0.13.0] - 2026-01-16
+-------------------------------
+- [ADDED] enabling connection of valves directly to pipes besides connection between two junctions
+- [ADDED] tutorial for combining DHNx package and pandapipes
+- [ADDED] tutorial for output writer for timeseries simulations
+- [ADDED] new and updated district heating example networks
+- [ADDED] thermal numba calculation
+- [CHANGED] Improve readability of setting pipeflow options
+- [CHANGED] reindex functions to be more general
+- [CHANGED] Colebrook-White friction model now uses scipy.optimize.newton for solving the equation
+- [CHANGED] Fluid properties compressibility and viscosity can now process pressure and temperature as inputs, if given the "allow_2d" attribute
+- [CHANGED] Temperature change along pipes now based on exponential function and does not use qext_w anymore
+- [CHANGED] pandapower dependency tag to a strict version
+- [FIXED] Default compressibility model in STANET converter now set to "linear" to avoid Exceptions
+- [FIXED] pipeflow error
+- [FIXED] errors in combination of controller and transient heat calculation
+- [REMOVED] branch_wzerolength_models.py
+- [REMOVED] python 3.9 support
 
 [0.12.0] - 2025-06-27
 -------------------------------

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -89,7 +89,7 @@ class Component:
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
-                            current_table, internal_nodes_lookup):
+                            current_table, internals):
         """
         Function which creates node lookups.
 
@@ -105,16 +105,16 @@ class Component:
         :type current_start:
         :param current_table:
         :type current_table:
-        :param internal_nodes_lookup:
-        :type internal_nodes_lookup:
+        :param internals:
+        :type internals:
         :return:
         :rtype:
         """
         return current_start, current_table
 
     @classmethod
-    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_table,
-                              current_start):
+    def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
+                              current_table, internals):
         """
         Function which creates branch lookups.
 
@@ -130,7 +130,10 @@ class Component:
         :type current_table:
         :param current_start:
         :type current_start:
-        :return: No Output.
+        :param internals:
+        :type internals:
+        :return:
+        :rtype:
         """
         return current_start, current_table
 

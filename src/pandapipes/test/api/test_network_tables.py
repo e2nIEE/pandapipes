@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -71,7 +71,7 @@ def test_additional_tables():
 
     pandapipes.add_new_component(net, Valve)
     valve_input = list(copy.deepcopy(net.valve.columns))
-    pandapipes.create_valve(net, 0, 1, diameter_m=0.1, opened=False)
+    pandapipes.create_valve(net, 0, 1, et='ju',  diameter_m=0.1, opened=False)
     valve_input_create = list(net.valve.columns)
     assert valve_input == valve_input_create, "Input does not equal create-table"
 

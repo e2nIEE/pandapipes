@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -125,8 +125,11 @@ def run_loop(net, ts_variables, run_control_fct=run_control, output_writer_fct=_
     for i, time_step in enumerate(ts_variables["time_steps"]):
         print_progress(i, time_step, ts_variables["time_steps"], ts_variables["verbose"], ts_variables=ts_variables,
                        **kwargs)
-        if "transient" in kwargs:
+        transient = kwargs.get('transient', False)
+        if transient:
             kwargs["simulation_time_step"] = i
+        if (i != 0) and transient and net.converged:
+            net.junction["told_k"] = net.res_junction.t_k
         run_time_step(net, time_step, ts_variables, run_control_fct, output_writer_fct, **kwargs)
 
 

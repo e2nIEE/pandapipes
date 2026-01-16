@@ -12,7 +12,7 @@ The following fluids currently exist in the library:
 - ``hydrogen``,
 - ``methane``,
 - ``water``,
-- ``biomethane_pure`` and ``biomathane_treated`` (compositions below)
+- ``biomethane_pure`` and ``biomethane_treated`` (compositions below)
 - ``air``.
 
 

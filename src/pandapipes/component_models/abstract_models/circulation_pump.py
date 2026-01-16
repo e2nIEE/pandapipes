@@ -1,10 +1,10 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
 
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import BranchWOInternalsComponent
 from pandapipes.component_models.component_toolbox import set_fixed_node_entries, standard_branch_wo_internals_result_lookup
 from pandapipes.idx_branch import D, AREA, LOAD_VEC_BRANCHES_T, TO_NODE, TOUTINIT, JAC_DERIV_DT, JAC_DERIV_DTOUT, MDOTINIT
 from pandapipes.idx_node import MDOTSLACKINIT, VAR_MASS_SLACK, JAC_DERIV_MSL, NODE_TYPE_T, GE, TINIT
@@ -20,7 +20,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class CirculationPump(BranchWZeroLengthComponent):
+class CirculationPump(BranchWOInternalsComponent):
 
     @classmethod
     def table_name(cls):
