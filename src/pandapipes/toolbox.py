@@ -636,3 +636,40 @@ def get_internal_tables_pandas(net, convert_types=True):
                         tbl[col] = tbl[col].astype(np.bool_)
 
     return node_table, branch_table
+
+
+def print_pf_summary(net):
+    """Print some basic results of the pipeflow.
+
+    Min./max. pressure, junctions with NaN results, max. v, sum of sinks / sources.
+    """
+    if not net.converged:
+        try:
+            pandapipes.pipeflow(net)
+        except Exception as e:
+            return logger.Error(f"Could not print pipeflow summary because the pipeflow "
+                                f"calculation was not successful (Exception: {e})")
+        if not net.converged:
+            return logger.Error(f"Could not print pipeflow summary because the pipeflow "
+                                f"calculation did not converge.")
+    else:
+        if any(net.res_junction.loc[net.junction.in_service].p_bar.isna()):
+            print(f"For {sum(net.res_junction.loc[net.junction.in_service].p_bar.isna())} "
+                  f"junctions, no pressure could be calculated (NaN)!")
+        print(f"The minimum pressure is {net.res_junction.p_bar.min():.2f} bar.")
+        print(f"The maximum pressure is {net.res_junction.p_bar.max():.2f} bar.")
+        print(f"The highest velocity is {net.res_pipe.v_mean_m_per_s.abs().max():.2f} m/s.")
+        if hasattr(net, "source") & (~net.source.empty):
+            total_source_mdot = net.res_source.mdot_kg_per_s.sum()
+            print(f"The total gas infeed from sources is {total_source_mdot:.2f} kg/s "
+                  f"(i.e. {total_source_mdot * float(net.fluid.get_property('hhv'))*3.6:.2f} "
+                  f"MW_th (HHV).)")
+        else:
+            print("There are no sources connected to the net.")
+        if hasattr(net, "sink") & (~net.sink.empty):
+            total_sink_mdot = net.res_sink.mdot_kg_per_s.sum()
+            print(f"The total gas demand from sinks is {total_sink_mdot:.2f} kg/s "
+                  f"(i.e. {total_sink_mdot * float(net.fluid.get_property('hhv'))*3.6:.2f} MW_th "
+                  f"(HHV).)")
+        else:
+            print("There are no sinks connected to the net.")
