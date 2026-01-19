@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -28,7 +28,7 @@ def test_compressor_pressure_ratio(use_numba):
     c2 = pandapipes.create_compressor(net, j5, j4, pressure_ratio=br1)  # reverse flow -> bypass
     c3 = pandapipes.create_compressor(net, j5, j6, pressure_ratio=br3)
 
-    max_iter_hyd = 4 if use_numba else 4
+    max_iter_hyd = 5 if use_numba else 5
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     net.res_junction["abs_p_bar"] = net.res_junction.p_bar + \
                                     p_correction_height_air(net.junction.height_m)

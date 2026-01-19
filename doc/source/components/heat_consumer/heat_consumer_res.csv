@@ -1,0 +1,14 @@
+**Parameter**;**Datatype**;**Explanation**
+p_from_bar;float;Pressure at "from"-junction [bar]
+p_to_bar;float;Pressure  at "to"-junction [bar]
+t_from_k;float;Temperature at "from"-junction [K]
+t_to_k;float;Temperature at "to"-junction [K]
+t_outlet_k;Temperature at the outlet [K]
+mdot_from_kg_per_s;float;Mass flow into heat consumer [kg/s]
+mdot_to_kg_per_s;float;Mass flow out of heat consumer [kg/s]
+vdot_norm_m3_per_s;float;Norm volume flow [m^3/s] for gases
+vdot_m3_per_s;float;Volume flow [m^3/s] for incompressible fluids
+reynolds;float;Average Reynolds number
+lambda;float;Average Lambda value
+normfactor_from;float;Normfactor for gases at the "from"-junction
+normfactor_to;float;Normfactor for gases at the "to"-junction

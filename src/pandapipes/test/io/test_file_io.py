@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -49,7 +49,7 @@ def load_net():
                                            diameter_m=0.05, name="Pipe 5",
                                            geodata=[(7, -4), (7, -3), (5, -3)])
 
-    pandapipes.create_valve(net, from_junction=j5, to_junction=j6, diameter_m=0.05,
+    pandapipes.create_valve(net, junction=j5, element=j6, et='ju', diameter_m=0.05,
                             opened=True)
 
     pandapipes.create_sink(net, junction=j4, mdot_kg_per_s=5.45e-5, name="Sink 1")

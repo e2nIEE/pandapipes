@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: uv sync --extra test
+        run: uv sync --extra test --extra fileio
       - name: List all installed packages
         run: |
           uv pip list
@@ -37,7 +37,7 @@ jobs:
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           uv pip install pytest-cov
-          uv run pytest --nbmake -n auto --cov=./ --cov-report=xml
+          uv run pytest -n auto --cov=./ --cov-report=xml
           cp ./coverage.xml ./codecov_coverage.xml
       - name: Upload coverage to Codacy
         if: ${{ matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'}}
@@ -65,7 +65,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
@@ -75,7 +75,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv sync --extra test
+          uv sync --extra test --extra fileio
           uv pip install git+https://github.com/e2nIEE/pandapower@develop#egg=pandapower
       - name: List all installed packages
         run: |
@@ -90,7 +90,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
         os:  [ ubuntu-latest, windows-latest ]
     steps:
       - uses: actions/checkout@v4
@@ -100,7 +100,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv sync --extra test --extra plotting
+          uv sync --extra all
       - name: List all installed packages
         run: |
           uv pip list
@@ -122,6 +122,6 @@ jobs:
       - name: Check sphinx build
         uses: ammaraskar/sphinx-action@7.4.7
         with:
-          pre-build-command: "python -m pip install uv && uv pip install .[docs] --system --link-mode=copy"
+          pre-build-command: "python -m pip install uv && uv pip install .[docs,fileio] --system --link-mode=copy"
           build-command: "sphinx-build -b html source _build -W"
           docs-folder: "doc/"

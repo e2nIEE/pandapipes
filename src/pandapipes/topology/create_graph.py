@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -22,12 +22,12 @@ WEIGHT = 0
 logger = logging.getLogger(__name__)
 
 
-def get_col_value(net, table_name, column_name):
-    return net[table_name][column_name].values
+def get_col_value(net, branch_table, column_name):
+    return branch_table[column_name].to_numpy()
 
 
 def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
-                   weighting_pipes=(get_col_value, ("pipe", "length_km")),
+                   weighting_pipes=(get_col_value, ("length_km",)),
                    include_valves=True, respect_status_valves=True,
                    weighting_valves=None,
                    include_compressors=True, respect_status_compressors=True,
@@ -42,6 +42,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                    weighting_pumps=None,
                    include_flow_controls=True, respect_status_flow_controls=True,
                    weighting_flow_controls=None,
+                   include_heat_consumers=True, respect_status_heat_consumers=True,
+                   weighting_heat_consumers=None,
                    respect_status_junctions=True, nogojunctions=None, notravjunctions=None, multi=True,
                    respect_status_branches_all=None, **kwargs):
     """
@@ -114,7 +116,7 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     branch_params.update({"%s_%s" % (par, bc): loc.get("%s_%s" % (par, bc)) for par in branch_kw
                           for bc in ["pipes", "valves", "pumps", "press_controls",
                                      "mass_circ_pumps", "pressure_circ_pumps", "valve_pipes",
-                                     "flow_controls"]})
+                                     "flow_controls", "heat_consumers"]})
 
     for comp in net.component_list:
         if not issubclass(comp, BranchComponent):
@@ -167,7 +169,7 @@ def add_branch_component(comp, mg, net, table_name, include_comp, respect_status
         indices[:, F_JUNCTION] = tab[from_col].values
         indices[:, T_JUNCTION] = tab[to_col].values
         if weight_getter is not None:
-            parameter[:, WEIGHT] = weight_getter[0](net, *weight_getter[1])
+            parameter[:, WEIGHT] = weight_getter[0](net, tab, *weight_getter[1])
         add_edges(mg, indices, parameter, in_service, net, table_name)
 
 

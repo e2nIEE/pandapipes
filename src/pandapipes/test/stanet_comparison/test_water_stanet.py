@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -51,7 +51,7 @@ def test_case_district_grid_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_district_grid(method="pc")
-    max_iter_hyd = 11 if use_numba else 11
+    max_iter_hyd = 12 if use_numba else 12
     p_diff, v_diff_abs = pipeflow_stanet_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd,
@@ -73,7 +73,7 @@ def test_case_pumps_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_meshed_pumps(results_from="stanet")
-    max_iter_hyd = 20 if use_numba else 20
+    max_iter_hyd = 21 if use_numba else 21
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
                                                     max_iter_hyd=max_iter_hyd,
                                                     use_numba=use_numba)
@@ -92,7 +92,7 @@ def test_case_delta_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_meshed_delta(results_from="stanet")
-    max_iter_hyd = 25 if use_numba else 25
+    max_iter_hyd = 26 if use_numba else 26
     p_diff, v_diff_abs = pipeflow_stanet_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd,
@@ -334,7 +334,7 @@ def test_case_cross_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_strand_cross(results_from="stanet")
-    max_iter_hyd = 18 if use_numba else 18
+    max_iter_hyd = 19 if use_numba else 19
     p_diff, v_diff_abs = pipeflow_stanet_comparison(
         net, log_results,
         max_iter_hyd=max_iter_hyd,

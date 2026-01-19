@@ -1,8 +1,11 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import os
+
+import numpy as np
+
 from pandapipes.io.file_io import from_json
 from pandapipes import pp_dir
 try:
@@ -117,3 +120,34 @@ def heat_transfer_two_pipes():
 
     """
     return from_json(os.path.join(heat_tranfer_modelica_path, "two_pipes.json"))
+
+
+def schutterwald_heat(tflow_degC=70, treturn_degC=None, u_w_per_m2k=1.):
+    """
+    Load heat distribution network for a town in the MV Oberrhein region (cf. pandapower).
+
+    This network is derived from the gas distribution network given by `schutterwald_gas`
+
+    :param tflow_degC: flow temperature of the circulation pump in degrees C, default 70
+    :type tflow_degC: float
+    :param treturn_degC: return temperature of the heat consumers in degrees C, default None
+    :type treturn_degC: float | None
+    :param u_w_per_m2k: pipe heat transfer coefficient in W/m2K, default 1
+    :type u_w_per_m2k: float
+    :return: heat distribution net
+    :rtype: pandapipesNet
+    """
+    net = from_json(os.path.join(pp_dir, 'networks', 'network_files', 'sw_heat.json'))
+
+    net.circ_pump_pressure.t_flow_k = tflow_degC + 273.15
+
+    if treturn_degC is not None:
+        net.heat_consumer.controlled_mdot_kg_per_s = np.nan
+        net.heat_consumer.treturn_k = treturn_degC + 273.15
+
+    net.pipe["u_w_per_m2k"] = u_w_per_m2k
+    net.pipe["diameter_m"] = 0.1
+    net.pipe["k_mm"] = 0.05
+    net.pipe["text_k"] = net.user_pf_options["ambient_temperature"]
+
+    return net

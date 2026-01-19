@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@ from pandapipes import __format_version__, __version__
 from pandapipes.pandapipes_net import add_default_components
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
+from pandapipes.component_models.valve_component import Valve
 
 try:
     import pandaplan.core.pplog as logging
@@ -57,6 +58,18 @@ def _rename_columns(net):
             for old_col, new_col in list(zip(old_cols, new_cols)):
                 if old_col in net[cp_tbl].columns and new_col not in net[cp_tbl].columns:
                     net[cp_tbl].rename(columns={old_col: new_col}, inplace=True)
+    if Valve.table_name() in net:
+        old_cols = ["from_junction", "to_junction"]
+        new_cols = list(Valve.from_to_node_cols())
+        old_net = False
+        for o, n in zip(old_cols, new_cols):
+            if o in net[Valve.table_name()]:
+                net[Valve.table_name()].rename(columns={o: n}, inplace=True)
+                old_net = True
+        if old_net:
+            if 'et' in net[Valve.table_name()]:
+                logger.warning(r"'et' is a new required variable for valves. Therefore, 'et' will be overwritten.")
+            net[Valve.table_name()]['et'] = 'ju'
 
 
 def _add_missing_columns(net):

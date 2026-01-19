@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,8 +6,8 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
-from pandapipes.component_models.abstract_models.branch_wzerolength_models import \
-    BranchWZeroLengthComponent
+from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
+    BranchWOInternalsComponent
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.pf.pipeflow_setup import get_fluid
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class HeatExchanger(BranchWZeroLengthComponent):
+class HeatExchanger(BranchWOInternalsComponent):
 
     @classmethod
     def from_to_node_cols(cls):
@@ -105,10 +105,9 @@ class HeatExchanger(BranchWZeroLengthComponent):
         if get_fluid(net).is_gas:
             output = ["p_from_bar", "p_to_bar",
                       "t_from_k", "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s",
-                      "vdot_norm_m3_per_s", "reynolds", "lambda", "normfactor_from",
+                      "vdot_norm_m3_per_s", "normfactor_from",
                       "normfactor_to"]
         else:
             output = ["p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds",
-                      "lambda"]
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s"]
         return output, True

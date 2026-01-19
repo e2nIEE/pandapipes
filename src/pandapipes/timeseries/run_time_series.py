@@ -1,16 +1,16 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import tempfile
 
-from pandapower.control import NetCalculationNotConverged
-
+from pandapipes.control import run_control
 from pandapipes.pipeflow import PipeflowNotConverged, pipeflow
+from pandapower.control import NetCalculationNotConverged
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.output_writer import OutputWriter
-from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup,\
-    run_loop
+from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup, \
+    print_progress, run_time_step, _call_output_writer
 
 try:
     import pandaplan.core.pplog as logging
@@ -37,14 +37,29 @@ def init_default_outputwriter(net, time_steps, **kwargs):
         logger.warning("deprecated: output_writer should not be given to run_timeseries(). "
                        "This overwrites the stored one in net.output_writer.")
         net.output_writer.iat[0, 0] = output_writer
+        
+    # If no output_writer exists, create one
     if "output_writer" not in net or net.output_writer.iat[0, 0] is None:
         ow = OutputWriter(net, time_steps, output_path=tempfile.gettempdir(), log_variables=[])
-        ow.log_variable('res_sink', 'mdot_kg_per_s')
-        ow.log_variable('res_source', 'mdot_kg_per_s')
-        ow.log_variable('res_ext_grid', 'mdot_kg_per_s')
-        ow.log_variable('res_pipe', 'v_mean_m_per_s')
-        ow.log_variable('res_junction', 'p_bar')
-        ow.log_variable('res_junction', 't_k')
+        
+        # Define a mapping of network components to result variables
+        component_to_variables = {
+            'sink': [('res_sink', 'mdot_kg_per_s')],
+            'source': [('res_source', 'mdot_kg_per_s')],
+            'ext_grid': [('res_ext_grid', 'mdot_kg_per_s')],
+            'pipe': [('res_pipe', 'v_mean_m_per_s'),
+                     ('res_pipe', 't_from_k'),  
+                     ('res_pipe', 't_to_k')],   
+            'junction': [('res_junction', 'p_bar'),
+                         ('res_junction', 't_k')]
+        }
+        
+        # Iterate through the mapping and log variables for existing components
+        for component, variables in component_to_variables.items():
+            if hasattr(net, component):  # Check if the component exists in the network
+                for var, value in variables:
+                    ow.log_variable(var, value)
+
         logger.info("No output writer specified. Using default:")
         logger.info(ow)
 
@@ -97,6 +112,27 @@ def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True
     return ts_variables
 
 
+def run_loop(net, ts_variables, run_control_fct=run_control, output_writer_fct=_call_output_writer, **kwargs):
+    """
+    runs the time series loop which calls pp.runpp (or another run function) in each iteration
+
+    Parameters
+    ----------
+    net - pandapower net
+    ts_variables - settings for time series
+
+    """
+    for i, time_step in enumerate(ts_variables["time_steps"]):
+        print_progress(i, time_step, ts_variables["time_steps"], ts_variables["verbose"], ts_variables=ts_variables,
+                       **kwargs)
+        transient = kwargs.get('transient', False)
+        if transient:
+            kwargs["simulation_time_step"] = i
+        if (i != 0) and transient and net.converged:
+            net.junction["told_k"] = net.res_junction.t_k
+        run_time_step(net, time_step, ts_variables, run_control_fct, output_writer_fct, **kwargs)
+
+
 def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=True, **kwargs):
     """
     Time Series main function
@@ -120,7 +156,7 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :return: No output
     """
     ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
-
+    # A bad fix, need to sequence better - before the controllers are activated!
     control_diagnostic(net)
     run_loop(net, ts_variables, **kwargs)
 

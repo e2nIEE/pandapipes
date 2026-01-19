@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -67,7 +67,7 @@ def create_base_net(oos):
                                            length_km=1, diameter_m=0.3, name="Pipe 7",
                                            geodata=[(9, 0), (9, 4)])
 
-    pandapipes.create_valve(net, from_junction=junction5, to_junction=junction6, diameter_m=0.05,
+    pandapipes.create_valve(net, junction5, junction6, et='ju', diameter_m=0.05,
                             opened=True)
     pandapipes.create_heat_exchanger(net, junction3, junction8, diameter_m=0.3, qext_w=20000)
     pandapipes.create_sink(net, junction=junction4, mdot_kg_per_s=0.545, name="Sink 1")
@@ -145,9 +145,13 @@ def create_net_changed_indices(base_net_is_wo_pumps):
     net.junction_geodata.index = new_junction_indices
     for n_el in ["sink", "source", "ext_grid"]:
         net[n_el].junction = np.array([junction_lookup[k] for k in net[n_el].junction], dtype="int")
-    for br_el in ["pipe", "valve", "heat_exchanger", "pump", "press_control"]:
+
+    for br_el in ["pipe", "heat_exchanger", "pump", "press_control"]:
         for junc_typ in ["from_junction", "to_junction"]:
             net[br_el][junc_typ] = np.array([junction_lookup[k] for k in net[br_el][junc_typ]],
+                                            dtype="int")
+    for junc_typ in ["junction", "element"]:
+            net.valve[junc_typ] = np.array([junction_lookup[k] for k in net.valve[junc_typ]],
                                             dtype="int")
     net.press_control.controlled_junction = np.array(
         [junction_lookup[k] for k in net.press_control.controlled_junction], dtype="int")
@@ -169,9 +173,14 @@ def get_junction_indices(net, branch_comp=("pipe", "valve", "heat_exchanger", "p
                          node_comp=("ext_grid", "source", "sink")):
     junction_index = copy.deepcopy(net.junction.index.values)
     previous_junctions = {k: dict() for k in branch_comp + node_comp}
+
     for bc in branch_comp:
-        previous_junctions[bc]["from_junction"] = copy.deepcopy(net[bc]["from_junction"])
-        previous_junctions[bc]["to_junction"] = copy.deepcopy(net[bc]["to_junction"])
+        if bc == 'valve':
+            previous_junctions[bc]["junction"] = copy.deepcopy(net[bc]["junction"])
+            previous_junctions[bc]["element"] = copy.deepcopy(net[bc]["element"])
+        else:
+            previous_junctions[bc]["from_junction"] = copy.deepcopy(net[bc]["from_junction"])
+            previous_junctions[bc]["to_junction"] = copy.deepcopy(net[bc]["to_junction"])
     for nc in node_comp:
         previous_junctions[nc]["junction"] = copy.deepcopy(net[nc]["junction"])
     return junction_index, previous_junctions
@@ -194,9 +203,26 @@ def test_reindex_junctions():
             if len(junction_cols):
                 for junction_col in junction_cols:
                     assert all(net[elm][junction_col] == net_orig[elm][junction_col] + to_add)
-            if elm == "junction":
+            if (elm == "junction") | (elm == 'element'):
                 assert all(np.array(list(net[elm].index)) == np.array(list(
                     net_orig[elm].index)) + to_add)
+
+
+def test_reindex_pipes():
+    net_orig = nw.simple_gas_networks.gas_tcross1()
+    net = nw.simple_gas_networks.gas_tcross1()
+
+    pandapipes.create_valve(net_orig, junction=0, element=0, et='pi', diameter_m=0.1)
+    pandapipes.create_valve(net, junction=0, element=0, et='pi', diameter_m=0.1)
+
+    to_add = 5
+    new_pipe_idxs = np.array(list(net.pipe.index)) + to_add
+    lookup = dict(zip(net["pipe"].index.values, new_pipe_idxs))
+    # a more complexe junction_lookup of course should also work, but this one is easy to check
+    pandapipes.reindex_pipes(net, lookup)
+
+    assert np.all(net["pipe"].index == net_orig["pipe"].index + to_add)
+    assert np.all(net["valve"]["element"].to_numpy() ==  net_orig["valve"]["element"].to_numpy() + to_add)
 
 
 def test_fuse_junctions(create_net_changed_indices):
@@ -257,7 +283,7 @@ def test_select_subnet(base_net_is_wo_pumps):
 
     # check length of results
     net = nw.gas_tcross2()
-    max_iter_hyd = 2
+    max_iter_hyd = 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
     net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
     for comp in net.component_list:
@@ -277,7 +303,7 @@ def test_pit_extraction():
         if not "_gas" in name:
             pandapipes.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", index=None)
             pandapipes.create_ext_grid(net, junction=5, p_bar=5, t_k=290, name="External Grid 3")
-        max_iter_hyd = 11 if '_water' in name else 5
+        max_iter_hyd = 11 if '_water' in name else 6
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
         node_table, branch_table = pandapipes.get_internal_tables_pandas(net)

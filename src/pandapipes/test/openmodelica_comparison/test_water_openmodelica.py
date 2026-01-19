@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -25,7 +25,7 @@ pf_logger.setLevel(logging.WARNING)
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_mixed_pc(use_numba, log_results=False):
     net = nw.water_combined_mixed()
-    max_iter_hyd = 11 if use_numba else 11
+    max_iter_hyd = 12 if use_numba else 12
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert np.all(p_diff < 0.01)
@@ -35,7 +35,7 @@ def test_case_combined_mixed_pc(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_mixed_sj(use_numba, log_results=False):
     net = nw.water_combined_mixed(method="swamee-jain")
-    max_iter_hyd = 11 if use_numba else 11
+    max_iter_hyd = 12 if use_numba else 12
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert np.all(p_diff < 0.01)
@@ -95,7 +95,7 @@ def test_case_meshed_delta_sj(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_pc(use_numba, log_results=False):
     net = nw.water_meshed_2valves()
-    max_iter_hyd = 19 if use_numba else 19
+    max_iter_hyd = 21 if use_numba else 21
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd,
                                                           use_numba=use_numba)
@@ -106,7 +106,7 @@ def test_case_meshed_2valves_pc(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_sj(use_numba, log_results=False):
     net = nw.water_meshed_2valves(method="swamee-jain")
-    max_iter_hyd = 19 if use_numba else 19
+    max_iter_hyd = 22 if use_numba else 22
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd,
                                                           use_numba=use_numba)
@@ -118,7 +118,7 @@ def test_case_meshed_2valves_sj(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_pumps_pc(use_numba, log_results=False):
     net = nw.water_meshed_pumps()
-    max_iter_hyd = 8 if use_numba else 8
+    max_iter_hyd = 9 if use_numba else 9
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd,
                                                           use_numba=use_numba)
@@ -129,7 +129,7 @@ def test_case_meshed_pumps_pc(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_pumps_sj(use_numba, log_results=False):
     net = nw.water_meshed_pumps(method="swamee-jain")
-    max_iter_hyd = 8 if use_numba else 8
+    max_iter_hyd = 9 if use_numba else 9
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd,
                                                           use_numba=use_numba)
@@ -141,7 +141,7 @@ def test_case_meshed_pumps_sj(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_heights_pc(use_numba, log_results=False):
     net = nw.water_meshed_heights()
-    max_iter_hyd = 11 if use_numba else 11
+    max_iter_hyd = 12 if use_numba else 12
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd,
                                                           use_numba=use_numba)
@@ -152,7 +152,7 @@ def test_case_meshed_heights_pc(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_heights_sj(use_numba, log_results=False):
     net = nw.water_meshed_heights(method="swamee-jain")
-    max_iter_hyd = 11 if use_numba else 11
+    max_iter_hyd = 12 if use_numba else 12
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd,
                                                           use_numba=use_numba)
@@ -235,10 +235,11 @@ def test_case_one_pipe_3_sj(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_cross3ext_pc(use_numba, log_results=False):
     net = nw.water_strand_cross()
-    max_iter_hyd = 16 if use_numba else 16
-    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
-                                                          max_iter_hyd=max_iter_hyd,
-                                                          use_numba=use_numba)
+    max_iter_hyd = 17 if use_numba else 17
+    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(
+        net, log_results, max_iter_hyd=max_iter_hyd, use_numba=use_numba,
+        max_iter_colebrook=15
+    )
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
 
@@ -246,10 +247,11 @@ def test_case_strand_net_cross3ext_pc(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_cross3ext_sj(use_numba, log_results=False):
     net = nw.water_strand_cross(method="swamee-jain")
-    max_iter_hyd = 16 if use_numba else 16
-    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
-                                                          max_iter_hyd=max_iter_hyd,
-                                                          use_numba=use_numba)
+    max_iter_hyd = 17 if use_numba else 17
+    p_diff, v_diff_abs = pipeflow_openmodelica_comparison(
+        net, log_results, max_iter_hyd=max_iter_hyd, use_numba=use_numba,
+        max_iter_colebrook=15
+    )
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
 
@@ -375,7 +377,7 @@ def test_case_tcross_valves_sj(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_2eg_two_pipes_pc(use_numba, log_results=False):
     net = nw.water_2eg_two_pipes()
-    max_iter_hyd = 6 if use_numba else 6
+    max_iter_hyd = 7 if use_numba else 7
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results, use_numba=use_numba,
                                                           max_iter_hyd=max_iter_hyd)
     assert np.all(p_diff < 0.01)
@@ -385,7 +387,7 @@ def test_case_2eg_two_pipes_pc(use_numba, log_results=False):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_case_2eg_two_pipes_sj(use_numba, log_results=False):
     net = nw.water_2eg_two_pipes(method="swamee-jain")
-    max_iter_hyd = 6 if use_numba else 6
+    max_iter_hyd = 7 if use_numba else 7
     p_diff, v_diff_abs = pipeflow_openmodelica_comparison(net, log_results,
                                                           max_iter_hyd=max_iter_hyd, use_numba=use_numba)
     assert np.all(p_diff < 0.01)
