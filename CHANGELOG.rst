@@ -43,6 +43,10 @@ Change Log
 - [FIXED] imports and dependencies from pandapower
 - [FIXED] correction of how to handle input temperature at circ pumps
 
+[upcoming release] - 202x-xx-xx
+-------------------------------
+- [FIXED] density and viscosity properties for gases are now taken at 1.01325 bar instead of 1 bar
+
 [0.11.0] - 2024-11-07
 -------------------------------
 - [ADDED] heat_consumer plotting
@@ -69,8 +73,6 @@ Change Log
 - [FIXED] Heat consumers with qext_w = 0 and temperature control ignore temperature set points
 - [FIXED] alpha also applied to mdot
 - [REMOVED] support for Python 3.8 due to EOL
-
-
 
 [0.10.0] - 2024-04-09
 -------------------------------
