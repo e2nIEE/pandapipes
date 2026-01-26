@@ -5,8 +5,8 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.idx_branch import (FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, T_OUT_OLD, LENGTH, K, TEXT, ALPHA,
-                                   D, AREA)
+from pandapipes.idx_branch import (FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, LENGTH, K, TEXT, ALPHA,
+                                   D, DO, AREA)
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_net_option, get_lookup
 
@@ -104,8 +104,6 @@ class BranchWOInternalsComponent(BranchComponent):
             branch_wo_internals_pit[:, ALPHA] = 0
             branch_wo_internals_pit[:, D] = 0.1
             branch_wo_internals_pit[:, AREA] = branch_wo_internals_pit[:, D] ** 2 * np.pi / 4
-        if get_net_option(net, "transient"):
-            branch_wo_internals_pit[:, T_OUT_OLD] = branch_wo_internals_pit[:, TOUTINIT]
         return branch_wo_internals_pit
 
     @classmethod
