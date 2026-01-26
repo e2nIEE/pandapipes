@@ -10,6 +10,7 @@ from pandapipes.idx_branch import (
     ACTIVE,
     ELEMENT_IDX,
     D,
+    DO,
     LOSS_COEFFICIENT as LC,
     AREA,
     QEXT,
@@ -193,6 +194,14 @@ class BranchWInternalsComponent(BranchComponent):
                 internal_branch_number, has_internals)
             set_entry_check_repeat(branch_w_internals_pit, D, net[tbl].diameter_m.values, internal_branch_number,
                 has_internals)
+            if "outer_diameter_m" in net[tbl]:
+                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].outer_diameter_m.values, internal_branch_number,
+                    has_internals)
+                branch_w_internals_pit[np.isnan(branch_w_internals_pit[:, DO]), DO] = (
+                    branch_w_internals_pit)[np.isnan(branch_w_internals_pit[:, DO]), D]
+            else:
+                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].diameter_m.values, internal_branch_number,
+                    has_internals)
             set_entry_check_repeat(branch_w_internals_pit, LC, net[tbl].loss_coefficient.values, internal_branch_number,
                 has_internals)
 
