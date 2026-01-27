@@ -643,13 +643,11 @@ def _deprecation_check_u(kwargs):
         warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k "
                       "and will be directly extracted from the std_type in the future."
                       , DeprecationWarning)
-        u = kwargs['alpha_w_per_m2k']
-        del kwargs["alpha_w_per_m2k"]
+        u = kwargs.pop('alpha_w_per_m2k')
     elif "u_w_per_m2k" in kwargs:
         warnings.warn("The parameter u_w_per_m2k will be directly extracted from the std_type in the future."
                       , DeprecationWarning)
-        u = kwargs["u_w_per_m2k"]
-        del kwargs["u_w_per_m2k"]
+        u = kwargs.pop("u_w_per_m2k")
     else:
         u = None
     return u

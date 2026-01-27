@@ -21,7 +21,7 @@ from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, load_std_type
-from pandapipes.deprecations import deprecated_input, input_handler_valve
+from pandapipes.deprecations import deprecated_input, input_handler_valve, input_handler_pipe
 
 try:
     import pandaplan.core.pplog as logging
@@ -543,7 +543,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
 
     return index
 
-
+@deprecated_input(input_handler=input_handler_pipe)
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inner_diameter_mm, outer_diameter_mm=None,
                                 k_mm=0.2, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None, name=None, index=None,
                                 geodata=None, in_service=True, type="pipe", **kwargs):
@@ -600,14 +600,6 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
 
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
-
-    if 'diameter_m' in kwargs:
-        warnings.warn(
-            "The parameter diameter_m has been renamed to inner_diameter_mm."
-            "It will be removed in future.",
-            DeprecationWarning,
-        )
-        inner_diameter_mm = kwargs['diameter_m'] * 1000.
 
     if 'alpha_w_per_m2k' in kwargs:
         if u_w_per_m2k == 0.:
@@ -1512,7 +1504,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
         _add_multiple_branch_geodata(net, "pipe", geodata, index)
     return index
 
-
+@deprecated_input(input_handler=input_handler_pipe)
 def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
                                  inner_diameter_mm, outer_diameter_mm=None, k_mm=0.2,
                                  loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None,
@@ -1578,15 +1570,6 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
 
     index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "pipe")
-
-    if 'diameter_m' in kwargs:
-        warnings.warn(
-            "The parameter diameter_m has been renamed to inner_diameter_mm."
-            "It will be removed in future.",
-            DeprecationWarning,
-        )
-
-        inner_diameter_mm = kwargs['diameter_m'] * 1000.
 
     if 'alpha_w_per_m2k' in kwargs:
         warnings.warn(
