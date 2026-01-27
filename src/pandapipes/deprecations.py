@@ -22,6 +22,7 @@ def input_handler_pipe(_, *args, **kwargs):
         logger.warning(r"diameter_m is deprecated and will be removed in the future. "
                        r"Use inner_diameter_mm instead!")
         kwargs["inner_diameter_mm"] = kwargs.pop("diameter_m")
+        kwargs["inner_diameter_mm"] *= 1000
     return args, kwargs
 
 def input_handler_valve(multiple=False, *args, **kwargs):
@@ -32,6 +33,7 @@ def input_handler_valve(multiple=False, *args, **kwargs):
         logger.warning(r"diameter_m is deprecated and will be removed in the future. "
                        r"Use inner_diameter_mm instead!")
         kwargs["inner_diameter_mm"] = kwargs.pop("diameter_m")
+        kwargs["inner_diameter_mm"] *= 1000
 
     suffix = "s" if multiple else ""
     if ("from_junction" + suffix in kwargs) | ("to_junction" + suffix in kwargs):
