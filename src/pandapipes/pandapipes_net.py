@@ -47,11 +47,11 @@ class Sector(StrEnum):
     WATER = 'water'
     NONE = 'None'
 
-SectorMap = {
+SectorsIncluded = {
     Sector.ALL : [Sector.ALL, Sector.HEAT, Sector.GAS, Sector.WATER],
-    Sector.HEAT : [Sector.HEAT],
-    Sector.GAS : [Sector.GAS],
-    Sector.WATER: [Sector.WATER],
+    Sector.HEAT : [Sector.ALL, Sector.HEAT],
+    Sector.GAS : [Sector.ALL, Sector.GAS],
+    Sector.WATER: [Sector.ALL, Sector.WATER],
     Sector.NONE : [Sector.ALL, Sector.HEAT, Sector.GAS, Sector.WATER]
 }
 
