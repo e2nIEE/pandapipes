@@ -49,9 +49,9 @@ class Sector(StrEnum):
 
 SectorMap = {
     Sector.ALL : [Sector.ALL, Sector.HEAT, Sector.GAS, Sector.WATER],
-    Sector.HEAT : [Sector.ALL, Sector.HEAT],
-    Sector.GAS : [Sector.ALL, Sector.GAS],
-    Sector.WATER: [Sector.ALL, Sector.WATER],
+    Sector.HEAT : [Sector.HEAT],
+    Sector.GAS : [Sector.GAS],
+    Sector.WATER: [Sector.WATER],
     Sector.NONE : [Sector.ALL, Sector.HEAT, Sector.GAS, Sector.WATER]
 }
 
