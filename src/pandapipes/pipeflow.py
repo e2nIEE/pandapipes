@@ -5,8 +5,8 @@
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED
-from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P
+from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED, ACTIVE as ACTIVE_BRANCH, BRANCH_TYPE
+from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P, ACTIVE as ACTIVE_NODE
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import (calculate_derivatives_hydraulic,
                                                   calculate_derivatives_thermal)
@@ -64,12 +64,12 @@ def pipeflow(net, sol_vec=None, **kwargs):
     init_options(net, **kwargs)
 
     # init result tables
-    net.converged = False
     init_all_result_tables(net)
 
     create_lookups(net)
     initialize_pit(net)
 
+    net.converged = False
     calculation_mode = get_net_option(net, "mode")
     calculate_hydraulics = calculation_mode in ["hydraulics", 'sequential']
     calculate_heat = calculation_mode in ["heat", 'sequential']
@@ -186,7 +186,7 @@ def hydraulics(net):
     if not get_net_option(net, "reuse_internal_data") or "_internal_data" not in net:
         net["_internal_data"] = dict()
     solver_vars = ['mdot', 'p', 'mdotslack']
-    tol_p, tol_m, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
+    tol_m, tol_p, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
     newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p, tol_msl],
                    ['branch', 'node', 'node'], 'max_iter_hyd')
     if net.converged:
@@ -246,17 +246,31 @@ def solve_hydraulics(net):
 
     """
     options = net["_options"]
-    branch_pit = net["_active_pit"]["branch"]
-    node_pit = net["_active_pit"]["node"]
 
-    branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
-    for comp in net['component_list']:
-        comp.adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
-                                                   options)
-    calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
-    for comp in net['component_list']:
-        comp.adaption_after_derivatives_hydraulic(
-            net, branch_pit, node_pit, branch_lookups, options)
+    connected_restarted = True
+    while connected_restarted:
+        branch_pit = net["_active_pit"]["branch"]
+        node_pit = net["_active_pit"]["node"]
+        branch_pit_old = net["_active_old_pit"]["branch"]
+        node_pit_old = net["_active_old_pit"]["node"]
+        branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
+        for comp in net['component_list']:
+            comp.adaption_before_derivatives_hydraulic(net,
+                                                       branch_pit, node_pit,
+                                                       branch_pit_old, node_pit_old,
+                                                       branch_lookups,
+                                                       options)
+        calculate_derivatives_hydraulic(net,
+                                        branch_pit, node_pit,
+                                        branch_pit_old, node_pit_old,
+                                        options)
+        for comp in net['component_list']:
+            comp.adaption_after_derivatives_hydraulic(
+                net,
+                branch_pit, node_pit,
+                branch_pit_old, node_pit_old,
+                branch_lookups, options)
+        connected_restarted = _restart_connectivity_check(net)
     # epsilon is node [pressure] slack nodes and load vector branch prsr difference
     # jacobian is the derivatives
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
@@ -294,6 +308,10 @@ def solve_temperature(net):
     options = net["_options"]
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
+    branch_pit_old = net["_active_old_pit"]["branch"]
+    node_pit_old = net["_active_old_pit"]["node"]
+
+
     branch_lookups = get_lookup(net, "branch", "from_to_active_heat_transfer")
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
@@ -301,10 +319,19 @@ def solve_temperature(net):
     branch_pit[:, FROM_NODE_T_SWITCHED] = branch_pit[:, MDOTINIT] < -2e-11
 
     for comp in net['component_list']:
-        comp.adaption_before_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
-    calculate_derivatives_thermal(net, branch_pit, node_pit, options)
+        comp.adaption_before_derivatives_thermal(net,
+                                                 branch_pit, node_pit,
+                                                 branch_pit_old, node_pit_old,
+                                                 branch_lookups, options)
+    calculate_derivatives_thermal(net,
+                                  branch_pit, node_pit,
+                                  branch_pit_old, node_pit_old,
+                                  options)
     for comp in net['component_list']:
-        comp.adaption_after_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        comp.adaption_after_derivatives_thermal(net,
+                                                branch_pit, node_pit,
+                                                branch_pit_old, node_pit_old,
+                                                branch_lookups, options)
 
     t_init_old = node_pit[:, TINIT].copy()
     t_out_old = branch_pit[:, TOUTINIT].copy()
@@ -316,6 +343,10 @@ def solve_temperature(net):
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, True)
 
     x = spsolve(jacobian, epsilon)
+
+    if np.any(np.isnan(x)):
+        return [branch_pit[:, TOUTINIT], t_out_old, node_pit[:, TINIT], t_init_old], np.array([
+            np.nan]), filtered
 
     node_pit[:, TINIT] -= x[:len(node_pit)] * options["alpha"]
     branch_pit[:, TOUTINIT] -= x[len(node_pit):] * options["alpha"]
