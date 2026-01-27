@@ -467,7 +467,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         add_geo = kwargs.pop('add_geodata', False)
         if add_geo:
             add_info['geodata'] = control_table[['XRECHTS', 'YHOCH']].T.apply(Point)
-        pandapipes.create_throttle_valves(
+        pandapipes.create_pressure_controls(
             net, from_junctions[is_pc], to_junctions[is_pc], to_junctions[is_pc],
             control_table.PMESS.astype(np.float64).values[is_pc],
             name=names[is_pc],
