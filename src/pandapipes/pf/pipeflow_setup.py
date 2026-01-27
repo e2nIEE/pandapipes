@@ -386,10 +386,17 @@ def initialize_pit(net):
     else:
         pit = net["_pit"]
 
+    if get_net_option(net, "transient") and get_net_option(net,"simulation_time_step") != 0 and net.converged:
+        create_old_pit(net, [TINIT], [TOUTINIT])
+
     for comp in net['component_list']:
         comp.create_pit_node_entries(net, pit["node"])
         comp.create_pit_branch_entries(net, pit["branch"])
         comp.create_component_array(net, pit["components"])
+
+    if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0 or not net.converged:
+        # This needs to be done after the pit values are set
+        create_old_pit(net, [TINIT], [TOUTINIT])
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
@@ -422,6 +429,37 @@ def create_empty_pit(net):
     net["_pit"] = pit
     return pit
 
+def create_old_pit(net, required_node_cols=[], required_branch_cols=[]):
+    """
+    Creates an empty internal partial structure of the given internal structure which is called \
+    old_pit (old pandapipes internal tables). The structure is a dictionary which should contain \
+    one array for all nodes and one array for all branches of the net. \
+    In general looks like this:
+
+    >>> net["_old_pit"] = {"node": np.array((no_nodes, required_node_cols), dtype=np.float64),
+    >>>                    "branch": np.array((no_branches, required_branch_cols), dtype=np.float64)}
+
+    :param net: The pandapipes net to which to add the empty structure
+    :type net: pandapipesNet
+    :param required_node_cols: The node cols that should be kept
+    :type required_node_cols: list
+    :param required_branch_cols: The branch cols that should be kept
+    :type required_branch_cols: list
+    :return: pit - The dict of arrays with the internal node / branch structure
+    :rtype: dict
+
+    """
+    pit = dict(keys=['node', 'branch'])
+    pit["node"] = copy.deepcopy(net._pit["node"][:, required_node_cols])
+    pit["branch"] = copy.deepcopy(net._pit["branch"][:, required_branch_cols])
+    nc = - np.ones(max(required_node_cols) + 1, dtype=np.int32)
+    bc = - np.ones(max(required_branch_cols) + 1, dtype=np.int32)
+    nc[required_node_cols] = range(len(required_node_cols))
+    bc[required_branch_cols] = range(len(required_branch_cols))
+    net._lookups["node_old_pit_cols"] = nc
+    net._lookups["branch_old_pit_cols"] = bc
+    net["_old_pit"] = pit
+    return pit
 
 def init_all_result_tables(net):
     """
@@ -690,11 +728,13 @@ def reduce_pit(net, mode="hydraulics"):
     """
 
     node_pit = net["_pit"]["node"]
+    node_pit_old = net["_old_pit"]["node"]
     branch_pit = net["_pit"]["branch"]
+    branch_pit_old = net["_old_pit"]["branch"]
 
     active_pit = dict()
+    active_pit_old = dict()
     els = dict()
-    reduced_node_lookup = None
     nodes_connected = get_lookup(net, "node", "active_" + mode)
     branches_connected = get_lookup(net, "branch", "active_" + mode)
     if np.all(nodes_connected):
@@ -703,9 +743,10 @@ def reduce_pit(net, mode="hydraulics"):
         net["_lookups"]["node_index_active_" + mode] = copy.deepcopy(
             get_lookup(net, "node", "index"))
         active_pit["node"] = np.copy(node_pit)
+        active_pit_old["node"] = np.copy(node_pit_old)
     else:
         active_pit["node"] = np.copy(node_pit[nodes_connected, :])
-        reduced_node_lookup = np.cumsum(nodes_connected) - 1
+        active_pit_old["node"] = np.copy(node_pit_old[nodes_connected, :])
         node_idx_lookup = get_lookup(net, "node", "index")
         net["_lookups"]["node_index_active_" + mode] = {
             tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]]
@@ -715,13 +756,14 @@ def reduce_pit(net, mode="hydraulics"):
         net["_lookups"]["branch_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "branch", "from_to"))
         active_pit["branch"] = np.copy(branch_pit)
+        active_pit_old["branch"] = np.copy(branch_pit_old)
         net["_lookups"]["branch_index_active_" + mode] = copy.deepcopy(
             get_lookup(net, "branch", "index"))
     else:
         active_pit["branch"] = np.copy(branch_pit[branches_connected, :])
+        active_pit_old["branch"] = np.copy(branch_pit_old[branches_connected, :])
         branch_idx_lookup = get_lookup(net, "branch", "index")
         if len(branch_idx_lookup):
-            reduced_branch_lookup = np.cumsum(branches_connected) - 1
             net["_lookups"]["branch_index_active_" + mode] = {
                 tbl: reduced_branch_lookup[idx_lookup[idx_lookup != -1]]
                 for tbl, idx_lookup in branch_idx_lookup.items()}
@@ -734,6 +776,7 @@ def reduce_pit(net, mode="hydraulics"):
         active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
             branch_pit[branches_connected, TO_NODE].astype(np.int32)]
     net["_active_pit"] = active_pit
+    net["_active_old_pit"] = active_pit_old
 
     for el, connected_els in els.items():
         ft_lookup = get_lookup(net, el, "from_to")
