@@ -112,11 +112,15 @@ def _make_lookups(branch_pit, to_nodes, from_nodes):
 
 
 @jit((float64[:, :], float64[:, :],
+      float64[:, :], int32[:],
+      float64[:, :], int32[:],
       int32[:], int32[:],
       float64[:], float64[:], float64[:],
       float64[:], float64[:], float64[:], float64[:],
       float64[:], optional(float64), bool, float64), nopython=True, cache=False)
 def derivatives_thermal_numba(node_pit, branch_pit,
+                              node_pit_old, node_pit_old_lookup,
+                              branch_pit_old, branch_pit_old_lookup,
                               from_nodes, to_nodes,
                               t_init_i, t_init_i1, t_init_n,
                               cp_i, cp_i1, cp_n, cp,
@@ -174,7 +178,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
 
         if transient:
             area = branch_pit[i][AREA]
-            tvor = branch_pit[i][T_OUT_OLD]
+            tvor = branch_pit_old[i][branch_pit_old_lookup[TOUTINIT]]
 
             fb[i] = (
                     rho[i] * area * cp[i] * (t_init_i1[i] - tvor) * (1 / dt) * length
@@ -183,7 +187,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
             )
 
             dfb_dt[i] = - cp[i] * mdot
-            dfb_dtout[i] = rho[i] * area * cp[i] / dt * length + cp[i] * mdot + alpha
+            dfb_dtout[i] = rho[i] * area * cp[i] / dt * length + cp[i] * mdot + alpha * length
 
             if ~branches_flow[i] & (abs(branch_pit[i][LENGTH] < 1.e-8)):
                 fb[i] = rho[i] * area * cp[i] * (t_init_i1[i] - tvor) * (1 / dt) - alpha * (t_amb - t_init_i1[i]) + qext
@@ -193,7 +197,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
             fn_zero = ~nodes_flow[from_nodes[i]]
             tn_zero = ~nodes_flow[to_nodes[i]]
             if fn_zero:
-                t_from_node_vor_zero = node_pit[from_nodes[i], TINIT_OLD]
+                t_from_node_vor_zero = node_pit_old[from_nodes[i], node_pit_old_lookup[TINIT_NODE]]
                 fn_eq = (rho[i] * area * cp[i] * (1 / dt) * (t_init_i[i] - t_from_node_vor_zero)
                          - alpha * (t_amb - t_init_i[i]))
                 fn_deriv = rho[i] * area * cp[i] * (1 / dt) + alpha
@@ -202,7 +206,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
                 fbf[i] = 0
                 dfbf_dt[i] = 0
             if tn_zero:
-                t_to_node_vor_zero = node_pit[to_nodes[i], TINIT_OLD]
+                t_to_node_vor_zero = node_pit_old[to_nodes[i], node_pit_old_lookup[TINIT_NODE]]
                 t_to_node = node_pit[to_nodes[i], TINIT_NODE]
                 tn_eq = (rho[i] * area * cp[i] * (1 / dt) * (t_to_node - t_to_node_vor_zero)
                          - alpha * (t_amb - t_to_node))
