@@ -81,45 +81,48 @@ class Pump(BranchWOInternalsComponent):
         :rtype:
         """
         tbl = net[cls.table_name()]
-        pump_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
-        std_types_lookup = get_std_type_lookup(net, cls.table_name())
-        std_type, pos = np.where(net[cls.table_name()]['std_type'].values
-                                 == std_types_lookup[:, np.newaxis])
-        pump_array[pos, cls.STD_TYPE] = std_type
-        component_pits[cls.table_name()] = pump_array
+        if len(tbl):
+            pump_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+
+            std_types_lookup = get_std_type_lookup(net, cls.table_name())
+            std_type, pos = np.where(net[cls.table_name()]['std_type'].values
+                                     == std_types_lookup[:, np.newaxis])
+            pump_array[pos, cls.STD_TYPE] = std_type
+            component_pits[cls.table_name()] = pump_array
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
         # calculation of pressure lift
         f, t = idx_lookups[cls.table_name()]
         pump_branch_pit = branch_pit[f:t, :]
-        area = pump_branch_pit[:, AREA]
+        if len(pump_branch_pit):
+            area = pump_branch_pit[:, AREA]
 
-        pump_array = get_component_array(net, cls.table_name())
-        idx = pump_array[:, cls.STD_TYPE].astype(np.int32)
-        std_types = get_std_type_lookup(net, cls.table_name())[idx]
+            pump_array = get_component_array(net, cls.table_name())
+            idx = pump_array[:, cls.STD_TYPE].astype(np.int32)
+            std_types = get_std_type_lookup(net, cls.table_name())[idx]
 
-        from_nodes = pump_branch_pit[:, FROM_NODE].astype(np.int32)
-        # to_nodes = pump_branch_pit[:, TO_NODE].astype(np.int32)
-        fluid = get_fluid(net)
-        p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
-        # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
-        t_from = node_pit[from_nodes, TINIT_NODE]
-        numerator_from = NORMAL_PRESSURE * t_from
-        v_mps = pump_branch_pit[:, MDOTINIT] / pump_branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
-        if fluid.is_gas:
-            # consider volume flow at inlet
-            normfactor_from = numerator_from * fluid.get_compressibility(p_from, t_from) \
-                              / (p_from * NORMAL_TEMPERATURE)
-            v_from = v_mps * normfactor_from
-        else:
-            v_from = v_mps
-        vol = v_from * area
-        if len(std_types):
-            fcts = itemgetter(*std_types)(net['std_types']['pump'])
-            fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-            pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
-            pump_branch_pit[:, PL] = pl
+            from_nodes = pump_branch_pit[:, FROM_NODE].astype(np.int32)
+            # to_nodes = pump_branch_pit[:, TO_NODE].astype(np.int32)
+            fluid = get_fluid(net)
+            p_from = node_pit[from_nodes, PAMB] + node_pit[from_nodes, PINIT]
+            # p_to = node_pit[to_nodes, PAMB] + node_pit[to_nodes, PINIT]
+            t_from = node_pit[from_nodes, TINIT_NODE]
+            numerator_from = NORMAL_PRESSURE * t_from
+            v_mps = pump_branch_pit[:, MDOTINIT] / pump_branch_pit[:, AREA] / fluid.get_density(NORMAL_TEMPERATURE)
+            if fluid.is_gas:
+                # consider volume flow at inlet
+                normfactor_from = numerator_from * fluid.get_compressibility(p_from, t_from) \
+                                  / (p_from * NORMAL_TEMPERATURE)
+                v_from = v_mps * normfactor_from
+            else:
+                v_from = v_mps
+            vol = v_from * area
+            if len(std_types):
+                fcts = itemgetter(*std_types)(net['std_types']['pump'])
+                fcts = [fcts] if not isinstance(fcts, tuple) else fcts
+                pl = np.array(list(map(lambda x, y: x.get_pressure(y), fcts, vol)))
+                pump_branch_pit[:, PL] = pl
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
