@@ -1,6 +1,7 @@
 # Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+import copy
 
 import numpy as np
 import pandas as pd
@@ -237,6 +238,7 @@ def get_std_type_lookup(net, table_name):
 
 
 def retrieve_u(params):
+    params = copy.deepcopy(params)
     if not "u_w_per_m2k" in params:
         params["u_w_per_m2k"] = np.nan
     if not "u_w_per_mk" in params:
@@ -247,3 +249,4 @@ def retrieve_u(params):
                           r'Delete one value and update your standard type!')
     elif not np.isnan(params["u_w_per_mk"]):
         params["u_w_per_m2k"] = params["u_w_per_mk"] / (params["outer_diameter_mm"] * np.pi) * 1000.
+    return params

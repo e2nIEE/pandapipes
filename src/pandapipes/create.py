@@ -521,8 +521,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
                       "of the heat transfer calculation", DeprecationWarning)
         del kwargs['qext_w']
 
-    pipe_parameter = load_std_type(net, std_type, "pipe")
-    retrieve_u(pipe_parameter)
+    pipe_parameter = retrieve_u(load_std_type(net, std_type, "pipe"))
 
     from pandapipes.toolbox import _deprecation_check_u, _deprecation_check_k
     u = _deprecation_check_u(kwargs)
@@ -1472,8 +1471,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
         pipe_parameters = {"inner_diameter_m": [], "k_mm": [], "u_w_per_m2k": []}
         for s in std_type:
             _check_std_type(net, s, "pipe", "create_pipes")
-            params = load_std_type(net, s, "pipe")
-            retrieve_u(params)
+            params = retrieve_u(load_std_type(net, s, "pipe"))
             u = _deprecation_check_u(kwargs)
             k = _deprecation_check_k(kwargs)
             pipe_parameters["u_w_per_m2k"] += [u if u is not None else params["u_w_per_m2k"]]
@@ -1481,8 +1479,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
             pipe_parameters["inner_diameter_m"] += [params["inner_diameter_mm"] / 1000.]
     else:
         _check_std_type(net, std_type, "pipe", "create_pipes")
-        pipe_parameters = load_std_type(net, std_type, "pipe")
-        retrieve_u(pipe_parameters)
+        pipe_parameters = retrieve_u(load_std_type(net, std_type, "pipe"))
         u = _deprecation_check_u(kwargs)
         k = _deprecation_check_k(kwargs)
         if u is not None:
