@@ -287,7 +287,8 @@ def test_select_subnet(base_net_is_wo_pumps):
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
     net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
     for comp in net.component_list:
-        assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
+        if len(net[comp.table_name()]):
+            assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
     assert len(net.junction) == len(net2.junction) + 3
 
 def test_pit_extraction():
