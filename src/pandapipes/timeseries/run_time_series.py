@@ -128,8 +128,6 @@ def run_loop(net, ts_variables, run_control_fct=run_control, output_writer_fct=_
         transient = kwargs.get('transient', False)
         if transient:
             kwargs["simulation_time_step"] = i
-        if (i != 0) and transient and net.converged:
-            net.junction["told_k"] = net.res_junction.t_k
         run_time_step(net, time_step, ts_variables, run_control_fct, output_writer_fct, **kwargs)
 
 
