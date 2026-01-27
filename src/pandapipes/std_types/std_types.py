@@ -248,5 +248,5 @@ def add_basic_std_types(net):
     pipe_file = os.path.join(pp_dir, "std_types", "library", "Pipe.csv")
     data = get_data(pipe_file, "pipe")
     sector = data.loc["sector", :].str.split(',').explode()
-    cols = sector.index[np.isin(sector, SectorMap[net.sector])].drop_duplicates()
+    cols = sector.index[np.isin(sector.values, [s.value for s in SectorMap[net.sector]])].drop_duplicates()
     create_std_types(net, "pipe", data[cols].to_dict(), True)
