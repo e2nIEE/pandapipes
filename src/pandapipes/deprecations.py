@@ -14,7 +14,7 @@ def deprecated_input(input_handler, multiple=False):
         return wrap
     return decorator
 
-def input_handler_pipe(*args, **kwargs):
+def input_handler_pipe(_, *args, **kwargs):
     if "diameter_m" in kwargs:
         if "inner_diameter_mm" in kwargs:
             raise UserWarning(r"If you define 'inner_diameter_mm', "
@@ -25,6 +25,14 @@ def input_handler_pipe(*args, **kwargs):
     return args, kwargs
 
 def input_handler_valve(multiple=False, *args, **kwargs):
+    if "diameter_m" in kwargs:
+        if "inner_diameter_mm" in kwargs:
+            raise UserWarning(r"If you define 'inner_diameter_mm', "
+                              r"do not use the deprecated variable 'diameter_m' as well!")
+        logger.warning(r"diameter_m is deprecated and will be removed in the future. "
+                       r"Use inner_diameter_mm instead!")
+        kwargs["inner_diameter_mm"] = kwargs.pop("diameter_m")
+
     suffix = "s" if multiple else ""
     if ("from_junction" + suffix in kwargs) | ("to_junction" + suffix in kwargs):
         if ('et' in kwargs) and (kwargs['et'] != 'ju'):

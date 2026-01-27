@@ -192,15 +192,15 @@ class BranchWInternalsComponent(BranchComponent):
                 has_internals)
             set_entry_check_repeat(branch_w_internals_pit, ACTIVE, net[tbl][cls.active_identifier()].values,
                 internal_branch_number, has_internals)
-            set_entry_check_repeat(branch_w_internals_pit, D, net[tbl].diameter_m.values, internal_branch_number,
+            set_entry_check_repeat(branch_w_internals_pit, D, net[tbl].inner_diameter_mm.values / 1000., internal_branch_number,
                 has_internals)
-            if "outer_diameter_m" in net[tbl]:
-                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].outer_diameter_m.values, internal_branch_number,
+            if "outer_diameter_mm" in net[tbl]:
+                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].outer_diameter_mm.values / 1000., internal_branch_number,
                     has_internals)
                 branch_w_internals_pit[np.isnan(branch_w_internals_pit[:, DO]), DO] = (
                     branch_w_internals_pit)[np.isnan(branch_w_internals_pit[:, DO]), D]
             else:
-                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].diameter_m.values, internal_branch_number,
+                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].inner_diameter_mm.values / 1000., internal_branch_number,
                     has_internals)
             set_entry_check_repeat(branch_w_internals_pit, LC, net[tbl].loss_coefficient.values, internal_branch_number,
                 has_internals)

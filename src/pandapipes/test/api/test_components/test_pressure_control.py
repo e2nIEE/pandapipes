@@ -25,9 +25,9 @@ def test_pressure_control_from_measurement_parameters(use_numba):
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
     pandapipes.create_pipe_from_parameters(net, j2, j3, k_mm=1., length_km=5.,
-                                           diameter_m=0.1022)
+                                           inner_diameter_mm=102.2)
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=10.,
-                                           diameter_m=0.1022)
+                                           inner_diameter_mm=102.2)
     pandapipes.create_pressure_control(net, j1, j2, j4, 20.)
     pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
     pandapipes.create_sink(net, j4, 0.5)

@@ -154,7 +154,7 @@ class Valve(BranchWInternalsComponent):
         :rtype:
         """
         return [("name", dtype(object)), ("junction", "i8"), ("element", "i8"), ("et", dtype(object)),
-                ("diameter_m", "f8"), ("opened", "bool"), ("loss_coefficient", "f8"), ("type", dtype(object))]
+                ("inner_diameter_mm", "f8"), ("opened", "bool"), ("loss_coefficient", "f8"), ("type", dtype(object))]
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

@@ -449,7 +449,7 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
     """
     if 'diameter_m' in kwargs:
         logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
-                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
+                       r'it will be stored in the component table for postprocessing purposes by you if required.')
 
     add_new_component(net, HeatExchanger)
 
@@ -635,7 +635,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
 
 
 @deprecated_input(input_handler=input_handler_valve)
-def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
+def create_valve(net, junction, element, et, inner_diameter_mm, opened=True, loss_coefficient=0, name=None, index=None,
                  type='valve', **kwargs):
     """
     Creates a valve element in net["valve"] from valve parameters.
@@ -648,8 +648,8 @@ def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coeff
     :type element: int
     :param et: element type: "pi" = valve between junction and pipe, "ju" = valve between two junctions
     :type et: str
-    :param diameter_m: The valve diameter in [m]
-    :type diameter_m: float
+    :param inner_diameter_mm: The valve diameter in [mm]
+    :type inner_diameter_mm: float
     :param opened: Flag to show if the valve is opened and allows for fluid flow or if it is closed\
             to block the fluid flow.
     :type opened: bool, default True
@@ -668,7 +668,7 @@ def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coeff
     :rtype: int
 
     :Example:
-        >>> create_valve(net, 0, 1, et="ju", diameter_m=4e-3, name="valve1")
+        >>> create_valve(net, 0, 1, et="ju", inner_diameter_mm=4, name="valve1")
 
     """
     add_new_component(net, Valve)
@@ -688,7 +688,7 @@ def create_valve(net, junction, element, et, diameter_m, opened=True, loss_coeff
     else:
         raise UserWarning("Unknown element type")
 
-    v = {"name": name, "junction": junction, "element": element, "et": et, "diameter_m": diameter_m,
+    v = {"name": name, "junction": junction, "element": element, "et": et, "inner_diameter_mm": inner_diameter_mm,
          "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
     _set_entries(net, "valve", index, **v, **kwargs)
 
@@ -1118,7 +1118,7 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
     """
     if 'diameter_m' in kwargs:
         logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
-                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
+                       r'it will be stored in the component table for postprocessing purposes by you if required.')
 
     add_new_component(net, FlowControlComponent)
 
@@ -1173,12 +1173,12 @@ def create_heat_consumer(net, from_junction, to_junction, qext_w=None, controlle
     :rtype: int
 
     :Example:
-        >>> create_heat_consumer(net,from_junction=0, to_junction=1, diameter_m=40e-3, qext_w=20000,
+        >>> create_heat_consumer(net,from_junction=0, to_junction=1, qext_w=20000,
         >>>                     controlled_mdot_kg_per_s=0.4, name="heat_consumer1")
     """
     if 'diameter_m' in kwargs:
         logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
-                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
+                       r'it will be stored in the component table for postprocessing purposes by you if required.')
 
     if ((controlled_mdot_kg_per_s is None) + (qext_w is None) + (deltat_k is None) + (treturn_k is None) != 2):
         raise AttributeError(r"Define exactly two varibales from 'controlled_mdot_kg_per_s', "
@@ -1603,8 +1603,9 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
         _add_multiple_branch_geodata(net, "pipe", geodata, index)
     return index
 
+
 @deprecated_input(input_handler=input_handler_valve, multiple=True)
-def create_valves(net, junctions, elements, et, diameter_m, opened=True, loss_coefficient=0, name=None, index=None,
+def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, loss_coefficient=0, name=None, index=None,
                   type='valve', **kwargs):
     """
     Convenience function for creating many valves at once. Parameters 'junctions' and \
@@ -1620,8 +1621,8 @@ def create_valves(net, junctions, elements, et, diameter_m, opened=True, loss_co
     :type elements: Iterable(int)
     :param et: element type: "pi" = valves between junction and pipe, "ju" = valves between two junctions
     :type et: Iterable(str) or str
-    :param diameter_m: The valve diameters in [m]
-    :type diameter_m: Iterable or float
+    :param inner_diameter_mm: The valve diameters in [mm]
+    :type inner_diameter_mm: Iterable or float
     :param opened: Flag to show if the valves are opened and allow for fluid flow or if they are\
             closed to block the fluid flow.
     :type opened: Iterable or bool, default True
@@ -1641,7 +1642,7 @@ def create_valves(net, junctions, elements, et, diameter_m, opened=True, loss_co
 
     :Example:
         >>> create_valves(net, junctions=[0, 1, 4], elements=[1, 5, 6],
-        >>>               opened=[True, False, True], et="ju", diameter_m=4e-3,
+        >>>               opened=[True, False, True], et="ju", inner_diameter_mm=4,
         >>>               name=["valve_%d" for d in range(3)])
 
     """
@@ -1682,7 +1683,7 @@ def create_valves(net, junctions, elements, et, diameter_m, opened=True, loss_co
             raise UserWarning("%s not connected (%s element, bus): %s" %
                               (table.capitalize(), table, list(bus_element_pairs)))
 
-    entries = {"name": name, "junction": junctions, "element": elements, "et": et, "diameter_m": diameter_m,
+    entries = {"name": name, "junction": junctions, "element": elements, "et": et, "inner_diameter_mm": inner_diameter_mm,
                "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
     _set_multiple_entries(net, "valve", index, **entries, **kwargs)
 
@@ -1812,7 +1813,7 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     """
     if 'diameter_m' in kwargs:
         logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
-                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
+                       r'it will be stored in the component table for postprocessing purposes by you if required.')
 
     add_new_component(net, FlowControlComponent)
 
@@ -1927,7 +1928,7 @@ def create_heat_consumers(net, from_junctions, to_junctions, qext_w=None, contro
     """
     if 'diameter_m' in kwargs:
         logger.warning(r'diameter_m is deprecated as it has no effect on the calculation and results. Nonetheless, '
-                       r'it will be stored in the compoent table for postprocessing purposes by you if required.')
+                       r'it will be stored in the component table for postprocessing purposes by you if required.')
     check_vars = [controlled_mdot_kg_per_s, qext_w, deltat_k, treturn_k]
     var_sums = np.zeros([4, len(from_junctions)])
     for i, cv in enumerate(check_vars):
