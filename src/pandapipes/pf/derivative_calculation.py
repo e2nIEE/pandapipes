@@ -14,7 +14,10 @@ from pandapipes.properties.properties_toolbox import get_branch_real_density, ge
 from scipy.optimize import newton
 
 
-def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
+def calculate_derivatives_hydraulic(net,
+                                    branch_pit, node_pit,
+                                    branch_pit_old, node_pit_old,
+                                    options):
     """
     Function which creates derivatives.
 
@@ -85,7 +88,13 @@ def calculate_derivatives_hydraulic(net, branch_pit, node_pit, options):
     branch_pit[:, JAC_DERIV_DM_NODE] = df_dm_nodes
 
 
-def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
+def calculate_derivatives_thermal(net,
+                                  branch_pit, node_pit,
+                                  branch_pit_old, node_pit_old,
+                                  options):
+    node_pit_old_lookup = get_lookup(net, "node", "old_pit_cols")
+    branch_pit_old_lookup = get_lookup(net, "branch", "old_pit_cols")
+
     if options["use_numba"]:
         from pandapipes.pf.derivative_toolbox_numba import derivatives_thermal_numba as derivatives_termal
     else:
@@ -109,7 +118,12 @@ def calculate_derivatives_thermal(net, branch_pit, node_pit, options):
     amb = get_net_option(net, 'ambient_temperature')
 
     fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbf_dt, dfbt_dtout, infeed = (
-        derivatives_termal(node_pit, branch_pit, from_nodes, to_nodes, t_init_i, t_init_i1, t_init_n, cp_i, cp_i1, cp_n,
+        derivatives_termal(node_pit, branch_pit,
+                           node_pit_old, node_pit_old_lookup,
+                           branch_pit_old, branch_pit_old_lookup,
+                           from_nodes, to_nodes,
+                           t_init_i, t_init_i1, t_init_n,
+                           cp_i, cp_i1, cp_n,
                            cp, rho, dt, transient, amb))
 
     node_pit[:, LOAD_T] = fn
