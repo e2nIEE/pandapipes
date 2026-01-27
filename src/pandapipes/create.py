@@ -527,7 +527,8 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
         del kwargs["alpha_w_per_m2k"]
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": std_type,
-         "length_km": length_km, "diameter_m": pipe_parameter["inner_diameter_mm"] / 1000, "k_mm": k_mm,
+         "length_km": length_km, "inner_diameter_mm": pipe_parameter["inner_diameter_mm"],
+         "outer_diameter_mm": pipe_parameter["outer_diameter_mm"], "k_mm": k_mm,
          "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameter['u_w_per_m2k'], "sections": sections,
          "in_service": bool(in_service), "type": type, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
@@ -538,8 +539,8 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.2, 
     return index
 
 
-def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.2, loss_coefficient=0,
-                                sections=1, u_w_per_m2k=0., text_k=None, name=None, index=None,
+def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inner_diameter_mm, outer_diameter_mm=None,
+                                k_mm=0.2, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None, name=None, index=None,
                                 geodata=None, in_service=True, type="pipe", **kwargs):
     """
     Creates a pipe element in net["pipe"] from pipe parameters.
@@ -552,8 +553,10 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :type to_junction: int
     :param length_km: Length of the pipe in [km]
     :type length_km: float
-    :param diameter_m: The pipe diameter in [m]
-    :type diameter_m: float
+    :param inner_diameter_mm: The inner pipe diameter in [mm]
+    :type inner_diameter_mm: float
+    :param outer_diameter_mm: The outer pipe diameter in [mm]. If not defined, inner and outer diameter are identical.
+    :type outer_diameter_mm: float, default None
     :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
             pipes) and 0.3 (old steel pipelines)
     :type k_mm: float, default 0.2
@@ -585,13 +588,21 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
     :rtype: int
 
     :Example:
-        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1, diameter_m=40e-3)
+        >>> create_pipe_from_parameters(net, from_junction=0, to_junction=1, length_km=1, inner_diameter_mm=40)
 
     """
     add_new_component(net, Pipe)
 
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
+
+    if 'diameter_m' in kwargs:
+        warnings.warn(
+            "The parameter diameter_m has been renamed to inner_diameter_mm."
+            "It will be removed in future.",
+            DeprecationWarning,
+        )
+        inner_diameter_mm = kwargs['diameter_m'] * 1000.
 
     if 'alpha_w_per_m2k' in kwargs:
         if u_w_per_m2k == 0.:
@@ -608,7 +619,8 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, diam
         del kwargs['qext_w']
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+         "std_type": None, "length_km": length_km, "inner_diameter_mm": inner_diameter_mm,
+         "outer_diameter_mm": outer_diameter_mm, "k_mm": k_mm,
          "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
          "sections": sections, "in_service": bool(in_service),
          "type": type, "text_k": text_k}
@@ -1475,7 +1487,8 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": std_type, "length_km": length_km,
-               "diameter_m": pipe_parameters["inner_diameter_mm"] / 1000, "k_mm": k_mm,
+               "inner_diameter_mm": pipe_parameters["inner_diameter_mm"],
+               "outer_diameter_mm": pipe_parameters["outer_diameter_mm"], "k_mm": k_mm,
                "loss_coefficient": loss_coefficient, "u_w_per_m2k": pipe_parameters['u_w_per_m2k'],
                "sections": sections, "in_service": in_service, "type": type, "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
@@ -1485,7 +1498,8 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km, k_mm=0.
     return index
 
 
-def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, diameter_m, k_mm=0.2,
+def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
+                                 inner_diameter_mm, outer_diameter_mm=None, k_mm=0.2,
                                  loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None,
                                  name=None, index=None, geodata=None, in_service=True,
                                  type="pipe", **kwargs):
@@ -1503,8 +1517,10 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
     :type to_junctions: Iterable(int)
     :param length_km: Lengths of the pipes in [km]
     :type length_km: Iterable or float
-    :param diameter_m: The pipe diameters in [m]
-    :type diameter_m: Iterable or float
+    :param inner_diameter_mm: The inner pipe diameters in [mm]
+    :type inner_diameter_mm: Iterable or float
+    :param outer_diameter_mm: The outer pipe diameters in [mm]. If not defined, inner and outer diameter are identical.
+    :type outer_diameter_mm: Iterable or float, default None
     :param k_mm: Pipe roughness in [mm]. 0.2 mm is quite rough, usually betweeen 0.0015 (new
             pipes) and 0.3 (old steel pipelines)
     :type k_mm: Iterable or float, default 0.2 mm
@@ -1540,13 +1556,22 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
         >>>                                             from_junctions=[0, 2, 6],
         >>>                                             to_junctions=[1, 3, 7],
         >>>                                             length_km=[0.2, 1, 0.3],
-        >>>                                             diameter_m=40e-3)
+        >>>                                             inner_diameter_mm=40)
 
     """
     add_new_component(net, Pipe)
 
     index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "pipe")
+
+    if 'diameter_m' in kwargs:
+        warnings.warn(
+            "The parameter diameter_m has been renamed to inner_diameter_mm."
+            "It will be removed in future.",
+            DeprecationWarning,
+        )
+
+        inner_diameter_mm = kwargs['diameter_m'] * 1000.
 
     if 'alpha_w_per_m2k' in kwargs:
         warnings.warn(
@@ -1565,7 +1590,8 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km, d
         del kwargs['qext_w']
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "std_type": None, "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+               "std_type": None, "length_km": length_km, "inner_diameter_mm": inner_diameter_mm,
+               "outer_diameter_mm": outer_diameter_mm, "k_mm": k_mm,
                "loss_coefficient": loss_coefficient, "u_w_per_m2k": u_w_per_m2k,
                "sections": sections, "in_service": in_service, "type": type, "text_k": text_k}
 
