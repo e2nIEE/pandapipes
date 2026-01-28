@@ -33,6 +33,4 @@ JAC_DERIV_MSL = 16
 JAC_DERIV_DT_SLACK = 17
 JAC_DERIV_DT_LOAD = 18
 
-TINIT_OLD = 19
-
-node_cols = 20
+node_cols = 19

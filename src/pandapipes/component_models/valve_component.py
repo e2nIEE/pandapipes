@@ -9,7 +9,7 @@ from pandapipes.component_models.abstract_models.branch_w_internals_models impor
 from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA, FROM_NODE, TO_NODE, TOUTINIT
-from pandapipes.idx_node import TINIT as TINIT_NODE, HEIGHT, PINIT, ACTIVE as ACTIVE_ND, PAMB, TINIT_OLD
+from pandapipes.idx_node import TINIT as TINIT_NODE, HEIGHT, PINIT, ACTIVE as ACTIVE_ND, PAMB
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -93,8 +93,6 @@ class Valve(BranchWInternalsComponent):
                 int_node_pit[:, HEIGHT] = junction_pit[fj_nodes, HEIGHT]
                 int_node_pit[:, PAMB] = junction_pit[fj_nodes, PAMB]
                 int_node_pit[:, ACTIVE_ND] = junction_pit[fj_nodes, ACTIVE_ND]
-            if get_net_option(net, "transient"):
-                int_node_pit[:, TINIT_OLD] = junction_pit[fj_nodes, TINIT_OLD]
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):

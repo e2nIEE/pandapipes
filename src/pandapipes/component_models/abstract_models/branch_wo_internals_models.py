@@ -105,8 +105,6 @@ class BranchWOInternalsComponent(BranchComponent):
             branch_wo_internals_pit[:, D] = 0.1
             branch_wo_internals_pit[:, DO] = branch_wo_internals_pit[:, D]
             branch_wo_internals_pit[:, AREA] = branch_wo_internals_pit[:, D] ** 2 * np.pi / 4
-        if get_net_option(net, "transient"):
-            branch_wo_internals_pit[:, T_OUT_OLD] = branch_wo_internals_pit[:, TOUTINIT]
         return branch_wo_internals_pit
 
     @classmethod
