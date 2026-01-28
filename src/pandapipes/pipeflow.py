@@ -270,7 +270,8 @@ def solve_hydraulics(net):
                 branch_pit, node_pit,
                 branch_pit_old, node_pit_old,
                 branch_lookups, options)
-        connected_restarted = _restart_connectivity_check(net)
+
+        connected_restarted = False
     # epsilon is node [pressure] slack nodes and load vector branch prsr difference
     # jacobian is the derivatives
     jacobian, epsilon = build_system_matrix(net, branch_pit, node_pit, False)
