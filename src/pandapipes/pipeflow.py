@@ -256,14 +256,26 @@ def solve_hydraulics(net):
     while connected_restarted:
         branch_pit = net["_active_pit"]["branch"]
         node_pit = net["_active_pit"]["node"]
+        branch_pit_old = net["_active_old_pit"]["branch"]
+        node_pit_old = net["_active_old_pit"]["node"]
         branch_lookups = get_lookup(net, "branch", "from_to_active_hydraulics")
         for comp in net['component_list']:
-            comp.adaption_before_derivatives_hydraulic(net, branch_pit, node_pit, branch_lookups,
+            comp.adaption_before_derivatives_hydraulic(net,
+                                                       branch_pit, node_pit,
+                                                       branch_pit_old, node_pit_old,
+                                                       branch_lookups,
                                                        options)
-        calculate_derivatives_hydraulic(net, branch_pit, node_pit, options)
+        calculate_derivatives_hydraulic(net,
+                                        branch_pit, node_pit,
+                                        branch_pit_old, node_pit_old,
+                                        options)
         for comp in net['component_list']:
             comp.adaption_after_derivatives_hydraulic(
-                net, branch_pit, node_pit, branch_lookups, options)
+                net,
+                branch_pit, node_pit,
+                branch_pit_old, node_pit_old,
+                branch_lookups, options)
+
         connected_restarted = _restart_connectivity_check(net)
     # epsilon is node [pressure] slack nodes and load vector branch prsr difference
     # jacobian is the derivatives
@@ -349,6 +361,10 @@ def solve_temperature(net):
     options = net["_options"]
     branch_pit = net["_active_pit"]["branch"]
     node_pit = net["_active_pit"]["node"]
+    branch_pit_old = net["_active_old_pit"]["branch"]
+    node_pit_old = net["_active_old_pit"]["node"]
+
+
     branch_lookups = get_lookup(net, "branch", "from_to_active_heat_transfer")
 
     # Negative velocity values are turned to positive ones (including exchange of from_node and
@@ -356,10 +372,19 @@ def solve_temperature(net):
     branch_pit[:, FROM_NODE_T_SWITCHED] = branch_pit[:, MDOTINIT] < -2e-11
 
     for comp in net['component_list']:
-        comp.adaption_before_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
-    calculate_derivatives_thermal(net, branch_pit, node_pit, options)
+        comp.adaption_before_derivatives_thermal(net,
+                                                 branch_pit, node_pit,
+                                                 branch_pit_old, node_pit_old,
+                                                 branch_lookups, options)
+    calculate_derivatives_thermal(net,
+                                  branch_pit, node_pit,
+                                  branch_pit_old, node_pit_old,
+                                  options)
     for comp in net['component_list']:
-        comp.adaption_after_derivatives_thermal(net, branch_pit, node_pit, branch_lookups, options)
+        comp.adaption_after_derivatives_thermal(net,
+                                                branch_pit, node_pit,
+                                                branch_pit_old, node_pit_old,
+                                                branch_lookups, options)
 
     t_init_old = node_pit[:, TINIT].copy()
     t_out_old = branch_pit[:, TOUTINIT].copy()

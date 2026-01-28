@@ -119,7 +119,10 @@ class CirculationPump(BranchWOInternalsComponent):
         return circ_pump_pit
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net,
+                                             branch_pit, node_pit,
+                                             branch_pit_old, node_pit_old,
+                                             idx_lookups, options):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
@@ -136,7 +139,10 @@ class CirculationPump(BranchWOInternalsComponent):
         return circ_pump_pit
 
     @classmethod
-    def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_thermal(cls, net,
+                                           branch_pit, node_pit,
+                                           branch_pit_old, node_pit_old,
+                                           idx_lookups, options):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network

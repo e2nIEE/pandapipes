@@ -49,6 +49,4 @@ LOAD_VEC_BRANCHES_T = 36
 LOAD_VEC_NODES_FROM_T = 37 # Slot for the load vector of the from nodes connected to branch
 LOAD_VEC_NODES_TO_T = 38 # Slot for the load vector of the to nodes connected to branch
 
-T_OUT_OLD = 39
-
-branch_cols = 40
+branch_cols = 39
