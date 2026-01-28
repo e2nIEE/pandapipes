@@ -5,8 +5,8 @@
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED, ACTIVE as ACTIVE_BRANCH, BRANCH_TYPE
-from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P, ACTIVE as ACTIVE_NODE
+from pandapipes.idx_branch import MDOTINIT, TOUTINIT, FROM_NODE_T_SWITCHED
+from pandapipes.idx_node import PINIT, TINIT, MDOTSLACKINIT, NODE_TYPE, P
 from pandapipes.pf.build_system_matrix import build_system_matrix
 from pandapipes.pf.derivative_calculation import (calculate_derivatives_hydraulic,
                                                   calculate_derivatives_thermal)

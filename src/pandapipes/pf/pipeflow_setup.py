@@ -432,7 +432,7 @@ def create_empty_pit(net):
     net["_pit"] = pit
     return pit
 
-def create_old_pit(net, required_node_cols=[], required_branch_cols=[]):
+def create_old_pit(net, required_node_cols=None, required_branch_cols=None):
     """
     Creates an empty internal partial structure of the given internal structure which is called \
     old_pit (old pandapipes internal tables). The structure is a dictionary which should contain \
@@ -445,14 +445,18 @@ def create_old_pit(net, required_node_cols=[], required_branch_cols=[]):
     :param net: The pandapipes net to which to add the empty structure
     :type net: pandapipesNet
     :param required_node_cols: The node cols that should be kept
-    :type required_node_cols: list
+    :type required_node_cols: list, default None
     :param required_branch_cols: The branch cols that should be kept
-    :type required_branch_cols: list
+    :type required_branch_cols: list, default None
     :return: pit - The dict of arrays with the internal node / branch structure
     :rtype: dict
 
     """
     pit = dict(keys=['node', 'branch'])
+    if required_node_cols is None:
+        required_node_cols = []
+    if required_branch_cols is None:
+        required_branch_cols = []
     pit["node"] = copy.deepcopy(net._pit["node"][:, required_node_cols])
     pit["branch"] = copy.deepcopy(net._pit["branch"][:, required_branch_cols])
     nc = - np.ones(max(required_node_cols) + 1, dtype=np.int32)
