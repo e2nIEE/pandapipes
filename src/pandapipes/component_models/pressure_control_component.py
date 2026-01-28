@@ -7,9 +7,10 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
     BranchWOInternalsComponent
+from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.component_models import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import D, AREA, \
+from pandapipes.idx_branch import DIRECTED, \
     JAC_DERIV_DP, JAC_DERIV_DP1, JAC_DERIV_DM, BRANCH_TYPE, LOSS_COEFFICIENT as LC, PC as PC_BRANCH
 from pandapipes.idx_node import PINIT, NODE_TYPE, PC as PC_NODE
 from pandapipes.pf.pipeflow_setup import get_lookup
@@ -21,6 +22,11 @@ class PressureControlComponent(BranchWOInternalsComponent):
     """
 
     """
+    JUNCTS = 0
+    IN_SERVICE = 1
+    CONTROLLED = 2
+
+    internal_cols = 3
 
     @classmethod
     def table_name(cls):
@@ -39,15 +45,37 @@ class PressureControlComponent(BranchWOInternalsComponent):
         return Junction
 
     @classmethod
+    def create_component_array(cls, net, component_pits):
+        """
+        Function which creates an internal array of the component in analogy to the pit, but with
+        component specific entries, that are not needed in the pit.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param component_pits: dictionary of component specific arrays
+        :type component_pits: dict
+        :return:
+        :rtype:
+        """
+        tbl = net[cls.table_name()]
+        pc_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+        junction_idx_lookups = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
+        index_pc = junction_idx_lookups[tbl['controlled_junction'].values]
+        pc_array[:, cls.JUNCTS] = index_pc
+        pc_array[:, cls.CONTROLLED] = tbl.control_active.values
+        pc_array[:, cls.IN_SERVICE] = tbl.in_service.values
+        component_pits[cls.table_name()] = pc_array
+
+    @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         pcs = net[cls.table_name()]
-        controlled = pcs.in_service & pcs.control_active
+        controlled = pcs.control_active
         juncts = pcs['controlled_junction'].values[controlled]
         press = pcs['controlled_p_bar'].values[controlled]
         junction_idx_lookups = get_lookup(net, "node", "index")[
             cls.get_connected_node_type().table_name()]
         index_pc = junction_idx_lookups[juncts]
-        node_pit[index_pc, NODE_TYPE] = PC_NODE
         node_pit[index_pc, PINIT] = press
 
     @classmethod
@@ -63,13 +91,20 @@ class PressureControlComponent(BranchWOInternalsComponent):
         pc_pit = super().create_pit_branch_entries(net, branch_pit)
         pc_pit[net[cls.table_name()].control_active.values, BRANCH_TYPE] = PC_BRANCH
         pc_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
+        pc_pit[:, DIRECTED] = True
+
 
     @classmethod
     def adaption_before_derivatives_hydraulic(cls, net,
                                               branch_pit, node_pit,
                                               branch_pit_old, node_pit_old,
                                               idx_lookups, options):
-        pass
+        pc_array = get_component_array(net, cls.table_name())
+        junction_idx_lookups_active = get_lookup(net, "node", "active_match_hydraulics")
+        in_service = pc_array[:, cls.IN_SERVICE].astype(bool)
+        index_pc = junction_idx_lookups_active[pc_array[in_service, cls.JUNCTS].astype(np.int32)]
+        controlled = pc_array[in_service, cls.CONTROLLED].astype(bool)
+        node_pit[index_pc[controlled], NODE_TYPE] = PC_NODE
 
     @classmethod
     def adaption_after_derivatives_hydraulic(cls, net,

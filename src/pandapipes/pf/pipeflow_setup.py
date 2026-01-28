@@ -9,10 +9,11 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import (
+    TOUTINIT,
     FROM_NODE,
     TO_NODE,
     branch_cols,
-    TOUTINIT,
+    DIRECTED,
     ACTIVE as ACTIVE_BR,
     FLOW_RETURN_CONNECT,
     ACTIVE,
@@ -644,28 +645,33 @@ def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_l
     len_nodes = len(node_pit)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+    directed = branch_pit[:, DIRECTED].astype(bool)
     nobranch = np.sum(active_branch_lookup)
+    nobranch_ud = np.sum(active_branch_lookup & ~directed)
     active_from_nodes = from_nodes[active_branch_lookup]
     active_to_nodes = to_nodes[active_branch_lookup]
+    active_from_nodes_ud = from_nodes[active_branch_lookup & ~directed]
+    active_to_nodes_ud = to_nodes[active_branch_lookup & ~directed]
 
     # we create a "virtual" node that is connected to all slack nodes and start the connectivity
     # search at this node
-    fn_matrix = np.concatenate([active_from_nodes, slack_nodes])
-    tn_matrix = np.concatenate([active_to_nodes,
+    fn_matrix = np.concatenate([active_from_nodes, active_to_nodes_ud,
                                 np.full(len(slack_nodes), len_nodes, dtype=np.int32)])
+    tn_matrix = np.concatenate([active_to_nodes, active_from_nodes_ud,
+                                slack_nodes])
 
-    adj_matrix = coo_matrix((np.ones(nobranch + len(slack_nodes)), (fn_matrix, tn_matrix)),
+    adj_matrix = coo_matrix((np.ones(nobranch + nobranch_ud + len(slack_nodes)), (fn_matrix, tn_matrix)),
                             shape=(len_nodes + 1, len_nodes + 1))
 
     # check which nodes are reachable from the virtual heat slack node
-    reachable_nodes = csgraph.breadth_first_order(adj_matrix, len_nodes, False, False)
+    reachable_nodes = csgraph.breadth_first_order(adj_matrix, len_nodes, True, False)
     # throw out the virtual heat slack node
     reachable_nodes = reachable_nodes[reachable_nodes != len_nodes]
 
     nodes_connected = np.zeros(len(active_node_lookup), dtype=bool)
     nodes_connected[reachable_nodes] = True
 
-    if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
+    if not np.all(nodes_connected[active_from_nodes_ud] == nodes_connected[active_to_nodes_ud]):
         raise ValueError(
             "An error occured in the %s connectivity check. Please contact the pandapipes "
             "development team!" % mode)
