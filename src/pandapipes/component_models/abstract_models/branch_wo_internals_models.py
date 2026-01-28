@@ -5,7 +5,7 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.idx_branch import (FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, T_OUT_OLD, LENGTH, K, TEXT, ALPHA,
+from pandapipes.idx_branch import (FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, LENGTH, K, TEXT, ALPHA,
                                    D, DO, AREA)
 from pandapipes.idx_node import TINIT as TINIT_NODE
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_net_option, get_lookup
