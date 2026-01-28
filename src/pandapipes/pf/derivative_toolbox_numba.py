@@ -5,7 +5,7 @@ from pandapipes import MDOTSLACKINIT
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, T_OUT_OLD
+    MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, DO, T_OUT_OLD
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE, LOAD, TINIT_OLD
 
 try:
@@ -163,7 +163,7 @@ def derivatives_thermal_numba(node_pit, branch_pit,
         mdot = np.abs(branch_pit[i][MDOTINIT])
         t_amb = branch_pit[i][TEXT]
         length = branch_pit[i][LENGTH]
-        alpha = branch_pit[i][ALPHA] * np.pi * branch_pit[i][D]
+        alpha = branch_pit[i][ALPHA] * np.pi * branch_pit[i][DO]
         tl = branch_pit[i][TL]
         qext = branch_pit[i][QEXT]
 

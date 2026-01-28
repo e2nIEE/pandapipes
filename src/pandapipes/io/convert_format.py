@@ -50,6 +50,13 @@ def _rename_columns(net):
     if "pipe" in net:
         if "u_w_per_m2k" not in net["pipe"].columns:
             net["pipe"].rename(columns={"alpha_w_per_m2k": "u_w_per_m2k"}, inplace=True)
+        if "inner_diameter_mm" not in net["pipe"].columns:
+            net["pipe"].diameter_m = net["pipe"].diameter_m * 1000.
+            net["pipe"].rename(columns={"diameter_m": "inner_diameter_mm"}, inplace=True)
+    if "valve" in net:
+        if "inner_diameter_mm" not in net["valve"].columns:
+            net["valve"].diameter_m = net["valve"].diameter_m * 1000.
+            net["valve"].rename(columns={"diameter_m": "inner_diameter_mm"}, inplace=True)
     for comp in [CirculationPumpMass, CirculationPumpPressure]:
         cp_tbl = comp.table_name()
         if cp_tbl in net:
