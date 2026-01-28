@@ -205,6 +205,13 @@ def calc_lambda(m, eta, d, k, gas_mode, friction_model, lengths, options, area):
         # 1.325 instead of 0.25???
         lambda_swamee_jain = 0.25 / ((np.log10(k / (3.7 * d) + 5.74 / (re ** 0.9))) ** 2)
         return lambda_swamee_jain, re
+    
+    elif friction_model == "churchill":
+        paramA = (-2.457*np.log((7/re)**0.9 + 0.27*k/d))**16
+        paramB = (37530/re)**16
+        lambda_churchill = 8*((8/re)**12 + 1/(paramA+paramB)**1.5)**(1/12)
+        return lambda_churchill, re
+
     else:
         # lambda_tot = np.where(re > 2300, lambda_laminar + lambda_nikuradse, lambda_laminar)
         lambda_tot = lambda_laminar + lambda_nikuradse
@@ -262,6 +269,23 @@ def calc_der_lambda(m, eta, d, k, friction_model, lambda_pipe, area, re, lengths
         lambda_der[pos] = 0.5 * np.log(10) ** 2 / (np.log(param) ** 3) / param * 5.166 * (
                     (eta[pos] * area[pos]) / (d[pos])) ** 0.9 * np.abs(m[pos]) ** -1.9
         return lambda_der
+    
+    elif friction_model == "churchill":
+        param = (7*eta[pos]*area[pos]/(m[pos]*d[pos]))**0.9 + 0.27*k[pos]/d[pos]
+        partial_dparamdm = -0.9*7**0.9 * (d[pos]/(eta[pos] * area[pos]))**(-0.9) * m[pos]**(-1.9)
+
+        paramsAB = ((-2.457*np.log((7*eta[pos]*area[pos]/(m[pos] * d[pos]))**0.9 + 0.27*k[pos]/d[pos]))**16 + (37530*eta[pos]*area[pos]/(m[pos] * d[pos]))**16)
+        paramC = (8*eta[pos]*area[pos]/(m[pos]*d[pos]))**12 + paramsAB**(-1.5)
+        
+        partial_dAdm = 16*(2.457*np.log(param))**15 * 2.457*param**(-1) * partial_dparamdm
+        partial_dBdm = -16*37530**16*(eta[pos]*area[pos]/(m[pos]*d[pos]))**17
+
+        partial_dCdm = -12*(8*eta[pos]*area[pos]/(m[pos]*d[pos]))**11 * (8*eta[pos]*area[pos]/(m[pos]**2*d[pos])) - paramsAB**(-3)*1.5*paramsAB**0.5 * (partial_dAdm + partial_dBdm)
+
+        lambda_der[pos] = 2/3* paramC**(-11/12) * partial_dCdm
+
+        return lambda_der
+
     else:
         lambda_der[pos] = -(64 * eta[pos] * area[pos]) / (m[pos] ** 2 * d[pos])
         return lambda_der
@@ -315,3 +339,8 @@ def colebrook_white(re, d, k, lambda_nikuradse, max_iter, lengths, tolerance=1e-
         converged = np.all(res.converged)
 
     return converged, lambda_res
+
+
+
+
+
