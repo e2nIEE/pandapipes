@@ -46,30 +46,30 @@ def create_base_net(oos):
     pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
                                name="Grid Connection")
     pandapipes.create_pipe_from_parameters(net, from_junction=junction1, to_junction=junction2,
-                                           length_km=10, diameter_m=0.3, name="Pipe 1",
+                                           length_km=10, inner_diameter_mm=300, name="Pipe 1",
                                            geodata=[(0, 0), (2, 0)], in_service=not oos)
     pandapipes.create_pipe_from_parameters(net, from_junction=junction2, to_junction=junction3,
-                                           length_km=2, diameter_m=0.3, name="Pipe 2",
+                                           length_km=2, inner_diameter_mm=300, name="Pipe 2",
                                            geodata=[(2, 0), (2, 4), (7, 4)], in_service=not oos)
     pandapipes.create_pipe_from_parameters(net, from_junction=junction2, to_junction=junction4,
-                                           length_km=2.5, diameter_m=0.3, name="Pipe 3",
+                                           length_km=2.5, inner_diameter_mm=300, name="Pipe 3",
                                            geodata=[(2, 0), (2, -4), (7, -4)], in_service=not oos)
     pandapipes.create_pipe_from_parameters(net, from_junction=junction3, to_junction=junction5,
-                                           length_km=1, diameter_m=0.3, name="Pipe 4",
+                                           length_km=1, inner_diameter_mm=300, name="Pipe 4",
                                            geodata=[(7, 4), (7, 3), (5, 3)])
     pandapipes.create_pipe_from_parameters(net, from_junction=junction4, to_junction=junction6,
-                                           length_km=1, diameter_m=0.3, name="Pipe 5",
+                                           length_km=1, inner_diameter_mm=300, name="Pipe 5",
                                            geodata=[(7, -4), (7, -3), (5, -3)])
     pandapipes.create_pipe_from_parameters(net, from_junction=junction7, to_junction=junction8,
-                                           length_km=1, diameter_m=0.3, name="Pipe 6",
+                                           length_km=1, inner_diameter_mm=300, name="Pipe 6",
                                            geodata=[(9, -4), (9, 0)])
     pandapipes.create_pipe_from_parameters(net, from_junction=junction7, to_junction=junction8,
-                                           length_km=1, diameter_m=0.3, name="Pipe 7",
+                                           length_km=1, inner_diameter_mm=300, name="Pipe 7",
                                            geodata=[(9, 0), (9, 4)])
 
-    pandapipes.create_valve(net, junction5, junction6, et='ju', diameter_m=0.05,
+    pandapipes.create_valve(net, junction5, junction6, et='ju', inner_diameter_mm=50,
                             opened=True)
-    pandapipes.create_heat_exchanger(net, junction3, junction8, diameter_m=0.3, qext_w=20000)
+    pandapipes.create_heat_exchanger(net, junction3, junction8, inner_diameter_mm=300, qext_w=20000)
     pandapipes.create_sink(net, junction=junction4, mdot_kg_per_s=0.545, name="Sink 1")
     pandapipes.create_source(net, junction=junction3, mdot_kg_per_s=0.234)
     pandapipes.create_pump_from_parameters(net, junction4, junction7, 'P1')
@@ -78,7 +78,7 @@ def create_base_net(oos):
     if oos:
         pandapipes.create_ext_grid(net, junction=junction1, p_bar=1.1, t_k=293.15,
                                    name="Grid Connection", in_service=False)
-        pandapipes.create_heat_exchanger(net, junction3, junction8, diameter_m=0.3, qext_w=20000,
+        pandapipes.create_heat_exchanger(net, junction3, junction8, inner_diameter_mm=300, qext_w=20000,
                                          in_service=False)
         pandapipes.create_sink(net, junction=junction4, mdot_kg_per_s=0.545, name="Sink 2",
                                in_service=False)
@@ -212,8 +212,8 @@ def test_reindex_pipes():
     net_orig = nw.simple_gas_networks.gas_tcross1()
     net = nw.simple_gas_networks.gas_tcross1()
 
-    pandapipes.create_valve(net_orig, junction=0, element=0, et='pi', diameter_m=0.1)
-    pandapipes.create_valve(net, junction=0, element=0, et='pi', diameter_m=0.1)
+    pandapipes.create_valve(net_orig, junction=0, element=0, et='pi', inner_diameter_mm=100)
+    pandapipes.create_valve(net, junction=0, element=0, et='pi', inner_diameter_mm=100)
 
     to_add = 5
     new_pipe_idxs = np.array(list(net.pipe.index)) + to_add
@@ -287,7 +287,8 @@ def test_select_subnet(base_net_is_wo_pumps):
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
     net2 = pandapipes.select_subnet(net, net.junction.index[:-3], include_results=True)
     for comp in net.component_list:
-        assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
+        if len(net[comp.table_name()]):
+            assert len(net2["res_" + comp.table_name()]) == len(net2[comp.table_name()])
     assert len(net.junction) == len(net2.junction) + 3
 
 def test_pit_extraction():

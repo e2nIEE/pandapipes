@@ -26,9 +26,9 @@ def test_pump_from_measurement_parameteres(use_numba):
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
     pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380,
-                                           diameter_m=0.1022)
+                                           inner_diameter_mm=102.2)
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370,
-                                           diameter_m=0.1022)
+                                           inner_diameter_mm=102.2)
     pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
     pandapipes.create_pump_from_parameters(net, j2, j3, 'P1', [6.1, 5.8, 4], [0, 19, 83], 2)
     pandapipes.create_sink(net, j4, 0.02333)
@@ -67,9 +67,9 @@ def test_pump_from_regression_parameteres(use_numba):
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
     pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380,
-                                           diameter_m=0.1022)
+                                           inner_diameter_mm=102.2)
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370,
-                                           diameter_m=0.1022)
+                                           inner_diameter_mm=102.2)
     pandapipes.create_ext_grid(net, j1, 5, 283.15, type="p")
     pandapipes.create_pump_from_parameters(net, j2, j3, 'P1',
                                            poly_coefficents=[-1.48620799e-04, -1.29656785e-02,
@@ -211,9 +211,9 @@ def test_compression_power(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=1.05, tfluid_k=293.15, height_m=height_asl_m+10)
 
     _ = pandapipes.create_pipe_from_parameters(net, from_junction=j0, to_junction=j1, length_km=0.1,
-                                               diameter_m=0.05)
+                                               inner_diameter_mm=50)
     _ = pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=0.5,
-                                               diameter_m=0.05)
+                                               inner_diameter_mm=50)
 
     _ = pandapipes.create_pump(net, from_junction=j1, to_junction=j2, std_type="P2", name="Pump1")
 

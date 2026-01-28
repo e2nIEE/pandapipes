@@ -9,7 +9,7 @@ from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, TOUTINIT, FROM_NODE, TEXT, ALPHA, TL, QEXT, T_OUT_OLD
+    MDOTINIT, TOUTINIT, FROM_NODE, TEXT, ALPHA, TL, QEXT, DO, T_OUT_OLD
 from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE, LOAD, MDOTSLACKINIT, TINIT_OLD
 
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def derivatives_thermal_np(node_pit, branch_pit,
     mdot = np.abs(branch_pit[:, MDOTINIT])
     t_amb = branch_pit[:, TEXT]
     length = branch_pit[:, LENGTH]
-    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
+    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, DO]
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
 

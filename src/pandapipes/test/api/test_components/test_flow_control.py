@@ -12,7 +12,7 @@ def test_flow_control_simple_heat(use_numba):
     j1, j2, j3, j4, j5, j6, j7, j8 = j
 
     p12, p25, p48, p74 = pandapipes.create_pipes_from_parameters(
-        net, [j1, j2, j4, j7], [j2, j5, j8, j4], 0.2, 0.1, k_mm=0.1, u_w_per_m2k=20.,
+        net, [j1, j2, j4, j7], [j2, j5, j8, j4], 0.2, 100, k_mm=0.1, u_w_per_m2k=20.,
         text_k=280)
 
     pandapipes.create_heat_exchanger(net, j3, j4, 0.1, 50000, 1)
@@ -52,7 +52,7 @@ def test_flow_control_simple_gas(use_numba):
     j1, j2, j3, j4, j5, j6, j7, j8 = j
 
     p12, p23, p34, p45, p56, p58, p67 = pandapipes.create_pipes_from_parameters(
-        net, [j1, j2, j3, j4, j5, j5, j6], [j2, j3, j4, j5, j6, j8, j7], 0.2, 0.1, k_mm=0.1)
+        net, [j1, j2, j3, j4, j5, j5, j6], [j2, j3, j4, j5, j6, j8, j7], 0.2, 100, k_mm=0.1)
 
     pandapipes.create_flow_controls(net, [j2, j3, j4], [j6, j5, j8], [0.03, 0.02, 0.03], 0.1)
 
@@ -76,7 +76,7 @@ def test_flow_control_simple_gas_two_eg(use_numba):
     j = pandapipes.create_junctions(net, 4, pn_bar=1, tfluid_k=298)
     j1, j2, j3, j4 = j
 
-    p12, p34 = pandapipes.create_pipes_from_parameters(net, [j1, j3], [j2, j4], 0.2, 0.1, k_mm=0.1)
+    p12, p34 = pandapipes.create_pipes_from_parameters(net, [j1, j3], [j2, j4], 0.2, 100, k_mm=0.1)
 
     pandapipes.create_flow_control(net, j2, j3, 0.03, 0.1)
 
