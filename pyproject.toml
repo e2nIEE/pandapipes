@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pandapipes"
-version = "0.12.1.dev0"  # File format version '__format_version__' is tracked in __init__.py
+version = "0.13.1.dev0"  # File format version '__format_version__' is tracked in __init__.py
 authors=[
     { name = "Simon Ruben Drauz-Mauel", email = "simon.ruben.drauz-mauel@iee.fraunhofer.de" },
     { name = "Daniel Lohmeier", email = "daniel.lohmeier@retoflow.de" },
@@ -33,7 +33,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    "pandapower >= 3.1",
+    "pandapower == 3.3.0",
     "matplotlib",
     "shapely",
 ]

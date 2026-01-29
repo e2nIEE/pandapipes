@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,16 +9,17 @@ from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
 from pandapipes.idx_branch import (
+    TOUTINIT,
     FROM_NODE,
     TO_NODE,
     branch_cols,
-    MDOTINIT,
+    DIRECTED,
     ACTIVE as ACTIVE_BR,
     FLOW_RETURN_CONNECT,
     ACTIVE,
 )
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
-    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED, GE
+    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED, GE, TINIT
 from pandapipes.properties.fluids import get_fluid
 
 try:
@@ -167,7 +168,9 @@ def get_lookup(net, pit_type="node", lookup_type="index"):
     lookup_type = lookup_type.lower()
     all_lookup_types = ["index", "table", "from_to", "active_hydraulics", "active_heat_transfer",
                         "length", "from_to_active_hydraulics", "from_to_active_heat_transfer",
-                        "index_active_hydraulics", "index_active_heat_transfer", "zero_flow"]
+                        "index_active_hydraulics", "index_active_heat_transfer", "zero_flow",
+                        "active_match_hydraulics", "active_match_heat_transfer",
+                        "old_pit_cols"]
     if lookup_type not in all_lookup_types:
         type_names = "', '".join(all_lookup_types)
         logger.error("No lookup type '%s' exists. Please choose one of '%s'."
@@ -386,10 +389,17 @@ def initialize_pit(net):
     else:
         pit = net["_pit"]
 
+    if get_net_option(net, "transient") and get_net_option(net,"simulation_time_step") != 0 and net.converged:
+        create_old_pit(net, [TINIT], [TOUTINIT])
+
     for comp in net['component_list']:
         comp.create_pit_node_entries(net, pit["node"])
         comp.create_pit_branch_entries(net, pit["branch"])
         comp.create_component_array(net, pit["components"])
+
+    if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0 or not net.converged:
+        # This needs to be done after the pit values are set
+        create_old_pit(net, [TINIT], [TOUTINIT])
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
@@ -422,6 +432,41 @@ def create_empty_pit(net):
     net["_pit"] = pit
     return pit
 
+def create_old_pit(net, required_node_cols=None, required_branch_cols=None):
+    """
+    Creates an empty internal partial structure of the given internal structure which is called \
+    old_pit (old pandapipes internal tables). The structure is a dictionary which should contain \
+    one array for all nodes and one array for all branches of the net. \
+    In general looks like this:
+
+    >>> net["_old_pit"] = {"node": np.array((no_nodes, required_node_cols), dtype=np.float64),
+    >>>                    "branch": np.array((no_branches, required_branch_cols), dtype=np.float64)}
+
+    :param net: The pandapipes net to which to add the empty structure
+    :type net: pandapipesNet
+    :param required_node_cols: The node cols that should be kept
+    :type required_node_cols: list, default None
+    :param required_branch_cols: The branch cols that should be kept
+    :type required_branch_cols: list, default None
+    :return: pit - The dict of arrays with the internal node / branch structure
+    :rtype: dict
+
+    """
+    pit = dict(keys=['node', 'branch'])
+    if required_node_cols is None:
+        required_node_cols = []
+    if required_branch_cols is None:
+        required_branch_cols = []
+    pit["node"] = copy.deepcopy(net._pit["node"][:, required_node_cols])
+    pit["branch"] = copy.deepcopy(net._pit["branch"][:, required_branch_cols])
+    nc = - np.ones(max(required_node_cols) + 1, dtype=np.int32)
+    bc = - np.ones(max(required_branch_cols) + 1, dtype=np.int32)
+    nc[required_node_cols] = range(len(required_node_cols))
+    bc[required_branch_cols] = range(len(required_branch_cols))
+    net._lookups["node_old_pit_cols"] = nc
+    net._lookups["branch_old_pit_cols"] = bc
+    net["_old_pit"] = pit
+    return pit
 
 def init_all_result_tables(net):
     """
@@ -600,28 +645,33 @@ def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_l
     len_nodes = len(node_pit)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
     to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
+    directed = branch_pit[:, DIRECTED].astype(bool)
     nobranch = np.sum(active_branch_lookup)
+    nobranch_ud = np.sum(active_branch_lookup & ~directed)
     active_from_nodes = from_nodes[active_branch_lookup]
     active_to_nodes = to_nodes[active_branch_lookup]
+    active_from_nodes_ud = from_nodes[active_branch_lookup & ~directed]
+    active_to_nodes_ud = to_nodes[active_branch_lookup & ~directed]
 
     # we create a "virtual" node that is connected to all slack nodes and start the connectivity
     # search at this node
-    fn_matrix = np.concatenate([active_from_nodes, slack_nodes])
-    tn_matrix = np.concatenate([active_to_nodes,
+    fn_matrix = np.concatenate([active_from_nodes, active_to_nodes_ud,
                                 np.full(len(slack_nodes), len_nodes, dtype=np.int32)])
+    tn_matrix = np.concatenate([active_to_nodes, active_from_nodes_ud,
+                                slack_nodes])
 
-    adj_matrix = coo_matrix((np.ones(nobranch + len(slack_nodes)), (fn_matrix, tn_matrix)),
+    adj_matrix = coo_matrix((np.ones(nobranch + nobranch_ud + len(slack_nodes)), (fn_matrix, tn_matrix)),
                             shape=(len_nodes + 1, len_nodes + 1))
 
     # check which nodes are reachable from the virtual heat slack node
-    reachable_nodes = csgraph.breadth_first_order(adj_matrix, len_nodes, False, False)
+    reachable_nodes = csgraph.breadth_first_order(adj_matrix, len_nodes, True, False)
     # throw out the virtual heat slack node
     reachable_nodes = reachable_nodes[reachable_nodes != len_nodes]
 
     nodes_connected = np.zeros(len(active_node_lookup), dtype=bool)
     nodes_connected[reachable_nodes] = True
 
-    if not np.all(nodes_connected[active_from_nodes] == nodes_connected[active_to_nodes]):
+    if not np.all(nodes_connected[active_from_nodes_ud] == nodes_connected[active_to_nodes_ud]):
         raise ValueError(
             "An error occured in the %s connectivity check. Please contact the pandapipes "
             "development team!" % mode)
@@ -690,22 +740,30 @@ def reduce_pit(net, mode="hydraulics"):
     """
 
     node_pit = net["_pit"]["node"]
+    node_pit_old = net["_old_pit"]["node"]
     branch_pit = net["_pit"]["branch"]
+    branch_pit_old = net["_old_pit"]["branch"]
 
     active_pit = dict()
+    active_pit_old = dict()
     els = dict()
-    reduced_node_lookup = None
     nodes_connected = get_lookup(net, "node", "active_" + mode)
     branches_connected = get_lookup(net, "branch", "active_" + mode)
+    reduced_node_lookup = np.cumsum(nodes_connected) - 1
+    reduced_branch_lookup = np.cumsum(branches_connected) - 1
+    net["_lookups"]["node_active_match_" + mode] = reduced_node_lookup
+    net["_lookups"]["branch_active_match_" + mode] = reduced_branch_lookup
+
     if np.all(nodes_connected):
         net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "node", "from_to"))
         net["_lookups"]["node_index_active_" + mode] = copy.deepcopy(
             get_lookup(net, "node", "index"))
         active_pit["node"] = np.copy(node_pit)
+        active_pit_old["node"] = np.copy(node_pit_old)
     else:
         active_pit["node"] = np.copy(node_pit[nodes_connected, :])
-        reduced_node_lookup = np.cumsum(nodes_connected) - 1
+        active_pit_old["node"] = np.copy(node_pit_old[nodes_connected, :])
         node_idx_lookup = get_lookup(net, "node", "index")
         net["_lookups"]["node_index_active_" + mode] = {
             tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]]
@@ -715,26 +773,29 @@ def reduce_pit(net, mode="hydraulics"):
         net["_lookups"]["branch_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "branch", "from_to"))
         active_pit["branch"] = np.copy(branch_pit)
+        active_pit_old["branch"] = np.copy(branch_pit_old)
         net["_lookups"]["branch_index_active_" + mode] = copy.deepcopy(
             get_lookup(net, "branch", "index"))
     else:
         active_pit["branch"] = np.copy(branch_pit[branches_connected, :])
+        active_pit_old["branch"] = np.copy(branch_pit_old[branches_connected, :])
         branch_idx_lookup = get_lookup(net, "branch", "index")
         if len(branch_idx_lookup):
-            reduced_branch_lookup = np.cumsum(branches_connected) - 1
             net["_lookups"]["branch_index_active_" + mode] = {
                 tbl: reduced_branch_lookup[idx_lookup[idx_lookup != -1]]
                 for tbl, idx_lookup in branch_idx_lookup.items()}
         else:
             net["_lookups"]["branch_index_active_" + mode] = dict()
         els["branch"] = branches_connected
-    if reduced_node_lookup is not None:
+    if len(set(reduced_node_lookup)) != len(reduced_node_lookup):
         active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
             branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
         active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
             branch_pit[branches_connected, TO_NODE].astype(np.int32)]
     net["_active_pit"] = active_pit
+    net["_active_old_pit"] = active_pit_old
 
+    #ToDo Why not adapting everything directly above?
     for el, connected_els in els.items():
         ft_lookup = get_lookup(net, el, "from_to")
         aux_lookup = {table: (ft[0], ft[1], np.sum(connected_els[ft[0]: ft[1]]))

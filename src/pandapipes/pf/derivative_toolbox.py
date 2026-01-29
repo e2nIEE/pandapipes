@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,8 +9,8 @@ from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, TOUTINIT, FROM_NODE, TEXT, ALPHA, TL, QEXT, T_OUT_OLD
-from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE, LOAD, MDOTSLACKINIT, TINIT_OLD
+    MDOTINIT, TOUTINIT, FROM_NODE, TEXT, ALPHA, TL, QEXT, DO
+from pandapipes.idx_node import HEIGHT, PINIT, PAMB, TINIT as TINIT_NODE, LOAD, MDOTSLACKINIT
 
 logger = logging.getLogger(__name__)
 
@@ -76,18 +76,20 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
     return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
 
 def derivatives_thermal_np(node_pit, branch_pit,
-                              from_nodes, to_nodes,
-                              t_init_i, t_init_i1, t_init_n,
-                              cp_i, cp_i1, cp_n, cp,
-                              rho, dt, transient,
-                              amb):
+                           node_pit_old, node_pit_old_lookup,
+                           branch_pit_old, branch_pit_old_lookup,
+                           from_nodes, to_nodes,
+                           t_init_i, t_init_i1, t_init_n,
+                           cp_i, cp_i1, cp_n, cp,
+                           rho, dt, transient,
+                           amb):
     # this is not required currently, but useful when implementing leakages
     # m_init_i = np.abs(branch_pit[:, MDOTINIT])
     # m_init_i1 = np.abs(branch_pit[:, MDOTINIT])
     mdot = np.abs(branch_pit[:, MDOTINIT])
     t_amb = branch_pit[:, TEXT]
     length = branch_pit[:, LENGTH]
-    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, D]
+    alpha = branch_pit[:, ALPHA] * np.pi * branch_pit[:, DO]
     tl = branch_pit[:, TL]
     qext = branch_pit[:, QEXT]
 
@@ -99,11 +101,9 @@ def derivatives_thermal_np(node_pit, branch_pit,
     fn = np.zeros_like(cp_n)
     fn[nodes_flow] = (node_pit[nodes_flow, LOAD] * cp_n[nodes_flow] * t_init_n[nodes_flow] +
                       node_pit[nodes_flow, MDOTSLACKINIT] * cp_n[nodes_flow] * t_init_n[nodes_flow])
-    fn[~nodes_flow] = amb - t_init_n[~nodes_flow]
 
     dfn_dt = np.zeros_like(cp_n)
     dfn_dt[nodes_flow] = - node_pit[nodes_flow, LOAD] * cp_n[nodes_flow]
-    dfn_dt[~nodes_flow] = np.ones_like(cp_n[~nodes_flow])
     dfn_dts = - node_pit[:, MDOTSLACKINIT] * cp_n
 
     fbf = mdot * t_init_i * cp_i
@@ -113,7 +113,7 @@ def derivatives_thermal_np(node_pit, branch_pit,
 
     if transient:
         area = branch_pit[:, AREA]
-        tvor = branch_pit[:, T_OUT_OLD]
+        tvor = branch_pit_old[:, branch_pit_old_lookup[TOUTINIT]]
 
         fb = (
                 rho * area * cp * (t_init_i1 - tvor) * (1 / dt) * length
@@ -122,11 +122,11 @@ def derivatives_thermal_np(node_pit, branch_pit,
         )
 
         dfb_dt = - cp * mdot
-        dfb_dtout = rho * area * cp / dt * length + cp * mdot + alpha
+        dfb_dtout = rho * area * cp / dt * length + cp * mdot + alpha * length
 
         if np.any(~branches_flow):
             # TODO: maybe replace this statement with a component lookup
-            zero_length = np.isclose(branch_pit[:, LENGTH], 0, rtol=1e-6, atol=1e-10)
+            zero_length = np.isclose(branch_pit[:, LENGTH], 0, atol=1e-10)
             mask = zero_length & ~branches_flow
             if np.any(mask):
                 fb[mask] = (
@@ -141,8 +141,8 @@ def derivatives_thermal_np(node_pit, branch_pit,
             fn_zero = ~nodes_flow[from_nodes]
             tn_zero = ~nodes_flow[to_nodes]
 
-            t_from_node_vor_zero = node_pit[from_nodes[fn_zero], TINIT_OLD]
-            t_to_node_vor_zero = node_pit[to_nodes[tn_zero], TINIT_OLD]
+            t_from_node_vor_zero = node_pit_old[from_nodes[fn_zero], node_pit_old_lookup[TINIT_NODE]]
+            t_to_node_vor_zero = node_pit_old[to_nodes[tn_zero], node_pit_old_lookup[TINIT_NODE]]
             t_to_node = node_pit[to_nodes[tn_zero], TINIT_NODE]
 
             fn_eq = (rho[fn_zero] * area[fn_zero] * cp[fn_zero] * (1 / dt)
@@ -156,7 +156,7 @@ def derivatives_thermal_np(node_pit, branch_pit,
             fn_deriv = (rho[fn_zero] * area[fn_zero] * cp[fn_zero] * (1 / dt) + alpha[fn_zero])
             tn_deriv = (rho[tn_zero] * area[tn_zero] * cp[tn_zero] * (1 / dt) + alpha[tn_zero])
 
-            fn_nodes, fn_eq_sum, fn_deriv_sum= _sum_by_group(False,
+            fn_nodes, fn_eq_sum, fn_deriv_sum = _sum_by_group(False,
                 from_nodes[fn_zero], fn_eq, fn_deriv
             )
 
@@ -194,6 +194,8 @@ def derivatives_thermal_np(node_pit, branch_pit,
                 - qext[branches_flow] / (cp[branches_flow] * mdot[branches_flow])
         )
         fb[~branches_flow] = amb - t_init_i1[~branches_flow]
+        fn[~nodes_flow] = amb - t_init_n[~nodes_flow]
+        dfn_dt[~nodes_flow] = np.ones_like(cp_n[~nodes_flow])
 
         dfb_dt = np.zeros_like(cp)
         dfb_dt[branches_flow] = np.exp(- alpha[branches_flow] * length[branches_flow] /

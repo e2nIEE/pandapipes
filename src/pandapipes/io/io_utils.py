@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -41,8 +41,9 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     from_serializable = deepcopy(FromSerializableRegistry.from_serializable)
     class_name = ''
     module_name = ''
+    omit_modules = ''
 
-    def __init__(self, obj, d, ppipes_hook, ignore_unknown_objects=False):
+    def __init__(self, obj, d, ppipes_hook, ignore_unknown_objects=False, omit_modules=None):
         """
 
         :param obj: object the data is written to
@@ -52,7 +53,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         :param ppipes_hook: a way how to handle non-default data
         :type ppipes_hook: funct
         """
-        super().__init__(obj, d, ppipes_hook, ignore_unknown_objects)
+        super().__init__(obj, d, ppipes_hook, ignore_unknown_objects, omit_modules)
 
     @from_serializable.register(class_name="method")
     def method(self):
@@ -99,7 +100,8 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                 self.obj = json.loads(
                     self.obj, cls=PPJSONDecoder,
                     object_hook=partial(pp_hook, registry_class=FromSerializableRegistryPpipe,
-                                        ignore_unknown_objects=self.ignore_unknown_objects)
+                                        ignore_unknown_objects=self.ignore_unknown_objects,
+                                        omit_modules=self.omit_modules)
                 )
                 # backwards compatibility
             if "net" in self.obj:

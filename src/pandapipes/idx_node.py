@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -33,6 +33,4 @@ JAC_DERIV_MSL = 16
 JAC_DERIV_DT_SLACK = 17
 JAC_DERIV_DT_LOAD = 18
 
-TINIT_OLD = 19
-
-node_cols = 20
+node_cols = 19

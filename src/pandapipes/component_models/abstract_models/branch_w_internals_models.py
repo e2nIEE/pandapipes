@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,6 +10,7 @@ from pandapipes.idx_branch import (
     ACTIVE,
     ELEMENT_IDX,
     D,
+    DO,
     LOSS_COEFFICIENT as LC,
     AREA,
     QEXT,
@@ -191,8 +192,16 @@ class BranchWInternalsComponent(BranchComponent):
                 has_internals)
             set_entry_check_repeat(branch_w_internals_pit, ACTIVE, net[tbl][cls.active_identifier()].values,
                 internal_branch_number, has_internals)
-            set_entry_check_repeat(branch_w_internals_pit, D, net[tbl].diameter_m.values, internal_branch_number,
+            set_entry_check_repeat(branch_w_internals_pit, D, net[tbl].inner_diameter_mm.values / 1000., internal_branch_number,
                 has_internals)
+            if "outer_diameter_mm" in net[tbl]:
+                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].outer_diameter_mm.values / 1000., internal_branch_number,
+                    has_internals)
+                branch_w_internals_pit[np.isnan(branch_w_internals_pit[:, DO]), DO] = (
+                    branch_w_internals_pit)[np.isnan(branch_w_internals_pit[:, DO]), D]
+            else:
+                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].inner_diameter_mm.values / 1000., internal_branch_number,
+                    has_internals)
             set_entry_check_repeat(branch_w_internals_pit, LC, net[tbl].loss_coefficient.values, internal_branch_number,
                 has_internals)
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,9 +10,8 @@ from pandapipes.component_models.abstract_models import BranchWInternalsComponen
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat, vinterp, p_correction_height_air
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE
-from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, MDOTINIT, ALPHA, TEXT, TOUTINIT, \
-    T_OUT_OLD
-from pandapipes.idx_node import (TINIT as TINIT_NODE, HEIGHT, PINIT, PAMB, ACTIVE as ACTIVE_ND, TINIT_OLD, )
+from pandapipes.idx_branch import FROM_NODE, TO_NODE, LENGTH, D, AREA, K, MDOTINIT, ALPHA, TEXT, TOUTINIT
+from pandapipes.idx_node import TINIT as TINIT_NODE, HEIGHT, PINIT, PAMB, ACTIVE as ACTIVE_ND
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
@@ -98,9 +97,6 @@ class Pipe(BranchWInternalsComponent):
                 int_node_pit[:, PAMB] = p_correction_height_air(int_node_pit[:, HEIGHT])
                 int_node_pit[:, ACTIVE_ND] = np.repeat(net[cls.table_name()][cls.active_identifier()].values,
                                                        int_node_number)
-            if get_net_option(net, "transient"):
-                int_node_pit[:, TINIT_OLD] = vinterp(junction_pit[fj_nodes, TINIT_OLD],
-                                                      junction_pit[tj_nodes, TINIT_OLD], int_node_number)
 
 
     @classmethod
@@ -145,8 +141,6 @@ class Pipe(BranchWInternalsComponent):
             nan_mask = np.isnan(pipe_pit[:, TEXT])
             pipe_pit[nan_mask, TEXT] = get_net_option(net, 'ambient_temperature')
             pipe_pit[:, AREA] = pipe_pit[:, D] ** 2 * np.pi / 4
-        if get_net_option(net, "transient"):
-            pipe_pit[:, T_OUT_OLD] =  node_pit[to_nodes, TINIT_OLD]
 
         pipe_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
         pipe_pit[:, MDOTINIT] *= pipe_pit[:, AREA] * get_fluid(net).get_density(NORMAL_TEMPERATURE)
@@ -280,7 +274,8 @@ class Pipe(BranchWInternalsComponent):
         :rtype:
         """
         return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("std_type", dtype(object)),
-                ("length_km", "f8"), ("diameter_m", "f8"), ("k_mm", "f8"), ("loss_coefficient", "f8"),
+                ("length_km", "f8"), ("inner_diameter_mm", "f8"), ("outer_diameter_mm", "f8"),
+                ("k_mm", "f8"), ("loss_coefficient", "f8"),
                 ("u_w_per_m2k", 'f8'), ("text_k", 'f8'), ("sections", "u4"), ("in_service", 'bool'),
                 ("type", dtype(object))]
 

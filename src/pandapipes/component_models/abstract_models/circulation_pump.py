@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -100,15 +100,29 @@ class CirculationPump(BranchWOInternalsComponent):
         :type branch_pit:
         :return: No Output.
         """
+
+        node_pit = net["_pit"]["node"]
+        junction_idx_lookups = get_lookup(net, "node", "index")[
+            cls.get_connected_node_type().table_name()]
+
         circ_pump_tbl = net[cls.table_name()][net[cls.table_name()][cls.active_identifier()].values]
         circ_pump_pit = super().create_pit_branch_entries(net, branch_pit)
         circ_pump_pit[:, D] = 0.1
         circ_pump_pit[:, AREA] = circ_pump_pit[:, D] ** 2 * np.pi / 4
-        circ_pump_pit[:, TOUTINIT] = circ_pump_tbl.t_flow_k.values
+
+        types = circ_pump_tbl.type.values
+        mask_t = np.isin(types, ["pt", "t"])
+        juncts = circ_pump_tbl[cls.from_to_node_cols()[1]].values
+        to_nodes = junction_idx_lookups[juncts]
+        circ_pump_pit[mask_t, TOUTINIT] = circ_pump_tbl.t_flow_k.values[mask_t]
+        circ_pump_pit[~mask_t, TOUTINIT] = node_pit[to_nodes[~mask_t], TINIT]
         return circ_pump_pit
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net,
+                                             branch_pit, node_pit,
+                                             branch_pit_old, node_pit_old,
+                                             idx_lookups, options):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network
@@ -125,7 +139,10 @@ class CirculationPump(BranchWOInternalsComponent):
         return circ_pump_pit
 
     @classmethod
-    def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_thermal(cls, net,
+                                           branch_pit, node_pit,
+                                           branch_pit_old, node_pit_old,
+                                           idx_lookups, options):
         """
         Function which creates pit branch entries with a specific table.
         :param net: The pandapipes network

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ def create_source_2pipes_sink(
     t_junctions_k,
     mdot_kg_per_s,
     length_km,
-    diameter_m,
+    inner_diameter_mm,
     pipe_name_suffix="",
     k_mm=0.1,
 ):
@@ -36,7 +36,7 @@ def create_source_2pipes_sink(
         to_junction=j2,
         name="pipe1" + pipe_name_suffix,
         length_km=length_km,
-        diameter_m=diameter_m,
+        inner_diameter_mm=inner_diameter_mm,
         k_mm=k_mm,
     )
     pandapipes.create_pipe_from_parameters(
@@ -45,7 +45,7 @@ def create_source_2pipes_sink(
         to_junction=j3,
         name="pipe2" + pipe_name_suffix,
         length_km=length_km,
-        diameter_m=diameter_m,
+        inner_diameter_mm=inner_diameter_mm,
         k_mm=k_mm,
     )
     pandapipes.create_ext_grid(net, junction=j1, p_bar=10, t_k=t_source_k)
@@ -60,7 +60,7 @@ def test_gas_internal_nodes(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 209.1e-3
+    d = 209.1
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
     pandapipes.create_pipe_from_parameters(net, 0, 1, 12.0, d, k_mm=0.5, sections=12)
@@ -136,7 +136,7 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
+    d = 75
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     pandapipes.create_pipe_from_parameters(
@@ -200,7 +200,7 @@ def test_temperature_internal_nodes_tee_2ab_1zu(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
+    d = 75
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
@@ -253,7 +253,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
+    d = 75
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
@@ -312,7 +312,7 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
+    d = 75
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
@@ -371,7 +371,7 @@ def test_temperature_internal_nodes_2zu_2ab(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
+    d = 75
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
@@ -427,7 +427,7 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
+    d = 75
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
@@ -489,7 +489,7 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     :rtype:
     """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 75e-3
+    d = 75
     j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283)
@@ -543,7 +543,7 @@ def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
 def test_example_hot_water():
     mdot_kg_per_s = 10
     temps_k = [300, 350]
-    d_pipe = 0.1
+    d_pipe = 100
     l_pipe = 1
 
     net = pandapipes.create_empty_network("network", fluid="water")
@@ -556,7 +556,7 @@ def test_example_hot_water():
                 t_junctions_k=t_j_k,
                 pipe_name_suffix=f"_tj_{t_j_k}_tf_{t_fluid}",
                 mdot_kg_per_s=mdot_kg_per_s,
-                diameter_m=d_pipe,
+                inner_diameter_mm=d_pipe,
                 length_km=l_pipe,
             )
 
@@ -567,7 +567,7 @@ def test_example_hot_water():
     # Density (for velocity calculation) is calculated at 273.15 K, which is not the same as the actual temperature of the fluid
     velocities_equal = net.res_pipe["v_mean_m_per_s"].nunique() == 1
     assert not velocities_equal
-    rho_from_v_mean = mdot_kg_per_s / (net.res_pipe.loc[:, "v_mean_m_per_s"] * np.pi * d_pipe**2 / 4).to_numpy()
+    rho_from_v_mean = mdot_kg_per_s / (net.res_pipe.loc[:, "v_mean_m_per_s"] * np.pi * (d_pipe/1000.)**2 / 4).to_numpy()
     assert np.allclose(rho_from_v_mean[[0, 4]], net.fluid.get_density(temps_k))
 
     # dp is really calculated from v_mean, the default density and the various lambdas
@@ -576,6 +576,7 @@ def test_example_hot_water():
         * l_pipe
         * 1000
         / d_pipe
+        * 1000.
         * 0.5
         * rho_from_v_mean
         * net.res_pipe.loc[:, "v_mean_m_per_s"] ** 2

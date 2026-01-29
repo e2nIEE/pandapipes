@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ except importlib.metadata.PackageNotFoundError:
             if "project" in data and "version" in data["project"]:
                 __version__ = data["project"]["version"]
 
-__format_version__ = '0.12.1.dev0'
+__format_version__ = '0.13.1.dev0'
 
 import pandas as pd
 import os
