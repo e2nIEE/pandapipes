@@ -2,11 +2,10 @@ import numpy as np
 from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import (LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, JAC_DERIV_DM, JAC_DERIV_DP,
                                    JAC_DERIV_DP1, JAC_DERIV_DM_NODE, FROM_NODE, TO_NODE, TOUTINIT, AREA,
-                                   LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, JAC_DERIV_DT_NODE,
-                                   LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, LOAD_VEC_NODES_FROM_T, LOAD_VEC_NODES_TO_T,
-                                   JAC_DERIV_DTOUT, JAC_DERIV_DTOUT_NODE, MDOTINIT)
-from pandapipes.idx_node import (TINIT as TINIT_NODE, INFEED, LOAD_T, JAC_DERIV_DT_LOAD, JAC_DERIV_DT_SLACK,
-                                 )
+                                   LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, LOAD_VEC_NODES_TO_T,
+                                   LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, JAC_DERIV_DT_NODE, JAC_DERIV_DTOUT_NODE,
+                                   JAC_DERIV_DTOUT, MDOTINIT)
+from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, LOAD_T, JAC_DERIV_DT_N
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
 from pandapipes.properties.fluids import get_fluid
@@ -100,7 +99,7 @@ def calculate_derivatives_thermal(net,
     else:
         from pandapipes.pf.derivative_toolbox import derivatives_thermal_np as derivatives_termal
     fluid = get_fluid(net)
-    cp = get_branch_cp(fluid, node_pit, branch_pit)
+    cp_b = get_branch_cp(fluid, node_pit, branch_pit)
     # this is not required currently, but useful when implementing leakages
     # m_init_i = np.abs(branch_pit[:, MDOTINIT])
     # m_init_i1 = np.abs(branch_pit[:, MDOTINIT])
@@ -108,36 +107,33 @@ def calculate_derivatives_thermal(net,
     to_nodes = get_to_nodes_corrected(branch_pit)
     t_init_i = node_pit[from_nodes, TINIT_NODE]
     t_init_i1 = branch_pit[:, TOUTINIT]
-    t_init_n =  node_pit[:, TINIT_NODE]
-    cp_i = fluid.get_heat_capacity(t_init_i)
-    cp_i1 = fluid.get_heat_capacity(t_init_i1)
-    cp_n = fluid.get_heat_capacity(t_init_n)
+    t_init_nt = node_pit[to_nodes, TINIT_NODE]
+    t_init_n = node_pit[:, TINIT_NODE]
+    cp_n = fluid.get_heat_capacity((t_init_i1 + t_init_nt) / 2)
     transient = get_net_option(net, "transient")
     dt = get_net_option(net, "dt")
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
     amb = get_net_option(net, 'ambient_temperature')
 
-    fn, dfn_dt, dfn_dts, fb, dfb_dt, dfb_dtout, fbf, fbt, dfbf_dt, dfbt_dtout, infeed = (
+    fn, dfn_dt, fnt, dfnt_dt, dfnt_dtout, fb, dfb_dt, dfb_dtout, infeed = (
         derivatives_termal(node_pit, branch_pit,
                            node_pit_old, node_pit_old_lookup,
                            branch_pit_old, branch_pit_old_lookup,
                            from_nodes, to_nodes,
-                           t_init_i, t_init_i1, t_init_n,
-                           cp_i, cp_i1, cp_n,
-                           cp, rho, dt, transient, amb))
+                           t_init_i, t_init_i1, t_init_nt, t_init_n,
+                           cp_n, cp_b,
+                           rho, dt, transient, amb))
 
     node_pit[:, LOAD_T] = fn
-    node_pit[:, JAC_DERIV_DT_LOAD] = dfn_dt
-    node_pit[:, JAC_DERIV_DT_SLACK] = dfn_dts
+    node_pit[:, JAC_DERIV_DT_N] = dfn_dt
 
     branch_pit[:, LOAD_VEC_BRANCHES_T] = fb
     branch_pit[:, JAC_DERIV_DT] = dfb_dt
     branch_pit[:, JAC_DERIV_DTOUT] = dfb_dtout
 
-    branch_pit[:, LOAD_VEC_NODES_FROM_T] = fbf
-    branch_pit[:, LOAD_VEC_NODES_TO_T] = fbt
-    branch_pit[:, JAC_DERIV_DT_NODE] = dfbf_dt
-    branch_pit[:, JAC_DERIV_DTOUT_NODE] = dfbt_dtout
+    branch_pit[:, LOAD_VEC_NODES_TO_T] = fnt
+    branch_pit[:, JAC_DERIV_DT_NODE] = dfnt_dt
+    branch_pit[:, JAC_DERIV_DTOUT_NODE] = dfnt_dtout
 
     node_pit[:, INFEED] = False
     node_pit[infeed, INFEED] = True
