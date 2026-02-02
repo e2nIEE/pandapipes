@@ -174,9 +174,10 @@ class HeatConsumer(BranchWOInternalsComponent):
             from_nodes = get_from_nodes_corrected(hc_pit)
             t_in = node_pit[from_nodes, TINIT]
             t_out = hc_pit[:, TOUTINIT]
+            qext = hc_pit[:, QEXT]
 
             df_dm = - cp * (t_out - t_in)
-            mask_equal = t_out >= t_in
+            mask_equal = np.where(qext < 0, t_in >= t_out, t_out >= t_in)
             mask_zero = hc_pit[:, QEXT] == 0
             mask_ign = mask_equal | mask_zero
             hc_pit[mask & mask_ign, MDOTINIT] = 0
