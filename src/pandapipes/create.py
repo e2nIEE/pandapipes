@@ -1472,7 +1472,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
     from pandapipes.toolbox import _deprecation_check_u, _deprecation_check_k
 
     if isinstance(std_type, Iterable) and not isinstance(std_type, str):
-        pipe_parameters = {"inner_diameter_m": [], "k_mm": [], "u_w_per_m2k": []}
+        pipe_parameters = {"inner_diameter_mm": [], "outer_diameter_mm": [], "k_mm": [], "u_w_per_m2k": []}
         for s in std_type:
             _check_std_type(net, s, "pipe", "create_pipes")
             params = retrieve_u(load_std_type(net, s, "pipe"))
@@ -1480,7 +1480,8 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
             k = _deprecation_check_k(kwargs, params)
             pipe_parameters["u_w_per_m2k"] += [u if u is not None else params["u_w_per_m2k"]]
             pipe_parameters["k_mm"] += [k if k is not None else params["k_mm"]]
-            pipe_parameters["inner_diameter_m"] += [params["inner_diameter_mm"] / 1000.]
+            pipe_parameters["inner_diameter_mm"] += [params["inner_diameter_mm"]]
+            pipe_parameters["outer_diameter_mm"] += [params["outer_diameter_mm"]]
     else:
         _check_std_type(net, std_type, "pipe", "create_pipes")
         pipe_parameters = retrieve_u(load_std_type(net, std_type, "pipe"))
@@ -1490,7 +1491,6 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
             pipe_parameters["u_w_per_m2k"] = u
         if k is not None:
             pipe_parameters["k_mm"] = k
-        pipe_parameters["inner_diameter_m"] = pipe_parameters["inner_diameter_mm"] / 1000.
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "std_type": std_type, "length_km": length_km,
