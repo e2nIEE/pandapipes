@@ -525,7 +525,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
 
     from pandapipes.toolbox import _deprecation_check_u, _deprecation_check_k
     u = _deprecation_check_u(kwargs)
-    k = _deprecation_check_k(kwargs)
+    k = _deprecation_check_k(kwargs, pipe_parameter)
     if u is not None:
         pipe_parameter["u_w_per_m2k"] = u
     if k is not None:
@@ -1477,7 +1477,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
             _check_std_type(net, s, "pipe", "create_pipes")
             params = retrieve_u(load_std_type(net, s, "pipe"))
             u = _deprecation_check_u(kwargs)
-            k = _deprecation_check_k(kwargs)
+            k = _deprecation_check_k(kwargs, params)
             pipe_parameters["u_w_per_m2k"] += [u if u is not None else params["u_w_per_m2k"]]
             pipe_parameters["k_mm"] += [k if k is not None else params["k_mm"]]
             pipe_parameters["inner_diameter_m"] += [params["inner_diameter_mm"] / 1000.]
@@ -1485,7 +1485,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
         _check_std_type(net, std_type, "pipe", "create_pipes")
         pipe_parameters = retrieve_u(load_std_type(net, std_type, "pipe"))
         u = _deprecation_check_u(kwargs)
-        k = _deprecation_check_k(kwargs)
+        k = _deprecation_check_k(kwargs, pipe_parameters)
         if u is not None:
             pipe_parameters["u_w_per_m2k"] = u
         if k is not None:

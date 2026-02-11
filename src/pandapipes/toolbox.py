@@ -652,12 +652,14 @@ def _deprecation_check_u(kwargs):
         u = None
     return u
 
-def _deprecation_check_k(kwargs):
+def _deprecation_check_k(kwargs, params):
     if 'k_mm' in kwargs:
         warnings.warn("The parameter k_mm will be directly extracted from the std_type in the future."
                       , DeprecationWarning)
-        k = kwargs['k_mm']
-        del kwargs['k_mm']
+        k = kwargs.pop('k_mm')
+    elif "k_mm" not in params:
+        warnings.warn("Please update your std_types as k_mm-values are not given. These are set equals to zero.")
+        k = 0
     else:
         k = None
     return k
