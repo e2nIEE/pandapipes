@@ -466,7 +466,8 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, inner_diamete
     _check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service),
+         "qext_w": qext_w, "inner_diameter_mm": inner_diameter_mm,
+         "loss_coefficient": loss_coefficient, "in_service": bool(in_service),
          "outer_diameter_mm": outer_diameter_mm, "type": type}
     _set_entries(net, "heat_exchanger", index, **v, **kwargs)
 
@@ -1906,7 +1907,8 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, inner_diam
     _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": in_service,
+               "qext_w": qext_w, "inner_diameter_mm": inner_diameter_mm,
+               "loss_coefficient": loss_coefficient, "in_service": in_service,
                "type": type, "outer_diameter_mm": outer_diameter_mm}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
