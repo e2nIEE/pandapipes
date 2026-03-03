@@ -9,7 +9,7 @@ from pandapipes.component_models import standard_branch_wo_internals_result_look
 from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
     BranchWOInternalsComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC
+from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC, DO
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -52,8 +52,14 @@ class HeatExchanger(BranchWOInternalsComponent):
         :return: No Output.
         """
         heat_exchanger_pit = super().create_pit_branch_entries(net, branch_pit)
-        heat_exchanger_pit[:, LC] = net[cls.table_name()].loss_coefficient.values
-        heat_exchanger_pit[:, QEXT] = net[cls.table_name()].qext_w.values
+        tbl = cls.table_name()
+        heat_exchanger_pit[:, LC] = net[tbl].loss_coefficient.values
+        heat_exchanger_pit[:, QEXT] = net[tbl].qext_w.values
+        heat_exchanger_pit[:, D] = net[tbl].inner_diameter_mm.values / 1000.
+        heat_exchanger_pit[:, DO] = net[tbl].outer_diameter_mm.values / 1000.
+        heat_exchanger_pit[np.isnan(heat_exchanger_pit[:, DO]), DO] = heat_exchanger_pit[
+            np.isnan(heat_exchanger_pit[:, DO]), D
+        ]
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -86,10 +92,11 @@ class HeatExchanger(BranchWOInternalsComponent):
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
                 ("to_junction", "u4"),
-                ("diameter_m", "f8"),
+                ("inner_diameter_mm", "f8"),
                 ("qext_w", 'f8'),
                 ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
+                ("outer_diameter_mm", "f8"),
                 ("type", dtype(object))]
 
     @classmethod

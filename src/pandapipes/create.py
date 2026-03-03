@@ -21,7 +21,8 @@ from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, load_std_type
-from pandapipes.deprecations import deprecated_input, input_handler_valve, input_handler_pipe
+from pandapipes.deprecations import deprecated_input, input_handler_valve, input_handler_pipe, \
+    input_handler_heat_exchanger
 
 try:
     import pandaplan.core.pplog as logging
@@ -412,8 +413,10 @@ def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None,
     return index
 
 
-def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coefficient=0, name=None,
-                          index=None, in_service=True, type="heat_exchanger", **kwargs):
+@deprecated_input(input_handler=input_handler_heat_exchanger)
+def create_heat_exchanger(net, from_junction, to_junction, qext_w, inner_diameter_mm,
+                          loss_coefficient=0, name=None, index=None, in_service=True,
+                          outer_diameter_mm=None, type="heat_exchanger", **kwargs):
     """
     Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
 
@@ -428,6 +431,9 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
     :type qext_w: float
+    :param inner_diameter_mm: Inner diameter of the heat exchanger in [mm]. Used for hydraulic\
+            calculations.
+    :type inner_diameter_mm: float
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float
     :param name: The name of the heat exchanger
@@ -437,6 +443,9 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
     :type index: int, default None
     :param in_service: True if the heat exchanger is in service or False if it is out of service
     :type in_service: bool, default True
+    :param outer_diameter_mm: outer diameter of the heat exchanger in [mm]. Used for thermal \
+            calculations. If None, it is assumed to be equal to the inner diameter.
+    :type outer_diameter_mm: float, default None
     :param type: Not used yet
     :type type: str
     :param kwargs: Additional keyword arguments will be added as further columns to the\
@@ -457,7 +466,8 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
     _check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
+         "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service),
+         "outer_diameter_mm": outer_diameter_mm, "type": type}
     _set_entries(net, "heat_exchanger", index, **v, **kwargs)
 
     return index
@@ -636,7 +646,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
 
 @deprecated_input(input_handler=input_handler_valve)
 def create_valve(net, junction, element, et, inner_diameter_mm, opened=True, loss_coefficient=0, name=None, index=None,
-                 type='valve', **kwargs):
+                 outer_diameter_mm=None, type='valve', **kwargs):
     """
     Creates a valve element in net["valve"] from valve parameters.
 
@@ -660,6 +670,9 @@ def create_valve(net, junction, element, et, inner_diameter_mm, opened=True, los
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
     :type index: int, default None
+    :param outer_diameter_mm: outer diameter of the valve in [mm]. Used for thermal calculations. \
+            If not defined, inner and outer diameter are identical.
+    :type outer_diameter_mm: float, default None
     :param type: An identifier for special types of valves
     :type type: str, default None
     :param kwargs: Additional keyword arguments will be added as further columns to the\
@@ -688,15 +701,16 @@ def create_valve(net, junction, element, et, inner_diameter_mm, opened=True, los
     else:
         raise UserWarning("Unknown element type")
 
-    v = {"name": name, "junction": junction, "element": element, "et": et, "inner_diameter_mm": inner_diameter_mm,
-         "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
+    v = {"name": name, "junction": junction, "element": element, "et": et, "opened": opened,
+         "inner_diameter_mm": inner_diameter_mm, "loss_coefficient": loss_coefficient,
+         "outer_diameter_mm": outer_diameter_mm, "type": type}
     _set_entries(net, "valve", index, **v, **kwargs)
 
     return index
 
 
-def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True, type="pump",
-                **kwargs):
+def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True,
+                type="pump", **kwargs):
     """
     Adds one pump in table net["pump"].
 
@@ -742,9 +756,10 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     return index
 
 
-def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name, pressure_list=None,
-                                flowrate_list=None, reg_polynomial_degree=None, poly_coefficents=None, name=None,
-                                index=None, in_service=True, type="pump", **kwargs):
+def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name,
+                                pressure_list=None, flowrate_list=None, reg_polynomial_degree=None,
+                                poly_coefficents=None, name=None, index=None, in_service=True,
+                                type="pump", **kwargs):
     """
     Adds one pump in table net["pump"].
 
@@ -813,15 +828,16 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
         pump = PumpStdType(new_std_type_name, poly_coefficents)
         create_pump_std_type(net, new_std_type_name, pump)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": new_std_type_name,
-         "in_service": bool(in_service), "type": type}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "std_type": new_std_type_name, "in_service": bool(in_service), "type": type}
     _set_entries(net, "pump", index, **v, **kwargs)
 
     return index
 
 
-def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar, t_flow_k=None,
-                                    type="auto", name=None, index=None, in_service=True, **kwargs):
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar,
+                                    t_flow_k=None, type="auto", name=None, index=None,
+                                    in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -1606,7 +1622,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
 
 @deprecated_input(input_handler=input_handler_valve, multiple=True)
 def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, loss_coefficient=0, name=None, index=None,
-                  type='valve', **kwargs):
+                  outer_diameter_mm=None, type='valve', **kwargs):
     """
     Convenience function for creating many valves at once. Parameters 'junctions' and \
     'elements' must be arrays of equal length. Other parameters may be either arrays of the \
@@ -1621,7 +1637,7 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
     :type elements: Iterable(int)
     :param et: element type: "pi" = valves between junction and pipe, "ju" = valves between two junctions
     :type et: Iterable(str) or str
-    :param inner_diameter_mm: The valve diameters in [mm]
+    :param inner_diameter_mm: The valve inner diameters in [mm]. Used for hdraulic calculations.
     :type inner_diameter_mm: Iterable or float
     :param opened: Flag to show if the valves are opened and allow for fluid flow or if they are\
             closed to block the fluid flow.
@@ -1633,6 +1649,9 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
             highest already existing index is selected and counted onwards.
     :type index: Iterable(int), default None
+    :param outer_diameter_mm: The outer valve diameters in [mm], used for thermal calculations. \
+            If not defined, inner and outer diameter are identical.
+    :type outer_diameter_mm: Iterable or float, default None
     :param type: Identifiers for special types of valves (e.g. below or above ground)
     :type type: Iterable or str, default "valve"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
@@ -1683,8 +1702,10 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
             raise UserWarning("%s not connected (%s element, bus): %s" %
                               (table.capitalize(), table, list(bus_element_pairs)))
 
-    entries = {"name": name, "junction": junctions, "element": elements, "et": et, "inner_diameter_mm": inner_diameter_mm,
-               "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
+    entries = {"name": name, "junction": junctions, "element": elements, "et": et,
+               "inner_diameter_mm": inner_diameter_mm, "opened": opened,
+               "loss_coefficient": loss_coefficient, "outer_diameter_mm": outer_diameter_mm,
+               "type": type}
     _set_multiple_entries(net, "valve", index, **entries, **kwargs)
 
     return index
@@ -1828,8 +1849,10 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     return index
 
 
-def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coefficient=0, name=None,
-                           index=None, in_service=True, type="heat_exchanger", **kwargs):
+@deprecated_input(input_handler=input_handler_heat_exchanger, multiple=True)
+def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, inner_diameter_mm,
+                           loss_coefficient=0, name=None, index=None, in_service=True,
+                           outer_diameter_mm=None, type="heat_exchanger", **kwargs):
     """
     Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1846,6 +1869,9 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coeff
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
     :type qext_w: Iterable(float) or float
+    :param inner_diameter_mm: The inner diameter of the heat exchanger in [mm]. Used for hydraulic\
+            calculations.
+    :type inner_diameter_mm: Iterable(float) or float
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: Iterable(float) or float
     :param name: The name of the heat exchangers
@@ -1857,6 +1883,9 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coeff
     :param in_service: True if the heat exchangers are in service or False if they are out of \
             service
     :type in_service: Iterable(bool) or bool, default True
+    :param outer_diameter_mm: The outer diameter of the heat exchanger in [mm]. Used for thermal \
+            calculations. If not defined, the outer diameter is set equal to the inner diameter.
+    :type outer_diameter_mm: Iterable(float) or float, default None
     :param type: Not used yet
     :type type: Iterable(str) or str, default "heat exchanger"
     :param kwargs: Additional keyword arguments will be added as further columns to the\
@@ -1877,7 +1906,8 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coeff
     _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": in_service, "type": type}
+               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": in_service,
+               "type": type, "outer_diameter_mm": outer_diameter_mm}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
     return index
