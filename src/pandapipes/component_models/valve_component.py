@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ from pandapipes.component_models.abstract_models.branch_w_internals_models impor
 from pandapipes.component_models.component_toolbox import standard_branch_wo_internals_result_lookup
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import LENGTH, K, TEXT, ALPHA, FROM_NODE, TO_NODE, TOUTINIT
-from pandapipes.idx_node import TINIT as TINIT_NODE, HEIGHT, PINIT, ACTIVE as ACTIVE_ND, PAMB, TINIT_OLD
+from pandapipes.idx_node import TINIT as TINIT_NODE, HEIGHT, PINIT, ACTIVE as ACTIVE_ND, PAMB
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
@@ -54,8 +54,11 @@ class Valve(BranchWInternalsComponent):
         mask_p = np.flatnonzero(net[cls.table_name()]['et'].values == 'pi')
         val = net[cls.table_name()][list(cls.from_to_node_cols())].values[mask_p]
         _, idx, inv = np.unique(val, return_index=True, return_inverse=True, axis=0)
+        idx_inv = np.empty_like(idx)
+        order = np.argsort(idx)
+        idx_inv[order] = np.arange(len(idx))
         int_nodes[mask_p[idx]] = 1
-        return int_nodes if return_internal_only else (int_nodes, inv, mask_p)
+        return int_nodes if return_internal_only else (int_nodes, idx_inv[inv], mask_p)
 
     @classmethod
     def get_internal_branch_number(cls, net):
@@ -73,26 +76,23 @@ class Valve(BranchWInternalsComponent):
     def create_pit_node_entries(cls, net, node_pit):
         int_node_pit = super().create_pit_node_entries(net, node_pit)
         if int_node_pit is not None:
+            int_node_number = cls.get_internal_node_number(net)
+            junction_table_name = cls.get_connected_node_type().table_name()
+            ft_lookup = get_lookup(net, "node", "from_to")
+            fj_name, _ = cls.from_to_node_cols()
+            f_junction, t_junction = ft_lookup[junction_table_name]
+            junction_pit = node_pit[f_junction:t_junction, :]
+
+            from_junctions = net[cls.table_name()][fj_name].values.astype(np.int32)
+            junction_indices = get_lookup(net, "node", "index")[junction_table_name]
+            junct_pit_index = junction_indices[from_junctions]
+            fj_nodes = np.repeat(junct_pit_index, int_node_number)
+            int_node_pit[:, TINIT_NODE] = junction_pit[fj_nodes, TINIT_NODE]
+            int_node_pit[:, PINIT] = junction_pit[fj_nodes, PINIT]
             if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-                int_node_number = cls.get_internal_node_number(net)
-                junction_table_name = cls.get_connected_node_type().table_name()
-                ft_lookup = get_lookup(net, "node", "from_to")
-                fj_name, _ = cls.from_to_node_cols()
-                f_junction, t_junction = ft_lookup[junction_table_name]
-                junction_pit = node_pit[f_junction:t_junction, :]
-
-                from_junctions = net[cls.table_name()][fj_name].values.astype(np.int32)
-                junction_indices = get_lookup(net, "node", "index")[junction_table_name]
-                junct_pit_index = junction_indices[from_junctions]
-                fj_nodes = np.repeat(junct_pit_index, int_node_number)
-
-                int_node_pit[:, TINIT_NODE] = junction_pit[fj_nodes, TINIT_NODE]
                 int_node_pit[:, HEIGHT] = junction_pit[fj_nodes, HEIGHT]
-                int_node_pit[:, PINIT] = junction_pit[fj_nodes, PINIT]
                 int_node_pit[:, PAMB] = junction_pit[fj_nodes, PAMB]
                 int_node_pit[:, ACTIVE_ND] = junction_pit[fj_nodes, ACTIVE_ND]
-            if get_net_option(net, "transient"):
-                int_node_pit[:, TINIT_OLD] = int_node_pit[:, TINIT_NODE].astype(np.float64)
 
     @classmethod
     def create_pit_branch_entries(cls, net, branch_pit):
@@ -106,14 +106,17 @@ class Valve(BranchWInternalsComponent):
         :return: No Output.
         """
         valve_pit, node_pit = super().create_pit_branch_entries(net, branch_pit)
-        if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-            internal_node_number, inverse_index, mask_p = cls.get_internal_node_number(net, False)
+        internal_node_number, inverse_index, mask_p = cls.get_internal_node_number(net, False)
 
-            fn_col, tn_col = cls.from_to_node_cols()
-            junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
-            from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
-            to_elements = net[cls.table_name()][tn_col].values
-            to_nodes = junction_idx_lookup[to_elements]
+        fn_col, tn_col = cls.from_to_node_cols()
+        junction_idx_lookup = get_lookup(net, "node", "index")[Junction.table_name()]
+        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
+        to_nodes = np.zeros_like(from_nodes, dtype=int)
+        mask_j = net[cls.table_name()].et == 'ju'
+        to_elements = net[cls.table_name()][tn_col].values
+        to_nodes[mask_j] = junction_idx_lookup[to_elements[mask_j]]
+
+        if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             has_internals = np.any(internal_node_number > 0)
             if has_internals:
                 f, t = get_lookup(net, "branch", "from_to")['pipe']
@@ -135,11 +138,11 @@ class Valve(BranchWInternalsComponent):
 
             valve_pit[:, FROM_NODE] = from_nodes
             valve_pit[:, TO_NODE] = to_nodes
-            valve_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
             valve_pit[:, LENGTH] = 0
-            valve_pit[:, K] = 1000
-            valve_pit[:, TEXT] = 293.15
+            valve_pit[:, K] = 1e-3
+            valve_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
             valve_pit[:, ALPHA] = 0
+        valve_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
 
     @classmethod
     def get_component_input(cls):
@@ -149,7 +152,7 @@ class Valve(BranchWInternalsComponent):
         :rtype:
         """
         return [("name", dtype(object)), ("junction", "i8"), ("element", "i8"), ("et", dtype(object)),
-                ("diameter_m", "f8"), ("opened", "bool"), ("loss_coefficient", "f8"), ("type", dtype(object))]
+                ("inner_diameter_mm", "f8"), ("opened", "bool"), ("loss_coefficient", "f8"), ("type", dtype(object))]
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

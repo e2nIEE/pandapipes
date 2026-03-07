@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -173,7 +173,7 @@ def test_collection_valve_pipe():
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(0, 0))
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(2, 0))
 
-    create_valve_pipe_from_parameters(net, j1, j2, 0.1, diameter_m=d, opened=True, loss_coefficient=5e3)
+    create_valve_pipe_from_parameters(net, j1, j2, 0.1, inner_diameter_mm=d, opened=True, loss_coefficient=5e3)
 
     vp_coll_patches, vp_coll_lines = create_valve_pipe_collection(net)
 

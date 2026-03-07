@@ -1,0 +1,10 @@
+**Parameter**;**Datatype**;**Value Range**;**Explanation**
+name;string;;Name of the heat consumer
+from_junction;integer;:math:`>` 0;Index of junction at which the heat consumer starts
+to_junction;integer;:math:`>` 0;Index of junction at which the heat consumer ends
+qext_w;float;;The heat flow entering or leaving the heat consumer [W]
+controlled_mdot_kg_per_s;float;;Mass flow set point [kg/s]
+deltat_k;float;;Temperature difference set point between flow and return [K]
+treturn_k;float;;Return temperature set point [K]
+in_service;boolean;True / False;Specifies if the heat consumer is in service.
+

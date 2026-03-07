@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -11,7 +11,7 @@ from numpy import dtype
 from pandapipes.component_models.abstract_models.node_models import NodeComponent
 from pandapipes.component_models.component_toolbox import p_correction_height_air
 from pandapipes.idx_node import L, ELEMENT_IDX, PINIT, node_cols, HEIGHT, TINIT, PAMB, \
-    ACTIVE as ACTIVE_ND, TINIT_OLD, EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T, LOAD
+    ACTIVE as ACTIVE_ND, EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T, LOAD
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup
 from pandapipes.pf.pipeflow_setup import get_net_option
@@ -82,11 +82,8 @@ class Junction(NodeComponent):
 
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             junction_pit[:, :] = np.array([table_nr, 0, L] + [0] * (node_cols - 3))
-            junction_pit[:, TINIT] = junctions.tfluid_k.values
             junction_pit[:, ELEMENT_IDX] = junctions.index.values
             junction_pit[:, HEIGHT] = junctions.height_m.values
-            junction_pit[:, PINIT] = junctions.pn_bar.values
-            junction_pit[:, TINIT] = junctions.tfluid_k.values
             junction_pit[:, PAMB] = p_correction_height_air(junction_pit[:, HEIGHT])
             junction_pit[:, ACTIVE_ND] = junctions.in_service.values
         else:
@@ -94,8 +91,8 @@ class Junction(NodeComponent):
             junction_pit[:, EXT_GRID_OCCURENCE_T] = 0
             junction_pit[:, LOAD] = 0
 
-        if get_net_option(net, "transient"):
-            junction_pit[:, TINIT_OLD] = junction_pit[:, TINIT]
+        junction_pit[:, TINIT] = junctions.tfluid_k.values
+        junction_pit[:, PINIT] = junctions.pn_bar.values
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

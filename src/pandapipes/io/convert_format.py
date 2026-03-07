@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@ from packaging import version
 import numpy as np
 
 from pandapipes import __format_version__, __version__
-from pandapipes.pandapipes_net import add_default_components
+from pandapipes.pandapipes_net import add_default_components, Sector
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 from pandapipes.component_models.valve_component import Valve
@@ -23,6 +23,7 @@ def convert_format(net):
     """
     Converts old nets to new format to ensure consistency. The converted net is returned.
     """
+    _add_sector(net)
     add_default_components(net, overwrite=False)
     format_version = version.parse(__format_version__)
     # For possible problems with this line of code, please check out
@@ -50,6 +51,13 @@ def _rename_columns(net):
     if "pipe" in net:
         if "u_w_per_m2k" not in net["pipe"].columns:
             net["pipe"].rename(columns={"alpha_w_per_m2k": "u_w_per_m2k"}, inplace=True)
+        if "inner_diameter_mm" not in net["pipe"].columns:
+            net["pipe"].diameter_m = net["pipe"].diameter_m * 1000.
+            net["pipe"].rename(columns={"diameter_m": "inner_diameter_mm"}, inplace=True)
+    if "valve" in net:
+        if "inner_diameter_mm" not in net["valve"].columns:
+            net["valve"].diameter_m = net["valve"].diameter_m * 1000.
+            net["valve"].rename(columns={"diameter_m": "inner_diameter_mm"}, inplace=True)
     for comp in [CirculationPumpMass, CirculationPumpPressure]:
         cp_tbl = comp.table_name()
         if cp_tbl in net:
@@ -62,15 +70,15 @@ def _rename_columns(net):
     if Valve.table_name() in net:
         old_cols = ["from_junction", "to_junction"]
         new_cols = list(Valve.from_to_node_cols())
+        old_net = False
         for o, n in zip(old_cols, new_cols):
-            old_net = False
             if o in net[Valve.table_name()]:
                 net[Valve.table_name()].rename(columns={o: n}, inplace=True)
                 old_net = True
-            if old_net:
-                if 'et' in net[Valve.table_name()]:
-                    logger.warning(r"'et' is a new required variable for valves. Therefore, 'et' will be overwritten.")
-                net[Valve.table_name()]['et'] = 'j'
+        if old_net:
+            if 'et' in net[Valve.table_name()]:
+                logger.warning(r"'et' is a new required variable for valves. Therefore, 'et' will be overwritten.")
+            net[Valve.table_name()]['et'] = 'ju'
 
 
 def _add_missing_columns(net):
@@ -91,3 +99,8 @@ def _rename_attributes(net):
     if "std_type" in net and "std_types" not in net:
         net["std_types"] = net["std_type"]
         del net["std_type"]
+
+
+def _add_sector(net):
+    if "sector" not in net:
+        net["sector"] = Sector.ALL

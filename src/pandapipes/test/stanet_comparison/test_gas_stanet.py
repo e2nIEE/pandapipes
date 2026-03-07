@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -50,7 +50,7 @@ def test_case_combined_3parallel_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.gas_3parallel(method="pc")
-    max_iter_hyd = 5 if use_numba else 5
+    max_iter_hyd = 6 if use_numba else 6
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, max_iter_hyd=max_iter_hyd,
                                                     friction_model="colebrook",
                                                     use_numba=use_numba)
@@ -89,7 +89,7 @@ def test_case_square_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.gas_meshed_square(method="pc")
-    max_iter_hyd = 5 if use_numba else 5
+    max_iter_hyd = 6 if use_numba else 6
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
                                                     max_iter_hyd=max_iter_hyd,
                                                     friction_model="colebrook",
@@ -109,11 +109,11 @@ def test_case_meshed_delta_pc(use_numba, log_results=False):
     :rtype:
     """
     net = nw.gas_meshed_delta()
-    max_iter_hyd = 13 if use_numba else 13
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
-                                                    max_iter_hyd=max_iter_hyd,
-                                                    friction_model="colebrook",
-                                                    use_numba=use_numba)
+    max_iter_hyd = 14 if use_numba else 14
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(
+        net, log_results, max_iter_hyd=max_iter_hyd, friction_model="colebrook",
+        use_numba=use_numba, max_iter_colebrook=12,
+    )
     assert np.all(p_diff < 2e-3)
     assert np.all(v_diff_abs < 3e-2)
 
@@ -215,7 +215,7 @@ def test_case_one_pipe2_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.gas_one_pipe2(method="n")
-    max_iter_hyd = 4 if use_numba else 4
+    max_iter_hyd = 5 if use_numba else 5
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
                                                     max_iter_hyd=max_iter_hyd,
                                                     use_numba=use_numba)

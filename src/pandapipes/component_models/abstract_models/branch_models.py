@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -93,9 +93,10 @@ class BranchComponent(Component):
 
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
-            branch_component_pit[:, MDOTINIT] = 0.1
             branch_component_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
             branch_component_pit[:, FLOW_RETURN_CONNECT] = False
+
+        branch_component_pit[:, MDOTINIT] = 0.1
         return branch_component_pit, node_pit
 
     @classmethod
