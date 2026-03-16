@@ -2,6 +2,7 @@ Change Log
 =============
 [upcoming release] - 2026-..-..
 -------------------------------
+- [FIXED] bugfix for internal active node lookup within pipeflow
 
 [0.13.0] - 2026-01-16
 -------------------------------
