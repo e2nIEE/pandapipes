@@ -169,7 +169,6 @@ def get_lookup(net, pit_type="node", lookup_type="index"):
     all_lookup_types = ["index", "table", "from_to", "active_hydraulics", "active_heat_transfer",
                         "length", "from_to_active_hydraulics", "from_to_active_heat_transfer",
                         "index_active_hydraulics", "index_active_heat_transfer", "zero_flow",
-                        "active_match_hydraulics", "active_match_heat_transfer",
                         "old_pit_cols"]
     if lookup_type not in all_lookup_types:
         type_names = "', '".join(all_lookup_types)
@@ -751,14 +750,11 @@ def reduce_pit(net, mode="hydraulics"):
     branches_connected = get_lookup(net, "branch", "active_" + mode)
     reduced_node_lookup = np.cumsum(nodes_connected) - 1
     reduced_branch_lookup = np.cumsum(branches_connected) - 1
-    net["_lookups"]["node_active_match_" + mode] = reduced_node_lookup
-    net["_lookups"]["branch_active_match_" + mode] = reduced_branch_lookup
 
     if np.all(nodes_connected):
         net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "node", "from_to"))
-        net["_lookups"]["node_index_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "node", "index"))
+        net["_lookups"]["node_index_active_" + mode] = np.arange(len(node_pit))
         active_pit["node"] = np.copy(node_pit)
         active_pit_old["node"] = np.copy(node_pit_old)
     else:
