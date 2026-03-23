@@ -787,7 +787,7 @@ def reduce_pit(net, mode="hydraulics"):
         else:
             net["_lookups"]["branch_index_active_" + mode] = dict()
         els["branch"] = branches_connected
-    if len(set(reduced_node_lookup)) != len(reduced_node_lookup):
+    if not np.all(nodes_connected):
         active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
             branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
         active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
