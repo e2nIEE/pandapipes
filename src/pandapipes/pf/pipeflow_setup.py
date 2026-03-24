@@ -751,16 +751,18 @@ def reduce_pit(net, mode="hydraulics"):
     reduced_node_lookup = np.cumsum(nodes_connected) - 1
     reduced_branch_lookup = np.cumsum(branches_connected) - 1
 
+    node_idx_lookup = get_lookup(net, "node", "index")
     if np.all(nodes_connected):
         net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(
             get_lookup(net, "node", "from_to"))
-        net["_lookups"]["node_index_active_" + mode] = np.arange(len(node_pit))
+        net["_lookups"]["node_index_active_" + mode] = {
+            tbl: np.arange(len(idx_lookup))
+            for tbl, idx_lookup in node_idx_lookup.items()}
         active_pit["node"] = np.copy(node_pit)
         active_pit_old["node"] = np.copy(node_pit_old)
     else:
         active_pit["node"] = np.copy(node_pit[nodes_connected, :])
         active_pit_old["node"] = np.copy(node_pit_old[nodes_connected, :])
-        node_idx_lookup = get_lookup(net, "node", "index")
         net["_lookups"]["node_index_active_" + mode] = {
             tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]]
             for tbl, idx_lookup in node_idx_lookup.items()}
