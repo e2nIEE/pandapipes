@@ -144,7 +144,7 @@ class Valve(BranchWInternalsComponent):
             valve_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
             valve_pit[:, ALPHA] = 0
             valve_pit[:, D] = net[tbl].inner_diameter_mm.values / 1000.
-            valve_pit[:, DO] = net[tbl].outer_diameter_mm.values / 1000.
+            valve_pit[:, DO] = valve_pit[:, D]
             valve_pit[np.isnan(valve_pit[:, DO]), DO] = valve_pit[np.isnan(valve_pit[:, DO]), D]
 
         valve_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
@@ -164,7 +164,6 @@ class Valve(BranchWInternalsComponent):
             ("inner_diameter_mm", "f8"),
             ("opened", "bool"),
             ("loss_coefficient", "f8"),
-            ("outer_diameter_mm", "f8"),
             ("type", dtype(object))
         ]
 

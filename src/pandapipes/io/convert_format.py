@@ -69,7 +69,7 @@ def _add_missing_columns(net):
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_run
             else:
                 net.controller.at[ctrl.name, 'initial_run'] = ctrl['object'].initial_pipeflow
-    for comp in [Pipe, Valve, HeatExchanger]:
+    for comp in [Pipe]:
         if comp.table_name() in net:
             if "outer_diameter_mm" not in net[comp.table_name()].columns:
                 net[comp.table_name()]["outer_diameter_mm"] = np.nan

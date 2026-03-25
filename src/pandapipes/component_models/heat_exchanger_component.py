@@ -56,10 +56,7 @@ class HeatExchanger(BranchWOInternalsComponent):
         heat_exchanger_pit[:, LC] = net[tbl].loss_coefficient.values
         heat_exchanger_pit[:, QEXT] = net[tbl].qext_w.values
         heat_exchanger_pit[:, D] = net[tbl].inner_diameter_mm.values / 1000.
-        heat_exchanger_pit[:, DO] = net[tbl].outer_diameter_mm.values / 1000.
-        heat_exchanger_pit[np.isnan(heat_exchanger_pit[:, DO]), DO] = heat_exchanger_pit[
-            np.isnan(heat_exchanger_pit[:, DO]), D
-        ]
+        heat_exchanger_pit[:, DO] = heat_exchanger_pit[:, D]
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
@@ -96,7 +93,6 @@ class HeatExchanger(BranchWOInternalsComponent):
                 ("qext_w", 'f8'),
                 ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
-                ("outer_diameter_mm", "f8"),
                 ("type", dtype(object))]
 
     @classmethod

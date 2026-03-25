@@ -45,6 +45,10 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
+    def diameter_col(cls):
+        return None
+
+    @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start, current_table, internals):
         """
         Function which creates branch lookups.
