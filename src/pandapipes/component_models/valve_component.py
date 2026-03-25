@@ -145,7 +145,6 @@ class Valve(BranchWInternalsComponent):
             valve_pit[:, ALPHA] = 0
             valve_pit[:, D] = net[tbl].inner_diameter_mm.values / 1000.
             valve_pit[:, DO] = valve_pit[:, D]
-            valve_pit[np.isnan(valve_pit[:, DO]), DO] = valve_pit[np.isnan(valve_pit[:, DO]), D]
 
         valve_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
 
