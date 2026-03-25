@@ -1000,9 +1000,21 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     return index
 
 
-def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar, control_active=True,
-                            loss_coefficient=0., name=None, index=None, in_service=True, type="pressure_control",
-                            **kwargs):
+def create_pressure_control(
+        net,
+        from_junction,
+        to_junction,
+        controlled_junction,
+        controlled_p_bar,
+        control_active=True,
+        loss_coefficient=0.,
+        name=None,
+        index=None,
+        in_service=True,
+        type="pressure_control",
+        check_controllability=True,
+        **kwargs
+):
     """Adds one pressure control that enforces a pressure at a specific junction.
 
     The pressure control unit creates a pressure drop / lift between the 'from' and the 'to'
@@ -1037,6 +1049,10 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     :type in_service: bool, default True
     :param type: Currently not used - possibility to specify a certain type of pressure control
     :type type: str, default "pressure_control"
+    :param check_controllability: Whether or not to check that the controlled junction is indeed\
+        connected to the outlet of the pressure controller (if this option is ignored, the pipeflow\
+        might still raise an error).
+    :type check_controllability: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the \
             net["press_control"] table
     :type kwargs: dict
@@ -1050,13 +1066,14 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
 
     """
     from pandapipes.toolbox import check_pressure_controllability
-    if not check_pressure_controllability(net, to_junction, controlled_junction):
+    if (check_controllability and
+            not check_pressure_controllability(net, to_junction, controlled_junction)):
         return logger.error('The controlled junction of the created pressure control '
                             'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
 
-    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature '
-                'settings at the junctions are kept. Therefore, energy is induced to meet these '
+    logger.info('Using a default pressure controller in pandapipes assumes that the temperature '
+                'settings at the junctions are fixed. Therefore, energy is induced to meet these '
                 'constraints.')
 
     add_new_component(net, PressureControlComponent)
