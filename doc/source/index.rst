@@ -7,7 +7,7 @@
 pandapipes
 **********
 
-.. image:: pandapipes_color.svg
+.. image:: pics/pandapipes_color.svg
     :width: 15em
     :alt: alternate Text
     :align: center
