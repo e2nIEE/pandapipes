@@ -7,10 +7,10 @@
 pandapipes
 **********
 
-.. image:: pandapipes_logo.png
-	:width: 15em
-	:alt: alternate Text
-	:align: center
+.. image:: pandapipes_color.svg
+    :width: 15em
+    :alt: alternate Text
+    :align: center
 
 pandapipes is an easy to use network calculation program aimed at automation of analysis of district heating
 and gas systems. It utilizes the data analysis library pandas and is also closely related to

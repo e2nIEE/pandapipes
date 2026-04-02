@@ -1,5 +1,4 @@
-
-.. image:: ./doc/source/pics/pp.svg
+.. image:: ./doc/source/pics/pandapipes_color.svg
    :target: https://www.pandapipes.org
    :width: 300em
    :alt: logo
