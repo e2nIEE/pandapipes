@@ -17,7 +17,7 @@ from pandapipes.idx_branch import (
     FROM_NODE_T_SWITCHED,
 )
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
-from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.pf.internals_toolbox import sum_by_group
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density
@@ -230,22 +230,26 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
         if len(res_mean) > 0:
             # results that relate to the whole branch and shall be averaged (by summing up all
             # values and dividing by number of internal sections)
-            use_numba = get_net_option(net, "use_numba")
-            res = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
-                                comp_connected.astype(np.int32),
-                                *[branch_results[rn[1]][f:t] for rn in res_mean])
-            connected_ind = res[2] > 0.99
-            num_internals = res[1][connected_ind]
+            _, res = sum_by_group(
+                idx_pit,
+                np.ones_like(idx_pit),
+                comp_connected.astype(np.int32),
+                *[branch_results[rn[1]][f:t] for rn in res_mean],
+            )
+            connected_ind = res[1] > 0.99
+            num_internals = res[0][connected_ind]
 
             # hint: idx_pit[placement_table] should result in the indices as ordered in the table
             pt = placement_table[connected_ind]
 
-            for i, (res_name, entry) in enumerate(res_mean_hydraulics):
-                res_table[res_name].values[pt] = res[i + 3][connected_ind] / num_internals
+            for i, (res_name, entry) in enumerate(res_mean_hydraulics, start=2):
+                res_table[res_name].values[pt] = res[i][connected_ind] / num_internals
         if len(res_branch) > 0:
-            use_numba = get_net_option(net, "use_numba")
-            _, sections, connected_sum = _sum_by_group(use_numba, idx_pit, np.ones_like(idx_pit),
-                                comp_connected.astype(np.int32))
+            _, (sections, connected_sum) = sum_by_group(
+                idx_pit,
+                np.ones_like(idx_pit),
+                comp_connected.astype(np.int32),
+            )
             connected_ind = connected_sum > 0.99
             indices_last_section = (np.cumsum(sections) - 1).astype(int)[connected_ind]
             # hint: idx_pit[placement_table] should result in the indices as ordered in the table

@@ -5,7 +5,7 @@
 import logging
 import numpy as np
 from numpy import linalg
-from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.pf.internals_toolbox import sum_by_group
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
@@ -149,11 +149,11 @@ def derivatives_thermal_np(node_pit, branch_pit,
             fn_deriv = (rho[fn_zero] * area[fn_zero] * cp_b[fn_zero] * (1 / dt) + alpha[fn_zero])
             tn_deriv = (rho[tn_zero] * area[tn_zero] * cp_b[tn_zero] * (1 / dt) + alpha[tn_zero])
 
-            fn_nodes, fn_eq_sum, fn_deriv_sum = _sum_by_group(False,
+            fn_nodes, (fn_eq_sum, fn_deriv_sum) = sum_by_group(
                 from_nodes[fn_zero], fn_eq, fn_deriv
             )
 
-            tn_nodes, tn_eq_sum, tn_deriv_sum = _sum_by_group(False,
+            tn_nodes, (tn_eq_sum, tn_deriv_sum) = sum_by_group(
                 to_nodes[tn_zero], tn_eq, tn_deriv
             )
 
