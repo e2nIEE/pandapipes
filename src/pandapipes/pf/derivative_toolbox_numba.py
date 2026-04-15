@@ -95,7 +95,7 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         load_vec_nodes_from[i] = branch_pit[i][MDOTINIT]
         load_vec_nodes_to[i] = branch_pit[i][MDOTINIT]
         dp_loss[i] = normal_term * comp_fact[i] * m_init2 * friction_term * p_sum_div * tm
-    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_lossc
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_loss
 
 
 @jit((float64[:, :], int32[:], int32[:]), nopython=True, cache=False)
