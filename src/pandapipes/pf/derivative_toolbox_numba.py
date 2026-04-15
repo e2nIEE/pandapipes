@@ -5,7 +5,7 @@ from pandapipes import MDOTSLACKINIT
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, DO
+    MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, DO, DP_LOSS
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
 try:
