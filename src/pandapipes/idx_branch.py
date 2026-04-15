@@ -48,4 +48,6 @@ JAC_DERIV_DTOUT_NODE = 35  # Slot for the node equation derivative of T for the 
 LOAD_VEC_BRANCHES_T = 36
 LOAD_VEC_NODES_TO_T = 37 # Slot for the load vector of the to nodes connected to branch
 
-branch_cols = 38
+DP_LOSS = 38
+
+branch_cols = 39

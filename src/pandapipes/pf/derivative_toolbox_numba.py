@@ -45,7 +45,8 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
 
         load_vec_nodes_from[i] = branch_pit[i][MDOTINIT]
         load_vec_nodes_to[i] = branch_pit[i][MDOTINIT]
-    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1
+        dp_loss[i] = branch_pit[i][DP_LOSS]
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_loss
 
 
 @jit((float64[:, :], float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
