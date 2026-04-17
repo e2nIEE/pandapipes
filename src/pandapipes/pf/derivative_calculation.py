@@ -4,7 +4,7 @@ from pandapipes.idx_branch import (LENGTH, D, K, RE, LAMBDA, LOAD_VEC_BRANCHES, 
                                    JAC_DERIV_DP1, JAC_DERIV_DM_NODE, FROM_NODE, TO_NODE, TOUTINIT, AREA,
                                    LOAD_VEC_BRANCHES_T, JAC_DERIV_DT, LOAD_VEC_NODES_TO_T,
                                    LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, JAC_DERIV_DT_NODE, JAC_DERIV_DTOUT_NODE,
-                                   JAC_DERIV_DTOUT, MDOTINIT, DP_LOSS)
+                                   JAC_DERIV_DTOUT, MDOTINIT, DP_FRICT_LOSS)
 from pandapipes.idx_node import TINIT as TINIT_NODE, INFEED, LOAD_T, JAC_DERIV_DT_N
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
@@ -65,7 +65,7 @@ def calculate_derivatives_hydraulic(net,
     branch_pit[:, LAMBDA] = lambda_
 
     if not gas_mode:
-        load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_loss = (
+        load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss = (
             derivatives_hydraulic_incomp(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho))
     else:
         rho_n = np.full(len(branch_pit), fluid.get_density(NORMAL_TEMPERATURE))
@@ -74,7 +74,7 @@ def calculate_derivatives_hydraulic(net,
         # TODO: this might not be required
         der_comp = dc * der_p_m
         der_comp1 = dc * der_p_m1
-        load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_loss = (
+        load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss = (
             derivatives_hydraulic_comp(node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
                 height_difference, comp_fact, der_comp, der_comp1, rho, rho_n))
 
@@ -85,7 +85,7 @@ def calculate_derivatives_hydraulic(net,
     branch_pit[:, LOAD_VEC_NODES_FROM] = load_vec_nodes_from
     branch_pit[:, LOAD_VEC_NODES_TO] = load_vec_nodes_to
     branch_pit[:, JAC_DERIV_DM_NODE] = df_dm_nodes
-    branch_pit[:, DP_LOSS] = dp_loss
+    branch_pit[:, DP_FRICT_LOSS] = dp_frict_loss
 
 
 def calculate_derivatives_thermal(net,

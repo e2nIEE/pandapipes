@@ -5,7 +5,7 @@ from pandapipes import MDOTSLACKINIT
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
-    MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, DO, DP_LOSS
+    MDOTINIT, FROM_NODE, TOUTINIT, TEXT, ALPHA, TL, QEXT, DO, DP_FRICT_LOSS
 from pandapipes.idx_node import HEIGHT, PAMB, PINIT, TINIT as TINIT_NODE
 
 try:
@@ -28,7 +28,7 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
     load_vec_nodes_from = np.zeros_like(der_lambda)
     load_vec_nodes_to = np.zeros_like(der_lambda)
     df_dm_nodes = np.ones_like(der_lambda)
-    dp_loss = np.zeros_like(der_lambda)
+    dp_frict_loss = np.zeros_like(der_lambda)
 
     for i in range(le):
         m_init_abs = np.abs(branch_pit[i][MDOTINIT])
@@ -46,8 +46,8 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
 
         load_vec_nodes_from[i] = branch_pit[i][MDOTINIT]
         load_vec_nodes_to[i] = branch_pit[i][MDOTINIT]
-        dp_loss[i] = const_term * m_init2 * friction_term
-    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_loss
+        dp_frict_loss[i] = const_term * m_init2 * friction_term
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss
 
 
 @jit((float64[:, :], float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
@@ -63,7 +63,7 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
     load_vec_nodes_to = np.zeros_like(der_lambda)
     df_dm_nodes = np.ones_like(der_lambda)
     from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    dp_loss = np.zeros_like(der_lambda)
+    dp_frict_loss = np.zeros_like(der_lambda)
 
     # Formulas for gas pressure loss according to laminar version
     for i in range(le):
@@ -94,8 +94,8 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
 
         load_vec_nodes_from[i] = branch_pit[i][MDOTINIT]
         load_vec_nodes_to[i] = branch_pit[i][MDOTINIT]
-        dp_loss[i] = normal_term * comp_fact[i] * m_init2 * friction_term * p_sum_div * tm
-    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_loss
+        dp_frict_loss[i] = normal_term * comp_fact[i] * m_init2 * friction_term * p_sum_div * tm
+    return load_vec, load_vec_nodes_from, load_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss
 
 
 @jit((float64[:, :], int32[:], int32[:]), nopython=True, cache=False)

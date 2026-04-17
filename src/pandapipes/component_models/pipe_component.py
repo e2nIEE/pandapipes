@@ -151,7 +151,7 @@ class Pipe(BranchWInternalsComponent):
         res_nodes_from_ht = [("t_from_k", "temp_from")]
         res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
         res_nodes_to_ht = [("t_to_k", "temp_to")]
-        res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds"), ("dp_loss_bar", "dp_loss")]
+        res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds"), ("dp_friction_loss_bar", "dp_frict_loss")]
         res_branch_ht = [("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
