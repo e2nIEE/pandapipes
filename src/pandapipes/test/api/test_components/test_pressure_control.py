@@ -69,3 +69,30 @@ def test_2pressure_controller_controllability():
 
     assert len(net.press_control == 1)
 
+
+def test_non_working_distance_control():
+    net = pandapipes.create_empty_network("net", add_stdtypes=False, fluid="hgas")
+
+    j0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+    j5 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+
+    pandapipes.create_pipe_from_parameters(net, j0, j1, k_mm=1., length_km=2.,
+                                           inner_diameter_mm=102.2)
+    pandapipes.create_pipe_from_parameters(net, j2, j3, k_mm=1., length_km=5.,
+                                           inner_diameter_mm=102.2)
+    pandapipes.create_pipe_from_parameters(net, j4, j5, k_mm=1., length_km=1.,
+                                           inner_diameter_mm=102.2)
+
+    pandapipes.create_pressure_control(net, j1, j2, j5, 1.)
+    assert len(net.press_control) == 0
+    pandapipes.create_pressure_control(net, j1, j2, j5, 1., check_controllability=False)
+    assert len(net.press_control) == 1
+    pandapipes.create_ext_grid(net, j0, 12, type="p")
+
+    with pytest.raises(UserWarning) as e:
+        pandapipes.pipeflow(net)
+        assert "The following controlled junction(s) were identified as disconnected" in str(e.value)

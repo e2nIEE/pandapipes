@@ -17,6 +17,7 @@ from pandapipes.idx_branch import (
     ACTIVE as ACTIVE_BR,
     FLOW_RETURN_CONNECT,
     ACTIVE,
+    ELEMENT_IDX as ELEMENT_IDX_BR,
 )
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED, GE, TINIT
@@ -169,7 +170,6 @@ def get_lookup(net, pit_type="node", lookup_type="index"):
     all_lookup_types = ["index", "table", "from_to", "active_hydraulics", "active_heat_transfer",
                         "length", "from_to_active_hydraulics", "from_to_active_heat_transfer",
                         "index_active_hydraulics", "index_active_heat_transfer", "zero_flow",
-                        "active_match_hydraulics", "active_match_heat_transfer",
                         "old_pit_cols"]
     if lookup_type not in all_lookup_types:
         type_names = "', '".join(all_lookup_types)
@@ -724,6 +724,43 @@ def get_table_index_list(net, pit_array, pit_indices, pit_type="node"):
             for tbl in tables]
 
 
+def copy_lookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old):
+    net["_lookups"][comp_type + "_from_to_active_" + mode] = copy.deepcopy(
+        get_lookup(net, "branch", "from_to")
+    )
+    active_pit[comp_type] = np.copy(comp_pit)
+    active_pit_old[comp_type] = np.copy(comp_pit_old)
+    net["_lookups"][comp_type + "_index_active_" + mode] = copy.deepcopy(
+        get_lookup(net, comp_type, "index")
+    )
+
+
+def reduce_loookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old, connected_elements, elm_idx_col):
+    active_pit[comp_type] = np.copy(comp_pit[connected_elements, :])
+    active_pit_old[comp_type] = np.copy(comp_pit_old[connected_elements, :])
+    comp_idx_lookup = get_lookup(net, comp_type, "index")
+    ft_lookup = get_lookup(net, comp_type, "from_to")
+    index_lookup_reduced = np.cumsum(connected_elements.astype(np.int32))
+    net["_lookups"][comp_type + "_index_active_" + mode] = copy.deepcopy(comp_idx_lookup)
+    elm_idx_all = comp_pit[:, elm_idx_col].astype(np.int32)
+    for tbl, idx_lookup in comp_idx_lookup.items():
+        con_elems = connected_elements[ft_lookup[tbl][0]: ft_lookup[tbl][1]]
+        elm_idx = elm_idx_all[ft_lookup[tbl][0]: ft_lookup[tbl][1]]
+        lu = np.copy(idx_lookup)
+        lu[elm_idx[~con_elems]]= -1
+        lu[elm_idx[con_elems]] = index_lookup_reduced[
+            ft_lookup[tbl][0]: ft_lookup[tbl][1]
+        ][con_elems].astype(np.int32)
+        net["_lookups"][comp_type + "_index_active_" + mode][tbl] = lu
+
+    ft_active, count = dict(), 0
+    for _, tbl in sorted(get_lookup(net, comp_type, "table")["n2t"].items()):
+        le = np.sum(connected_elements[ft_lookup[tbl][0]: ft_lookup[tbl][1]])
+        ft_active[tbl] = (count, count + le)
+        count += le
+    net["_lookups"][comp_type + "_from_to_active_" + mode] = ft_active
+
+
 def reduce_pit(net, mode="hydraulics"):
     """
     Create an internal ("active") pit with all nodes and branches that are actually in_service. This
@@ -738,74 +775,33 @@ def reduce_pit(net, mode="hydraulics"):
     :type mode: str, default "hydraulics"
     :return: No output
     """
-
-    node_pit = net["_pit"]["node"]
-    node_pit_old = net["_old_pit"]["node"]
-    branch_pit = net["_pit"]["branch"]
-    branch_pit_old = net["_old_pit"]["branch"]
-
-    active_pit = dict()
-    active_pit_old = dict()
-    els = dict()
+    active_pit, active_pit_old = dict(), dict()
     nodes_connected = get_lookup(net, "node", "active_" + mode)
     branches_connected = get_lookup(net, "branch", "active_" + mode)
-    reduced_node_lookup = np.cumsum(nodes_connected) - 1
-    reduced_branch_lookup = np.cumsum(branches_connected) - 1
-    net["_lookups"]["node_active_match_" + mode] = reduced_node_lookup
-    net["_lookups"]["branch_active_match_" + mode] = reduced_branch_lookup
 
-    if np.all(nodes_connected):
-        net["_lookups"]["node_from_to_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "node", "from_to"))
-        net["_lookups"]["node_index_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "node", "index"))
-        active_pit["node"] = np.copy(node_pit)
-        active_pit_old["node"] = np.copy(node_pit_old)
-    else:
-        active_pit["node"] = np.copy(node_pit[nodes_connected, :])
-        active_pit_old["node"] = np.copy(node_pit_old[nodes_connected, :])
-        node_idx_lookup = get_lookup(net, "node", "index")
-        net["_lookups"]["node_index_active_" + mode] = {
-            tbl: reduced_node_lookup[idx_lookup[idx_lookup != -1]]
-            for tbl, idx_lookup in node_idx_lookup.items()}
-        els["node"] = nodes_connected
-    if np.all(branches_connected):
-        net["_lookups"]["branch_from_to_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "branch", "from_to"))
-        active_pit["branch"] = np.copy(branch_pit)
-        active_pit_old["branch"] = np.copy(branch_pit_old)
-        net["_lookups"]["branch_index_active_" + mode] = copy.deepcopy(
-            get_lookup(net, "branch", "index"))
-    else:
-        active_pit["branch"] = np.copy(branch_pit[branches_connected, :])
-        active_pit_old["branch"] = np.copy(branch_pit_old[branches_connected, :])
-        branch_idx_lookup = get_lookup(net, "branch", "index")
-        if len(branch_idx_lookup):
-            net["_lookups"]["branch_index_active_" + mode] = {
-                tbl: reduced_branch_lookup[idx_lookup[idx_lookup != -1]]
-                for tbl, idx_lookup in branch_idx_lookup.items()}
+    for (comp_type, connected_elms, idx_col) in [
+        ("branch", branches_connected, ELEMENT_IDX_BR),
+        ("node", nodes_connected, ELEMENT_IDX_ND)
+    ]:
+        comp_pit = net["_pit"][comp_type]
+        comp_pit_old = net["_old_pit"][comp_type]
+        if np.all(connected_elms):
+            copy_lookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old)
         else:
-            net["_lookups"]["branch_index_active_" + mode] = dict()
-        els["branch"] = branches_connected
-    if len(set(reduced_node_lookup)) != len(reduced_node_lookup):
+            reduce_loookups(
+                net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old,
+                connected_elms, idx_col
+            )
+
+    if not np.all(nodes_connected):
+        reduced_node_lookup = np.cumsum(nodes_connected) - 1
         active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
-            branch_pit[branches_connected, FROM_NODE].astype(np.int32)]
+            net["_pit"]["branch"][branches_connected, FROM_NODE].astype(np.int32)]
         active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
-            branch_pit[branches_connected, TO_NODE].astype(np.int32)]
+            net["_pit"]["branch"][branches_connected, TO_NODE].astype(np.int32)]
+
     net["_active_pit"] = active_pit
     net["_active_old_pit"] = active_pit_old
-
-    #ToDo Why not adapting everything directly above?
-    for el, connected_els in els.items():
-        ft_lookup = get_lookup(net, el, "from_to")
-        aux_lookup = {table: (ft[0], ft[1], np.sum(connected_els[ft[0]: ft[1]]))
-                      for table, ft in ft_lookup.items() if ft is not None}
-        from_to_active_lookup = copy.deepcopy(ft_lookup)
-        count = 0
-        for table, (_, _, len_new) in sorted(aux_lookup.items(), key=lambda x: x[1][0]):
-            from_to_active_lookup[table] = (count, count + len_new)
-            count += len_new
-        net["_lookups"]["%s_from_to_active_%s" % (el, mode)] = from_to_active_lookup
 
 
 def check_infeed_number(node_pit):
