@@ -151,7 +151,7 @@ class Pipe(BranchWInternalsComponent):
         res_nodes_from_ht = [("t_from_k", "temp_from")]
         res_nodes_to_hyd = [("p_to_bar", "p_to"), ("mdot_to_kg_per_s", "mf_to")]
         res_nodes_to_ht = [("t_to_k", "temp_to")]
-        res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds")]
+        res_mean_hyd = [("lambda", "lambda"), ("reynolds", "reynolds"), ("dp_friction_loss_bar", "dp_frict_loss")]
         res_branch_ht = [("t_outlet_k", "t_outlet")]
 
         if get_fluid(net).is_gas:
@@ -301,10 +301,10 @@ class Pipe(BranchWInternalsComponent):
         if get_fluid(net).is_gas:
             output = ["v_from_m_per_s", "v_to_m_per_s", "v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k",
                       "t_to_k", "t_outlet_k", "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_norm_m3_per_s",
-                      "reynolds", "lambda", "normfactor_from", "normfactor_to"]
+                      "reynolds", "lambda", "normfactor_from", "normfactor_to", "dp_friction_loss_bar"]
         else:
             output = ["v_mean_m_per_s", "p_from_bar", "p_to_bar", "t_from_k", "t_to_k", "t_outlet_k",
-                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda"]
+                      "mdot_from_kg_per_s", "mdot_to_kg_per_s", "vdot_m3_per_s", "reynolds", "lambda", "dp_friction_loss_bar"]
         return output, True
 
     @classmethod

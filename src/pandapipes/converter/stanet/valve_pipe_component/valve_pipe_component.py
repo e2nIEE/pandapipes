@@ -103,7 +103,8 @@ class ValvePipe(Pipe):
                       "lambda",
                       "normfactor_from",
                       "normfactor_to",
-                      "loading_percent"]
+                      "loading_percent",
+                      "dp_friction_loss_bar"]
         else:
 
             output = ["v_mean_m_per_s",
@@ -119,5 +120,6 @@ class ValvePipe(Pipe):
                       "vdot_m3_per_s",
                       "reynolds",
                       "lambda",
-                      "loading_percent"]
+                      "loading_percent",
+                      "dp_friction_loss_bar"]
         return output, True
