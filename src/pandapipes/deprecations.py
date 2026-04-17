@@ -25,6 +25,10 @@ def input_handler_pipe(_, *args, **kwargs):
         kwargs["inner_diameter_mm"] *= 1000
     return args, kwargs
 
+
+def input_handler_heat_exchanger(_, *args, **kwargs):
+    return input_handler_pipe(_, *args, **kwargs)
+
 def input_handler_valve(multiple=False, *args, **kwargs):
     if "diameter_m" in kwargs:
         if "inner_diameter_mm" in kwargs:

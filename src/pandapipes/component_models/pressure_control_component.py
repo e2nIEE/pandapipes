@@ -59,10 +59,7 @@ class PressureControlComponent(BranchWOInternalsComponent):
         """
         tbl = net[cls.table_name()]
         pc_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
-        junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
-        index_pc = junction_idx_lookups[tbl['controlled_junction'].values]
-        pc_array[:, cls.JUNCTS] = index_pc
+        pc_array[:, cls.JUNCTS] = tbl["controlled_junction"].values
         pc_array[:, cls.CONTROLLED] = tbl.control_active.values
         pc_array[:, cls.IN_SERVICE] = tbl.in_service.values
         component_pits[cls.table_name()] = pc_array
@@ -70,7 +67,7 @@ class PressureControlComponent(BranchWOInternalsComponent):
     @classmethod
     def create_pit_node_entries(cls, net, node_pit):
         pcs = net[cls.table_name()]
-        controlled = pcs.control_active
+        controlled = pcs.control_active.values & pcs.in_service.values
         juncts = pcs['controlled_junction'].values[controlled]
         press = pcs['controlled_p_bar'].values[controlled]
         junction_idx_lookups = get_lookup(net, "node", "index")[
@@ -100,9 +97,17 @@ class PressureControlComponent(BranchWOInternalsComponent):
                                               branch_pit_old, node_pit_old,
                                               idx_lookups, options):
         pc_array = get_component_array(net, cls.table_name())
-        junction_idx_lookups_active = get_lookup(net, "node", "active_match_hydraulics")
+        junction_idx_lookups_active = get_lookup(net, "node", "index_active_hydraulics")[
+            cls.get_connected_node_type().table_name()
+        ]
         in_service = pc_array[:, cls.IN_SERVICE].astype(bool)
         index_pc = junction_idx_lookups_active[pc_array[in_service, cls.JUNCTS].astype(np.int32)]
+        if np.any(index_pc == -1):
+            raise UserWarning(
+                f"The following controlled junction(s) were identified as disconnected, although"
+                f" the controlling pressure controller is in service: "
+                f"{pc_array[in_service, cls.JUNCTS][index_pc == -1].astype(np.int32)}"
+            )
         controlled = pc_array[in_service, cls.CONTROLLED].astype(bool)
         node_pit[index_pc[controlled], NODE_TYPE] = PC_NODE
 

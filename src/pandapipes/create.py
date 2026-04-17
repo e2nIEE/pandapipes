@@ -21,7 +21,8 @@ from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
 from pandapipes.std_types.std_types import add_basic_std_types, create_pump_std_type, load_std_type
-from pandapipes.deprecations import deprecated_input, input_handler_valve, input_handler_pipe
+from pandapipes.deprecations import deprecated_input, input_handler_valve, input_handler_pipe, \
+    input_handler_heat_exchanger
 
 try:
     import pandaplan.core.pplog as logging
@@ -412,8 +413,10 @@ def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None,
     return index
 
 
-def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coefficient=0, name=None,
-                          index=None, in_service=True, type="heat_exchanger", **kwargs):
+@deprecated_input(input_handler=input_handler_heat_exchanger)
+def create_heat_exchanger(net, from_junction, to_junction, qext_w, inner_diameter_mm,
+                          loss_coefficient=0, name=None, index=None, in_service=True,
+                          type="heat_exchanger", **kwargs):
     """
     Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
 
@@ -428,6 +431,9 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
     :type qext_w: float
+    :param inner_diameter_mm: Inner diameter of the heat exchanger in [mm]. Used for hydraulic\
+            calculations.
+    :type inner_diameter_mm: float
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: float
     :param name: The name of the heat exchanger
@@ -457,7 +463,8 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, loss_coeffici
     _check_branch(net, "Heat exchanger", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
+         "qext_w": qext_w, "inner_diameter_mm": inner_diameter_mm,
+         "loss_coefficient": loss_coefficient, "in_service": bool(in_service), "type": type}
     _set_entries(net, "heat_exchanger", index, **v, **kwargs)
 
     return index
@@ -688,15 +695,15 @@ def create_valve(net, junction, element, et, inner_diameter_mm, opened=True, los
     else:
         raise UserWarning("Unknown element type")
 
-    v = {"name": name, "junction": junction, "element": element, "et": et, "inner_diameter_mm": inner_diameter_mm,
-         "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
+    v = {"name": name, "junction": junction, "element": element, "et": et, "opened": opened,
+         "inner_diameter_mm": inner_diameter_mm, "loss_coefficient": loss_coefficient, "type": type}
     _set_entries(net, "valve", index, **v, **kwargs)
 
     return index
 
 
-def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True, type="pump",
-                **kwargs):
+def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True,
+                type="pump", **kwargs):
     """
     Adds one pump in table net["pump"].
 
@@ -742,9 +749,10 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     return index
 
 
-def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name, pressure_list=None,
-                                flowrate_list=None, reg_polynomial_degree=None, poly_coefficents=None, name=None,
-                                index=None, in_service=True, type="pump", **kwargs):
+def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_name,
+                                pressure_list=None, flowrate_list=None, reg_polynomial_degree=None,
+                                poly_coefficents=None, name=None, index=None, in_service=True,
+                                type="pump", **kwargs):
     """
     Adds one pump in table net["pump"].
 
@@ -813,15 +821,16 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
         pump = PumpStdType(new_std_type_name, poly_coefficents)
         create_pump_std_type(net, new_std_type_name, pump)
 
-    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction, "std_type": new_std_type_name,
-         "in_service": bool(in_service), "type": type}
+    v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
+         "std_type": new_std_type_name, "in_service": bool(in_service), "type": type}
     _set_entries(net, "pump", index, **v, **kwargs)
 
     return index
 
 
-def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar, t_flow_k=None,
-                                    type="auto", name=None, index=None, in_service=True, **kwargs):
+def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar,
+                                    t_flow_k=None, type="auto", name=None, index=None,
+                                    in_service=True, **kwargs):
     """
     Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
@@ -1000,9 +1009,21 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     return index
 
 
-def create_pressure_control(net, from_junction, to_junction, controlled_junction, controlled_p_bar, control_active=True,
-                            loss_coefficient=0., name=None, index=None, in_service=True, type="pressure_control",
-                            **kwargs):
+def create_pressure_control(
+        net,
+        from_junction,
+        to_junction,
+        controlled_junction,
+        controlled_p_bar,
+        control_active=True,
+        loss_coefficient=0.,
+        name=None,
+        index=None,
+        in_service=True,
+        type="pressure_control",
+        check_controllability=True,
+        **kwargs
+):
     """Adds one pressure control that enforces a pressure at a specific junction.
 
     The pressure control unit creates a pressure drop / lift between the 'from' and the 'to'
@@ -1037,6 +1058,10 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
     :type in_service: bool, default True
     :param type: Currently not used - possibility to specify a certain type of pressure control
     :type type: str, default "pressure_control"
+    :param check_controllability: Whether or not to check that the controlled junction is indeed\
+        connected to the outlet of the pressure controller (if this option is ignored, the pipeflow\
+        might still raise an error).
+    :type check_controllability: bool, default True
     :param kwargs: Additional keyword arguments will be added as further columns to the \
             net["press_control"] table
     :type kwargs: dict
@@ -1050,13 +1075,14 @@ def create_pressure_control(net, from_junction, to_junction, controlled_junction
 
     """
     from pandapipes.toolbox import check_pressure_controllability
-    if not check_pressure_controllability(net, to_junction, controlled_junction):
+    if (check_controllability and
+            not check_pressure_controllability(net, to_junction, controlled_junction)):
         return logger.error('The controlled junction of the created pressure control '
                             'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
 
-    logger.info('Using a default pressure controller in pandapipes assumes, that the temperature '
-                'settings at the junctions are kept. Therefore, energy is induced to meet these '
+    logger.info('Using a default pressure controller in pandapipes assumes that the temperature '
+                'settings at the junctions are fixed. Therefore, energy is induced to meet these '
                 'constraints.')
 
     add_new_component(net, PressureControlComponent)
@@ -1621,7 +1647,7 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
     :type elements: Iterable(int)
     :param et: element type: "pi" = valves between junction and pipe, "ju" = valves between two junctions
     :type et: Iterable(str) or str
-    :param inner_diameter_mm: The valve diameters in [mm]
+    :param inner_diameter_mm: The valve inner diameters in [mm]. Used for hdraulic calculations.
     :type inner_diameter_mm: Iterable or float
     :param opened: Flag to show if the valves are opened and allow for fluid flow or if they are\
             closed to block the fluid flow.
@@ -1683,8 +1709,9 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
             raise UserWarning("%s not connected (%s element, bus): %s" %
                               (table.capitalize(), table, list(bus_element_pairs)))
 
-    entries = {"name": name, "junction": junctions, "element": elements, "et": et, "inner_diameter_mm": inner_diameter_mm,
-               "opened": opened, "loss_coefficient": loss_coefficient, "type": type}
+    entries = {"name": name, "junction": junctions, "element": elements, "et": et,
+               "inner_diameter_mm": inner_diameter_mm, "opened": opened,
+               "loss_coefficient": loss_coefficient, "type": type}
     _set_multiple_entries(net, "valve", index, **entries, **kwargs)
 
     return index
@@ -1828,8 +1855,10 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
     return index
 
 
-def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coefficient=0, name=None,
-                           index=None, in_service=True, type="heat_exchanger", **kwargs):
+@deprecated_input(input_handler=input_handler_heat_exchanger, multiple=True)
+def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, inner_diameter_mm,
+                           loss_coefficient=0, name=None, index=None, in_service=True,
+                           type="heat_exchanger", **kwargs):
     """
     Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1846,6 +1875,9 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coeff
     :param qext_w: External heat flux in [W]. If positive, heat is derived from the network. If
             negative, heat is being fed into the network from a heat source.
     :type qext_w: Iterable(float) or float
+    :param inner_diameter_mm: The inner diameter of the heat exchanger in [mm]. Used for hydraulic\
+            calculations.
+    :type inner_diameter_mm: Iterable(float) or float
     :param loss_coefficient: An additional pressure loss coefficient, introduced by e.g. bends
     :type loss_coefficient: Iterable(float) or float
     :param name: The name of the heat exchangers
@@ -1877,7 +1909,9 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, loss_coeff
     _check_branches(net, from_junctions, to_junctions, "heat_exchanger")
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
-               "qext_w": qext_w, "loss_coefficient": loss_coefficient, "in_service": in_service, "type": type}
+               "qext_w": qext_w, "inner_diameter_mm": inner_diameter_mm,
+               "loss_coefficient": loss_coefficient, "in_service": in_service,
+               "type": type}
     _set_multiple_entries(net, "heat_exchanger", index, **entries, **kwargs)
 
     return index

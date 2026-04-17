@@ -28,7 +28,7 @@ def test_circulation_pump_constant_mass(use_numba):
     pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380, inner_diameter_mm=102.2)
     pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370, inner_diameter_mm=102.2)
     pandapipes.create_circ_pump_const_mass_flow(net, j4, j1, 5, 5, 300, type='pt')
-    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000)
+    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000, inner_diameter_mm=100)
     pandapipes.create_sink(net, j1, 2)
     pandapipes.create_source(net, j4, 2)
 

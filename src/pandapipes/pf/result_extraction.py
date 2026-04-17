@@ -14,7 +14,7 @@ from pandapipes.idx_branch import (
     AREA,
     TEXT,
     LOSS_COEFFICIENT as LC,
-    FROM_NODE_T_SWITCHED,
+    FROM_NODE_T_SWITCHED, DP_FRICT_LOSS,
 )
 from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
 from pandapipes.pf.internals_toolbox import _sum_by_group
@@ -58,7 +58,7 @@ def extract_all_results(net, calculation_mode):
             "v_gas_from": v_gas_from, "v_gas_to": v_gas_to, "v_gas_mean": v_gas_mean,
             "p_from": branch_results['p_from'], "p_to": branch_results['p_to'], "p_abs_from": p_abs_from,
             "p_abs_to": p_abs_to, "p_abs_mean": p_abs_mean, "normfactor_from": normfactor_from,
-            "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean
+            "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean, "dp_frict_loss": branch_results["dp_frict_loss"]
         }
         branch_results.update(gas_branch_results)
     for comp in net['component_list']:
@@ -81,7 +81,8 @@ def get_basic_branch_results(net, branch_pit, node_pit):
                       "vf": vf, "p_from": node_pit[from_nodes, PINIT], "p_to": node_pit[to_nodes, PINIT],
                       "from_nodes": from_nodes, "to_nodes": to_nodes,  "temp_from": t0, "temp_to": t1,
                       "reynolds": branch_pit[:, RE], "lambda": branch_pit[:, LAMBDA], "pl": branch_pit[:, PL],
-                      "t_outlet": t_outlet, "qext": branch_pit[:, QEXT], "loss_coeff": branch_pit[:, LC],}
+                      "t_outlet": t_outlet, "qext": branch_pit[:, QEXT], "loss_coeff": branch_pit[:, LC],
+                      "dp_frict_loss": branch_pit[:, DP_FRICT_LOSS]}
     return branch_results
 
 
