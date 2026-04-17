@@ -94,7 +94,7 @@ def test_create_heat_exchanger(create_empty_net):
     net = copy.deepcopy(create_empty_net)
     pandapipes.create_junction(net, 1, 293, index=8, geodata=(0, 1))
     pandapipes.create_junction(net, 1, 293, index=9, geodata=(2, 2))
-    pandapipes.create_heat_exchanger(net, 8, 9, qext_w=200, index=2)
+    pandapipes.create_heat_exchanger(net, 8, 9, qext_w=200, index=2, inner_diameter_mm=100)
 
     assert len(net.junction) == 2
     assert len(net.heat_exchanger) == 1
@@ -105,9 +105,9 @@ def test_create_heat_exchanger(create_empty_net):
     assert net.heat_exchanger.at[2, "loss_coefficient"] == 0
 
     with pytest.raises(UserWarning):
-        pandapipes.create_heat_exchanger(net, 8, 10, qext_w=200)
+        pandapipes.create_heat_exchanger(net, 8, 10, qext_w=200, inner_diameter_mm=100)
     with pytest.raises(UserWarning):
-        pandapipes.create_heat_exchanger(net, 8, 9, qext_w=200, index=2)
+        pandapipes.create_heat_exchanger(net, 8, 9, qext_w=200, index=2, inner_diameter_mm=100)
 
 
 def test_create_pipe(create_empty_net):
