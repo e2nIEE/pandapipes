@@ -17,6 +17,10 @@ from pandapipes.idx_branch import branch_cols
 from pandapipes.idx_node import node_cols
 from pandapipes.test.api.test_convert_format import found_versions, folder, minimal_version_two_nets
 
+try:
+    from pandapower import dataframes_equal
+except ImportError:
+    from pandapower.toolbox.comparison import dataframes_equal
 
 def create_base_net(oos):
     net = pandapipes.create_empty_network(fluid="lgas")
@@ -265,7 +269,7 @@ def test_select_subnet(base_net_is_wo_pumps):
     assert len(same_net.component_list) == len(net.component_list)
     assert set(same_net.component_list) == set(net.component_list)
     for comp in net.component_list:
-        assert pandapower.dataframes_equal(net[comp.table_name()], same_net[comp.table_name()])
+        assert dataframes_equal(net[comp.table_name()], same_net[comp.table_name()])
 
     same_net2 = pandapipes.select_subnet(net, net.junction.index, include_results=True,
                                          keep_everything_else=True)
