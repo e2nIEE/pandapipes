@@ -36,7 +36,7 @@ def test_heat_consumer_equivalence(simple_heat_net):
 
     j_mid = pandapipes.create_junctions(net2, 2, pn_bar=5, tfluid_k=283.15)
     pandapipes.create_flow_controls(net2, juncs[[1, 2]], j_mid, MDOT, inner_diameter_mm=102.2)
-    pandapipes.create_heat_exchangers(net2, j_mid, juncs[[4, 3]], qext_w=QEXT)
+    pandapipes.create_heat_exchangers(net2, j_mid, juncs[[4, 3]], qext_w=QEXT, inner_diameter_mm=102.2)
     pandapipes.pipeflow(net2, mode='sequential')
 
     assert np.allclose(net.res_junction.values, net2.res_junction.iloc[:-2, :].values)
@@ -52,7 +52,7 @@ def test_heat_consumer_equivalence_bulk(simple_heat_net):
 
     j_mid = pandapipes.create_junctions(net2, 2, pn_bar=5, tfluid_k=283.15)
     pandapipes.create_flow_controls(net2, juncs[[1, 2]], j_mid, MDOT, inner_diameter_mm=102.2)
-    pandapipes.create_heat_exchangers(net2, j_mid, juncs[[4, 3]], qext_w=QEXT)
+    pandapipes.create_heat_exchangers(net2, j_mid, juncs[[4, 3]], qext_w=QEXT, inner_diameter_mm=102.2)
     pandapipes.pipeflow(net2, mode='sequential')
 
     assert np.allclose(net.res_junction.values, net2.res_junction.iloc[:-2, :].values)
