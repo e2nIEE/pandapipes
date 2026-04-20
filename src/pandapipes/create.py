@@ -1076,7 +1076,8 @@ def create_pressure_control(
     """
     from pandapipes.toolbox import check_pressure_controllability
     if (check_controllability and
-            not check_pressure_controllability(net, to_junction, controlled_junction)):
+            not (check_pressure_controllability(net, to_junction, controlled_junction) or
+       check_pressure_controllability(net, from_junction, controlled_junction))):
         return logger.error('The controlled junction of the created pressure control '
                             'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
