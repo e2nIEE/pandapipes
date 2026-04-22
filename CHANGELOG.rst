@@ -10,6 +10,7 @@ Change Log
 - [CHANGED] Colebrook-White friction model now uses scipy.optimize.newton for solving the equation
 - [CHANGED] Fluid properties compressibility and viscosity can now process pressure and temperature as inputs, if given the "allow_2d" attribute
 - [CHANGED] Temperature change along pipes now based on exponential function and does not use qext_w anymore
+- [ADDED] Churchill friction factor for application in entire flow regime
 
 [0.12.0] - 2025-06-27
 -------------------------------
