@@ -735,7 +735,7 @@ def copy_lookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, activ
     )
 
 
-def reduce_loookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old, connected_elements, elm_idx_col):
+def reduce_lookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old, connected_elements, elm_idx_col):
     active_pit[comp_type] = np.copy(comp_pit[connected_elements, :])
     active_pit_old[comp_type] = np.copy(comp_pit_old[connected_elements, :])
     comp_idx_lookup = get_lookup(net, comp_type, "index")
@@ -748,9 +748,9 @@ def reduce_loookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, ac
         elm_idx = elm_idx_all[ft_lookup[tbl][0]: ft_lookup[tbl][1]]
         lu = np.copy(idx_lookup)
         lu[elm_idx[~con_elems]]= -1
-        lu[elm_idx[con_elems]] = index_lookup_reduced[
+        lu[elm_idx[con_elems]] = (index_lookup_reduced[
             ft_lookup[tbl][0]: ft_lookup[tbl][1]
-        ][con_elems].astype(np.int32)
+        ][con_elems] - 1).astype(np.int32)
         net["_lookups"][comp_type + "_index_active_" + mode][tbl] = lu
 
     ft_active, count = dict(), 0
@@ -788,7 +788,7 @@ def reduce_pit(net, mode="hydraulics"):
         if np.all(connected_elms):
             copy_lookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old)
         else:
-            reduce_loookups(
+            reduce_lookups(
                 net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old,
                 connected_elms, idx_col
             )
