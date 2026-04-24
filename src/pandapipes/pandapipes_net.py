@@ -112,6 +112,9 @@ def get_basic_net_entries():
 def get_basic_gas_components():
     return Junction, Pipe, Valve, Pump, Sink, Source, Compressor, FlowControlComponent, PressureControlComponent, MassStorage, ExtGrid
 
+def get_basic_water_components():
+    return Junction, Pipe, Valve, Pump, Sink, Source, Compressor, FlowControlComponent, PressureControlComponent, MassStorage, ExtGrid
+
 def get_basic_heat_components():
     return Junction, Pipe, Valve, Pump, HeatConsumer, HeatExchanger, CirculationPumpMass, CirculationPumpPressure
 
@@ -127,6 +130,8 @@ def add_default_components(net, overwrite=False):
         components = get_basic_gas_components()
     elif net.sector == Sector.ALL:
         components = get_basic_all_components()
+    elif net.sector == Sector.WATER:
+        components = get_basic_water_components()
     elif net.sector == Sector.NONE:
         components = []
     else:
