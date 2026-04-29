@@ -58,7 +58,7 @@ def extract_all_results(net, calculation_mode):
             "v_gas_from": v_gas_from, "v_gas_to": v_gas_to, "v_gas_mean": v_gas_mean,
             "p_from": branch_results['p_from'], "p_to": branch_results['p_to'], "p_abs_from": p_abs_from,
             "p_abs_to": p_abs_to, "p_abs_mean": p_abs_mean, "normfactor_from": normfactor_from,
-            "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean, "dp_frict_loss": branch_results["dp_frict_loss"]
+            "normfactor_to": normfactor_to, "normfactor_mean": normfactor_mean, "dp_frict_loss": np.abs(branch_results["dp_frict_loss"])
         }
         branch_results.update(gas_branch_results)
     for comp in net['component_list']:
