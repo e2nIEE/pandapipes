@@ -1,9 +1,10 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 import copy
 import os
 from collections.abc import Iterable
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -636,3 +637,29 @@ def get_internal_tables_pandas(net, convert_types=True):
                         tbl[col] = tbl[col].astype(np.bool_)
 
     return node_table, branch_table
+
+def _deprecation_check_u(kwargs):
+    if ("alpha_w_per_m2k" in kwargs) and not ("u_w_per_m2k" in kwargs):
+        warnings.warn("The parameter alpha_w_per_m2k has been renamed to u_w_per_m2k "
+                      "and will be directly extracted from the std_type in the future."
+                      , DeprecationWarning)
+        u = kwargs.pop('alpha_w_per_m2k')
+    elif "u_w_per_m2k" in kwargs:
+        warnings.warn("The parameter u_w_per_m2k will be directly extracted from the std_type in the future."
+                      , DeprecationWarning)
+        u = kwargs.pop("u_w_per_m2k")
+    else:
+        u = None
+    return u
+
+def _deprecation_check_k(kwargs, params):
+    if 'k_mm' in kwargs:
+        warnings.warn("The parameter k_mm will be directly extracted from the std_type in the future."
+                      , DeprecationWarning)
+        k = kwargs.pop('k_mm')
+    elif "k_mm" not in params:
+        warnings.warn("Please update your std_types as k_mm-values are not given. These are set equals to zero.")
+        k = 0
+    else:
+        k = None
+    return k

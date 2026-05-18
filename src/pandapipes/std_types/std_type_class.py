@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 
 from pandapipes import logger
 from pandapower.io_utils import JSONSerializableClass
+from pandapipes.pandapipes_net import Sector
 
 
 
@@ -18,17 +19,20 @@ class StdType(JSONSerializableClass):
 
     """
 
-    def __init__(self, name, component):
+    def __init__(self, name, component, sector=Sector.ALL):
         """
 
         :param name: name of the standard type object
         :type name: str
         :param component: the specific standard type
         :type component: str
+        :param sector: sector the Std Type is assigned to
+        :type sector: Sector, default Sector.ALL
         """
         super(StdType, self).__init__()
         self.name = name
         self.component = component
+        self.sector = sector
 
     @classmethod
     def from_dict(cls, d):
@@ -41,7 +45,7 @@ class StdType(JSONSerializableClass):
 
 class InterpolationStdType(StdType):
 
-    def __init__(self, name, component, int_fct):
+    def __init__(self, name, component, int_fct, sector=Sector.ALL):
         """
         The interpolation standrad type object interpolates and extrapolates between the given values
 
@@ -51,10 +55,12 @@ class InterpolationStdType(StdType):
         :type component: str
         :param int_fct: Defines the interpolation function
         :type int_fct: fct
+        :param sector: sector the Std Type is assigned to
+        :type sector: Sector, default Sector.ALL
         :return: An object of the interpolation standard type class
         :rtype: InterpolationStdType
         """
-        super(InterpolationStdType, self).__init__(name, component)
+        super(InterpolationStdType, self).__init__(name, component, sector)
         self.int_fct = int_fct
         self._x_list = None
         self._y_list = None
@@ -100,7 +106,7 @@ class InterpolationStdType(StdType):
 
 class RegressionStdType(StdType):
 
-    def __init__(self, name, component, reg_par):
+    def __init__(self, name, component, reg_par, sector=Sector.ALL):
         """
         The regression standrad type object creates a regression based on the given data and regression parameters
 
@@ -110,11 +116,13 @@ class RegressionStdType(StdType):
         :type component: str
         :param reg_par: The determined regression parameters based on the given data and polynominal degree
         :type reg_par: list
+        :param sector: sector the Std Type is assigned to
+        :type sector: Sector, default Sector.ALL
         :return: An object of the regression standard type class
         :rtype: RegressionStdType
         """
 
-        super(RegressionStdType, self).__init__(name, component)
+        super(RegressionStdType, self).__init__(name, component, sector)
         self.reg_par = reg_par
         self._x_values = None
         self._y_values = None
@@ -144,9 +152,9 @@ class RegressionStdType(StdType):
     @classmethod
     def _from_path(cls, path):
         data = cls.load_data(path)
-        x_values, y_values, degree = _retrieve_data(data)
-        reg_par = regression_function(x_values, y_values, degree[0])
-        return reg_par, x_values, y_values, degree[0]
+        x_values, y_values, degree, sector = _retrieve_data(data)
+        reg_par = regression_function(x_values.astype(float), y_values.astype(float), float(degree[0]))
+        return reg_par, x_values, y_values, degree[0], sector[0]
 
     @classmethod
     def _from_list(cls, x_values, y_values, degree):
@@ -160,7 +168,7 @@ class RegressionStdType(StdType):
 
 class PumpStdType(RegressionStdType):
 
-    def __init__(self, name, reg_par):
+    def __init__(self, name, reg_par, sector=Sector.ALL):
         """
         Creates a concrete pump std type. The class is a child class of the RegressionStdType, therefore, the here
         derived values are calculated based on a previously performed regression. The regression parameters need to
@@ -168,11 +176,13 @@ class PumpStdType(RegressionStdType):
 
         :param name: Name of the pump object
         :type name: str
+        :param sector: sector the pump is assigned to
+        :type sector: Sector, default Sector.ALL
         :param reg_par: If the parameters of a regression function are already determined they \
                 can be directly be set by initializing a pump object
         :type reg_par: List of floats
         """
-        super(PumpStdType, self).__init__(name, 'pump', reg_par)
+        super(PumpStdType, self).__init__(name, 'pump', reg_par, sector)
 
     def get_pressure(self, vdot_m3_per_s):
         """
@@ -209,15 +219,15 @@ class PumpStdType(RegressionStdType):
 
     @classmethod
     def from_path(cls, name, path):
-        reg_par, x_values, y_values, degree = cls._from_path(path)
-        reg_st = cls(name, reg_par)
+        reg_par, x_values, y_values, degree, sector = cls._from_path(path)
+        reg_st = cls(name, reg_par, sector)
         cls.init_std_type(reg_st, x_values, y_values, degree)
         return reg_st
 
     @classmethod
-    def from_list(cls, name, x_values, y_values, degree):
+    def from_list(cls, name, x_values, y_values, degree, sector=Sector.ALL):
         reg_par, x_values, y_values, degree = cls._from_list(x_values, y_values, degree)
-        pump_st = cls(name, reg_par)
+        pump_st = cls(name, reg_par, sector)
         cls.init_std_type(pump_st, x_values, y_values, degree)
         return pump_st
 
@@ -232,7 +242,7 @@ class PumpStdType(RegressionStdType):
         :rtype:
         """
         path = os.path.join(path)
-        data = pd.read_csv(path, sep=';', dtype=np.float64)
+        data = pd.read_csv(path, sep=';')
         return data
 
 

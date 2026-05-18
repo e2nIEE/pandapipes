@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -130,7 +130,7 @@ def test_valve_flow_contrl_heat_consumer(use_numba):
     pandapipes.create_circ_pump_const_pressure(net, j4r, j1f, 5, 2, 400)
     pandapipes.create_valves(net, [j1f, j3f, j1r, j3r], [j2f, j4f, j2r, j4r], 'ju', 0.1)
     pandapipes.create_flow_control(net, j2f, j5, 10)
-    pandapipes.create_heat_exchanger(net, j5, j3r, 5000)
+    pandapipes.create_heat_exchanger(net, j5, j3r, 5000, 100)
     pandapipes.create_pipes_from_parameters(net, [j2f, j2r], [j3f, j3r], 0.1, 0.1)
     pandapipes.create_heat_consumer(net, j4f, j1r, 10000, 10)
 

@@ -1,5 +1,4 @@
-
-.. image:: ./doc/source/pics/pp.svg
+.. image:: https://www.pandapipes.org/images/pandapipes_color.svg
    :target: https://www.pandapipes.org
    :width: 300em
    :alt: logo
@@ -56,7 +55,7 @@ Institute for Energy Economics and Energy System Technology (IEE), Kassel, and t
 Department for Sustainable Electrical Energy Systems (e2n), University of Kassel.
 
 
-.. image:: ./doc/source/pics/iee.png
+.. image:: https://www.pandapipes.org/images/contact/Logo_Fraunhofer_IEE.png
     :target: https://www.iee.fraunhofer.de/en.html
     :width: 350
 
@@ -68,7 +67,7 @@ Department for Sustainable Electrical Energy Systems (e2n), University of Kassel
 
 |
 
-.. image:: ./doc/source/pics/e2n.png
+.. image:: https://www.pandapipes.org/images/contact/Logo_e2n.png
     :target: https://www.uni-kassel.de/eecs/en/e2n/home
     :width: 250
 

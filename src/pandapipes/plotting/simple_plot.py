@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -292,28 +292,28 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
             color=ext_grid_color, zorder=11)
         collections["ext_grid"] = eg_coll
 
-    if 'source' in net and plot_sources and len(net.source) > 0:
+    if ('source' in net) and plot_sources and len(net.source):
         idx = net.source[net.source.in_service].index if respect_in_service else net.source.index
         source_colls = create_source_collection(net, sources=idx, size=source_size,
                                                 patch_edgecolor='silver', line_color='silver',
                                                 linewidths=pipe_width)
         collections["source"] = source_colls
 
-    if 'sink' in net and plot_sinks and len(net.sink) > 0:
+    if ('sink' in net) and plot_sinks and len(net.sink):
         idx = net.sink[net.sink.in_service].index if respect_in_service else net.sink.index
         sink_colls = create_sink_collection(net, sinks=idx, size=sink_size,
                                             patch_edgecolor='silver', line_color='silver',
                                             linewidths=pipe_width)
         collections["sink"] = sink_colls
 
-    if 'valve' in net:
+    if ('valve' in net ) and len(net['valve']):
         valve_colls = create_valve_collection(net, size=valve_size, linewidths=pipe_width,
                                               color=valve_color, respect_valves=respect_valves)
         collections["valve"] = valve_colls
 
     for pump_comp in [Pump, CirculationPumpPressure, CirculationPumpMass]:
         pump_tbl = pump_comp.table_name()
-        if pump_tbl in net:
+        if (pump_tbl in net) and len(net[pump_tbl]):
             fjc, tjc = pump_comp.from_to_node_cols()
             idx = net[pump_tbl][net[pump_tbl].in_service].index if respect_in_service else net[pump_tbl].index
             pump_colls = create_pump_collection(net, idx, table_name=pump_tbl,
@@ -321,7 +321,7 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                                                 color=pump_color, fj_col=fjc, tj_col=tjc)
             collections[pump_tbl] = pump_colls
 
-    if 'flow_control' in net:
+    if ('flow_control' in net) and len(net['flow_control']):
         idx = net.flow_control[net.flow_control.in_service].index if respect_in_service \
             else net.flow_control.index
         flow_control_colls = create_flow_control_collection(net, flow_controllers=idx,
@@ -330,28 +330,28 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                                                             color=flow_control_color)
         collections["flow_control"] = flow_control_colls
 
-    if 'heat_exchanger' in net:
+    if ('heat_exchanger' in net) and len(net['heat_exchanger']):
         idx = net.heat_exchanger[net.heat_exchanger.in_service].index if respect_in_service \
             else net.heat_exchanger.index
         hxc = create_heat_exchanger_collection(net, heat_ex=idx, size=heat_exchanger_size,
                                                linewidths=pipe_width, color=heat_exchanger_color)
         collections["heat_exchanger"] = hxc
 
-    if 'press_control' in net:
+    if ('press_control' in net) and len(net['press_control']):
         idx = net.press_control[net.press_control.in_service].index if respect_in_service \
             else net.press_control.index
         pc = create_pressure_control_collection(net, pcs=idx, size=pressure_control_size,
                                                 linewidths=pipe_width, color=pressure_control_color)
         collections["press_control"] = pc
 
-    if 'compressor' in net:
+    if ('compressor' in net) and len(net['compressor']):
         idx = net.compressor[net.compressor.in_service].index if respect_in_service \
             else net.compressor.index
         compr_colls = create_compressor_collection(net, idx, size=compressor_size,
                                                    linewidths=pipe_width, color=compressor_color)
         collections["compressor"] = compr_colls
 
-    if 'heat_consumer' in net:
+    if ('heat_consumer' in net) and len(net['heat_consumer']):
         idx = net.heat_consumer[net.heat_consumer.in_service].index if respect_in_service \
             else net.heat_consumer.index
         he_colls = create_heat_consumer_collection(net, idx, size=heat_consumer_size,

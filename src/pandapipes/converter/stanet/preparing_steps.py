@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -176,19 +176,19 @@ def get_net_params(net, stored_data):
     net_params = dict()
     net_data = stored_data["net_parameters"]
     net_params['medium'] = net_data.at[0, "MEDI"]
-    net_params["rho"] = net_data.at[0, "RHON"]
-    net_params["cp"] = net_data.at[0, "CG"]
-    net_params["eta"] = net_data.at[0, "ETA"] * 1e-6
-    net_params["t_sutherland"] = net_data.at[0, "TS"]
-    net_params["t0_sutherland"] = net_data.at[0, "T0"]
+    net_params["rho"] = float(net_data.at[0, "RHON"])
+    net_params["cp"] = float(net_data.at[0, "CG"])
+    net_params["eta"] = float(net_data.at[0, "ETA"]) * 1e-6
+    net_params["t_sutherland"] = float(net_data.at[0, "TS"])
+    net_params["t0_sutherland"] = float(net_data.at[0, "T0"])
     net_params["calculate_temp"] = str(net_data.at[0, "TEMPCALC"]) == "J"
     pp_calc_mode = "sequential" if net_params["calculate_temp"] else "hydraulics"
     pandapipes.set_user_pf_options(net, mode=pp_calc_mode)
-    net_params["medium_temp_C"] = net_data.at[0, "TEMP"]
-    net_params["medium_temp_K"] = net_data.at[0, "TEMP"] + 273.15
+    net_params["medium_temp_C"] = float(net_data.at[0, "TEMP"])
+    net_params["medium_temp_K"] = float(net_data.at[0, "TEMP"]) + 273.15
     net_params["calculation_results_valid"] = not bool(net_data.at[0, "CALCDIRTY"])
     net_params["household_results_valid"] = not bool(net_data.at[0, "HCALCDIRTY"])
-    net_params["comp_factor"] = net_data.at[0, "KPAR"]
+    net_params["comp_factor"] = float(net_data.at[0, "KPAR"])
     net_params["friction_model"] = int(net_data.at[0, "LAM"])
     net_params["max_iterations"] = int(net_data.at[0, "IMAX"])
     if "KFAKT" in net_data.columns:
@@ -208,7 +208,7 @@ def get_net_params(net, stored_data):
         logger.warning("The compressibility model %s is not implemented in pandapipes, which might "
                        "lead to wrong results." % net_params["compress_model"])
 
-    pandapipes.set_user_pf_options(net, ambient_temperature=net_data.at[0, "AIRTEMP"] + 273.15)
+    pandapipes.set_user_pf_options(net, ambient_temperature=float(net_data.at[0, "AIRTEMP"]) + 273.15)
     state = 'liquid' if net_params['medium'] == 'W' else 'gas'
     fluid = pandapipes.create_constant_fluid(
         'STANET_fluid', state, density=net_params["rho"], viscosity=net_params["eta"],
@@ -273,9 +273,9 @@ def adapt_pipe_data(stored_data, pipe_data, coord_names, use_clients):
     for client_num, indices in client_types_ind.items():
         node_name = CLIENT_TYPES_OF_NODES[client_num]
         node_data = stored_data[node_name]
-        node_geo = node_data.loc[:, ["XRECHTS", "YHOCH"]]
-        node_geo.index = node_data.RECNO.values
-        node_cols = ["CLIENTNO", "CLIENT2NO"] if use_clients else ["ANFNR", "ENDNR"]
+        node_geo = node_data.loc[:, ["XRECHTS", "YHOCH"]].astype(float)
+        node_geo.index = node_data.STANETID.values if use_clients else node_data.RECNO.values
+        node_cols = ["CLIENTID", "CLIENT2ID"] if use_clients else ["ANFNR", "ENDNR"]
 
         # the following code is just a check whether pipe and node geodata fit together
         # in case of deviations, the pipe geodata is adapted on the basis of the node geodata
@@ -313,13 +313,15 @@ def get_pipe_geo(stored_data, modus):
     coord_names = ["XRA", "XRB", "YHA", "YHB"] if modus == "main" \
         else ["XRECHTS", "XRECHTS2", "YHOCH", "YHOCH2"]
     inflexion_points = "inflexion_points" if modus == "main" else "house_inflexion_points"
-
     pipe_data = stored_data[pipe_table_name]
+    pipe_data[coord_names] = pipe_data[coord_names].astype(float)
 
     adapt_pipe_data(stored_data, pipe_data, coord_names, modus != "main")
 
     pipe_geo_data = pipe_data.loc[:, coord_names + ["RECNO"]]
     if inflexion_points in stored_data:
+        columns = ['XRECHTS', 'YHOCH']
+        stored_data[inflexion_points][columns] = stored_data[inflexion_points][columns].astype(float)
         used_cols, sort_cols = ["XRECHTS", "YHOCH", "SNUM", "KNICKNO"], ["SNUM", "KNICKNO"]
         ipt = stored_data["{}".format(inflexion_points)].loc[:, used_cols].sort_values(sort_cols)
         # make lists of all x- and y-values of the inflexion points grouped by the pipe index
