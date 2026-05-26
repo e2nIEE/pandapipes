@@ -12,6 +12,7 @@ Change Log
 - [FIXED] compatibility fixes for pandas 2.2.*
 - [FIXED] fixed incorrect tolerance assignment for pressure and mass flow
 - [FIXED] prevented propagation of NaNs within pipeflow
+- [FIXED] index error in press controller
 - [CHANGED] updated corporate design
 - [CHANGED] replaced `diameter_m` with `inner_diameter_mm`
 - [CHANGED] switched diameter unit from m to mm
