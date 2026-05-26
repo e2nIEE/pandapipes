@@ -68,7 +68,6 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
     const_term_m = normal_term * p_sum_div * tm * comp_fact
     df_dm = - const_term_m * (2 * m_abs_deriv * friction_term +
                             np.divide(der_lambda * branch_pit[:, LENGTH] * m_init2, branch_pit[:, D]))
-    df_dm[np.isclose(m_init_abs, 0)] = 1.
 
     load_vec = p_diff + branch_pit[:, PL] + const_height \
                - normal_term * comp_fact * m_init2 * friction_term * p_sum_div * tm
