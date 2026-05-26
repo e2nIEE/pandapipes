@@ -1,7 +1,6 @@
 import numpy as np
 from numpy import linalg
 
-from pandapipes import MDOTSLACKINIT
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import LENGTH, LAMBDA, D, LOSS_COEFFICIENT as LC, PL, AREA, \
