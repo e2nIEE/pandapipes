@@ -2,7 +2,32 @@ Change Log
 =============
 [upcoming release] - 2026-..-..
 -------------------------------
-- [FIXED] bugfix for internal active node lookup within pipeflow
+
+[0.14.0] - 2026-05-26
+-------------------------------
+- [FIXED] fixed internal active node lookup in pipeflow
+- [FIXED] temperature TEXT of all components set to ambient temperature
+- [FIXED] incorrect enthalpy calculation
+- [FIXED] circ pumps not of type 'pt' or 't' no longer override TOUTINIT
+- [FIXED] compatibility fixes for pandas 2.2.*
+- [FIXED] fixed incorrect tolerance assignment for pressure and mass flow
+- [FIXED] prevented propagation of NaNs within pipeflow
+- [CHANGED] updated corporate design
+- [CHANGED] replaced `diameter_m` with `inner_diameter_mm`
+- [CHANGED] switched diameter unit from m to mm
+- [CHANGED] moved `k_mm` to standard types
+- [ADDED] added `outer_diameter_mm` parameter
+- [ADDED] added previous PIT storage for transient simulations
+- [ADDED] added rerun logic for single retry if pipeflow did not converge or results are invalid
+- [ADDED] standard types now include u-value, configurable per unit length or area
+- [ADDED] added function to retrieve absolute friction losses along a pipe
+- [ADDED] connectivity check now distinguishes between directed and undirected components
+- [ADDED] added support for multiple pressure control modes in STANET converter
+- [ADDED] added sector information to pandapipes networks
+- [ADDED] standard types can now be differentiated by sector
+- [ADDED] added component filtering by sector
+- [ADDED] added placeholder if connectivity re-check is required
+- [ADDED] added Isoplus standard types for heat networks
 
 [0.13.0] - 2026-01-16
 -------------------------------

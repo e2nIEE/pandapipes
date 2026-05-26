@@ -9,7 +9,7 @@ from pandapipes.component_models import standard_branch_wo_internals_result_look
 from pandapipes.component_models.abstract_models.branch_wo_internals_models import \
     BranchWOInternalsComponent
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import QEXT, D, AREA, LOSS_COEFFICIENT as LC, DO
+from pandapipes.idx_branch import QEXT, D, LOSS_COEFFICIENT as LC, DO
 from pandapipes.pf.pipeflow_setup import get_fluid
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 
