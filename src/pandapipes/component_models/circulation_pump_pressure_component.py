@@ -55,9 +55,15 @@ class CirculationPumpPressure(CirculationPump):
         return circ_pump_pit
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net,
+                                             branch_pit, node_pit,
+                                             branch_pit_old, node_pit_old,
+                                             idx_lookups, options):
         # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
         # of velocity is allowed during the pipeflow iteration
-        circ_pump_pit = super().adaption_after_derivatives_hydraulic(net, branch_pit, node_pit, idx_lookups, options)
+        circ_pump_pit = super().adaption_after_derivatives_hydraulic(net,
+                                                                     branch_pit, node_pit,
+                                                                     branch_pit_old, node_pit_old,
+                                                                     idx_lookups, options)
         circ_pump_pit[:, JAC_DERIV_DP] = 1
         circ_pump_pit[:, JAC_DERIV_DP1] = -1

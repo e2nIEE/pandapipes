@@ -49,7 +49,7 @@ class ValvePipe(Pipe):
                                         internal_pipe_number, internal_pipe_number)
         comp_pit[:, K] = np.repeat(net[cls.table_name].k_mm.values / 1000,
                                    internal_pipe_number)
-        comp_pit[:, D] = np.repeat(net[cls.table_name].diameter_m.values, internal_pipe_number)
+        comp_pit[:, D] = np.repeat(net[cls.table_name].inner_diameter_mm.values / 1000., internal_pipe_number)
         comp_pit[:, AREA] = comp_pit[:, D] ** 2 * np.pi / 4
         comp_pit[:, LC] = np.repeat(net[cls.table_name].loss_coefficient.values,
                                     internal_pipe_number)
@@ -103,7 +103,8 @@ class ValvePipe(Pipe):
                       "lambda",
                       "normfactor_from",
                       "normfactor_to",
-                      "loading_percent"]
+                      "loading_percent",
+                      "dp_friction_loss_bar"]
         else:
 
             output = ["v_mean_m_per_s",
@@ -119,5 +120,6 @@ class ValvePipe(Pipe):
                       "vdot_m3_per_s",
                       "reynolds",
                       "lambda",
-                      "loading_percent"]
+                      "loading_percent",
+                      "dp_friction_loss_bar"]
         return output, True

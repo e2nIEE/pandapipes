@@ -10,8 +10,12 @@ from pandas.testing import assert_frame_equal
 from pandapipes.test.multinet.test_control_multinet import get_gas_example, get_power_example_simple
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
 from pandapipes.multinet import MultiNet
-from pandapower import nets_equal as nets_equal_pandapower
 from pandapipes.toolbox import nets_equal
+
+try:
+    from pandapower import nets_equal as nets_equal_pandapower
+except ImportError:
+    from pandapower.toolbox.comparison import nets_equal as nets_equal_pandapower
 
 
 # @pytest.fixture()
@@ -35,21 +39,21 @@ def load_net():
     pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
 
     pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=10,
-                                           diameter_m=0.05, name="Pipe 1", geodata=[(0, 0), (2, 0)])
+                                           inner_diameter_mm=50, name="Pipe 1", geodata=[(0, 0), (2, 0)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=2,
-                                           diameter_m=0.05, name="Pipe 2",
+                                           inner_diameter_mm=50, name="Pipe 2",
                                            geodata=[(2, 0), (2, 4), (7, 4)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=2.5,
-                                           diameter_m=0.05, name="Pipe 3",
+                                           inner_diameter_mm=50, name="Pipe 3",
                                            geodata=[(2, 0), (2, -4), (7, -4)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j3, to_junction=j5, length_km=1,
-                                           diameter_m=0.05, name="Pipe 4",
+                                           inner_diameter_mm=50, name="Pipe 4",
                                            geodata=[(7, 4), (7, 3), (5, 3)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j4, to_junction=j6, length_km=1,
-                                           diameter_m=0.05, name="Pipe 5",
+                                           inner_diameter_mm=50, name="Pipe 5",
                                            geodata=[(7, -4), (7, -3), (5, -3)])
 
-    pandapipes.create_valve(net, junction=j5, element=j6, et='ju', diameter_m=0.05,
+    pandapipes.create_valve(net, junction=j5, element=j6, et='ju', inner_diameter_mm=50,
                             opened=True)
 
     pandapipes.create_sink(net, junction=j4, mdot_kg_per_s=5.45e-5, name="Sink 1")

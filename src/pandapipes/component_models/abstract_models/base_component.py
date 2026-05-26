@@ -71,21 +71,40 @@ class Component:
         raise NotImplementedError
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net,
+                                              branch_pit, node_pit,
+                                              branch_pit_old, node_pit_old,
+                                              idx_lookups, options):
         pass
 
     @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_hydraulic(cls, net,
+                                             branch_pit, node_pit,
+                                             branch_pit_old, node_pit_old,
+                                             idx_lookups, options):
         pass
 
     @classmethod
-    def adaption_before_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_thermal(cls, net,
+                                            branch_pit, node_pit,
+                                            branch_pit_old, node_pit_old,
+                                            idx_lookups, options):
         pass
 
     @classmethod
-    def adaption_after_derivatives_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_after_derivatives_thermal(cls, net,
+                                           branch_pit, node_pit,
+                                           branch_pit_old, node_pit_old,
+                                           idx_lookups, options):
         pass
 
+    @classmethod
+    def rerun_hydraulics(cls, net, branch_pit, node_pit, idx_lookups, options):
+        return False
+
+    @classmethod
+    def rerun_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
+        return False
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,

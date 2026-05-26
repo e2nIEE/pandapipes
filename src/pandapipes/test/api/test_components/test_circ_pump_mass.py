@@ -25,17 +25,17 @@ def test_circulation_pump_constant_mass(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380, diameter_m=0.1022)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370, diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380, inner_diameter_mm=102.2)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370, inner_diameter_mm=102.2)
     pandapipes.create_circ_pump_const_mass_flow(net, j4, j1, 5, 5, 300, type='pt')
-    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000)
+    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000, inner_diameter_mm=100)
     pandapipes.create_sink(net, j1, 2)
     pandapipes.create_source(net, j4, 2)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
     max_iter_hyd = 3 if use_numba else 3
-    max_iter_therm = 7 if use_numba else 7
+    max_iter_therm = 3 if use_numba else 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         stop_condition="tol", friction_model="nikuradse",
                         mode='sequential', transient=False, nonlinear_method="automatic",

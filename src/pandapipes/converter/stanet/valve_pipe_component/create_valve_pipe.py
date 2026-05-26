@@ -95,7 +95,7 @@ def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm
     return index
 
 
-def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km, diameter_m, k_mm=0.15e-3,
+def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km, inner_diameter_mm, k_mm=0.15e-3,
                                       opened=True, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293,
                                       qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                       type="valve_pipe", **kwargs):
@@ -115,8 +115,8 @@ def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km
     :type to_junction: int
     :param length_km: The pipe length in km
     :type length_km: float
-    :param diameter_m: The pipe diameter in m, for a start only circular pipes are supported
-    :type diameter_m: float
+    :param inner_diameter_mm: The pipe inner diameter in mm, for a start only circular pipes are supported
+    :type inner_diameter_mm: float
     :param k_mm: Pipe roughness in [mm]
     :type k_mm: float, default 0.15e-3
     :param opened: Flag to show if the valve is opened and allows for fluid flow or if it is closed\
@@ -164,7 +164,7 @@ def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km
     _check_branch(net, "ValvePipe", index, from_junction, to_junction)
 
     v = {"name": name, "from_junction": from_junction, "to_junction": to_junction,
-         "length_km": length_km, "diameter_m": diameter_m, "k_mm": k_mm,
+         "length_km": length_km, "inner_diameter_mm": inner_diameter_mm, "k_mm": k_mm,
          "opened": opened, "loss_coefficient": loss_coefficient,
          "u_w_per_m2k": u_w_per_m2k, "sections": sections, "in_service": bool(in_service), "type": type,
          "qext_w": qext_w, "text_k": text_k}

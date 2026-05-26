@@ -61,7 +61,10 @@ class Compressor(Pump):
         component_pits[cls.table_name()] = compr_array
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net, branch_pit, node_pit, idx_lookups, options):
+    def adaption_before_derivatives_hydraulic(cls, net,
+                                              branch_pit, node_pit,
+                                              branch_pit_old, node_pit_old,
+                                              idx_lookups, options):
         # calculation of pressure lift
         f, t = idx_lookups[cls.table_name()]
         compressor_branch_pit = branch_pit[f:t, :]

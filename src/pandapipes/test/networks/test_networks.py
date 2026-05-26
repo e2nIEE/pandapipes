@@ -82,7 +82,7 @@ def test_schutterwald_heat_transient(use_numba):
     ])
 
     run_timeseries(net, continue_on_divergence=False, verbose=True,
-                   mode="bidirectional", transient=True, dt=dt_simulation, iter=200, use_numba=use_numba)
+                   mode="bidirectional", transient=True, dt=dt_simulation, iter=15, use_numba=use_numba)
 
     mg = top.create_nxgraph(net, include_heat_consumers=False, include_pressure_circ_pumps=False)
 
@@ -97,7 +97,6 @@ def test_schutterwald_heat_transient(use_numba):
             ow.output["res_junction.t_k"].loc[ts0[c], juncs0]
             < ow.output["res_junction.t_k"].loc[ts0[c] - 1, juncs0]
         )
-
 
 
 if __name__ == '__main__':

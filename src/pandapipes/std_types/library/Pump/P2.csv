@@ -1,5 +1,5 @@
-Vdot_m3ph;p_bar;degree
-0;10;2
+Vdot_m3ph;p_bar;degree;sector
+0;10;2;all
 40;8.4;
 60;7;
 80;4.5;

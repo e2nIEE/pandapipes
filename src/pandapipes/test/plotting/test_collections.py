@@ -47,7 +47,7 @@ def test_collection_lengths():
                                            geodata=[(4, 0), (6, 0)])
     pandapipes.create_pipe_from_parameters(net, j5, j6, 0.2, diameter_m=d, k_mm=0.1,
                                            geodata=[(4, -2), (6, -2), (6, 0)])
-    pandapipes.create_heat_exchanger(net, j6, j7, qext_w=20000)
+    pandapipes.create_heat_exchanger(net, j6, j7, qext_w=20000, inner_diameter_mm=100)
     pandapipes.create_pump_from_parameters(net, j7, j8, 'P1')
     pandapipes.create_pressure_control(net, j8, j9, j9, 10.)
     pandapipes.create_flow_control(net, j9, j10, 0.5)
@@ -173,7 +173,7 @@ def test_collection_valve_pipe():
     j1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(0, 0))
     j2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=293.15, geodata=(2, 0))
 
-    create_valve_pipe_from_parameters(net, j1, j2, 0.1, diameter_m=d, opened=True, loss_coefficient=5e3)
+    create_valve_pipe_from_parameters(net, j1, j2, 0.1, inner_diameter_mm=d, opened=True, loss_coefficient=5e3)
 
     vp_coll_patches, vp_coll_lines = create_valve_pipe_collection(net)
 

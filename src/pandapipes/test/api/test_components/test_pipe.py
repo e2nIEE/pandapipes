@@ -23,7 +23,7 @@ def test_pipe_velocity_results(use_numba):
         :rtype:
         """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 209.1e-3
+    d = 209.1
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
@@ -48,7 +48,7 @@ def test_pipe_velocity_results(use_numba):
     v_1_sec_to = net.res_pipe.v_from_m_per_s
 
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 209.1e-3
+    d = 209.1
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=51, tfluid_k=285.15)
@@ -93,7 +93,7 @@ def test_pipe_sections_temperature(use_numba):
         :rtype:
         """
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 209.1e-3
+    d = 209.1
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)
     pandapipes.create_pipe_from_parameters(net, 0, 1, 6.0, d, k_mm=.5, sections=1, u_w_per_m2k=5, text_k=285.15)
@@ -133,10 +133,10 @@ def create_net_3_juncs():
 def test_namechange_pipe_from_parameters(create_net_3_juncs):
     net = copy.deepcopy(create_net_3_juncs)
     length_km = 1
-    diameter_m = 0.01
+    inner_diameter_mm = 10
     alpha = 5
     with pytest.warns(DeprecationWarning):
-        pandapipes.create_pipe_from_parameters(net, 0, 1, length_km, diameter_m,
+        pandapipes.create_pipe_from_parameters(net, 0, 1, length_km, inner_diameter_mm,
                                                alpha_w_per_m2k=alpha)
         assert net.pipe.u_w_per_m2k.values == alpha
 
@@ -144,16 +144,16 @@ def test_namechange_pipe_from_parameters(create_net_3_juncs):
 def test_namechange_pipes_from_parameters(create_net_3_juncs):
     net = copy.deepcopy(create_net_3_juncs)
     length_km = 1
-    diameter_m = 0.01
+    inner_diameter_mm = 10
     alpha = [5, 3]
     with pytest.warns(DeprecationWarning):
-        pandapipes.create_pipes_from_parameters(net, [0, 1], [1, 2], length_km, diameter_m,
+        pandapipes.create_pipes_from_parameters(net, [0, 1], [1, 2], length_km, inner_diameter_mm,
                                                 alpha_w_per_m2k=alpha)
         assert net.pipe.u_w_per_m2k.values.tolist() == alpha
     net = copy.deepcopy(create_net_3_juncs)
     u = [1, 7]
     with pytest.warns(DeprecationWarning):
-        pandapipes.create_pipes_from_parameters(net, [0, 1], [1, 2], length_km, diameter_m,
+        pandapipes.create_pipes_from_parameters(net, [0, 1], [1, 2], length_km, inner_diameter_mm,
                                                 alpha_w_per_m2k=alpha, u_w_per_m2k=np.array(u))
         assert net.pipe.u_w_per_m2k.values.tolist() == u
 
@@ -161,7 +161,7 @@ def test_namechange_pipes_from_parameters(create_net_3_juncs):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_zero_flow_pipes(use_numba):
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
-    d = 209.1e-3
+    d = 209.1
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)
     pandapipes.create_junction(net, pn_bar=5, tfluid_k=285.15)

@@ -2,6 +2,7 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import pandapipes as pps
 import pandapipes.networks as nw
 import pandapipes.topology as top
 import networkx as nx
@@ -48,6 +49,20 @@ def test_elements_on_path():
         with pytest.raises(ValueError) as exception_info:
             top.elements_on_path(mg, path, element="source")
         assert str(exception_info.value) == "Invalid element type source"
+
+
+def test_connected_components_with_pi_valves():
+    net = pps.create_empty_network()
+    j1, j2, j3, j4 = pps.create_junctions(net, 4, 5, 283.15)
+    p1, p2, p3 = pps.create_pipes(net, [j1, j2, j3], [j2, j3, j4], '250_PE_80_SDR_17.6', 1)
+    mg = top.create_nxgraph(net)
+    assert len(list(top.connected_components(mg))) == 1
+    pps.create_valve(net, j2, p2, 'pi', 100)
+    mg = top.create_nxgraph(net)
+    assert len(list(top.connected_components(mg))) == 1
+    net.valve.opened = False
+    mg = top.create_nxgraph(net)
+    assert len(list(top.connected_components(mg))) == 2
 
 
 if __name__ == "__main__":
