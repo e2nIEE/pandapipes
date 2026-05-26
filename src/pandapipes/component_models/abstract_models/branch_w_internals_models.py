@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import numpy as np
+import pandas as pd
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
 from pandapipes.component_models.component_toolbox import set_entry_check_repeat, get_internal_lookup_structure
@@ -195,7 +196,10 @@ class BranchWInternalsComponent(BranchComponent):
             set_entry_check_repeat(branch_w_internals_pit, D, net[tbl].inner_diameter_mm.values / 1000., internal_branch_number,
                 has_internals)
             if "outer_diameter_mm" in net[tbl]:
-                set_entry_check_repeat(branch_w_internals_pit, DO, net[tbl].outer_diameter_mm.values / 1000., internal_branch_number,
+                outer = net[tbl].outer_diameter_mm.values
+                inner = net[tbl].inner_diameter_mm.values
+                outer[pd.isnull(outer)] = inner[pd.isnull(outer)]
+                set_entry_check_repeat(branch_w_internals_pit, DO, outer / 1000., internal_branch_number,
                     has_internals)
                 branch_w_internals_pit[np.isnan(branch_w_internals_pit[:, DO]), DO] = (
                     branch_w_internals_pit)[np.isnan(branch_w_internals_pit[:, DO]), D]
