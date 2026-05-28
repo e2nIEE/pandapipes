@@ -10,7 +10,6 @@ from pandapipes.component_models.circulation_pump_mass_component import Circulat
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 from pandapipes.component_models.valve_component import Valve
 from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.component_models.heat_exchanger_component import HeatExchanger
 
 try:
     import pandaplan.core.pplog as logging
