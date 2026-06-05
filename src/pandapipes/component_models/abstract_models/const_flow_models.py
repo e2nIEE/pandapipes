@@ -6,8 +6,8 @@ import numpy as np
 from numpy import dtype
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
 from pandapipes.idx_node import LOAD, ELEMENT_IDX
-from pandapipes.pf.internals_toolbox import _sum_by_group
-from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
+from pandapipes.pf.internals_toolbox import sum_by_group
+from pandapipes.pf.pipeflow_setup import get_lookup
 
 
 class ConstFlow(NodeElementComponent):
@@ -43,10 +43,10 @@ class ConstFlow(NodeElementComponent):
         helper = loads.in_service.values * loads.scaling.values * cls.sign()
         mf = np.nan_to_num(loads.mdot_kg_per_s.values)
         mass_flow_loads = mf * helper
-        juncts, loads_sum = _sum_by_group(get_net_option(net, "use_numba"), loads.junction.values,
-                                          mass_flow_loads)
+        juncts, (loads_sum,) = sum_by_group(loads.junction.values, mass_flow_loads)
         junction_idx_lookups = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
+            cls.get_connected_node_type().table_name()
+        ]
         index = junction_idx_lookups[juncts]
         node_pit[index, LOAD] += loads_sum
 
