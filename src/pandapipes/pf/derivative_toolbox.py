@@ -203,24 +203,6 @@ def derivatives_thermal_np(node_pit, branch_pit,
     return fn, dfn_dt, fnt, dfnt_dt, dfnt_dtout, fb, dfb_dt, dfb_dtout, infeed
 
 
-def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
-    m_abs = np.abs(m)
-    re = np.divide(m_abs * d, eta * area)
-    lambda_laminar = np.zeros_like(m)
-    lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
-    lambda_nikuradse = np.divide(1, (-2 * np.log10(k / (3.71 * d))) ** 2)
-    return re, lambda_laminar, lambda_nikuradse
-
-
-def calc_lambda_nikuradse_comp_np(m, d, k, eta, area):
-    m_abs = np.abs(m)
-    re = np.divide(m_abs * d, eta * area)
-    lambda_laminar = np.zeros_like(m)
-    lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
-    lambda_nikuradse = np.divide(1, (2 * np.log10(d / k) + 1.14) ** 2)
-    return re, lambda_laminar, lambda_nikuradse
-
-
 def calc_medium_pressure_with_derivative_np(p_init_i_abs, p_init_i1_abs):
     val = 2 / 3
     p_m = p_init_i_abs.copy()
@@ -244,59 +226,6 @@ def calc_medium_pressure_with_derivative_np(p_init_i_abs, p_init_i1_abs):
                           * factor
 
     return p_m, der_p_m, der_p_m1
-
-
-def colebrook_np(re, d, k, lambda_nikuradse, dummy, max_iter):
-    """
-
-    :param re:
-    :type re:
-    :param d:
-    :type d:
-    :param k:
-    :type k:
-    :param lambda_nikuradse:
-    :type lambda_nikuradse:
-    :param dummy:
-    :type dummy:
-    :param max_iter:
-    :type max_iter:
-    :return: lambda_cb
-    :rtype:
-    """
-    lambda_cb = lambda_nikuradse
-    converged = False
-    error_lambda = []
-    niter = 0
-    mask = ~np.isclose(re, 0)
-    f = np.zeros_like(lambda_cb)
-    df = np.zeros_like(lambda_cb)
-    x = np.zeros_like(lambda_cb)
-    re_nz = re[mask]
-    k_nz = k[mask]
-    d_nz = d[mask]
-    # Inner Newton-loop for calculation of lambda
-    while not converged and niter < max_iter:
-
-        f[mask] = lambda_cb[mask] ** (-1 / 2) + 2 * np.log10(2.51 / (re_nz * np.sqrt(lambda_cb[mask])) + k_nz / (3.71 * d_nz))
-
-        df[mask]= -1 / 2 * lambda_cb[mask] ** (-3 / 2) - (2.51 / re_nz) * lambda_cb[mask] ** (-3 / 2) \
-                        / (np.log(10) * (2.51 / (re_nz * np.sqrt(lambda_cb[mask])) + k_nz / (3.71 * d_nz)))
-
-        x[mask] = - f[mask] / df[mask]
-
-        lambda_cb_old = lambda_cb
-        lambda_cb = lambda_cb + x
-
-        dx = np.abs(lambda_cb - lambda_cb_old) * dummy
-        error_lambda.append(linalg.norm(dx) / (len(dx)))
-
-        if error_lambda[niter] <= 1e-4:
-            converged = True
-
-        niter += 1
-
-    return converged, lambda_cb
 
 
 def calc_derived_values_np(node_pit, from_nodes, to_nodes):

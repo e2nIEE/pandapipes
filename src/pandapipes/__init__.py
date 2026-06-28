@@ -31,5 +31,6 @@ from pandapipes.io.file_io import *
 from pandapipes.pipeflow import *
 from pandapipes.toolbox import *
 from pandapipes.pf.pipeflow_setup import *
+from pandapipes.pf.friction_factor_model import *
 from pandapipes.std_types import *
 import pandapipes.plotting

@@ -22,6 +22,7 @@ from pandapipes.idx_branch import (
 from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
     TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED, GE, TINIT
 from pandapipes.properties.fluids import get_fluid
+import pandapipes.pf.friction_factor_model as fm
 
 try:
     import numba
@@ -40,7 +41,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
+default_options = {"friction_model": fm.Nikuradse(), "tol_p": 1e-5, "tol_m": 1e-5,
                    "tol_T": 1e-3, "tol_res": 1e-3, "max_iter_hyd": 10, "max_iter_therm": 10,
                    "max_iter_bidirect": 10, "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
@@ -237,8 +238,10 @@ def init_options(net, **kwargs):
         - **ambient_temperature** (float): 293.0 - The assumed ambient temperature for the\
                 calculation of the barometric formula
 
-        - **friction_model** (str): "nikuradse" - The friction model that shall be used to identify\
-                the value for lambda (can be "nikuradse" or "colebrook")
+        - **friction_model** (FrictionFactorModel): ``pp.Nikuradse()`` - The friction model\
+                used to compute the Darcy‑Weisbach friction factor :math:`\lambda`\
+                (e.g., ``pp.SwameeJain()``, ``pp.Colebrook()``, or\
+                ``pp.RegimeAwareFrictionFactorModel()``).
 
         - **alpha** (float): 1 - The step width for the Newton iterations. If the Newton steps \
                 shall be damped, **alpha** can be reduced. See also the **nonlinear_method** \
@@ -311,6 +314,7 @@ def init_options(net, **kwargs):
         opts["use_numba"] = False
     opts["fluid"] = get_fluid(net).name
     _mode_check(opts)
+    _get_friction_factor_model(opts)
 
     net["_options"] = opts
 
@@ -343,6 +347,27 @@ def _mode_check(opts):
             "For now 'all' is set equal to 'sequential'.",
         )
         opts["mode"] = "sequential"
+
+
+def _get_friction_factor_model(opts):
+    """Backwards-compatibility utility: if the friction model was given as a string,
+    replace it in-place with the corresponding model instance.
+    """
+    friction_factor_model = opts["friction_model"]
+    if isinstance(friction_factor_model, fm.FrictionFactorModel):
+        return
+
+    if friction_factor_model == "colebrook":
+        friction_factor_model = fm.Colebrook(
+            tolerance=opts.get("tolerance_colebrook", 1e-4),
+            max_iter=opts.get("max_iter_colebrook", 100),
+        )
+    elif friction_factor_model == "swamee-jain":
+        friction_factor_model = fm.SwameeJain()
+    else:
+        friction_factor_model = fm.Nikuradse()
+    opts["friction_model"] = friction_factor_model
+
 
 def create_internal_results(net):
     """
