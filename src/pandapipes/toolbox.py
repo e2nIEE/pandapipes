@@ -30,7 +30,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-Ï
+
 def nets_equal(net1, net2, check_only_results=False, exclude_elms=None, **kwargs):
     """
     Compares the DataFrames of two networks.
