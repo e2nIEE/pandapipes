@@ -16,7 +16,7 @@ def test_pi_valve_does_not_leak_pipe_index_as_node():
     pipe_idx = pandapipes.create_pipe_from_parameters(net, j0, j1, length_km=0.1,
                                               diameter_m=0.1, index=5)
     pandapipes.create_valve(net, j1, j2, et="ju", inner_diameter_mm=100, opened=True)
-    pi_valve_idx = ppandapipesp.create_valve(net, j0, pipe_idx, et="pi", inner_diameter_mm=100,
+    pi_valve_idx = pandapipes.create_valve(net, j0, pipe_idx, et="pi", inner_diameter_mm=100,
                                    opened=True)
 
     mg = top.create_nxgraph(net, respect_status_valves=True)
@@ -30,7 +30,7 @@ def test_pi_valve_does_not_leak_pipe_index_as_node():
     assert pipe_idx not in mg_closed.nodes()
     assert not mg_closed.has_edge(j0, j1)
     assert mg_closed.has_edge(j1, j2)
-    
+
 
 def test_include_branches():
     net = nw.gas_versatility()
