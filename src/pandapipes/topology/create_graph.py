@@ -165,6 +165,19 @@ def add_branch_component(comp, mg, net, table_name, include_comp, respect_status
     tab = get_edge_table(net, table_name, include_comp)
 
     if tab is not None:
+        if table_name == "valve" and "et" in tab.columns:
+            # Only "ju" (junction-to-junction) valves are genuine standalone
+            # edges between two junctions. A "pi" valve is a switch mounted
+            # on a pipe: its "element" is a *pipe* index, not a junction, so
+            # naively using from_to_node_cols() below would add that pipe
+            # index into the graph as if it were a junction node. "pi"
+            # valves are already accounted for via valve_et_filter, which
+            # marks the referenced pipe itself in/out of service further
+            # down - mirroring how pandapower's own switch table only ever
+            # builds direct edges for et == "b" (bus-to-bus) and leaves
+            # "l"/"t"/"t3" switches to their host element's in-service mask
+            # instead of adding them as their own edge.
+            tab = tab[tab["et"].values == "ju"]
         in_service_name = comp.active_identifier()
         from_col, to_col = comp.from_to_node_cols()
         indices, parameter, in_service = init_par(tab, respect_status, in_service_name)

@@ -4,7 +4,33 @@
 
 import pandapipes.networks as nw
 import pandapipes.topology as top
+import pandapipes
 
+
+def test_pi_valve_does_not_leak_pipe_index_as_node():
+    """A "pi" valve's element is a pipe index, not a junction - it must not become a graph node."""
+    net = pandapipes.create_empty_network(fluid="water")
+    j0 = pandapipes.create_junction(net, pn_bar=1, tfluid_k=293, index=100)
+    j1 = pandapipes.create_junction(net, pn_bar=1, tfluid_k=293, index=101)
+    j2 = pandapipes.create_junction(net, pn_bar=1, tfluid_k=293, index=102)
+    pipe_idx = pandapipes.create_pipe_from_parameters(net, j0, j1, length_km=0.1,
+                                              diameter_m=0.1, index=5)
+    pandapipes.create_valve(net, j1, j2, et="ju", inner_diameter_mm=100, opened=True)
+    pi_valve_idx = ppandapipesp.create_valve(net, j0, pipe_idx, et="pi", inner_diameter_mm=100,
+                                   opened=True)
+
+    mg = top.create_nxgraph(net, respect_status_valves=True)
+    assert pipe_idx not in mg.nodes()
+    assert set(net.junction.index) <= set(mg.nodes())
+    assert mg.has_edge(j1, j2)
+    assert mg.has_edge(j0, j1)
+
+    net.valve.loc[pi_valve_idx, "opened"] = False
+    mg_closed = top.create_nxgraph(net, respect_status_valves=True)
+    assert pipe_idx not in mg_closed.nodes()
+    assert not mg_closed.has_edge(j0, j1)
+    assert mg_closed.has_edge(j1, j2)
+    
 
 def test_include_branches():
     net = nw.gas_versatility()
