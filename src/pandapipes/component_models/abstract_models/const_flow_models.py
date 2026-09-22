@@ -5,6 +5,7 @@
 import numpy as np
 from numpy import dtype
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
+from pandapipes.component_models.component_toolbox import get_component_array
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.internals_toolbox import _sum_by_group
 from pandapipes.pf.pipeflow_setup import get_lookup, get_net_option
@@ -13,6 +14,14 @@ from pandapipes.pf.derivative_calculation import calculate_load_hydraulic
 
 
 class ConstFlow(NodeElementComponent):
+
+    # columns for internal array
+    JUNCTION = 0
+    MDOT = 1
+    SCALING = 2
+    IN_SERVICE = 3
+
+    internal_cols = 4
 
     @classmethod
     def table_name(cls):
@@ -45,6 +54,16 @@ class ConstFlow(NodeElementComponent):
                 ("type", dtype(object))]
 
     @classmethod
+    def create_component_array(cls, net, component_pits):
+        tbl = net[cls.table_name()]
+        load_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+        load_array[:, cls.JUNCTION] = tbl.junction.values
+        load_array[:, cls.MDOT] = tbl.mdot_kg_per_s.values
+        load_array[:, cls.SCALING] = tbl.scaling.values
+        load_array[:, cls.IN_SERVICE] = tbl.in_service.values
+        component_pits[cls.table_name()] = load_array
+
+    @classmethod
     def register_pit_node_entries(cls, net, node_pit, registry) -> None:
         loads = net[cls.table_name()]
         helper = loads.in_service.values * loads.scaling.values * cls.sign()
@@ -64,8 +83,18 @@ class ConstFlow(NodeElementComponent):
 
     @classmethod
     def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
+        load_array = get_component_array(net, cls.table_name(), only_active=False)
+        if not len(load_array):
+            return
         index, loads_sum = calculate_load_hydraulic(
-            net, net[cls.table_name()], cls.sign(), cls.get_connected_node_type().table_name())
+            net,
+            load_array[:, cls.JUNCTION],
+            load_array[:, cls.MDOT],
+            load_array[:, cls.SCALING],
+            load_array[:, cls.IN_SERVICE],
+            cls.sign(),
+            cls.get_connected_node_type().table_name(),
+        )
         if not len(index):
             return
 

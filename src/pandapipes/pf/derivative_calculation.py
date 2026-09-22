@@ -162,18 +162,24 @@ def calculate_derivatives_node_thermal(net, branch_pit, node_pit, node_pit_old, 
     )
 
 
-def calculate_load_hydraulic(net, loads, sign, junction_table_name):
+def calculate_load_hydraulic(net, junctions, mdot, scaling, in_service, sign, junction_table_name):
     """Compute the aggregated nodal mass-flow loads for a ConstFlow-type component.
 
-    Returns the active node-pit indices and the corresponding summed load values
-    (sign-corrected, NaN-safe, filtered to hydraulically active nodes).
+    :param junctions: per-row junction table index (not a pit position) - grouped by
+        :func:`~pandapipes.pf.internals_toolbox._sum_by_group` before being resolved against the
+        active node pit
+    :param mdot: per-row mass flow (may contain NaN, treated as 0)
+    :param scaling: per-row scaling factor
+    :param in_service: per-row in-service flag
+    :return: the active node-pit indices and the corresponding summed load values
+        (sign-corrected, NaN-safe, filtered to hydraulically active nodes)
     """
-    helper = loads.in_service.values * loads.scaling.values * sign
-    mf = np.nan_to_num(loads.mdot_kg_per_s.values)
+    helper = in_service * scaling * sign
+    mf = np.nan_to_num(mdot)
     juncts, loads_sum = _sum_by_group(
-        get_net_option(net, "use_numba"), loads.junction.values, -mf * helper)
+        get_net_option(net, "use_numba"), junctions, -mf * helper)
     junction_idx_lookup = get_lookup(net, "node", "index_active_hydraulics")[junction_table_name]
-    index = junction_idx_lookup[juncts]
+    index = junction_idx_lookup[juncts.astype(np.int32)]
     valid = index >= 0
     return index[valid].astype(np.int32), loads_sum[valid]
 

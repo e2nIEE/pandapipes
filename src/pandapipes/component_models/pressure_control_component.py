@@ -31,11 +31,10 @@ class PressureControlComponent(BranchWOInternalsComponent):
     """Pressure control component enforcing a target pressure at a controlled junction."""
 
     JUNCTS = 0
-    IN_SERVICE = 1
-    CONTROLLED = 2
-    CONTROLLED_P = 3
+    CONTROLLED = 1
+    CONTROLLED_P = 2
 
-    internal_cols = 4
+    internal_cols = 3
 
     @classmethod
     def table_name(cls):
@@ -104,7 +103,6 @@ class PressureControlComponent(BranchWOInternalsComponent):
         pc_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
         pc_array[:, cls.JUNCTS] = tbl["controlled_junction"].values
         pc_array[:, cls.CONTROLLED] = tbl.control_active.values
-        pc_array[:, cls.IN_SERVICE] = tbl.in_service.values
         pc_array[:, cls.CONTROLLED_P] = tbl.controlled_p_bar.values
         component_pits[cls.table_name()] = pc_array
 
@@ -124,7 +122,6 @@ class PressureControlComponent(BranchWOInternalsComponent):
         # range.
         pc_array = get_component_array(net, cls.table_name())
         ctrl_active = pc_array[:, cls.CONTROLLED].astype(bool)
-        in_service_arr = pc_array[:, cls.IN_SERVICE].astype(bool)
         ctrl_juncts = pc_array[:, cls.JUNCTS].astype(np.int32)
 
         junction_idx_active = get_lookup(net, "node", "index_active_hydraulics")[
@@ -132,10 +129,12 @@ class PressureControlComponent(BranchWOInternalsComponent):
         ]
         index_pc = junction_idx_active[ctrl_juncts]
 
-        if np.any(index_pc[in_service_arr] == -1):
+        # every row here is already in service - branch_idx/pc_array only cover the
+        # from_to_active_hydraulics range, which excludes out-of-service controllers upstream
+        if np.any(index_pc == -1):
             raise UserWarning(
                 f"Controlled junction(s) are disconnected while the pressure controller is in "
-                f"service: {ctrl_juncts[in_service_arr][index_pc[in_service_arr] == -1]}"
+                f"service: {ctrl_juncts[index_pc == -1]}"
             )
 
         df_dm, df_dp, df_dp1, df_dm_node, load, load_fn, load_tn = (
