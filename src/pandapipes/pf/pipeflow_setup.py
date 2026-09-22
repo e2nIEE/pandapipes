@@ -746,6 +746,41 @@ def reduce_lookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, act
     net["_lookups"][comp_type + "_from_to_active_" + mode] = ft_active
 
 
+def reduce_component_pits(net, branches_connected, nodes_connected):
+    """Reduce each component's internal array to its currently active elements.
+
+    Mirrors the branch/node reduction below so that ``net["_active_pit"]["components"][name]``
+    stays row-aligned with ``net["_active_pit"]["branch"/"node"][f:t]`` by construction. Without
+    this, :func:`~pandapipes.component_models.component_toolbox.get_component_array` had to
+    independently re-derive the same active mask (via a boolean-index copy) on every single call,
+    relying on it happening to match the branch/node reduction rather than being guaranteed by it.
+
+    :param net: The pandapipesNet for which the component pits shall be reduced
+    :type net: pandapipesNet
+    :param branches_connected: boolean mask over the full (unreduced) branch pit
+    :type branches_connected: numpy.ndarray
+    :param nodes_connected: boolean mask over the full (unreduced) node pit
+    :type nodes_connected: numpy.ndarray
+    :return: active_components - reduced component arrays, keyed by table name
+    :rtype: dict
+    """
+    branch_ft = get_lookup(net, "branch", "from_to")
+    node_ft = get_lookup(net, "node", "from_to")
+    active_components = dict()
+    for name, comp_pit in net["_pit"]["components"].items():
+        if name in branch_ft:
+            f, t = branch_ft[name]
+            mask = branches_connected[f:t]
+        elif name in node_ft:
+            f, t = node_ft[name]
+            mask = nodes_connected[f:t]
+        else:
+            active_components[name] = np.copy(comp_pit)
+            continue
+        active_components[name] = np.copy(comp_pit[mask, :])
+    return active_components
+
+
 def reduce_pit(net, mode):
     """Create an internal ("active") pit with all nodes and branches that are actually in_service.
 
@@ -778,6 +813,8 @@ def reduce_pit(net, mode):
                 net, comp_type, mode, comp_pit, active_pit, comp_pit_old, active_pit_old,
                 connected_elms, idx_col
             )
+
+    active_pit["components"] = reduce_component_pits(net, branches_connected, nodes_connected)
 
     if not np.all(nodes_connected):
         reduced_node_lookup = np.cumsum(nodes_connected) - 1

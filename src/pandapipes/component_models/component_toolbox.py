@@ -349,25 +349,31 @@ def standard_branch_wo_internals_result_lookup(net):
     return required_results_hyd, required_results_ht
 
 
-def get_component_array(net, component_name, component_type="branch", mode='hydraulics', only_active=True):
+def get_component_array(net, component_name, component_type="branch", mode='hydraulics', only_active=True):  # pylint: disable=unused-argument
     """Returns the internal array of a component.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
     :param component_name: Table name of the component for which to extract internal array
     :type component_name: str
-    :param component_type: Type of component that is considered ("branch" or "node")
+    :param component_type: Kept for API compatibility; the active reduction is now performed once
+        in :func:`~pandapipes.pf.pipeflow_setup.reduce_component_pits` (called from
+        :func:`~pandapipes.pf.pipeflow_setup.reduce_pit`), which already resolves the component's
+        type on its own.
     :type component_type: str, default "branch"
+    :param mode: Kept for API compatibility; ``net["_active_pit"]`` always reflects whichever mode
+        ``reduce_pit`` was last called with, and every caller only requests entries for that same
+        mode, so this no longer needs to be applied here.
+    :type mode: str, default "hydraulics"
     :param only_active: If True, only return entries of active elements (included in _active_pit)
     :type only_active: bool
-    :return: component_array - internal array of the component
+    :return: component_array - internal array of the component, row-aligned with
+        ``net["_active_pit"][component_type][f:t]`` for this component's own from/to range
     :rtype: numpy.ndarray
     """
     if not only_active:
         return net["_pit"]["components"][component_name]
-    f_all, t_all = get_lookup(net, component_type, "from_to")[component_name]
-    in_service_elm = get_lookup(net, component_type, "active_" + mode)[f_all:t_all]
-    return net["_pit"]["components"][component_name][in_service_elm]
+    return net["_active_pit"]["components"][component_name]
 
 
 def get_std_type_lookup(net, table_name):
