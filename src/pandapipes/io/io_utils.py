@@ -43,7 +43,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     module_name = ''
     omit_modules = ''
 
-    def __init__(self, obj, d, ppipes_hook, ignore_unknown_objects=False, omit_modules=None):
+    def __init__(self, obj, d, ppipes_hook, ignore_unknown_objects=False, omit_modules=None, **kwargs):
         """
 
         :param obj: object the data is written to
@@ -53,7 +53,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         :param ppipes_hook: a way how to handle non-default data
         :type ppipes_hook: funct
         """
-        super().__init__(obj, d, ppipes_hook, ignore_unknown_objects, omit_modules)
+        super().__init__(obj, d, ppipes_hook, ignore_unknown_objects, omit_modules, **kwargs)
 
     @from_serializable.register(class_name="method")
     def method(self):
@@ -101,7 +101,8 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
                     self.obj, cls=PPJSONDecoder,
                     object_hook=partial(pp_hook, registry_class=FromSerializableRegistryPpipe,
                                         ignore_unknown_objects=self.ignore_unknown_objects,
-                                        omit_modules=self.omit_modules)
+                                        omit_modules=self.omit_modules,
+                                        skip_checks=getattr(self, "skip_checks", False))
                 )
                 # backwards compatibility
             if "net" in self.obj:
@@ -111,6 +112,14 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
             return class_
         else:
             # for non-pp objects, e.g. tuple
+            skip_checks = getattr(self, "skip_checks", False)
+            if not skip_checks:
+                try:
+                    from pandapower.io_utils import _is_safe_to_deserialize, DeserializationNotAllowed
+                    if not _is_safe_to_deserialize(self.module_name, self.class_name, class_):
+                        raise DeserializationNotAllowed(f"Deserializing '{self.module_name}.{self.class_name}' is not allowed in pandapipes")
+                except ImportError:
+                    pass # Fallback for old pandapower versions without the security patch
             return class_(self.obj, **self.d)
 
     @from_serializable.register(class_name='MultiNet')
