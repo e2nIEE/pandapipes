@@ -127,8 +127,7 @@ def register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, table
     register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, dm_node, -m, m)
 
 
-def register_circ_pump_slack_equations(net, node_pit, sys_idx, registry, table_name,
-                                       active_identifier, to_junction_col, connected_node_table):
+def register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, registry, table_name):
     """Register the pressure/slack-mass equations for a circulation pump's own flow junction.
 
     A circ pump's own flow junction gets ``NODE_TYPE = P`` purely to anchor an absolute
@@ -143,24 +142,22 @@ def register_circ_pump_slack_equations(net, node_pit, sys_idx, registry, table_n
     ExtGrid's own registration already lets ``MDOTSLACKINIT`` freely absorb residual mass
     there, and this must not fight it for ownership of that row.
     """
-    tbl = net[table_name]
-    tbl = tbl[tbl[active_identifier].values]
-    if not len(tbl):
+    # local import to avoid a circular import (circulation_pump.py imports from this module)
+    from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
+
+    f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[table_name]
+    if f == t:
         return
 
-    p_pumps = tbl[np.isin(tbl.type.values, ["p", "pt"])]
-    if not len(p_pumps):
+    cp_array = get_component_array(net, table_name)
+    p_mask = cp_array[:, CirculationPump.TYPE_P].astype(bool)
+    if not np.any(p_mask):
         return
 
-    # "index_active_hydraulics" (not the plain "index" lookup!) maps onto the ACTIVE/reduced
-    # pit this method operates on - see ExtGrid.register_hydraulic_equations for why the
-    # plain lookup is wrong here. -1 means disconnected - skip those.
-    junction_lookup = get_lookup(net, "node", "index_active_hydraulics")[connected_node_table]
-    # one entry per circ_pump ROW - not deduplicated, mirrors ExtGrid's own pressure-fix
-    pump_nodes = junction_lookup[p_pumps[to_junction_col].values].astype(np.int32)
-    pump_nodes = pump_nodes[pump_nodes != -1]
-    if not len(pump_nodes):
-        return
+    # b_pit's own TO_NODE is already resolved against the active/reduced node pit - one entry
+    # per circ_pump ROW (not deduplicated), mirrors ExtGrid's own pressure-fix
+    b_pit = branch_pit[f:t]
+    pump_nodes = b_pit[p_mask, IdxBranch.TO_NODE].astype(np.int32)
 
     p_col = sys_idx.idx(HydVarEq.PINIT, pump_nodes)
     slack_eq = sys_idx.idx(HydVarEq.SLACK, pump_nodes)

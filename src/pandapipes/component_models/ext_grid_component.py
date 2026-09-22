@@ -6,7 +6,7 @@ import numpy as np
 from numpy import dtype
 
 from pandapipes.component_models.abstract_models.node_element_models import NodeElementComponent
-from pandapipes.component_models.component_toolbox import build_pit_entries
+from pandapipes.component_models.component_toolbox import build_pit_entries, get_component_array
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.system_index import ComponentEquations, EqWriteMode, PitEntries, PitWriteMode, HydVarEq, ThermVarEq
@@ -21,6 +21,16 @@ logger = logging.getLogger(__name__)
 
 class ExtGrid(NodeElementComponent):
     """External grid component acting as the network's slack node for pressure and temperature."""
+
+    # columns for internal array
+    JUNCTION = 0
+    TYPE_P = 1
+    TYPE_T = 2
+    P_BAR = 3
+    T_K = 4
+    IN_SERVICE = 5
+
+    internal_cols = 6
 
     @classmethod
     def table_name(cls):
@@ -61,6 +71,18 @@ class ExtGrid(NodeElementComponent):
                 ("t_k", "f8"),
                 ("in_service", "bool"),
                 ('type', dtype(object))]
+
+    @classmethod
+    def create_component_array(cls, net, component_pits):
+        tbl = net[cls.table_name()]
+        eg_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+        eg_array[:, cls.JUNCTION] = tbl.junction.values
+        eg_array[:, cls.TYPE_P] = np.isin(tbl.type.values, ["p", "pt"])
+        eg_array[:, cls.TYPE_T] = np.isin(tbl.type.values, ["t", "pt"])
+        eg_array[:, cls.P_BAR] = tbl.p_bar.values
+        eg_array[:, cls.T_K] = tbl.t_k.values
+        eg_array[:, cls.IN_SERVICE] = tbl.in_service.values
+        component_pits[cls.table_name()] = eg_array
 
     @classmethod
     def register_pit_node_entries(cls, net, node_pit, registry) -> None:
@@ -108,10 +130,11 @@ class ExtGrid(NodeElementComponent):
         # by register_circ_pump_slack_equations instead, using the COUNT_VAR_MASS_SLACK flag
         # written below to know whether a real ext_grid also sits there). ext_grid ALWAYS
         # provides genuine mass-slack capability - no COUNT_VAR_MASS_SLACK check needed on this side.
-        ext_grids = net[cls.table_name()]
-        ext_grids = ext_grids[ext_grids[cls.active_identifier()].values]
-        p_grids = ext_grids[np.isin(ext_grids.type.values, ["p", "pt"])]
-        if not len(p_grids):
+        eg_array = get_component_array(net, cls.table_name(), only_active=False)
+        if not len(eg_array):
+            return
+        p_mask = eg_array[:, cls.IN_SERVICE].astype(bool) & eg_array[:, cls.TYPE_P].astype(bool)
+        if not np.any(p_mask):
             return
 
         # "index_active_hydraulics" (not the plain "index" lookup!) maps onto the ACTIVE/reduced
@@ -123,7 +146,7 @@ class ExtGrid(NodeElementComponent):
             cls.get_connected_node_type().table_name()]
         # one entry per ext_grid ROW - deliberately NOT deduplicated by node (see below: multiple
         # ext_grids at the same node each contribute their own additive share to MDOTSLACKINIT)
-        eg_nodes = junction_lookup[p_grids[cls.get_node_col()].values].astype(np.int32)
+        eg_nodes = junction_lookup[eg_array[p_mask, cls.JUNCTION].astype(np.int32)]
         eg_nodes = eg_nodes[eg_nodes != -1]
         if not len(eg_nodes):
             return
@@ -182,19 +205,17 @@ class ExtGrid(NodeElementComponent):
 
     @classmethod
     def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
-        ext_grids = net[cls.table_name()]
-        ext_grids = ext_grids[ext_grids[cls.active_identifier()].values]
-        if not len(ext_grids):
+        eg_array = get_component_array(net, cls.table_name(), only_active=False)
+        if not len(eg_array):
             return
-
-        junction = ext_grids[cls.get_node_col()].values
-        types = ext_grids.type.values
-        mask_t = np.isin(types, ["t", "pt"])
+        t_mask = eg_array[:, cls.IN_SERVICE].astype(bool) & eg_array[:, cls.TYPE_T].astype(bool)
+        if not np.any(t_mask):
+            return
 
         junction_lookup = get_lookup(net, "node", "index_active_heat_transfer")[
             cls.get_connected_node_type().table_name()
         ]
-        ext_nodes = junction_lookup[junction[mask_t].astype(np.int32)]
+        ext_nodes = junction_lookup[eg_array[t_mask, cls.JUNCTION].astype(np.int32)]
         ext_nodes = ext_nodes[ext_nodes != -1]  # drop disconnected, sort to match infeed_nodes order
 
         if not len(ext_nodes):

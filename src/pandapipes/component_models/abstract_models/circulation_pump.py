@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 
 class CirculationPump(BranchWOInternalsComponent):
 
+    # columns for internal array
+    TYPE_P = 0
+
+    internal_cols = 1
+
     @classmethod
     def table_name(cls):
         raise NotImplementedError
@@ -43,6 +48,13 @@ class CirculationPump(BranchWOInternalsComponent):
     @classmethod
     def get_component_input(cls):
         raise NotImplementedError
+
+    @classmethod
+    def create_component_array(cls, net, component_pits):
+        tbl = net[cls.table_name()]
+        cp_array = np.zeros(shape=(len(tbl), cls.internal_cols), dtype=np.float64)
+        cp_array[:, cls.TYPE_P] = np.isin(tbl.type.values, ["p", "pt"])
+        component_pits[cls.table_name()] = cp_array
 
     @classmethod
     def register_pit_node_entries(cls, net, node_pit, registry) -> None:

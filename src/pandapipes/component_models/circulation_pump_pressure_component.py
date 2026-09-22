@@ -69,11 +69,7 @@ class CirculationPumpPressure(CirculationPump):
     @classmethod
     def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
         register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, cls.table_name())
-        _, tn_col = cls.from_to_node_cols()
-        register_circ_pump_slack_equations(
-            net, node_pit, sys_idx, registry, cls.table_name(), cls.active_identifier(),
-            tn_col, cls.get_connected_node_type().table_name(),
-        )
+        register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, registry, cls.table_name())
 
         f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[cls.table_name()]
         if f == t:
