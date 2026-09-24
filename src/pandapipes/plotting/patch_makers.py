@@ -161,6 +161,55 @@ def pump_patches(coords, size, **kwargs):
 
         lines.append([p1, p1 + diff / 2 - vec_size])
         lines.append([p2, p1 + diff / 2 + vec_size])
+
+    return lines, polys, {}
+
+def heat_generator_patches(coords, size, **kwargs):
+    polys, lines = list(), list()
+    edgecolor = kwargs.pop('patch_edgecolor')
+    colors = get_color_list(edgecolor, len(coords))
+    lw = kwargs.get("linewidths", 2.)
+    for geodata, col in zip(coords, colors):
+        p1, p2 = np.array(geodata[0]), np.array(geodata[-1])
+        diff = p2 - p1
+        angle = np.arctan2(*diff)
+        vec_size = _rotate_dim2(np.array([0, size]), angle)
+        line1 = _rotate_dim2(np.array([0, size * np.sqrt(2)]), angle - np.pi / 4)
+        line2 = _rotate_dim2(np.array([0, size * np.sqrt(2)]), angle + np.pi / 4)
+        radius = size
+
+        polys.append(Circle(p1 + diff / 2, radius=radius, edgecolor=col, facecolor='w', lw=lw))
+
+        lines.append([p1 + diff / 2 + vec_size, p1 + diff / 2 - vec_size + line1])
+        lines.append([p1 + diff / 2 + vec_size, p1 + diff / 2 - vec_size + line2])
+
+        lines.append([p1, p1 + diff / 2 - vec_size])
+        lines.append([p2, p1 + diff / 2 + vec_size])
+        
+        # Heat exchanger
+        heat_exchanger_size = size * 0.5  # Size of heat exchanger
+        heat_exchanger_center = p1 + diff* 1 / 2 + np.array([-0.2 * radius, -0.1 * radius])  # Position of heat exchanger
+        
+        m = 3 * heat_exchanger_size / 4
+        direc = diff / np.sqrt(diff[0] ** 2 + diff[1] ** 2)
+        normal = np.array([-direc[1], direc[0]])
+
+        path1 = (heat_exchanger_center + direc * m / 2) + normal * (heat_exchanger_size * 9 / 8)
+        path2 = heat_exchanger_center + direc * m / 2
+        path3 = heat_exchanger_center + normal * heat_exchanger_size / 3
+        path4 = heat_exchanger_center - direc * m / 2
+        path5 = (heat_exchanger_center - direc * m / 2) + normal * (heat_exchanger_size * 9 / 8)
+        path = [path1, path2, path3, path4, path5]
+        
+        pa = Path(path)
+        polys.append(PathPatch(pa, fill=False, lw=lw, edgecolor=col))
+
+        # Rectangle
+        rect_width = size * 0.8
+        rect_height = size * 0.5
+        rect = Rectangle(heat_exchanger_center + np.array([-rect_width / 2, -rect_height*1 / 3]),
+                         width=rect_width, fill=False,lw=lw, height=rect_height, edgecolor=col)
+        polys.append(rect)
     return lines, polys, {}
 
 

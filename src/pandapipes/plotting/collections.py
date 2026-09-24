@@ -5,7 +5,7 @@
 import numpy as np
 import pandas as pd
 from pandapipes.plotting.patch_makers import valve_patches, source_patches, heat_exchanger_patches, \
-    pump_patches, pressure_control_patches, compressor_patches, flow_control_patches, heat_consumer_patches
+    pump_patches, heat_generator_patches, pressure_control_patches, compressor_patches, flow_control_patches, heat_consumer_patches
 from pandapipes.plotting.plotting_toolbox import coords_from_node_geodata
 from pandapower.plotting.collections import _create_node_collection, add_cmap_to_collection, \
     _create_node_element_collection, _create_line2d_collection, _create_complex_branch_collection
@@ -577,7 +577,62 @@ def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction
         patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
 
     return pc, lc
+    
+def create_heat_generator_collection(net, generators=None, table_name='heat_generator', size=5., 
+                                      junction_geodata=None, infofunc=None, picker=False, 
+                                      fj_col="from_junction", tj_col="to_junction", **kwargs):
+    """
+    Creates a matplotlib patch collection of pandapipes heat generators.
 
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param generators: The generators for which the collections are created. If None, all generators which have\
+        entries in the respective junction geodata will be plotted.
+    :type generators: list, default None
+    :param table_name: Name of the heat generator table from which to get the data.
+    :type table_name: str, default 'heat_generator'
+    :param size: Patch size
+    :type size: float, default 5.
+    :param junction_geodata: Coordinates to use for plotting. If None, net["junction_geodata"] is \
+        used.
+    :type junction_geodata: pandas.DataFrame, default None
+    :param infofunc: infofunction for the patch element
+    :type infofunc: function, default None
+    :param fj_col: name of the from_junction column (can be different for different generator types)
+    :type fj_col: str, default "from_junction"
+    :param tj_col: name of the to_junction column (can be different for different generator types)
+    :type tj_col: str, default "to_junction"
+    :param picker: Picker argument passed to the patch collection
+    :type picker: bool, default False
+    :param kwargs: Keyword arguments are passed to the patch function
+    :return: lc - line collection, pc - patch collection
+    """
+    generators = get_index_array(generators, net[table_name].index)
+    generator_table = net[table_name].loc[generators]
+
+    coords, generators_with_geo = coords_from_node_geodata(
+        generators, generator_table[fj_col].values, generator_table[tj_col].values,
+        junction_geodata if junction_geodata is not None else net["junction_geodata"], "heat_generator",
+        "Junction")
+
+    if len(generators_with_geo) == 0:
+        return None
+
+    colors = kwargs.pop("color", "r")  # Default color for heat generators
+    linewidths = kwargs.pop("linewidths", 2.)
+    linewidths = kwargs.pop("linewidth", linewidths)
+    linewidths = kwargs.pop("lw", linewidths)
+    patch_edgecolor = kwargs.pop("patch_edgecolor", colors)
+    line_color = kwargs.pop("line_color", colors)
+
+    infos = list(np.repeat([infofunc(i) for i in range(len(generators_with_geo))], 2)) \
+        if infofunc is not None else []
+    
+    pc, lc = _create_complex_branch_collection(
+        coords, heat_generator_patches, size, infos, picker=picker, linewidths=linewidths,
+        patch_edgecolor=patch_edgecolor, line_color=line_color, **kwargs)
+
+    return pc, lc
 
 def create_pressure_control_collection(net, pcs=None, table_name='press_control',
                                        size=5., junction_geodata=None,
