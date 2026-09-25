@@ -14,7 +14,7 @@ from pandapipes.diagnostic.diagnostic_functions import(
     MissingNodeJunctionsCheck,
     MissingBranchJunctionsCheck,
     PipeDiameterCheck,
-    ValveOpeningCheck,
+    ValveConfigurationCheck,
     JunctionHeightCheck,
     PipeLengthCheck,
     PipeRoughnessCheck,
@@ -709,19 +709,31 @@ def test_pipe_diameter(diag_params):
     check_report_function(diag_function, None, check_result)
 
 
-def test_valve_opening():
-    check_function = "valve_opening"
+def test_valve_configuration():
+    check_function = "valve_configuration"
 
 
+    # Original network already converges
+    net = simple_gas_grid()
+
+    diag_function = ValveConfigurationCheck()
+    check_result = diag_function.diagnostic(net)
+
+    assert check_result is None
+    check_report_function(diag_function, None, check_result)
+
+
+    # Opening all valves makes the network converge
     net = simple_gas_grid()
     net.valve.opened = False
 
-    diag_function = ValveOpeningCheck()
+    diag_function = ValveConfigurationCheck()
 
     def fake_pipeflow_open_valves_help(net_arg, **kwargs):
         if net_arg.valve.opened.all():
             net_arg.converged = True
             return
+
         raise PipeflowNotConverged()
 
     with patch(
@@ -729,23 +741,82 @@ def test_valve_opening():
         side_effect=fake_pipeflow_open_valves_help,
     ):
         check_result = diag_function.diagnostic(net)
-    diag_results = {check_function: check_result} if check_result is not None else {}
-    assert diag_results[check_function] is True
 
-    check_report_function(diag_function, None, diag_results.get(check_function, None),)
+    diag_results = {
+        check_function: check_result
+    }
+
+    assert diag_results[check_function] == {
+        "all_open": True,
+        "all_closed": False,
+    }
+
+    check_report_function(
+        diag_function,
+        None,
+        diag_results.get(check_function, None),
+    )
 
 
+    # Closing all valves makes the network converge
+    net = simple_gas_grid()
+    net.valve.opened = True
+
+    diag_function = ValveConfigurationCheck()
+
+    def fake_pipeflow_closed_valves_help(net_arg, **kwargs):
+        if not net_arg.valve.opened.any():
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch(
+        "pandapipes.pipeflow",
+        side_effect=fake_pipeflow_closed_valves_help,
+    ):
+        check_result = diag_function.diagnostic(net)
+
+    diag_results = {
+        check_function: check_result
+    }
+
+    assert diag_results[check_function] == {
+        "all_open": False,
+        "all_closed": True,
+    }
+
+    check_report_function(
+        diag_function,
+        None,
+        diag_results.get(check_function, None),
+    )
+
+
+    # Neither opening nor closing all valves solves the problem
     net = simple_gas_grid()
 
     net.valve.opened = False
     net.sink.mdot_kg_per_s *= 1e8
+
+    diag_function = ValveConfigurationCheck()
+
     check_result = diag_function.diagnostic(net)
-    diag_results = {check_function: check_result}
 
-    assert diag_results[check_function] is False
-    check_report_function(diag_function, None, diag_results.get(check_function, None),)
+    diag_results = {
+        check_function: check_result
+    }
 
+    assert diag_results[check_function] == {
+        "all_open": False,
+        "all_closed": False,
+    }
 
+    check_report_function(
+        diag_function,
+        None,
+        diag_results.get(check_function, None),
+    )
 
 def test_junction_height():
     diag_function = JunctionHeightCheck()
@@ -781,27 +852,60 @@ def test_pipe_length_check(diag_params):
 
 
     net = simple_gas_grid()
-    net.pipe["length_km"] = 1000
+    net.pipe.loc[net.pipe.index[0], "length_km"] = 1000
 
     diag_function = PipeLengthCheck()
 
     check_result = diag_function.diagnostic(net, **diag_params)
 
-    assert check_result == True
+    assert check_result == {
+        "long_pipes": True,
+        "all_pipes": None,
+    }
     check_report_function(diag_function, None, check_result)
 
 
     net = simple_gas_grid()
-    net.pipe["length_km"] = 1000
+    net.pipe.loc[net.pipe.index[0], "length_km"] = 1000
+
+    diag_function = PipeLengthCheck()
+
+    def fake_pipeflow_all_pipes_help(net_arg, **kwargs):
+        if (
+            net_arg.pipe["length_km"]
+            == diag_params["standard_pipe_length_km"]
+        ).all():
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch(
+        "pandapipes.pipeflow",
+        side_effect=fake_pipeflow_all_pipes_help,
+    ):
+        check_result = diag_function.diagnostic(net, **diag_params)
+
+    assert check_result == {
+        "long_pipes": False,
+        "all_pipes": True,
+    }
+    check_report_function(diag_function, None, check_result)
+
+
+    net = simple_gas_grid()
+    net.pipe.loc[net.pipe.index[0], "length_km"] = 1000
     net.sink.mdot_kg_per_s *= 1e8
 
     diag_function = PipeLengthCheck()
 
     check_result = diag_function.diagnostic(net, **diag_params)
 
-    assert check_result == False
+    assert check_result == {
+        "long_pipes": False,
+        "all_pipes": False,
+    }
     check_report_function(diag_function, None, check_result)
-
 
 def test_pipe_roughness(diag_params):
 

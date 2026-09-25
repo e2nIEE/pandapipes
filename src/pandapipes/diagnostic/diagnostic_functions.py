@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 default_argument_values = {
     "standard_pipe_length_km": 0.01,
+    "pipe_length_limit_km": 10.0,
     "iteration_limit": 200,
     "sink_source_scaling_factor": 1e-5,
     "roughness_limit_mm": 0.5,
@@ -327,14 +328,17 @@ class PipeLengthCheck(DiagnosticFunction):
 
     def __init__(self):
         super().__init__()
+        self.pipe_length_limit_km = None
         self.standard_pipe_length_km = None
 
     def diagnostic(self, net, **kwargs):
+        self.pipe_length_limit_km = kwargs["pipe_length_limit_km"]
         self.standard_pipe_length_km = kwargs["standard_pipe_length_km"]
 
         if not hasattr(net, "pipe") or net.pipe.empty:
             return None
 
+        # Check original network first
         net0 = net.deepcopy()
 
         try:
@@ -345,24 +349,52 @@ class PipeLengthCheck(DiagnosticFunction):
         except PipeflowNotConverged:
             pass
 
-        net2 = net.deepcopy()
-        net2.pipe["length_km"] = self.standard_pipe_length_km
+        results = {
+            "long_pipes": None,
+            "all_pipes": None,
+        }
+
+        # Shorten only pipes above the defined length limit
+        long_pipes = (net.pipe["length_km"] > self.pipe_length_limit_km)
+
+        if long_pipes.any():
+            net2 = net.deepcopy()
+
+            net2.pipe.loc[long_pipes, "length_km"] = self.standard_pipe_length_km
+
+            try:
+                pp.pipeflow(net2)
+                results["long_pipes"] = net2.converged
+
+            except PipeflowNotConverged:
+                results["long_pipes"] = False
+
+            except Exception:
+                raise
+
+            if results["long_pipes"]:
+                return results
+
+
+        # Shorten all pipes if the first step was not sufficient
+        net3 = net.deepcopy()
+        net3.pipe["length_km"] = self.standard_pipe_length_km
 
         try:
-            pp.pipeflow(net2)
-            return net2.converged
+            pp.pipeflow(net3)
+            results["all_pipes"] = net3.converged
 
         except PipeflowNotConverged:
-            return False
+            results["all_pipes"] = False
 
         except Exception:
             raise
 
+        return results
+
     def report(self, error, result):
         if error is not None:
-            self.out.warning(
-                "Pipe-length check failed due to the following error:"
-            )
+            self.out.warning("Pipe-length check failed due to the following error:")
             self.out.warning(error)
             return
 
@@ -371,16 +403,27 @@ class PipeLengthCheck(DiagnosticFunction):
 
         logger.detailed("Checking pipe lengths...\n")
 
-        if result:
+        if result["long_pipes"]:
             self.out.warning(
                 f"Pipe-length problem suspected: "
-                f"pipeflow converges if all pipe lengths are set to "
+                f"pipeflow converges if pipes longer than "
+                f"{self.pipe_length_limit_km} km are set to "
                 f"{self.standard_pipe_length_km} km."
             )
+
+        elif result["all_pipes"]:
+            self.out.warning(
+                f"Pipe-length problem suspected: "
+                f"shortening only pipes longer than "
+                f"{self.pipe_length_limit_km} km was not sufficient, "
+                f"but pipeflow converges if all pipe lengths are set to "
+                f"{self.standard_pipe_length_km} km."
+            )
+
         else:
             self.out.warning(
-                f"Pipeflow still does not converge if all pipe lengths are set to "
-                f"{self.standard_pipe_length_km} km."
+                f"Pipeflow still does not converge if all pipe lengths "
+                f"are set to {self.standard_pipe_length_km} km."
             )
 
 # check iterations
@@ -826,43 +869,63 @@ class HeatTransferCoefficientCheck(DiagnosticFunction):
                 f"above {self.limit} W/(m²K) are reduced by factor {self.scaling_factor}."
             )
 
-# check with all valves opened
-class ValveOpeningCheck(DiagnosticFunction):
+# Check with all valves opened and all valves closed
+class ValveConfigurationCheck(DiagnosticFunction):
 
     def diagnostic(self, net, **kwargs):
-        if (not hasattr(net, "valve") or net.valve.empty or not (~net.valve.opened).any()):
+        if not hasattr(net, "valve") or net.valve.empty:
             return None
 
-        # check original network first
+        # Check original network first
         net0 = net.deepcopy()
 
         try:
             pp.pipeflow(net0)
+
             if net0.converged:
                 return None
 
         except PipeflowNotConverged:
             pass
 
-        net2 = net.deepcopy()
-        net2.valve.opened = True
+        results = {
+            "all_open": False,
+            "all_closed": False,
+        }
+
+        # Check with all valves opened
+        net_open = net.deepcopy()
+        net_open.valve.opened = True
 
         try:
-            pp.pipeflow(net2)
-            return net2.converged
+            pp.pipeflow(net_open)
+            results["all_open"] = net_open.converged
 
         except PipeflowNotConverged:
-            return False
+            results["all_open"] = False
 
         except Exception:
             raise
 
-    def report(self, error, result):
+        # Check with all valves closed
+        net_closed = net.deepcopy()
+        net_closed.valve.opened = False
 
+        try:
+            pp.pipeflow(net_closed)
+            results["all_closed"] = net_closed.converged
+
+        except PipeflowNotConverged:
+            results["all_closed"] = False
+
+        except Exception:
+            raise
+
+        return results
+
+    def report(self, error, result):
         if error is not None:
-            self.out.warning(
-                "Valve-opening check failed due to the following error:"
-            )
+            self.out.warning("Valve-configuration check failed due to the following error:")
             self.out.warning(error)
             return
 
@@ -871,14 +934,16 @@ class ValveOpeningCheck(DiagnosticFunction):
 
         logger.detailed("Checking valve configuration...\n")
 
-        if result:
-            self.out.warning(
-                "If all valves were opened, the pipeflow would converge."
-            )
+        if result["all_open"]:
+            self.out.warning("If all valves were opened, the pipeflow would converge.")
         else:
-            self.out.warning(
-                "Pipeflow still does not converge if all valves are opened."
-            )
+            self.out.warning("Pipeflow still does not converge if all valves are opened.")
+
+        if result["all_closed"]:
+            self.out.warning("If all valves were closed, the pipeflow would converge.")
+        else:
+            self.out.warning("Pipeflow still does not converge if all valves are closed.")
+
 
 class HeatConsumerControlParameterCheck(DiagnosticFunction):
     """
@@ -1490,7 +1555,7 @@ default_diagnostic_functions = [
     ("missing_branch_junctions", MissingBranchJunctionsCheck(), []),
     ("pipe_diameter", PipeDiameterCheck(), None),
     ("heat_transfer_coefficient", HeatTransferCoefficientCheck(), None),
-    ("valve_opening", ValveOpeningCheck(), []),
+    ("valve_opening", ValveConfigurationCheck(), []),
     ("heat_consumer_control_parameter", HeatConsumerControlParameterCheck(), None),
     ("junction_height", JunctionHeightCheck(), []),
     ("calculation_mode", CalculationModeCheck(), []),
