@@ -13,12 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 class NodeElementComponent(Component):
-    """
-
-    """
+    """Abstract base class for node element components."""
 
     @classmethod
     def table_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def active_identifier(cls):
         raise NotImplementedError
 
     @classmethod
@@ -31,23 +33,6 @@ class NodeElementComponent(Component):
 
     @classmethod
     def get_result_table(cls, net):
-        raise NotImplementedError
-
-    @classmethod
-    def active_identifier(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        """
-        Function that creates pit node entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :return: No Output.
-        """
         raise NotImplementedError
 
     @classmethod

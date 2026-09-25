@@ -8,20 +8,11 @@ import numpy as np
 from pandapower.auxiliary import ppException
 from scipy.sparse import coo_matrix, csgraph
 
-from pandapipes.idx_branch import (
-    TOUTINIT,
-    FROM_NODE,
-    TO_NODE,
-    branch_cols,
-    DIRECTED,
-    ACTIVE as ACTIVE_BR,
-    FLOW_RETURN_CONNECT,
-    ACTIVE,
-    ELEMENT_IDX as ELEMENT_IDX_BR,
-)
-from pandapipes.idx_node import NODE_TYPE, P, NODE_TYPE_T, node_cols, T, ACTIVE as ACTIVE_ND, \
-    TABLE_IDX as TABLE_IDX_ND, ELEMENT_IDX as ELEMENT_IDX_ND, INFEED, GE, TINIT
+from pandapipes.idx_branch import IdxBranch
+from pandapipes.idx_node import IdxNode
 from pandapipes.properties.fluids import get_fluid
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
+from pandapipes.pf.system_index import PitEntries, PitRegistry
 
 try:
     import numba
@@ -45,15 +36,13 @@ default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
                    "max_iter_bidirect": 10, "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
                    "ambient_temperature": 293.15, "check_connectivity": True,
-                   "max_iter_colebrook": 10, "only_update_hydraulic_matrix": False,
-                   "reuse_internal_data": False, "use_numba": True,
+                   "max_iter_colebrook": 10, "use_numba": True,
                    "quit_on_inconsistency_connectivity": False, "calc_compression_power": True,
                    "transient": False, "dt": None, "tolerance_colebrook": 1e-4,}
 
 
 def get_net_option(net, option_name):
-    """
-    Returns the requested option of the given net. Raises a UserWarning if the option was not found.
+    """Returns the requested option of the given net. Raises a UserWarning if the option was not found.
 
     :param net: pandapipesNet for which option is requested
     :type net: pandapipesNet
@@ -68,9 +57,7 @@ def get_net_option(net, option_name):
 
 
 def get_net_options(net, *option_names):
-    """
-    Returns several requested options of the given net. Raises a UserWarning if any of the options
-    was not found.
+    """Returns several requested options of the given net. Raises a UserWarning if any of the options was not found.
 
     :param net: pandapipesNet for which option is requested
     :type net: pandapipesNet
@@ -82,8 +69,7 @@ def get_net_options(net, *option_names):
 
 
 def set_net_option(net, option_name, option_value):
-    """
-    Auxiliary function to set the value of a specific option (options are saved in a dict).
+    """Auxiliary function to set the value of a specific option (options are saved in a dict).
 
     :param net: pandapipesNet for which option shall be set
     :type net: pandapipesNet
@@ -96,9 +82,7 @@ def set_net_option(net, option_name, option_value):
 
 
 def add_table_lookup(table_lookup, table_name, table_number):
-    """
-    Auxiliary function to add a lookup between table name in the pandapipes net and table number in
-    the internal structure (pit).
+    """Auxiliary function to add a lookup between table name in the pandapipes net and table number in the internal structure (pit).
 
     :param table_lookup: The lookup dictionary from table names to internal number (n2t) and vice \
                 versa (t2n)
@@ -114,8 +98,7 @@ def add_table_lookup(table_lookup, table_name, table_number):
 
 
 def get_table_number(table_lookup, table_name):
-    """
-    Auxiliary function to retrieve the internal pit number for a given pandapipes net table name \
+    """Auxiliary function to retrieve the internal pit number for a given pandapipes net table name \
     from the table lookup.
 
     :param table_lookup: The lookup dictionary from table names to internal number (n2t) and vice \
@@ -132,8 +115,7 @@ def get_table_number(table_lookup, table_name):
 
 
 def get_table_name(table_lookup, table_number):
-    """
-    Auxiliary function to retrieve the pandapipes net table name for a given internal pit number \
+    """Auxiliary function to retrieve the pandapipes net table name for a given internal pit number \
     from the table lookup.
 
     :param table_lookup: The lookup dictionary from table names to internal number (n2t) and vice \
@@ -151,8 +133,7 @@ def get_table_name(table_lookup, table_number):
 
 
 def get_lookup(net, pit_type="node", lookup_type="index"):
-    """
-    Returns internal lookups which are mostly defined in the function `create_lookups`.
+    """Returns internal lookups which are mostly defined in the function `create_lookups`.
 
     :param net: The pandapipes net for which the lookup is requested
     :type net: pandapipesNet
@@ -167,29 +148,29 @@ def get_lookup(net, pit_type="node", lookup_type="index"):
     """
     pit_type = pit_type.lower()
     lookup_type = lookup_type.lower()
-    all_lookup_types = ["index", "table", "from_to", "active_hydraulics", "active_heat_transfer",
+    all_lookup_types = ["index", "table", "from_to", "active",
+                        "active_hydraulics", "active_heat_transfer",
                         "length", "from_to_active_hydraulics", "from_to_active_heat_transfer",
-                        "index_active_hydraulics", "index_active_heat_transfer", "zero_flow",
-                        "old_pit_cols"]
+                        "index_active_hydraulics", "index_active_heat_transfer", "old_pit_cols"]
     if lookup_type not in all_lookup_types:
         type_names = "', '".join(all_lookup_types)
-        logger.error("No lookup type '%s' exists. Please choose one of '%s'."
-                     % (lookup_type, type_names))
+        logger.error("No lookup type '%s' exists. Please choose one of '%s'.",
+                     lookup_type, type_names)
         return None
     if pit_type not in ["node", "branch"]:
-        logger.error("No pit type '%s' exists. Please choose one of 'node' and 'branch'."
-                     % pit_type)
+        logger.error("No pit type '%s' exists. Please choose one of 'node' and 'branch'.",
+                     pit_type)
         return None
     return net["_lookups"]["%s_%s" % (pit_type, lookup_type)]
 
 
 def set_user_pf_options(net, reset=False, **kwargs):
-    """
-    This function sets the "user_pf_options" dictionary for net. These options overrule
-    net._internal_options once they are added to net. These options are used in configuration of
-    load flow calculation.
-    At the same time, user-defined arguments for `pandapipes.pipeflow()` always have a higher
-    priority. To remove user_pf_options, set "reset = True" and provide no additional arguments.
+    """Set the "user_pf_options" dictionary for net.
+
+    These options overrule net._internal_options once they are added to net. These options are
+    used in configuration of load flow calculation. At the same time, user-defined arguments for
+    `pandapipes.pipeflow()` always have a higher priority. To remove user_pf_options, set
+    "reset = True" and provide no additional arguments.
 
     :param net: pandapipes network for which to create user options
     :type net: pandapipesNet
@@ -201,18 +182,16 @@ def set_user_pf_options(net, reset=False, **kwargs):
     if reset or 'user_pf_options' not in net.keys():
         net['user_pf_options'] = dict()
 
-    additional_kwargs = set(kwargs.keys()) - set(default_options.keys()) - {"fluid", "hyd_flag"}
+    additional_kwargs = set(kwargs.keys()) - set(default_options.keys()) - {"fluid"}
     if len(additional_kwargs) > 0:
-        logger.info('parameters %s are not in the list of standard options'
-                    % list(additional_kwargs))
+        logger.info('parameters %s are not in the list of standard options',
+                    list(additional_kwargs))
 
     net.user_pf_options.update(kwargs)
 
 
 def init_options(net, **kwargs):
-    """
-    Initializes physical and mathematical constants included in pandapipes. In addition, options
-    for the nonlinear and time-dependent solver are also set.
+    """Initializes physical and mathematical constants included in pandapipes. In addition, options for the nonlinear and time-dependent solver are also set.
 
     Those are the options that can be set and their default values:
 
@@ -252,11 +231,6 @@ def init_options(net, **kwargs):
         - **mode** (str): "hydraulics" - Define the calculation mode: what shall be calculated - \
                 solely hydraulics ('hydraulics'), solely heat transfer('heat') or both combined sequentially \
                 ('sequential') or bidirectionally ('bidirectional').
-
-        - **only_update_hydraulic_matrix** (bool): False - If True, the system matrix is not \
-                created in every iteration, but only the data is updated according to a lookup that\
-                is identified in the first iteration. This speeds up calculation, but has not yet\
-                been tested extensively.
 
         - **check_connectivity** (bool): True - If True, a connectivity check is performed at the\
                 beginning of the pipeflow and parts of the net that are not connected to external\
@@ -300,8 +274,6 @@ def init_options(net, **kwargs):
     for k in keys_to_exclude:
         opts.pop(k, None)
 
-    if not opts["only_update_hydraulic_matrix"]:
-        opts["reuse_internal_data"] = False
     if not numba_installed:
         if opts["use_numba"]:
             logger.info(
@@ -345,8 +317,7 @@ def _mode_check(opts):
         opts["mode"] = "sequential"
 
 def create_internal_results(net):
-    """
-    Initializes a dictionary that shall contain some internal results later.
+    """Initializes a dictionary that shall contain some internal results later.
 
     :param net: pandapipes net to which internal result dict will be added
     :type net: pandapipesNet
@@ -356,9 +327,9 @@ def create_internal_results(net):
 
 
 def write_internal_results(net, **kwargs):
-    """
-    Adds specified values to the internal result dictionary of the given pandapipes net. If internal
-    results are not yet defined for the net, they are created as well.
+    """Add specified values to the internal result dictionary of the given pandapipes net.
+
+    If internal results are not yet defined for the net, they are created as well.
 
     :param net: pandapipes net for which to update internal result dict
     :type net: pandapipesNet
@@ -371,11 +342,30 @@ def write_internal_results(net, **kwargs):
     net["_internal_results"].update(kwargs)
 
 
-def initialize_pit(net):
+def _drop_pit_column(registry, col):
+    """Remove all (row, col) entries targeting ``col`` from a PitRegistry, preserving any other columns bundled in the same PitEntries.
+
+    Used so a reused pit's already-solved values (e.g. MDOTINIT/PINIT for a standalone
+    heat-transfer run) aren't reset to fresh initial guesses by component registration.
+
+    :param registry: the PitRegistry to filter in place
+    :type registry: pandapipes.pf.system_index.PitRegistry
+    :param col: PIT column index to drop
+    :type col: int
+    :return: No output
     """
-    Initializes and fills the internal structure which is called pit (pandapipes internal tables).
-    The structure is a dictionary which should contain one array for all nodes and one array for all
-    branches of the net (c.f. also `create_empty_pit`).
+    for bucket in (registry.normal, registry.overrides):
+        for i, e in enumerate(bucket):
+            keep = e.cols != col
+            if not np.all(keep):
+                bucket[i] = PitEntries(e.rows[keep], e.cols[keep], e.data[keep], e.mode)
+
+
+def initialize_pit(net):
+    """Initializes and fills the internal structure which is called pit (pandapipes internal tables).
+
+    The structure is a dictionary which should contain one array for all nodes and one array for
+    all branches of the net (c.f. also `create_empty_pit`).
 
     :param net: The pandapipes network for which to create and fill the internal structure
     :type net: pandapipesNet
@@ -383,35 +373,70 @@ def initialize_pit(net):
     :rtype: tuple(np.array)
 
     """
-    if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-        create_lookups(net)
-        pit = create_empty_pit(net)
+    if (not get_net_option(net, "transient") or
+            get_net_option(net, "simulation_time_step") == 0
+    ):
+        if get_net_option(net, "mode") == "heat":
+            if "_pit" not in net:
+                raise UserWarning("There are no hydraulic results given!")
+            # net.converged reflects the outcome of whichever hydraulics run last populated
+            # "_pit" (Calculation.run() sets it at the start and updates it every iteration of
+            # that SAME call, so it can't be stale from some unrelated, older run) - a caller that
+            # catches PipeflowNotConverged from a hydraulics run and continues (e.g. to keep
+            # processing a batch of nets) would otherwise silently get a standalone heat-transfer
+            # solve built on top of the unconverged, physically meaningless mdot/p values that
+            # non-convergent run still left behind, with a correct-looking net.converged=True
+            # from the heat run's OWN convergence masking that the underlying hydraulics never
+            # actually converged.
+            if not net.converged:
+                raise PipeflowNotConverged(
+                    "The hydraulic calculation has not converged - a standalone heat-transfer "
+                    "run cannot be based on its results. Run a converged hydraulics/sequential "
+                    "pipeflow first.")
+            pit = net["_pit"]
+        else:
+            pit = create_empty_pit(net)
     else:
         pit = net["_pit"]
 
     if get_net_option(net, "transient") and get_net_option(net,"simulation_time_step") != 0 and net.converged:
-        create_old_pit(net, [TINIT], [TOUTINIT])
+        create_old_pit(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
 
+    node_pit = pit["node"]
+    branch_pit = pit["branch"]
+
+    branch_registry = PitRegistry()
+    node_registry = PitRegistry()
     for comp in net['component_list']:
-        comp.create_pit_node_entries(net, pit["node"])
-        comp.create_pit_branch_entries(net, pit["branch"])
+        comp.register_pit_branch_entries(net, branch_pit, node_pit, branch_registry)
+        comp.register_pit_node_entries(net, node_pit, node_registry)
         comp.create_component_array(net, pit["components"])
+
+    if get_net_option(net, "mode") == "heat":
+        # a standalone heat-transfer run reuses the pit from a prior hydraulic solve (see above) -
+        # keep its already-solved MDOTINIT/PINIT instead of letting component registration reset
+        # them to fresh initial guesses
+        _drop_pit_column(branch_registry, IdxBranch.MDOTINIT)
+        _drop_pit_column(node_registry, IdxNode.PINIT)
+
+    branch_registry.apply(branch_pit)
+    node_registry.apply(node_pit)
 
     if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0 or not net.converged:
         # This needs to be done after the pit values are set
-        create_old_pit(net, [TINIT], [TOUTINIT])
+        create_old_pit(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
                        "You need at least one node! "
                        "Without any nodes, you are not able to conduct a pipeflow!")
-        return
+
 
 def create_empty_pit(net):
-    """
-    Creates an empty internal structure which is called pit (pandapipes internal tables). The\
-    structure is a dictionary which should contain one array for all nodes and one array for all\
-    branches of the net. It is very often referred to within the pipeflow. So the structure in\
+    """Creates an empty internal structure which is called pit (pandapipes internal tables).
+
+    The structure is a dictionary which should contain one array for all nodes and one array for\
+    all branches of the net. It is very often referred to within the pipeflow. So the structure in\
     general looks like this:
 
     >>> net["_pit"] = {"node": np.array((no_nodes, col_nodes), dtype=np.float64),
@@ -426,16 +451,17 @@ def create_empty_pit(net):
     node_length = get_lookup(net, "node", "length")
     branch_length = get_lookup(net, "branch", "length")
     # init empty pit
-    pit = {"node": np.empty((node_length, node_cols), dtype=np.float64),
-           "branch": np.empty((branch_length, branch_cols), dtype=np.float64),
+    pit = {"node": np.zeros((node_length, IdxNode.node_cols), dtype=np.float64),
+           "branch": np.zeros((branch_length, IdxBranch.branch_cols), dtype=np.float64),
            "components": {}}
     net["_pit"] = pit
     return pit
 
 def create_old_pit(net, required_node_cols=None, required_branch_cols=None):
-    """
-    Creates an empty internal partial structure of the given internal structure which is called \
-    old_pit (old pandapipes internal tables). The structure is a dictionary which should contain \
+    """Creates an empty internal partial structure of the given internal structure which is called \
+    old_pit (old pandapipes internal tables).
+
+    The structure is a dictionary which should contain \
     one array for all nodes and one array for all branches of the net. \
     In general looks like this:
 
@@ -469,8 +495,7 @@ def create_old_pit(net, required_node_cols=None, required_branch_cols=None):
     return pit
 
 def init_all_result_tables(net):
-    """
-    Initialize the result tables of all components in the net.
+    """Initialize the result tables of all components in the net.
 
     :param net: pandapipes net for which to extract results into net.res_xy
     :type net: pandapipesNet
@@ -482,8 +507,8 @@ def init_all_result_tables(net):
 
 
 def create_lookups(net):
-    """
-    Create all lookups necessary for the pipeflow of the given net.
+    """Create all lookups necessary for the pipeflow of the given net.
+
     The lookups are usually:
 
       - node_from_to: The start and end indices of all node component tables within the pit
@@ -511,6 +536,7 @@ def create_lookups(net):
     internal_nodes = dict()
     internal_branches = dict()
 
+    # Phase 1: node and branch lookups
     for comp in net['component_list']:
         branch_from, branch_table_nr = comp.create_branch_lookups(
             net, branch_ft_lookups, branch_table_lookups, branch_idx_lookups, branch_from, branch_table_nr,
@@ -526,126 +552,87 @@ def create_lookups(net):
                        "internal_nodes": internal_nodes, "internal_branches": internal_branches}
 
 
-def identify_active_nodes_branches(net, hydraulic=True):
-    """
-    Function that creates the connectivity lookup for nodes and branches. If the option \
-    "check_connectivity" is set, a full connectivity check is performed based on a sparse matrix \
-    graph search. Otherwise, only the nodes and branches are identified that are inactive, which \
-    means:\
-      - in case of hydraulics, just use the "ACTIVE" identifier of the respective components\
-      - in case of heat transfer, use the hydraulic result to check which branches are traversed \
-        by the fluid and a simple rule to make sure that active nodes are connected to at least one\
-        traversed branch\
-    The result of this connectivity search is stored in the lookups (e.g. as \
-    net["_lookups"]["node_active_hydraulics"])
+def hydraulic_slack_mask(net):
+    """Boolean mask over node_pit marking the hydraulic slacks (P-type nodes)."""
+    node_pit = net["_pit"]["node"]
+    return node_pit[:, IdxNode.NODE_TYPE] == IdxNode.P
+
+
+def heat_transfer_slack_mask(net):
+    """Boolean mask over node_pit marking the heat-transfer slacks (T-/GE-type nodes)."""
+    node_pit = net["_pit"]["node"]
+    return (node_pit[:, IdxNode.NODE_TYPE_T] == IdxNode.T) | (node_pit[:, IdxNode.NODE_TYPE_T] == IdxNode.GE)
+
+
+def identify_active_nodes_branches(net, slack_mask, active_node_lookup=None, active_branch_lookup=None):
+    """Create the connectivity lookup for nodes and branches.
+
+    If the option "check_connectivity" is set, a full connectivity check is performed based on a
+    sparse matrix graph search starting from the nodes marked by ``slack_mask``. Otherwise, just
+    the "ACTIVE" identifier of the respective components is used.
+
+    Hydraulics and heat transfer only differ in which nodes count as slacks (see
+    :func:`hydraulic_slack_mask` / :func:`heat_transfer_slack_mask`). Heat transfer additionally
+    narrows down a prior (hydraulic) result: pass its (nodes_connected, branches_connected) in via
+    ``active_node_lookup``/``active_branch_lookup`` so only branches actually reachable under both
+    the hydraulic AND the heat-transfer slack definition end up active.
 
     :param net: the pandapipes net for which to identify the connectivity
     :type net: pandapipes.pandapipesNet
-    :param hydraulic: flag for the mode (if True, do the check for the hydraulic simulation, \
-        otherwise for the heat transfer simulation with other considerations)
-    :type hydraulic: bool, default True
-    :return: No output
+    :param slack_mask: boolean array over node_pit marking which nodes act as slacks
+    :type slack_mask: np.array(bool)
+    :param active_node_lookup: starting node connectivity to narrow down further; defaults to the
+        raw "ACTIVE" node identifier if not given
+    :type active_node_lookup: np.array(bool), optional
+    :param active_branch_lookup: starting branch connectivity to narrow down further; defaults to
+        the raw "ACTIVE" branch identifier if not given
+    :type active_branch_lookup: np.array(bool), optional
+    :return: (nodes_connected, branches_connected)
+    :rtype: tuple(np.array)
     """
-
     node_pit = net["_pit"]["node"]
     branch_pit = net["_pit"]["branch"]
 
-    if hydraulic:
-        nodes_connected = node_pit[:, ACTIVE_ND].astype(np.bool_)
-        branches_connected = branch_pit[:, ACTIVE_BR].astype(np.bool_)
-        if get_net_option(net, "check_connectivity"):
-            nodes_connected, branches_connected = check_connectivity(net, branch_pit, node_pit,
-                                                                     branches_connected, nodes_connected,
-                                                                     mode="hydraulics")
-    else:
-        nodes_connected = get_lookup(net, "node", "active_hydraulics")
-        branches_connected = get_lookup(net, "branch", "active_hydraulics")
-        if get_net_option(net, "check_connectivity"):
-            nodes_connected, branches_connected = check_connectivity(net, branch_pit, node_pit,
-                                                                     branches_connected, nodes_connected,
-                                                                     mode="heat_transfer")
+    if active_node_lookup is None:
+        active_node_lookup = node_pit[:, IdxNode.ACTIVE].astype(np.bool_)
+    if active_branch_lookup is None:
+        active_branch_lookup = branch_pit[:, IdxBranch.ACTIVE].astype(np.bool_)
 
-    mode = "hydraulics" if hydraulic else "heat_transfer"
+    nodes_connected = active_node_lookup
+    branches_connected = active_branch_lookup
+    if get_net_option(net, "check_connectivity"):
+        slacks = np.where(slack_mask & nodes_connected)[0]
+        nodes_connected, branches_connected = perform_connectivity_search(
+            net, node_pit, branch_pit, slacks, nodes_connected, branches_connected
+        )
+
     if np.all(~nodes_connected):
-        mode = 'hydraulic' if hydraulic else 'heat transfer'
         raise PipeflowNotConverged(" All nodes are set out of service. Probably they are not supplied."
-                                   " Therefore, the %s pipeflow did not converge. "
-                                   " Have you forgotten to define a supply component or is it not properly connected?" % mode)
-    net["_lookups"]["node_active_" + mode] = nodes_connected
-    net["_lookups"]["branch_active_" + mode] = branches_connected
-
-
-def check_connectivity(net, branch_pit, node_pit,
-                       branches_connected, nodes_connected,
-                       mode="hydraulics"):
-    """
-    Perform a connectivity check which means that network nodes are identified that don't have any
-    connection to an external grid component. Quick overview over the steps of this function:
-
-      - Build a sparse matrix graph (scipy.sparse.csr_matrix) from all branches that are in_service\
-        (nodes of this graph are taken from FROM_NODE and TO_NODE column in pit).
-      - Add a node that represents all external grids and connect all nodes that are connected to\
-        external grids to that node.
-      - Perform a breadth first order search to identify all nodes that are reachable from the \
-        added external grid node.
-      - Create masks for existing nodes and branches to show if they are reachable from an \
-        external grid.
-      - Compare the reachable nodes with the initial in_service nodes.\n
-        - If nodes are reachable that were set out of service by the user, they are either set \
-          in_service or an error is raised. The behavior depends on the pipeflow option \
-          **quit_on_inconsistency_connectivity**.
-        - If nodes are not reachable that were set in_service by the user, they will be set out of\
-          service automatically (this is the desired functionality of the connectivity check).
-
-    :param net: The pandapipesNet for which to perform the check
-    :type net: pandapipesNet
-    :param branch_pit: Internal array with branch entries
-    :type branch_pit: np.array
-    :param node_pit: Internal array with node entries
-    :type node_pit: np.array
-    :param branches_connected: Array of bool if branches are connected or not
-    :type branches_connected: np.array(bool)
-    :param nodes_connected: Array of bool if nodes are connected or not
-    :type nodes_connected: np.array(bool)
-    :param mode: two modes exist: "hydraulics" and "heat_transfer", representing the two modes of \
-        the pipeflow calculation.
-    :type mode: str
-    :return: (nodes_connected, branches_connected) - Lookups of np.arrays stating which of the
-            internal nodes and branches are reachable from any of the hyd_slacks (np mask).
-    :rtype: tuple(np.array)
-    """
-    if mode == "hydraulics":
-        slacks = np.where((node_pit[:, NODE_TYPE] == P) & nodes_connected)[0]
-    else:
-        slacks = np.where(((node_pit[:, NODE_TYPE_T] == T) | (node_pit[:, NODE_TYPE_T] == GE)) & nodes_connected)[0]
-
-    return perform_connectivity_search(net, node_pit, branch_pit, slacks,
-                                       nodes_connected, branches_connected, mode=mode)
-
-
-def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup, active_branch_lookup,
-                                mode="hydraulics"):
-    if mode == 'hydraulics':
-        connect = branch_pit[:, FLOW_RETURN_CONNECT].astype(bool)
-        active_branch_lookup = active_branch_lookup & ~connect
-        nodes_connected, branches_connected = (
-            _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
-        from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-        to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-        branch_active = branch_pit[:, ACTIVE].astype(bool)
-        active = nodes_connected[from_nodes] & nodes_connected[to_nodes] & branch_active
-        branches_connected[connect & active] = True
-    else:
-        nodes_connected, branches_connected = (
-            _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode))
+                                   " Therefore, the pipeflow did not converge. "
+                                   " Have you forgotten to define a supply component or is it not properly connected?")
     return nodes_connected, branches_connected
 
 
-def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes, mode):
+def perform_connectivity_search(net, node_pit, branch_pit, slack_nodes, active_node_lookup,
+                                active_branch_lookup):
+    connect = branch_pit[:, IdxBranch.FLOW_RETURN_CONNECT].astype(bool)
+    active_branch_lookup = active_branch_lookup & ~connect
+    nodes_connected, branches_connected = _connectivity(
+        net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes
+    )
+    from_nodes = branch_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
+    to_nodes = branch_pit[:, IdxBranch.TO_NODE].astype(np.int32)
+    branch_active = branch_pit[:, IdxBranch.ACTIVE].astype(bool)
+    active = nodes_connected[from_nodes] & nodes_connected[to_nodes] & branch_active
+    branches_connected[connect & active] = True
+    return nodes_connected, branches_connected
+
+
+def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_lookup, slack_nodes):
     len_nodes = len(node_pit)
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    directed = branch_pit[:, DIRECTED].astype(bool)
+    from_nodes = branch_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
+    to_nodes = branch_pit[:, IdxBranch.TO_NODE].astype(np.int32)
+    directed = branch_pit[:, IdxBranch.DIRECTED].astype(bool)
     nobranch = np.sum(active_branch_lookup)
     nobranch_ud = np.sum(active_branch_lookup & ~directed)
     active_from_nodes = from_nodes[active_branch_lookup]
@@ -673,38 +660,36 @@ def _connectivity(net, branch_pit, node_pit, active_branch_lookup, active_node_l
 
     if not np.all(nodes_connected[active_from_nodes_ud] == nodes_connected[active_to_nodes_ud]):
         raise ValueError(
-            "An error occured in the %s connectivity check. Please contact the pandapipes "
-            "development team!" % mode)
+            "An error occured in the connectivity check. Please contact the pandapipes "
+            "development team!")
     branches_connected = active_branch_lookup & nodes_connected[from_nodes]
 
     oos_nodes = np.where(~nodes_connected & active_node_lookup)[0]
     is_nodes = np.where(nodes_connected & ~active_node_lookup)[0]
 
     if len(oos_nodes) > 0:
-        msg = "\n".join("In table %s: %s" % (tbl, nds) for tbl, nds in
+        msg = "\n".join(f"In table {tbl}: {nds}" for tbl, nds in
                         get_table_index_list(net, node_pit, oos_nodes))
-        logger.info("Setting the following nodes out of service for %s calculation in connectivity"
-                    " check:\n%s" % (mode, msg))
+        logger.info("Setting the following nodes out of service in connectivity"
+                    " check:\n%s", msg)
 
     if len(is_nodes) > 0:
-        node_type_message = "\n".join("In table %s: %s" % (tbl, nds) for tbl, nds in
+        node_type_message = "\n".join(f"In table {tbl}: {nds}" for tbl, nds in
                                       get_table_index_list(net, node_pit, is_nodes))
         if get_net_option(net, "quit_on_inconsistency_connectivity"):
             raise UserWarning(
-                "The following nodes are connected to in_service branches in the %s calculation "
+                "The following nodes are connected to in_service branches "
                 "although being out of service, which leads to an inconsistency in the connectivity"
-                " check!\n%s" % (mode, node_type_message))
-        logger.info("Setting the following nodes back in service for %s calculation in connectivity"
-                    " check as they are connected to in_service branches:\n%s"
-                    % (mode, node_type_message))
+                f" check!\n{node_type_message}")
+        logger.info("Setting the following nodes back in service in connectivity"
+                    " check as they are connected to in_service branches:\n%s",
+                    node_type_message)
 
     return nodes_connected, branches_connected
 
 
 def get_table_index_list(net, pit_array, pit_indices, pit_type="node"):
-    """
-    Auxiliary function to get a list of tables and the table indices that belong to a number of pit
-    indices.
+    """Auxiliary function to get a list of tables and the table indices that belong to a number of pit indices.
 
     :param net: pandapipes net for which the list is requested
     :type net: pandapipesNet
@@ -717,10 +702,10 @@ def get_table_index_list(net, pit_array, pit_indices, pit_type="node"):
     :return: List of table names and table indices belonging to the pit indices
     """
     int_pit = pit_array[pit_indices, :]
-    tables = np.unique(int_pit[:, TABLE_IDX_ND])
+    tables = np.unique(int_pit[:, IdxNode.TABLE_IDX])
     table_lookup = get_lookup(net, pit_type, "table")
-    return [(get_table_name(table_lookup, tbl), list(int_pit[int_pit[:, TABLE_IDX_ND] == tbl,
-    ELEMENT_IDX_ND].astype(np.int32)))
+    return [(get_table_name(table_lookup, tbl), list(int_pit[int_pit[:, IdxNode.TABLE_IDX] == tbl,
+    IdxNode.ELEMENT_IDX].astype(np.int32)))
             for tbl in tables]
 
 
@@ -761,18 +746,54 @@ def reduce_lookups(net, comp_type, mode, comp_pit, active_pit, comp_pit_old, act
     net["_lookups"][comp_type + "_from_to_active_" + mode] = ft_active
 
 
-def reduce_pit(net, mode="hydraulics"):
+def reduce_component_pits(net, branches_connected, nodes_connected):
+    """Reduce each component's internal array to its currently active elements.
+
+    Mirrors the branch/node reduction below so that ``net["_active_pit"]["components"][name]``
+    stays row-aligned with ``net["_active_pit"]["branch"/"node"][f:t]`` by construction. Without
+    this, :func:`~pandapipes.component_models.component_toolbox.get_component_array` had to
+    independently re-derive the same active mask (via a boolean-index copy) on every single call,
+    relying on it happening to match the branch/node reduction rather than being guaranteed by it.
+
+    :param net: The pandapipesNet for which the component pits shall be reduced
+    :type net: pandapipesNet
+    :param branches_connected: boolean mask over the full (unreduced) branch pit
+    :type branches_connected: numpy.ndarray
+    :param nodes_connected: boolean mask over the full (unreduced) node pit
+    :type nodes_connected: numpy.ndarray
+    :return: active_components - reduced component arrays, keyed by table name
+    :rtype: dict
     """
-    Create an internal ("active") pit with all nodes and branches that are actually in_service. This
-    is also done for different lookups (e.g. the from_to indices for this pit and the node index
-    lookup). A specialty that needs to be considered is that from_nodes and to_nodes change to new
-    indices.
+    branch_ft = get_lookup(net, "branch", "from_to")
+    node_ft = get_lookup(net, "node", "from_to")
+    active_components = dict()
+    for name, comp_pit in net["_pit"]["components"].items():
+        if name in branch_ft:
+            f, t = branch_ft[name]
+            mask = branches_connected[f:t]
+        elif name in node_ft:
+            f, t = node_ft[name]
+            mask = nodes_connected[f:t]
+        else:
+            active_components[name] = np.copy(comp_pit)
+            continue
+        active_components[name] = np.copy(comp_pit[mask, :])
+    return active_components
+
+
+def reduce_pit(net, mode):
+    """Create an internal ("active") pit with all nodes and branches that are actually in_service.
+
+    This is also done for different lookups (e.g. the from_to indices for this pit and the node
+    index lookup). A specialty that needs to be considered is that from_nodes and to_nodes change
+    to new indices. Requires that the "node_active"/"branch_active" lookups have already been
+    populated by identify_active_nodes_branches.
 
     :param net: The pandapipesNet for which the pit shall be reduced
     :type net: pandapipesNet
-    :param mode: the mode of the calculation (either "hydraulics" or "heat_transfer") for storing /\
-        retrieving correct lookups
-    :type mode: str, default "hydraulics"
+    :param mode: the mode of the calculation ("hydraulics" or "heat_transfer") for storing /
+        retrieving the correct lookups
+    :type mode: str
     :return: No output
     """
     active_pit, active_pit_old = dict(), dict()
@@ -780,8 +801,8 @@ def reduce_pit(net, mode="hydraulics"):
     branches_connected = get_lookup(net, "branch", "active_" + mode)
 
     for (comp_type, connected_elms, idx_col) in [
-        ("branch", branches_connected, ELEMENT_IDX_BR),
-        ("node", nodes_connected, ELEMENT_IDX_ND)
+        ("branch", branches_connected, IdxBranch.ELEMENT_IDX),
+        ("node", nodes_connected, IdxNode.ELEMENT_IDX)
     ]:
         comp_pit = net["_pit"][comp_type]
         comp_pit_old = net["_old_pit"][comp_type]
@@ -793,29 +814,57 @@ def reduce_pit(net, mode="hydraulics"):
                 connected_elms, idx_col
             )
 
+    active_pit["components"] = reduce_component_pits(net, branches_connected, nodes_connected)
+
     if not np.all(nodes_connected):
         reduced_node_lookup = np.cumsum(nodes_connected) - 1
-        active_pit["branch"][:, FROM_NODE] = reduced_node_lookup[
-            net["_pit"]["branch"][branches_connected, FROM_NODE].astype(np.int32)]
-        active_pit["branch"][:, TO_NODE] = reduced_node_lookup[
-            net["_pit"]["branch"][branches_connected, TO_NODE].astype(np.int32)]
+        active_pit["branch"][:, IdxBranch.FROM_NODE] = reduced_node_lookup[
+            net["_pit"]["branch"][branches_connected, IdxBranch.FROM_NODE].astype(np.int32)]
+        active_pit["branch"][:, IdxBranch.TO_NODE] = reduced_node_lookup[
+            net["_pit"]["branch"][branches_connected, IdxBranch.TO_NODE].astype(np.int32)]
 
     net["_active_pit"] = active_pit
     net["_active_old_pit"] = active_pit_old
 
 
+def branches_not_zero_flow(branch_pit):
+    """Simple function to identify branches with flow based on the calculated velocity.
+
+    :param branch_pit: The pandapipes internal table of the network (including hydraulics results)
+    :type branch_pit: np.array
+    :return: branches_connected_flow - lookup array if branch is connected wrt. flow
+    :rtype: np.array
+    """
+    return (~np.isnan(branch_pit[:, IdxBranch.MDOTINIT])
+            & ~np.isclose(branch_pit[:, IdxBranch.MDOTINIT], 0, rtol=1e-10, atol=1e-10))
+
+
+def compute_infeed_nodes(branch_pit, node_pit):
+    """Mark nodes that feed into the network (source nodes) in node_pit[:, INFEED].
+
+    A node is considered an infeed if it appears as a from-node of a branch with
+    active flow but never as a to-node of any such branch. Must be called with the
+    global branch_pit (not a per-component slice) so that cross-component topology
+    is taken into account.
+    """
+    branches_flow = branches_not_zero_flow(branch_pit)
+    from_nodes = get_from_nodes_corrected(branch_pit)
+    to_nodes = get_to_nodes_corrected(branch_pit)
+    infeed = np.setdiff1d(from_nodes[branches_flow], to_nodes[branches_flow])
+    node_pit[infeed, IdxNode.INFEED] = True
+
+
 def check_infeed_number(node_pit):
-    slack_nodes = node_pit[:, NODE_TYPE_T] == T
+    slack_nodes = node_pit[:, IdxNode.NODE_TYPE_T] == IdxNode.T
     if len(node_pit) == np.sum(slack_nodes):
-        node_pit[slack_nodes, INFEED] = True
-    infeed_nodes = node_pit[:, INFEED]
+        node_pit[slack_nodes, IdxNode.INFEED] = True
+    infeed_nodes = node_pit[:, IdxNode.INFEED]
     if np.sum(infeed_nodes) != np.sum(slack_nodes):
         return False
     return True
 
 
 class PipeflowNotConverged(ppException):
-    """
-    Exception being raised in case pipeflow did not converge.
-    """
+    """Exception being raised in case pipeflow did not converge."""
+
     pass

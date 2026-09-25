@@ -14,9 +14,9 @@ from pandapipes.pandapipes_net import pandapipesNet
 def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm=0.15e-3,
                       opened=True, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293, qext_w=0.,
                       name=None, index=None, geodata=None, in_service=True, type="valve_pipe", **kwargs):
-    """
-    Creates a valve pipe element in net["valve_pipe"] from valve pipe parameters. In any case the
-    line parameters are defined through a single standard type. This component is
+    """Creates a valve pipe element in net["valve_pipe"] from valve pipe parameters.
+
+    In any case the line parameters are defined through a single standard type. This component is
     an equivalent to STANET's valve element, as it represents a valve with a length, unlike the
     normal pandapipes valve which is assumed to be of length 0. This component is not supposed to
     be added to the standard pandapipes components, as it doesn't add value to the model itself, but
@@ -67,13 +67,12 @@ def create_valve_pipe(net, from_junction, to_junction, std_type, length_km, k_mm
     :return: index - The unique ID of the created valve pipe
     :rtype: int
 
-    EXAMPLE:
+    Example
+    -------
         create_valve_pipe(net, "valve_pipe1", from_junction=0, to_junction=1, std_type='315_PE_80_SDR_17',
                           length_km=1)
     """
-
     # check if junction exist to attach the pipe to
-
     add_new_component(net, ValvePipe)
 
     index = _get_index_with_check(net, "valve_pipe", index)
@@ -99,8 +98,9 @@ def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km
                                       opened=True, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=293,
                                       qext_w=0., name=None, index=None, geodata=None, in_service=True,
                                       type="valve_pipe", **kwargs):
-    """
-    Creates a valve pipe element in net["valve_pipe"] from valve pipe parameters. This component is
+    """Creates a valve pipe element in net["valve_pipe"] from valve pipe parameters.
+
+    This component is
     an equivalent to STANET's valve element, as it represents a valve with a length, unlike the
     normal pandapipes valve which is assumed to be of length 0. This component is not supposed to
     be added to the standard pandapipes components, as it doesn't add value to the model itself, but
@@ -151,13 +151,12 @@ def create_valve_pipe_from_parameters(net, from_junction, to_junction, length_km
     :return: index - The unique ID of the created valve pipe
     :rtype: int
 
-    EXAMPLE:
+    Example
+    -------
         create_valve_pipe_from_parameters(net, "valve_pipe1", from_junction=0, to_junction=1,
                                           length_km=1, d=4e-3)
     """
-
     # check if junction exist to attach the pipe to
-
     add_new_component(net, ValvePipe)
 
     index = _get_index_with_check(net, "valve_pipe", index)

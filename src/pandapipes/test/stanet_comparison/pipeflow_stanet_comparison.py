@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse',
-                               only_update_hydraulic_matrix=False,
                                max_iter_hyd=10, **kwargs):
     """
 
@@ -28,14 +27,11 @@ def pipeflow_stanet_comparison(net, log_results=True, friction_model='nikuradse'
     :type plot_net:
     :param friction_model:
     :type friction_model:
-    :param only_update_hydraulic_matrix:
-    :type only_update_hydraulic_matrix:
     :return:
     :rtype:
     """
     pandapipes.pipeflow(net, mode='hydraulics', stop_condition="tol",max_iter_hyd=max_iter_hyd, tol_p=1e-7,
-                        tol_m=1e-7, friction_model=friction_model,
-                        only_update_hydraulic_matrix=only_update_hydraulic_matrix, **kwargs)
+                        tol_m=1e-7, friction_model=friction_model, **kwargs)
 
     p_stanet = net.junction.p_stanet
     p_valid = pd.notnull(p_stanet)

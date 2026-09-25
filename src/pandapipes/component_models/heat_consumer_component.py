@@ -7,14 +7,18 @@ from numpy import dtype
 
 from pandapipes.component_models import (get_fluid, BranchWOInternalsComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
+from pandapipes.component_models.component_toolbox import (
+    build_pit_entries, get_thermal_options, register_branch_node_mass_balance,
+    register_branch_node_thermal_balance,
+)
 from pandapipes.component_models.junction_component import Junction
-from pandapipes.idx_branch import (MDOTINIT, QEXT, JAC_DERIV_DP1, JAC_DERIV_DM,
-                                   JAC_DERIV_DP, LOAD_VEC_BRANCHES, TOUTINIT, JAC_DERIV_DT,
-                                   JAC_DERIV_DTOUT, LOAD_VEC_BRANCHES_T, FLOW_RETURN_CONNECT)
-from pandapipes.idx_node import TINIT
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected
+from pandapipes.idx_branch import IdxBranch
+from pandapipes.idx_node import IdxNode
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_lookup
+from pandapipes.pf.derivative_calculation import calculate_derivatives_branch_thermal
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
+from pandapipes.pf.system_index import ComponentEquations, EqWriteMode, HydVarEq, ThermVarEq, PitEntries
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
 try:
@@ -25,9 +29,8 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 class HeatConsumer(BranchWOInternalsComponent):
-    """
+    """Heat consumer component that extracts heat via a prescribed qext, mass flow, temperature drop, or return temperature."""
 
-    """
     # columns for internal array
     MASS = 0
     QEXT = 1
@@ -49,48 +52,67 @@ class HeatConsumer(BranchWOInternalsComponent):
         return "heat_consumer"
 
     @classmethod
-    def get_connected_node_type(cls):
-        return Junction
+    def active_identifier(cls):
+        return "in_service"
 
     @classmethod
     def from_to_node_cols(cls):
         return "from_junction", "to_junction"
 
     @classmethod
-    def active_identifier(cls):
-        return "in_service"
+    def get_connected_node_type(cls):
+        return Junction
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
+    def get_component_input(cls):
+        """Get component input.
+
+        :return:
+        :rtype:
         """
-        Function which creates pit branch entries with a specific table.
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :return: No Output.
-        """
-        hc_pit = super().create_pit_branch_entries(net, branch_pit)
-        qext = net[cls.table_name()].qext_w.values
-        hc_pit[~np.isnan(qext), QEXT] = qext[~np.isnan(qext)]
-        mdot = net[cls.table_name()].controlled_mdot_kg_per_s.values
-        hc_pit[~np.isnan(mdot), MDOTINIT] = mdot[~np.isnan(mdot)]
-        treturn = net[cls.table_name()].treturn_k.values
+        return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("qext_w", "f8"),
+                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"),
+                ("in_service", "bool"), ("type", dtype(object))]
+
+    @classmethod
+    def register_pit_branch_entries(cls, net, branch_pit, node_pit, registry) -> None:
+        super().register_pit_branch_entries(net, branch_pit, node_pit, registry)
+
+        f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+        tbl = net[cls.table_name()]
+        if not len(tbl):
+            return
+
+        rows = np.arange(f, t, dtype=np.int32)
+
+        qext = tbl.qext_w.values
+        mask_qext = ~np.isnan(qext)
+        if np.any(mask_qext):
+            registry.add_override(PitEntries(*build_pit_entries(rows[mask_qext], [IdxBranch.QEXT], [qext[mask_qext]])))
+
+        mdot = tbl.controlled_mdot_kg_per_s.values
+        mask_mdot = ~np.isnan(mdot)
+        if np.any(mask_mdot):
+            registry.add_override(PitEntries(*build_pit_entries(rows[mask_mdot], [IdxBranch.MDOTINIT], [mdot[mask_mdot]])))
+
+        treturn = tbl.treturn_k.values
         mask_tr = ~np.isnan(treturn)
-        hc_pit[mask_tr, TOUTINIT] = treturn[mask_tr]
-        hc_pit[:, FLOW_RETURN_CONNECT] = True
-        mask_q0 = qext == 0 & np.isnan(mdot)
+        if np.any(mask_tr):
+            registry.add_override(PitEntries(*build_pit_entries(rows[mask_tr], [IdxBranch.TOUTINIT], [treturn[mask_tr]])))
+
+        registry.add_override(PitEntries(*build_pit_entries(rows, [IdxBranch.FLOW_RETURN_CONNECT], [np.ones(len(rows))])))
+
+        mask_q0 = (qext == 0) & np.isnan(mdot)
         if np.any(mask_q0):
             logger.warning(r'qext_w is equals to zero for heat consumers with index %s. '
-                           r'Therefore, the defined temperature control cannot be maintained.' \
-                    %net[cls.table_name()].index[mask_q0])
-        return hc_pit
+                           r'Therefore, the defined temperature control cannot be maintained.',
+                           tbl.index[mask_q0])
 
     @classmethod
     def create_component_array(cls, net, component_pits):
-        """
-        Function which creates an internal array of the component in analogy to the pit, but with
-        component specific entries, that are not needed in the pit.
+        """Create an internal array of the component in analogy to the pit.
+
+        Holds component-specific entries that are not needed in the pit.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -121,126 +143,153 @@ class HeatConsumer(BranchWOInternalsComponent):
         component_pits[cls.table_name()] = consumer_array
 
     @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net,
-                                              branch_pit, node_pit,
-                                              branch_pit_old, node_pit_old,
-                                              idx_lookups, options):
-        f, t = idx_lookups[cls.table_name()]
-        hc_pit = branch_pit[f:t, :]
-        consumer_array = get_component_array(net, cls.table_name())
+    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
+        f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[cls.table_name()]
+        branch_idx = np.arange(f, t, dtype=np.int32)
+        if not len(branch_idx):
+            return
+        b_pit = branch_pit[f:t]
+        fn = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
+        tn = b_pit[:, IdxBranch.TO_NODE].astype(np.int32)
 
-        mask = consumer_array[:, cls.MODE] == cls.QE_DT
-        if np.any(mask):
-            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit[mask])
-            deltat = consumer_array[mask, cls.DELTAT]
-            mass = hc_pit[mask, QEXT] / (cp * deltat)
-            hc_pit[mask, MDOTINIT] = mass
+        consumer_array = get_component_array(net, cls.table_name(), mode='hydraulics')
 
-    @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net,
-                                             branch_pit, node_pit,
-                                             branch_pit_old, node_pit_old,
-                                             idx_lookups, options):
-        """
-        Perform adaptions to the branch pit after the derivatives have been calculated globally.
+        # variables
+        mdot_col  = sys_idx.idx(HydVarEq.MDOTINIT, branch_idx)
 
-        :param net: The pandapipes network containing all relevant info
-        :type net: pandapipesNet
-        :param branch_pit: The branch internal array
-        :type branch_pit: np.ndarray
-        :param node_pit: The node internal array
-        :type node_pit: np.ndarray
-        :param idx_lookups: Lookup for the relevant indices in the pit
-        :type idx_lookups: dict
-        :param options: Options for the pipeflow
-        :type options: dict
-        :return: No Output.
-        :rtype: None
-        """
-        # set all pressure derivatives to 0 and velocity to 1; load vector must be 0, as no change
-        # of velocity is allowed during the pipeflow iteration
-        f, t = idx_lookups[cls.table_name()]
-        consumer_array = get_component_array(net, cls.table_name())
+        # equation position branch
+        branch_eq = sys_idx.idx(HydVarEq.BRANCH,   branch_idx)
 
-        hc_pit = branch_pit[f:t, :]
-        hc_pit[:, JAC_DERIV_DP] = 0
-        hc_pit[:, JAC_DERIV_DP1] = 0
-        hc_pit[:, JAC_DERIV_DM] = 1
-        hc_pit[:, LOAD_VEC_BRANCHES] = 0
+        # derivative and load vector branch
+        df_dm = np.ones_like(branch_idx, dtype=np.float64)
+        load = np.zeros_like(branch_idx, dtype=np.float64)
 
-        mask = consumer_array[:, cls.MODE] == cls.QE_TR
-        if np.any(mask):
-            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
-            from_nodes = get_from_nodes_corrected(hc_pit)
-            t_in = node_pit[from_nodes, TINIT]
-            t_out = hc_pit[:, TOUTINIT]
+        mask_qe_dt = consumer_array[:, cls.MODE] == cls.QE_DT
+        if np.any(mask_qe_dt):
+            cp = get_branch_cp(get_fluid(net), node_pit, b_pit[mask_qe_dt])
+            deltat = consumer_array[mask_qe_dt, cls.DELTAT]
+            mdot = b_pit[mask_qe_dt, IdxBranch.QEXT] / (cp * deltat)
+            load[mask_qe_dt] = - mdot + b_pit[mask_qe_dt, IdxBranch.MDOTINIT]
 
-            df_dm = - cp * (t_out - t_in)
+        mask_qe_tr = consumer_array[:, cls.MODE] == cls.QE_TR
+        if np.any(mask_qe_tr):
+            cp = get_branch_cp(get_fluid(net), node_pit, b_pit)
+            from_nodes = get_from_nodes_corrected(b_pit).astype(np.int32)
+            t_in  = node_pit[from_nodes, IdxNode.TINIT]
+            t_out = b_pit[:, IdxBranch.TOUTINIT]
+            df_dm_qetr = -cp * (t_out - t_in)
             mask_equal = t_out >= t_in
-            mask_zero = hc_pit[:, QEXT] == 0
-            mask_ign = mask_equal | mask_zero
-            hc_pit[mask & mask_ign, MDOTINIT] = 0
-            hc_pit[mask & ~mask_ign, JAC_DERIV_DM] = df_dm[mask & ~mask_ign]
-            hc_pit[mask, LOAD_VEC_BRANCHES] = - hc_pit[mask, QEXT] + df_dm[mask] * hc_pit[mask, MDOTINIT]
+            mask_zero  = b_pit[:, IdxBranch.QEXT] == 0
+            mask_ign   = mask_equal | mask_zero
+
+            # A degenerate QE_TR consumer (t_out already >= t_in, or qext_w == 0) has no valid
+            # mdot = qext/(cp*(t_in-t_out)) to solve for - reset MDOTINIT to 0 in the pit itself
+            # (not just locally skip it) before it's read below, so a stale mass flow from a
+            # prior, non-degenerate iterate can't leak into this branch's own load (next line) or
+            # the node mass-balance load further down.
+            b_pit[mask_qe_tr & mask_ign, IdxBranch.MDOTINIT] = 0.
+
+            df_dm[mask_qe_tr & ~mask_ign] = df_dm_qetr[mask_qe_tr & ~mask_ign]
+            load[mask_qe_tr] = (-b_pit[mask_qe_tr, IdxBranch.QEXT] + df_dm_qetr[mask_qe_tr] * b_pit[mask_qe_tr, IdxBranch.MDOTINIT])
+
+        # system matrix branch
+        rows_branch = branch_eq.astype(np.int32)
+        cols_branch = mdot_col.astype(np.int32)
+        data_branch = df_dm.astype(np.float64)
+        load_rows_branch = branch_eq.astype(np.int32)
+        load_branch = load.astype(np.float64)
+
+        registry.add(ComponentEquations(
+            rows=rows_branch,
+            cols=cols_branch,
+            data=data_branch,
+            load_rows=load_rows_branch,
+            load_data=load_branch,
+            mode=EqWriteMode.UNIQUE,
+        ))
+
+        # derivative and load vector node - no extra masking needed for degenerate QE_TR rows
+        # here, MDOTINIT was already reset to 0 in the pit above, so both loads read 0 there too
+        df_dm_node = np.ones_like(branch_idx)
+        load = b_pit[:, IdxBranch.MDOTINIT]
+        register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, df_dm_node,
+                                          -load, load)
 
     @classmethod
-    def adaption_before_derivatives_thermal(cls, net,
-                                            branch_pit, node_pit,
-                                            branch_pit_old, node_pit_old,
-                                            idx_lookups, options):
-        f, t = idx_lookups[cls.table_name()]
-        hc_pit = branch_pit[f:t, :]
+    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+        f, t = get_lookup(net, "branch", "from_to_active_heat_transfer")[cls.table_name()]
+        branch_idx = np.arange(f, t, dtype=np.int32)
+        if not len(branch_idx):
+            return
+        branch_pit_old = net["_active_old_pit"]["branch"]
+
+        b_pit = branch_pit[f:t]
         consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
-        mask = consumer_array[:, cls.MODE] == cls.MF_DT
-        if np.any(mask):
-            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
-            q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * consumer_array[mask, cls.DELTAT]
-            hc_pit[mask, QEXT] = q_ext
 
-        mask = consumer_array[:, cls.MODE] == cls.MF_TR
-        if np.any(mask):
-            cp = get_branch_cp(get_fluid(net), node_pit, hc_pit)
-            from_nodes = get_from_nodes_corrected(hc_pit[mask])
-            t_in = node_pit[from_nodes, TINIT]
-            t_out = consumer_array[mask, cls.TRETURN]
-            q_ext = cp[mask] * hc_pit[mask, MDOTINIT] * (t_in - t_out)
-            hc_pit[mask, QEXT] = q_ext
+        # preparation
+        mask_mf_dt = consumer_array[:, cls.MODE] == cls.MF_DT
+        if np.any(mask_mf_dt):
+            cp = get_branch_cp(get_fluid(net), node_pit, b_pit)
+            b_pit[mask_mf_dt, IdxBranch.QEXT] = (cp[mask_mf_dt] * b_pit[mask_mf_dt, IdxBranch.MDOTINIT]
+                                         * consumer_array[mask_mf_dt, cls.DELTAT])
 
-    @classmethod
-    def adaption_after_derivatives_thermal(cls, net,
-                                           branch_pit, node_pit,
-                                           branch_pit_old, node_pit_old,
-                                           idx_lookups, options):
-        f, t = idx_lookups[cls.table_name()]
-        hc_pit = branch_pit[f:t, :]
-        consumer_array = get_component_array(net, cls.table_name(), mode='heat_transfer')
+        mask_mf_tr = consumer_array[:, cls.MODE] == cls.MF_TR
+        if np.any(mask_mf_tr):
+            cp = get_branch_cp(get_fluid(net), node_pit, b_pit)
+            fn_t = get_from_nodes_corrected(b_pit[mask_mf_tr]).astype(np.int32)
+            t_in = node_pit[fn_t, IdxNode.TINIT]
+            t_out = consumer_array[mask_mf_tr, cls.TRETURN]
+            b_pit[mask_mf_tr, IdxBranch.QEXT] = cp[mask_mf_tr] * b_pit[mask_mf_tr, IdxBranch.MDOTINIT] * (t_in - t_out)
 
-        mask= consumer_array[:, cls.MODE] == cls.QE_TR
-        if np.any(mask):
-            mask_ign = hc_pit[:, QEXT] == 0
-            mask = mask & ~mask_ign
-            hc_pit[mask, LOAD_VEC_BRANCHES_T] = 0
-            hc_pit[mask, JAC_DERIV_DTOUT] = 1
-            hc_pit[mask, JAC_DERIV_DT] = 0
 
-    @classmethod
-    def get_component_input(cls):
-        """
+        fnt, dfnt_dt, dfnt_dtout, fb, dfb_dt, dfb_dtout = calculate_derivatives_branch_thermal(
+            net, branch_pit[f:t], node_pit, branch_pit_old[f:t], get_thermal_options(net)
+        )
 
-        Get component input.
+        fn = get_from_nodes_corrected(b_pit).astype(np.int32)
+        tn = get_to_nodes_corrected(b_pit).astype(np.int32)
 
-        :return:
-        :rtype:
-        """
-        return [("name", dtype(object)), ("from_junction", "u4"), ("to_junction", "u4"), ("qext_w", "f8"),
-                ("controlled_mdot_kg_per_s", "f8"), ("deltat_k", "f8"), ("treturn_k", "f8"),
-                ("in_service", "bool"), ("type", dtype(object))]
+        # variables
+        t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
+        t_from_col = sys_idx.idx(ThermVarEq.TINIT, fn)
+        t_to_col = sys_idx.idx(ThermVarEq.TINIT, tn)
+
+        # equation position branch
+        branch_eq = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
+
+        # derivative and load vector branches
+        mask_qe_tr = consumer_array[:, cls.MODE] == cls.QE_TR
+        if np.any(mask_qe_tr):
+            mask_ign = b_pit[:, IdxBranch.QEXT] == 0
+            mask = mask_qe_tr & ~mask_ign
+            dfb_dt[mask] = 0
+            dfb_dtout[mask] = 1
+            fb[mask] = 0
+
+        # system matrix branch
+        rows_branch = np.concatenate([branch_eq, branch_eq]).astype(np.int32)
+        cols_branch = np.concatenate([t_from_col, t_out_col]).astype(np.int32)
+        data_branch = np.concatenate([dfb_dt, dfb_dtout]).astype(np.float64)
+        load_rows_branch = branch_eq.astype(np.int32)
+        load_branch = fb.astype(np.float64)
+
+        registry.add(ComponentEquations(
+            rows=rows_branch,
+            cols=cols_branch,
+            data=data_branch,
+            load_rows=load_rows_branch,
+            load_data=load_branch,
+            mode=EqWriteMode.UNIQUE,
+        ))
+
+        register_branch_node_thermal_balance(sys_idx, registry, tn, t_to_col, t_out_col,
+                                             dfnt_dt, dfnt_dtout, fnt)
+
+
 
     @classmethod
     def get_result_table(cls, net):
-        """
-
-        Gets the result table.
+        """Gets the result table.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -260,7 +309,7 @@ class HeatConsumer(BranchWOInternalsComponent):
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
-        """
+        """Extract heat consumer results from the pipeflow internal structure.
 
         :param net:
         :type net:
@@ -285,8 +334,8 @@ class HeatConsumer(BranchWOInternalsComponent):
 
         res_table = net["res_" + cls.table_name()]
 
-        res_table['qext_w'].values[:] = branch_pit[f:t, QEXT]
+        res_table['qext_w'].values[:] = branch_pit[f:t, IdxBranch.QEXT]
         from_nodes = get_from_nodes_corrected(branch_pit[f:t])
-        t_from = node_pit[from_nodes, TINIT]
-        tout = branch_pit[f:t, TOUTINIT]
+        t_from = node_pit[from_nodes, IdxNode.TINIT]
+        tout = branch_pit[f:t, IdxBranch.TOUTINIT]
         res_table['deltat_k'].values[:] = t_from - tout

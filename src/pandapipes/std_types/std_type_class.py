@@ -15,12 +15,10 @@ from pandapipes.pandapipes_net import Sector
 
 
 class StdType(JSONSerializableClass):
-    """
-
-    """
+    """Base class for a standard type object."""
 
     def __init__(self, name, component, sector=Sector.ALL):
-        """
+        """Initialize a standard type object.
 
         :param name: name of the standard type object
         :type name: str
@@ -46,8 +44,7 @@ class StdType(JSONSerializableClass):
 class InterpolationStdType(StdType):
 
     def __init__(self, name, component, int_fct, sector=Sector.ALL):
-        """
-        The interpolation standrad type object interpolates and extrapolates between the given values
+        """The interpolation standrad type object interpolates and extrapolates between the given values.
 
         :param name: Name of the interpolation standard type object
         :type name: str
@@ -107,8 +104,7 @@ class InterpolationStdType(StdType):
 class RegressionStdType(StdType):
 
     def __init__(self, name, component, reg_par, sector=Sector.ALL):
-        """
-        The regression standrad type object creates a regression based on the given data and regression parameters
+        """The regression standrad type object creates a regression based on the given data and regression parameters.
 
         :param name: Name of the regression object
         :type name: str
@@ -121,7 +117,6 @@ class RegressionStdType(StdType):
         :return: An object of the regression standard type class
         :rtype: RegressionStdType
         """
-
         super(RegressionStdType, self).__init__(name, component, sector)
         self.reg_par = reg_par
         self._x_values = None
@@ -169,8 +164,9 @@ class RegressionStdType(StdType):
 class PumpStdType(RegressionStdType):
 
     def __init__(self, name, reg_par, sector=Sector.ALL):
-        """
-        Creates a concrete pump std type. The class is a child class of the RegressionStdType, therefore, the here
+        """Create a concrete pump std type.
+
+        The class is a child class of the RegressionStdType, therefore, the here
         derived values are calculated based on a previously performed regression. The regression parameters need to
         be passed or alternatively, can be determined through the here defined class methods.
 
@@ -185,8 +181,7 @@ class PumpStdType(RegressionStdType):
         super(PumpStdType, self).__init__(name, 'pump', reg_par, sector)
 
     def get_pressure(self, vdot_m3_per_s):
-        """
-        Calculate the pressure lift based on a polynomial from a regression.
+        """Calculate the pressure lift based on a polynomial from a regression.
 
         It is ensured that the pressure lift is always >= 0. For reverse flows, bypassing is
         assumed.
@@ -233,8 +228,7 @@ class PumpStdType(RegressionStdType):
 
     @classmethod
     def load_data(cls, path):
-        """
-        load_data.
+        """load_data.
 
         :param path:
         :type path:
@@ -247,8 +241,7 @@ class PumpStdType(RegressionStdType):
 
 
 def regression_function(x_values, y_values, degree):
-    """
-    Regression function: performs a regression based on the given x-, y-values and the polynominal degree.
+    """Regression function: performs a regression based on the given x-, y-values and the polynominal degree.
 
     :param x_values: given data on x-axis
     :type x_values: array_like
@@ -266,8 +259,7 @@ def regression_function(x_values, y_values, degree):
 
 
 def interpolation_function(x_values, y_values, fill_value='extrapolate'):
-    """
-    interpolation function: performs an interpolation based on the given x- and y-values.
+    """interpolation function: performs an interpolation based on the given x- and y-values.
 
     :param x_values: given data on x-axis
     :type x_values: array_like
@@ -286,8 +278,7 @@ def _retrieve_data(loaded_data):
     return data_list
 
 def get_data(path, std_type_category):
-    """
-    retrieve data
+    """retrieve data.
 
     :param path: path the data can be retrieved from
     :type path: str

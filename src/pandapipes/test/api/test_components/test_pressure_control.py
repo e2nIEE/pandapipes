@@ -96,3 +96,46 @@ def test_non_working_distance_control():
     with pytest.raises(UserWarning) as e:
         pandapipes.pipeflow(net)
         assert "The following controlled junction(s) were identified as disconnected" in str(e.value)
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pressure_control_after_index_gap(use_numba):
+    """
+    PressureControlComponent.register_hydraulic_equations used to look up
+    control_active/in_service/controlled_junction/controlled_p_bar via
+    net[table_name].values[tbl_idx], where tbl_idx came from IdxBranch.ELEMENT_IDX - the
+    pandas *index label* of the press_control row, not its position in net.press_control.
+    .values is positional, so as soon as the table's index isn't 0..n-1 anymore (e.g.
+    after dropping a press_control and adding a replacement, since pandas keeps counting
+    new row labels upward instead of reusing the freed one), the lookup goes out of
+    bounds or silently picks up a different press_control's set point.
+    """
+    net = pandapipes.create_empty_network("net", add_stdtypes=False, fluid="lgas")
+
+    j0, j1, j2, j3, j4 = [pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
+                          for _ in range(5)]
+
+    pandapipes.create_ext_grid(net, j0, 32, 283.15, type="p")
+
+    pc_a = pandapipes.create_pressure_control(net, j0, j1, j1, 20.)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=5.,
+                                           inner_diameter_mm=102.2)
+    pandapipes.create_sink(net, j2, 0.5)
+
+    pandapipes.create_pressure_control(net, j0, j3, j3, 15.)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=5.,
+                                           inner_diameter_mm=102.2)
+    pandapipes.create_sink(net, j4, 0.3)
+
+    # same 2 press_controls/topology/set points as above, just re-labeled: drop the first
+    # press_control and add an equivalent replacement -> index becomes [1, 2] instead of
+    # [0, 1]
+    net.press_control.drop(index=[pc_a], inplace=True)
+    pandapipes.create_pressure_control(net, j0, j1, j1, 20.)
+    assert net.press_control.index.tolist() == [1, 2]
+
+    max_iter_hyd = 4 if use_numba else 4
+    pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, use_numba=use_numba)
+
+    assert np.isclose(net.res_junction.at[j1, "p_bar"], 20.)
+    assert np.isclose(net.res_junction.at[j3, "p_bar"], 15.)

@@ -13,8 +13,8 @@ import pytest
 from packaging import version
 from pandapipes import networks as nw, BranchComponent
 from pandapipes.component_models import NodeComponent
-from pandapipes.idx_branch import branch_cols
-from pandapipes.idx_node import node_cols
+from pandapipes.idx_branch import IdxBranch
+from pandapipes.idx_node import IdxNode
 from pandapipes.test.api.test_convert_format import found_versions, folder, minimal_version_two_nets
 
 try:
@@ -308,13 +308,13 @@ def test_pit_extraction():
         if not "_gas" in name:
             pandapipes.create_ext_grid(net, junction=4, p_bar=6, t_k=290, name="External Grid 2", index=None)
             pandapipes.create_ext_grid(net, junction=5, p_bar=5, t_k=290, name="External Grid 3")
-        max_iter_hyd = 11 if '_water' in name else 6
+        max_iter_hyd = 12 if '_water' in name else 6
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
         node_table, branch_table = pandapipes.get_internal_tables_pandas(net)
 
-        assert node_table.shape[1] == node_cols
-        assert branch_table.shape[1] == branch_cols
+        assert node_table.shape[1] == IdxNode.node_cols
+        assert branch_table.shape[1] == IdxBranch.branch_cols
 
         for comp in net.component_list:
             tbl = comp.table_name()

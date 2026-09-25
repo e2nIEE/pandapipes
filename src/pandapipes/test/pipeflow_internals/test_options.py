@@ -35,7 +35,6 @@ def test_set_user_pf_options(create_test_net, use_numba):
 
     pandapipes.pf.pipeflow_setup.set_user_pf_options(net, hello='bye', **test_options)
     test_options.update({'hello': 'bye'})
-    test_options.update({'hyd_flag': True})
 
     assert net.user_pf_options == test_options
 

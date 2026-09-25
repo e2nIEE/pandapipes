@@ -44,7 +44,7 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
     omit_modules = ''
 
     def __init__(self, obj, d, ppipes_hook, ignore_unknown_objects=False, omit_modules=None):
-        """
+        """Initialize the registry with the object, data, and hook to use for deserialization.
 
         :param obj: object the data is written to
         :type obj: object

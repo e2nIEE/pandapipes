@@ -5,10 +5,10 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.branch_models import BranchComponent
-from pandapipes.idx_branch import (FROM_NODE, TO_NODE, TOUTINIT, ELEMENT_IDX, ACTIVE, LENGTH, K, TEXT, ALPHA,
-                                   D, DO, AREA)
-from pandapipes.idx_node import TINIT as TINIT_NODE
+from pandapipes.component_models.component_toolbox import build_pit_entries
+from pandapipes.idx_branch import IdxBranch
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_net_option, get_lookup
+from pandapipes.pf.system_index import PitEntries
 
 try:
     import pandaplan.core.pplog as logging
@@ -25,19 +25,7 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
-    def get_component_input(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def get_result_table(cls, net):
-        raise NotImplementedError
-
-    @classmethod
     def active_identifier(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def from_to_node_cols(cls):
         raise NotImplementedError
 
     @classmethod
@@ -45,9 +33,16 @@ class BranchWOInternalsComponent(BranchComponent):
         raise NotImplementedError
 
     @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start, current_table, internals):
-        """
-        Function which creates branch lookups.
+        """Function which creates branch lookups.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -72,40 +67,40 @@ class BranchWOInternalsComponent(BranchComponent):
         return end, current_table + 1
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
-        """
-        Function which creates pit branch entries with a specific table.
+    def register_pit_branch_entries(cls, net, branch_pit, node_pit, registry) -> None:
+        super().register_pit_branch_entries(net, branch_pit, node_pit, registry)
 
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :return: No Output.
-        """
-        branch_wo_internals_pit, node_pit = super().create_pit_branch_entries(net, branch_pit)
-        junction_idx_lookup = get_lookup(net, "node", "index")[
-            cls.get_connected_node_type().table_name()]
+        f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
+        tbl = net[cls.table_name()]
+        if not len(tbl):
+            return
+
+        rows = np.arange(f, t, dtype=np.int32)
+        junction_table_name = cls.get_connected_node_type().table_name()
+        junction_idx_lookup = get_lookup(net, "node", "index")[junction_table_name]
         fn_col, tn_col = cls.from_to_node_cols()
-        from_nodes = junction_idx_lookup[net[cls.table_name()][fn_col].values]
-        to_nodes = junction_idx_lookup[net[cls.table_name()][tn_col].values]
-
-        if not len(branch_wo_internals_pit):
-            return branch_wo_internals_pit
+        from_junctions = tbl[fn_col].values
+        to_junctions = tbl[tn_col].values
+        from_nodes = junction_idx_lookup[from_junctions]
+        to_nodes = junction_idx_lookup[to_junctions]
 
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-            branch_wo_internals_pit[:, FROM_NODE] = from_nodes
-            branch_wo_internals_pit[:, TO_NODE] = to_nodes
-            branch_wo_internals_pit[:, TOUTINIT] = node_pit[to_nodes, TINIT_NODE]
-            branch_wo_internals_pit[:, ELEMENT_IDX] = net[cls.table_name()].index.values
-            branch_wo_internals_pit[:, ACTIVE] = net[cls.table_name()][cls.active_identifier()].values
-            branch_wo_internals_pit[:, LENGTH] = 0
-            branch_wo_internals_pit[:, K] = 1e-3
-            branch_wo_internals_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
-            branch_wo_internals_pit[:, ALPHA] = 0
-            branch_wo_internals_pit[:, D] = 0.1
-            branch_wo_internals_pit[:, DO] = branch_wo_internals_pit[:, D]
-            branch_wo_internals_pit[:, AREA] = branch_wo_internals_pit[:, D] ** 2 * np.pi / 4
-        return branch_wo_internals_pit
+            toutinit_vals = cls._toutinit_vals(net, to_junctions, junction_table_name)
+            ambient_t = get_net_option(net, 'ambient_temperature')
+            d_val = 0.1
+            registry.add(PitEntries(*build_pit_entries(
+                rows,
+                [IdxBranch.FROM_NODE, IdxBranch.TO_NODE, IdxBranch.TOUTINIT, IdxBranch.ELEMENT_IDX,
+                 IdxBranch.ACTIVE, IdxBranch.LENGTH, IdxBranch.K, IdxBranch.TEXT, IdxBranch.ALPHA,
+                 IdxBranch.D, IdxBranch.DO],
+                [from_nodes.astype(float), to_nodes.astype(float), toutinit_vals,
+                 tbl.index.values.astype(float), tbl[cls.active_identifier()].values.astype(float),
+                 0., 1e-3, float(ambient_t), 0., d_val, d_val],
+            )))
+
+    @classmethod
+    def _toutinit_vals(cls, net, to_junctions, junction_table_name):
+        return net[junction_table_name].loc[to_junctions, "tfluid_k"].values
 
     @classmethod
     def calculate_temperature_lift(cls, net, branch_component_pit, node_pit):
@@ -113,4 +108,8 @@ class BranchWOInternalsComponent(BranchComponent):
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):
+        raise NotImplementedError
+
+    @classmethod
+    def get_result_table(cls, net):
         raise NotImplementedError

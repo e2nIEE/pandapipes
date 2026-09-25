@@ -56,8 +56,8 @@ class ValveMode(StrEnum):
 
 
 def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add_layers):
-    """
-    Creates pandapipes junctions from given STANET nodes.
+    """Creates pandapipes junctions from given STANET nodes.
+
     :param net: pandapipes Net
     :type net: pandapipesNet
     :param stored_data: STANET data
@@ -112,8 +112,8 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
 
 
 def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mode, add_layers):
-    """
-    Creates pandapipes valves and pipes from STANET data.
+    """Creates pandapipes valves and pipes from STANET data.
+
     :param net: pipe network
     :type net: pandapipesNet
     :param stored_data: dictionary of STANET element tables
@@ -272,8 +272,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
 
 def create_slider_valves(net, stored_data, index_mapping, add_layers,
                          guess_opened_from_types=False):
-    """
-    Creates pandapipes slider valves from STANET data.
+    """Creates pandapipes slider valves from STANET data.
 
     :param net: pandapipes net to which to add slider valves
     :type net: pandapipesNet
@@ -356,8 +355,8 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers,
 
 # noinspection PyTypeChecker
 def create_pumps(net, pump_table, index_mapping, add_layers):
-    """
-    Creates pandapipes pumps from STANET data.
+    """Creates pandapipes pumps from STANET data.
+
     :param net:
     :type net:
     :param pump_table:
@@ -402,8 +401,8 @@ def create_pumps(net, pump_table, index_mapping, add_layers):
 
 
 def create_control_components(net, stored_data, index_mapping, net_params, add_layers, **kwargs):
-    """
-    Creates pandapipes controller from STANET data.
+    """Creates pandapipes controller from STANET data.
+
     :param net:
     :type net:
     :param stored_data:
@@ -524,8 +523,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
 
 
 def get_connection_types(connection_table):
-    """
-    Returns the connection types contained in the STANET raw values.
+    """Returns the connection types contained in the STANET raw values.
 
     :param connection_table: table of connections on pipes
     :type connection_table: pd.DataFrame
@@ -541,8 +539,8 @@ def get_connection_types(connection_table):
 
 
 def create_junctions_from_connections(net, connection_table, net_params, index_mapping, add_layers):
-    """
-    Creates pandapipes junctions from STANET connections.
+    """Creates pandapipes junctions from STANET connections.
+
     :param net:
     :type net:
     :param connection_table:
@@ -594,7 +592,7 @@ def create_junctions_from_connections(net, connection_table, net_params, index_m
 
 
 def determine_junctions_from_connection_nodes(pipe_sections, index_mapping):
-    """
+    """Determine the from/to junctions of pipe sections based on their connection nodes.
 
     :param pipe_sections:
     :type pipe_sections:
@@ -626,8 +624,8 @@ def determine_junctions_from_connection_nodes(pipe_sections, index_mapping):
 
 def create_pipes_from_connections(net, stored_data, connection_table, index_mapping, pipe_geodata,
                                   add_layers):
-    """
-    Creates pandapipes pipes from STANET connections.
+    """Creates pandapipes pipes from STANET connections.
+
     :param net:
     :type net:
     :param stored_data:
@@ -724,8 +722,8 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
 
 
 def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, add_flow=False):
-    """
-    Creates pandapipes heat exchangers from STANET connections.
+    """Creates pandapipes heat exchangers from STANET connections.
+
     :param net:
     :type net:
     :param stored_data:
@@ -781,8 +779,8 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
 
 def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, index_mapping,
                                            pipe_geodata, add_layers):
-    """
-    
+    """Create pipes for the entries of the pipe table not covered by the connection table.
+
     :param net:
     :type net:
     :param stored_data:
@@ -1045,7 +1043,7 @@ def get_tables_in_stanet_indices(stored_data, connection_table, house_table, met
 
 def create_nodes_house_connections(net, stored_data, connection_table, meter_table, house_table,
                                    index_mapping, net_params, add_layers):
-    """
+    """Create junctions for houses and other house connection infrastructure.
 
     :param net:
     :type net:
@@ -1177,7 +1175,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
 
 
 def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers):
-    """
+    """Create sinks and sources for meters.
 
     :param net:
     :type net:
@@ -1280,7 +1278,7 @@ def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers)
 
 def create_sinks_from_nodes(net, node_table, index_mapping, net_params, sinks_defined,
                             control_flows, add_layers):
-    """
+    """Create sinks for fixed feed-in or consumption nodes.
 
     :param net:
     :type net:

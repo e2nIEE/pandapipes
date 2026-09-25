@@ -24,8 +24,7 @@ def create_junction_collection(net, junctions=None, size=5, patch_type="circle",
                                z=None, cmap=None, norm=None, infofunc=None, picker=False,
                                junction_geodata=None, cbar_title="Junction Pressure [bar]",
                                **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes junctions.
+    """Create a matplotlib patch collection of pandapipes junctions.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -92,8 +91,7 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
                            use_junction_geodata=False, infofunc=None, cmap=None, norm=None,
                            picker=False, z=None, cbar_title="Pipe Loading [%]", clim=None,
                            **kwargs):
-    """
-    Creates a matplotlib pipe collection of pandapipes pipes.
+    """Create a matplotlib pipe collection of pandapipes pipes.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -169,8 +167,7 @@ def create_pipe_collection(net, pipes=None, pipe_geodata=None, junction_geodata=
 
 def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False,
                            orientation=(np.pi*5/6), cmap=None, norm=None, z=None, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes sinks.
+    """Create a matplotlib patch collection of pandapipes sinks.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -223,8 +220,7 @@ def create_sink_collection(net, sinks=None, size=1., infofunc=None, picker=False
 
 def create_source_collection(net, sources=None, size=1., infofunc=None, picker=False,
                              orientation=(np.pi*7/6), cmap=None, norm=None, z=None, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes sources.
+    """Create a matplotlib patch collection of pandapipes sources.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -277,10 +273,10 @@ def create_source_collection(net, sources=None, size=1., infofunc=None, picker=F
 
 def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picker=False,
                                ext_grids=None, ext_grid_junctions=None, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes ext_grid. Parameters
-    ext_grids, ext_grid_junctions can be used to specify, which ext_grids the collection should be
-    created for.
+    """Create a matplotlib patch collection of pandapipes ext_grid.
+
+    Parameters ext_grids, ext_grid_junctions can be used to specify, which ext_grids the
+    collection should be created for.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -327,8 +323,8 @@ def create_ext_grid_collection(net, size=1., infofunc=None, orientation=0, picke
 
 def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodata=None,
                                      infofunc=None, picker=False, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes junction-junction heat_exchangers.
+    """Create a matplotlib patch collection of pandapipes junction-junction heat_exchangers.
+
     Heat_exchangers are plotted in the center between two junctions with a "helper" line
     (dashed and thin) being drawn  between the junctions as well.
 
@@ -382,10 +378,10 @@ def create_heat_exchanger_collection(net, heat_ex=None, size=5., junction_geodat
 
 def create_valve_collection(net, valves=None, size=5., junction_geodata=None, infofunc=None,
                             picker=False, fill_closed=True, respect_valves=False, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes junction-junction valves. Valves are
-    plotted in the center between two junctions with a "helper" line (dashed and thin) being drawn
-    between the junctions as well.
+    """Create a matplotlib patch collection of pandapipes junction-junction valves.
+
+    Valves are plotted in the center between two junctions with a "helper" line (dashed and thin)
+    being drawn between the junctions as well.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -458,8 +454,7 @@ def create_valve_collection(net, valves=None, size=5., junction_geodata=None, in
 def create_flow_control_collection(net, flow_controllers=None, size=5., junction_geodata=None,
                                    infofunc=None, picker=False, fill_closed=True,
                                    respect_in_service=False, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes flow control components.
+    """Create a matplotlib patch collection of pandapipes flow control components.
 
     They are plotted in the center between two junctions and look like a valve with a T on top,
     if the flow control is active and an I on top, if the flow control is not active.
@@ -525,8 +520,7 @@ def create_flow_control_collection(net, flow_controllers=None, size=5., junction
 def create_pump_collection(net, pumps=None, table_name='pump', size=5., junction_geodata=None,
                            infofunc=None, picker=False, fj_col="from_junction",
                            tj_col="to_junction", **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes pumps.
+    """Create a matplotlib patch collection of pandapipes pumps.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -633,9 +627,9 @@ def create_pressure_control_collection(net, pcs=None, table_name='press_control'
 def create_compressor_collection(net, cmprs=None, table_name='compressor', size=5.,
                                  junction_geodata=None, color='k', infofunc=None, picker=False,
                                  **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes compressors. Compressors are
-    plotted in the center between two junctions.
+    """Create a matplotlib patch collection of pandapipes compressors.
+
+    Compressors are plotted in the center between two junctions.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -684,9 +678,9 @@ def create_compressor_collection(net, cmprs=None, table_name='compressor', size=
 def create_heat_consumer_collection(net, hec=None, table_name='heat_consumer', size=5.,
                                  junction_geodata=None, color='k', infofunc=None, picker=False,
                                  **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes heat_consumers. Heat consumers are
-    plotted in the center between two junctions.
+    """Create a matplotlib patch collection of pandapipes heat_consumers.
+
+    Heat consumers are plotted in the center between two junctions.
 
     :param net: The pandapipes network
     :type net: pandapipesNet

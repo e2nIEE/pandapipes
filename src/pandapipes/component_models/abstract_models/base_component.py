@@ -19,98 +19,18 @@ class Component:
         raise NotImplementedError()
 
     @classmethod
-    def init_results(cls, net):
-        """
-        Function that intializes the result table for the component.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :return: No Output.
-        """
-        output, all_float = cls.get_result_table(net)
-        init_results_element(net, cls.table_name(), output, all_float)
-        res_table = net["res_" + cls.table_name()]
-        return res_table
-
-    @classmethod
-    def extract_results(cls, net, options, branch_results, mode):
-        """
-        Function that extracts certain results.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param options:
-        :type options:
-        :param branch_results:
-        :type branch_results:
-        :param mode:
-        :type mode:
-        :return: No Output.
-        """
-        raise NotImplementedError
-
-    @classmethod
     def get_component_input(cls):
-        """
+        """Get component input.
 
         :return:
         :rtype:
         """
         raise NotImplementedError
-
-    @classmethod
-    def get_result_table(cls, net):
-        """
-        Get result table.
-
-        :param net: a pandapipes net
-        :type net: pandapipes.pandapipesNet
-        :return:
-        :rtype:
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def adaption_before_derivatives_hydraulic(cls, net,
-                                              branch_pit, node_pit,
-                                              branch_pit_old, node_pit_old,
-                                              idx_lookups, options):
-        pass
-
-    @classmethod
-    def adaption_after_derivatives_hydraulic(cls, net,
-                                             branch_pit, node_pit,
-                                             branch_pit_old, node_pit_old,
-                                             idx_lookups, options):
-        pass
-
-    @classmethod
-    def adaption_before_derivatives_thermal(cls, net,
-                                            branch_pit, node_pit,
-                                            branch_pit_old, node_pit_old,
-                                            idx_lookups, options):
-        pass
-
-    @classmethod
-    def adaption_after_derivatives_thermal(cls, net,
-                                           branch_pit, node_pit,
-                                           branch_pit_old, node_pit_old,
-                                           idx_lookups, options):
-        pass
-
-    @classmethod
-    def rerun_hydraulics(cls, net, branch_pit, node_pit, idx_lookups, options):
-        return False
-
-    @classmethod
-    def rerun_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):
-        return False
 
     @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
                             current_table, internals):
-        """
-        Function which creates node lookups.
+        """Function which creates node lookups.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -134,8 +54,7 @@ class Component:
     @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
                               current_table, internals):
-        """
-        Function which creates branch lookups.
+        """Function which creates branch lookups.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -157,10 +76,18 @@ class Component:
         return current_start, current_table
 
     @classmethod
+    def register_pit_node_entries(cls, net, node_pit, registry) -> None:
+        pass
+
+    @classmethod
+    def register_pit_branch_entries(cls, net, branch_pit, node_pit, registry) -> None:
+        pass
+
+    @classmethod
     def create_component_array(cls, net, component_pits):
-        """
-        Function which creates an internal array of the component in analogy to the pit, but with
-        component specific entries, that are not needed in the pit.
+        """Create an internal array of the component in analogy to the pit.
+
+        Holds component-specific entries that are not needed in the pit.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -172,28 +99,57 @@ class Component:
         pass
 
     @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        """
-        Function which creates pit branch entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :return: No Output.
-        """
+    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
         pass
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
-        """
-        Function which creates pit branch entries.
+    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+        pass
+
+    @classmethod
+    def rerun_hydraulics(cls, net, branch_pit, node_pit, idx_lookups, options):  # pylint: disable=unused-argument
+        return False
+
+    @classmethod
+    def rerun_thermal(cls, net, branch_pit, node_pit, idx_lookups, options):  # pylint: disable=unused-argument
+        return False
+
+    @classmethod
+    def init_results(cls, net):
+        """Function that intializes the result table for the component.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
         :return: No Output.
         """
-        pass
+        output, all_float = cls.get_result_table(net)
+        init_results_element(net, cls.table_name(), output, all_float)
+        res_table = net["res_" + cls.table_name()]
+        return res_table
 
+    @classmethod
+    def get_result_table(cls, net):
+        """Get result table.
+
+        :param net: a pandapipes net
+        :type net: pandapipes.pandapipesNet
+        :return:
+        :rtype:
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def extract_results(cls, net, options, branch_results, mode):
+        """Function that extracts certain results.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :param options:
+        :type options:
+        :param branch_results:
+        :type branch_results:
+        :param mode:
+        :type mode:
+        :return: No Output.
+        """
+        raise NotImplementedError

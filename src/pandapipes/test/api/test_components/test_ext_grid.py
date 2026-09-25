@@ -45,6 +45,26 @@ def test_ext_grid_sorting(use_numba):
     assert np.isclose(net.res_ext_grid.at[4, "mdot_kg_per_s"], -0.05, atol=1e-12, rtol=1e-12)
 
 
+@pytest.mark.parametrize("n_ext_grids", [2, 3, 5])
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_multiple_ext_grids_single_junction_split_evenly(n_ext_grids, use_numba):
+    """N ext_grids directly on the SAME junction (no pipe in between at all) are indistinguishable
+    to the pressure-based Newton system - all see the same pressure, so the node's mass balance
+    (one equation) can't attribute the sink's demand to any one of them over another. Confirms the
+    actual, otherwise-undocumented tie-breaking behavior: the demand is split evenly, N-way,
+    regardless of ext_grid creation order or count."""
+    net = pandapipes.create_empty_network(fluid="water")
+    j0 = pandapipes.create_junction(net, 5, 285.15)
+    for _ in range(n_ext_grids):
+        pandapipes.create_ext_grid(net, j0, p_bar=5, t_k=285.15, type="pt")
+    pandapipes.create_sink(net, j0, mdot_kg_per_s=5.0)
+
+    pandapipes.pipeflow(net, use_numba=use_numba)
+
+    assert np.allclose(net.res_ext_grid.mdot_kg_per_s.values, -5.0 / n_ext_grids)
+    assert np.isclose(net.res_ext_grid.mdot_kg_per_s.sum(), -5.0)
+
+
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_p_type(use_numba):
     """
