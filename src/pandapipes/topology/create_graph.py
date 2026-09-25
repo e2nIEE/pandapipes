@@ -165,6 +165,14 @@ def add_branch_component(comp, mg, net, table_name, include_comp, respect_status
     tab = get_edge_table(net, table_name, include_comp)
 
     if tab is not None:
+        if table_name == "valve":
+            # et="pi" valves reference a pipe index (not a junction) in their "element" column -
+            # they're spliced inline into that pipe (see Valve.create_pit_branch_entries) and have
+            # no junction of their own, so treating "element" as T_JUNCTION here would misread a
+            # pipe index as a junction id. Their open/closed state is already handled via
+            # valve_et_filter when building the referenced pipe's own edge.
+            tab = tab.loc[tab.et.values == "ju"]
+
         in_service_name = comp.active_identifier()
         from_col, to_col = comp.from_to_node_cols()
         indices, parameter, in_service = init_par(tab, respect_status, in_service_name)
