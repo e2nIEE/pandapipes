@@ -2,6 +2,7 @@ Change Log
 =============
 [upcoming release] - 2026-..-..
 -------------------------------
+- [FIXED] `create_nxgraph` no longer adds a "pi" valve's referenced pipe index as a bogus junction node
 
 [0.14.0] - 2026-05-26
 -------------------------------
