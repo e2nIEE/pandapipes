@@ -190,7 +190,7 @@ def test_heat_consumer_qext_zero():
 
 
 def test_heat_consumer_qe_tr_degenerate_ignores_stale_mdot():
-    """Regression test: HeatConsumer.register_hydraulic_equations's QE_TR branch used to compute
+    """Regression test: HeatConsumer._register_hydraulic_equations's QE_TR branch used to compute
     the branch's own load (and, via an unrelated numpy view-aliasing accident in the node-balance
     load construction a few lines further down, the pit's real MDOTINIT too) straight from
     whatever mass flow happened to already be sitting in the pit for a degenerate row (t_out >=
@@ -233,7 +233,7 @@ def test_heat_consumer_qe_tr_degenerate_ignores_stale_mdot():
 
     sys_idx = HydraulicSystemIndex(node_pit, branch_pit)
     registry = ComponentRegistry()
-    HeatConsumer.register_hydraulic_equations(net, branch_pit, node_pit, sys_idx, registry)
+    HeatConsumer.register_equations(net, branch_pit, node_pit, sys_idx, registry, mode="hydraulics")
 
     branch_eq_row = sys_idx.idx(HydVarEq.BRANCH, np.array([f], dtype=np.int32))[0]
     load = next(eq.load_data[eq.load_rows == branch_eq_row][0]

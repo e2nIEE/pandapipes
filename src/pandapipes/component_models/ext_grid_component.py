@@ -123,7 +123,14 @@ class ExtGrid(NodeElementComponent):
             mode=PitWriteMode.ADDITIVE))
 
     @classmethod
-    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+    def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode):
+        if mode == "hydraulics":
+            cls._register_hydraulic_equations(net, branch_pit, node_pit, sys_idx, registry)
+        elif mode == "heat_transfer":
+            cls._register_thermal_equations(net, branch_pit, node_pit, sys_idx, registry)
+
+    @classmethod
+    def _register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
         # register only for nodes that actually have an active ext_grid row - NOT every P-type
         # node in the system (a circ_pump also marks its own flow junction as NODE_TYPE=P purely
         # to anchor a pressure reference; that node is none of ExtGrid's business - it's handled
@@ -138,10 +145,10 @@ class ExtGrid(NodeElementComponent):
             return
 
         # "index_active_hydraulics" (not the plain "index" lookup!) maps onto the ACTIVE/reduced
-        # pit register_hydraulic_equations operates on here - the plain lookup is for the full
+        # pit _register_hydraulic_equations operates on here - the plain lookup is for the full
         # pit, used by register_pit_node_entries before reduction; using it here would index into
         # the wrong (larger) array and either crash or silently hit the wrong node. -1 means
-        # disconnected (dropped from the active pit) - skip those, same as register_thermal_equations.
+        # disconnected (dropped from the active pit) - skip those, same as _register_thermal_equations.
         junction_lookup = get_lookup(net, "node", "index_active_hydraulics")[
             cls.get_connected_node_type().table_name()]
         # one entry per ext_grid ROW - deliberately NOT deduplicated by node (see below: multiple
@@ -204,7 +211,7 @@ class ExtGrid(NodeElementComponent):
         ))
 
     @classmethod
-    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+    def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
         eg_array = get_component_array(net, cls.table_name(), only_active=False)
         if not len(eg_array):
             return
@@ -292,7 +299,7 @@ class ExtGrid(NodeElementComponent):
 
         # positive results mean that the ext_grid feeds in, negative means that the ext grid
         # extracts (like a load). MDOTSLACKINIT already IS this ext_grid's own share (see
-        # register_hydraulic_equations: N co-located ext_grids each add their own +1 coefficient
+        # _register_hydraulic_equations: N co-located ext_grids each add their own +1 coefficient
         # to the same row, so Newton solves directly for the per-instance value) - no separate
         # averaging needed here.
         res_table["mdot_kg_per_s"].values[p_grids] = cls.sign() * node_pit[eg_nodes, IdxNode.MDOTSLACKINIT]

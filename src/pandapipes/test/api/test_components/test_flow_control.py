@@ -97,7 +97,7 @@ def test_flow_control_simple_gas_two_eg(use_numba):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_flow_control_after_index_gap(use_numba):
     """
-    FlowControlComponent.register_hydraulic_equations used to look up control_active /
+    FlowControlComponent._register_hydraulic_equations used to look up control_active /
     controlled_mdot_kg_per_s via net[table_name].values[tbl_idx], where tbl_idx came from
     IdxBranch.ELEMENT_IDX - the pandas *index label* of the flow control, not its position
     in net.flow_control. .values is positional, so as soon as the table's index isn't

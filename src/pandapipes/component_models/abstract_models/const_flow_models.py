@@ -82,7 +82,12 @@ class ConstFlow(NodeElementComponent):
         ))
 
     @classmethod
-    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
+    def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode) -> None:
+        if mode == "hydraulics":
+            cls._register_hydraulic_equations(net, branch_pit, node_pit, sys_idx, registry)
+
+    @classmethod
+    def _register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
         load_array = get_component_array(net, cls.table_name(), only_active=False)
         if not len(load_array):
             return

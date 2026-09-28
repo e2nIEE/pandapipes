@@ -19,7 +19,7 @@ from pandas import Index
 def get_hydraulic_options(net):
     """``options`` dict expected by calculate_derivatives_hydraulic.
 
-    Factored out because every branch component's own register_hydraulic_equations rebuilt
+    Factored out because every branch component's own _register_hydraulic_equations rebuilt
     this same 2-key dict from net["_options"] independently.
     """
     return {"use_numba": get_net_option(net, "use_numba"),
@@ -109,7 +109,7 @@ def register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, table
     contribution to both nodes' mass balance is just its own MDOTINIT flowing straight
     through: d(mdot)/d(mdot) == 1, load = the branch's own signed mass flow. This was
     duplicated near-identically in CirculationPumpMass's and CirculationPumpPressure's own
-    register_hydraulic_equations before being factored out here; the actual (row, col, data)
+    _register_hydraulic_equations before being factored out here; the actual (row, col, data)
     assembly is register_branch_node_mass_balance's.
     """
     f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[table_name]
@@ -136,7 +136,7 @@ def register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, regis
 
     So: the pressure-fix equation is always registered for its own flow junction (MEAN,
     letting it coexist with ExtGrid's own pressure-fix there if a real ext_grid happens to
-    sit at the same node too - see ``ExtGrid.register_hydraulic_equations``). But
+    sit at the same node too - see ``ExtGrid._register_hydraulic_equations``). But
     ``MDOTSLACKINIT`` is only forced to 0 there if there's no real ext_grid also present
     (``COUNT_VAR_MASS_SLACK``, set by ``ExtGrid.register_pit_node_entries``) - where one is,
     ExtGrid's own registration already lets ``MDOTSLACKINIT`` freely absorb residual mass

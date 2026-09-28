@@ -363,7 +363,7 @@ def solve_hydraulics(net):
     eq_registry = ComponentRegistry()
 
     for comp in net['component_list']:
-        comp.register_hydraulic_equations(net, branch_pit, node_pit, sys_idx, eq_registry)
+        comp.register_equations(net, branch_pit, node_pit, sys_idx, eq_registry, mode="hydraulics")
 
     sz = sys_idx.size()
     rows, cols, data, epsilon = eq_registry.assemble(sz)
@@ -411,7 +411,7 @@ def solve_temperature(net):
     eq_registry = ComponentRegistry()
 
     for comp in net['component_list']:
-        comp.register_thermal_equations(net, branch_pit, node_pit, sys_idx, eq_registry)
+        comp.register_equations(net, branch_pit, node_pit, sys_idx, eq_registry, mode="heat_transfer")
 
     t_init_old = node_pit[:, IdxNode.TINIT].copy()
     t_out_old = branch_pit[:, IdxBranch.TOUTINIT].copy()

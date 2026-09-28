@@ -101,7 +101,14 @@ class Pump(BranchWOInternalsComponent):
             component_pits[cls.table_name()] = pump_array
 
     @classmethod
-    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
+    def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode) -> None:
+        if mode == "hydraulics":
+            cls._register_hydraulic_equations(net, branch_pit, node_pit, sys_idx, registry)
+        elif mode == "heat_transfer":
+            cls._register_thermal_equations(net, branch_pit, node_pit, sys_idx, registry)
+
+    @classmethod
+    def _register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
         f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[cls.table_name()]
         branch_idx = np.arange(f, t, dtype=np.int32)
         if not len(branch_idx):
@@ -148,7 +155,7 @@ class Pump(BranchWOInternalsComponent):
         """Compute pressure lift from pump characteristic and write it into b_pit[:, PL].
 
         get_component_array(net, cls.table_name()) is filtered by the same active_hydraulics
-        mask, over the same table row range, as b_pit itself (see register_hydraulic_equations
+        mask, over the same table row range, as b_pit itself (see _register_hydraulic_equations
         above and get_component_array's own only_active filtering) - so its rows are already
         aligned 1:1 with b_pit's rows without needing any extra index. Indexing it via
         IdxBranch.ELEMENT_IDX (a pandas index *label*) instead of positionally was a bug: that
@@ -181,7 +188,7 @@ class Pump(BranchWOInternalsComponent):
             b_pit[:, IdxBranch.PL] = np.array(list(map(lambda f, v: f.get_pressure(v), fcts, vol)))
 
     @classmethod
-    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
+    def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
         f, t = get_lookup(net, "branch", "from_to_active_heat_transfer")[cls.table_name()]
         branch_idx = np.arange(f, t, dtype=np.int32)
         if not len(branch_idx):

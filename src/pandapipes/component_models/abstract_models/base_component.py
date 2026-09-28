@@ -99,11 +99,7 @@ class Component:
         pass
 
     @classmethod
-    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
-        pass
-
-    @classmethod
-    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+    def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode):
         pass
 
     @classmethod

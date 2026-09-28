@@ -203,7 +203,14 @@ class Valve(BranchWInternalsComponent):
         registry.add(PitEntries(*build_pit_entries(rows, [IdxBranch.MDOTINIT], [mdotinit_vals])))
 
     @classmethod
-    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
+    def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode) -> None:
+        if mode == "hydraulics":
+            cls._register_hydraulic_equations(net, branch_pit, node_pit, sys_idx, registry)
+        elif mode == "heat_transfer":
+            cls._register_thermal_equations(net, branch_pit, node_pit, sys_idx, registry)
+
+    @classmethod
+    def _register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
         f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[cls.table_name()]
         branch_idx = np.arange(f, t, dtype=np.int32)
         if not len(branch_idx):
@@ -243,7 +250,7 @@ class Valve(BranchWInternalsComponent):
                                           -load_fn, load_tn)
 
     @classmethod
-    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+    def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
         f, t = get_lookup(net, "branch", "from_to_active_heat_transfer")[cls.table_name()]
         branch_idx = np.arange(f, t, dtype=np.int32)
         if not len(branch_idx):

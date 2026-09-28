@@ -67,7 +67,14 @@ class CirculationPumpPressure(CirculationPump):
         )))
 
     @classmethod
-    def register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+    def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode):
+        if mode == "hydraulics":
+            cls._register_hydraulic_equations(net, branch_pit, node_pit, sys_idx, registry)
+        elif mode == "heat_transfer":
+            cls._register_thermal_equations(net, branch_pit, node_pit, sys_idx, registry)
+
+    @classmethod
+    def _register_hydraulic_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
         register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, cls.table_name())
         register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, registry, cls.table_name())
 
@@ -113,7 +120,7 @@ class CirculationPumpPressure(CirculationPump):
         ))
 
     @classmethod
-    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+    def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
         f, t = get_lookup(net, "branch", "from_to_active_heat_transfer")[cls.table_name()]
         if f == t:
             return

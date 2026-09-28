@@ -101,7 +101,7 @@ def test_non_working_distance_control():
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_pressure_control_after_index_gap(use_numba):
     """
-    PressureControlComponent.register_hydraulic_equations used to look up
+    PressureControlComponent._register_hydraulic_equations used to look up
     control_active/in_service/controlled_junction/controlled_p_bar via
     net[table_name].values[tbl_idx], where tbl_idx came from IdxBranch.ELEMENT_IDX - the
     pandas *index label* of the press_control row, not its position in net.press_control.

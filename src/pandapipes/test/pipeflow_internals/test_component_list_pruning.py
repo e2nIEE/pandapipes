@@ -6,7 +6,7 @@
 ``net.component_list`` normally holds every registered component class (see
 ``pandapipes_net.get_basic_all_components``), regardless of whether the net actually uses that
 component - a net with no valves still carries ``Valve`` in its component_list, its
-``register_hydraulic_equations``/``create_pit_branch_entries``/etc. just iterate over zero rows
+``register_equations``/``create_pit_branch_entries``/etc. just iterate over zero rows
 and contribute nothing.
 
 This checks that assumption holds: for a variety of networks exercising most component types

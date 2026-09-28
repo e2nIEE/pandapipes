@@ -67,7 +67,7 @@ def test_compressor_pressure_ratio(use_numba):
 @pytest.mark.parametrize("use_numba", [True, False])
 def test_compressor_pressure_ratio_after_index_gap(use_numba):
     """
-    Compressor._compute_pl (inherited call site in Pump.register_hydraulic_equations)
+    Compressor._compute_pl (inherited call site in Pump._register_hydraulic_equations)
     looks up get_component_array(net, "compressor")[tbl_idx, PRESSURE_RATIO], where
     tbl_idx comes from IdxBranch.ELEMENT_IDX. That array is built positionally (row i =
     i-th row of net.compressor), but ELEMENT_IDX stores the pandas *index label* of the

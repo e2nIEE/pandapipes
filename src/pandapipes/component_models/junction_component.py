@@ -101,7 +101,12 @@ class Junction(NodeComponent):
             )))
 
     @classmethod
-    def register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
+    def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode) -> None:
+        if mode == "heat_transfer":
+            cls._register_thermal_equations(net, branch_pit, node_pit, sys_idx, registry)
+
+    @classmethod
+    def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
         node_pit_old = net["_active_old_pit"]["node"]
 
         fn_node, dfn_dt = calculate_derivatives_node_thermal(
