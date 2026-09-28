@@ -27,7 +27,8 @@ logger = logging.getLogger(__name__)
 
 default_argument_values = {
     "standard_pipe_length_km": 0.01,
-    "pipe_length_limit_km": 10.0,
+    "pipe_length_percentage": 10.0,
+    "minimum_pipe_length_km": 1.0,
     "iteration_limit": 200,
     "sink_source_scaling_factor": 1e-5,
     "roughness_limit_mm": 0.5,
@@ -38,7 +39,6 @@ default_argument_values = {
     "heat_transfer_coefficient_scaling_factor": 0.1,
     "heat_consumer_scaling_factor": 0.1,
     "deltat_scaling_factor": 2,
-    "compressor_neutral_pressure_ratio": 1,
     "ext_grid_pressure_scaling_factor": 1e-5,
     "circ_pump_mass_flow_scaling_factor": 0.1,
     "compressor_pressure_ratio_limit": 5,
@@ -311,7 +311,6 @@ class ExtGridPressureCheck(DiagnosticFunction):
 
         if result:
             self.out.warning(
-                f"Ext-grid pressure problem suspected: "
                 f"pipeflow converges if ext_grid pressures are scaled "
                 f"by a factor of {self.ext_grid_pressure_scaling_factor}."
             )
@@ -328,11 +327,13 @@ class PipeLengthCheck(DiagnosticFunction):
 
     def __init__(self):
         super().__init__()
-        self.pipe_length_limit_km = None
+        self.pipe_length_percentage = None
+        self.minimum_pipe_length_km = None
         self.standard_pipe_length_km = None
 
     def diagnostic(self, net, **kwargs):
-        self.pipe_length_limit_km = kwargs["pipe_length_limit_km"]
+        self.pipe_length_percentage = kwargs["pipe_length_percentage"]
+        self.minimum_pipe_length_km = kwargs["minimum_pipe_length_km"]
         self.standard_pipe_length_km = kwargs["standard_pipe_length_km"]
 
         if not hasattr(net, "pipe") or net.pipe.empty:
@@ -354,13 +355,21 @@ class PipeLengthCheck(DiagnosticFunction):
             "all_pipes": None,
         }
 
-        # Shorten only pipes above the defined length limit
-        long_pipes = (net.pipe["length_km"] > self.pipe_length_limit_km)
+        # Select the longest pipes above the minimum length
+        number_of_long_pipes = max(1, int(np.ceil(len(net.pipe) * self.pipe_length_percentage / 100)),)
 
-        if long_pipes.any():
+
+        long_pipe_indices = net.pipe[
+            net.pipe["length_km"] > self.minimum_pipe_length_km
+        ].nlargest(
+            number_of_long_pipes,
+            "length_km",
+        ).index
+
+        if len(long_pipe_indices):
             net2 = net.deepcopy()
 
-            net2.pipe.loc[long_pipes, "length_km"] = self.standard_pipe_length_km
+            net2.pipe.loc[long_pipe_indices, "length_km",] = self.standard_pipe_length_km
 
             try:
                 pp.pipeflow(net2)
@@ -374,7 +383,6 @@ class PipeLengthCheck(DiagnosticFunction):
 
             if results["long_pipes"]:
                 return results
-
 
         # Shorten all pipes if the first step was not sufficient
         net3 = net.deepcopy()
@@ -394,7 +402,9 @@ class PipeLengthCheck(DiagnosticFunction):
 
     def report(self, error, result):
         if error is not None:
-            self.out.warning("Pipe-length check failed due to the following error:")
+            self.out.warning(
+                "Pipe-length check failed due to the following error:"
+            )
             self.out.warning(error)
             return
 
@@ -405,25 +415,25 @@ class PipeLengthCheck(DiagnosticFunction):
 
         if result["long_pipes"]:
             self.out.warning(
-                f"Pipe-length problem suspected: "
-                f"pipeflow converges if pipes longer than "
-                f"{self.pipe_length_limit_km} km are set to "
-                f"{self.standard_pipe_length_km} km."
+                f"If the longest {self.pipe_length_percentage}% of all pipes "
+                f"with lengths above {self.minimum_pipe_length_km} km were set to "
+                f"{self.standard_pipe_length_km} km, the pipeflow would converge."
             )
 
         elif result["all_pipes"]:
             self.out.warning(
-                f"Pipe-length problem suspected: "
-                f"shortening only pipes longer than "
-                f"{self.pipe_length_limit_km} km was not sufficient, "
-                f"but pipeflow converges if all pipe lengths are set to "
+                f"Pipeflow still does not converge if only the longest "
+                f"{self.pipe_length_percentage}% of all pipes with lengths above "
+                f"{self.minimum_pipe_length_km} km are set to "
+                f"{self.standard_pipe_length_km} km.\n"
+                f"It converges if all pipe lengths are set to "
                 f"{self.standard_pipe_length_km} km."
             )
 
         else:
             self.out.warning(
-                f"Pipeflow still does not converge if all pipe lengths "
-                f"are set to {self.standard_pipe_length_km} km."
+                f"Pipeflow still does not converge if all pipe lengths are set to "
+                f"{self.standard_pipe_length_km} km."
             )
 
 # check iterations
@@ -567,19 +577,19 @@ class SinkSourceScalingCheck(DiagnosticFunction):
 
         if result["sink"]:
             self.out.warning(
-                f"Sink overload suspected: pipeflow converges if sinks are "
+                f"pipeflow converges if sinks are "
                 f"scaled by a factor of {self.scaling_factor}."
             )
 
         elif result["source"]:
             self.out.warning(
-                f"Source overload suspected: pipeflow converges if sources are "
+                f"pipeflow converges if sources are "
                 f"scaled by a factor of {self.scaling_factor}."
             )
 
         elif result["both"]:
             self.out.warning(
-                f"Sink/source overload suspected: pipeflow converges if sinks "
+                f"pipeflow converges if sinks "
                 f"and sources are scaled by a factor of {self.scaling_factor}."
             )
 
@@ -1555,7 +1565,7 @@ default_diagnostic_functions = [
     ("missing_branch_junctions", MissingBranchJunctionsCheck(), []),
     ("pipe_diameter", PipeDiameterCheck(), None),
     ("heat_transfer_coefficient", HeatTransferCoefficientCheck(), None),
-    ("valve_opening", ValveConfigurationCheck(), []),
+    ("valve_configuration", ValveConfigurationCheck(), []),
     ("heat_consumer_control_parameter", HeatConsumerControlParameterCheck(), None),
     ("junction_height", JunctionHeightCheck(), []),
     ("calculation_mode", CalculationModeCheck(), []),
