@@ -10,10 +10,11 @@ from pandapower.plotting import draw_collections
 from pandapipes.component_models.circulation_pump_mass_component import CirculationPumpMass
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 from pandapipes.component_models.pump_component import Pump
+from pandapipes.component_models.heat_generator_component import HeatGenerator
 from pandapipes.plotting.collections import create_junction_collection, create_pipe_collection, \
     create_valve_collection, create_source_collection, create_pressure_control_collection, \
     create_heat_exchanger_collection, create_sink_collection, create_pump_collection, \
-    create_compressor_collection, create_flow_control_collection, create_heat_consumer_collection
+    create_heat_generator_collection, create_compressor_collection, create_flow_control_collection, create_heat_consumer_collection
 from pandapipes.plotting.generic_geodata import create_generic_coordinates
 from pandapipes.plotting.plotting_toolbox import get_collection_sizes
 
@@ -320,6 +321,16 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                                                 size=pump_size, linewidths=pipe_width,
                                                 color=pump_color, fj_col=fjc, tj_col=tjc)
             collections[pump_tbl] = pump_colls
+
+    for heat_generator_comp in [HeatGenerator]:
+        hg_tbl = heat_generator_comp.table_name()
+        if hg_tbl in net:
+            fjc, tjc = heat_generator_comp.from_to_node_cols()
+            idx = net[hg_tbl][net[hg_tbl].in_service].index if respect_in_service else net[hg_tbl].index
+            hg_colls = create_heat_generator_collection(net, idx, table_name=hg_tbl,
+                                                size=pump_size, linewidths=pipe_width,
+                                                color=pump_color, fj_col=fjc, tj_col=tjc)
+            collections[hg_tbl] = hg_colls
 
     if ('flow_control' in net) and len(net['flow_control']):
         idx = net.flow_control[net.flow_control.in_service].index if respect_in_service \

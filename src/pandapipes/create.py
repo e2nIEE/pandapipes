@@ -17,6 +17,8 @@ from pandapipes.component_models.component_toolbox import add_new_component, ret
 from pandapipes.component_models.flow_control_component import FlowControlComponent
 from pandapipes.component_models.heat_consumer_component import HeatConsumer
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components, Sector
+from pandapipes.component_models.heat_generator_component import HeatGenerator
+from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
 from pandapipes.std_types.std_type_class import regression_function, PumpStdType
@@ -1222,6 +1224,98 @@ def create_heat_consumer(net, from_junction, to_junction, qext_w=None, controlle
          "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
          "treturn_k": treturn_k, "in_service": bool(in_service), "type": type}
     _set_entries(net, "heat_consumer", index, **v, **kwargs)
+
+    return index
+
+
+def create_heat_generator(net, return_junction, flow_junction, qext_w = None, tflow_k=None, controlled_mdot_kg_per_s=None, deltat_k=None, preturn_bar=None, plift_bar=None, name=None, index=None, in_service=True, type="heat_generator",
+                         **kwargs):
+    
+    """
+    Creates a heat generator element in net["heat_generator"] from heat generator parameters.
+
+    :param net: The net for which this heat generator should be created
+    :type net:
+    :param return_junction: ID of the junction on return side which the heat generator will be connected \
+        with
+    :type return_junction: int
+    :param flow_junction: ID of the junction on the supply side which the heat generator will be \
+        connected with
+    :type flow_junction: int
+    :param qext_w: External heat flux in [W], only needed for heat generator with power input
+    :type qext_w: float, default None
+    :param tflow_k: Supply/Flow temperature set point at heat generator outlet in [K].
+    :type tflow_k: float, default None
+    :param controlled_mdot_kg_per_s: Mass flow set point at heat generator outlet in [kg/s].
+    :type controlled_mdot_kg_per_s: float, default None
+    :param deltat_k: Temperature lift set point at heat generator in [K].
+    :type deltat_k: float, default None
+    :param preturn_bar: Return pressure set point at heat generator inlet in [bar].
+    :type preturn_bar: float, default None
+    :param plift_bar: Pressure lift set point at heat generator in [bar].
+    :type plift_bar: float, default None
+    :param name: Name of the heat generator element
+    :type name: str, default None
+    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+        highest already existing index is selected.
+    :type index: int, default None
+    :param in_service: True if heat generator is in service or False if it is out of service
+    :type in_service: bool, default True
+    :param type: Component type, currently not needed for further calculation, but can be used as information
+    :type type: str, default "heat_generator"
+    :param kwargs: Additional keyword arguments will be added as further columns to the \
+        net["heat_generator"] table
+    :type kwargs: dict
+    :return: index - The unique ID of the created heat generator
+    :rtype: int
+
+    :Example:
+        >>> pp.create_heat_generator(net, name='Heat_Generator_1', return_junction=0, flow_junction=1, qext_w=None, tflow_k=90+273.15, controlled_mdot_kg_per_s=None, deltat_k=None, preturn_bar=2, plift_bar=5)
+    Available combination of inputs is specified below. 
+
+    """
+
+    if {
+        param_name
+        for param_name, value in {
+            # Given inputs
+            "qext_w": qext_w,
+            "tflow_k": tflow_k,
+            "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s,
+            "deltat_k": deltat_k,
+            "preturn_bar": preturn_bar,
+            "plift_bar": plift_bar,
+        }.items()
+        if value is not None
+    } not in (
+        # Available input combinations
+        {"qext_w", "tflow_k"},
+        {"qext_w", "deltat_k"},
+        {"controlled_mdot_kg_per_s", "tflow_k"},
+        {"controlled_mdot_kg_per_s", "deltat_k"},
+        {"preturn_bar", "plift_bar", "tflow_k"},
+        #TODO add plift_bar und t_flow_k as secondary heat generator
+        #TODO add plift_bar and preturn_bar, but tflow_k = treturn_k as primary heat generator without heat input (useful?)
+    ):
+        raise AttributeError(
+            "Define available combination of these variables: "
+            "'qext_w'+'tflow_k', "
+            "'qext_w'+'deltat_k', "
+            "'controlled_mdot_kg_per_s'+'tflow_k', "
+            "'controlled_mdot_kg_per_s'+'deltat_k', or "
+            "'preturn_bar'+'plift_bar'+'tflow_k'"
+        )
+    
+    add_new_component(net, HeatGenerator)
+
+    index = _get_index_with_check(net, "heat_generator", index, "heat generator")
+    _check_branch(net, "Heat Generator", index, return_junction, flow_junction)
+
+    v = {"name": name, "return_junction": return_junction, "flow_junction": flow_junction,
+        "qext_w": qext_w, "controlled_mdot_kg_per_s": controlled_mdot_kg_per_s, "deltat_k": deltat_k,
+        "tflow_k": tflow_k, "preturn_bar": preturn_bar, "plift_bar": plift_bar,  "in_service": bool(in_service), "type": type}
+        
+    _set_entries(net, "heat_generator", index, **v, **kwargs)
 
     return index
 
