@@ -9,6 +9,8 @@ from functools import partial
 from inspect import isclass
 from warnings import warn
 
+import numpy
+import pandas as pd
 from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
@@ -25,8 +27,38 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+class DeserializationNotAllowed(Exception):
+    # ToDo: Check when using higher pandapower Versions a pandapower import is possible
+    """Raised when deserialization of a type is blocked by the security allowlist."""
+
+
 MODULE_CHANGES = {"PumpStdType": "pandapipes.std_types.std_type_class",
                   "StdType": "pandapipes.std_types.std_type_class"}
+
+
+# builtins names that pandapipes serializes (json_tuple/set/frozenset/complex), excluding unsafe builtins like eval, exec, type
+# ToDo: Check when using higher pandapower Versions a pandapower import is possible
+_SAFE_BUILTIN_NAMES = frozenset({"complex", "tuple", "set", "frozenset"})
+
+def _is_safe_to_deserialize(module_name, class_name, class_):
+    # ToDo: Check when using higher pandapower Versions a pandapower import is possible
+    """
+    True if this (module, name) is an explicitly permitted non-JSONSerializableClass type.
+
+    Covers the types produced by pandapipes/pandapower's to_serializable registry:
+      builtins  — complex, tuple, set, frozenset
+      numpy     — numpy.array constructor (a C function, not a class) + all numpy.generic subclasses
+      pandas    — pd.Index and its subclasses (RangeIndex, Int64Index, DatetimeIndex, …)
+    """
+    if module_name == "builtins":
+        return class_name in _SAFE_BUILTIN_NAMES
+    if module_name == "numpy":
+        if class_name == "array":
+            return True
+        return isclass(class_) and issubclass(class_, numpy.generic)
+    if module_name.startswith("pandas"):
+        return isclass(class_) and issubclass(class_, pd.Index)
+    return False
 
 
 def isinstance_partial(obj, cls):
@@ -110,7 +142,10 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
         if isclass(class_) and issubclass(class_, Component):
             return class_
         else:
-            # for non-pp objects, e.g. tuple
+            # only permit the specific primitive types pandapipes serializes
+            if not _is_safe_to_deserialize(self.module_name, self.class_name, class_):
+                msg = f"Deserializing '{self.module_name}.{self.class_name}' is not allowed"
+                raise DeserializationNotAllowed(msg)
             return class_(self.obj, **self.d)
 
     @from_serializable.register(class_name='MultiNet')
@@ -129,16 +164,6 @@ def json_net(obj):
     net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
     d = with_signature(obj, net_dict)
     return d
-
-
-@to_serializable.register(type)
-def json_component(class_):
-    if issubclass(class_, Component):
-        d = with_signature(class_(), str(class_().__dict__))
-        return d
-    else:
-        raise (UserWarning('with_signature needs to be defined for '
-                           'class %s in @to_serializable.register(type)!' % class_))
 
 
 @to_serializable.register(MultiNet)
