@@ -2,7 +2,8 @@ import copy
 import pytest
 import numpy as np
 import pandapipes as pp
-from unittest.mock import patch
+from unittest.mock import Mock, patch
+from pandapipes.diagnostic.diagnostic import Diagnostic
 from pandapipes import PipeflowNotConverged, pandapipesNet
 from pandapipes.diagnostic.diagnostic_functions import(
     default_argument_values,
@@ -23,6 +24,9 @@ from pandapipes.diagnostic.diagnostic_functions import(
     HeatTransferCoefficientCheck,
     AlphaSweepCheck,
     InactivePressureControlsCheck,
+    HeatConsumerControlParameterCheck,
+    CalculationModeCheck,
+    FrictionModelCheck,
 )
 
 @pytest.fixture(scope="function")
@@ -1126,6 +1130,178 @@ def test_inactive_pressure_controls():
 
     assert check_result is False
     check_report_function(diag_function, None, check_result)
+
+
+def test_heat_consumer_control_parameters(diag_params):
+    net = multi_pump_dh_network()
+    original_qext = net.heat_consumer.qext_w.copy()
+
+    diag_function = HeatConsumerControlParameterCheck()
+
+    def fake_pipeflow(net_arg, **kwargs):
+        if (net_arg.heat_consumer.qext_w < original_qext).all():
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch("pandapipes.pipeflow", side_effect=fake_pipeflow):
+        result = diag_function.diagnostic(net, **diag_params)
+
+    assert result is True
+    assert diag_function.affected_heat_consumers == list(
+        net.heat_consumer.index
+    )
+    check_report_function(diag_function, None, result)
+
+    with patch(
+        "pandapipes.pipeflow",
+        side_effect=PipeflowNotConverged(),
+    ):
+        result = diag_function.diagnostic(net, **diag_params)
+
+    assert result is False
+    check_report_function(diag_function, None, result)
+
+
+def test_calculation_modes():
+    net = simple_gas_grid()
+    diag_function = CalculationModeCheck(
+        modes=["heat", "hydraulics", "sequential"]
+    )
+
+    def fake_pipeflow(net_arg, **kwargs):
+        mode = kwargs.get("mode")
+
+        if mode is None:
+            raise PipeflowNotConverged()
+
+        if mode == "hydraulics":
+            net_arg["_pit"] = {
+                "node": np.zeros((1, 50)),
+                "branch": np.zeros((1, 50)),
+            }
+            net_arg.converged = True
+            return
+
+        if mode == "heat":
+            assert "sol_vec" in kwargs
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch("pandapipes.pipeflow", side_effect=fake_pipeflow):
+        result = diag_function.diagnostic(net)
+
+    assert result == {
+        "heat": True,
+        "hydraulics": True,
+        "sequential": False,
+    }
+    check_report_function(diag_function, None, result)
+
+
+def test_friction_models():
+    net = simple_gas_grid()
+    diag_function = FrictionModelCheck(
+        friction_models=["nikuradse", "colebrook"]
+    )
+
+    def fake_pipeflow(net_arg, **kwargs):
+        friction_model = kwargs.get("friction_model")
+
+        if friction_model == "nikuradse":
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch("pandapipes.pipeflow", side_effect=fake_pipeflow):
+        result = diag_function.diagnostic(net)
+
+    assert result == {
+        "nikuradse": True,
+        "colebrook": False,
+    }
+    check_report_function(diag_function, None, result)
+
+def test_diagnostic_framework_execution():
+    net = simple_gas_grid()
+
+    successful_check = Mock()
+    successful_check.diagnostic.return_value = {"found": True}
+
+    failing_check = Mock()
+    failing_check.diagnostic.side_effect = RuntimeError("test failure")
+
+    diag = Diagnostic(add_default_functions=False)
+    diag.register_function(
+        successful_check,
+        argument_names=["custom_value"],
+        name="successful_check",
+    )
+    diag.register_function(failing_check, name="failing_check")
+
+    result = diag.diagnose_network(
+        net,
+        report=True,
+        custom_value=42,
+    )
+
+    assert result == {"successful_check": {"found": True}}
+    assert isinstance(diag.diag_errors["failing_check"], RuntimeError)
+
+    successful_check.diagnostic.assert_called_once_with(
+        net,
+        custom_value=42,
+    )
+    failing_check.diagnostic.assert_called_once_with(
+        net,
+        custom_value=42,
+    )
+
+    successful_check.report.assert_called_once_with(
+        None,
+        {"found": True},
+    )
+    failing_check.report.assert_called_once_with(
+        diag.diag_errors["failing_check"],
+        None,
+    )
+
+
+def test_diagnostic_report_before_execution():
+    diag = Diagnostic(add_default_functions=False)
+
+    with pytest.raises(RuntimeError):
+        diag.report()
+
+
+def test_diagnostic_without_return_value():
+    net = simple_gas_grid()
+    diag = Diagnostic()
+
+    result = diag.diagnose_network(
+        net,
+        report=False,
+        return_result_dict=False,
+    )
+
+    assert result is None
+
+
+def test_diagnostic_no_issues():
+    net = simple_gas_grid()
+    diag = Diagnostic()
+
+    result = diag.diagnose_network(
+        net,
+        report=False,
+    )
+
+    assert result == {}
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-xs"])
