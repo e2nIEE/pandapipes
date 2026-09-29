@@ -19,14 +19,7 @@ class DiagnosticFunction(ABC, Generic[N, T]):
 
     @abstractmethod
     def diagnostic(self, net, **kwargs):
-        """Run diagnostic check on the network.
-
-        Returns
-        -------
-        object or None
-            The diagnostic result.
-
-        """
+        """Run a diagnostic check on the network."""
 
     @abstractmethod
     def report(self, error, result):

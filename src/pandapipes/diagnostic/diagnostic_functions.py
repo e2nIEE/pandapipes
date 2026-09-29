@@ -327,6 +327,7 @@ class ExtGridPressureCheck(DiagnosticFunction):
 class PipeLengthCheck(DiagnosticFunction):
 
     def __init__(self):
+        """Initialize the pipe length check."""
         super().__init__()
         self.pipe_length_percentage = None
         self.minimum_pipe_length_km = None
@@ -956,17 +957,7 @@ class ValveConfigurationCheck(DiagnosticFunction):
 
 
 class HeatConsumerControlParameterCheck(DiagnosticFunction):
-    """Check whether heat consumer control parameters cause non-convergence.
-
-    The check reduces the thermal load of the heat consumers. Lower heat
-    demand (qext_w) and mass flow (controlled_mdot_kg_per_s) reduce the
-    hydraulic and thermal stress on the network.
-
-    For configurations using deltat_k, the temperature difference is
-    increased to reduce the required mass flow according to:
-
-    Q = m * cp * deltaT.
-    """
+    """Check whether heat consumer parameters cause non-convergence."""
     def __init__(self):
         super().__init__()
         self.heat_consumer_scaling_factor = None
@@ -1151,16 +1142,8 @@ class JunctionHeightCheck(DiagnosticFunction):
 
 
 class CalculationModeCheck(DiagnosticFunction):
-    """
-    Checks whether the non-convergence originates from hydraulics,
-    heat transfer, or the coupling between both calculations.
+    """Check whether a calculation mode causes non-convergence."""
 
-    Heat mode cannot be executed independently because it requires
-    hydraulic results (node pressures and branch mass flows) as input.
-    Therefore, a hydraulic calculation is executed first and the
-    resulting PINIT and MDOTINIT values are passed to the heat
-    calculation via sol_vec.
-    """
     def __init__(self, modes=None):
         """Initialize the calculation mode check."""
         super().__init__()
