@@ -255,6 +255,7 @@ class MissingExtGridCheck(DiagnosticFunction):
 class ExtGridPressureCheck(DiagnosticFunction):
 
     def __init__(self):
+        """Initialize the external grid pressure check."""
         super().__init__()
         self.ext_grid_pressure_scaling_factor = None
 
@@ -545,12 +546,11 @@ class SinkSourceScalingCheck(DiagnosticFunction):
 
         # 3) sinks and sources together
         net_both = net.deepcopy()
-        changed_anything = False
 
         if has_sink and has_source:
             net_both.sink.scaling *= self.scaling_factor
             net_both.source.scaling *= self.scaling_factor
-            changed_anything = True
+
 
         try:
             pp.pipeflow(net_both)
@@ -956,19 +956,16 @@ class ValveConfigurationCheck(DiagnosticFunction):
 
 
 class HeatConsumerControlParameterCheck(DiagnosticFunction):
-    """
-    Checks whether heat consumer control parameters are the reason
-    for the pipeflow non-convergence.
+    """Check whether heat consumer control parameters cause non-convergence.
 
-    The idea is to reduce the thermal load of the heat consumers.
-    Lower heat demand (qext_w) and mass flow
-    (controlled_mdot_kg_per_s) reduce the hydraulic and thermal
-    stress on the network.
+    The check reduces the thermal load of the heat consumers. Lower heat
+    demand (qext_w) and mass flow (controlled_mdot_kg_per_s) reduce the
+    hydraulic and thermal stress on the network.
 
-    For configurations using deltat_k, the temperature difference
-    is increased to reduce the required mass flow according to
+    For configurations using deltat_k, the temperature difference is
+    increased to reduce the required mass flow according to:
 
-    Q = m * cp * deltaT
+    Q = m * cp * deltaT.
     """
     def __init__(self):
         super().__init__()
@@ -1165,6 +1162,7 @@ class CalculationModeCheck(DiagnosticFunction):
     calculation via sol_vec.
     """
     def __init__(self, modes=None):
+        """Initialize the calculation mode check."""
         super().__init__()
         self.modes = modes or ["hydraulics", "heat", "sequential", "bidirectional"]
 
@@ -1232,6 +1230,7 @@ class CalculationModeCheck(DiagnosticFunction):
 class FrictionModelCheck(DiagnosticFunction):
 
     def __init__(self, friction_models=None):
+        """Initialize the friction model check."""
         super().__init__()
         self.friction_models = friction_models or ["nikuradse", "colebrook", "swamee-jain"]
 
@@ -1288,9 +1287,7 @@ class FrictionModelCheck(DiagnosticFunction):
                 )
 
 class AlphaSweepCheck(DiagnosticFunction):
-    """
-    Checks whether the pipeflow converges with a different Newton damping factor alpha.
-    """
+    """Check convergence with a different Newton damping factor alpha."""
 
     def __init__(self):
         super().__init__()

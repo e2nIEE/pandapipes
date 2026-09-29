@@ -15,6 +15,7 @@ log_message_sep = f"\n{'':-<{log_format_len}}\n"
 class Diagnostic:
 
     def __init__(self, add_default_functions=True):
+        """Initialize the diagnostic framework."""
         self._functions = []
         self.kwargs = {}
         self.diag_results = {}

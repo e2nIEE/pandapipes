@@ -11,29 +11,26 @@ N = TypeVar("N")
 
 
 class DiagnosticFunction(ABC, Generic[N, T]):
-    """
-    Base class for all pandapipes diagnostic checks.
-    """
+    """Base class for all pandapipes diagnostic checks."""
 
     def __init__(self):
+        """Initialize the diagnostic function."""
         self.out = logger
 
     @abstractmethod
     def diagnostic(self, net, **kwargs):
-        """
-        Run diagnostic check on the network.
+        """Run diagnostic check on the network.
 
-        Returns:
-            result object or None
+        Returns
+        -------
+        object or None
+            The diagnostic result.
+
         """
-        pass
 
     @abstractmethod
     def report(self, error, result):
-        """
-        Print diagnostic report.
-        """
-        pass
+        """Print diagnostic report."""
 
 
 def check_number(element, element_index, column):
