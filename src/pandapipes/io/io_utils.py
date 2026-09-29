@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeserializationNotAllowed(Exception):
+    # ToDo: Check when using higher pandapower Versions a pandapower import is possible
     """Raised when deserialization of a type is blocked by the security allowlist."""
 
 
@@ -36,10 +37,11 @@ MODULE_CHANGES = {"PumpStdType": "pandapipes.std_types.std_type_class",
 
 
 # builtins names that pandapipes serializes (json_tuple/set/frozenset/complex), excluding unsafe builtins like eval, exec, type
+# ToDo: Check when using higher pandapower Versions a pandapower import is possible
 _SAFE_BUILTIN_NAMES = frozenset({"complex", "tuple", "set", "frozenset"})
 
-
 def _is_safe_to_deserialize(module_name, class_name, class_):
+    # ToDo: Check when using higher pandapower Versions a pandapower import is possible
     """
     True if this (module, name) is an explicitly permitted non-JSONSerializableClass type.
 
@@ -162,16 +164,6 @@ def json_net(obj):
     net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
     d = with_signature(obj, net_dict)
     return d
-
-
-@to_serializable.register(type)
-def json_component(class_):
-    if issubclass(class_, Component):
-        d = with_signature(class_(), str(class_().__dict__))
-        return d
-    else:
-        raise (UserWarning('with_signature needs to be defined for '
-                           'class %s in @to_serializable.register(type)!' % class_))
 
 
 @to_serializable.register(MultiNet)
