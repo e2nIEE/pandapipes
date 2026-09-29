@@ -442,8 +442,8 @@ class PipeLengthCheck(DiagnosticFunction):
 class IterationCheck(DiagnosticFunction):
 
     def __init__(self):
+        """Initialize the iteration check."""
         super().__init__()
-
         self.iterations = None
 
     def diagnostic(self, net, **kwargs):
@@ -958,6 +958,7 @@ class ValveConfigurationCheck(DiagnosticFunction):
 
 class HeatConsumerControlParameterCheck(DiagnosticFunction):
     """Check whether heat consumer parameters cause non-convergence."""
+
     def __init__(self):
         super().__init__()
         self.heat_consumer_scaling_factor = None
