@@ -16,21 +16,81 @@
     "version": "0.15.0",
     "format_version": "0.14.0",
     "component_list": [
-      "<class 'pandapipes.component_models.junction_component.Junction'>",
-      "<class 'pandapipes.component_models.pipe_component.Pipe'>",
-      "<class 'pandapipes.component_models.valve_component.Valve'>",
-      "<class 'pandapipes.component_models.pump_component.Pump'>",
-      "<class 'pandapipes.component_models.sink_component.Sink'>",
-      "<class 'pandapipes.component_models.source_component.Source'>",
-      "<class 'pandapipes.component_models.compressor_component.Compressor'>",
-      "<class 'pandapipes.component_models.flow_control_component.FlowControlComponent'>",
-      "<class 'pandapipes.component_models.pressure_control_component.PressureControlComponent'>",
-      "<class 'pandapipes.component_models.mass_storage_component.MassStorage'>",
-      "<class 'pandapipes.component_models.heat_consumer_component.HeatConsumer'>",
-      "<class 'pandapipes.component_models.heat_exchanger_component.HeatExchanger'>",
-      "<class 'pandapipes.component_models.circulation_pump_mass_component.CirculationPumpMass'>",
-      "<class 'pandapipes.component_models.circulation_pump_pressure_component.CirculationPumpPressure'>",
-      "<class 'pandapipes.component_models.ext_grid_component.ExtGrid'>"
+      {
+        "_module": "pandapipes.component_models.junction_component",
+        "_class": "Junction",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.pipe_component",
+        "_class": "Pipe",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.valve_component",
+        "_class": "Valve",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.pump_component",
+        "_class": "Pump",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.sink_component",
+        "_class": "Sink",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.source_component",
+        "_class": "Source",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.compressor_component",
+        "_class": "Compressor",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.flow_control_component",
+        "_class": "FlowControlComponent",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.pressure_control_component",
+        "_class": "PressureControlComponent",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.mass_storage_component",
+        "_class": "MassStorage",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.heat_consumer_component",
+        "_class": "HeatConsumer",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.heat_exchanger_component",
+        "_class": "HeatExchanger",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.circulation_pump_mass_component",
+        "_class": "CirculationPumpMass",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.circulation_pump_pressure_component",
+        "_class": "CirculationPumpPressure",
+        "_object": "{}"
+      },
+      {
+        "_module": "pandapipes.component_models.ext_grid_component",
+        "_class": "ExtGrid",
+        "_object": "{}"
+      }
     ],
     "sector": "all",
     "junction": {
@@ -342,7 +402,7 @@
     "res_junction": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"p_bar\",\"t_k\"],\"index\":[0,1,2,3,4,5,6,7,8,9,10,11,12],\"data\":[[16.0,280.0],[15.740851513719541,283.0],[15.740851513719541,283.0],[15.753503030382673,283.0],[15.73790743629417,283.0],[15.740851513719541,283.0],[15.737277597646935,283.0],[14.256450140479679,283.0],[15.0,285.0],[14.229252056276488,283.0],[15.499034960443989,283.0],[0.68,283.0],[0.61967602730395,283.0]]}",
+      "_object": "{\"columns\":[\"p_bar\",\"t_k\"],\"index\":[0,1,2,3,4,5,6,7,8,9,10,11,12],\"data\":[[16.0,280.0],[15.740851513719541,283.0],[15.740851513719541,283.0],[15.753503030382674,283.0],[15.737907436294169,283.0],[15.740851513719541,283.0],[15.737277597646935,283.0],[14.256450140479677,283.0],[15.0,285.0],[14.229252056276486,283.0],[15.499034960443989,283.0],[0.68,283.0],[0.61967602730395,283.0]]}",
       "orient": "split",
       "dtype": {
         "p_bar": "float64",
@@ -354,7 +414,7 @@
     "res_pipe": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"v_from_m_per_s\",\"v_to_m_per_s\",\"v_mean_m_per_s\",\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"reynolds\",\"lambda\",\"normfactor_from\",\"normfactor_to\",\"dp_friction_loss_bar\"],\"index\":[0,1,2,3,4,5,6,7],\"data\":[[1.888565348188628,1.939472905922037,1.922997009538927,16.0,15.740851513719541,280.0,283.0,283.0,0.185,-0.185,0.252407954606109,220133.196303981996607,0.038141420154309,0.05876501627051,0.060349067074664,0.025914848628046],[-0.33428464754369,-0.334022756771755,-0.334153651946891,15.740851513719541,15.753503030382673,283.0,283.0,283.0,-0.017936056765112,0.017936056765113,-0.024471369739357,28444.255322712706402,0.023314270267637,0.060349067074664,0.060301787416809,0.001265151654877],[0.351041448033494,0.351380790483075,0.351211039051263,15.753503030382673,15.73790743629417,283.0,283.0,283.0,0.012063943234887,-0.012063943234888,0.016459649926498,23914.808153110137937,0.024977450296477,0.060301787416809,0.060360079554022,0.001559559427753],[-1.239778453150402,-1.239552260031955,-1.239665346494883,15.73790743629417,15.740851513719541,283.0,283.0,283.0,-0.057936056765112,0.057936056765113,-0.079046062627165,98441.847624622285366,0.02208563192925,0.060360079554022,0.060349067074664,0.00029440774174],[0.217653370158649,0.217701586182672,0.217677475558087,15.740851513719541,15.737277597646935,283.0,283.0,283.0,0.015,-0.015,0.020465509832928,20989.45669641206041,0.023464091239875,0.060349067074664,0.060362436001898,0.00035739160726],[1.844145291346251,1.92362948793732,1.876965166590274,15.0,14.256450140479679,285.0,283.0,283.0,0.015,-0.015,0.020465509832928,59453.367509223797242,0.028001773751485,0.063694943493561,0.066440248559413,0.074354985952036],[-5.139149993444232,-4.730240878728305,-4.926395040309098,14.229252056276488,15.499034960443989,283.0,283.0,283.0,-0.04,0.04,-0.054574692887807,158587.006150670349598,0.027328863011481,0.066562922802249,0.061266680063529,0.126978229271038],[5.298785340395367,5.495266350598129,5.395236040658437,0.68,0.61967602730395,283.0,283.0,283.0,0.04,-0.04,0.054574692887807,52862.335383556783199,0.021339054040014,0.617674860643332,0.640578483417188,0.006032397269605]]}",
+      "_object": "{\"columns\":[\"v_from_m_per_s\",\"v_to_m_per_s\",\"v_mean_m_per_s\",\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"reynolds\",\"lambda\",\"normfactor_from\",\"normfactor_to\",\"dp_friction_loss_bar\"],\"index\":[0,1,2,3,4,5,6,7],\"data\":[[1.888565348188628,1.939472905922034,1.922997009538926,16.0,15.740851513719541,280.0,283.0,283.0,0.185,-0.185,0.252407954606109,220133.196303981501842,0.038141420154309,0.05876501627051,0.060349067074664,0.025914848628046],[-0.334284647543691,-0.334022756771755,-0.334153651946892,15.740851513719541,15.753503030382674,283.0,283.0,283.0,-0.017936056765113,0.017936056765113,-0.024471369739357,28444.255322712815541,0.023314270267637,0.060349067074664,0.060301787416809,0.001265151654877],[0.351041448033495,0.351380790483075,0.351211039051267,15.753503030382674,15.737907436294169,283.0,283.0,283.0,0.012063943234887,-0.012063943234887,0.016459649926498,23914.808153110298008,0.024977450296477,0.060301787416809,0.060360079554022,0.001559559427753],[-1.239778453150403,-1.239552260031955,-1.239665346494951,15.737907436294169,15.740851513719541,283.0,283.0,283.0,-0.057936056765113,0.057936056765113,-0.079046062627165,98441.84762462238723,0.02208563192925,0.060360079554022,0.060349067074664,0.00029440774174],[0.217653370158649,0.217701586182672,0.217677475558087,15.740851513719541,15.737277597646935,283.0,283.0,283.0,0.015,-0.015,0.020465509832928,20989.456696412173187,0.023464091239875,0.060349067074664,0.060362436001898,0.00035739160726],[1.844145291346257,1.923629487937322,1.876965166590281,15.0,14.256450140479677,285.0,283.0,283.0,0.015,-0.015,0.020465509832928,59453.367509222429362,0.028001773751485,0.063694943493561,0.066440248559413,0.074354985952032],[-5.139149993444232,-4.730240878728306,-4.926395040309094,14.229252056276486,15.499034960443989,283.0,283.0,283.0,-0.04,0.04,-0.054574692887807,158587.006150670145871,0.027328863011481,0.066562922802249,0.061266680063529,0.126978229271038],[5.298785340395363,5.495266350598124,5.395236040658427,0.68,0.61967602730395,283.0,283.0,283.0,0.04,-0.04,0.054574692887807,52862.335383556739544,0.021339054040014,0.617674860643332,0.640578483417188,0.006032397269605]]}",
       "orient": "split",
       "dtype": {
         "v_from_m_per_s": "float64",
@@ -380,7 +440,7 @@
     "res_valve": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"v_from_m_per_s\",\"v_to_m_per_s\",\"v_mean_m_per_s\",\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"reynolds\",\"lambda\",\"normfactor_from\",\"normfactor_to\"],\"index\":[0,1],\"data\":[[2.149145652508202,2.149145652508202,35.611911777348318,15.740851513719541,15.740851513719541,283.0,283.0,283.0,0.205,-0.205,0.279695301050013,243827.521956655575195,0.038113167234998,0.060349067074664,0.060349067074664],[4.316577148938127,4.316577148938127,71.526824823947408,15.740851513719541,15.740851513719541,283.0,283.0,283.0,0.102936056765113,-0.102936056765113,0.140442592125948,244864.815826173900859,0.048821795998522,0.060349067074664,0.060349067074664]]}",
+      "_object": "{\"columns\":[\"v_from_m_per_s\",\"v_to_m_per_s\",\"v_mean_m_per_s\",\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"reynolds\",\"lambda\",\"normfactor_from\",\"normfactor_to\"],\"index\":[0,1],\"data\":[[2.149145652508201,2.149145652508201,35.61191177734829,15.740851513719541,15.740851513719541,283.0,283.0,283.0,0.205,-0.205,0.279695301050013,243827.521956655342365,0.038113167234998,0.060349067074664,0.060349067074664],[4.316577148938124,4.316577148938124,71.526824823947351,15.740851513719541,15.740851513719541,283.0,283.0,283.0,0.102936056765112,-0.102936056765112,0.140442592125948,244864.815826173609821,0.048821795998522,0.060349067074664,0.060349067074664]]}",
       "orient": "split",
       "dtype": {
         "v_from_m_per_s": "float64",
@@ -449,7 +509,7 @@
     "res_compressor": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"deltap_bar\",\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"normfactor_from\",\"normfactor_to\",\"compr_power_mw\"],\"index\":[0],\"data\":[[1.524250974106186,14.229252056276488,15.753503030382673,283.0,283.0,283.0,0.03,-0.03,0.040931019665855,0.066562922802249,0.060301787416809,0.000395959099042]]}",
+      "_object": "{\"columns\":[\"deltap_bar\",\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"normfactor_from\",\"normfactor_to\",\"compr_power_mw\"],\"index\":[0],\"data\":[[1.524250974106188,14.229252056276486,15.753503030382674,283.0,283.0,283.0,0.03,-0.03,0.040931019665856,0.066562922802249,0.060301787416809,0.000395959099042]]}",
       "orient": "split",
       "dtype": {
         "deltap_bar": "float64",
@@ -471,7 +531,7 @@
     "res_flow_control": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"normfactor_from\",\"normfactor_to\"],\"index\":[0],\"data\":[[15.737277597646935,14.256450140479679,283.0,283.0,283.0,0.005,-0.005,0.006821836610976,0.060362436001898,0.066440248559413]]}",
+      "_object": "{\"columns\":[\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"normfactor_from\",\"normfactor_to\"],\"index\":[0],\"data\":[[15.737277597646935,14.256450140479677,283.0,283.0,283.0,0.005,-0.005,0.006821836610976,0.060362436001898,0.066440248559413]]}",
       "orient": "split",
       "dtype": {
         "p_from_bar": "float64",
@@ -491,7 +551,7 @@
     "res_press_control": {
       "_module": "pandas.core.frame",
       "_class": "DataFrame",
-      "_object": "{\"columns\":[\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"normfactor_from\",\"normfactor_to\",\"deltap_bar\"],\"index\":[0],\"data\":[[15.740851513719541,0.68,283.0,283.0,283.0,0.04,-0.04,0.054574692887808,0.060349067074664,0.617674860643332,-15.060851513719541]]}",
+      "_object": "{\"columns\":[\"p_from_bar\",\"p_to_bar\",\"t_from_k\",\"t_to_k\",\"t_outlet_k\",\"mdot_from_kg_per_s\",\"mdot_to_kg_per_s\",\"vdot_norm_m3_per_s\",\"normfactor_from\",\"normfactor_to\",\"deltap_bar\"],\"index\":[0],\"data\":[[15.740851513719541,0.68,283.0,283.0,283.0,0.04,-0.04,0.054574692887807,0.060349067074664,0.617674860643332,-15.060851513719541]]}",
       "orient": "split",
       "dtype": {
         "p_from_bar": "float64",
