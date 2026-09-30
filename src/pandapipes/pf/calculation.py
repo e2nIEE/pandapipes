@@ -224,6 +224,8 @@ class HydraulicCalculation(Calculation):
         return solve_hydraulics(net)
 
     def rerun(self, net):
+        if not get_net_option(net, "rerun"):
+            return
         rerun = False
         options = net["_options"]
         branch_pit = net["_active_pit"]["branch"]
@@ -271,6 +273,8 @@ class ThermalCalculation(Calculation):
         return solve_temperature(net)
 
     def rerun(self, net):
+        if not get_net_option(net, "rerun"):
+            return
         rerun = False
         options = net["_options"]
         branch_pit = net["_active_pit"]["branch"]
