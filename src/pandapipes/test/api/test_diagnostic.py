@@ -801,7 +801,7 @@ def test_valve_configuration():
     net = simple_gas_grid()
 
     net.valve.opened = False
-    net.sink.mdot_kg_per_s *= 1e8
+    net.sink.mdot_kg_per_s *= 1e9
 
     diag_function = ValveConfigurationCheck()
 
