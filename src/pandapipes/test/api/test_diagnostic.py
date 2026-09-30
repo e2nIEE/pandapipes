@@ -1278,27 +1278,41 @@ def test_diagnostic_report_before_execution():
         diag.report()
 
 
-def test_diagnostic_without_return_value():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_diagnostic_without_return_value(use_numba):
     net = simple_gas_grid()
     diag = Diagnostic()
+    original_pipeflow = pp.pipeflow
 
-    result = diag.diagnose_network(
-        net,
-        report=False,
-        return_result_dict=False,
-    )
+    def pipeflow_with_numba(net_arg, **kwargs):
+        kwargs["use_numba"] = use_numba
+        return original_pipeflow(net_arg, **kwargs)
+
+    with patch("pandapipes.pipeflow", side_effect=pipeflow_with_numba):
+        result = diag.diagnose_network(
+            net,
+            report=False,
+            return_result_dict=False,
+        )
 
     assert result is None
 
 
-def test_diagnostic_no_issues():
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_diagnostic_no_issues(use_numba):
     net = simple_gas_grid()
     diag = Diagnostic()
+    original_pipeflow = pp.pipeflow
 
-    result = diag.diagnose_network(
-        net,
-        report=False,
-    )
+    def pipeflow_with_numba(net_arg, **kwargs):
+        kwargs["use_numba"] = use_numba
+        return original_pipeflow(net_arg, **kwargs)
+
+    with patch("pandapipes.pipeflow", side_effect=pipeflow_with_numba):
+        result = diag.diagnose_network(
+            net,
+            report=False,
+        )
 
     assert result == {}
 
