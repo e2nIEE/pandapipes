@@ -38,7 +38,8 @@ default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
                    "ambient_temperature": 293.15, "check_connectivity": True,
                    "max_iter_colebrook": 10, "use_numba": True,
                    "quit_on_inconsistency_connectivity": False, "calc_compression_power": True,
-                   "transient": False, "dt": None, "tolerance_colebrook": 1e-4,}
+                   "transient": False, "dt": None, "tolerance_colebrook": 1e-4,
+                   "rerun": True}
 
 
 def get_net_option(net, option_name):

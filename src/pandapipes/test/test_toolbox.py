@@ -229,6 +229,113 @@ def test_reindex_pipes():
     assert np.all(net["valve"]["element"].to_numpy() ==  net_orig["valve"]["element"].to_numpy() + to_add)
 
 
+@pytest.fixture
+def net_with_both_valve_types(base_net_is_wo_pumps):
+    """
+    Base net which contains a valve between two junctions (et = "ju") as well as a valve which is
+    connected to a pipe (et = "pi"). The "element" column of the valve table therefore contains
+    junction indices in one row and pipe indices in the other.
+    """
+    net = copy.deepcopy(base_net_is_wo_pumps)
+    pipe = net.pipe.index[net.pipe.name == "Pipe 1"][0]
+    pandapipes.create_valve(net, junction=net.pipe.at[pipe, "to_junction"], element=pipe, et="pi",
+                            inner_diameter_mm=50, name="Valve at pipe")
+    return net
+
+
+def get_valve_indices(net):
+    return net.valve.index[net.valve.et == "ju"][0], net.valve.index[net.valve.et == "pi"][0]
+
+
+def test_reindex_elements_junctions(net_with_both_valve_types):
+    net = net_with_both_valve_types
+    net_orig = copy.deepcopy(net)
+    ju_valve, pi_valve = get_valve_indices(net)
+
+    to_add = 5
+    lookup = dict(zip(net.junction.index.values, net.junction.index.values + to_add))
+    pandapipes.reindex_elements(net, "junction", lookup)
+
+    assert np.all(net.junction.index.values == net_orig.junction.index.values + to_add)
+    assert np.all(net.junction_geodata.index.values
+                  == net_orig.junction_geodata.index.values + to_add)
+
+    for br_el in ["pipe", "heat_exchanger", "pump", "press_control"]:
+        for junc_typ in ["from_junction", "to_junction"]:
+            assert np.all(net[br_el][junc_typ].values == net_orig[br_el][junc_typ].values + to_add)
+    for n_el in ["ext_grid", "sink", "source"]:
+        assert np.all(net[n_el].junction.values == net_orig[n_el].junction.values + to_add)
+    assert np.all(net.press_control.controlled_junction.values
+                  == net_orig.press_control.controlled_junction.values + to_add)
+    assert np.all(net.valve.junction.values == net_orig.valve.junction.values + to_add)
+
+    # only the "element" of the junction valve is a junction and may be reindexed, the "element"
+    # of the pipe valve is a pipe index and must stay untouched
+    assert net.valve.at[ju_valve, "element"] == net_orig.valve.at[ju_valve, "element"] + to_add
+    assert net.valve.at[pi_valve, "element"] == net_orig.valve.at[pi_valve, "element"]
+    assert net.valve.at[pi_valve, "element"] in net.pipe.index
+
+
+def test_reindex_elements_pipes(net_with_both_valve_types):
+    net = net_with_both_valve_types
+    net["res_pipe"] = pd.DataFrame({"v_mean_m_per_s": np.arange(len(net.pipe), dtype=np.float64)},
+                                   index=net.pipe.index)
+    net_orig = copy.deepcopy(net)
+    ju_valve, pi_valve = get_valve_indices(net)
+
+    to_add = 3
+    lookup = dict(zip(net.pipe.index.values, net.pipe.index.values + to_add))
+    pandapipes.reindex_elements(net, "pipe", lookup)
+
+    assert np.all(net.pipe.index.values == net_orig.pipe.index.values + to_add)
+    assert np.all(net.pipe_geodata.index.values == net_orig.pipe_geodata.index.values + to_add)
+    assert np.all(net.res_pipe.index.values == net_orig.res_pipe.index.values + to_add)
+    assert np.all(net.res_pipe.v_mean_m_per_s.values == net_orig.res_pipe.v_mean_m_per_s.values)
+
+    # only the "element" of the pipe valve is a pipe and may be reindexed
+    assert net.valve.at[pi_valve, "element"] == net_orig.valve.at[pi_valve, "element"] + to_add
+    assert net.valve.at[ju_valve, "element"] == net_orig.valve.at[ju_valve, "element"]
+    assert net.valve.at[ju_valve, "element"] in net.junction.index
+    # junction references are not affected by a pipe reindex
+    assert np.all(net.valve.junction.values == net_orig.valve.junction.values)
+    for junc_typ in ["from_junction", "to_junction"]:
+        assert np.all(net.pipe[junc_typ].values == net_orig.pipe[junc_typ].values)
+
+
+def test_reindex_elements_partial_lookup(net_with_both_valve_types):
+    net = net_with_both_valve_types
+    net_orig = copy.deepcopy(net)
+    ju_valve, pi_valve = get_valve_indices(net)
+
+    valve_pipe = net.valve.at[pi_valve, "element"]
+    new_index = net.pipe.index.max() + 10
+    lookup = pandapipes.reindex_elements(net, "pipe", {valve_pipe: new_index})
+
+    # pipes which are not part of the lookup keep their index
+    assert lookup[valve_pipe] == new_index
+    assert all(lookup[pipe] == pipe for pipe in net_orig.pipe.index if pipe != valve_pipe)
+    assert set(net.pipe.index) == (set(net_orig.pipe.index) - {valve_pipe}) | {new_index}
+
+    assert net.valve.at[pi_valve, "element"] == new_index
+    assert net.valve.at[ju_valve, "element"] == net_orig.valve.at[ju_valve, "element"]
+
+
+def test_reindex_elements_unknown_lookup_key(net_with_both_valve_types):
+    net = net_with_both_valve_types
+    net_orig = copy.deepcopy(net)
+    ju_valve, pi_valve = get_valve_indices(net)
+
+    # indices which are unknown to the net are ignored (an error is logged), all existing pipes
+    # are added to the lookup as identity entries
+    unknown_index = net.pipe.index.max() + 100
+    lookup = pandapipes.reindex_elements(net, "pipe", {unknown_index: unknown_index + 1})
+
+    assert all(lookup[pipe] == pipe for pipe in net_orig.pipe.index)
+    assert np.all(net.pipe.index.values == net_orig.pipe.index.values)
+    assert net.valve.at[pi_valve, "element"] == net_orig.valve.at[pi_valve, "element"]
+    assert net.valve.at[ju_valve, "element"] == net_orig.valve.at[ju_valve, "element"]
+
+
 def test_fuse_junctions(create_net_changed_indices):
     net = copy.deepcopy(create_net_changed_indices)
     junction_index, previous_junctions = get_junction_indices(net)

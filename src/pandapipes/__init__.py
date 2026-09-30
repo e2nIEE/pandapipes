@@ -33,3 +33,4 @@ from pandapipes.toolbox import *
 from pandapipes.pf.pipeflow_setup import *
 from pandapipes.std_types import *
 import pandapipes.plotting
+from pandapipes.diagnostic.diagnostic_helper import diagnostic

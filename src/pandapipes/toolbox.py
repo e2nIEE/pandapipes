@@ -250,7 +250,11 @@ def reindex_elements(net, element, lookup):
     if element == "junction":
         for element, value in element_junction_tuples(net=net):
             if element in net.keys():
-                net[element][value] = get_indices(net[element][value], lookup)
+                if (element == "valve") and (value == "element"):
+                    net[element].loc[net[element]["et"] == "ju", value] = (
+                        get_indices(net[element].loc[net[element]["et"] == "ju", value], lookup))
+                else:
+                    net[element][value] = get_indices(net[element][value], lookup)
     elif element == "pipe":
         if "valve" in net:
             pipe_valves = net["valve"].loc[net["valve"]["et"] == "pi", "element"]
