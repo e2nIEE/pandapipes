@@ -4,12 +4,11 @@
 
 import json
 import os
-import sys
 
 import pandapipes
 import pytest
 from pandas.testing import assert_frame_equal
-from pandapipes.io.io_utils import DeserializationNotAllowed, _import_module_checked
+from pandapipes.io.io_utils import DeserializationNotAllowed
 from pandapipes.test.multinet.test_control_multinet import get_gas_example, get_power_example_simple
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
 from pandapipes.multinet import MultiNet
@@ -127,6 +126,30 @@ def test_deserialization_does_not_call_unknown_classes():
 
     with pytest.raises(DeserializationNotAllowed):
         pandapipes.from_json_string(manipulated)
+
+
+def test_deserialization_of_foreign_class_in_component_list():
+    """
+    Checks that a class which is not a component is not loaded, even if it stands in component_list.
+
+    The component list is the one place where a network legitimately contains classes, so it is
+    also the obvious place to smuggle one in. Everything that is not a component has to go through
+    the same checks as any other class of a file.
+
+    :param manipulated_component: entry that replaces a component in the component list
+    :type manipulated_component: dict
+    :return:
+    :rtype:
+    """
+    net_dict = json.loads(pandapipes.to_json(load_net()))
+    manipulated_component = \
+        {"_module": "builtins",
+         "_class": "eval",
+         "_object": "__import__('os').system('echo hacked')"}
+    net_dict["_object"]["component_list"][0] = manipulated_component
+
+    with pytest.raises(DeserializationNotAllowed):
+        pandapipes.from_json_string(json.dumps(net_dict))
 
 
 def test_json(tmp_path):
