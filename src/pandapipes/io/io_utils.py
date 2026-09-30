@@ -15,6 +15,7 @@ from pandapower.io_utils import pp_hook
 from pandapower.io_utils import with_signature, to_serializable, JSONSerializableClass, \
     isinstance_partial as ppow_isinstance, FromSerializableRegistry, PPJSONDecoder
 
+from pandapipes.component_models.abstract_models.base_component import ComponentMeta
 from pandapipes.component_models.abstract_models.branch_models import Component
 from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
@@ -164,6 +165,19 @@ def json_net(obj):
     net_dict = {k: item for k, item in obj.items() if not k.startswith("_")}
     d = with_signature(obj, net_dict)
     return d
+
+
+@to_serializable.register(ComponentMeta)
+def json_component(class_):
+    """
+    Serialize a component class (e.g. an entry of net.component_list).
+
+    Components are never instantiated - they only carry class methods - so the state written to the
+    file is always empty. The module and class name are passed explicitly, because with_signature
+    would otherwise derive them from the type of the given object, which is the metaclass for a
+    class.
+    """
+    return with_signature(class_, "{}", obj_module=class_.__module__, obj_class=class_.__name__)
 
 
 @to_serializable.register(MultiNet)
