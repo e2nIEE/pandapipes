@@ -189,7 +189,9 @@ def hydraulics(net):
     tol_m, tol_p, tol_msl = get_net_options(net, 'tol_m', 'tol_p', 'tol_m')
     newton_raphson(net, solve_hydraulics, 'hydraulics', solver_vars, [tol_m, tol_p, tol_msl],
                    ['branch', 'node', 'node'], 'max_iter_hyd')
-    if net.converged:
+
+    rerun = get_net_option(net, "rerun")
+    if net.converged and rerun:
         set_user_pf_options(net, hyd_flag=True)
         rerun_hydraulics(net)
 
@@ -216,7 +218,8 @@ def heat_transfer(net):
     newton_raphson(net, solve_temperature, 'heat', solver_vars, [tol_temp, tol_temp], ['branch', 'node'],
                    'max_iter_therm')
 
-    if net.converged:
+    rerun = get_net_option(net, "rerun")
+    if net.converged and rerun:
         rerun_heat_transfer(net)
 
     if not net.converged:

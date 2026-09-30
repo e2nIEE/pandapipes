@@ -60,6 +60,12 @@ jobs:
             'pandapipes/networks/network_files/**'
             '**.yml'
             '**.rst'
+      - name: Test without numba
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          uv pip uninstall numba
+          uv run --no-sync python -c "import importlib.util; assert importlib.util.find_spec('numba') is None, 'numba is still installed - this run would silently duplicate the numba run'"
+          uv run --no-sync pytest -n auto
 
   relying:
     runs-on: ${{ matrix.os }}

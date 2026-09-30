@@ -1,7 +1,14 @@
 Change Log
 =============
-[upcoming release] - 2026-..-..
+[0.15.0] - 2026-09-29
 -------------------------------
+- [FIXED] `create_nxgraph` no longer adds a "pi" valve's referenced pipe index as a bogus junction node
+- [FIXED] unsafe json deserialisation solved
+- [FIXED] documentation clean-up due to api changes
+- [FIXED] considering "pi" valve correctly when calling reindex_elements
+- [ADDED] additional tutorials for diagnostic and transient simulation
+- [ADDED] prevent rerun if required
+
 
 [0.14.0] - 2026-05-26
 -------------------------------
