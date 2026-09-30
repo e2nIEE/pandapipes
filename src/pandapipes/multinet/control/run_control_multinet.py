@@ -22,9 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def _evaluate_multinet(multinet, levelorder, ctrl_variables, **kwargs):
-    """
-    Within a control loop after all controllers applied their their action "_evaluate_multinet"
-    checks if all nets affectd in one level did converge or not
+    """Within a control loop after all controllers applied their their action "_evaluate_multinet" checks if all nets affectd in one level did converge or not.
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several \
         pandapipes/pandapower nets
@@ -55,9 +53,7 @@ def _evaluate_multinet(multinet, levelorder, ctrl_variables, **kwargs):
 
 
 def _relevant_nets(multinet, levelorder):
-    """
-    This function determines the relevant nets in each level, i.e. only the nets affected in each
-    level are investigated and checked.
+    """Determine the relevant nets in each level, i.e. only the nets affected in each level are investigated and checked.
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several \
         pandapipes/pandapower nets
@@ -87,8 +83,7 @@ def _relevant_nets(multinet, levelorder):
 
 
 def net_initialization_multinet(multinet, ctrl_variables, **kwargs):
-    """
-    If one controller affecting a net requires an initial_run, a loadflow/pipeflow is conducted.
+    """If one controller affecting a net requires an initial_run, a loadflow/pipeflow is conducted.
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several \
         pandapipes/pandapower nets
@@ -115,8 +110,7 @@ def net_initialization_multinet(multinet, ctrl_variables, **kwargs):
 
 
 def run_control(multinet, ctrl_variables=None, max_iter=30, **kwargs):
-    """
-    Main function to call a multnet with controllers.
+    """Main function to call a multnet with controllers.
 
     Function is running control loops for the controllers specified in net.controller
     Runs controller until each one converged or max_iter is hit.
@@ -170,8 +164,7 @@ def run_control(multinet, ctrl_variables=None, max_iter=30, **kwargs):
 
 
 def get_controller_order_multinet(multinet):
-    """
-    Defining the controller order per level.
+    """Defining the controller order per level.
 
     Takes the order and level columns from net.controller.
     If levels are specified, the levels and orders are executed in ascending order.
@@ -183,7 +176,6 @@ def get_controller_order_multinet(multinet):
         each level
     :rtype: list
     """
-
     net_list = []
     controller_list = []
 
@@ -238,8 +230,7 @@ def prepare_ctrl_variables_for_net(multinet, net_name, ctrl_variables, **kwargs)
 
 
 def prepare_run_ctrl(multinet, ctrl_variables=None, **kwargs):
-    """
-    Prepares run control functions.
+    """Prepares run control functions.
 
     Internal variables needed:
         - level (list): gives a list of levels to be investigated
@@ -263,7 +254,6 @@ def prepare_run_ctrl(multinet, ctrl_variables=None, **kwargs):
     :return: adapted ctrl_variables for all nets with all required boundary information
     :rtype: dict
     """
-
     # sort controller_order by order if not already done
     if ctrl_variables is None:
         ctrl_variables = {'nets': dict()}

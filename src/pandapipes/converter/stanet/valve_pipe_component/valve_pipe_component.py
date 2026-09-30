@@ -7,7 +7,6 @@ from numpy import dtype
 
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.idx_branch import LENGTH, K, D, AREA, LOSS_COEFFICIENT as LC
 from pandapipes.properties.fluids import get_fluid
 
 
@@ -33,28 +32,6 @@ class ValvePipe(Pipe):
         return Junction
 
     @classmethod
-    def create_pit_branch_entries_table_specific(cls, net, comp_pit, internal_pipe_number):
-        """
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param comp_pit:
-        :type comp_pit:
-        :param internal_pipe_number:
-        :type internal_pipe_number:
-        :return:
-        :rtype:
-        """
-        comp_pit[:, LENGTH] = np.repeat(net[cls.table_name].length_km.values * 1000 /
-                                        internal_pipe_number, internal_pipe_number)
-        comp_pit[:, K] = np.repeat(net[cls.table_name].k_mm.values / 1000,
-                                   internal_pipe_number)
-        comp_pit[:, D] = np.repeat(net[cls.table_name].inner_diameter_mm.values / 1000., internal_pipe_number)
-        comp_pit[:, AREA] = comp_pit[:, D] ** 2 * np.pi / 4
-        comp_pit[:, LC] = np.repeat(net[cls.table_name].loss_coefficient.values,
-                                    internal_pipe_number)
-
-    @classmethod
     def get_component_input(cls):
         return [("name", dtype(object)),
                 ("from_junction", "u4"),
@@ -76,10 +53,10 @@ class ValvePipe(Pipe):
 
     @classmethod
     def geodata(cls):
-        """
+        """Return the geodata columns for this component.
 
-        :return:
-        :rtype:
+        :return: column definitions
+        :rtype: list
         """
         return [("coords", dtype(object))]
 

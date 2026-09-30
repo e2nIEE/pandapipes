@@ -46,10 +46,11 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                    weighting_heat_consumers=None,
                    respect_status_junctions=True, nogojunctions=None, notravjunctions=None, multi=True,
                    respect_status_branches_all=None, **kwargs):
-    """
-    Converts a pandapipes network into a NetworkX graph, which is a simplified representation of a
-    network's topology, reduced to nodes and edges. Junctions are being represented by nodes, edges
-    represent physical connections between junctions (typically pipes or pumps).
+    """Converts a pandapipes network into a NetworkX graph.
+
+    This is a simplified representation of a network's topology, reduced to nodes and edges.
+    Junctions are being represented by nodes, edges represent physical connections between
+    junctions (typically pipes or pumps).
 
     :param net: The pandapipes network to be converted
     :type net: pandapipesNet

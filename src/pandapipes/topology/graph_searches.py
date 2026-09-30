@@ -10,30 +10,30 @@ from pandapipes.topology.topology_toolbox import get_all_branch_component_table_
 
 def calc_distance_to_junction(net, junction, notravjunctions=None, nogojunctions=None,
                               weight="weight"):
-    """
-    Calculates the shortest distance between a source junction and all junctions connected to it.
+    """Calculates the shortest distance between a source junction and all junctions connected to it.
 
-     INPUT:
+    INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
 
         **junction** (integer) - Index of the source junction.
 
 
-     OPTIONAL:
+    OPTIONAL:
         **nogojunctions** (integer/list, None) - nogojunctions are not being considered
 
         **notravjunctions** (integer/list, None) - lines connected to these junctions are not being
                                               considered
         **weight** (string, None) – Edge data key corresponding to the edge weight
 
-     OUTPUT:
+    OUTPUT:
         **dist** - Returns a pandas series with containing all distances to the source junction
                    in km. If weight=None dist is the topological distance (int).
 
-     EXAMPLE:
-         import pandapipes.topology as top
+    Example
+    -------
+        import pandapipes.topology as top
 
-         dist = top.calc_distance_to_junction(net, 5)
+        dist = top.calc_distance_to_junction(net, 5)
 
     """
     g = create_nxgraph(net, nogojunctions=nogojunctions,
@@ -44,31 +44,30 @@ def calc_distance_to_junction(net, junction, notravjunctions=None, nogojunctions
 
 def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None, nogojunctions=None,
                                        weight="weight"):
-    """
-    Calculates the shortest distance between multiple source junctions and all junctions connected \
-    to it.
+    """Calculates the shortest distance between multiple source junctions and all junctions connected to it.
 
-     INPUT:
+    INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
 
         **junction** (integer) - Index of the source junction.
 
 
-     OPTIONAL:
+    OPTIONAL:
         **nogojunctions** (integer/list, None) - nogojunctions are not being considered
 
         **notravjunctions** (integer/list, None) - lines connected to these junctions are not being
                                               considered
         **weight** (string, None) – Edge data key corresponding to the edge weight
 
-     OUTPUT:
+    OUTPUT:
         **dist** - Returns a pandas series with containing all distances to the source junction
                    in km. If weight=None dist is the topological distance (int).
 
-     EXAMPLE:
-         import pandapipes.topology as top
+    Example
+    -------
+        import pandapipes.topology as top
 
-         dist = top.calc_distance_to_junction(net, 5)
+        dist = top.calc_distance_to_junction(net, 5)
 
     """
     mg = create_nxgraph(net, notravjunctions=notravjunctions,
@@ -80,16 +79,15 @@ def calc_minimum_distance_to_junctions(net, junctions, notravjunctions=None, nog
 
 
 def calc_distance_to_junctions(net, junctions, respect_status_valves=True, notravjunctions=None, nogojunctions=None, weight="weight"):
-    """
-    Calculates the shortest distance between every source junction and all junctions connected to it.
+    r"""Calculates the shortest distance between every source junction and all junctions connected to it.
 
-     INPUT:
+    INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
 
         **junctions** (integer) - Index of the source junctions.
 
 
-     OPTIONAL:
+    OPTIONAL:
         **respect_status_valve** (boolean, True) - Flag whether the "opened" column shall be considered and out\
         of service valves neglected.
 
@@ -99,14 +97,15 @@ def calc_distance_to_junctions(net, junctions, respect_status_valves=True, notra
                                               considered
         **weight** (string, None) – Edge data key corresponding to the edge weight
 
-     OUTPUT:
+    OUTPUT:
         **dist** - Returns a pandas series with containing all distances to the source junction
                    in km. If weight=None dist is the topological distance (int).
 
-     EXAMPLE:
-         import pandapipes.topology as top
+    Example
+    -------
+        import pandapipes.topology as top
 
-         dist = top.calc_distance_to_junctions(net, [5, 6])
+        dist = top.calc_distance_to_junctions(net, [5, 6])
 
     """
     g = create_nxgraph(net, respect_status_valves=respect_status_valves, nogojunctions=nogojunctions,
@@ -116,13 +115,12 @@ def calc_distance_to_junctions(net, junctions, respect_status_valves=True, notra
 
 
 def unsupplied_junctions(net, mg=None, slacks=None, respect_valves=True):
-    """
-     Finds junctions, that are not connected to an external grid.
+    """Finds junctions, that are not connected to an external grid.
 
-     INPUT:
+    INPUT:
         **net** (pandapipesNet) - variable that contains a pandapipes network
 
-     OPTIONAL:
+    OPTIONAL:
         **mg** (NetworkX graph) - NetworkX Graph or MultiGraph that represents a pandapipes network.
 
         **in_service_only** (boolean, False) - Defines whether only in service junctions should be
@@ -134,15 +132,15 @@ def unsupplied_junctions(net, mg=None, slacks=None, respect_valves=True):
         **respect_valves** (boolean, True) - Fixes how to consider valves - only in case of no
             given mg.
 
-     OUTPUT:
+    OUTPUT:
         **uj** (set) - unsupplied junctions
 
-     EXAMPLE:
-         import pandapipes.topology as top
+    Example
+    -------
+        import pandapipes.topology as top
 
-         top.unsupplied_junctions(net)
+        top.unsupplied_junctions(net)
     """
-
     mg = mg or create_nxgraph(net, respect_status_valves=respect_valves)
     if slacks is None:
         slacks = set(net.ext_grid[net.ext_grid.in_service].junction.values)
@@ -154,10 +152,9 @@ def unsupplied_junctions(net, mg=None, slacks=None, respect_valves=True):
 
 
 def elements_on_path(mg, path, element="pipe", check_element_validity=True):
-    """
-     Finds all elements that connect a given path of junctions.
+    """Finds all elements that connect a given path of junctions.
 
-     INPUT:
+    INPUT:
         **mg** (NetworkX graph) - NetworkX Graph or MultiGraph that represents a pandapipes network.
 
         **path** (list) - List of connected junctions.
@@ -166,16 +163,17 @@ def elements_on_path(mg, path, element="pipe", check_element_validity=True):
 
         **check_element_validity** (boolean, True) - Check if element is a valid pandapipes table_name
 
-     OUTPUT:
+    OUTPUT:
         **elements** (list) - Returns a list of all elements on the path.
 
-     EXAMPLE:
-         import topology as top
+    Example
+    -------
+        import topology as top
 
-         mg = top.create_nxgraph(net)
-         elements = top.elements_on_path(mg, [4, 5, 6])
+        mg = top.create_nxgraph(net)
+        elements = top.elements_on_path(mg, [4, 5, 6])
 
-     """
+    """
     if check_element_validity:
         table_names = get_all_branch_component_table_names()
         if element not in table_names:

@@ -16,17 +16,16 @@ from pandapower.plotting.collections import add_collections_to_axes, add_cmap_to
 
 
 class GC(GraphicsContextBase):
-    """
-
-    """
+    """Graphics context with a rounded line cap style."""
 
     def __init__(self):
+        """Initialize the graphics context and set the cap style to round."""
         super().__init__()
         self._capstyle = 'round'
 
 
 def custom_new_gc(self):
-    """
+    """Return a new custom graphics context.
 
     :param self:
     :type self:

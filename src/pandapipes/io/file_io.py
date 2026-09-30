@@ -20,8 +20,7 @@ from pandapower.convert_format import convert_format as convert_format_pandapowe
 
 
 def to_pickle(net, filename):
-    """
-    Saves a pandapipes Network with the pickle library.
+    """Saves a pandapipes Network with the pickle library.
 
     :param net: The pandapipes Network to save.
     :type net:  pandapipesNet
@@ -52,10 +51,11 @@ def to_json(
     indent: Union[int, str, None] = 2,
     sort_keys: bool = False,
 ):
-    """
-    Saves a pandapipes Network in JSON format. The index columns of all pandas DataFrames will be
-    saved in ascending order. net elements which name begins with "_" (internal elements) will not
-    be saved. Std types will also not be saved.
+    """Saves a pandapipes Network in JSON format.
+
+    The index columns of all pandas DataFrames will be saved in ascending order. net elements
+    which name begins with "_" (internal elements) will not be saved. Std types will also not be
+    saved.
 
     :param net: The pandapipes Network to save.
     :type net: pandapipesNet
@@ -89,8 +89,7 @@ def to_json(
 
 
 def from_pickle(filename):
-    """
-    Load a pandapipes format Network from pickle file.
+    """Load a pandapipes format Network from pickle file.
 
     :param filename: The absolute or relative path to the input file or file-like object
     :type filename: str, file-object
@@ -109,8 +108,8 @@ def from_pickle(filename):
 
 
 def from_json(filename, convert=True, encryption_key=None, ignore_unknown_objects=False):
-    """
-    Load a pandapipes network from a JSON file or string.
+    """Load a pandapipes network from a JSON file or string.
+
     The index of the returned network is not necessarily in the same order as the original network.
     Index columns of all pandas DataFrames are sorted in ascending order.
 
@@ -143,8 +142,8 @@ def from_json(filename, convert=True, encryption_key=None, ignore_unknown_object
 
 
 def from_json_string(json_string, convert=False, encryption_key=None, ignore_unknown_objects=False):
-    """
-    Load a pandapipes network from a JSON string.
+    """Load a pandapipes network from a JSON string.
+
     The index of the returned network is not necessarily in the same order as the original network.
     Index columns of all pandas DataFrames are sorted in ascending order.
 

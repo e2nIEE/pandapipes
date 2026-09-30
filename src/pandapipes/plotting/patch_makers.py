@@ -104,8 +104,7 @@ def heat_exchanger_patches(coords, size, **kwargs):
 
 
 def source_patches(node_coords, size, angles, **kwargs):
-    """
-    Creation function of patches for sources.
+    """Creation function of patches for sources.
 
     :param node_coords: coordinates of the nodes that the sources belong to.
     :type node_coords: iterable
@@ -220,8 +219,8 @@ def pressure_control_patches(coords, size, **kwargs):
     return lines, polys, {}
 
 def heat_consumer_patches(coords, size, **kwargs):
-    """
-    Creates patches for matplotlib plotting of heat consumer component
+    """Creates patches for matplotlib plotting of heat consumer component.
+
     :param coords:
     :type coords:
     :param size:
@@ -279,8 +278,8 @@ def heat_consumer_patches(coords, size, **kwargs):
 
 
 def create_triangles(center, size, direc, normal, edgecolor):
-    """
-    Creates a pathpatch for triangles
+    """Creates a pathpatch for triangles.
+
     :param center:
     :type center:
     :param size:
@@ -294,7 +293,6 @@ def create_triangles(center, size, direc, normal, edgecolor):
     :return:
     :rtype:
     """
-
     radius = size
 
     # Create the first triangle

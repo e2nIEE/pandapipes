@@ -1,0 +1,22 @@
+pydocstyle:
+  disable:
+    - D213
+
+pylint:
+  options:
+    # This codebase assembles Jacobian/PIT entries in single functions that naturally handle many
+    # physical quantities (pressures, densities, derivatives, ...) as separate local variables and
+    # parameters - pylint's stock thresholds (15 locals / 5 args) are far below what that pattern
+    # needs. Bundling them into dicts/dataclasses purely to satisfy this metric would obscure the
+    # actual math rather than clarify it, so the limits are raised to comfortably cover the
+    # largest legitimate cases already in the codebase (39 locals, 13 positional args) instead.
+    max-locals: 45
+    max-args: 15
+    max-positional-arguments: 15
+  disable:
+    # `if not len(x):` shows up throughout as `x` is almost always a numpy array or pandas
+    # DataFrame, not a plain sequence - `if not x:` raises `ValueError: The truth value of an
+    # array/DataFrame with more than one element is ambiguous` for anything but a 0/1-length
+    # array. Pylint's suggested rewrite is only valid for plain Python sequences, so applying it
+    # here would introduce a real crash rather than fix a style nit.
+    - use-implicit-booleaness-not-len

@@ -112,8 +112,7 @@ def _set_multiple_entries(net, table, index, preserve_dtypes=True, defaults_to_f
 
 
 def create_empty_network(name="", fluid=None, add_stdtypes=True, sector=Sector.ALL):
-    """
-    This function initializes the pandapipes datastructure.
+    """Initializes the pandapipes datastructure.
 
     :param name: Name for the network
     :type name: string, default None
@@ -158,9 +157,9 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True, sector=Sector.A
 
 def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in_service=True, type="junction",
                     geodata=None, **kwargs):
-    """
-    Adds one junction in table net["junction"]. Junctions are the nodes of the network that
-    all other elements connect to.
+    """Adds one junction in table net["junction"].
+
+    Junctions are the nodes of the network that all other elements connect to.
 
     :param net: The pandapipes network in which the element is created
     :type net: pandapipesNet
@@ -210,8 +209,7 @@ def create_junction(net, pn_bar, tfluid_k, height_m=0, name=None, index=None, in
 
 def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='sink',
                 **kwargs):
-    """
-    Adds one sink in table net["sink"].
+    """Adds one sink in table net["sink"].
 
     :param net: The net for which this sink should be created
     :type net: pandapipesNet
@@ -253,8 +251,7 @@ def create_sink(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None,
 
 def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='source',
                   **kwargs):
-    """
-    Adds one source in table net["source"].
+    """Adds one source in table net["source"].
 
     :param net: The net for which this source should be created
     :type net: pandapipesNet
@@ -297,8 +294,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
 
 def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_stored_kg=0., max_m_stored_kg=np.inf,
                         scaling=1., name=None, index=None, in_service=True, type="mass_storage", **kwargs):
-    """
-    Adds one storage entry in table net["mass_storage"]. Not suitable for thermal storage tanks.
+    """Adds one storage entry in table net["mass_storage"]. Not suitable for thermal storage tanks.
 
     :param net: The net for which this storage unit should be created
     :type net: pandapipesNet
@@ -360,11 +356,11 @@ def create_mass_storage(net, junction, mdot_kg_per_s, init_m_stored_kg=0, min_m_
 
 
 def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None, in_service=True, index=None, **kwargs):
-    """
-    Creates an external grid and adds it to the table net["ext_grid"]. It transfers the junction
-    that it is connected to into a node with fixed value for either pressure, temperature or both
-    (depending on the type). Usually external grids represent connections to other grids feeding
-    the given pandapipesNet.
+    """Creates an external grid and adds it to the table net["ext_grid"].
+
+    It transfers the junction that it is connected to into a node with fixed value for either
+    pressure, temperature or both (depending on the type). Usually external grids represent
+    connections to other grids feeding the given pandapipesNet.
 
     :param net: The net that the external grid should be connected to
     :type net: pandapipesNet
@@ -417,8 +413,7 @@ def create_ext_grid(net, junction, p_bar=None, t_k=None, type="auto", name=None,
 def create_heat_exchanger(net, from_junction, to_junction, qext_w, inner_diameter_mm,
                           loss_coefficient=0, name=None, index=None, in_service=True,
                           type="heat_exchanger", **kwargs):
-    """
-    Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
+    """Creates a heat exchanger element in net["heat_exchanger"] from heat exchanger parameters.
 
     :param net: The net for which this heat exchanger should be created
     :type net: pandapipesNet
@@ -473,8 +468,7 @@ def create_heat_exchanger(net, from_junction, to_junction, qext_w, inner_diamete
 def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coefficient=0,
                 sections=1, text_k=0, name=None, index=None,
                 geodata=None, in_service=True, type="pipe", **kwargs):
-    """
-    Creates a pipe element in net["pipe"] from pipe parameters.
+    """Creates a pipe element in net["pipe"] from pipe parameters.
 
     :param net: The net for which this pipe should be created
     :type net: pandapipesNet
@@ -554,8 +548,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
 def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inner_diameter_mm, outer_diameter_mm=None,
                                 k_mm=0.2, loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None, name=None, index=None,
                                 geodata=None, in_service=True, type="pipe", **kwargs):
-    """
-    Creates a pipe element in net["pipe"] from pipe parameters.
+    """Creates a pipe element in net["pipe"] from pipe parameters.
 
     :param net: The net for which this pipe should be created
     :type net: pandapipesNet
@@ -644,8 +637,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
 @deprecated_input(input_handler=input_handler_valve)
 def create_valve(net, junction, element, et, inner_diameter_mm, opened=True, loss_coefficient=0, name=None, index=None,
                  type='valve', **kwargs):
-    """
-    Creates a valve element in net["valve"] from valve parameters.
+    """Creates a valve element in net["valve"] from valve parameters.
 
     :param net: The net for which this valve should be created
     :type net: pandapipesNet
@@ -704,8 +696,7 @@ def create_valve(net, junction, element, et, inner_diameter_mm, opened=True, los
 
 def create_pump(net, from_junction, to_junction, std_type, name=None, index=None, in_service=True,
                 type="pump", **kwargs):
-    """
-    Adds one pump in table net["pump"].
+    r"""Adds one pump in table net["pump"].
 
     :param net: The net for which this pump should be created
     :type net: pandapipesNet
@@ -732,7 +723,8 @@ def create_pump(net, from_junction, to_junction, std_type, name=None, index=None
     :return: index - The unique ID of the created element
     :rtype: int
 
-    EXAMPLE:
+    Example
+    -------
         >>> create_pump(net, 0, 1, std_type="P1")
 
     """
@@ -753,8 +745,7 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
                                 pressure_list=None, flowrate_list=None, reg_polynomial_degree=None,
                                 poly_coefficents=None, name=None, index=None, in_service=True,
                                 type="pump", **kwargs):
-    """
-    Adds one pump in table net["pump"].
+    r"""Adds one pump in table net["pump"].
 
     :param net: The net for which this pump should be created
     :type net: pandapipesNet
@@ -765,44 +756,45 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
     :param new_std_type_name: Set a name for your pump. You will find your definied pump under
             std_type in your net. The name will be given under std_type in net.pump.
     :type new_std_type_name: string
-    :param pressure_list: This list contains measured pressure supporting points required\
-            to define and determine the dependencies of the pump between pressure and volume flow.\
-            The pressure must be given in [bar]. Needs to be defined only if no pump of standard\
+    :param pressure_list: This list contains measured pressure supporting points required
+            to define and determine the dependencies of the pump between pressure and volume flow.
+            The pressure must be given in [bar]. Needs to be defined only if no pump of standard
             type is selected.
     :type pressure_list: list, default None
-    :param flowrate_list: This list contains the corresponding flowrate values to the given\
-            pressure values. Thus, the length must be equal to the pressure list. Needs to be\
-            defined only if no pump of standard type is selected. ATTENTION: The flowrate values\
-            are given in :math:`[\\frac{m^3}{h}]`.
+    :param flowrate_list: This list contains the corresponding flowrate values to the given
+            pressure values. Thus, the length must be equal to the pressure list. Needs to be
+            defined only if no pump of standard type is selected. ATTENTION: The flowrate values
+            are given in :math:`[\frac{m^3}{h}]`.
     :type flowrate_list: list, default None
-    :param reg_polynomial_degree: The degree of the polynomial fit must be defined if pressure\
-            and flowrate list are given. The fit describes the behaviour of the pump (delta P /\
+    :param reg_polynomial_degree: The degree of the polynomial fit must be defined if pressure
+            and flowrate list are given. The fit describes the behaviour of the pump (delta P /
             volumen flow curve).
     :type reg_polynomial_degree: int, default None
     :param poly_coefficents: Alternatviely to taking measurement values and degree of polynomial
             fit, previously calculated regression parameters can also be given directly. It
-            describes the dependency between pressure and flowrate.\
-            ATTENTION: The determined parameteres must be retrieved by setting flowrate given\
-            in :math:`[\\frac{m^3}{h}]` and pressure given in bar in context. The first entry in\
-            the list (c[0]) is for the polynom of the highest degree (c[0]*x**n), the last one for\
+            describes the dependency between pressure and flowrate.
+            ATTENTION: The determined parameteres must be retrieved by setting flowrate given
+            in :math:`[\frac{m^3}{h}]` and pressure given in bar in context. The first entry in
+            the list (c[0]) is for the polynom of the highest degree (c[0]*x**n), the last one for
             c*x**0.
     :type poly_coefficents: list, default None
     :param name: A name tag for this pump
     :type name: str, default None
-    :param index: Force a specified ID if it is available. If None, the index one higher than the\
+    :param index: Force a specified ID if it is available. If None, the index one higher than the
             highest already existing index is selected.
     :type index: int, default None
     :param in_service: True if the pump is in service or False if it is out of service
     :type in_service: bool, default True
     :param type:  type variable to classify the pump
     :type type: str, default "pump"
-    :param kwargs: Additional keyword arguments will be added as further columns to the\
+    :param kwargs: Additional keyword arguments will be added as further columns to the
             net["pump"] table
     :type kwargs: dict
     :return: index - The unique ID of the created element
     :rtype: int
 
-    EXAMPLE:
+    Example
+    -------
         >>> create_pump_from_parameters(net, 0, 1, 'pump1', pressure_list=[0,1,2,3],
         >>>                             flowrate_list=[0,1,2,3], reg_polynomial_degree=1)
         >>> create_pump_from_parameters(net, 0, 1, 'pump2', poly_coefficents=[1,0])
@@ -831,10 +823,11 @@ def create_pump_from_parameters(net, from_junction, to_junction, new_std_type_na
 def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_bar, plift_bar,
                                     t_flow_k=None, type="auto", name=None, index=None,
                                     in_service=True, **kwargs):
-    """
-    Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"]. \n
+    """Adds one circulation pump with a constant pressure lift in table net["circ_pump_pressure"].
+
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
-    asserts that the correct mass flow is extracted at its inlet (return junction). \n
+    asserts that the correct mass flow is extracted at its inlet (return junction).
+
     In this particular case, the pressure lift is fixed, i.e. the pressure on both sides are set
     (with the pressure lift as difference). The mass flow through the component is just a result
     of the balance of the network. An equal representation is adding external grids at each of the
@@ -899,10 +892,11 @@ def create_circ_pump_const_pressure(net, return_junction, flow_junction, p_flow_
 
 def create_circ_pump_const_mass_flow(net, return_junction, flow_junction, p_flow_bar, mdot_flow_kg_per_s, t_flow_k=None,
                                      type="auto", name=None, index=None, in_service=True, **kwargs):
-    """
-    Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].\n
+    """Adds one circulation pump with a constant mass flow in table net["circ_pump_mass"].
+
     A circulation pump is a component that sets the pressure at its outlet (flow junction) and
-    asserts that the correct mass flow is extracted at its inlet (return junction). \n
+    asserts that the correct mass flow is extracted at its inlet (return junction).
+
     In this particular case, the mass flow and the pressure on the flow side are fixed, i.e. the
     pressure on the return side is just a result of the friction losses in the network. An equal
     representation is adding an external grid at the flow junction and a sink with the given mass
@@ -993,7 +987,8 @@ def create_compressor(net, from_junction, to_junction, pressure_ratio, name=None
     :return: index - The unique ID of the created element
     :rtype: int
 
-    EXAMPLE:
+    Example
+    -------
         >>> create_compressor(net, 0, 1, pressure_ratio=1.3)
 
     """
@@ -1108,8 +1103,7 @@ def create_pressure_control(
 
 def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_s, control_active=True,
                         name=None, index=None, in_service=True, type="fc", **kwargs):
-    """
-    Adds one flow control with a constant mass flow in table net["flow_control"].
+    """Adds one flow control with a constant mass flow in table net["flow_control"].
 
     :param net: The net for which this flow control should be created
     :type net: pandapipesNet
@@ -1163,8 +1157,7 @@ def create_flow_control(net, from_junction, to_junction, controlled_mdot_kg_per_
 def create_heat_consumer(net, from_junction, to_junction, qext_w=None, controlled_mdot_kg_per_s=None,
                          deltat_k=None, treturn_k=None, name=None, index=None, in_service=True, type="heat_consumer",
                          **kwargs):
-    """
-    Creates a heat consumer element in net["heat_consumer"] from heat consumer parameters.
+    """Creates a heat consumer element in net["heat_consumer"] from heat consumer parameters.
 
     :param net: The net for which this heat consumer should be created
     :type net:
@@ -1228,8 +1221,7 @@ def create_heat_consumer(net, from_junction, to_junction, qext_w=None, controlle
 
 def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None, index=None, in_service=True,
                      type="junction", geodata=None, **kwargs):
-    """
-    Convenience function for creating many junctions at once. Parameter 'nr_junctions' specifies \
+    """Convenience function for creating many junctions at once. Parameter 'nr_junctions' specifies \
     the number of junctions created. Other parameters may be either arrays of length 'nr_junctions'\
     or single values.
 
@@ -1287,8 +1279,7 @@ def create_junctions(net, nr_junctions, pn_bar, tfluid_k, height_m=0, name=None,
 
 def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='sink',
                  **kwargs):
-    """
-    Convenience function for creating many sinks at once. Parameter 'junctions' must be an array \
+    """Convenience function for creating many sinks at once. Parameter 'junctions' must be an array \
     of the desired length. Other parameters may be either arrays of the same length or single \
     values.
 
@@ -1332,8 +1323,7 @@ def create_sinks(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=Non
 
 def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=None, in_service=True, type='source',
                    **kwargs):
-    """
-    Convenience function for creating many sources at once. Parameter 'junctions' must be an array \
+    """Convenience function for creating many sources at once. Parameter 'junctions' must be an array \
     of the desired length. Other parameters may be either arrays of the same length or single \
     values.
 
@@ -1376,12 +1366,13 @@ def create_sources(net, junctions, mdot_kg_per_s, scaling=1., name=None, index=N
 
 
 def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, index=None, type="auto", **kwargs):
-    """
-    Convenience function for creating many external grids at once. Parameter 'junctions' must be an\
-    array of the desired length. Other parameters may be either arrays of the same length or single\
-    values.\n
-    External grids transfer the junction that it is connected into a node with fixed value for \
-    either pressure, temperature or both (depending on the type). Usually external grids represent \
+    """Convenience function for creating many external grids at once.
+
+    Parameter 'junctions' must be an array of the desired length. Other parameters may be either
+    arrays of the same length or single values.
+
+    External grids transfer the junction that it is connected into a node with fixed value for
+    either pressure, temperature or both (depending on the type). Usually external grids represent
     connections to other grids feeding the given pandapipesNet.
 
     :param net: The net that the external grid should be connected to
@@ -1396,19 +1387,20 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
     :type name: Iterable(str) or str, default None
     :param in_service: True for in service, False for out of service
     :type in_service: Iterable(bool) or bool, default True
-    :param index: Force specified IDs if they are available. If None, the index one higher than the\
+    :param index: Force specified IDs if they are available. If None, the index one higher than the
             highest already existing index is selected and counted onwards.
     :type index: Iterable(int), default None
-    :param type: The external grid type denotes the values that are fixed at the respective node:\n
-            - "auto": Will automatically assign one of the following types based on the input for \
-                      p_bar and t_k \n
-            - "p": The pressure is fixed, the node acts as a slack node for the mass flow. \n
-            - "t": The temperature is fixed and will not be solved for, but is assumed as the \
-                   node's mix temperature. Please note that pandapipes cannot check for \
-                   inconsistencies in the formulation of heat transfer equations yet. \n
+    :param type: The external grid type denotes the values that are fixed at the respective node:
+
+            - "auto": Will automatically assign one of the following types based on the input for
+                      p_bar and t_k
+            - "p": The pressure is fixed, the node acts as a slack node for the mass flow.
+            - "t": The temperature is fixed and will not be solved for, but is assumed as the
+                   node's mix temperature. Please note that pandapipes cannot check for
+                   inconsistencies in the formulation of heat transfer equations yet.
             - "pt": The external grid shows both "p" and "t" behavior.
     :type type: Iterable(str) or str, default "auto"
-    :param kwargs: Additional keyword arguments will be added as further columns to the\
+    :param kwargs: Additional keyword arguments will be added as further columns to the
             net["ext_grid"] table
     :return: index - The unique IDs of the created elements
     :rtype: Iterable(int)
@@ -1433,8 +1425,7 @@ def create_ext_grids(net, junctions, p_bar, t_k, name=None, in_service=True, ind
 def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
                  loss_coefficient=0, sections=1, text_k=None,
                  name=None, index=None, geodata=None, in_service=True, type="pipe", **kwargs):
-    """
-    Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    """Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values. In any case the line parameters are defined through a single \
     standard type, so all pipes have the same standard type.
@@ -1536,8 +1527,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
                                  loss_coefficient=0, sections=1, u_w_per_m2k=0., text_k=None,
                                  name=None, index=None, geodata=None, in_service=True,
                                  type="pipe", **kwargs):
-    """
-    Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
+    """Convenience function for creating many pipes at once. Parameters 'from_junctions' and \
     'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values.
 
@@ -1633,8 +1623,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
 @deprecated_input(input_handler=input_handler_valve, multiple=True)
 def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, loss_coefficient=0, name=None, index=None,
                   type='valve', **kwargs):
-    """
-    Convenience function for creating many valves at once. Parameters 'junctions' and \
+    """Convenience function for creating many valves at once. Parameters 'junctions' and \
     'elements' must be arrays of equal length. Other parameters may be either arrays of the \
     same length or single values.
 
@@ -1720,8 +1709,7 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
                              control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
                              type="pressure_control", **kwargs):
-    """
-    Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
+    """Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
 
@@ -1799,8 +1787,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 
 def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_per_s, control_active=True,
                          name=None, index=None, in_service=True, type="fc", **kwargs):
-    """
-    Convenience function for creating many flow controls at once. Parameters 'from_junctions'\
+    """Convenience function for creating many flow controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
 
@@ -1859,8 +1846,7 @@ def create_flow_controls(net, from_junctions, to_junctions, controlled_mdot_kg_p
 def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, inner_diameter_mm,
                            loss_coefficient=0, name=None, index=None, in_service=True,
                            type="heat_exchanger", **kwargs):
-    """
-    Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
+    """Convenience function for creating many heat exchangers at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
 
@@ -1920,8 +1906,7 @@ def create_heat_exchangers(net, from_junctions, to_junctions, qext_w, inner_diam
 def create_heat_consumers(net, from_junctions, to_junctions, qext_w=None, controlled_mdot_kg_per_s=None,
                           deltat_k=None, treturn_k=None, name=None, index=None, in_service=True, type="heat_consumer",
                           **kwargs):
-    """
-    Creates several heat consumer elements in net["heat_consumer"] from heat consumer parameters.
+    """Creates several heat consumer elements in net["heat_consumer"] from heat consumer parameters.
 
     :param net: The net for which this heat consumer should be created
     :type net:
@@ -1988,8 +1973,8 @@ def create_heat_consumers(net, from_junctions, to_junctions, qext_w=None, contro
 
 
 def create_fluid_from_lib(net, name, overwrite=True):
-    """
-    Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
+    """Creates a fluid from library (if there is an entry) and sets net["fluid"] to this value.
+
     Currently, existing fluids in the library are: "hgas", "lgas", "hydrogen", "methane",
     "water","biomethane_pure", "biomethane_treated", "air".
 
@@ -2055,8 +2040,8 @@ ALLOWED_EG_TYPES = ["auto", "t", "p", "pt", "tp"]
 
 
 def _auto_ext_grid_type(p_bar, t_k, typ, comp):
-    """
-    Determine the type of node that an "ext_grid" would imply (fixed pressure and / or temperature).
+    """Determine the type of node that an "ext_grid" would imply (fixed pressure and / or temperature).
+
     Also perform some validity checks.
 
     :param p_bar: fixed pressure
@@ -2109,8 +2094,8 @@ def _auto_ext_grid_type(p_bar, t_k, typ, comp):
 
 
 def _auto_ext_grid_types(p_bar, t_k, typ, comp):
-    """
-    Determine the type of node that an "ext_grid" would imply (fixed pressure and / or temperature).
+    """Determine the type of node that an "ext_grid" would imply (fixed pressure and / or temperature).
+
     Also perform some validity checks. --> Same as `_auto_ext_grid_type`, but vectorized.
 
     .. note:

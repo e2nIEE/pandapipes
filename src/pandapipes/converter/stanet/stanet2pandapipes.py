@@ -175,7 +175,7 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
 
 
 def add_rated_p_values(net, **kwargs):
-    """
+    """Set the rated pressure (pn_bar) of the net's junctions.
 
     :param net:
     :type net:
