@@ -29,6 +29,21 @@ from pandapipes.diagnostic.diagnostic_functions import(
     FrictionModelCheck,
 )
 
+@pytest.fixture(
+    params=[True, False],
+    ids=["with_numba", "without_numba"],
+    autouse=True,
+)
+def pipeflow_backend(request, monkeypatch):
+    original_pipeflow = pp.pipeflow
+
+    def pipeflow_with_backend(net, *args, **kwargs):
+        kwargs["use_numba"] = request.param
+        return original_pipeflow(net, *args, **kwargs)
+
+    monkeypatch.setattr(pp, "pipeflow", pipeflow_with_backend)
+
+
 @pytest.fixture(scope="function")
 def diag_params():
     return default_argument_values.copy()
@@ -1233,6 +1248,7 @@ def test_friction_models():
     }
     check_report_function(diag_function, None, result)
 
+
 def test_diagnostic_framework_execution():
     net = simple_gas_grid()
 
@@ -1285,44 +1301,29 @@ def test_diagnostic_report_before_execution():
         diag.report()
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
-def test_diagnostic_without_return_value(use_numba):
+def test_diagnostic_without_return_value():
     net = simple_gas_grid()
     diag = Diagnostic()
-    original_pipeflow = pp.pipeflow
 
-    def pipeflow_with_numba(net_arg, **kwargs):
-        kwargs["use_numba"] = use_numba
-        return original_pipeflow(net_arg, **kwargs)
-
-    with patch("pandapipes.pipeflow", side_effect=pipeflow_with_numba):
-        result = diag.diagnose_network(
-            net,
-            report=False,
-            return_result_dict=False,
-        )
+    result = diag.diagnose_network(
+        net,
+        report=False,
+        return_result_dict=False,
+    )
 
     assert result is None
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
-def test_diagnostic_no_issues(use_numba):
+def test_diagnostic_no_issues():
     net = simple_gas_grid()
     diag = Diagnostic()
-    original_pipeflow = pp.pipeflow
 
-    def pipeflow_with_numba(net_arg, **kwargs):
-        kwargs["use_numba"] = use_numba
-        return original_pipeflow(net_arg, **kwargs)
-
-    with patch("pandapipes.pipeflow", side_effect=pipeflow_with_numba):
-        result = diag.diagnose_network(
-            net,
-            report=False,
-        )
+    result = diag.diagnose_network(
+        net,
+        report=False,
+    )
 
     assert result == {}
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-xs"])
