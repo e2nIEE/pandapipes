@@ -5,6 +5,7 @@ from pandapipes.diagnostic.diagnostic_functions import (
 
 import logging
 import warnings
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class Diagnostic:
         self.net = None
 
         if add_default_functions:
-            self._functions = default_diagnostic_functions
+            self._functions = copy.deepcopy(default_diagnostic_functions)
             self.kwargs = default_argument_values.copy()
 
     def register_function(self, diagnostic_function, argument_names=None, name=None):

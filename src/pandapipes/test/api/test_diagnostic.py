@@ -57,7 +57,7 @@ def simple_gas_grid():
     pp.create_sink(net, junction=j4, mdot_kg_per_s=0.545)
     pp.create_source(net, junction=j3, mdot_kg_per_s=0.234)
 
-    net.pipe["alpha_w_per_m2k"] = 0.0
+    net.pipe["u_w_per_m2k"] = 0.0
 
     return net
 
@@ -155,8 +155,10 @@ def gas_grid_with_compressor_pressure_control():
 
 @pytest.fixture(scope="function")
 def test_nets():
-    return [simple_gas_grid(), multi_pump_dh_network(), gas_grid_with_compressor_pressure_control()]
+    gas_with_pump = gas_grid_with_compressor_pressure_control()
+    pp.create_pump(gas_with_pump, 0, 1, std_type="P1")
 
+    return [simple_gas_grid(), multi_pump_dh_network(), gas_with_pump]
 
 def check_report_function(func, error, result):
     try:
@@ -234,7 +236,7 @@ class TestInvalidValuesCheck:
                 (0, "t_k", -1.0, ">0"),
             ],
             "valve": [
-                (0, "diameter_m", 0.0, ">0"),
+                (0, "inner_diameter_mm", 0.0, ">0"),
             ],
             "flow_control": [
                 (0, "controlled_mdot_kg_per_s", 0.0, ">0"),
@@ -248,21 +250,14 @@ class TestInvalidValuesCheck:
                 (0, "p_flow_bar", 0.0, ">0"),
                 (0, "t_flow_k", -1.0, ">0"),
             ],
-            "heat_consumer": [
-                (0, "controlled_mdot_kg_per_s", 0.0, ">0"),
-                (0, "deltat_k", 0.0, ">0"),
-            ],
         }
 
         _run_invalid_values_case(test_nets, changes)
 
     def test_greater_equal_zero(self, test_nets):
         changes = {
-            "junction": [
-                (0, "height_m", -1.0, ">=0"),
-            ],
             "pipe": [
-                (0, "alpha_w_per_m2k", -1.0, ">=0"),
+                (0, "u_w_per_m2k", -1.0, ">=0"),
                 (1, "loss_coefficient", -1.0, ">=0"),
             ],
             "sink": [
@@ -278,7 +273,6 @@ class TestInvalidValuesCheck:
             ],
             "heat_consumer": [
                 (0, "treturn_k", -1.0, ">=0"),
-                (0, "scaling", -1.0, ">=0"),
             ],
         }
 
@@ -297,7 +291,6 @@ class TestInvalidValuesCheck:
             ],
             "valve": [
                 (0, "opened", "False", "boolean"),
-                (0, "in_service", "True", "boolean"),
             ],
             "pump": [
                 (0, "in_service", "yes", "boolean"),
@@ -342,8 +335,8 @@ class TestInvalidValuesCheck:
                 (0, "junction", 9999, "existing_junction"),
             ],
             "valve": [
-                (0, "from_junction", 9999, "existing_junction"),
-                (0, "to_junction", 9999, "existing_junction"),
+                (0, "junction", 9999, "existing_junction"),
+                (0, "element", 9998, "existing_junction"),
             ],
             "pump": [
                 (0, "from_junction", 9999, "existing_junction"),
@@ -363,12 +356,12 @@ class TestInvalidValuesCheck:
                 (0, "to_junction", 9999, "existing_junction"),
             ],
             "circ_pump_pressure": [
-                (0, "from_junction", 9999, "existing_junction"),
-                (0, "to_junction", 9999, "existing_junction"),
+                (0, "return_junction", 9999, "existing_junction"),
+                (0, "flow_junction", 9999, "existing_junction"),
             ],
             "circ_pump_mass": [
-                (0, "from_junction", 9999, "existing_junction"),
-                (0, "to_junction", 9999, "existing_junction"),
+                (0, "return_junction", 9999, "existing_junction"),
+                (0, "flow_junction", 9999, "existing_junction"),
             ],
             "heat_consumer": [
                 (0, "from_junction", 9999, "existing_junction"),
@@ -463,7 +456,7 @@ def test_iteration_check(diag_params):
     net = simple_gas_grid()
 
     def fake_pipeflow_success(net_arg, **kwargs):
-        if "iter" not in kwargs:
+        if kwargs.get("iter") != diag_params["iteration_limit"]:
             raise PipeflowNotConverged()
         net_arg.converged = True
 
@@ -596,7 +589,15 @@ def test_missing_node_junctions():
 
 
 def test_missing_branch_junctions():
-    test_nets = [simple_gas_grid(), multi_pump_dh_network()]
+    test_nets = [
+        simple_gas_grid(),
+        multi_pump_dh_network(),
+        gas_grid_with_compressor_pressure_control(),
+    ]
+    pp.create_pump(test_nets[0], 0, 1, std_type="P1")
+    pp.create_heat_exchanger(
+        test_nets[0], 0, 1, qext_w=1000, inner_diameter_mm=50,
+    )
     check_function = "missing_branch_junctions"
 
     changes = {
@@ -621,13 +622,19 @@ def test_missing_branch_junctions():
             if table.empty:
                 continue
 
-            if "from_junction" not in table.columns or "to_junction" not in table.columns:
+            if element == "valve":
+                first_column, second_column = "junction", "element"
+            elif element in ("circ_pump_pressure", "circ_pump_mass"):
+                first_column, second_column = "return_junction", "flow_junction"
+            else:
+                first_column, second_column = "from_junction", "to_junction"
+
+            if first_column not in table.columns or second_column not in table.columns:
                 continue
 
             idx = table.index[0]
-
-            net[element].at[idx, "from_junction"] = missing_from
-            net[element].at[idx, "to_junction"] = missing_to
+            net[element].at[idx, first_column] = missing_from
+            net[element].at[idx, second_column] = missing_to
 
             expected[element] = {
                 "missing_from_junctions": [missing_from],

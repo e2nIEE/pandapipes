@@ -15,14 +15,9 @@ from pandapipes.diagnostic.diagnostic_helper import (
     check_existing_junction,
 )
 
-try:
-    import pandaplan.core.pplog as logging
-except ImportError:
-    import logging
+import logging
 
 logger = logging.getLogger(__name__)
-
-
 
 
 default_argument_values = {
@@ -60,7 +55,8 @@ class InvalidValuesCheck(DiagnosticFunction):
             "junction": [
                 ("pn_bar", ">0"),
                 ("tfluid_k", ">0"),
-                ("height_m", ">=0"),
+                ("height_m", "number"),
+                ("in_service", "boolean"),
             ],
             "pipe": [
                 ("from_junction", "existing_junction"),
@@ -68,7 +64,7 @@ class InvalidValuesCheck(DiagnosticFunction):
                 ("length_km", ">0"),
                 ("inner_diameter_mm", ">0"),
                 ("k_mm", ">0"),
-                ("alpha_w_per_m2k", ">=0"),
+                ("u_w_per_m2k", ">=0"),
                 ("loss_coefficient", ">=0"),
                 ("sections", "positive_integer"),
                 ("in_service", "boolean"),
@@ -77,6 +73,7 @@ class InvalidValuesCheck(DiagnosticFunction):
                 ("junction", "existing_junction"),
                 ("p_bar", ">0"),
                 ("t_k", ">0"),
+                ("in_service", "boolean"),
             ],
             "sink": [
                 ("junction", "existing_junction"),
@@ -91,12 +88,11 @@ class InvalidValuesCheck(DiagnosticFunction):
                 ("in_service", "boolean"),
             ],
             "valve": [
-                ("from_junction", "existing_junction"),
-                ("to_junction", "existing_junction"),
-                ("diameter_m", ">0"),
+                ("junction", "existing_junction"),
+                ("element", "existing_junction"),
+                ("inner_diameter_mm", ">0"),
                 ("loss_coefficient", ">=0"),
                 ("opened", "boolean"),
-                ("in_service", "boolean"),
             ],
             "pump": [
                 ("from_junction", "existing_junction"),
@@ -124,16 +120,25 @@ class InvalidValuesCheck(DiagnosticFunction):
                 ("control_active", "boolean"),
                 ("in_service", "boolean"),
             ],
-            "circ_pump_pressure": [
+            "heat_exchanger": [
                 ("from_junction", "existing_junction"),
                 ("to_junction", "existing_junction"),
+                ("inner_diameter_mm", ">0"),
+                ("qext_w", "number"),
+                ("loss_coefficient", ">=0"),
+                ("in_service", "boolean"),
+            ],
+            "circ_pump_pressure": [
+                ("return_junction", "existing_junction"),
+                ("flow_junction", "existing_junction"),
                 ("p_flow_bar", ">0"),
+                ("plift_bar", "number"),
                 ("t_flow_k", ">0"),
                 ("in_service", "boolean"),
             ],
             "circ_pump_mass": [
-                ("from_junction", "existing_junction"),
-                ("to_junction", "existing_junction"),
+                ("return_junction", "existing_junction"),
+                ("flow_junction", "existing_junction"),
                 ("mdot_flow_kg_per_s", ">0"),
                 ("p_flow_bar", ">0"),
                 ("t_flow_k", ">0"),
@@ -171,11 +176,46 @@ class InvalidValuesCheck(DiagnosticFunction):
                 continue
 
             for idx, row in table.iterrows():
+                if element == "heat_consumer":
+                    controls = (
+                        "qext_w",
+                        "controlled_mdot_kg_per_s",
+                        "deltat_k",
+                        "treturn_k",
+                    )
+
+                    given = []
+                    for control in controls:
+                        if pd.notna(row.get(control)):
+                            given.append(control)
+
+                    if len(given) != 2 or (
+                            "deltat_k" in given and "treturn_k" in given
+                    ):
+                        result.setdefault(element, []).append(
+                            (idx, "control_parameters", given, "valid_combination")
+                        )
+
                 for column, restriction in checks:
                     if column not in table.columns:
                         continue
 
                     value = row[column]
+
+                    if element == "ext_grid" and pd.isna(value):
+                        ext_grid_type = row.get("type")
+                        if (column == "t_k" and ext_grid_type == "p") or (
+                                column == "p_bar" and ext_grid_type == "t"
+                        ):
+                            continue
+
+                    if (
+                            element in ["circ_pump_pressure", "circ_pump_mass"]
+                            and column == "t_flow_k"
+                            and row.get("type") == "p"
+                            and pd.isna(value)
+                    ):
+                        continue
 
                     # heat_consumer has optional control columns; NaN can be valid there
                     if element == "heat_consumer" and column in [
@@ -187,9 +227,26 @@ class InvalidValuesCheck(DiagnosticFunction):
                         if pd.isna(value):
                             continue
 
+                    if (
+                            element == "heat_consumer"
+                            and column == "controlled_mdot_kg_per_s"
+                            and not row.get("in_service", True)
+                    ):
+                        restriction = ">=0"
+
                     if restriction == "existing_junction":
-                        check_result = type_checks[restriction](
-                            row, idx, column, net.junction.index
+                        valid_indices = net.junction.index
+
+                        if (
+                                element == "valve"
+                                and column == "element"
+                                and row.get("et") == "pi"
+                        ):
+                            valid_indices = net.pipe.index
+                            restriction = "existing_pipe"
+
+                        check_result = check_existing_junction(
+                            row, idx, column, valid_indices
                         )
                     else:
                         check_result = type_checks[restriction](
@@ -247,8 +304,7 @@ class MissingExtGridCheck(DiagnosticFunction):
             return
 
         self.out.warning(
-            "The net does not have an external grid! "
-            "An external grid is required for gas networks."
+            "The gas network does not have an external grid."
         )
 
 # check with standard ext_grid pressure
@@ -422,15 +478,25 @@ class PipeLengthCheck(DiagnosticFunction):
                 f"{self.standard_pipe_length_km} km, the pipeflow would converge."
             )
 
+
         elif result["all_pipes"]:
-            self.out.warning(
-                f"Pipeflow still does not converge if only the longest "
-                f"{self.pipe_length_percentage}% of all pipes with lengths above "
-                f"{self.minimum_pipe_length_km} km are set to "
-                f"{self.standard_pipe_length_km} km.\n"
-                f"It converges if all pipe lengths are set to "
-                f"{self.standard_pipe_length_km} km."
-            )
+            if result["long_pipes"] is False:
+                self.out.warning(
+                    f"Pipeflow still does not converge if only the longest "
+                    f"{self.pipe_length_percentage}% of all pipes with lengths above "
+                    f"{self.minimum_pipe_length_km} km are set to "
+                    f"{self.standard_pipe_length_km} km.\n"
+                    f"It converges if all pipe lengths are set to "
+                    f"{self.standard_pipe_length_km} km."
+                )
+
+            else:
+                self.out.warning(
+                    f"No pipes have lengths above "
+                    f"{self.minimum_pipe_length_km} km. "
+                    f"Pipeflow converges if all pipe lengths are set to "
+                    f"{self.standard_pipe_length_km} km."
+                )
 
         else:
             self.out.warning(
@@ -461,7 +527,7 @@ class IterationCheck(DiagnosticFunction):
 
         try:
             pp.pipeflow(net2, iter=self.iterations)
-            return True
+            return net2.converged
 
         except PipeflowNotConverged:
             return False
@@ -503,63 +569,53 @@ class SinkSourceScalingCheck(DiagnosticFunction):
     def diagnostic(self, net, **kwargs):
         self.scaling_factor = kwargs["sink_source_scaling_factor"]
 
-        if not hasattr(net, "sink") and not hasattr(net, "source"):
-            return None
-
-        try:
-            pp.pipeflow(net.deepcopy())
-            return None
-        except PipeflowNotConverged:
-            pass
-
-        result = {
-            "sink": False,
-            "source": False,
-            "both": False
-        }
-
         has_sink = hasattr(net, "sink") and not net.sink.empty
         has_source = hasattr(net, "source") and not net.source.empty
 
-        # 1) only sinks
-        if has_sink and not has_source:
-            net_sink = net.deepcopy()
-            net_sink.sink.scaling *= self.scaling_factor
+        if not has_sink and not has_source:
+            return None
 
-            try:
-                pp.pipeflow(net_sink)
-                result["sink"] = True
-                return result
-            except PipeflowNotConverged:
-                pass
-
-        # 2) only sources
-        if has_source and not has_sink:
-            net_source = net.deepcopy()
-            net_source.source.scaling *= self.scaling_factor
-
-            try:
-                pp.pipeflow(net_source)
-                result["source"] = True
-                return result
-            except PipeflowNotConverged:
-                pass
-
-        # 3) sinks and sources together
-        net_both = net.deepcopy()
-
-        if has_sink and has_source:
-            net_both.sink.scaling *= self.scaling_factor
-            net_both.source.scaling *= self.scaling_factor
-
+        net0 = net.deepcopy()
 
         try:
-            pp.pipeflow(net_both)
-            result["both"] = True
+            pp.pipeflow(net0)
+            if net0.converged:
+                return None
         except PipeflowNotConverged:
             pass
-        except Exception:
-            raise
+
+        def converges_with_scaling(scale_sink=False, scale_source=False):
+            net_test = net.deepcopy()
+
+            if scale_sink:
+                net_test.sink.scaling *= self.scaling_factor
+
+            if scale_source:
+                net_test.source.scaling *= self.scaling_factor
+
+            try:
+                pp.pipeflow(net_test)
+                return bool(net_test.converged)
+            except PipeflowNotConverged:
+                return False
+
+        result = {
+            "sink": (
+                converges_with_scaling(scale_sink=True)
+                if has_sink else False
+            ),
+            "source": (
+                converges_with_scaling(scale_source=True)
+                if has_source else False
+            ),
+            "both": (
+                converges_with_scaling(
+                    scale_sink=True,
+                    scale_source=True,
+                )
+                if has_sink and has_source else False
+            ),
+        }
 
         return result
 
@@ -578,26 +634,26 @@ class SinkSourceScalingCheck(DiagnosticFunction):
 
         if result["sink"]:
             self.out.warning(
-                f"pipeflow converges if sinks are "
+                f"Pipeflow converges if sinks are "
                 f"scaled by a factor of {self.scaling_factor}."
             )
 
-        elif result["source"]:
+        if result["source"]:
             self.out.warning(
-                f"pipeflow converges if sources are "
+                f"Pipeflow converges if sources are "
                 f"scaled by a factor of {self.scaling_factor}."
             )
 
-        elif result["both"]:
+        if result["both"]:
             self.out.warning(
-                f"pipeflow converges if sinks "
-                f"and sources are scaled by a factor of {self.scaling_factor}."
+                f"Pipeflow converges if sinks and sources are "
+                f"scaled by a factor of {self.scaling_factor}."
             )
 
-        else:
+        if not any(result.values()):
             self.out.warning(
-                f"Pipeflow still does not converge if sinks and sources are "
-                f"scaled by a factor of {self.scaling_factor}."
+                "Pipeflow still does not converge with any applicable "
+                "sink/source scaling configuration."
             )
 
 # check pipe roughness values
@@ -689,28 +745,59 @@ class MissingNodeJunctionsCheck(DiagnosticFunction):
 class MissingBranchJunctionsCheck(DiagnosticFunction):
 
     def diagnostic(self, net, **kwargs):
-        branch_components = ["pipe", "valve", "compressor", "pump", "heat_exchanger", "circ_pump_pressure", "circ_pump_mass"]
+        branch_components = {
+            "pipe": ("from_junction", "to_junction"),
+            "valve": ("junction", "element"),
+            "compressor": ("from_junction", "to_junction"),
+            "pump": ("from_junction", "to_junction"),
+            "heat_exchanger": ("from_junction", "to_junction"),
+            "heat_consumer": ("from_junction", "to_junction"),
+            "press_control": ("from_junction", "to_junction"),
+            "flow_control": ("from_junction", "to_junction"),
+            "circ_pump_pressure": ("return_junction", "flow_junction"),
+            "circ_pump_mass": ("return_junction", "flow_junction"),
+        }
+
         result = {}
 
-        for bc in branch_components:
-            if not hasattr(net, bc):
+        for component, junction_columns in branch_components.items():
+            if not hasattr(net, component):
                 continue
 
-            table = net[bc]
+            table = net[component]
 
             if table.empty:
                 continue
 
-            if "from_junction" not in table.columns or "to_junction" not in table.columns:
+            from_column, to_column = junction_columns
+
+            if (
+                    from_column not in table.columns
+                    or to_column not in table.columns
+            ):
                 continue
 
-            missing_f = np.setdiff1d(table.from_junction, net.junction.index)
-            missing_t = np.setdiff1d(table.to_junction, net.junction.index)
+            missing_f = np.setdiff1d(
+                table[from_column],
+                net.junction.index,
+            )
+            if component == "valve":
+                other_junctions = table.loc[
+                    table["et"] == "ju",
+                    to_column,
+                ]
+            else:
+                other_junctions = table[to_column]
+
+            missing_t = np.setdiff1d(
+                other_junctions,
+                net.junction.index,
+            )
 
             if len(missing_f) or len(missing_t):
-                result[bc] = {
+                result[component] = {
                     "missing_from_junctions": missing_f,
-                    "missing_to_junctions": missing_t
+                    "missing_to_junctions": missing_t,
                 }
 
         return result if result else None
@@ -724,10 +811,20 @@ class MissingBranchJunctionsCheck(DiagnosticFunction):
         if result is None:
             return
 
-        for bc, values in result.items():
-            self.out.warning(f"Some {bc}s are connected to non-existing junctions!")
-            self.out.warning(f"missing 'from' junctions: {values['missing_from_junctions']}")
-            self.out.warning(f"missing 'to' junctions: {values['missing_to_junctions']}")
+        for component, values in result.items():
+            if component in ["circ_pump_pressure", "circ_pump_mass"]:
+                first_junction_name = "return"
+                second_junction_name = "flow"
+            elif component == "valve":
+                first_junction_name = "junction"
+                second_junction_name = "element"
+            else:
+                first_junction_name = "from"
+                second_junction_name = "to"
+
+            self.out.warning(f"Some {component}s are connected to non-existing junctions!")
+            self.out.warning(f"missing '{first_junction_name}' junctions: {values['missing_from_junctions']}")
+            self.out.warning(f"missing '{second_junction_name}' junctions: {values['missing_to_junctions']}")
 
 
 # check with increased pipe inner_diameter_mm
@@ -966,6 +1063,7 @@ class HeatConsumerControlParameterCheck(DiagnosticFunction):
         self.affected_heat_consumers = None
 
     def diagnostic(self, net, **kwargs):
+        self.affected_heat_consumers = None
 
         self.heat_consumer_scaling_factor = kwargs["heat_consumer_scaling_factor"]
         self.deltat_scaling_factor = kwargs["deltat_scaling_factor"]
@@ -975,7 +1073,7 @@ class HeatConsumerControlParameterCheck(DiagnosticFunction):
 
         net0 = net.deepcopy()
         try:
-            pp.pipeflow(net0)
+            pp.pipeflow(net0, mode= "bidirectional")
             if net0.converged:
                 return None
         except PipeflowNotConverged:
@@ -1039,6 +1137,9 @@ class HeatConsumerControlParameterCheck(DiagnosticFunction):
 
         self.affected_heat_consumers = hc.index[affected_mask].tolist()
 
+        if not affected_mask.any():
+            return None
+
         hc.loc[mask_qext_mdot, "qext_w"] *= self.heat_consumer_scaling_factor
         hc.loc[mask_qext_mdot, "controlled_mdot_kg_per_s"] *= self.heat_consumer_scaling_factor
 
@@ -1053,12 +1154,12 @@ class HeatConsumerControlParameterCheck(DiagnosticFunction):
         hc.loc[mask_mdot_treturn, "controlled_mdot_kg_per_s"] *= self.heat_consumer_scaling_factor
 
         try:
-            pp.pipeflow(net2)
+            pp.pipeflow(net2, mode= "bidirectional")
             return net2.converged
         except PipeflowNotConverged:
             return False
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
 
     def report(self, error, result):
         if error is not None:
@@ -1279,6 +1380,9 @@ class AlphaSweepCheck(DiagnosticFunction):
         self.successful_alpha = None
 
     def diagnostic(self, net, **kwargs):
+        self.alphas = None
+        self.successful_alpha = None
+
         alpha_min = kwargs["alpha_min"]
         alpha_max = kwargs["alpha_max"]
         alpha_step = kwargs["alpha_step"]
