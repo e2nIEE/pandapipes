@@ -149,10 +149,14 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :type continue_on_divergence: bool, default False
     :param verbose: Prints progress bar or if *logger.level == Debug*, it prints debug messages
     :type verbose: bool, default True
-    :param kwargs: Keyword arguments for run_control and runpp
+    :param kwargs: Keyword arguments for run_control and runpp. If ``transient=True``,
+            ``dt`` must specify the simulation time step in seconds.
     :type kwargs: dict
     :return: No output
     """
+    if kwargs.get("transient", False) and kwargs.get("dt") is None:
+        raise ValueError("The time step 'dt' must be specified in seconds when transient=True.")
+
     ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
     # A bad fix, need to sequence better - before the controllers are activated!
     control_diagnostic(net)
