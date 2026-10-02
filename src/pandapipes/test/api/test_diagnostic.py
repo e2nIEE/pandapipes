@@ -2,12 +2,13 @@ import copy
 import pytest
 import numpy as np
 import pandapipes as pp
-from unittest.mock import patch
+from unittest.mock import Mock, patch
+from pandapipes.diagnostic.diagnostic import Diagnostic
 from pandapipes import PipeflowNotConverged, pandapipesNet
 from pandapipes.diagnostic.diagnostic_functions import(
     default_argument_values,
     InvalidValuesCheck,
-    MissingExtGridCheck,
+    MissingPressureReferenceCheck,
     ExtGridPressureCheck,
     IterationCheck,
     SinkSourceScalingCheck,
@@ -23,7 +24,25 @@ from pandapipes.diagnostic.diagnostic_functions import(
     HeatTransferCoefficientCheck,
     AlphaSweepCheck,
     InactivePressureControlsCheck,
+    HeatConsumerControlParameterCheck,
+    CalculationModeCheck,
+    FrictionModelCheck,
 )
+
+@pytest.fixture(
+    params=[True, False],
+    ids=["with_numba", "without_numba"],
+    autouse=True,
+)
+def pipeflow_backend(request, monkeypatch):
+    original_pipeflow = pp.pipeflow
+
+    def pipeflow_with_backend(net, *args, **kwargs):
+        kwargs["use_numba"] = request.param
+        return original_pipeflow(net, *args, **kwargs)
+
+    monkeypatch.setattr(pp, "pipeflow", pipeflow_with_backend)
+
 
 @pytest.fixture(scope="function")
 def diag_params():
@@ -53,7 +72,7 @@ def simple_gas_grid():
     pp.create_sink(net, junction=j4, mdot_kg_per_s=0.545)
     pp.create_source(net, junction=j3, mdot_kg_per_s=0.234)
 
-    net.pipe["alpha_w_per_m2k"] = 0.0
+    net.pipe["u_w_per_m2k"] = 0.0
 
     return net
 
@@ -151,8 +170,10 @@ def gas_grid_with_compressor_pressure_control():
 
 @pytest.fixture(scope="function")
 def test_nets():
-    return [simple_gas_grid(), multi_pump_dh_network(), gas_grid_with_compressor_pressure_control()]
+    gas_with_pump = gas_grid_with_compressor_pressure_control()
+    pp.create_pump(gas_with_pump, 0, 1, std_type="P1")
 
+    return [simple_gas_grid(), multi_pump_dh_network(), gas_with_pump]
 
 def check_report_function(func, error, result):
     try:
@@ -230,7 +251,7 @@ class TestInvalidValuesCheck:
                 (0, "t_k", -1.0, ">0"),
             ],
             "valve": [
-                (0, "diameter_m", 0.0, ">0"),
+                (0, "inner_diameter_mm", 0.0, ">0"),
             ],
             "flow_control": [
                 (0, "controlled_mdot_kg_per_s", 0.0, ">0"),
@@ -244,21 +265,14 @@ class TestInvalidValuesCheck:
                 (0, "p_flow_bar", 0.0, ">0"),
                 (0, "t_flow_k", -1.0, ">0"),
             ],
-            "heat_consumer": [
-                (0, "controlled_mdot_kg_per_s", 0.0, ">0"),
-                (0, "deltat_k", 0.0, ">0"),
-            ],
         }
 
         _run_invalid_values_case(test_nets, changes)
 
     def test_greater_equal_zero(self, test_nets):
         changes = {
-            "junction": [
-                (0, "height_m", -1.0, ">=0"),
-            ],
             "pipe": [
-                (0, "alpha_w_per_m2k", -1.0, ">=0"),
+                (0, "u_w_per_m2k", -1.0, ">=0"),
                 (1, "loss_coefficient", -1.0, ">=0"),
             ],
             "sink": [
@@ -274,7 +288,6 @@ class TestInvalidValuesCheck:
             ],
             "heat_consumer": [
                 (0, "treturn_k", -1.0, ">=0"),
-                (0, "scaling", -1.0, ">=0"),
             ],
         }
 
@@ -293,7 +306,6 @@ class TestInvalidValuesCheck:
             ],
             "valve": [
                 (0, "opened", "False", "boolean"),
-                (0, "in_service", "True", "boolean"),
             ],
             "pump": [
                 (0, "in_service", "yes", "boolean"),
@@ -338,8 +350,8 @@ class TestInvalidValuesCheck:
                 (0, "junction", 9999, "existing_junction"),
             ],
             "valve": [
-                (0, "from_junction", 9999, "existing_junction"),
-                (0, "to_junction", 9999, "existing_junction"),
+                (0, "junction", 9999, "existing_junction"),
+                (0, "element", 9998, "existing_junction"),
             ],
             "pump": [
                 (0, "from_junction", 9999, "existing_junction"),
@@ -359,12 +371,12 @@ class TestInvalidValuesCheck:
                 (0, "to_junction", 9999, "existing_junction"),
             ],
             "circ_pump_pressure": [
-                (0, "from_junction", 9999, "existing_junction"),
-                (0, "to_junction", 9999, "existing_junction"),
+                (0, "return_junction", 9999, "existing_junction"),
+                (0, "flow_junction", 9999, "existing_junction"),
             ],
             "circ_pump_mass": [
-                (0, "from_junction", 9999, "existing_junction"),
-                (0, "to_junction", 9999, "existing_junction"),
+                (0, "return_junction", 9999, "existing_junction"),
+                (0, "flow_junction", 9999, "existing_junction"),
             ],
             "heat_consumer": [
                 (0, "from_junction", 9999, "existing_junction"),
@@ -394,19 +406,42 @@ class TestInvalidValuesCheck:
 
         _run_invalid_values_case(test_nets, changes)
 
-def test_missing_ext_grid():
-    net = simple_gas_grid()
 
-    net.ext_grid = net.ext_grid.drop(net.ext_grid.index)
-    diag_function = MissingExtGridCheck()
-    check_result = diag_function.diagnostic(net)
 
-    assert check_result is True
-    check_report_function(
-        diag_function,
-        None,
-        check_result
-    )
+@pytest.mark.parametrize(
+    "component",
+    ["circ_pump_pressure", "circ_pump_mass"],
+)
+@pytest.mark.parametrize("reference_type", ["p", "pt"])
+def test_gas_pressure_reference_from_circ_pump(
+    test_nets, component, reference_type
+):
+
+    gas_net, water_net, _ = test_nets
+    net = copy.deepcopy(gas_net)
+
+    net.ext_grid.drop(net.ext_grid.index, inplace=True)
+
+    for name in ("circ_pump_pressure", "circ_pump_mass"):
+        if name in net:
+            net[name] = net[name].iloc[:0].copy()
+
+    assert not water_net[component].empty
+    net[component] = water_net[component].iloc[:1].copy()
+    net[component]["in_service"] = True
+    net[component]["type"] = reference_type
+
+    diag_function = MissingPressureReferenceCheck()
+
+    assert diag_function.diagnostic(net) is None
+
+    net[component]["type"] = "t"
+    assert diag_function.diagnostic(net) is True
+
+    net[component]["type"] = reference_type
+    net[component]["in_service"] = False
+    assert diag_function.diagnostic(net) is True
+
 
 def test_ext_grid_pressure_check(diag_params):
 
@@ -459,7 +494,7 @@ def test_iteration_check(diag_params):
     net = simple_gas_grid()
 
     def fake_pipeflow_success(net_arg, **kwargs):
-        if "iter" not in kwargs:
+        if kwargs.get("iter") != diag_params["iteration_limit"]:
             raise PipeflowNotConverged()
         net_arg.converged = True
 
@@ -592,7 +627,15 @@ def test_missing_node_junctions():
 
 
 def test_missing_branch_junctions():
-    test_nets = [simple_gas_grid(), multi_pump_dh_network()]
+    test_nets = [
+        simple_gas_grid(),
+        multi_pump_dh_network(),
+        gas_grid_with_compressor_pressure_control(),
+    ]
+    pp.create_pump(test_nets[0], 0, 1, std_type="P1")
+    pp.create_heat_exchanger(
+        test_nets[0], 0, 1, qext_w=1000, inner_diameter_mm=50,
+    )
     check_function = "missing_branch_junctions"
 
     changes = {
@@ -617,13 +660,19 @@ def test_missing_branch_junctions():
             if table.empty:
                 continue
 
-            if "from_junction" not in table.columns or "to_junction" not in table.columns:
+            if element == "valve":
+                first_column, second_column = "junction", "element"
+            elif element in ("circ_pump_pressure", "circ_pump_mass"):
+                first_column, second_column = "return_junction", "flow_junction"
+            else:
+                first_column, second_column = "from_junction", "to_junction"
+
+            if first_column not in table.columns or second_column not in table.columns:
                 continue
 
             idx = table.index[0]
-
-            net[element].at[idx, "from_junction"] = missing_from
-            net[element].at[idx, "to_junction"] = missing_to
+            net[element].at[idx, first_column] = missing_from
+            net[element].at[idx, second_column] = missing_to
 
             expected[element] = {
                 "missing_from_junctions": [missing_from],
@@ -1126,6 +1175,178 @@ def test_inactive_pressure_controls():
 
     assert check_result is False
     check_report_function(diag_function, None, check_result)
+
+
+def test_heat_consumer_control_parameters(diag_params):
+    net = multi_pump_dh_network()
+    original_qext = net.heat_consumer.qext_w.copy()
+
+    diag_function = HeatConsumerControlParameterCheck()
+
+    def fake_pipeflow(net_arg, **kwargs):
+        if (net_arg.heat_consumer.qext_w < original_qext).all():
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch("pandapipes.pipeflow", side_effect=fake_pipeflow):
+        result = diag_function.diagnostic(net, **diag_params)
+
+    assert result is True
+    assert diag_function.affected_heat_consumers == list(
+        net.heat_consumer.index
+    )
+    check_report_function(diag_function, None, result)
+
+    with patch(
+        "pandapipes.pipeflow",
+        side_effect=PipeflowNotConverged(),
+    ):
+        result = diag_function.diagnostic(net, **diag_params)
+
+    assert result is False
+    check_report_function(diag_function, None, result)
+
+
+def test_calculation_modes():
+    net = simple_gas_grid()
+    diag_function = CalculationModeCheck(
+        modes=["heat", "hydraulics", "sequential"]
+    )
+
+    def fake_pipeflow(net_arg, **kwargs):
+        mode = kwargs.get("mode")
+
+        if mode is None:
+            raise PipeflowNotConverged()
+
+        if mode == "hydraulics":
+            net_arg["_pit"] = {
+                "node": np.zeros((1, 50)),
+                "branch": np.zeros((1, 50)),
+            }
+            net_arg.converged = True
+            return
+
+        if mode == "heat":
+            assert "sol_vec" in kwargs
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch("pandapipes.pipeflow", side_effect=fake_pipeflow):
+        result = diag_function.diagnostic(net)
+
+    assert result == {
+        "heat": True,
+        "hydraulics": True,
+        "sequential": False,
+    }
+    check_report_function(diag_function, None, result)
+
+
+def test_friction_models():
+    net = simple_gas_grid()
+    diag_function = FrictionModelCheck(
+        friction_models=["nikuradse", "colebrook"]
+    )
+
+    def fake_pipeflow(net_arg, **kwargs):
+        friction_model = kwargs.get("friction_model")
+
+        if friction_model == "nikuradse":
+            net_arg.converged = True
+            return
+
+        raise PipeflowNotConverged()
+
+    with patch("pandapipes.pipeflow", side_effect=fake_pipeflow):
+        result = diag_function.diagnostic(net)
+
+    assert result == {
+        "nikuradse": True,
+        "colebrook": False,
+    }
+    check_report_function(diag_function, None, result)
+
+
+def test_diagnostic_framework_execution():
+    net = simple_gas_grid()
+
+    successful_check = Mock()
+    successful_check.diagnostic.return_value = {"found": True}
+
+    failing_check = Mock()
+    failing_check.diagnostic.side_effect = RuntimeError("test failure")
+
+    diag = Diagnostic(add_default_functions=False)
+    diag.register_function(
+        successful_check,
+        argument_names=["custom_value"],
+        name="successful_check",
+    )
+    diag.register_function(failing_check, name="failing_check")
+
+    result = diag.diagnose_network(
+        net,
+        report=True,
+        custom_value=42,
+    )
+
+    assert result == {"successful_check": {"found": True}}
+    assert isinstance(diag.diag_errors["failing_check"], RuntimeError)
+
+    successful_check.diagnostic.assert_called_once_with(
+        net,
+        custom_value=42,
+    )
+    failing_check.diagnostic.assert_called_once_with(
+        net,
+        custom_value=42,
+    )
+
+    successful_check.report.assert_called_once_with(
+        None,
+        {"found": True},
+    )
+    failing_check.report.assert_called_once_with(
+        diag.diag_errors["failing_check"],
+        None,
+    )
+
+
+def test_diagnostic_report_before_execution():
+    diag = Diagnostic(add_default_functions=False)
+
+    with pytest.raises(RuntimeError):
+        diag.report()
+
+
+def test_diagnostic_without_return_value():
+    net = simple_gas_grid()
+    diag = Diagnostic()
+
+    result = diag.diagnose_network(
+        net,
+        report=False,
+        return_result_dict=False,
+    )
+
+    assert result is None
+
+
+def test_diagnostic_no_issues():
+    net = simple_gas_grid()
+    diag = Diagnostic()
+
+    result = diag.diagnose_network(
+        net,
+        report=False,
+    )
+
+    assert result == {}
 
 if __name__ == "__main__":
     pytest.main([__file__, "-xs"])

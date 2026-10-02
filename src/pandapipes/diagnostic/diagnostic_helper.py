@@ -2,7 +2,15 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
+
 import logging
+
+def detailed(self, message, *args, **kwargs):
+    if self.isEnabledFor(logging.WARNING + 4):
+        self._log(logging.WARNING + 4, message, args, **kwargs)
+
+logging.addLevelName(logging.WARNING + 4, "DETAILED")
+setattr(logging.getLoggerClass(), "detailed", detailed)
 
 logger = logging.getLogger(__name__)
 
