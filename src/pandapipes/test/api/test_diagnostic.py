@@ -8,7 +8,7 @@ from pandapipes import PipeflowNotConverged, pandapipesNet
 from pandapipes.diagnostic.diagnostic_functions import(
     default_argument_values,
     InvalidValuesCheck,
-    MissingExtGridCheck,
+    MissingPressureReferenceCheck,
     ExtGridPressureCheck,
     IterationCheck,
     SinkSourceScalingCheck,
@@ -406,19 +406,42 @@ class TestInvalidValuesCheck:
 
         _run_invalid_values_case(test_nets, changes)
 
-def test_missing_ext_grid():
-    net = simple_gas_grid()
 
-    net.ext_grid = net.ext_grid.drop(net.ext_grid.index)
-    diag_function = MissingExtGridCheck()
-    check_result = diag_function.diagnostic(net)
 
-    assert check_result is True
-    check_report_function(
-        diag_function,
-        None,
-        check_result
-    )
+@pytest.mark.parametrize(
+    "component",
+    ["circ_pump_pressure", "circ_pump_mass"],
+)
+@pytest.mark.parametrize("reference_type", ["p", "pt"])
+def test_gas_pressure_reference_from_circ_pump(
+    test_nets, component, reference_type
+):
+
+    gas_net, water_net, _ = test_nets
+    net = copy.deepcopy(gas_net)
+
+    net.ext_grid.drop(net.ext_grid.index, inplace=True)
+
+    for name in ("circ_pump_pressure", "circ_pump_mass"):
+        if name in net:
+            net[name] = net[name].iloc[:0].copy()
+
+    assert not water_net[component].empty
+    net[component] = water_net[component].iloc[:1].copy()
+    net[component]["in_service"] = True
+    net[component]["type"] = reference_type
+
+    diag_function = MissingPressureReferenceCheck()
+
+    assert diag_function.diagnostic(net) is None
+
+    net[component]["type"] = "t"
+    assert diag_function.diagnostic(net) is True
+
+    net[component]["type"] = reference_type
+    net[component]["in_service"] = False
+    assert diag_function.diagnostic(net) is True
+
 
 def test_ext_grid_pressure_check(diag_params):
 

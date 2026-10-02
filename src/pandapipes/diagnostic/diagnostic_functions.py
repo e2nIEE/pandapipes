@@ -15,10 +15,6 @@ from pandapipes.diagnostic.diagnostic_helper import (
     check_existing_junction,
 )
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 default_argument_values = {
     "standard_pipe_length_km": 0.01,
@@ -281,21 +277,33 @@ class InvalidValuesCheck(DiagnosticFunction):
                 )
 
 
-# check ext_grid
-class MissingExtGridCheck(DiagnosticFunction):
+# Check for an active pressure reference
+class MissingPressureReferenceCheck(DiagnosticFunction):
 
     def diagnostic(self, net, **kwargs):
-        if net.fluid.is_gas and (
-            not hasattr(net, "ext_grid") or net.ext_grid.empty
+        for component in (
+            "ext_grid",
+            "circ_pump_pressure",
+            "circ_pump_mass",
         ):
-            return True
+            if component not in net or net[component].empty:
+                continue
 
-        return None
+            table = net[component]
+            active_pressure_reference = (
+                table["in_service"].eq(True)
+                & table["type"].isin(["p", "pt"])
+            )
+
+            if active_pressure_reference.any():
+                return None
+
+        return True
 
     def report(self, error, result):
         if error is not None:
             self.out.warning(
-                "Missing ext_grid check failed due to the following error:"
+                "Pressure-reference check failed due to the following error:"
             )
             self.out.warning(error)
             return
@@ -303,9 +311,7 @@ class MissingExtGridCheck(DiagnosticFunction):
         if result is None:
             return
 
-        self.out.warning(
-            "The gas network does not have an external grid."
-        )
+        self.out.warning("The network has no active pressure reference.")
 
 # check with standard ext_grid pressure
 class ExtGridPressureCheck(DiagnosticFunction):
@@ -469,7 +475,7 @@ class PipeLengthCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed("Checking pipe lengths...\n")
+        self.out.detailed("Checking pipe lengths...\n")
 
         if result["long_pipes"]:
             self.out.warning(
@@ -546,7 +552,7 @@ class IterationCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed("Checking iteration limit...\n")
+        self.out.detailed("Checking iteration limit...\n")
 
         if result:
             self.out.warning(
@@ -889,7 +895,7 @@ class PipeDiameterCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed("Checking pipe diameters...\n")
+        self.out.detailed("Checking pipe diameters...\n")
         if result:
             self.out.warning(
                 f"Pipe-diameter problem suspected: "
@@ -964,7 +970,7 @@ class HeatTransferCoefficientCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed("Checking heat-transfer coefficients...\n")
+        self.out.detailed("Checking heat-transfer coefficients...\n")
 
         if result:
             self.out.warning(
@@ -1040,7 +1046,7 @@ class ValveConfigurationCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed("Checking valve configuration...\n")
+        self.out.detailed("Checking valve configuration...\n")
 
         if result["all_open"]:
             self.out.warning("If all valves were opened, the pipeflow would converge.")
@@ -1228,7 +1234,7 @@ class JunctionHeightCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed(
+        self.out.detailed(
             "Checking junction-height configuration...\n"
         )
         if result:
@@ -1298,7 +1304,7 @@ class CalculationModeCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed("Checking calculation modes...\n")
+        self.out.detailed("Checking calculation modes...\n")
 
         for mode, converged in result.items():
             if converged:
@@ -1357,7 +1363,7 @@ class FrictionModelCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed("Checking friction models...\n")
+        self.out.detailed("Checking friction models...\n")
 
         for friction_model, converged in result.items():
             if converged:
@@ -1496,7 +1502,7 @@ class InactivePressureControlsCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed(
+        self.out.detailed(
             "Checking pressure-control configuration...\n"
         )
 
@@ -1555,7 +1561,7 @@ class CompressorPressureRatioCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed(
+        self.out.detailed(
             "Checking compressor pressure ratios...\n"
         )
 
@@ -1619,7 +1625,7 @@ class CircPumpMassFlowCheck(DiagnosticFunction):
         if result is None:
             return
 
-        logger.detailed(
+        self.out.detailed(
             "Checking circulation-pump mass flow...\n"
         )
 
@@ -1640,7 +1646,7 @@ class CircPumpMassFlowCheck(DiagnosticFunction):
 
 default_diagnostic_functions = [
     ("invalid_values", InvalidValuesCheck(), []),
-    ("missing_ext_grid", MissingExtGridCheck(), []),
+    ("missing_pressure_reference", MissingPressureReferenceCheck(), []),
     ("ext_grid_pressure", ExtGridPressureCheck(), None),
     ("pipe_length", PipeLengthCheck(), None),
     ("iteration_check", IterationCheck(), None),
