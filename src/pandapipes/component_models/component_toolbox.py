@@ -13,7 +13,7 @@ from pandapipes.idx_branch import LOAD_VEC_NODES_FROM, LOAD_VEC_NODES_TO, FROM_N
 from pandapipes.idx_node import (EXT_GRID_OCCURENCE, EXT_GRID_OCCURENCE_T,
                                  PINIT, NODE_TYPE, P, TINIT, NODE_TYPE_T, T, LOAD)
 from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup
-from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.pf.internals_toolbox import sum_by_group
 from pandas import Index
 
 
@@ -147,7 +147,6 @@ def set_fixed_node_entries(net, node_pit, junctions, types, values, node_comp, m
         return [], []
 
     junction_idx_lookups = get_lookup(net, "node", "index")[node_comp.table_name()]
-    use_numba = get_net_option(net, "use_numba")
 
     if mode == "p":
         val_col, type_col, count_col, typ, valid_types, values = \
@@ -160,8 +159,11 @@ def set_fixed_node_entries(net, node_pit, junctions, types, values, node_comp, m
 
     mask = np.isin(types, valid_types)
 
-    juncts, val_sum, number = _sum_by_group(use_numba, junctions[mask], values[mask],
-                                            np.ones_like(values[mask], dtype=np.int32))
+    juncts, (val_sum, number) = sum_by_group(
+        junctions[mask],
+        values[mask],
+        np.ones_like(values[mask], dtype=np.int32),
+    )
 
     index = junction_idx_lookups[juncts]
 
@@ -185,8 +187,7 @@ def get_mass_flow_at_nodes(net, node_pit, branch_pit, eg_nodes, comp):
     loads = node_pit[node_uni, LOAD]
     all_index_nodes = np.concatenate([from_nodes, to_nodes, node_uni])
     all_mass_flows = np.concatenate([-mass_flow_from, mass_flow_to, -loads])
-    nodes, sum_mass_flows = _sum_by_group(get_net_option(net, "use_numba"), all_index_nodes,
-                                          all_mass_flows)
+    nodes, (sum_mass_flows,) = sum_by_group(all_index_nodes, all_mass_flows)
     if not np.all(nodes == node_uni):
         raise UserWarning("In component %s: Something went wrong with the mass flow balance. "
                           "Please report this error at github." % comp.__name__)
