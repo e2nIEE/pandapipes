@@ -706,8 +706,8 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     if "WDZAHL" in pipes.columns:
         alpha = pipes.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
-        net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
-        pipes.DM.values.astype(float), pipes.RAU.values.astype(float), pipes.ZETA.values.astype(float), type="main_pipe",
+        net, pipe_sections.fj.values, pipe_sections.tj.values, length_km=pipe_sections.length.values / 1000,
+        inner_diameter_mm=pipes.DM.values.astype(float), k_mm=pipes.RAU.values.astype(float), loss_coefficient=pipes.ZETA.values.astype(float), type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
         u_w_per_m2k=alpha,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
@@ -782,7 +782,7 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
 def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, index_mapping,
                                            pipe_geodata, add_layers):
     """
-    
+
     :param net:
     :type net:
     :param stored_data:
@@ -1163,8 +1163,8 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     if "WDZAHL" in hp_data.columns:
         alpha = hp_data.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
-        net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
-        hp_data.DM.values, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
+        net, hp_data.fj.values, hp_data.tj.values, length_km=hp_data.length.values / 1000,
+        inner_diameter_mm=hp_data.DM.values, k_mm=hp_data.RAU.values, loss_coefficient=hp_data.ZETA.values, type="house_pipe",
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
         u_w_per_m2k=alpha, geodata=hp_data.section_geo.values,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(

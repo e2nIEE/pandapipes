@@ -82,6 +82,8 @@ def test_mini_exampelonia_sliders_open():
     assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
 
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
+    main_pipe_sections = net.pipe["type"] == "main_pipe"
+    assert (net.pipe.loc[main_pipe_sections, "k_mm"] > 0).all()
     max_iter_hyd = 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
