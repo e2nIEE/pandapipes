@@ -1,4 +1,3 @@
-from pandapower.control import ConstControl
 from pandapipes.properties.fluids import get_fluid
 from pandapower.control.basic_controller import Controller
 from pandas.errors import InvalidIndexError
