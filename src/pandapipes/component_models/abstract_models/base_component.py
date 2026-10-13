@@ -12,7 +12,18 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Component:
+class ComponentMeta(type):
+    """
+    Metaclass of all components.
+
+    It carries no behaviour of its own. Its only purpose is to make component classes identifiable
+    by their type, so that the JSON serialization can dispatch on them (see
+    pandapipes.io.io_utils.json_component) without having to hook into the serialization of every
+    class.
+    """
+
+
+class Component(metaclass=ComponentMeta):
 
     @classmethod
     def table_name(cls):
