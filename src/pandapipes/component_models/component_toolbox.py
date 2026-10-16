@@ -35,16 +35,15 @@ def get_thermal_options(net):
     return {"use_numba": get_net_option(net, "use_numba")}
 
 
-def register_branch_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, mdot_col, df_dm, df_dp, df_dp1,
-                                       residual):
+def register_branch_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, df_dm, df_dp, df_dp1, residual):
     """Register a branch's own hydraulic equation (pressure drop over the branch).
 
     The equation sits in the branch's own row and depends on the branch's mass flow and the
     pressures at its from- and to-node, with the derivatives df_dm/df_dp/df_dp1 (e.g. from
     calculate_derivatives_hydraulic). Like register_node_hydraulic_equation, this function only
-    assembles the (row, col, data) COO triples and registers them. mdot_col is passed in because
-    callers also need it for register_node_hydraulic_equation.
+    assembles the (row, col, data) COO triples and registers them.
     """
+    mdot_col = sys_idx.idx(HydVarEq.MDOTINIT, branch_idx)
     p_from_col = sys_idx.idx(HydVarEq.PINIT, fn)
     p_to_col = sys_idx.idx(HydVarEq.PINIT, tn)
     branch_eq = sys_idx.idx(HydVarEq.BRANCH, branch_idx)
@@ -58,7 +57,7 @@ def register_branch_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, md
     ))
 
 
-def register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_col, dfb_dt, dfb_dtout, fb,
+def register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, dfb_dt, dfb_dtout, fb,
                                      mode=EqWriteMode.ADDITIVE):
     """Register a branch's own thermal equation (outlet temperature of the branch).
 
@@ -66,10 +65,10 @@ def register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_co
     direction corrected) from-node and its own outlet temperature, with the derivatives
     dfb_dt/dfb_dtout from calculate_derivatives_branch_thermal. Like
     register_node_thermal_equation, this function only assembles the (row, col, data) COO
-    triples and registers them. t_out_col is passed in because callers also need it for
-    register_node_thermal_equation; ``mode`` allows components that pin their outlet
-    temperature (e.g. heat_consumer) to register the equation as UNIQUE.
+    triples and registers them. ``mode`` allows components that pin their outlet temperature
+    (e.g. heat_consumer) to register the equation as UNIQUE.
     """
+    t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
     t_from_col = sys_idx.idx(ThermVarEq.TINIT, fn)
     branch_eq = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
 
@@ -83,7 +82,7 @@ def register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_co
     ))
 
 
-def register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_node, residual_fn, residual_tn):
+def register_node_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, df_dm_node, residual_fn, residual_tn):
     """Register a branch's own mass flow (MDOTINIT) into both its from- and to-node balances.
 
     Feeds additively into both its from-node's and its to-node's mass-balance equation,
@@ -101,6 +100,7 @@ def register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_
     itself, passes residual_fn/residual_tn unchanged) - this function only assembles the (row,
     col, data) COO triples and registers them, it never touches the derivative math itself.
     """
+    mdot_col = sys_idx.idx(HydVarEq.MDOTINIT, branch_idx)
     fn_eq = sys_idx.idx(HydVarEq.NODE, fn)
     tn_eq = sys_idx.idx(HydVarEq.NODE, tn)
 
@@ -119,7 +119,7 @@ def register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_
     ))
 
 
-def register_node_thermal_equation(sys_idx, registry, tn, t_tn_col, t_out_col, dfnt_dt, dfnt_dtout, fnt):
+def register_node_thermal_equation(sys_idx, registry, branch_idx, tn, dfnt_dt, dfnt_dtout, fnt):
     """Register a branch's own thermal continuity equation at its to-node.
 
     Every branch component's own thermal continuity equation (mixed-temperature energy
@@ -127,10 +127,11 @@ def register_node_thermal_equation(sys_idx, registry, tn, t_tn_col, t_out_col, d
     dfnt_dtout) was duplicated near-verbatim in every branch component that calls it (pipe,
     valve, flow_control, pump, pressure_control, heat_exchanger, heat_consumer) - this function
     only assembles the (row, col, data) COO triples and registers them, it never touches the
-    derivative math itself. t_tn_col/t_out_col are the to-node's TINIT column and the branch's
-    own TOUTINIT column respectively (callers derive them via sys_idx.idx(ThermVarEq.TINIT, tn)/
-    sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)).
+    derivative math itself. The equation depends on the to-node's TINIT and the branch's own
+    TOUTINIT.
     """
+    t_tn_col = sys_idx.idx(ThermVarEq.TINIT, tn)
+    t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
     tn_eq = sys_idx.idx(ThermVarEq.NODE, tn)
 
     rows_node = np.concatenate([tn_eq, tn_eq]).astype(np.int32)
@@ -168,11 +169,10 @@ def register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, table
     b_pit = branch_pit[f:t]
     fn = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
     tn = b_pit[:, IdxBranch.TO_NODE].astype(np.int32)
-    mdot_col = sys_idx.idx(HydVarEq.MDOTINIT, branch_idx)
     m = b_pit[:, IdxBranch.MDOTINIT]
     dm_node = np.ones(len(branch_idx), dtype=np.float64)
 
-    register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, dm_node, -m, m)
+    register_node_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, dm_node, -m, m)
 
 
 def register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, registry, table_name,

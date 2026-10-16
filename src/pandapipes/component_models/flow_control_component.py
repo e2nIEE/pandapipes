@@ -20,9 +20,7 @@ from pandapipes.pf.derivative_calculation import (
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
-from pandapipes.pf.system_index import (
-    HydVarEq, PitEntries, ThermVarEq,
-)
+from pandapipes.pf.system_index import PitEntries
 
 
 class FlowControlComponent(BranchWOInternalsComponent):
@@ -131,12 +129,10 @@ class FlowControlComponent(BranchWOInternalsComponent):
         residual[ctrl_active] = b_pit[ctrl_active, IdxBranch.MDOTINIT] - controlled_mdot[ctrl_active]
         # residual_fn / residual_tn keep their MDOTINIT values — correct for all node mass balances
 
-        mdot_col = sys_idx.idx(HydVarEq.MDOTINIT, branch_idx)
-        register_branch_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, mdot_col,
+        register_branch_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn,
                                            df_dm, df_dp, df_dp1, residual)
-
-        register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_node,
-                                          -residual_fn, residual_tn)
+        register_node_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, df_dm_node,
+                                         -residual_fn, residual_tn)
 
     @classmethod
     def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
@@ -154,15 +150,8 @@ class FlowControlComponent(BranchWOInternalsComponent):
         fn = get_from_nodes_corrected(b_pit).astype(np.int32)
         tn = get_to_nodes_corrected(b_pit).astype(np.int32)
 
-        # variables
-        t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
-        t_tn_col  = sys_idx.idx(ThermVarEq.TINIT, tn)
-
-        register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_col,
-                                         dfb_dt, dfb_dtout, fb)
-
-        register_node_thermal_equation(sys_idx, registry, tn, t_tn_col, t_out_col,
-                                             dfnt_dt, dfnt_dtout, fnt)
+        register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, dfb_dt, dfb_dtout, fb)
+        register_node_thermal_equation(sys_idx, registry, branch_idx, tn, dfnt_dt, dfnt_dtout, fnt)
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

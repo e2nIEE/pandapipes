@@ -135,9 +135,6 @@ class CirculationPumpPressure(CirculationPump):
         b_pit = branch_pit[f:t]
         tn = get_to_nodes_corrected(b_pit).astype(np.int32)
 
-        # variables
-        t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
-
         # equation position branch
         branch_eq = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
 
@@ -157,9 +154,4 @@ class CirculationPumpPressure(CirculationPump):
             mode=EqWriteMode.UNIQUE,
         ))
 
-        # t_tn_col == the node equation's own row index here (ThermVarEq.NODE and ThermVarEq.TINIT
-        # share the same block in a square system, see HeatSystemIndex) - computed explicitly
-        # rather than reusing tn_eq, to match register_node_thermal_equation's own signature
-        t_tn_col = sys_idx.idx(ThermVarEq.TINIT, tn)
-        register_node_thermal_equation(sys_idx, registry, tn, t_tn_col, t_out_col,
-                                             dfnt_dt, dfnt_dtout, fnt)
+        register_node_thermal_equation(sys_idx, registry, branch_idx, tn, dfnt_dt, dfnt_dtout, fnt)

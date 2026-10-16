@@ -18,7 +18,7 @@ from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nod
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.pf.derivative_calculation import calculate_derivatives_branch_thermal
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
-from pandapipes.pf.system_index import ComponentEquations, EqWriteMode, HydVarEq, ThermVarEq, PitEntries
+from pandapipes.pf.system_index import ComponentEquations, EqWriteMode, HydVarEq, PitEntries
 from pandapipes.properties.properties_toolbox import get_branch_cp
 
 try:
@@ -220,8 +220,8 @@ class HeatConsumer(BranchWOInternalsComponent):
         # there too
         df_dm_node = np.ones_like(branch_idx)
         mass = b_pit[:, IdxBranch.MDOTINIT]
-        register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_node,
-                                          -mass, mass)
+        register_node_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, df_dm_node,
+                                         -mass, mass)
 
     @classmethod
     def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
@@ -257,10 +257,6 @@ class HeatConsumer(BranchWOInternalsComponent):
         fn = get_from_nodes_corrected(b_pit).astype(np.int32)
         tn = get_to_nodes_corrected(b_pit).astype(np.int32)
 
-        # variables
-        t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
-        t_to_col = sys_idx.idx(ThermVarEq.TINIT, tn)
-
         # derivative and residual vector branches
         mask_qe_tr = consumer_array[:, cls.MODE] == cls.QE_TR
         if np.any(mask_qe_tr):
@@ -270,11 +266,9 @@ class HeatConsumer(BranchWOInternalsComponent):
             dfb_dtout[mask] = 1
             fb[mask] = 0
 
-        register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_col,
-                                         dfb_dt, dfb_dtout, fb, mode=EqWriteMode.UNIQUE)
-
-        register_node_thermal_equation(sys_idx, registry, tn, t_to_col, t_out_col,
-                                             dfnt_dt, dfnt_dtout, fnt)
+        register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, dfb_dt, dfb_dtout, fb,
+                                         mode=EqWriteMode.UNIQUE)
+        register_node_thermal_equation(sys_idx, registry, branch_idx, tn, dfnt_dt, dfnt_dtout, fnt)
 
 
 
