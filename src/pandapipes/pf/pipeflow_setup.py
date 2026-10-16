@@ -423,9 +423,15 @@ def initialize_pit(net):
     branch_registry.apply(branch_pit)
     node_registry.apply(node_pit)
 
-    if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0 or not net.converged:
+    if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
         # This needs to be done after the pit values are set
         create_old_pit(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
+    elif not net.converged:
+        # the unconverged pit values are no valid thermal state - keep the old pit, which still
+        # holds the state the failed time step started from
+        set_old_pit_lookups(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
+        logger.warning("The previous transient time step did not converge. The thermal state of "
+                       "the last converged time step is used as starting state instead.")
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
@@ -486,14 +492,31 @@ def create_old_pit(net, required_node_cols=None, required_branch_cols=None):
         required_branch_cols = []
     pit["node"] = copy.deepcopy(net._pit["node"][:, required_node_cols])
     pit["branch"] = copy.deepcopy(net._pit["branch"][:, required_branch_cols])
+    set_old_pit_lookups(net, required_node_cols, required_branch_cols)
+    net["_old_pit"] = pit
+    return pit
+
+
+def set_old_pit_lookups(net, required_node_cols, required_branch_cols):
+    """Create the lookups from pit columns to the columns of the old pit.
+
+    create_lookups rebuilds all lookups in every pipeflow, so these have to be set again whenever
+    an existing old pit is reused.
+
+    :param net: The pandapipes net to which to add the lookups
+    :type net: pandapipesNet
+    :param required_node_cols: The node cols that are kept in the old pit
+    :type required_node_cols: list
+    :param required_branch_cols: The branch cols that are kept in the old pit
+    :type required_branch_cols: list
+    :return: No output
+    """
     nc = - np.ones(max(required_node_cols) + 1, dtype=np.int32)
     bc = - np.ones(max(required_branch_cols) + 1, dtype=np.int32)
     nc[required_node_cols] = range(len(required_node_cols))
     bc[required_branch_cols] = range(len(required_branch_cols))
     net._lookups["node_old_pit_cols"] = nc
     net._lookups["branch_old_pit_cols"] = bc
-    net["_old_pit"] = pit
-    return pit
 
 def init_all_result_tables(net):
     """Initialize the result tables of all components in the net.
