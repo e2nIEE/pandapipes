@@ -113,7 +113,7 @@ def calculate_derivatives_branch_thermal(net, branch_pit_slice, node_pit, branch
     cp_b = get_branch_cp(fluid, node_pit, b_pit)
     cp_i1 = fluid.get_heat_capacity(t_init_i1)
     cp_nt = fluid.get_heat_capacity(t_init_nt)
-    cp_n = fluid.get_heat_capacity((cp_i1 + cp_nt) / 2)
+    cp_n = (cp_i1 + cp_nt) / 2
     rho = get_branch_real_density(fluid, node_pit, b_pit)
     transient = get_net_option(net, "transient")
     dt = get_net_option(net, "dt")
