@@ -112,5 +112,25 @@ def test_compressor_pressure_ratio_after_index_gap(use_numba):
                       net.res_junction.at[j4, "abs_p_bar"] * (r2 - 1))
 
 
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_compressor_quadratic_convergence(use_numba):
+    """The compressor's pressure lift depends on its inlet pressure - with that derivative in the
+    jacobi matrix, the pressure error drops to ~1e-6 after 3 iterations (~1e-2 when the lift is
+    only updated between iterations)."""
+    net = pandapipes.create_empty_network(fluid="hgas")
+    j1, j2, j3, j4 = pandapipes.create_junctions(net, 4, pn_bar=5, tfluid_k=283.15)
+    pandapipes.create_ext_grid(net, j1, p_bar=5, t_k=283.15, type="pt")
+    pandapipes.create_pipe_from_parameters(net, j1, j2, length_km=1, inner_diameter_mm=100,
+                                           k_mm=0.1)
+    pandapipes.create_compressor(net, j2, j3, pressure_ratio=1.5)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=1, inner_diameter_mm=100,
+                                           k_mm=0.1)
+    pandapipes.create_sink(net, j4, mdot_kg_per_s=0.1)
+
+    pandapipes.pipeflow(net, tol_p=1e-8, tol_m=1e-8, tol_res=1e-8, use_numba=use_numba)
+    assert net.converged
+    assert net["_internal_results"]["p"][2] < 1e-4
+
+
 if __name__ == '__main__':
     n = pytest.main(["test_compressor.py"])
