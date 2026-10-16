@@ -192,7 +192,7 @@ class PumpStdType(RegressionStdType):
                 in [bar]
         :rtype: float
         """
-        vdot, lift, active = self._evaluate_curve(vdot_m3_per_s)
+        _, lift, active = self._evaluate_curve(vdot_m3_per_s)
         results = np.where(active, lift, 0.)
         return results if np.iterable(vdot_m3_per_s) else float(results)
 
