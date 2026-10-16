@@ -57,6 +57,24 @@ def get_net_option(net, option_name):
         raise UserWarning("The option %s is not stored in the pandapipes net." % option_name)
 
 
+def is_transient_warm_start(net):
+    """Check whether the current pipeflow continues a converged transient time step.
+
+    In that case the pit still holds the previous time step's solution, which components must
+    not overwrite with their initial guesses (TINIT, PINIT, TOUTINIT, MDOTINIT): it serves as
+    starting point for the Newton-Raphson solver and lets the hydraulics see the simulated
+    temperatures. Boundary conditions (e.g. ext_grid pressure/temperature) are still set.
+
+    :param net: The pandapipes net for which to perform the pipeflow
+    :type net: pandapipesNet
+    :return: True if this is a transient follow-up time step whose predecessor converged
+    :rtype: bool
+    """
+    return (bool(get_net_option(net, "transient"))
+            and get_net_option(net, "simulation_time_step") != 0
+            and bool(net.converged))
+
+
 def get_net_options(net, *option_names):
     """Returns several requested options of the given net. Raises a UserWarning if any of the options was not found.
 
