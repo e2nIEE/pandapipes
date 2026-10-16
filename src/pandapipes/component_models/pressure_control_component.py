@@ -9,8 +9,9 @@ from pandapipes.component_models.abstract_models.branch_wo_internals_models impo
     BranchWOInternalsComponent
 from pandapipes.component_models.component_toolbox import (
     build_pit_entries, standard_branch_wo_internals_result_lookup, get_component_array,
-    get_hydraulic_options, get_thermal_options, register_branch_node_mass_balance,
-    register_branch_node_thermal_balance,
+    get_hydraulic_options, get_thermal_options, register_node_hydraulic_equation,
+    register_node_thermal_equation, register_branch_hydraulic_equation,
+    register_branch_thermal_equation,
 )
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import IdxBranch
@@ -157,35 +158,16 @@ class PressureControlComponent(BranchWOInternalsComponent):
         df_dp1[ctrl_active]   = 0.0
         residual[ctrl_active] = 0.0
 
-        # variables
-        mdot_col   = sys_idx.idx(HydVarEq.MDOTINIT, branch_idx)
-        p_from_col = sys_idx.idx(HydVarEq.PINIT, fn)
-        p_to_col   = sys_idx.idx(HydVarEq.PINIT, tn)
+        mdot_col = sys_idx.idx(HydVarEq.MDOTINIT, branch_idx)
+        register_branch_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, mdot_col,
+                                           df_dm, df_dp, df_dp1, residual)
 
-        # equation position branch
-        branch_eq  = sys_idx.idx(HydVarEq.BRANCH, branch_idx)
-
-        # jacobi matrix branch
-        rows_branch = np.concatenate([branch_eq, branch_eq, branch_eq]).astype(np.int32)
-        cols_branch = np.concatenate([mdot_col, p_from_col, p_to_col]).astype(np.int32)
-        data_branch = np.concatenate([df_dm, df_dp, df_dp1]).astype(np.float64)
-        residual_rows_branch = branch_eq.astype(np.int32)
-        residual_branch = residual.astype(np.float64)
-
-        registry.add(ComponentEquations(
-            rows=rows_branch,
-            cols=cols_branch,
-            data=data_branch,
-            residual_rows=residual_rows_branch,
-            residual_data=residual_branch,
-        ))
-
-        register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, df_dm_node,
+        register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_node,
                                           -residual_fn, residual_tn)
 
         # Pressure constraint for ctrl_active branches: P_ctrl_node = P_target
         if np.any(ctrl_active):
-            ca_branch_eq = branch_eq[ctrl_active]
+            ca_branch_eq = sys_idx.idx(HydVarEq.BRANCH, branch_idx[ctrl_active])
             ca_index_pc = index_pc[ctrl_active]
             p_ctrl_col = sys_idx.idx(HydVarEq.PINIT, ca_index_pc)
             p_target = pc_array[ctrl_active, cls.CONTROLLED_P]
@@ -216,29 +198,13 @@ class PressureControlComponent(BranchWOInternalsComponent):
         tn = get_to_nodes_corrected(b_pit).astype(np.int32)
 
         # variables
-        t_out_col  = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
-        t_from_col = sys_idx.idx(ThermVarEq.TINIT, fn)
-        t_tn_col   = sys_idx.idx(ThermVarEq.TINIT, tn)
+        t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
+        t_tn_col  = sys_idx.idx(ThermVarEq.TINIT, tn)
 
-        # equation position branch
-        branch_eq  = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
+        register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_col,
+                                         dfb_dt, dfb_dtout, fb)
 
-        # jacobi matrix branch
-        rows_branch = np.concatenate([branch_eq, branch_eq]).astype(np.int32)
-        cols_branch = np.concatenate([t_from_col, t_out_col]).astype(np.int32)
-        data_branch = np.concatenate([dfb_dt, dfb_dtout]).astype(np.float64)
-        residual_rows_branch = branch_eq.astype(np.int32)
-        residual_branch = fb.astype(np.float64)
-
-        registry.add(ComponentEquations(
-            rows=rows_branch,
-            cols=cols_branch,
-            data=data_branch,
-            residual_rows=residual_rows_branch,
-            residual_data=residual_branch,
-        ))
-
-        register_branch_node_thermal_balance(sys_idx, registry, tn, t_tn_col, t_out_col,
+        register_node_thermal_equation(sys_idx, registry, tn, t_tn_col, t_out_col,
                                              dfnt_dt, dfnt_dtout, fnt)
 
     @classmethod

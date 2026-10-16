@@ -8,8 +8,8 @@ from numpy import dtype
 from pandapipes.component_models import (get_fluid, BranchWOInternalsComponent, get_component_array,
                                          standard_branch_wo_internals_result_lookup)
 from pandapipes.component_models.component_toolbox import (
-    build_pit_entries, get_thermal_options, register_branch_node_mass_balance,
-    register_branch_node_thermal_balance,
+    build_pit_entries, get_thermal_options, register_node_hydraulic_equation,
+    register_node_thermal_equation, register_branch_thermal_equation,
 )
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import IdxBranch
@@ -220,7 +220,7 @@ class HeatConsumer(BranchWOInternalsComponent):
         # there too
         df_dm_node = np.ones_like(branch_idx)
         mass = b_pit[:, IdxBranch.MDOTINIT]
-        register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, df_dm_node,
+        register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_node,
                                           -mass, mass)
 
     @classmethod
@@ -259,11 +259,7 @@ class HeatConsumer(BranchWOInternalsComponent):
 
         # variables
         t_out_col = sys_idx.idx(ThermVarEq.TOUTINIT, branch_idx)
-        t_from_col = sys_idx.idx(ThermVarEq.TINIT, fn)
         t_to_col = sys_idx.idx(ThermVarEq.TINIT, tn)
-
-        # equation position branch
-        branch_eq = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
 
         # derivative and residual vector branches
         mask_qe_tr = consumer_array[:, cls.MODE] == cls.QE_TR
@@ -274,23 +270,10 @@ class HeatConsumer(BranchWOInternalsComponent):
             dfb_dtout[mask] = 1
             fb[mask] = 0
 
-        # jacobi matrix branch
-        rows_branch = np.concatenate([branch_eq, branch_eq]).astype(np.int32)
-        cols_branch = np.concatenate([t_from_col, t_out_col]).astype(np.int32)
-        data_branch = np.concatenate([dfb_dt, dfb_dtout]).astype(np.float64)
-        residual_rows_branch = branch_eq.astype(np.int32)
-        residual_branch = fb.astype(np.float64)
+        register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_col,
+                                         dfb_dt, dfb_dtout, fb, mode=EqWriteMode.UNIQUE)
 
-        registry.add(ComponentEquations(
-            rows=rows_branch,
-            cols=cols_branch,
-            data=data_branch,
-            residual_rows=residual_rows_branch,
-            residual_data=residual_branch,
-            mode=EqWriteMode.UNIQUE,
-        ))
-
-        register_branch_node_thermal_balance(sys_idx, registry, tn, t_to_col, t_out_col,
+        register_node_thermal_equation(sys_idx, registry, tn, t_to_col, t_out_col,
                                              dfnt_dt, dfnt_dtout, fnt)
 
 

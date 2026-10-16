@@ -7,7 +7,7 @@ from numpy import dtype
 
 from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
 from pandapipes.component_models.component_toolbox import (
-    build_pit_entries, get_thermal_options, register_branch_node_thermal_balance,
+    build_pit_entries, get_thermal_options, register_node_thermal_equation,
     register_circ_pump_node_continuity, register_circ_pump_slack_equations,
 )
 from pandapipes.component_models.junction_component import Junction
@@ -159,7 +159,7 @@ class CirculationPumpPressure(CirculationPump):
 
         # t_tn_col == the node equation's own row index here (ThermVarEq.NODE and ThermVarEq.TINIT
         # share the same block in a square system, see HeatSystemIndex) - computed explicitly
-        # rather than reusing tn_eq, to match register_branch_node_thermal_balance's own signature
+        # rather than reusing tn_eq, to match register_node_thermal_equation's own signature
         t_tn_col = sys_idx.idx(ThermVarEq.TINIT, tn)
-        register_branch_node_thermal_balance(sys_idx, registry, tn, t_tn_col, t_out_col,
+        register_node_thermal_equation(sys_idx, registry, tn, t_tn_col, t_out_col,
                                              dfnt_dt, dfnt_dtout, fnt)

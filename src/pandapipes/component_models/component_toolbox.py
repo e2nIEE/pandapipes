@@ -35,7 +35,55 @@ def get_thermal_options(net):
     return {"use_numba": get_net_option(net, "use_numba")}
 
 
-def register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, df_dm_node, residual_fn, residual_tn):
+def register_branch_hydraulic_equation(sys_idx, registry, branch_idx, fn, tn, mdot_col, df_dm, df_dp, df_dp1,
+                                       residual):
+    """Register a branch's own hydraulic equation (pressure drop over the branch).
+
+    The equation sits in the branch's own row and depends on the branch's mass flow and the
+    pressures at its from- and to-node, with the derivatives df_dm/df_dp/df_dp1 (e.g. from
+    calculate_derivatives_hydraulic). Like register_node_hydraulic_equation, this function only
+    assembles the (row, col, data) COO triples and registers them. mdot_col is passed in because
+    callers also need it for register_node_hydraulic_equation.
+    """
+    p_from_col = sys_idx.idx(HydVarEq.PINIT, fn)
+    p_to_col = sys_idx.idx(HydVarEq.PINIT, tn)
+    branch_eq = sys_idx.idx(HydVarEq.BRANCH, branch_idx)
+
+    registry.add(ComponentEquations(
+        rows=np.concatenate([branch_eq, branch_eq, branch_eq]).astype(np.int32),
+        cols=np.concatenate([mdot_col, p_from_col, p_to_col]).astype(np.int32),
+        data=np.concatenate([df_dm, df_dp, df_dp1]).astype(np.float64),
+        residual_rows=branch_eq.astype(np.int32),
+        residual_data=residual.astype(np.float64),
+    ))
+
+
+def register_branch_thermal_equation(sys_idx, registry, branch_idx, fn, t_out_col, dfb_dt, dfb_dtout, fb,
+                                     mode=EqWriteMode.ADDITIVE):
+    """Register a branch's own thermal equation (outlet temperature of the branch).
+
+    The equation sits in the branch's own row and depends on the temperature at its (flow
+    direction corrected) from-node and its own outlet temperature, with the derivatives
+    dfb_dt/dfb_dtout from calculate_derivatives_branch_thermal. Like
+    register_node_thermal_equation, this function only assembles the (row, col, data) COO
+    triples and registers them. t_out_col is passed in because callers also need it for
+    register_node_thermal_equation; ``mode`` allows components that pin their outlet
+    temperature (e.g. heat_consumer) to register the equation as UNIQUE.
+    """
+    t_from_col = sys_idx.idx(ThermVarEq.TINIT, fn)
+    branch_eq = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
+
+    registry.add(ComponentEquations(
+        rows=np.concatenate([branch_eq, branch_eq]).astype(np.int32),
+        cols=np.concatenate([t_from_col, t_out_col]).astype(np.int32),
+        data=np.concatenate([dfb_dt, dfb_dtout]).astype(np.float64),
+        residual_rows=branch_eq.astype(np.int32),
+        residual_data=fb.astype(np.float64),
+        mode=mode,
+    ))
+
+
+def register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, df_dm_node, residual_fn, residual_tn):
     """Register a branch's own mass flow (MDOTINIT) into both its from- and to-node balances.
 
     Feeds additively into both its from-node's and its to-node's mass-balance equation,
@@ -71,7 +119,7 @@ def register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, df_dm
     ))
 
 
-def register_branch_node_thermal_balance(sys_idx, registry, tn, t_tn_col, t_out_col, dfnt_dt, dfnt_dtout, fnt):
+def register_node_thermal_equation(sys_idx, registry, tn, t_tn_col, t_out_col, dfnt_dt, dfnt_dtout, fnt):
     """Register a branch's own thermal continuity equation at its to-node.
 
     Every branch component's own thermal continuity equation (mixed-temperature energy
@@ -110,7 +158,7 @@ def register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, table
     through: d(mdot)/d(mdot) == 1, residual = the branch's own signed mass flow. This was
     duplicated near-identically in CirculationPumpMass's and CirculationPumpPressure's own
     _register_hydraulic_equations before being factored out here; the actual (row, col, data)
-    assembly is register_branch_node_mass_balance's.
+    assembly is register_node_hydraulic_equation's.
     """
     f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[table_name]
     if f == t:
@@ -124,7 +172,7 @@ def register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, table
     m = b_pit[:, IdxBranch.MDOTINIT]
     dm_node = np.ones(len(branch_idx), dtype=np.float64)
 
-    register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, dm_node, -m, m)
+    register_node_hydraulic_equation(sys_idx, registry, fn, tn, mdot_col, dm_node, -m, m)
 
 
 def register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, registry, table_name,
