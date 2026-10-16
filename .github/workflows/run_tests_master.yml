@@ -47,7 +47,7 @@ jobs:
           bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
       - name: Upload coverage to Codecov
         if: ${{ matrix.python-version == '3.11' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./codecov_coverage.xml

@@ -11,7 +11,7 @@ at the controlled junction. The controlled junction can be identical to
 the :code:`to_junction` to control the pressure directly at the outlet.
 
 Internally, the behaviour is achieved by fixing the pressure variable at
-:code:`controlled_junction` in the system matrix and keeping the pressure drop of the
+:code:`controlled_junction` in the jacobi matrix and keeping the pressure drop of the
 pressure control unit variable, so that is calculated during the Newton-Raphson-calculation.
 
 .. note::

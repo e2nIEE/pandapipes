@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
+from pandapipes.std_types.std_type_class import PumpStdType
 from pandapipes.test import data_path
 
 
@@ -200,7 +201,7 @@ def test_pump_bypass_high_vdot(use_numba):
 def test_compression_power(use_numba):
     # based on example by "oporras"
     from pandapipes.component_models import R_UNIVERSAL
-    from pandapipes.idx_node import PAMB
+    from pandapipes.idx_node import IdxNode
 
     height_asl_m = 2842
     net = pandapipes.create_empty_network(fluid="methane")
@@ -225,8 +226,8 @@ def test_compression_power(use_numba):
                         use_numba=use_numba)
 
     # Local ambiental (atmospheric) pressure
-    p_amb_bar_j1 = net["_pit"]['node'][1][PAMB]
-    p_amb_bar_j2 = net["_pit"]['node'][2][PAMB]
+    p_amb_bar_j1 = net["_pit"]['node'][1][IdxNode.PAMB]
+    p_amb_bar_j2 = net["_pit"]['node'][2][IdxNode.PAMB]
 
     # Isentropic power for the compression
     R_spec = R_UNIVERSAL * 1e3 / pandapipes.get_fluid(net).get_molar_mass()
@@ -239,6 +240,80 @@ def test_compression_power(use_numba):
     pow_pump_MW = (net.res_pump.mdot_from_kg_per_s[0] * (k / (k - 1)) * R_spec *
                    compr * net.res_pump.t_from_k[0] * (pressure_ratio ** ((k - 1) / k) - 1) / 1e6)
     assert np.isclose(pow_pump_MW[0], net.res_pump.compr_power_mw[0])
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pump_std_type_after_index_gap(use_numba):
+    """
+    Pump._compute_pl looks up the pump's characteristic curve via
+    get_component_array(net, "pump")[tbl_idx, cls.STD_TYPE], where tbl_idx comes from
+    IdxBranch.ELEMENT_IDX. That array is built positionally (row i = i-th row of
+    net.pump), but ELEMENT_IDX stores the pandas *index label* of the pump, not its
+    position - so as soon as net.pump's index isn't 0..n-1 anymore, the lookup goes out
+    of bounds (or, if still in bounds, silently picks up a different pump's data).
+
+    A non-contiguous index arises from perfectly ordinary usage: dropping a pump and
+    adding a replacement, since pandas keeps counting new row labels upward instead of
+    reusing the freed one.
+    """
+    net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="water")
+
+    j1, j2, j3, j4, j5 = pandapipes.create_junctions(net, 5, pn_bar=5, tfluid_k=283.15)
+    pandapipes.create_pipe(net, j1, j2, std_type='125_PE_80_SDR_11', k_mm=1., length_km=0.1)
+    pandapipes.create_ext_grid(net, j1, 5, 283.15)
+    pandapipes.create_pump(net, j2, j3, std_type='P1')
+    pandapipes.create_pump(net, j3, j4, std_type='P1')
+    pandapipes.create_pump(net, j4, j5, std_type='P1')
+    pandapipes.create_sink(net, j5, 0.5)
+
+    # same 3 pumps/topology/std_types as above, just re-labeled: drop the middle pump and
+    # add an equivalent replacement -> index becomes [0, 2, 3] instead of [0, 1, 2]
+    net.pump.drop(index=[1], inplace=True)
+    pandapipes.create_pump(net, j3, j4, std_type='P1')
+    assert net.pump.index.tolist() == [0, 2, 3]
+
+    pandapipes.pipeflow(net, use_numba=use_numba)
+    assert net.converged
+
+
+def test_pump_std_type_pressure_derivative():
+    """get_pressure_derivative must match finite differences of get_pressure, including the
+    cut-off regions (reverse flow and negative polynomial lift), where both are 0."""
+    pump = PumpStdType.from_list("test_pump", [0, 19, 83], [6.1, 5.8, 4], 2)
+    # reverse flow, regular operating range and beyond the zero crossing of the polynomial
+    vdot = np.array([-1e-3, 0.001, 0.005, 0.02, 1.0])
+
+    eps = 1e-8
+    expected = (pump.get_pressure(vdot + eps) - pump.get_pressure(vdot - eps)) / (2 * eps)
+    assert np.allclose(pump.get_pressure_derivative(vdot), expected, rtol=1e-6, atol=1e-6)
+    assert pump.get_pressure_derivative(vdot[0]) == 0
+    assert pump.get_pressure_derivative(vdot[-1]) == 0
+
+    # the vectorized evaluation has to give the same (cut off) values as the scalar one
+    assert np.allclose(pump.get_pressure(vdot), [pump.get_pressure(v) for v in vdot])
+    assert pump.get_pressure(vdot[-1]) == 0
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_pump_quadratic_convergence(use_numba):
+    """The pump's pressure lift depends on its own mass flow - with its derivative in the jacobi
+    matrix, Newton-Raphson converges quadratically (8 iterations here instead of 13 when the lift
+    is only updated between iterations)."""
+    net = pandapipes.create_empty_network(fluid="water")
+    j1, j2, j3, j4 = pandapipes.create_junctions(net, 4, pn_bar=3, tfluid_k=293.15)
+    pandapipes.create_ext_grid(net, j1, p_bar=3, t_k=293.15, type="pt")
+    pandapipes.create_pipe_from_parameters(net, j1, j2, length_km=0.5, inner_diameter_mm=100,
+                                           k_mm=0.1)
+    pandapipes.create_pump_from_parameters(net, j2, j3, "test_pump", [6.1, 5.8, 4], [0, 19, 83], 2)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, length_km=2, inner_diameter_mm=100,
+                                           k_mm=0.1)
+    # two pressure boundaries: the pump's operating point results from its characteristic curve
+    pandapipes.create_ext_grid(net, j4, p_bar=5, t_k=293.15, type="p")
+
+    pandapipes.pipeflow(net, max_iter_hyd=9, tol_p=1e-8, tol_m=1e-8, tol_res=1e-8,
+                        use_numba=use_numba)
+    assert net.converged
+    assert net.res_pump.vdot_m3_per_s.iat[0] > 0
 
 
 if __name__ == '__main__':

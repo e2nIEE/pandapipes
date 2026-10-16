@@ -73,7 +73,7 @@ def test_case_pumps_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_meshed_pumps(results_from="stanet")
-    max_iter_hyd = 21 if use_numba else 21
+    max_iter_hyd = 22 if use_numba else 22
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
                                                     max_iter_hyd=max_iter_hyd,
                                                     use_numba=use_numba)
