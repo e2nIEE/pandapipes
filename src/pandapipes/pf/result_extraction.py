@@ -1,23 +1,9 @@
 import numpy as np
 
 from pandapipes.constants import NORMAL_PRESSURE, NORMAL_TEMPERATURE
-from pandapipes.idx_branch import (
-    QEXT,
-    ELEMENT_IDX,
-    FROM_NODE,
-    TO_NODE,
-    MDOTINIT,
-    RE,
-    LAMBDA,
-    PL,
-    TOUTINIT,
-    AREA,
-    TEXT,
-    LOSS_COEFFICIENT as LC,
-    FROM_NODE_T_SWITCHED, DP_FRICT_LOSS,
-)
-from pandapipes.idx_node import TABLE_IDX as TABLE_IDX_NODE, PINIT, PAMB, TINIT as TINIT_NODE
-from pandapipes.pf.internals_toolbox import _sum_by_group
+from pandapipes.idx_branch import IdxBranch
+from pandapipes.idx_node import IdxNode
+from pandapipes.pf.internals_toolbox import _sum_by_group, branch_area
 from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup, get_net_option
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density
@@ -27,10 +13,20 @@ try:
 except ImportError:
     from pandapower.pf.no_numba import jit
 
+# numba's nopython mode can't type IdxBranch/IdxNode as globals (they're classes, see
+# pandapipes.idx.IndexMeta, not plain ints/modules) - bind the columns get_pressures_numba/
+# get_gas_vel_numba need as plain module-level ints, same fix as
+# pandapipes.pf.derivative_toolbox_numba, and reference these bare names inside those two
+# @jit(nopython=True) functions instead of the class attribute. Every other (non-jitted) function
+# in this module keeps using IdxBranch.X/IdxNode.X normally.
+BRANCH_FROM_NODE = IdxBranch.FROM_NODE
+BRANCH_TOUTINIT = IdxBranch.TOUTINIT
+NODE_TINIT = IdxNode.TINIT
+NODE_PAMB = IdxNode.PAMB
 
-def extract_all_results(net, calculation_mode):
-    """
-    Extract results from branch pit and node pit and write them to the different tables of the net,\
+
+def extract_all_results(net):
+    """Extract results from branch pit and node pit and write them to the different tables of the net,\
     as defined by the component models.
 
     :param net: pandapipes net for which to extract results into net.res_xy
@@ -40,6 +36,7 @@ def extract_all_results(net, calculation_mode):
     :return: No output
 
     """
+    calculation_mode = get_net_option(net, "mode")
     branch_pit = net["_pit"]["branch"]
     node_pit = net["_pit"]["node"]
     branch_results = get_basic_branch_results(net, branch_pit, node_pit)
@@ -66,29 +63,29 @@ def extract_all_results(net, calculation_mode):
 
 
 def get_basic_branch_results(net, branch_pit, node_pit):
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
-    to_nodes = branch_pit[:, TO_NODE].astype(np.int32)
-    t0 = node_pit[from_nodes, TINIT_NODE]
-    t1 = node_pit[to_nodes, TINIT_NODE]
+    from_nodes = branch_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
+    to_nodes = branch_pit[:, IdxBranch.TO_NODE].astype(np.int32)
+    t0 = node_pit[from_nodes, IdxNode.TINIT]
+    t1 = node_pit[to_nodes, IdxNode.TINIT]
     fluid = get_fluid(net)
     if fluid.is_gas:
-        vf = branch_pit[:, MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE)
+        vf = branch_pit[:, IdxBranch.MDOTINIT] / fluid.get_density(NORMAL_TEMPERATURE)
     else:
-        vf = branch_pit[:, MDOTINIT] / get_branch_real_density(fluid, node_pit, branch_pit)
-    v = vf / branch_pit[:, AREA]
-    t_outlet = branch_pit[:, TOUTINIT]
-    branch_results = {"v_mps": v, "mf_from": branch_pit[:, MDOTINIT], "mf_to": -branch_pit[:, MDOTINIT],
-                      "vf": vf, "p_from": node_pit[from_nodes, PINIT], "p_to": node_pit[to_nodes, PINIT],
+        vf = branch_pit[:, IdxBranch.MDOTINIT] / get_branch_real_density(fluid, node_pit, branch_pit)
+    v = vf / branch_area(branch_pit)
+    t_outlet = branch_pit[:, IdxBranch.TOUTINIT]
+    branch_results = {"v_mps": v, "mf_from": branch_pit[:, IdxBranch.MDOTINIT], "mf_to": -branch_pit[:, IdxBranch.MDOTINIT],
+                      "vf": vf, "p_from": node_pit[from_nodes, IdxNode.PINIT], "p_to": node_pit[to_nodes, IdxNode.PINIT],
                       "from_nodes": from_nodes, "to_nodes": to_nodes,  "temp_from": t0, "temp_to": t1,
-                      "reynolds": branch_pit[:, RE], "lambda": branch_pit[:, LAMBDA], "pl": branch_pit[:, PL],
-                      "t_outlet": t_outlet, "qext": branch_pit[:, QEXT], "loss_coeff": branch_pit[:, LC],
-                      "dp_frict_loss": branch_pit[:, DP_FRICT_LOSS]}
+                      "reynolds": branch_pit[:, IdxBranch.RE], "lambda": branch_pit[:, IdxBranch.LAMBDA], "pl": branch_pit[:, IdxBranch.PL],
+                      "t_outlet": t_outlet, "qext": branch_pit[:, IdxBranch.QEXT], "loss_coeff": branch_pit[:, IdxBranch.LOSS_COEFFICIENT],
+                      "dp_frict_loss": branch_pit[:, IdxBranch.DP_FRICT_LOSS]}
     return branch_results
 
 
 def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
-    p_abs_from = node_pit[from_nodes, PAMB] + p_from
-    p_abs_to = node_pit[to_nodes, PAMB] + p_to
+    p_abs_from = node_pit[from_nodes, IdxNode.PAMB] + p_from
+    p_abs_to = node_pit[to_nodes, IdxNode.PAMB] + p_to
     mask = ~np.isclose(p_abs_from, p_abs_to)
     p_abs_mean = np.empty_like(p_abs_to)
     p_abs_mean[~mask] = p_abs_from[~mask]
@@ -96,10 +93,10 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
                        / (p_abs_from[mask] ** 2 - p_abs_to[mask] ** 2)
 
     fluid = get_fluid(net)
-    switched_t = branch_pit[:, FROM_NODE_T_SWITCHED].astype(np.bool_)
-    t_from = node_pit[from_nodes, TINIT_NODE]
-    t_from[switched_t] = node_pit[to_nodes[switched_t], TINIT_NODE]
-    t_to = branch_pit[:, TOUTINIT]
+    switched_t = branch_pit[:, IdxBranch.FROM_NODE_T_SWITCHED].astype(np.bool_)
+    t_from = node_pit[from_nodes, IdxNode.TINIT]
+    t_from[switched_t] = node_pit[to_nodes[switched_t], IdxNode.TINIT]
+    t_to = branch_pit[:, IdxBranch.TOUTINIT]
     tm = (t_from + t_to) / 2
     numerator_from = NORMAL_PRESSURE * t_from / NORMAL_TEMPERATURE
     numerator_to = NORMAL_PRESSURE * t_to / NORMAL_TEMPERATURE
@@ -125,10 +122,10 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
     fluid = get_fluid(net)
     args_from, args_to, args_mean = [p_abs_from], [p_abs_to], [p_abs_mean]
     if hasattr(fluid.all_properties["compressibility"], "allow_2d"):
-        switched_t = branch_pit[:, FROM_NODE_T_SWITCHED].astype(np.bool_)
-        t_from = node_pit[from_nodes, TINIT_NODE]
-        t_from[switched_t] = node_pit[to_nodes[switched_t], TINIT_NODE]
-        t_to = branch_pit[:, TOUTINIT]
+        switched_t = branch_pit[:, IdxBranch.FROM_NODE_T_SWITCHED].astype(np.bool_)
+        t_from = node_pit[from_nodes, IdxNode.TINIT]
+        t_from[switched_t] = node_pit[to_nodes[switched_t], IdxNode.TINIT]
+        t_to = branch_pit[:, IdxBranch.TOUTINIT]
         args_from.append(t_from)
         args_to.append(t_to)
         args_mean.append((t_from + t_to) / 2)
@@ -149,8 +146,8 @@ def get_pressures_numba(node_pit, from_nodes, to_nodes, v_mps, p_from, p_to):
     p_abs_from, p_abs_to, p_abs_mean = [np.empty_like(v_mps) for _ in range(3)]
 
     for i in range(len(v_mps)):
-        p_abs_from[i] = node_pit[from_nodes[i], PAMB] + p_from[i]
-        p_abs_to[i] = node_pit[to_nodes[i], PAMB] + p_to[i]
+        p_abs_from[i] = node_pit[from_nodes[i], NODE_PAMB] + p_from[i]
+        p_abs_to[i] = node_pit[to_nodes[i], NODE_PAMB] + p_to[i]
         if np.less_equal(np.abs(p_abs_from[i] - p_abs_to[i]), 1e-8 + 1e-5 * abs(p_abs_to[i])):
             p_abs_mean[i] = p_abs_from[i]
         else:
@@ -165,10 +162,10 @@ def get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs
                       p_abs_mean, v_mps):
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         [np.empty_like(v_mps) for _ in range(6)]
-    from_nodes = branch_pit[:, FROM_NODE].astype(np.int32)
+    from_nodes = branch_pit[:, BRANCH_FROM_NODE].astype(np.int32)
     for i in range(len(v_mps)):
-        t_from = node_pit[from_nodes[i], TINIT_NODE]
-        t_to = branch_pit[i, TOUTINIT]
+        t_from = node_pit[from_nodes[i], NODE_TINIT]
+        t_to = branch_pit[i, BRANCH_TOUTINIT]
         tm = (t_from + t_to) / 2
         numerator_from = np.divide(NORMAL_PRESSURE * t_from, NORMAL_TEMPERATURE)
         numerator_to = np.divide(NORMAL_PRESSURE * t_to, NORMAL_TEMPERATURE)
@@ -199,7 +196,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
     # since the function _sum_by_group sorts the entries by an index (in this case the index of the
     # respective table), the placement of the indices mus be known to allocate the values correctly
     placement_table = np.argsort(net[table_name].index.values)
-    idx_pit = branch_pit[f:t, ELEMENT_IDX]
+    idx_pit = branch_pit[f:t, IdxBranch.ELEMENT_IDX]
 
     node_pit = net["_pit"]["node"]
 
@@ -223,7 +220,7 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
             # single from_node that is the exterior node (e.g. junction vs. internal pipe_node)
             # result has to be extracted from the node_pit
             end_nodes = branch_results[node_name][f:t]
-            end_nodes_external = node_pit[end_nodes, TABLE_IDX_NODE] != ext_node_tbl_idx
+            end_nodes_external = node_pit[end_nodes, IdxNode.TABLE_IDX] != ext_node_tbl_idx
             considered = end_nodes_external & comp_connected
             external_active = comp_connected[end_nodes_external]
             for res_name, entry in res_ext:
@@ -258,9 +255,9 @@ def extract_branch_results_with_internals(net, branch_results, table_name,
 
 def extract_branch_results_without_internals(net, branch_results, required_results_hydraulic,
                                              required_results_heat, table_name, simulation_mode):
-    """
-    Extract the results from the branch result array derived from the pit to the result table of the
-    net (only for branch components without internal nodes). Here, we need to consider which results
+    """Extract the branch results derived from the pit into the net's result table.
+
+    Only for branch components without internal nodes. Here, we need to consider which results
     exist for hydraulic calculation and for heat transfer calculation (wrt. connectivity).
 
     :param net: The pandapipes net that the internal structure belongs to
@@ -305,39 +302,56 @@ def extract_branch_results_without_internals(net, branch_results, required_resul
                 branch_results[entry][f:t][comp_connected_ht]
 
 
-def extract_results_active_pit(net, mode="hydraulics"):
-    """
-    Extract the pipeflow results from the internal pit structure ("_active_pit") to the general pit
-    structure.
+def extract_results_active_pit_hydraulics(net):
+    """Extract the hydraulic pipeflow results from the internal pit structure ("_active_pit") to the general pit structure.
 
     :param net: The pandapipes net that the internal structure belongs to
     :type net: pandapipesNet
-    :param mode: defines whether results from hydraulic or temperature calculation are transferred
-    :type mode: str, default "hydraulics"
     :return: No output
-
     """
-    nodes_connected = get_lookup(net, "node", "active_" + mode)
-    branches_connected = get_lookup(net, "branch", "active_" + mode)
-    result_node_col = PINIT if mode == "hydraulics" else TINIT_NODE
-    not_affected_node_col = TINIT_NODE if mode == "hydraulics" else PINIT
+    nodes_connected = get_lookup(net, "node", "active_hydraulics")
+    branches_connected = get_lookup(net, "branch", "active_hydraulics")
     copied_node_cols = np.array([i for i in range(net["_pit"]["node"].shape[1])
-                                 if i not in [not_affected_node_col]])
+                                 if i not in [IdxNode.TINIT]])
     rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
 
-    result_branch_col = MDOTINIT if mode == "hydraulics" else TOUTINIT
-    not_affected_branch_col = TOUTINIT if mode == "hydraulics" else MDOTINIT
     copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
-                                   if i not in [FROM_NODE, TO_NODE,
-                                                not_affected_branch_col]])
+                                   if i not in [IdxBranch.FROM_NODE, IdxBranch.TO_NODE,
+                                                IdxBranch.TOUTINIT]])
+    rows_branches = np.arange(net["_pit"]["branch"].shape[0])[branches_connected]
+
+    net["_pit"]["node"][~nodes_connected, IdxNode.PINIT] = np.nan
+    net["_pit"]["node"][rows_nodes[:, np.newaxis], copied_node_cols[np.newaxis, :]] = \
+        net["_active_pit"]["node"][:, copied_node_cols]
+    net["_pit"]["branch"][~branches_connected, IdxBranch.MDOTINIT] = np.nan
+    net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
+        net["_active_pit"]["branch"][:, copied_branch_cols]
+
+
+def extract_results_active_pit_heat_transfer(net):
+    """Extract the heat transfer pipeflow results from the internal pit structure ("_active_pit") to the general pit structure.
+
+    :param net: The pandapipes net that the internal structure belongs to
+    :type net: pandapipesNet
+    :return: No output
+    """
+    nodes_connected = get_lookup(net, "node", "active_heat_transfer")
+    branches_connected = get_lookup(net, "branch", "active_heat_transfer")
+    copied_node_cols = np.array([i for i in range(net["_pit"]["node"].shape[1])
+                                 if i not in [IdxNode.PINIT]])
+    rows_nodes = np.arange(net["_pit"]["node"].shape[0])[nodes_connected]
+
+    copied_branch_cols = np.array([i for i in range(net["_pit"]["branch"].shape[1])
+                                   if i not in [IdxBranch.FROM_NODE, IdxBranch.TO_NODE,
+                                                IdxBranch.MDOTINIT]])
     rows_branches = np.arange(net["_pit"]["branch"].shape[0])[branches_connected]
 
     amb = get_net_option(net, 'ambient_temperature')
 
-    net["_pit"]["node"][~nodes_connected, result_node_col] = np.nan if mode == "hydraulics" else amb
+    net["_pit"]["node"][~nodes_connected, IdxNode.TINIT] = amb
     net["_pit"]["node"][rows_nodes[:, np.newaxis], copied_node_cols[np.newaxis, :]] = \
         net["_active_pit"]["node"][:, copied_node_cols]
-    net["_pit"]["branch"][~branches_connected, result_branch_col] = np.nan if mode == "hydraulics" else \
-        net["_pit"]["branch"][~branches_connected, TEXT]
+    net["_pit"]["branch"][~branches_connected, IdxBranch.TOUTINIT] = \
+        net["_pit"]["branch"][~branches_connected, IdxBranch.TEXT]
     net["_pit"]["branch"][rows_branches[:, np.newaxis], copied_branch_cols[np.newaxis, :]] = \
         net["_active_pit"]["branch"][:, copied_branch_cols]
