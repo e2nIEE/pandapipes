@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
+from pandapipes.properties.fluids import FluidPropertyConstant, FluidPropertyLinear
 from pandapipes.test import data_path
 
 
@@ -59,3 +60,30 @@ def test_circulation_pump_constant_mass(use_numba):
     assert np.all(v_diff < 0.01)
     assert np.all(mdot_diff < 0.01)
     assert np.all(deltap_diff < 0.01)
+
+
+@pytest.mark.parametrize("capacity", ["water", "constant", "linear"])
+@pytest.mark.parametrize("load_w", [0.0, 150000.0, -100000.0])
+def test_circulation_pump_mass_lossless_heat_balance(capacity, load_w):
+    net = pandapipes.create_empty_network(fluid="water")
+    fluid = pandapipes.get_fluid(net)
+    if capacity == "constant":
+        fluid.add_property("heat_capacity", FluidPropertyConstant(4200),
+                           overwrite=True, warn_on_duplicates=False)
+    elif capacity == "linear":
+        fluid.add_property("heat_capacity", FluidPropertyLinear(2, 3000),
+                           overwrite=True, warn_on_duplicates=False)
+    junctions = [pandapipes.create_junction(net, pn_bar=4, tfluid_k=353.15) for _ in range(3)]
+    pandapipes.create_circ_pump_const_mass_flow(net, junctions[0], junctions[1],
+                                                p_flow_bar=4, mdot_flow_kg_per_s=2,
+                                                t_flow_k=363.15)
+    pandapipes.create_heat_exchanger(net, junctions[2], junctions[0],
+                                     qext_w=load_w, inner_diameter_mm=100)
+    pandapipes.create_pipe_from_parameters(net, junctions[1], junctions[2],
+                                           length_km=.01, inner_diameter_mm=100,
+                                           u_w_per_m2k=0, k_mm=.1)
+    pandapipes.pipeflow(net, mode="sequential", use_numba=False,
+                        max_iter_hyd=30, max_iter_therm=100, tol_T=1e-9, tol_res=1e-9)
+    assert net.converged
+    # No heat loss, no accumulation: source heat must equal the imposed load.
+    assert net.res_circ_pump_mass.loc[0, "qext_w"] == pytest.approx(load_w, abs=1e-3)

@@ -60,6 +60,7 @@ logger = logging.getLogger(__name__)
 
 class pandapipesNet(ADict):
     def __init__(self, *args, **kwargs):
+        """Initialize the net, deep-copying data from *args[0]* if it is already a pandapipesNet."""
         super().__init__(*args, **kwargs)
         if isinstance(args[0], self.__class__):
             net = args[0]
@@ -70,6 +71,7 @@ class pandapipesNet(ADict):
         return copy.deepcopy(self)
 
     def __repr__(self):  # pragma: no cover
+        """Return a human-readable summary of the net's non-empty tables, fluid, and components."""
         r = "This pandapipes network includes the following parameter tables:"
         par = []
         res = []
