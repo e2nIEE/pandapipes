@@ -6,8 +6,8 @@ from pandapipes.timeseries import run_timeseries
 
 
 def test_person_run_fct_time_series():
-    def person_run_fct(net, sol_vec=None, **kwargs):
-        pps.pipeflow(net, sol_vec, **kwargs)
+    def person_run_fct(net, **kwargs):
+        pps.pipeflow(net, **kwargs)
         net.res_junction.p_bar.values[:] = 15.
 
     net = ntw.water_strand_net_2pumps()

@@ -6,13 +6,15 @@ from pandapipes.component_models.abstract_models.const_flow_models import ConstF
 
 
 class Source(ConstFlow):
-    """
-
-    """
+    """Source component that injects mass into a junction."""
 
     @classmethod
     def table_name(cls):
         return "source"
+
+    @classmethod
+    def active_identifier(cls):
+        return "in_service"
 
     @classmethod
     def sign(cls):
@@ -21,7 +23,3 @@ class Source(ConstFlow):
     @classmethod
     def get_connected_node_type(cls):
         return Junction
-
-    @classmethod
-    def active_identifier(cls):
-        return "in_service"

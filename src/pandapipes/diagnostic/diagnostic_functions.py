@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 
 from pandapipes import PipeflowNotConverged
-from pandapipes.idx_node import PINIT
-from pandapipes.idx_branch import MDOTINIT
+from pandapipes.idx_node import IdxNode
+from pandapipes.idx_branch import IdxBranch
 from pandapipes.diagnostic.diagnostic_helper import (
     DiagnosticFunction,
     check_boolean,
@@ -1169,8 +1169,8 @@ class CalculationModeCheck(DiagnosticFunction):
                 if mode == "heat":
                     pp.pipeflow(net2, mode="hydraulics")
                     sol_vec = np.r_[
-                        net2["_pit"]["node"][:, PINIT],
-                        net2["_pit"]["branch"][:, MDOTINIT]
+                        net2["_pit"]["node"][:, IdxNode.PINIT],
+                        net2["_pit"]["branch"][:, IdxBranch.MDOTINIT]
                     ]
                     pp.pipeflow(net2, mode="heat", sol_vec=sol_vec)
                 else:
