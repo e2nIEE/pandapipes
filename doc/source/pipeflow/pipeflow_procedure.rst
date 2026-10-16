@@ -18,7 +18,7 @@ calculation bases, but some level of abstraction is required as well. The calcul
 performed with the pandas tables defined in the pandapipes network, but on the basis of an internal
 structure called "pandapipes internal tables" or "pit", which can be found in net["_pit"]. This
 internal structure consists of two numpy arrays, one for all network nodes and one for all branches.
-With the help of this internal structure, a system matrix is built up, i.e. a system of equations
+With the help of this internal structure, a jacobi matrix is built up, i.e. a system of equations
 in order to solve for pressure and velocity based on initial guesses and formulations for the
 derivatives. That means that a Newton-Raphson solver (c.f. `Newton-Raphson method on Wikipedia
 <https://en.wikipedia.org/wiki/Newton%27s_method>`_, or :cite:`Dahmen2008`) is implemented in
@@ -110,7 +110,7 @@ Constructing the Jacobian Matrix
 
 Once the internal structure is created, the Newton steps can be performed. That means that the
 residual and its derivatives with respect to the estimated variables (*p*, *v*, *T*) are calculated
-and written to the branch pit. Then the system matrix is constructed which means that all the
+and written to the branch pit. Then the jacobi matrix is constructed which means that all the
 derivatives are written into one large sparse matrix in which the row indices represent the node
 indices followed by the branch indices and the column indices represent the indices of the solution
 variables (typically they also belong to nodes and branches). It contains all the derivatives. The

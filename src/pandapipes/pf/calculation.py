@@ -394,7 +394,7 @@ def solve_temperature(net):
 
     Uses the underlying net and the necessary graph data structures. Returned are the
     solution vectors for the new iteration, the original solution vectors and a vector
-    containing component indices for the system matrix entries.
+    containing component indices for the jacobi matrix entries.
 
     :param net: The pandapipesNet for which to solve the temperature matrix
     :type net: pandapipesNet

@@ -165,7 +165,7 @@ class PressureControlComponent(BranchWOInternalsComponent):
         # equation position branch
         branch_eq  = sys_idx.idx(HydVarEq.BRANCH, branch_idx)
 
-        # system matrix branch
+        # jacobi matrix branch
         rows_branch = np.concatenate([branch_eq, branch_eq, branch_eq]).astype(np.int32)
         cols_branch = np.concatenate([mdot_col, p_from_col, p_to_col]).astype(np.int32)
         data_branch = np.concatenate([df_dm, df_dp, df_dp1]).astype(np.float64)
@@ -223,7 +223,7 @@ class PressureControlComponent(BranchWOInternalsComponent):
         # equation position branch
         branch_eq  = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
 
-        # system matrix branch
+        # jacobi matrix branch
         rows_branch = np.concatenate([branch_eq, branch_eq]).astype(np.int32)
         cols_branch = np.concatenate([t_from_col, t_out_col]).astype(np.int32)
         data_branch = np.concatenate([dfb_dt, dfb_dtout]).astype(np.float64)

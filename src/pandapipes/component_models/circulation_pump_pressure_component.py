@@ -103,7 +103,7 @@ class CirculationPumpPressure(CirculationPump):
         # equation position branch
         branch_eq = sys_idx.idx(HydVarEq.BRANCH, branch_idx)
 
-        # system matrix branch: 1 * δp_from - 1 * δp_to = residual (override)
+        # jacobi matrix branch: 1 * δp_from - 1 * δp_to = residual (override)
         rows_branch = np.concatenate([branch_eq, branch_eq]).astype(np.int32)
         cols_branch = np.concatenate([p_from_col, p_to_col]).astype(np.int32)
         data_branch = np.concatenate([np.ones(len(branch_idx)), -np.ones(len(branch_idx))]).astype(np.float64)
@@ -140,7 +140,7 @@ class CirculationPumpPressure(CirculationPump):
         # equation position branch
         branch_eq = sys_idx.idx(ThermVarEq.BRANCH, branch_idx)
 
-        # system matrix branch: outlet temperature fixed at t_flow_k (override)
+        # jacobi matrix branch: outlet temperature fixed at t_flow_k (override)
         rows_branch = branch_eq.astype(np.int32)
         cols_branch = branch_eq.astype(np.int32)
         data_branch = np.ones(len(branch_idx), dtype=np.float64)

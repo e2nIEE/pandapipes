@@ -123,7 +123,7 @@ class Junction(NodeComponent):
         # equation position node
         n_eq = sys_idx.idx(ThermVarEq.NODE, stagnant)
 
-        # system matrix node
+        # jacobi matrix node
         rows_node = n_eq.astype(np.int32)
         cols_node = t_n_col.astype(np.int32)
         data_node = dfn_dt[stagnant].astype(np.float64)

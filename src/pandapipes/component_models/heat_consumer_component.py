@@ -199,7 +199,7 @@ class HeatConsumer(BranchWOInternalsComponent):
             df_dm[mask_qe_tr & ~mask_ign] = df_dm_qetr[mask_qe_tr & ~mask_ign]
             residual[mask_qe_tr] = (-b_pit[mask_qe_tr, IdxBranch.QEXT] + df_dm_qetr[mask_qe_tr] * b_pit[mask_qe_tr, IdxBranch.MDOTINIT])
 
-        # system matrix branch
+        # jacobi matrix branch
         rows_branch = branch_eq.astype(np.int32)
         cols_branch = mdot_col.astype(np.int32)
         data_branch = df_dm.astype(np.float64)
@@ -274,7 +274,7 @@ class HeatConsumer(BranchWOInternalsComponent):
             dfb_dtout[mask] = 1
             fb[mask] = 0
 
-        # system matrix branch
+        # jacobi matrix branch
         rows_branch = np.concatenate([branch_eq, branch_eq]).astype(np.int32)
         cols_branch = np.concatenate([t_from_col, t_out_col]).astype(np.int32)
         data_branch = np.concatenate([dfb_dt, dfb_dtout]).astype(np.float64)

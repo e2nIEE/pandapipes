@@ -166,7 +166,7 @@ class ExtGrid(NodeElementComponent):
         # equation position slack
         slack_eq = sys_idx.idx(HydVarEq.SLACK, eg_nodes)
 
-        # system matrix slack: pressure fix — δPINIT = 0. Registered once per ext_grid ROW (not
+        # jacobi matrix slack: pressure fix — δPINIT = 0. Registered once per ext_grid ROW (not
         # deduplicated by node) with MEAN: several ext_grids at the same junction all target the
         # same row, and MEAN lets them coexist there peacefully (also with a circ_pump's own
         # pressure fix, if co-located) instead of UNIQUE's exclusive-ownership conflict check.
@@ -179,7 +179,7 @@ class ExtGrid(NodeElementComponent):
         # equation position node
         n_eq = sys_idx.idx(HydVarEq.NODE, eg_nodes)
 
-        # system matrix node: MDOTSLACKINIT participates in mass balance - free to absorb
+        # jacobi matrix node: MDOTSLACKINIT participates in mass balance - free to absorb
         # whatever residual the rest of the network leaves over, exactly the point of a real
         # ext_grid (unlike a circ_pump's own anchor node, see CirculationPump). Also registered
         # once per ext_grid ROW (not deduplicated): N ext_grids at the same node each add their
@@ -240,7 +240,7 @@ class ExtGrid(NodeElementComponent):
         # equation position node
         n_eq = sys_idx.idx(ThermVarEq.NODE, infeed_nodes)
 
-        # system matrix node
+        # jacobi matrix node
         rows_node = n_eq.astype(np.int32)
         cols_node = t_col.astype(np.int32)
         data_node = np.ones(len(n_eq), dtype=np.float64)
