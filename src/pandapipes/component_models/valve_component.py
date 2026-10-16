@@ -19,7 +19,7 @@ from pandapipes.pf.derivative_calculation import (
     calculate_derivatives_hydraulic, calculate_derivatives_branch_thermal,
 )
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
-from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
+from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup, is_transient_warm_start
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.pf.system_index import ComponentEquations, HydVarEq, PitEntries, ThermVarEq
 
@@ -105,11 +105,12 @@ class Valve(BranchWInternalsComponent):
 
         rows = np.arange(f, t, dtype=np.int32)
 
-        registry.add(PitEntries(*build_pit_entries(
-            rows,
-            [IdxNode.TINIT, IdxNode.PINIT],
-            [junc_df.tfluid_k.values[local_idx], junc_df.pn_bar.values[local_idx]],
-        )))
+        if not is_transient_warm_start(net):
+            registry.add(PitEntries(*build_pit_entries(
+                rows,
+                [IdxNode.TINIT, IdxNode.PINIT],
+                [junc_df.tfluid_k.values[local_idx], junc_df.pn_bar.values[local_idx]],
+            )))
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             height_vals = junc_df.height_m.values[local_idx]
             registry.add(PitEntries(*build_pit_entries(
@@ -185,7 +186,9 @@ class Valve(BranchWInternalsComponent):
                  np.full(len(rows), get_net_option(net, 'ambient_temperature'))],
             )))
 
-        # TOUTINIT — always set (not conditional on transient)
+        if is_transient_warm_start(net):
+            return
+
         toutinit = np.zeros(len(rows))
         if np.any(mask_j):
             toutinit[mask_j] = junc_df.tfluid_k.values[

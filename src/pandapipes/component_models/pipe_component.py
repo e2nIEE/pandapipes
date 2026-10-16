@@ -17,7 +17,8 @@ from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic, calculate_derivatives_branch_thermal
 from pandapipes.pf.internals_toolbox import branch_area, get_from_nodes_corrected, get_to_nodes_corrected
-from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option, get_table_number
+from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup, get_net_option, get_table_number, \
+    is_transient_warm_start
 from pandapipes.pf.result_extraction import extract_branch_results_with_internals, \
     extract_branch_results_without_internals
 from pandapipes.pf.system_index import ComponentEquations, BaseSystemIndex, HydVarEq, PitEntries, ThermVarEq
@@ -122,7 +123,7 @@ class Pipe(BranchWInternalsComponent):
                 [IdxNode.TINIT, IdxNode.PINIT, IdxNode.HEIGHT, IdxNode.PAMB, IdxNode.ACTIVE],
                 [tinit_vals, pinit_vals, height_vals, pamb_vals, active_vals],
             )))
-        else:
+        elif not is_transient_warm_start(net):
             registry.add(PitEntries(*build_pit_entries(
                 rows,
                 [IdxNode.TINIT, IdxNode.PINIT],
@@ -175,14 +176,15 @@ class Pipe(BranchWInternalsComponent):
                 [from_nodes.astype(float), to_nodes.astype(float),
                  length_vals, k_vals, alpha_vals, text_vals, toutinit_vals],
             )))
-        else:
+        elif not is_transient_warm_start(net):
             registry.add(PitEntries(*build_pit_entries(
                 rows, [IdxBranch.TOUTINIT], [toutinit_vals],
             )))
 
-        registry.add(PitEntries(*build_pit_entries(
-            rows, [IdxBranch.MDOTINIT], [mdotinit_vals],
-        )))
+        if not is_transient_warm_start(net):
+            registry.add(PitEntries(*build_pit_entries(
+                rows, [IdxBranch.MDOTINIT], [mdotinit_vals],
+            )))
 
     @classmethod
     def register_equations(cls, net, branch_pit, node_pit,

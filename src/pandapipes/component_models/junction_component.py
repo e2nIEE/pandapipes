@@ -16,7 +16,7 @@ from pandapipes.idx_node import IdxNode
 from pandapipes.pf.derivative_calculation import calculate_derivatives_node_thermal
 from pandapipes.pf.system_index import PitEntries, ComponentEquations, ThermVarEq
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
-    get_lookup, get_net_option
+    get_lookup, get_net_option, is_transient_warm_start
 
 
 class Junction(NodeComponent):
@@ -93,7 +93,7 @@ class Junction(NodeComponent):
                  junctions.in_service.values.astype(float),
                  junctions.tfluid_k.values, junctions.pn_bar.values],
             )))
-        else:
+        elif not is_transient_warm_start(net):
             registry.add(PitEntries(*build_pit_entries(
                 rows,
                 [IdxNode.TINIT, IdxNode.PINIT],

@@ -27,7 +27,7 @@ from pandapipes.pf.derivative_calculation import (
     calculate_derivatives_hydraulic, calculate_derivatives_branch_thermal,
 )
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected, branch_area
-from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup
+from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup, is_transient_warm_start
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.pf.system_index import ComponentEquations, HydVarEq, PitEntries, ThermVarEq
 
@@ -77,7 +77,7 @@ class Pump(BranchWOInternalsComponent):
 
         f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
         tbl = net[cls.table_name()]
-        if not len(tbl):
+        if not len(tbl) or is_transient_warm_start(net):
             return
 
         rows = np.arange(f, t, dtype=np.int32)
