@@ -2,6 +2,7 @@ Change Log
 =============
 [0.16.0] - 2026-10-16
 -------------------------------
+- [FIXED] considering pump derivatives
 - [ADDED] architecture restructuring to enable a flexible creation of the jacobian matrix
 - [ADDED] heat-power-coupling controller
 
