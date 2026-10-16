@@ -28,7 +28,7 @@ from pandapipes.idx_node import IdxNode
 from pandapipes.pf.derivative_calculation import (
     calculate_derivatives_hydraulic, calculate_derivatives_branch_thermal,
 )
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected, branch_area
+from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup, is_transient_warm_start
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
 from pandapipes.pf.system_index import PitEntries
@@ -117,11 +117,16 @@ class Pump(BranchWOInternalsComponent):
             return
 
         b_pit = branch_pit[f:t]
-        cls._compute_pl(net, b_pit, node_pit)
+        dpl_dm, dpl_dp = cls._compute_pl(net, b_pit, node_pit)
 
         df_dm, df_dp, df_dp1, df_dm_node, residual, residual_fn, residual_tn = (
             calculate_derivatives_hydraulic(net, b_pit, node_pit, get_hydraulic_options(net))
         )
+        # PL enters the branch residual with a plus sign, so its own dependence on mdot and on the
+        # from-node pressure belongs into the jacobi matrix - without it, PL is only updated from
+        # one Newton step to the next and the solver converges linearly instead of quadratically.
+        df_dm += dpl_dm
+        df_dp += dpl_dp
 
         fn = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
         tn = b_pit[:, IdxBranch.TO_NODE].astype(np.int32)
@@ -134,6 +139,10 @@ class Pump(BranchWOInternalsComponent):
     @classmethod
     def _compute_pl(cls, net, b_pit, node_pit):
         """Compute pressure lift from pump characteristic and write it into b_pit[:, PL].
+
+        Returns the derivatives of PL with respect to MDOTINIT and to the from-node's PINIT
+        (dpl_dm, dpl_dp). For a pump, PL only depends on mdot via the volume flow; for gases, the
+        dependence of the volume flow on the inlet pressure (normfactor) is neglected.
 
         get_component_array(net, cls.table_name()) is filtered by the same active_hydraulics
         mask, over the same table row range, as b_pit itself (see _register_hydraulic_equations
@@ -150,23 +159,26 @@ class Pump(BranchWOInternalsComponent):
 
         from_nodes = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
         fluid = get_fluid(net)
-        area = branch_area(b_pit)
-        v_mps = b_pit[:, IdxBranch.MDOTINIT] / area / fluid.get_density(NORMAL_TEMPERATURE)
+        rho_n = fluid.get_density(NORMAL_TEMPERATURE)
         if fluid.is_gas:
             p_from = node_pit[from_nodes, IdxNode.PAMB] + node_pit[from_nodes, IdxNode.PINIT]
             t_from = node_pit[from_nodes, IdxNode.TINIT]
             normfactor = (NORMAL_PRESSURE * t_from
                           * fluid.get_compressibility(p_from, t_from)
                           / (p_from * NORMAL_TEMPERATURE))
-            v_from = v_mps * normfactor
         else:
-            v_from = v_mps
+            normfactor = np.ones(len(b_pit))
 
-        vol = v_from * area
+        # volume flow at the inlet: vol = mdot / rho_n * normfactor
+        dvol_dm = normfactor / rho_n
+        vol = b_pit[:, IdxBranch.MDOTINIT] * dvol_dm
+        dpl_dm = np.zeros(len(b_pit))
         if len(std_types):
             fcts = itemgetter(*std_types)(net['std_types']['pump'])
             fcts = [fcts] if not isinstance(fcts, tuple) else fcts
-            b_pit[:, IdxBranch.PL] = np.array(list(map(lambda f, v: f.get_pressure(v), fcts, vol)))
+            b_pit[:, IdxBranch.PL] = np.array([fct.get_pressure(v) for fct, v in zip(fcts, vol)])
+            dpl_dm = np.array([fct.get_pressure_derivative(v) for fct, v in zip(fcts, vol)]) * dvol_dm
+        return dpl_dm, np.zeros(len(b_pit))
 
     @classmethod
     def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry) -> None:
