@@ -48,11 +48,17 @@ class Compressor(Pump):
 
         See Pump._compute_pl's docstring: compr_array is already row-aligned with b_pit through
         get_component_array's own active_hydraulics filtering, so no separate index is needed.
+        Returns (dpl_dm, dpl_dp) like Pump._compute_pl - the lift only depends on the absolute
+        inlet pressure, so d(PL)/d(PINIT of the from-node) = pressure_ratio - 1.
         """
         compr_array = get_component_array(net, cls.table_name())
         pressure_ratio = compr_array[:, cls.PRESSURE_RATIO]
         from_nodes = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
         p_from = node_pit[from_nodes, IdxNode.PAMB] + node_pit[from_nodes, IdxNode.PINIT]
+        reverse = b_pit[:, IdxBranch.MDOTINIT] < 0
         pl_abs = p_from * pressure_ratio - p_from
-        pl_abs[b_pit[:, IdxBranch.MDOTINIT] < 0] = 0.0
+        pl_abs[reverse] = 0.0
         b_pit[:, IdxBranch.PL] = pl_abs
+        dpl_dp = pressure_ratio - 1
+        dpl_dp[reverse] = 0.0
+        return np.zeros(len(b_pit)), dpl_dp
