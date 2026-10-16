@@ -127,7 +127,8 @@ def register_circ_pump_node_continuity(net, branch_pit, sys_idx, registry, table
     register_branch_node_mass_balance(sys_idx, registry, fn, tn, mdot_col, dm_node, -m, m)
 
 
-def register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, registry, table_name):
+def register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, registry, table_name,
+                                       type_p_col):
     """Register the pressure/slack-mass equations for a circulation pump's own flow junction.
 
     A circ pump's own flow junction gets ``NODE_TYPE = P`` purely to anchor an absolute
@@ -141,16 +142,17 @@ def register_circ_pump_slack_equations(net, branch_pit, node_pit, sys_idx, regis
     (``COUNT_VAR_MASS_SLACK``, set by ``ExtGrid.register_pit_node_entries``) - where one is,
     ExtGrid's own registration already lets ``MDOTSLACKINIT`` freely absorb residual mass
     there, and this must not fight it for ownership of that row.
-    """
-    # local import to avoid a circular import (circulation_pump.py imports from this module)
-    from pandapipes.component_models.abstract_models.circulation_pump import CirculationPump
 
+    ``type_p_col`` is the component array column flagging pressure-type pumps
+    (``CirculationPump.TYPE_P``). It is passed in by the caller, as circulation_pump.py imports
+    from this module.
+    """
     f, t = get_lookup(net, "branch", "from_to_active_hydraulics")[table_name]
     if f == t:
         return
 
     cp_array = get_component_array(net, table_name)
-    p_mask = cp_array[:, CirculationPump.TYPE_P].astype(bool)
+    p_mask = cp_array[:, type_p_col].astype(bool)
     if not np.any(p_mask):
         return
 

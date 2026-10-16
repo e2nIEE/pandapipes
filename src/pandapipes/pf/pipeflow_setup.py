@@ -808,7 +808,7 @@ def reduce_component_pits(net, branches_connected, nodes_connected):
     """
     branch_ft = get_lookup(net, "branch", "from_to")
     node_ft = get_lookup(net, "node", "from_to")
-    active_components = dict()
+    active_components = {}
     for name, comp_pit in net["_pit"]["components"].items():
         if name in branch_ft:
             f, t = branch_ft[name]

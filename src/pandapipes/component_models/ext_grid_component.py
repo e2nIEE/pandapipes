@@ -211,7 +211,7 @@ class ExtGrid(NodeElementComponent):
         ))
 
     @classmethod
-    def _register_thermal_equations(cls, net, branch_pit, node_pit, sys_idx, registry):
+    def _register_thermal_equations(cls, net, _, node_pit, sys_idx, registry):
         eg_array = get_component_array(net, cls.table_name(), only_active=False)
         if not len(eg_array):
             return
