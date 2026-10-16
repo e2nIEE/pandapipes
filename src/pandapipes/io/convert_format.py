@@ -10,7 +10,6 @@ from pandapipes.component_models.circulation_pump_mass_component import Circulat
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 from pandapipes.component_models.valve_component import Valve
 from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.component_models.heat_exchanger_component import HeatExchanger
 
 try:
     import pandaplan.core.pplog as logging
@@ -21,9 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def convert_format(net):
-    """
-    Converts old nets to new format to ensure consistency. The converted net is returned.
-    """
+    """Convert old nets to new format to ensure consistency. The converted net is returned."""
     _add_sector(net)
     add_default_components(net, overwrite=False)
     format_version = version.parse(__format_version__)

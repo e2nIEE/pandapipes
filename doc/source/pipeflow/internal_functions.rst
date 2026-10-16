@@ -14,14 +14,17 @@ in the pipeflow setup and were not yet described:
 .. _create_internal_results:
 .. autofunction:: pandapipes.create_internal_results
 
-.. _extract_all_results:
+.. _create_lookups:
 .. autofunction:: pandapipes.create_lookups
 
-.. _create_junction:
+.. _extract_all_results:
 .. autofunction:: pandapipes.extract_all_results
 
-.. _extract_results_active_pit:
-.. autofunction:: pandapipes.extract_results_active_pit
+.. _extract_results_active_pit_hydraulics:
+.. autofunction:: pandapipes.pf.result_extraction.extract_results_active_pit_hydraulics
+
+.. _extract_results_active_pit_heat_transfer:
+.. autofunction:: pandapipes.pf.result_extraction.extract_results_active_pit_heat_transfer
 
 .. _get_lookup:
 .. autofunction:: pandapipes.get_lookup
