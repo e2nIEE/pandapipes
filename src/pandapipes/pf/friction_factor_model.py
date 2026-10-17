@@ -129,7 +129,7 @@ class SwameeJain(FrictionFactorModel):
         a = 1.325474527619599502640416597148504422899
         lambda_ = a / log_squared
 
-        # a = 0.25 * ln(10)**2 * (-2) * 5.74 * (-0.9)
+        # b = 0.25 * ln(10)**2 * (-2) * 5.74 * (-0.9)
         b = 13.69480281936570206128078428173834769740
         dlambda_dm = b * inv_re_09 / (log_cubed * inner_log_term * m)
         return lambda_, dlambda_dm
