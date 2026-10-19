@@ -192,25 +192,46 @@ class PumpStdType(RegressionStdType):
                 in [bar]
         :rtype: float
         """
-        # no reverse flow - for vdot < 0, assume bypassing
-        n = np.arange(len(self.reg_par), 0, -1)
-        if np.iterable(vdot_m3_per_s):
-            results = np.zeros(len(vdot_m3_per_s), dtype=float)
-            if any(vdot_m3_per_s < 0):
-                logger.debug("Reverse flow observed in a %s pump. "
-                             "Bypassing without pressure change is assumed" % str(self.name))
-            mask = vdot_m3_per_s >= 0
-            # no negative pressure lift - bypassing always allowed:
-            results[mask] = \
-                np.where(mask, np.sum(self.reg_par * (vdot_m3_per_s[mask][:, None] * 3600) ** (n - 1), axis=1), 0)
-        else:
-            if vdot_m3_per_s < 0:
-                logger.debug("Reverse flow observed in a %s pump. "
-                             "Bypassing without pressure change is assumed" % str(self.name))
-                results = 0
-            else:
-                results = max(0, sum(self.reg_par * (vdot_m3_per_s * 3600) ** (n - 1)))
-        return results
+        _, lift, active = self._evaluate_curve(vdot_m3_per_s)
+        results = np.where(active, lift, 0.)
+        return results if np.iterable(vdot_m3_per_s) else float(results)
+
+    def get_pressure_derivative(self, vdot_m3_per_s):
+        """Calculate the derivative of the pressure lift with respect to the volume flow rate.
+
+        Consistent with get_pressure: the derivative is 0 wherever get_pressure is cut off, i.e.
+        for reverse flows (bypassing) and where the polynomial would yield a negative lift.
+
+        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s].
+        :type vdot_m3_per_s: float, array-like
+        :return: The derivative of the pressure lift in [bar / (m^3/s)]
+        :rtype: float, array-like
+        """
+        vdot, _, active = self._evaluate_curve(vdot_m3_per_s)
+        # the polynomial is defined in m^3/h
+        derivative = 3600 * np.polyval(np.polyder(self.reg_par), np.maximum(vdot, 0) * 3600)
+        results = np.where(active, derivative, 0.)
+        return results if np.iterable(vdot_m3_per_s) else float(results)
+
+    def _evaluate_curve(self, vdot_m3_per_s):
+        """Evaluate the regression polynomial and mark where the pump actually lifts pressure.
+
+        For vdot < 0, bypassing without pressure change is assumed; a negative lift from the
+        polynomial is cut off as well.
+
+        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s].
+        :type vdot_m3_per_s: float, array-like
+        :return: (vdot, lift, active) - volume flow as array, uncut polynomial lift in [bar] and
+                 the mask where the lift is applied
+        :rtype: tuple(np.ndarray)
+        """
+        vdot = np.asarray(vdot_m3_per_s, dtype=float)
+        if np.any(vdot < 0):
+            logger.debug("Reverse flow observed in a %s pump. "
+                         "Bypassing without pressure change is assumed" % str(self.name))
+        # the polynomial is defined in m^3/h
+        lift = np.polyval(self.reg_par, np.maximum(vdot, 0) * 3600)
+        return vdot, lift, (vdot >= 0) & (lift > 0)
 
     @classmethod
     def from_path(cls, name, path):
