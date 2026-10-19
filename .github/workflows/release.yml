@@ -85,7 +85,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pytest igraph pytest-split
-          if [${{ matrix.python-version != '3.11' }}]; then python -m pip install numba; fi
+        shell: bash
+      - name: Install numba
+        if: ${{ matrix.python-version != '3.11' }}
+        run: |
+          python -m pip install numba
         shell: bash
       - name: Install pandapipes from TestPyPI
         if: ${{ inputs.upload_server == 'testpypi'}}

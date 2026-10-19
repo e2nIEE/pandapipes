@@ -3,10 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import tempfile
-
+import numpy as np
 from pandapipes.control import run_control
-from pandapipes.pipeflow import PipeflowNotConverged, pipeflow
-from pandapower.control import NetCalculationNotConverged
+from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
+from pandapipes.pipeflow import pipeflow
+from pandapower.control import NetCalculationNotConverged, ConstControl
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.output_writer import OutputWriter
 from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup, \
@@ -21,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def init_default_outputwriter(net, time_steps, **kwargs):
-    """
-    Creates a default output writer for the time series calculation.
+    """Creates a default output writer for the time series calculation.
 
     :param net: The pandapipes format network
     :type net: pandapipesNet
@@ -65,7 +65,7 @@ def init_default_outputwriter(net, time_steps, **kwargs):
 
 
 def pf_not_converged(time_step, ts_variables):
-    """
+    """Handle a pipeflow non-convergence event at a given time step.
 
     :param time_step: Time step to be calculated
     :type time_step: int
@@ -80,8 +80,7 @@ def pf_not_converged(time_step, ts_variables):
 
 
 def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True, **kwargs):
-    """
-    Initializes the time series calculation.
+    """Initializes the time series calculation.
 
     Creates the dict ts_variables, which includes necessary variables for the time series /
     control function.
@@ -100,7 +99,6 @@ def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True
     :return: ts_variables, kwargs
     :rtype: dict, dict
     """
-
     run = kwargs.pop("run", pipeflow)
     init_default_outputwriter(net, time_steps, **kwargs)
 
@@ -113,14 +111,18 @@ def init_time_series(net, time_steps, continue_on_divergence=False, verbose=True
 
 
 def run_loop(net, ts_variables, run_control_fct=run_control, output_writer_fct=_call_output_writer, **kwargs):
-    """
-    runs the time series loop which calls pp.runpp (or another run function) in each iteration
+    """Run the time series loop which calls pp.runpp (or another run function) in each iteration.
 
     Parameters
     ----------
-    net - pandapower net
-    ts_variables - settings for time series
-
+    net : pandapipesNet
+        The pandapipes network to run the loop over.
+    ts_variables : dict
+        Settings for the time series run (as returned by ``init_time_series``).
+    run_control_fct : callable, default ``run_control``
+        Function called once per time step to run control loops.
+    output_writer_fct : callable, default ``_call_output_writer``
+        Function called once per time step to write results to the output writer.
     """
     for i, time_step in enumerate(ts_variables["time_steps"]):
         print_progress(i, time_step, ts_variables["time_steps"], ts_variables["verbose"], ts_variables=ts_variables,
@@ -132,8 +134,7 @@ def run_loop(net, ts_variables, run_control_fct=run_control, output_writer_fct=_
 
 
 def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=True, **kwargs):
-    """
-    Time Series main function
+    """Time Series main function.
 
     Execution of pipe flow calculations for a time series using controllers.
     Optionally other functions than pipeflow can be called by setting the run function in kwargs.
@@ -149,10 +150,25 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :type continue_on_divergence: bool, default False
     :param verbose: Prints progress bar or if *logger.level == Debug*, it prints debug messages
     :type verbose: bool, default True
-    :param kwargs: Keyword arguments for run_control and runpp
+    :param kwargs: Keyword arguments for run_control and runpp. If ``transient=True``,
+            ``dt`` must specify the simulation time step in seconds.
     :type kwargs: dict
     :return: No output
     """
+    if "controller" in net:
+        for controller in net.controller["object"]:
+            if not isinstance(controller, ConstControl):
+                continue
+
+            indices = np.atleast_1d(controller.element_index).tolist()
+            missing = [i for i in indices if i not in net[controller.element].index]
+            if missing:
+                raise ValueError(
+                    f"ConstControl refers to missing {controller.element} indices: {missing}"
+                )
+    if kwargs.get("transient", False) and kwargs.get("dt") is None:
+        raise ValueError("The time step 'dt' must be specified in seconds when transient=True.")
+
     ts_variables = init_time_series(net, time_steps, continue_on_divergence, verbose, **kwargs)
     # A bad fix, need to sequence better - before the controllers are activated!
     control_diagnostic(net)
