@@ -3,11 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 import tempfile
-
+import numpy as np
 from pandapipes.control import run_control
 from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
 from pandapipes.pipeflow import pipeflow
-from pandapower.control import NetCalculationNotConverged
+from pandapower.control import NetCalculationNotConverged, ConstControl
 from pandapower.control.util.diagnostic import control_diagnostic
 from pandapower.timeseries.output_writer import OutputWriter
 from pandapower.timeseries.run_time_series import init_time_series as init_time_series_pp, cleanup, \
@@ -155,6 +155,17 @@ def run_timeseries(net, time_steps=None, continue_on_divergence=False, verbose=T
     :type kwargs: dict
     :return: No output
     """
+    if "controller" in net:
+        for controller in net.controller["object"]:
+            if not isinstance(controller, ConstControl):
+                continue
+
+            indices = np.atleast_1d(controller.element_index).tolist()
+            missing = [i for i in indices if i not in net[controller.element].index]
+            if missing:
+                raise ValueError(
+                    f"ConstControl refers to missing {controller.element} indices: {missing}"
+                )
     if kwargs.get("transient", False) and kwargs.get("dt") is None:
         raise ValueError("The time step 'dt' must be specified in seconds when transient=True.")
 
