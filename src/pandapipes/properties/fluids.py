@@ -23,12 +23,10 @@ _GASES = ["air", "lgas", "hgas", "hydrogen", "methane", "biomethane_pure", "biom
 
 
 class Fluid(JSONSerializableClass):
-    """
-
-    """
+    """Fluid used within a pandapipes network, storing its properties."""
 
     def __init__(self, name, fluid_type, **kwargs):
-        """
+        """Initialize the fluid with a name, type and properties.
 
         :param name:
         :type name:
@@ -52,21 +50,18 @@ class Fluid(JSONSerializableClass):
                                "cause problems when trying to ask for values." % prop_name)
 
     def __repr__(self):
-        """
-        Definition of fluid representation in the console.
+        """Definition of fluid representation in the console.
 
         :return: representation of fluid in the console
         :rtype: str
         """
-
         r = "Fluid %s (%s) with properties:" % (self.name, self.fluid_type)
         for key in self.all_properties.keys():
             r += "\n   - %s (%s)" % (key, self.all_properties[key].__class__.__name__[13:])
         return r
 
     def add_property(self, property_name, prop, overwrite=True, warn_on_duplicates=True):
-        """
-        This function adds a new property.
+        """Add a new property.
 
         :param property_name: Name of the new property
         :type property_name: str
@@ -81,7 +76,6 @@ class Fluid(JSONSerializableClass):
         :Example:
             >>> fluid.add_property('water_density', pandapipes.FluidPropertyConstant(998.2061),\
                                    overwrite=True, warn_on_duplicates=False)
-
         """
         if property_name in self.all_properties:
             if warn_on_duplicates:
@@ -92,8 +86,7 @@ class Fluid(JSONSerializableClass):
         self.all_properties[property_name] = prop
 
     def get_property(self, property_name, *at_values):
-        """
-        This function returns the value of the requested property.
+        """Return the value of the requested property.
 
         :param property_name: Name of the searched property
         :type property_name: str
@@ -102,34 +95,28 @@ class Fluid(JSONSerializableClass):
         :return: Returns property at the certain value
         :rtype: float, array
         """
-
         if property_name not in self.all_properties:
             raise UserWarning("The property %s was not defined for the fluid %s"
                               % (property_name, self.name))
         return self.all_properties[property_name].get_at_value(*at_values)
 
     def get_density(self, temperature):
-        """
-        This function returns the density at a certain temperature.
+        """Return the density at a certain temperature.
 
         :param temperature: Temperature at which the density is queried
         :type temperature: float
         :return: Density at the required temperature
-
         """
-
         return self.get_property("density", temperature)
 
     def get_viscosity(self, temperature, p_bar=None):
-        """
-        This function returns the viscosity at a certain temperature.
+        """Return the viscosity at a certain temperature.
 
         :param temperature: Temperature at which the viscosity is queried
         :type temperature: float or array of floats
         :param p_bar: Pressure at which the viscosity is queried
         :type p_bar: float or array of floats
         :return: Viscosity at the required temperature
-
         """
         visc_prop = self.all_properties.get("viscosity")
         if visc_prop is None:
@@ -141,37 +128,29 @@ class Fluid(JSONSerializableClass):
         return visc_prop.get_at_value(*args)
 
     def get_heat_capacity(self, temperature):
-        """
-        This function returns the heat capacity at a certain temperature.
+        """Return the heat capacity at a certain temperature.
 
         :param temperature: Temperature at which the heat capacity is queried
         :type temperature: float
         :return: Heat capacity at the required temperature
-
         """
-
         return self.get_property("heat_capacity", temperature)
 
     def get_molar_mass(self):
-        """
-        This function returns the molar mass.
+        """Return the molar mass.
 
         :return: molar mass
-
         """
-
         return self.get_property("molar_mass")
 
     def get_compressibility(self, p_bar, t_k=None):
-        """
-        This function returns the compressibility at a certain pressure.
+        """Return the compressibility at a certain pressure.
 
         :param p_bar: pressure at which the compressibility is queried
         :type p_bar: float or array of floats
         :param t_k: temperature at which the compressibility is queried (optional)
         :type t_k: float or array of floats or None
         :return: compressibility at the required pressure
-
         """
         comp_prop = self.all_properties.get("compressibility")
         if comp_prop is None:
@@ -183,29 +162,22 @@ class Fluid(JSONSerializableClass):
         return comp_prop.get_at_value(*args)
 
     def get_der_compressibility(self):
-        """
-        This function returns the derivative of the compressibility with respect to pressure.
+        """Return the derivative of the compressibility with respect to pressure.
 
         :return: derivative of the compressibility
-
         """
-
         return self.get_property("der_compressibility")
 
 
 class FluidProperty(JSONSerializableClass):
-    """
-    Property Base Class
-    """
+    """Base class for fluid properties."""
 
     def __init__(self):
-        """
-
-        """
+        """Initialize the fluid property."""
         super().__init__()
 
     def get_at_value(self, *args):
-        """
+        """Return the property value at the given argument(s).
 
         :param args:
         :type args:
@@ -215,7 +187,7 @@ class FluidProperty(JSONSerializableClass):
         raise NotImplementedError("Please implement a proper fluid property!")
 
     def get_at_integral_value(self, *args):
-        """
+        """Return the property's integral value between the given argument(s).
 
         :param args:
         :type args:
@@ -226,14 +198,13 @@ class FluidProperty(JSONSerializableClass):
 
 
 class FluidPropertyInterExtra(FluidProperty):
-    """
-    Creates Property with interpolated or extrapolated values.
-    """
+    """Creates Property with interpolated or extrapolated values."""
+
     json_excludes = JSONSerializableClass.json_excludes + ["prop_getter"]
     prop_getter_entries = {"x": "x", "y": "y", "_fill_value_orig": "fill_value"}
 
     def __init__(self, x_values, y_values, method="interpolate_extrapolate"):
-        """
+        """Initialize the interpolated or extrapolated fluid property.
 
         :param x_values:
         :type x_values:
@@ -249,7 +220,7 @@ class FluidPropertyInterExtra(FluidProperty):
             self.prop_getter = interp1d(x_values, y_values)
 
     def get_at_value(self, arg):
-        """
+        """Return the interpolated or extrapolated y-value(s) for the given x-value(s).
 
         :param arg: Name of the property and one or more values (x-values) for which the y-values \
             of the property are to be displayed
@@ -260,7 +231,7 @@ class FluidPropertyInterExtra(FluidProperty):
         return self.prop_getter(arg)
 
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
-        """
+        """Return the integral of the property between the given limits.
 
         :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
@@ -274,16 +245,13 @@ class FluidPropertyInterExtra(FluidProperty):
         :Example:
             >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
                     t_upper_k, t_lower_k)
-
         """
         mean = (self.prop_getter(upper_limit_arg) + self.prop_getter(upper_limit_arg)) / 2
         return mean * (upper_limit_arg-lower_limit_arg)
 
     @classmethod
     def from_path(cls, path, method="interpolate_extrapolate"):
-        """
-        Reads a text file with temperature values in the first column and property values in
-        second column.
+        """Reads a text file with temperature values in the first column and property values in second column.
 
         :param path: Target path of the txt file
         :type path: str
@@ -315,12 +283,10 @@ class FluidPropertyInterExtra(FluidProperty):
 
 
 class FluidPropertyConstant(FluidProperty):
-    """
-    Creates Property with a constant value.
-    """
+    """Creates Property with a constant value."""
 
     def __init__(self, value, warn_dependent_variables=False):
-        """
+        """Initialize the constant fluid property.
 
         :param value:
         :type value:
@@ -330,7 +296,7 @@ class FluidPropertyConstant(FluidProperty):
         self.warn_dependent_variables = warn_dependent_variables
 
     def get_at_value(self, *args):
-        """
+        """Return the constant value of the property.
 
         :param args: Name of the property
         :type args: str
@@ -356,7 +322,7 @@ class FluidPropertyConstant(FluidProperty):
         return output
 
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
-        """
+        """Return the integral of the constant property between the given limits.
 
         :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
@@ -370,7 +336,6 @@ class FluidPropertyConstant(FluidProperty):
         :Example:
             >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
                     t_upper_k, t_lower_k)
-
         """
         if isinstance(upper_limit_arg, pd.Series):
             ul = self.value * upper_limit_arg.values
@@ -384,9 +349,7 @@ class FluidPropertyConstant(FluidProperty):
 
     @classmethod
     def from_path(cls, path):
-        """
-        Reads a text file with temperature values in the first column and property values in
-        second column.
+        """Reads a text file with temperature values in the first column and property values in second column.
 
         :param path:
         :type path:
@@ -405,25 +368,22 @@ class FluidPropertyConstant(FluidProperty):
 
 
 class FluidPropertyLinear(FluidProperty):
-    """
-    Creates Property with a linear course.
-    """
+    """Creates Property with a linear course."""
 
     def __init__(self, slope, offset):
-        """
+        """Initialize the linear fluid property.
 
         :param slope:
         :type slope:
         :param offset:
         :type offset:
-
         """
         super(FluidPropertyLinear, self).__init__()
         self.slope = slope
         self.offset = offset
 
     def get_at_value(self, arg):
-        """
+        """Return the linear function value at the given x-value(s).
 
         :param arg: Name of the property and one or more values (x-values) for which the function \
             of the property should be calculated
@@ -433,7 +393,6 @@ class FluidPropertyLinear(FluidProperty):
 
         :Example:
             >>> comp_fact = get_fluid(net).all_properties["compressibility"].get_at_value(p_bar)
-
         """
         if isinstance(arg, pd.Series):
             return self.offset + self.slope * arg.values
@@ -441,7 +400,7 @@ class FluidPropertyLinear(FluidProperty):
             return self.offset + self.slope * np.array(arg)
 
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
-        """
+        """Return the integral of the linear property between the given limits.
 
         :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
@@ -455,7 +414,6 @@ class FluidPropertyLinear(FluidProperty):
         :Example:
             >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
                     t_upper_k, t_lower_k)
-
         """
         if isinstance(upper_limit_arg, pd.Series):
             ul = self.offset * upper_limit_arg.values + 0.5 * self.slope * np.power(
@@ -473,9 +431,7 @@ class FluidPropertyLinear(FluidProperty):
 
     @classmethod
     def from_path(cls, path):
-        """
-        Reads a text file with temperature values in the first column and property values in
-        second column.
+        """Reads a text file with temperature values in the first column and property values in second column.
 
         :param path:
         :type path:
@@ -487,12 +443,10 @@ class FluidPropertyLinear(FluidProperty):
 
 
 class FluidPropertyPolynominal(FluidProperty):
-    """
-    Creates Property with a polynominal course.
-    """
+    """Creates Property with a polynominal course."""
 
     def __init__(self, x_values, y_values, polynominal_degree):
-        """
+        """Initialize the polynomial fluid property.
 
         :param x_values:
         :type x_values:
@@ -507,7 +461,7 @@ class FluidPropertyPolynominal(FluidProperty):
         self.prop_int_getter = np.polyint(self.prop_getter)
 
     def get_at_value(self, arg):
-        """
+        """Return the polynomial value at the given x-value(s).
 
         :param arg: Name of the property and one or more values (x-values) for which the function \
             of the property should be calculated
@@ -517,12 +471,11 @@ class FluidPropertyPolynominal(FluidProperty):
 
         :Example:
             >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_value(t_k)
-
         """
         return self.prop_getter(arg)
 
     def get_at_integral_value(self, upper_limit_arg, lower_limit_arg):
-        """
+        """Return the integral of the polynomial property between the given limits.
 
         :param upper_limit_arg: one or more values of upper limit values for which the function \
             of the property should calculate the integral for
@@ -536,15 +489,12 @@ class FluidPropertyPolynominal(FluidProperty):
         :Example:
             >>> comp_fact = get_fluid(net).all_properties["heat_capacity"].get_at_integral_value(\
                     t_upper_k, t_lower_k)
-
         """
         return self.prop_int_getter(upper_limit_arg) - self.prop_int_getter(lower_limit_arg)
 
     @classmethod
     def from_path(cls, path, polynominal_degree):
-        """
-        Reads a text file with temperature values in the first column and property values in
-        second column.
+        """Reads a text file with temperature values in the first column and property values in second column.
 
         :param path: Target path of the txt file
         :type path: str
@@ -558,12 +508,10 @@ class FluidPropertyPolynominal(FluidProperty):
 
 
 class FluidPropertySutherland(FluidProperty):
-    """
-    Creates Property with a Sutherland model (mainly used for viscosity).
-    """
+    """Creates Property with a Sutherland model (mainly used for viscosity)."""
 
     def __init__(self, eta0, t0, t_sutherland):
-        """
+        """Initialize the Sutherland fluid property model.
 
         :param value:
         :type value:
@@ -574,7 +522,7 @@ class FluidPropertySutherland(FluidProperty):
         self.t_sutherland = t_sutherland
 
     def get_at_value(self, *args):
-        """
+        """Return the Sutherland-model value of the property at the given temperature.
 
         :param arg: Name of the property
         :type arg: str
@@ -604,8 +552,7 @@ class FluidPropertySutherland(FluidProperty):
 
 
 def create_constant_property(net, property_name, value, overwrite=True, warn_on_duplicates=True):
-    """
-    Creates a property with a constant value.
+    """Creates a property with a constant value.
 
     :param net: Name of the network to which the property is added
     :type net: pandapipesNet
@@ -627,8 +574,7 @@ def create_constant_property(net, property_name, value, overwrite=True, warn_on_
 
 def create_linear_property(net, property_name, slope, offset, overwrite=True,
                            warn_on_duplicates=True):
-    """
-    Creates a property with a linear correlation.
+    """Creates a property with a linear correlation.
 
     :param net: Name of the network to which the property is added
     :type net: pandapipesNet
@@ -651,8 +597,7 @@ def create_linear_property(net, property_name, slope, offset, overwrite=True,
 
 
 def create_constant_fluid(name=None, fluid_type=None, **kwargs):
-    """
-    Creates a constant fluid.
+    """Creates a constant fluid.
 
     :param name: Name of the fluid
     :type name: str
@@ -670,15 +615,13 @@ def create_constant_fluid(name=None, fluid_type=None, **kwargs):
 
 
 def call_lib(fluid_name):
-    """
-    Creates a fluid with default fluid properties.
+    """Creates a fluid with default fluid properties.
 
     :param fluid_name: Fluid which should be used
     :type fluid_name: str
     :return: Fluid - Chosen fluid with default fluid properties
     :rtype: Fluid
     """
-
     def interextra_property(prop):
         return FluidPropertyInterExtra.from_path(
             os.path.join(pp_dir, "properties", fluid_name, prop + ".txt"))
@@ -722,8 +665,7 @@ def call_lib(fluid_name):
 
 
 def get_fluid(net):
-    """
-    This function shows which fluid is used in the net.
+    """Return the fluid used in the net.
 
     :param net: Current network
     :type net: pandapipesNet
@@ -740,8 +682,7 @@ def get_fluid(net):
 
 
 def _add_fluid_to_net(net, fluid, overwrite=True):
-    """
-    Adds a fluid to a net. If overwrite is False, a warning is printed and the fluid is not set.
+    """Adds a fluid to a net. If overwrite is False, a warning is printed and the fluid is not set.
 
     :param net: The pandapipes network for which to set fluid
     :type net: pandapipesNet
