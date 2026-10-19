@@ -83,7 +83,9 @@ def test_mini_exampelonia_sliders_open():
 
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
     main_pipe_sections = net.pipe["type"] == "main_pipe"
-    assert (net.pipe.loc[main_pipe_sections, "k_mm"] > 0).all()
+    assert (net.pipe.loc[main_pipe_sections, "k_mm"] > 0).all(),(
+        "All main_pipe sections must have k_mm > 0."
+    )
     max_iter_hyd = 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 
