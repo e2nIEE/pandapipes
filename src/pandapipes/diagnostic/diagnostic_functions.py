@@ -268,12 +268,17 @@ class InvalidValuesCheck(DiagnosticFunction):
         self.out.warning("invalid_values:")
 
         for element, violations in result.items():
-            self.out.warning(f"{element}:")
+            self.out.warning("%s:", element)
 
             for idx, column, value, restriction in violations:
                 self.out.warning(
-                    f"{element} {idx}: '{column}' = {value} "
-                    f"(restriction: {restriction})"
+                    "%s %s: '%s' = %s "
+                    "(restriction: %s)",
+                    element,
+                    idx,
+                    column,
+                    value,
+                    restriction,
                 )
 
 
@@ -374,14 +379,16 @@ class ExtGridPressureCheck(DiagnosticFunction):
 
         if result:
             self.out.warning(
-                f"pipeflow converges if ext_grid pressures are scaled "
-                f"by a factor of {self.ext_grid_pressure_scaling_factor}."
+                "pipeflow converges if ext_grid pressures are scaled "
+                "by a factor of %s.",
+                self.ext_grid_pressure_scaling_factor,
             )
         else:
             self.out.warning(
-                f"Pipeflow still does not converge if ext_grid pressures "
-                f"are scaled by a factor of "
-                f"{self.ext_grid_pressure_scaling_factor}."
+                "Pipeflow still does not converge if ext_grid pressures "
+                "are scaled by a factor of "
+                "%s.",
+                self.ext_grid_pressure_scaling_factor,
             )
 
 
@@ -479,35 +486,44 @@ class PipeLengthCheck(DiagnosticFunction):
 
         if result["long_pipes"]:
             self.out.warning(
-                f"If the longest {self.pipe_length_percentage}% of all pipes "
-                f"with lengths above {self.minimum_pipe_length_km} km were set to "
-                f"{self.standard_pipe_length_km} km, the pipeflow would converge."
+                "If the longest %s%% of all pipes "
+                "with lengths above %s km were set to "
+                "%s km, the pipeflow would converge.",
+                self.pipe_length_percentage,
+                self.minimum_pipe_length_km,
+                self.standard_pipe_length_km,
             )
-
 
         elif result["all_pipes"]:
             if result["long_pipes"] is False:
                 self.out.warning(
-                    f"Pipeflow still does not converge if only the longest "
-                    f"{self.pipe_length_percentage}% of all pipes with lengths above "
-                    f"{self.minimum_pipe_length_km} km are set to "
-                    f"{self.standard_pipe_length_km} km.\n"
-                    f"It converges if all pipe lengths are set to "
-                    f"{self.standard_pipe_length_km} km."
+                    "Pipeflow still does not converge if only the longest "
+                    "%s%% of all pipes with lengths above "
+                    "%s km are set to "
+                    "%s km.\n"
+                    "It converges if all pipe lengths are set to "
+                    "%s km.",
+                    self.pipe_length_percentage,
+                    self.minimum_pipe_length_km,
+                    self.standard_pipe_length_km,
+                    self.standard_pipe_length_km,
                 )
 
             else:
                 self.out.warning(
-                    f"No pipes have lengths above "
-                    f"{self.minimum_pipe_length_km} km. "
-                    f"Pipeflow converges if all pipe lengths are set to "
-                    f"{self.standard_pipe_length_km} km."
+                    "No pipes have lengths above "
+                    "%s km. "
+                    "Pipeflow converges if all pipe lengths are set to "
+                    "%s km.",
+                    self.minimum_pipe_length_km,
+                    self.standard_pipe_length_km,
                 )
 
         else:
             self.out.warning(
-                f"Pipeflow still does not converge if all pipe lengths are set to "
-                f"{self.standard_pipe_length_km} km."
+                "Pipeflow still does not converge if all pipe lengths are set to "
+                "%s km.",
+                self.standard_pipe_length_km,
             )
 
 # check iterations
@@ -556,13 +572,15 @@ class IterationCheck(DiagnosticFunction):
 
         if result:
             self.out.warning(
-                f"The pipeflow converges if the maximum number of iterations "
-                f"is increased to {self.iterations}."
+                "The pipeflow converges if the maximum number of iterations "
+                "is increased to %s.",
+                self.iterations,
             )
         else:
             self.out.warning(
-                f"After {self.iterations:d} iterations "
-                f"the pipeflow did NOT converge."
+                "After %d iterations "
+                "the pipeflow did NOT converge.",
+                self.iterations,
             )
 
 # check with little sink and source scaling
@@ -640,20 +658,23 @@ class SinkSourceScalingCheck(DiagnosticFunction):
 
         if result["sink"]:
             self.out.warning(
-                f"Pipeflow converges if sinks are "
-                f"scaled by a factor of {self.scaling_factor}."
+                "Pipeflow converges if sinks are "
+                "scaled by a factor of %s.",
+                self.scaling_factor,
             )
 
         if result["source"]:
             self.out.warning(
-                f"Pipeflow converges if sources are "
-                f"scaled by a factor of {self.scaling_factor}."
+                "Pipeflow converges if sources are "
+                "scaled by a factor of %s.",
+                self.scaling_factor,
             )
 
         if result["both"]:
             self.out.warning(
-                f"Pipeflow converges if sinks and sources are "
-                f"scaled by a factor of {self.scaling_factor}."
+                "Pipeflow converges if sinks and sources are "
+                "scaled by a factor of %s.",
+                self.scaling_factor,
             )
 
         if not any(result.values()):
@@ -703,10 +724,12 @@ class PipeRoughnessCheck(DiagnosticFunction):
             return
 
         self.out.warning(
-            f"Some pipes have a friction factor k_mm > "
-            f"{self.roughness_limit_mm} mm (extremely rough). "
-            f"The highest value in the net is {result['highest_k_mm']} mm. "
-            f"Up to 0.2 mm is a common value for old steel pipes."
+            "Some pipes have a friction factor k_mm > "
+            "%s mm (extremely rough). "
+            "The highest value in the net is %s mm. "
+            "Up to 0.2 mm is a common value for old steel pipes.",
+            self.roughness_limit_mm,
+            result["highest_k_mm"],
         )
 
 # check sink and source junctions:
@@ -741,9 +764,13 @@ class MissingNodeJunctionsCheck(DiagnosticFunction):
 
         for nc, values in result.items():
             self.out.warning(
-                f"Some {nc}s are connected to non-existing junctions!"
-                f"\n{nc}s:{values['elements']}"
-                f"\nmissing junctions:{values['missing_junctions']}"
+                "Some %ss are connected to non-existing junctions!"
+                "\n%ss:%s"
+                "\nmissing junctions:%s",
+                nc,
+                nc,
+                values["elements"],
+                values["missing_junctions"],
             )
 
 
@@ -828,9 +855,20 @@ class MissingBranchJunctionsCheck(DiagnosticFunction):
                 first_junction_name = "from"
                 second_junction_name = "to"
 
-            self.out.warning(f"Some {component}s are connected to non-existing junctions!")
-            self.out.warning(f"missing '{first_junction_name}' junctions: {values['missing_from_junctions']}")
-            self.out.warning(f"missing '{second_junction_name}' junctions: {values['missing_to_junctions']}")
+            self.out.warning(
+                "Some %ss are connected to non-existing junctions!",
+                component,
+            )
+            self.out.warning(
+                "missing '%s' junctions: %s",
+                first_junction_name,
+                values["missing_from_junctions"],
+            )
+            self.out.warning(
+                "missing '%s' junctions: %s",
+                second_junction_name,
+                values["missing_to_junctions"],
+            )
 
 
 # check with increased pipe inner_diameter_mm
@@ -898,16 +936,20 @@ class PipeDiameterCheck(DiagnosticFunction):
         self.out.detailed("Checking pipe diameters...\n")
         if result:
             self.out.warning(
-                f"Pipe-diameter problem suspected: "
-                f"pipeflow converges if pipe diameters below "
-                f"{self.diameter_threshold_mm} mm are increased by factor "
-                f"{self.diameter_increase_factor}."
+                "Pipe-diameter problem suspected: "
+                "pipeflow converges if pipe diameters below "
+                "%s mm are increased by factor "
+                "%s.",
+                self.diameter_threshold_mm,
+                self.diameter_increase_factor,
             )
         else:
             self.out.warning(
-                f"Pipeflow still does not converge if pipe diameters below "
-                f"{self.diameter_threshold_mm} mm are increased by factor "
-                f"{self.diameter_increase_factor}."
+                "Pipeflow still does not converge if pipe diameters below "
+                "%s mm are increased by factor "
+                "%s.",
+                self.diameter_threshold_mm,
+                self.diameter_increase_factor,
             )
 
 # check heat transfer coefficient
@@ -974,13 +1016,17 @@ class HeatTransferCoefficientCheck(DiagnosticFunction):
 
         if result:
             self.out.warning(
-                f"If pipe heat transfer coefficients above {self.limit} W/(m²K) were reduced "
-                f"by factor {self.scaling_factor}, the pipeflow would converge."
+                "If pipe heat transfer coefficients above %s W/(m²K) were reduced "
+                "by factor %s, the pipeflow would converge.",
+                self.limit,
+                self.scaling_factor,
             )
         else:
             self.out.warning(
-                f"Pipeflow still does not converge if pipe heat transfer coefficients "
-                f"above {self.limit} W/(m²K) are reduced by factor {self.scaling_factor}."
+                "Pipeflow still does not converge if pipe heat transfer coefficients "
+                "above %s W/(m²K) are reduced by factor %s.",
+                self.limit,
+                self.scaling_factor,
             )
 
 # Check with all valves opened and all valves closed
@@ -1181,7 +1227,7 @@ class HeatConsumerControlParameterCheck(DiagnosticFunction):
         self.out.warning("Testing with adjusted heat consumer control parameters.")
 
         if self.affected_heat_consumers is not None:
-            self.out.warning(f"Adjusted heat consumer IDs: {self.affected_heat_consumers}")
+            self.out.warning("Adjusted heat consumer IDs: %s", self.affected_heat_consumers,)
 
         if result:
             self.out.warning(
@@ -1309,11 +1355,13 @@ class CalculationModeCheck(DiagnosticFunction):
         for mode, converged in result.items():
             if converged:
                 self.out.warning(
-                    f"The pipeflow converges in mode '{mode}'."
+                    "The pipeflow converges in mode '%s'.",
+                    mode,
                 )
             else:
                 self.out.warning(
-                    f"Pipeflow still does not converge in mode '{mode}'."
+                    "Pipeflow still does not converge in mode '%s'.",
+                    mode,
                 )
 
 
@@ -1368,13 +1416,15 @@ class FrictionModelCheck(DiagnosticFunction):
         for friction_model, converged in result.items():
             if converged:
                 self.out.warning(
-                    f"Friction-model dependency suspected: "
-                    f"pipeflow converges with friction model '{friction_model}'."
+                    "Friction-model dependency suspected: "
+                    "pipeflow converges with friction model '%s'.",
+                    friction_model,
                 )
             else:
                 self.out.warning(
-                    f"Pipeflow still does not converge with friction model "
-                    f"'{friction_model}'."
+                    "Pipeflow still does not converge with friction model "
+                    "'%s'.",
+                    friction_model,
                 )
 
 class AlphaSweepCheck(DiagnosticFunction):
@@ -1451,11 +1501,13 @@ class AlphaSweepCheck(DiagnosticFunction):
 
         if result:
             self.out.warning(
-                f"Pipeflow converges with alpha = {self.successful_alpha}."
+                "Pipeflow converges with alpha = %s.",
+                self.successful_alpha,
             )
         else:
             self.out.warning(
-                f"Pipeflow did not converge with any alpha in {self.alphas}."
+                "Pipeflow did not converge with any alpha in %s.",
+                self.alphas,
             )
 
 # check with inactive pressure controls
@@ -1566,10 +1618,11 @@ class CompressorPressureRatioCheck(DiagnosticFunction):
         )
 
         self.out.warning(
-            f"Some compressors have pressure_ratio > "
-            f"{self.compressor_pressure_ratio_limit}. "
-
+            "Some compressors have pressure_ratio > %s. ",
+            self.compressor_pressure_ratio_limit,
         )
+
+
 # check with reduced circulation pump mass flow
 class CircPumpMassFlowCheck(DiagnosticFunction):
 
@@ -1631,17 +1684,19 @@ class CircPumpMassFlowCheck(DiagnosticFunction):
 
         if result:
             self.out.warning(
-                f"pipeflow converges if all "
-                f"circ_pump_const_mass_flow elements have their "
-                f"mdot_flow_kg_per_s reduced by factor "
-                f"{self.scaling_factor}."
+                "pipeflow converges if all "
+                "circ_pump_const_mass_flow elements have their "
+                "mdot_flow_kg_per_s reduced by factor "
+                "%s.",
+                self.scaling_factor,
             )
         else:
             self.out.warning(
-                f"Pipeflow still does not converge if all "
-                f"circ_pump_const_mass_flow elements have their "
-                f"mdot_flow_kg_per_s reduced by factor "
-                f"{self.scaling_factor}."
+                "Pipeflow still does not converge if all "
+                "circ_pump_const_mass_flow elements have their "
+                "mdot_flow_kg_per_s reduced by factor "
+                "%s.",
+                self.scaling_factor,
             )
 
 default_diagnostic_functions = [
