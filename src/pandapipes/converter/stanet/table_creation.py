@@ -705,7 +705,10 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
         alpha = pipes.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, pipe_sections.fj.values, pipe_sections.tj.values, length_km=pipe_sections.length.values / 1000,
-        inner_diameter_mm=pipes.DM.values.astype(float), k_mm=pipes.RAU.values.astype(float), loss_coefficient=pipes.ZETA.values.astype(float), type="main_pipe",
+        inner_diameter_mm=pipes.DM.values.astype(float),
+        k_mm=pipes.RAU.values.astype(float),
+        loss_coefficient=pipes.ZETA.values.astype(float),
+        type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
         u_w_per_m2k=alpha,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
