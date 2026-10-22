@@ -1,5 +1,11 @@
 Change Log
 =============
+[0.16.0] - 2026-10-16
+-------------------------------
+- [FIXED] considering pump derivatives
+- [ADDED] architecture restructuring to enable a flexible creation of the jacobian matrix
+- [ADDED] heat-power-coupling controller
+
 [0.15.0] - 2026-09-29
 -------------------------------
 - [FIXED] `create_nxgraph` no longer adds a "pi" valve's referenced pipe index as a bogus junction node
@@ -8,7 +14,6 @@ Change Log
 - [FIXED] considering "pi" valve correctly when calling reindex_elements
 - [ADDED] additional tutorials for diagnostic and transient simulation
 - [ADDED] prevent rerun if required
-
 
 [0.14.0] - 2026-05-26
 -------------------------------

@@ -33,9 +33,9 @@ def simple_plot(net, respect_valves=False, respect_in_service=True, pipe_width=2
                 ext_grid_color='orange', valve_color='silver', pump_color='silver', heat_exchanger_color='silver',
                 pressure_control_color='silver', compressor_color='silver', flow_control_color='silver',
                 heat_consumer_color='silver',library="igraph", show_plot=True, ax=None, **kwargs):
-    """
-    Plots a pandapipes network as simple as possible. If no geodata is available, artificial
-    geodata is generated. For advanced plotting see
+    """Plots a pandapipes network as simple as possible.
+
+    If no geodata is available, artificial geodata is generated. For advanced plotting see
     the `tutorial <https://github.com/e2nIEE/pandapipes/blob/master/tutorials/simple_plot.ipynb>`_.
 
     :param net: The pandapipes format network.
@@ -157,10 +157,10 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
                               heat_exchanger_color='silver', pressure_control_color='silver',
                               compressor_color='silver', flow_control_color='silver', heat_consumer_color='silver',
                               library="igraph", as_dict=True, **kwargs):
-    """
-    Plots a pandapipes network as simple as possible.
+    """Plots a pandapipes network as simple as possible.
+
     If no geodata is available, artificial geodata is generated. For advanced plotting see the
-    tutorial
+    tutorial.
 
     :param net: The pandapipes format network.
     :type net: pandapipesNet
@@ -235,7 +235,6 @@ def create_simple_collections(net, respect_valves=False, respect_in_service=True
     :return: collections - list of simple collections for the given network
     """
     # don't hide lines if switches are plotted
-
     # create geocoord if none are available
     if len(net.junction_geodata) == 0 and len(net.pipe_geodata) == 0:
         logger.warning("No or insufficient geodata available --> Creating artificial coordinates." +

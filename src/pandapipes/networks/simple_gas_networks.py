@@ -21,7 +21,7 @@ gas_stanet_path = os.path.join(pp_dir, "networks", "network_files", "stanet_test
 
 # -------------- combined networks --------------
 def gas_3parallel(method="nikuradse"):
-    """
+    """Load a STANET network with 3 parallel pipes, converted to a pandapipes network.
 
     :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -38,7 +38,7 @@ def gas_3parallel(method="nikuradse"):
 
 
 def gas_versatility():
-    """
+    """Load a STANET versatility test network, converted to a pandapipes network.
 
     :return: net - STANET network converted to a pandapipes network (method = "prandtl-colebrook")
     :rtype: pandapipesNet
@@ -54,7 +54,7 @@ def gas_versatility():
 
 # -------------- meshed networks --------------
 def gas_meshed_delta():
-    """
+    """Load a meshed, delta-shaped STANET network, converted to a pandapipes network.
 
     :return: net - STANET network converted to a pandapipes network (method = "prandtl-colebrook")
     :rtype: pandapipesNet
@@ -68,7 +68,7 @@ def gas_meshed_delta():
 
 
 def gas_meshed_pumps():
-    """
+    """Load a meshed STANET network with pumps, converted to a pandapipes network.
 
     :return: net - STANET network converted to a pandapipes network (method = "nikuradse")
     :rtype: pandapipesNet
@@ -82,7 +82,7 @@ def gas_meshed_pumps():
 
 
 def gas_meshed_square(method="nikuradse"):
-    """
+    """Load a meshed, square-shaped STANET network, converted to a pandapipes network.
 
     :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -99,7 +99,7 @@ def gas_meshed_square(method="nikuradse"):
 
 
 def gas_meshed_two_valves(method="nikuradse"):
-    """
+    """Load a meshed STANET network with two valves, converted to a pandapipes network.
 
     :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -117,7 +117,7 @@ def gas_meshed_two_valves(method="nikuradse"):
 
 # -------------- one pipe --------------
 def gas_one_pipe1(method="nikuradse"):
-    """
+    """Load a STANET network with one pipe (variant 1), converted to a pandapipes network.
 
     :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -134,7 +134,7 @@ def gas_one_pipe1(method="nikuradse"):
 
 
 def gas_one_pipe2(method="nikuradse"):
-    """
+    """Load a STANET network with one pipe (variant 2), converted to a pandapipes network.
 
     :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -152,7 +152,7 @@ def gas_one_pipe2(method="nikuradse"):
 
 # -------------- strand net --------------
 def gas_strand_2pipes(method="nikuradse"):
-    """
+    """Load a strand-shaped STANET network with two pipes, converted to a pandapipes network.
 
     :param method: Which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -169,7 +169,7 @@ def gas_strand_2pipes(method="nikuradse"):
 
 
 def gas_strand_pump():
-    """
+    """Load a strand-shaped STANET network with a pump, converted to a pandapipes network.
 
     :return: net - STANET network converted to a pandapipes network  (method = "nikuradse")
     :rtype: pandapipesNet
@@ -184,7 +184,7 @@ def gas_strand_pump():
 
 # -------------- t_cross --------------
 def gas_tcross1(method="nikuradse"):
-    """
+    """Load a T-cross-shaped STANET network (variant 1), converted to a pandapipes network.
 
     :param method: If results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -201,7 +201,7 @@ def gas_tcross1(method="nikuradse"):
 
 
 def gas_tcross2(method="nikuradse"):
-    """
+    """Load a T-cross-shaped STANET network (variant 2), converted to a pandapipes network.
 
     :param method: If results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -219,7 +219,7 @@ def gas_tcross2(method="nikuradse"):
 
 # -------------- two pressure junctions --------------
 def gas_2eg_hnet(method="nikuradse"):
-    """
+    """Load an H-shaped STANET network with two pressure junctions, converted to a pandapipes network.
 
     :param method: If results_from = "stanet", which results should be loaded: nikuradse or prandtl-colebrook
     :type method: str, default "nikuradse"
@@ -243,8 +243,7 @@ def schutterwald(include_houses=True, max_length_house_conn_m=None):
 
 
 def schutterwald_gas(include_houses=True, max_length_house_conn_m=None):
-    """
-    Load natural gas distribution network for a town in the MV Oberrhein region (cf. pandapower).
+    """Load natural gas distribution network for a town in the MV Oberrhein region (cf. pandapower).
 
     The default pressure is set to 1 bar. Geodata is provided.
     Around 1500 houses are connected with theoretical house connection pipes. It is recommended

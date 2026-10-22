@@ -7,7 +7,7 @@ Known Issues
 The following issues are known but have not been solved until the release of pandapipes:
 
 - During a heat temperature calculation, pipes are not allowed to carry a fluid with zero
-  velocity. This case leads to a zero line in the system matrix at the moment.
+  velocity. This case leads to a zero line in the jacobi matrix at the moment.
 - When setting your own default options for the pipeflow (c.f. :ref:`user_options`), these values
   should still possibly be overridden during a pipeflow call. However, if a keyword argument you
   pass has the same value as the :ref:`pipeflow-function <pipeflow_function>` signature, this
