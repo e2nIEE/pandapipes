@@ -21,7 +21,7 @@ class GC(GraphicsContextBase):
     def __init__(self):
         """Initialize the graphics context and set the cap style to round."""
         super().__init__()
-        self._capstyle = 'round'
+        self.set_capstyle('round')
 
 
 def custom_new_gc(self):
