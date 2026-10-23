@@ -49,8 +49,8 @@ DEFAULT_STANET_KEYWORDS = {
 
 def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_line_info=False,
                         keywords=None, decimal='.'):
-    """
-    Extract raw data from STANET file.
+    """Extract raw data from STANET file.
+
     :param stanet_path:  Path to STANET .csv file
     :type stanet_path: string
     :param read_options:
@@ -146,8 +146,7 @@ def get_stanet_raw_data(stanet_path, read_options=None, add_layers=True, return_
 
 
 def get_key_from_value(val, used_dict):
-    """
-    Reversed mapping operation.
+    """Reversed mapping operation.
 
     :param val:
     :type val:
@@ -162,8 +161,8 @@ def get_key_from_value(val, used_dict):
 
 
 def get_net_params(net, stored_data):
-    """
-    Returns pandapipesNet Parameters from STANET data.
+    """Returns pandapipesNet Parameters from STANET data.
+
     :param net: Empty pandapipesNet
     :type net: pandapipesNet
     :param stored_data: dict of STANET tables
@@ -290,8 +289,9 @@ def adapt_pipe_data(stored_data, pipe_data, coord_names, use_clients):
 
 
 def get_pipe_geo(stored_data, modus):
-    """
-    Identify the geodata of all pipes. If inflexion points are given, they must be inserted for the
+    """Identify the geodata of all pipes.
+
+    If inflexion points are given, they must be inserted for the
     correct pipes.
     STANET-like:
     pipe -> [(x_start, y_start), (x_end, y_end)]; inflexion_points -> [(x_infl, y_infl), pipe]
@@ -357,8 +357,8 @@ def get_pipe_geo(stored_data, modus):
 
 def connection_pipe_section_table(stored_data, pipe_geodata, house_pipe_geodata,
                                   remove_unused_household_connections):
-    """
-    Returns pipe and house connection lines
+    """Returns pipe and house connection lines.
+
     :param stored_data: dict of STANET tables
     :type stored_data: dict
     :param pipe_geodata: geodata of all pipes

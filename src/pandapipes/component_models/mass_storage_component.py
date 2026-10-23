@@ -7,9 +7,7 @@ from numpy import dtype
 
 
 class MassStorage(ConstFlow):
-    """
-
-    """
+    """Mass storage component that stores or releases mass at a junction."""
 
     @classmethod
     def table_name(cls):
@@ -20,8 +18,12 @@ class MassStorage(ConstFlow):
         return 1
 
     @classmethod
+    def get_connected_node_type(cls):
+        return Junction
+
+    @classmethod
     def get_component_input(cls):
-        """
+        """Get the component input columns for this table.
 
         :return:
         :rtype:
@@ -48,7 +50,3 @@ class MassStorage(ConstFlow):
         :rtype: (list, bool)
         """
         return ["mdot_kg_per_s"], True
-
-    @classmethod
-    def get_connected_node_type(cls):
-        return Junction
