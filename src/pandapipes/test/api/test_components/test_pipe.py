@@ -5,8 +5,51 @@ import numpy as np
 import pytest
 
 import pandapipes
+from pandapipes.component_models import Pipe
 from pandapipes.properties.fluids import _add_fluid_to_net
 import copy
+
+
+@pytest.mark.parametrize("sections", [np.nan, np.inf, -np.inf, 0, -1, 1.5, 2 ** 31])
+def test_invalid_pipe_sections(sections):
+    net = pandapipes.create_empty_network(add_stdtypes=False)
+    pandapipes.create_junctions(net, 2, pn_bar=1, tfluid_k=293.15)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, length_km=1, inner_diameter_mm=100,
+                                          sections=1, index=17)
+    net.pipe["sections"] = net.pipe.sections.astype(float)
+    net.pipe.at[17, "sections"] = sections
+
+    with pytest.raises(ValueError, match=r"sections.*17"):
+        Pipe.get_internal_branch_number(net)
+
+
+def test_valid_pipe_sections():
+    net = pandapipes.create_empty_network(add_stdtypes=False)
+    pandapipes.create_junctions(net, 2, pn_bar=1, tfluid_k=293.15)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, length_km=1, inner_diameter_mm=100,
+                                          sections=3)
+
+    sections = Pipe.get_internal_branch_number(net)
+    np.testing.assert_array_equal(sections, [3])
+    assert sections.dtype == np.int32
+
+
+def test_pipeflow_rejects_missing_sections_before_allocation(monkeypatch):
+    from pandapipes.networks.simple_heat_transfer_networks import heat_transfer_delta
+
+    net = heat_transfer_delta()
+    net.pipe["sections"] = net.pipe.sections.astype(float)
+    net.pipe.at[net.pipe.index[0], "sections"] = np.nan
+    def bounded_allocation(allocate):
+        def bounded(shape, *args, **kwargs):
+            assert np.prod(shape) < 1_000_000, "invalid sections reached a large allocation"
+            return allocate(shape, *args, **kwargs)
+        return bounded
+
+    monkeypatch.setattr(np, "empty", bounded_allocation(np.empty))
+    monkeypatch.setattr(np, "zeros", bounded_allocation(np.zeros))
+    with pytest.raises(ValueError, match="Pipe sections"):
+        pandapipes.pipeflow(net)
 
 
 @pytest.mark.parametrize("use_numba", [True, False])

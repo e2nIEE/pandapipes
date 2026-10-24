@@ -1,5 +1,9 @@
 Change Log
 =============
+Unreleased
+-------------------------------
+- [FIXED] reject invalid pipe section counts before internal arrays are allocated (#797)
+
 [0.16.0] - 2026-10-16
 -------------------------------
 - [FIXED] considering pump derivatives
