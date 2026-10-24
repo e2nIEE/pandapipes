@@ -76,7 +76,15 @@ class Pipe(BranchWInternalsComponent):
         :return:
         :rtype:
         """
-        return np.array(net[cls.table_name()].sections.values).astype(np.int32)
+        pipes = net[cls.table_name()]
+        sections = pipes.sections.to_numpy(dtype=np.float64, na_value=np.nan)
+        maximum = np.iinfo(np.int32).max
+        invalid = (~np.isfinite(sections) | (sections < 1) | (sections > maximum)
+                   | (sections != np.floor(sections)))
+        if np.any(invalid):
+            raise ValueError("Pipe sections must be finite positive integers no larger than "
+                             f"{maximum}; invalid pipe indices: {pipes.index[invalid].tolist()}")
+        return sections.astype(np.int32)
 
     @classmethod
     def get_component_input(cls):
