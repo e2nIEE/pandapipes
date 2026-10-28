@@ -1,5 +1,10 @@
 Change Log
 =============
+[upcoming release] - 2026-..-..
+-------------------------------
+- [ADDED] `convert_epsg_pipe_geodata` to convert pipe route coordinates
+- [ADDED] `create_map_figure`: interactive plotly web-map plot of a network on a token-free MapLibre basemap, with optional coloring of pipes by a result column (e.g. temperature)
+
 [0.16.0] - 2026-10-16
 -------------------------------
 - [FIXED] considering pump derivatives

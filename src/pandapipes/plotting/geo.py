@@ -59,3 +59,23 @@ def convert_epsg_junction_geodata(net, epsg_in=4326, epsg_out=31467):
         net['junction_geodata'].loc[:, "x"], net['junction_geodata'].loc[:, "y"], epsg_in, epsg_out
     )
     return net
+
+
+def convert_epsg_pipe_geodata(net, epsg_in=4326, epsg_out=31467):
+    """Converts the pipe route coordinates in net.pipe_geodata from epsg_in to epsg_out.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param epsg_in: current epsg projection
+    :type epsg_in: int, default 4326 (= WGS84)
+    :param epsg_out: epsg projection to be transformed to
+    :type epsg_out: int, default 31467 (= Gauss-Krüger Zone 3)
+    :return: net - the given pandapipes network (no copy!)
+    """
+    def convert(coords):
+        xs, ys = _convert_xy_epsg([c[0] for c in coords], [c[1] for c in coords], epsg_in, epsg_out)
+        return [[x, y] for x, y in zip(xs, ys)]
+
+    if "pipe_geodata" in net and not net["pipe_geodata"].empty:
+        net["pipe_geodata"]["coords"] = net["pipe_geodata"]["coords"].apply(convert)
+    return net
