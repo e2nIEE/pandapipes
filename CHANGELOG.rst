@@ -1,5 +1,9 @@
 Change Log
 =============
+[upcoming release] - 2026-..-..
+-------------------------------
+- [ADDED] `pandapipes.explain`: optional plain-English explanations of pandapipes errors using a local LLM (Ollama), built on `pandapipes.diagnostic`; includes the `pandapipes-explain` command line tool
+
 [0.16.0] - 2026-10-16
 -------------------------------
 - [FIXED] considering pump derivatives
