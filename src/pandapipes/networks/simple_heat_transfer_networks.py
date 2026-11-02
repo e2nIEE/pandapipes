@@ -19,7 +19,7 @@ heat_tranfer_modelica_path = os.path.join(pp_dir, "networks", "network_files",
                                    "openmodelica_test_networks", "heat_transfer_cases")
 
 def heat_transfer_delta():
-    """
+    """Load a delta-shaped OpenModelica heat transfer test network, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -32,7 +32,7 @@ def heat_transfer_delta():
 
 
 def heat_transfer_delta_2sinks():
-    """
+    """Load a delta-shaped OpenModelica heat transfer test network with two sinks, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -45,7 +45,7 @@ def heat_transfer_delta_2sinks():
 
 
 def heat_transfer_heights():
-    """
+    """Load an OpenModelica heat transfer test network with varying heights, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -58,7 +58,7 @@ def heat_transfer_heights():
 
 
 def heat_transfer_one_pipe():
-    """
+    """Load an OpenModelica heat transfer test network with one pipe, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -71,7 +71,7 @@ def heat_transfer_one_pipe():
 
 
 def heat_transfer_one_source():
-    """
+    """Load an OpenModelica heat transfer test network with one source, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -84,7 +84,7 @@ def heat_transfer_one_source():
 
 
 def heat_transfer_section_variation():
-    """
+    """Load an OpenModelica heat transfer test network with pipe section variation, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -97,7 +97,7 @@ def heat_transfer_section_variation():
 
 
 def heat_transfer_t_cross():
-    """
+    """Load a T-cross-shaped OpenModelica heat transfer test network, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -110,7 +110,7 @@ def heat_transfer_t_cross():
 
 
 def heat_transfer_two_pipes():
-    """
+    """Load an OpenModelica heat transfer test network with two pipes, converted to a pandapipes network.
 
     :return: net - OpenModelica network converted to a pandapipes network
     :rtype: pandapipesNet
@@ -123,8 +123,7 @@ def heat_transfer_two_pipes():
 
 
 def schutterwald_heat(tflow_degC=70, treturn_degC=None, u_w_per_m2k=1.):
-    """
-    Load heat distribution network for a town in the MV Oberrhein region (cf. pandapower).
+    """Load heat distribution network for a town in the MV Oberrhein region (cf. pandapower).
 
     This network is derived from the gas distribution network given by `schutterwald_gas`
 

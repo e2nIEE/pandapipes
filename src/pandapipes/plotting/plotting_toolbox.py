@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.0, source_size=1.0,
                          valve_size=2.0, pump_size=1.0, heat_exchanger_size=1.0,
                          pressure_control_size=1.0, compressor_size=1.0, flow_control_size=1.0, heat_consumer_size=1.0):
-    """
-    Calculates the size for most collection types according to the distance between min and max
-    geocoord so that the collections fit the plot nicely
+    """Calculates the size for most collection types according to the distance between min and max geocoord so that the collections fit the plot nicely.
 
     .. note: This is implemented because if you would choose a fixed values (e.g.\
         junction_size = 0.2), the size could be too small for large networks and vice versa
@@ -64,9 +62,9 @@ def get_collection_sizes(net, junction_size=1.0, ext_grid_size=1.0, sink_size=1.
 
 def coords_from_node_geodata(element_indices, from_nodes, to_nodes, node_geodata, table_name,
                              node_name="Bus", ignore_zero_length=True):
-    """
-    Auxiliary function to get the node coordinates for a number of branches with respective from
-    and to nodes. The branch elements for which there is no geodata available are not included in
+    """Auxiliary function to get the node coordinates for a number of branches with respective from and to nodes.
+
+    The branch elements for which there is no geodata available are not included in
     the final list of coordinates.
 
     :param element_indices: Indices of the branch elements for which to find node geodata

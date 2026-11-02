@@ -10,8 +10,7 @@ from pandas.errors import InvalidIndexError
 
 class P2GControlMultiEnergy(Controller):
 
-    """
-    A controller to be used in a multinet. Converts power consumption to gas production.
+    """A controller to be used in a multinet. Converts power consumption to gas production.
 
     This controller couples a power network (from pandapower) and a gas network (from
     pandapipes) that are stored in a multinet. Requires one or multiple 'load' elements in the
@@ -59,12 +58,11 @@ class P2GControlMultiEnergy(Controller):
     :param kwargs: optional additional controller arguments that were implemented by users
     :type kwargs: any
     """
+
     def __init__(self, multinet, element_index_power, element_index_gas, efficiency,
                  name_power_net='power', name_gas_net='gas', in_service=True, order=0, level=0,
                  drop_same_existing_ctrl=False, initial_run=True, name="P2GControlMultiEnergy"):
-        """
-        see class docstring
-        """
+        """See class docstring."""
         super().__init__(
             multinet, name, in_service, order, level, drop_same_existing_ctrl=drop_same_existing_ctrl,
             initial_run=initial_run,
@@ -117,8 +115,7 @@ class P2GControlMultiEnergy(Controller):
 
 class G2PControlMultiEnergy(Controller):
 
-    """
-    A controller to be used in a multinet. Connects power generation and gas consumption.
+    """A controller to be used in a multinet. Connects power generation and gas consumption.
 
     This controller couples a gas network (from pandapipes) and a power network (from
     pandapower) that are stored in a multinet. Requires one or multiple 'sink' elements in the gas
@@ -185,9 +182,7 @@ class G2PControlMultiEnergy(Controller):
                  name_power_net='power', name_gas_net='gas', element_type_power="sgen",
                  in_service=True, order=0, level=0, drop_same_existing_ctrl=False, initial_run=True,
                  calc_gas_from_power=False, name="G2PControlMultiEnergy"):
-        """
-        see class docstring
-        """
+        """See class docstring."""
         super().__init__(
             multinet, name, in_service, order, level, drop_same_existing_ctrl=drop_same_existing_ctrl,
             initial_run=initial_run,
@@ -268,8 +263,7 @@ class G2PControlMultiEnergy(Controller):
 
 class GasToGasConversion(Controller):
 
-    """
-    A controller to be used in a multinet with two gas nets that have different gases.
+    """A controller to be used in a multinet with two gas nets that have different gases.
 
     This controller represents a gas conversion unit (e.g. methanization or steam methane reformer)
     and couples two pandapipes-gas networks that are stored together in a multinet.
@@ -321,9 +315,7 @@ class GasToGasConversion(Controller):
     def __init__(self, multinet, element_index_from, element_index_to, efficiency,
                  name_gas_net_from='gas1', name_gas_net_to='gas2', in_service=True, order=0,
                  level=0, drop_same_existing_ctrl=False, initial_run=True, name="GasToGasConverter"):
-        """
-        see class docstring
-        """
+        """See class docstring."""
         super().__init__(
             multinet, name, in_service, order, level, drop_same_existing_ctrl=drop_same_existing_ctrl,
             initial_run=initial_run,
@@ -384,8 +376,7 @@ def coupled_p2g_const_control(multinet, element_index_power, element_index_gas, 
                               data_source=None, scale_factor=1.0, in_service=True,
                               order=(0, 1), level=0, drop_same_existing_ctrl=False,
                               matching_params=None, initial_run=False, **kwargs):
-    """
-    Creates a ConstController (load values) and a P2G Controller (corresponding gas mass flows).
+    """Creates a ConstController (load values) and a P2G Controller (corresponding gas mass flows).
 
     The ConstController updates load values of a given electric load in accordance to the profile
     given in the datasource.
@@ -466,8 +457,7 @@ def coupled_g2p_const_control(multinet, element_index_power, element_index_gas, 
                               power_led=False, in_service=True, order=(0, 1), level=0,
                               drop_same_existing_ctrl=False, matching_params=None,
                               initial_run=False, **kwargs):
-    """
-    Creates a ConstController (gas consumption) and a G2P Controller (corresponding power output).
+    """Creates a ConstController (gas consumption) and a G2P Controller (corresponding power output).
 
     The ConstController updates gas consumption values of a given sink element in accordance to
     the profile given in the datasource.

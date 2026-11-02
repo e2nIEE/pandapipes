@@ -20,9 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def convert_format(net):
-    """
-    Converts old nets to new format to ensure consistency. The converted net is returned.
-    """
+    """Convert old nets to new format to ensure consistency. The converted net is returned."""
     _add_sector(net)
     add_default_components(net, overwrite=False)
     format_version = version.parse(__format_version__)

@@ -5,14 +5,10 @@
 import numpy as np
 
 from pandapipes.component_models.abstract_models.base_component import Component
-from pandapipes.idx_branch import (
-    MDOTINIT,
-    branch_cols,
-    TEXT,
-    FLOW_RETURN_CONNECT,
-)
-from pandapipes.pf.pipeflow_setup import get_net_option
-from pandapipes.pf.pipeflow_setup import get_table_number, get_lookup
+from pandapipes.idx_branch import IdxBranch
+from pandapipes.component_models.component_toolbox import build_pit_entries
+from pandapipes.pf.pipeflow_setup import get_net_option, get_table_number, get_lookup
+from pandapipes.pf.system_index import PitEntries
 
 try:
     import pandaplan.core.pplog as logging
@@ -29,18 +25,6 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def get_component_input(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def get_result_table(cls, net):
-        raise NotImplementedError
-
-    @classmethod
-    def from_to_node_cols(cls):
-        raise NotImplementedError
-
-    @classmethod
     def active_identifier(cls):
         raise NotImplementedError()
 
@@ -49,10 +33,17 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
+    def from_to_node_cols(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_branch_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
                               current_table, internals):
-        """
-        Function which creates branch lookups.
+        """Function which creates branch lookups.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -74,30 +65,24 @@ class BranchComponent(Component):
         raise NotImplementedError
 
     @classmethod
-    def create_pit_branch_entries(cls, net, branch_pit):
-        """
-        Function which creates pit branch entries.
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param branch_pit:
-        :type branch_pit:
-        :return: No Output.
-        """
-        node_pit = net["_pit"]["node"]
+    def register_pit_branch_entries(cls, net, branch_pit, node_pit, registry) -> None:
         f, t = get_lookup(net, "branch", "from_to")[cls.table_name()]
-        branch_table_nr = get_table_number(get_lookup(net, "branch", "table"), cls.table_name())
-        branch_component_pit = branch_pit[f:t, :]
         if not len(net[cls.table_name()]):
-            return branch_component_pit, node_pit
+            return
+
+        rows = np.arange(f, t, dtype=np.int32)
 
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
-            branch_component_pit[:, :] = np.array([branch_table_nr] + [0] * (branch_cols - 1))
-            branch_component_pit[:, TEXT] = get_net_option(net, 'ambient_temperature')
-            branch_component_pit[:, FLOW_RETURN_CONNECT] = False
+            branch_table_nr = get_table_number(get_lookup(net, "branch", "table"), cls.table_name())
+            registry.add(PitEntries(*build_pit_entries(
+                rows,
+                [IdxBranch.TABLE_IDX],
+                [float(branch_table_nr)],
+            )))
 
-        branch_component_pit[:, MDOTINIT] = 0.1
-        return branch_component_pit, node_pit
+    @classmethod
+    def get_result_table(cls, net):
+        raise NotImplementedError
 
     @classmethod
     def extract_results(cls, net, options, branch_results, mode):

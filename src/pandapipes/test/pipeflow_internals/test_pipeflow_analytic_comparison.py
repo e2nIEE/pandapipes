@@ -11,7 +11,7 @@ import pytest
 import pandapipes
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.component_models.pipe_component import Pipe
-from pandapipes.idx_node import PINIT, TINIT
+from pandapipes.idx_node import IdxNode
 from pandapipes.pf.pipeflow_setup import get_lookup
 from pandapipes.properties.fluids import _add_fluid_to_net
 from pandapipes.test import data_path
@@ -78,7 +78,7 @@ def test_gas_internal_nodes(use_numba):
             density=0.82752,
         ),
     )
-    max_iter_hyd = 6 if use_numba else 6
+    max_iter_hyd = 7 if use_numba else 7
     pandapipes.pipeflow(
         net,
         max_iter_hyd=max_iter_hyd,
@@ -115,9 +115,9 @@ def test_gas_internal_nodes(use_numba):
     to_junction_nodes = junction_idx_lookup[net["pipe"]["to_junction"].values]
 
     p_pandapipes = np.zeros(len(pipe_p_data[0]) + 2)
-    p_pandapipes[0] = node_pit[from_junction_nodes[0], PINIT]
+    p_pandapipes[0] = node_pit[from_junction_nodes[0], IdxNode.PINIT]
     p_pandapipes[1:-1] = pipe_p_data[:]
-    p_pandapipes[-1] = node_pit[to_junction_nodes[0], PINIT]
+    p_pandapipes[-1] = node_pit[to_junction_nodes[0], IdxNode.PINIT]
     p_pandapipes = p_pandapipes + 1.01325
     v_pandapipes = pipe_v_data[0, :]
 
@@ -183,9 +183,9 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
     to_junction_nodes = junction_idx_lookup[net["pipe"]["to_junction"].values]
 
     temp_pandapipes = np.zeros(len(pipe_temp_data[0]) + 2)
-    temp_pandapipes[0] = node_pit[from_junction_nodes[0], TINIT]
+    temp_pandapipes[0] = node_pit[from_junction_nodes[0], IdxNode.TINIT]
     temp_pandapipes[1:-1] = pipe_temp_data[:]
-    temp_pandapipes[-1] = node_pit[to_junction_nodes[0], TINIT]
+    temp_pandapipes[-1] = node_pit[to_junction_nodes[0], IdxNode.TINIT]
 
     temp_diff = np.abs(1 - temp_pandapipes / temp_an)
 

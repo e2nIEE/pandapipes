@@ -22,8 +22,7 @@ logger = pplog.getLogger(__name__)
 
 
 def _call_output_writer(multinet, time_step, pf_converged, ctrl_converged, ts_variables):
-    """
-    Calling the output writer routine for each net in multinet.
+    """Calling the output writer routine for each net in multinet.
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
     :type multinet: pandapipes.Multinet
@@ -46,8 +45,8 @@ def _call_output_writer(multinet, time_step, pf_converged, ctrl_converged, ts_va
 
 def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose=True,
                      **kwargs):
-    """
-    Initializes the time series calculation.
+    """Initializes the time series calculation.
+
     Besides it creates the dict ts_variables, which includes necessary variables for the time series / control loop.
 
     :param multinet: multinet with multinet controllers, net distinct controllers and several pandapipes/pandapower nets
@@ -102,8 +101,8 @@ def init_time_series(multinet, time_steps, continue_on_divergence=False, verbose
 
 def run_timeseries(multinet, time_steps=None, continue_on_divergence=False,
                    verbose=True, **kwargs):
-    """
-    Time Series main function.
+    """Time Series main function.
+
     Runs multiple run functions for each net in multinet. Within each time step several controller loops are conducted
     till all controllers and each net is converged.
     A normal pp.runpp/pps.pipeflow can be optionally replaced by other run functions by setting the run function in

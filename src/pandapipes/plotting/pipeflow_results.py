@@ -11,17 +11,17 @@ from warnings import warn
 
 
 def pressure_profile_to_junction_geodata(net):
-    """
-    Calculates pressure profile for a pandapipes network.
+    """Calculates pressure profile for a pandapipes network.
 
-     INPUT:
+    INPUT:
         **net** (pandapipesNet) - Variable that contains a pandapipes network.
 
-     OUTPUT:
-        **bgd** - Returns a pandas DataFrame containing distance to the closest ext_grid as x \
+    OUTPUT:
+        **bgd** - Returns a pandas DataFrame containing distance to the closest ext_grid as x
                   coordinate and pressure level as y coordinate for each junction.
 
-     EXAMPLE:
+    Example
+    -------
         import pandapipes.networks as nw
         import pandapipes.plotting as plotting
         import pandapipes as pp

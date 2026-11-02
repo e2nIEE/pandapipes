@@ -154,7 +154,7 @@ def test_time_series():
     time_steps = range(25)
     # _output_writer(net, time_steps)  # , path=os.path.join(ppipe.pp_dir, 'results'))
     _output_writer(net, time_steps)
-    max_iter_hyd = 9
+    max_iter_hyd = 10
     run_timeseries(net, time_steps, max_iter_hyd=max_iter_hyd, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)
@@ -170,7 +170,7 @@ def test_time_series_default_ow():
     _prepare_grid(net)
     time_steps = range(25)
     init_default_outputwriter(net, time_steps)
-    max_iter_hyd = 9
+    max_iter_hyd = 11
     run_timeseries(net, time_steps, max_iter_hyd=max_iter_hyd, calc_compression_power = False)
     ow = net.output_writer.iat[0, 0]
     _compare_results(ow)

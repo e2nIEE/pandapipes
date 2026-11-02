@@ -3,6 +3,5 @@
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 
-from pandapipes.pf.build_system_matrix import *
 from pandapipes.pf.internals_toolbox import *
 from pandapipes.pf.pipeflow_setup import *

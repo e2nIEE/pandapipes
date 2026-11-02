@@ -7,8 +7,7 @@ import logging
 
 
 def get_all_branch_component_models():
-    """
-    Get all models of available branch components
+    """Get all models of available branch components.
 
     :return: branch model
     :rtype: list
@@ -32,8 +31,7 @@ def get_all_branch_component_models():
 
 
 def get_all_branch_component_table_names():
-    """
-    Get all table names of available branch components
+    """Get all table names of available branch components.
 
     :return: table names
     :rtype: list
