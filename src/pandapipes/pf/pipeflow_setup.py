@@ -11,6 +11,7 @@ from scipy.sparse import coo_matrix, csgraph
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
 from pandapipes.properties.fluids import get_fluid
+import pandapipes.pf.friction_factor_model as fm
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.system_index import PitEntries, PitRegistry
 
@@ -31,7 +32,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-default_options = {"friction_model": "nikuradse", "tol_p": 1e-5, "tol_m": 1e-5,
+default_options = {"friction_model": fm.Nikuradse(), "tol_p": 1e-5, "tol_m": 1e-5,
                    "tol_T": 1e-3, "tol_res": 1e-3, "max_iter_hyd": 10, "max_iter_therm": 10,
                    "max_iter_bidirect": 10, "error_flag": False, "alpha": 1,
                    "nonlinear_method": "constant", "mode": "hydraulics",
@@ -210,57 +211,60 @@ def set_user_pf_options(net, reset=False, **kwargs):
 
 
 def init_options(net, **kwargs):
-    """Initializes physical and mathematical constants included in pandapipes. In addition, options for the nonlinear and time-dependent solver are also set.
+    r"""Initializes physical and mathematical constants included in pandapipes.
+    In addition, options for the nonlinear and time-dependent solver are also set.
 
     Those are the options that can be set and their default values:
 
-        - **max_iter_hyd** (int): 10 - If the hydraulics simulation is terminated after a certain amount of \
-                               iterations, this is the number of iterations.
+    - **max_iter_hyd** (int): 10 - If the hydraulics simulation is terminated after a
+      certain amount of iterations, this is the number of iterations.
 
-        - **max_iter_therm** (int): 10 - If the thermal simulation is terminated after a certain amount of \
-                               iterations, this is the number of iterations.
+    - **max_iter_therm** (int): 10 - If the thermal simulation is terminated after a
+      certain amount of iterations, this is the number of iterations.
 
-        - **tol_p** (float): 1e-4 - The relative tolerance for the pressure. A result is accepted \
-                                    if the relative error is smaller than this factor.
+    - **tol_p** (float): 1e-4 - The relative tolerance for the pressure. A result is
+      accepted if the relative error is smaller than this factor.
 
-        - **tol_m** (float): 1e-4 - The relative tolerance for the velocity. A result is accepted \
-                                    if the relative error is smaller than this factor.
+    - **tol_m** (float): 1e-4 - The relative tolerance for the velocity. A result is
+      accepted if the relative error is smaller than this factor.
 
-        - **tol_T** (float): 1e-4 - The relative tolerance for the temperature. A result is \
-                                    accepted if the relative error is smaller than this factor.
+    - **tol_T** (float): 1e-4 - The relative tolerance for the temperature. A result is
+      accepted if the relative error is smaller than this factor.
 
-        - **tol_res** (float): 1e-3 - The relative tolerance for the residual. A result is accepted\
-                                      if the relative error is smaller than this factor.
+    - **tol_res** (float): 1e-3 - The relative tolerance for the residual. A result is
+      accepted if the relative error is smaller than this factor.
 
-        - **ambient_temperature** (float): 293.0 - The assumed ambient temperature for the\
-                calculation of the barometric formula
+    - **ambient_temperature** (float): 293.0 - The assumed ambient temperature for the
+      calculation of the barometric formula
 
-        - **friction_model** (str): "nikuradse" - The friction model that shall be used to identify\
-                the value for lambda (can be "nikuradse" or "colebrook")
+    - **friction_model** (FrictionFactorModel): ``pp.Nikuradse()`` - The friction model
+      used to compute the Darcy-Weisbach friction factor :math:`\lambda`. See
+      :ref:`friction_factor_models` for the full list of built-in and custom options.
 
-        - **alpha** (float): 1 - The step width for the Newton iterations. If the Newton steps \
-                shall be damped, **alpha** can be reduced. See also the **nonlinear_method** \
-                parameter.
+    - **alpha** (float): 1 - The step width for the Newton iterations. If the Newton
+      steps shall be damped, **alpha** can be reduced. See also the
+      **nonlinear_method** parameter.
 
-        - **nonlinear_method** (str): "constant" - The option of how the damping factor **alpha** \
-                is determined in each iteration. It can be "constant" (i.e. **alpha** is always the\
-                 same in each iteration) or "automatic", in which case **alpha** is adapted \
-                 automatically with respect to the convergence behaviour.
+    - **nonlinear_method** (str): "constant" - The option of how the damping factor
+      **alpha** is determined in each iteration. It can be "constant" (i.e. **alpha**
+      is always the same in each iteration) or "automatic", in which case **alpha** is
+      adapted automatically with respect to the convergence behaviour.
 
-        - **mode** (str): "hydraulics" - Define the calculation mode: what shall be calculated - \
-                solely hydraulics ('hydraulics'), solely heat transfer('heat') or both combined sequentially \
-                ('sequential') or bidirectionally ('bidirectional').
+    - **mode** (str): "hydraulics" - Define the calculation mode: what shall be
+      calculated - solely hydraulics ('hydraulics'), solely heat transfer ('heat') or
+      both combined sequentially ('sequential') or bidirectionally ('bidirectional').
 
-        - **check_connectivity** (bool): True - If True, a connectivity check is performed at the\
-                beginning of the pipeflow and parts of the net that are not connected to external\
-                grids are set inactive.
+    - **check_connectivity** (bool): True - If True, a connectivity check is performed
+      at the beginning of the pipeflow and parts of the net that are not connected to
+      external grids are set inactive.
 
-        - **quit_on_inconsistency_connectivity** (bool): False - If True, inconsistencies in the\
-                connectivity check raise an error, otherwise they are handled. Inconsistencies mean\
-                that out of service nodes are connected to in service branches. If that is the case\
-                and the flag is set to False, the connected nodes are activated.
+    - **quit_on_inconsistency_connectivity** (bool): False - If True, inconsistencies in
+      the connectivity check raise an error, otherwise they are handled. Inconsistencies
+      mean that out of service nodes are connected to in service branches. If that is
+      the case and the flag is set to False, the connected nodes are activated.
 
-        - **use_numba** (bool): True - If True, use numba for more efficient internal calculations
+    - **use_numba** (bool): True - If True, use numba for more efficient internal
+      calculations
 
     :param net: The pandapipesNet for which the options are initialized
     :type net: pandapipesNet
@@ -302,6 +306,7 @@ def init_options(net, **kwargs):
         opts["use_numba"] = False
     opts["fluid"] = get_fluid(net).name
     _mode_check(opts)
+    _get_friction_factor_model(opts)
 
     net["_options"] = opts
 
@@ -334,6 +339,27 @@ def _mode_check(opts):
             "For now 'all' is set equal to 'sequential'.",
         )
         opts["mode"] = "sequential"
+
+
+def _get_friction_factor_model(opts):
+    """Backwards-compatibility utility: if the friction model was given as a string,
+    replace it in-place with the corresponding model instance.
+    """
+    friction_factor_model = opts["friction_model"]
+    if isinstance(friction_factor_model, fm.FrictionFactorModel):
+        return
+
+    if friction_factor_model == "colebrook":
+        friction_factor_model = fm.Colebrook(
+            tolerance=opts.get("tolerance_colebrook", 1e-4),
+            max_iter=opts.get("max_iter_colebrook", 100),
+        )
+    elif friction_factor_model == "swamee-jain":
+        friction_factor_model = fm.SwameeJain()
+    else:
+        friction_factor_model = fm.Nikuradse()
+    opts["friction_model"] = friction_factor_model
+
 
 def create_internal_results(net):
     """Initializes a dictionary that shall contain some internal results later.
