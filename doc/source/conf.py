@@ -10,9 +10,97 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import dataclasses
 import os
 import sys
+import typing
+from dataclasses import is_dataclass
+
 from sphinx_pyproject import SphinxConfig
+
+
+def clean_dataclass_signature(
+    app,
+    what,
+    name,
+    obj,
+    options,
+    signature,
+    return_annotation,
+):
+    if what != "class" or not is_dataclass(obj) or signature is None:
+        return signature, return_annotation
+
+    def _replace_factory(field):
+        nonlocal signature
+        factory = field.default_factory
+        factory_name = f"{getattr(factory, '__name__', repr(factory))}()"
+        signature = signature.replace("<factory>", factory_name, 1)
+
+    def _replace_default_callable(field):
+        nonlocal signature
+        default_name = getattr(field.default, "__name__", repr(field.default))
+        signature = signature.replace(f"<function {default_name}>", default_name)
+
+    for field in dataclasses.fields(obj):
+        if field.default_factory is not dataclasses.MISSING:
+            _replace_factory(field)
+        elif field.default is not dataclasses.MISSING and callable(field.default):
+            _replace_default_callable(field)
+
+    return signature, return_annotation
+
+
+def clean_protocol_signature(
+    app,
+    what,
+    name,
+    obj,
+    options,
+    signature,
+    return_annotation,
+):
+    if (
+        what != "class"
+        or not isinstance(obj, type)
+        or not issubclass(obj, typing.Protocol)
+    ):
+        return signature, return_annotation
+
+    if signature == "(*args, **kwargs)":
+        signature = "()"
+    return signature, return_annotation
+
+
+def clean_signature(
+    app,
+    what,
+    name,
+    obj,
+    options,
+    signature,
+    return_annotation,
+):
+    cleaners = (
+        clean_dataclass_signature,
+        clean_protocol_signature,
+    )
+    for cleaner in cleaners:
+        signature, return_annotation = cleaner(
+            app,
+            what,
+            name,
+            obj,
+            options,
+            signature,
+            return_annotation,
+        )
+    return signature, return_annotation
+
+
+def setup(app):
+    app.connect("autodoc-process-signature", clean_signature)
+
 
 sys.path.append(os.path.abspath('..'))
 sys.path.append(os.path.abspath('../..'))

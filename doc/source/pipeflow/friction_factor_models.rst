@@ -6,27 +6,21 @@
 Friction Factor Models
 **********************
 
-The friction factor :math:`\lambda` appears in the Darcy‑Weisbach type
-pressure drop equations used by pandapipes. The exact form of the pressure
-drop equation depends on the fluid model (incompressible or compressible).
-
-All friction factor models implement the :class:`~FrictionFactorModel`
-protocol and provide both :math:`\lambda` and its derivative
-:math:`\frac{\mathrm{d}\lambda}{\mathrm{d}Re}`,
-which is essential for :ref:`constructing the Jacobian matrix <jacobian>`
-in the Newton‑Raphson solver.
-
+.. automodule:: pandapipes.pf.friction_factor_model
+   :no-members:
+   :no-inherited-members:
 
 .. autoclass:: FrictionFactorModel
     :members:
 
 
-.. _built_in_friction_factor_models:
+.. _individual_friction_factor_models:
 
-Built-in Friction Factor Models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Individual Friction Factor Models
+=================================
 
-There are several models provided in pandapipes by default.
+.. autoclass:: Laminar
+    :members:
 
 .. autoclass:: Nikuradse
     :members:
@@ -38,13 +32,68 @@ There are several models provided in pandapipes by default.
     :members:
 
 
-.. _custom_friction_factor_models:
+.. _regime_aware_friction_factor_model:
 
-Custom Friction Factor Models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Regime-Aware Friction Factor Model
+==================================
 
-You can implement the :class:`~FrictionFactorModel` protocol and pass it to :ref:`pipeflow function<pipeflow>`:
+.. autoclass:: RegimeAwareFrictionModel
+    :members:
 
-.. code-block:: python
+.. autoclass:: TransitionStrategy
+    :special-members: __call__
 
-    pp.pipeflow(net, friction_model=MyFrictionFactorModel())
+
+.. _transition_strategies:
+
+Transition Strategies
+---------------------
+
+Both built-in strategies are :math:`C^1` at the regime boundaries and differ only
+in the shape of the interior transition.
+
+.. autofunction:: hermite_log
+
+.. autofunction:: smoothstep
+
+
+.. rubric:: Transition Shape
+
+The figure shows :math:`\lambda` (left) and :math:`d\lambda / dRe` (right)
+as functions of :math:`Re` for the full-regime function built with both strategies.
+
+.. figure:: hermite_vs_smoothstep_single_roughness.png
+    :width: 100%
+    :alt: Friction factor and its derivative across the regime boundaries for both transition strategies
+    :align: center
+
+    :math:`\lambda` (left) and :math:`d\lambda / dRe` (right) across the regime boundaries.
+
+Note that :math:`d\lambda / dRe` is positive inside the
+transition: :math:`\lambda` rises from its laminar to its turbulent
+value as the blend weight shifts, even though each endpoint model
+individually decreases with :math:`Re`.
+
+:func:`Hermite_log<hermite_log>` approaches the turbulent asymptote more aggressively
+while keeping a moderate derivative peak. In the
+:math:`(\ln Re, \ln(\lambda Re^2))` coordinates both asymptotes are
+straight lines, so the interpolant bends smoothly from one to the other.
+:func:`Smoothstep<smoothstep>` has a derivative that peaks sharply towards
+the turbulent side of the transition.
+
+.. tip::
+    See the plot with 3 relative roughnesses (0, 0.0025 and 0.025, from top to bottom)
+    to see how the shapes scale: :download:`hermite_vs_smoothstep_roughness_comparison.png`
+
+
+.. rubric:: Choosing a Strategy
+
+:func:`Smoothstep<smoothstep>` is cheaper per call — the blend weight is a
+polynomial in :math:`t`, with no :math:`\log` or :math:`\exp` — and is
+provided as a lower-cost alternative for callers whose convergence is
+insensitive to the transition shape.
+
+Neither shape has been shown to improve convergence in the pipeflow
+solver: on pandapipes test networks, both strategies produced identical
+iteration counts. The choice is a matter of preferred transition shape
+rather than demonstrated robustness.
