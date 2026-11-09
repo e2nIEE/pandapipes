@@ -515,6 +515,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
     _check_std_type(net, std_type, "pipe", "create_pipe")
+    sections = _check_pipe_sections(sections, index)
 
     if "qext_w" in kwargs:
         warnings.warn("Due to the consideration of the ambient temperature, qext_w has "
@@ -600,6 +601,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
 
     index = _get_index_with_check(net, "pipe", index)
     _check_branch(net, "Pipe", index, from_junction, to_junction)
+    sections = _check_pipe_sections(sections, index)
 
     if 'alpha_w_per_m2k' in kwargs:
         if u_w_per_m2k == 0.:
@@ -1480,6 +1482,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
     nr_pipes = len(from_junctions)
     index = _get_multiple_index_with_check(net, "pipe", index, nr_pipes)
     _check_branches(net, from_junctions, to_junctions, "pipe")
+    sections = _check_pipe_sections(sections, index)
 
     if "qext_w" in kwargs:
         warnings.warn("Due to the consideration of the ambient temperature, qext_w has "
@@ -1587,6 +1590,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
 
     index = _get_multiple_index_with_check(net, "pipe", index, len(from_junctions))
     _check_branches(net, from_junctions, to_junctions, "pipe")
+    sections = _check_pipe_sections(sections, index)
 
     if 'alpha_w_per_m2k' in kwargs:
         warnings.warn(
@@ -2018,6 +2022,21 @@ def _check_std_type(net, std_type, table, function_name):
     if std_type not in net['std_types'][table]:
         raise UserWarning('%s is not given in std_types (%s). Either change std_type or define new '
                           'one' % (std_type, table))
+
+
+def _check_pipe_sections(sections, index):
+    nan_sections = pd.isna(sections)
+    if not np.any(nan_sections):
+        return sections
+    if np.ndim(sections) == 0:
+        nan_indices = np.atleast_1d(index).tolist()
+        sections = 1
+    else:
+        nan_indices = np.asarray(index)[nan_sections].tolist()
+        sections = np.where(nan_sections, 1, sections)
+    logger.warning(f"The number of sections is NaN for the pipes with the following indices: "
+                   f"{nan_indices}. The number of sections is set to 1.")
+    return sections
 
 
 def _add_multiple_branch_geodata(net, table, geodata, index):
