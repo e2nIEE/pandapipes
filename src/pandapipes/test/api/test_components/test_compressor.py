@@ -9,7 +9,6 @@ import pandapipes
 from pandapipes.component_models.component_toolbox import p_correction_height_air
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_compressor_pressure_ratio(use_numba):
 
     net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="hgas")
@@ -64,7 +63,6 @@ def test_compressor_pressure_ratio(use_numba):
         "pressure lift on rev. flow should be 0"
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_compressor_pressure_ratio_after_index_gap(use_numba):
     """
     Compressor._compute_pl (inherited call site in Pump._register_hydraulic_equations)
@@ -112,7 +110,6 @@ def test_compressor_pressure_ratio_after_index_gap(use_numba):
                       net.res_junction.at[j4, "abs_p_bar"] * (r2 - 1))
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_compressor_quadratic_convergence(use_numba):
     """The compressor's pressure lift depends on its inlet pressure - with that derivative in the
     jacobi matrix, the pressure error drops to ~1e-6 after 3 iterations (~1e-2 when the lift is

@@ -20,7 +20,6 @@ logger.setLevel(logging.INFO)
 pf_logger.setLevel(logging.WARNING)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta(use_numba, log_results=False):
     net = nw.heat_transfer_delta()
     max_iter_hyd = 11 if use_numba else 11
@@ -34,7 +33,6 @@ def test_case_delta(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta_2sinks(use_numba, log_results=False):
     net = nw.heat_transfer_delta_2sinks()
     max_iter_hyd = 11 if use_numba else 11
@@ -48,7 +46,6 @@ def test_case_delta_2sinks(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_heights(use_numba, log_results=False):
     net = nw.heat_transfer_heights()
     max_iter_hyd = 3 if use_numba else 3
@@ -62,7 +59,6 @@ def test_case_heights(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe(use_numba, log_results=False):
     net = nw.heat_transfer_one_pipe()
     max_iter_hyd = 3 if use_numba else 3
@@ -76,7 +72,6 @@ def test_case_one_pipe(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_source(use_numba, log_results=False):
     net = nw.heat_transfer_one_source()
     max_iter_hyd = 3 if use_numba else 3
@@ -90,7 +85,6 @@ def test_case_one_source(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_section_variation(use_numba, log_results=False):
     net = nw.heat_transfer_section_variation()
     max_iter_hyd = 12 if use_numba else 12
@@ -105,7 +99,6 @@ def test_case_section_variation(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_t_cross(use_numba, log_results=False):
     net = nw.heat_transfer_t_cross()
     max_iter_hyd = 3 if use_numba else 3
@@ -119,7 +112,6 @@ def test_case_t_cross(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_two_pipes(use_numba, log_results=False):
     net = nw.heat_transfer_two_pipes()
     max_iter_hyd = 3 if use_numba else 3

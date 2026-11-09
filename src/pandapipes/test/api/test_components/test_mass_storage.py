@@ -8,7 +8,6 @@ import pytest
 import pandapipes
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_mass_storage(use_numba):
 
     net = pandapipes.create_empty_network("net", add_stdtypes=True, fluid="water")

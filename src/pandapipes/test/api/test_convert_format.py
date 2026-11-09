@@ -8,21 +8,18 @@ import numpy as np
 import os
 import pytest
 from pandapipes.io import convert_format
-from itertools import product
 from packaging import version
 
 folder = os.path.join(pp_dir, "test", "api", "old_versions")
 found_versions = sorted(set([file.split("_")[1].split(".json")[0] for _, _, files
                              in os.walk(folder) for file in files]))
-numba_usage = [True, False]
-test_params = list(product(found_versions, numba_usage))
 # as of version 0.8.0, water and gas grids were separately created for convert_format testing
 minimal_version_two_nets = "0.8.0"
 from pandapipes.test.api.release_cycle.release_control_test_network import release_control_test_network_gas, \
     release_control_test_network_water, release_control_test_network
 
 @pytest.mark.slow
-@pytest.mark.parametrize("pp_version, use_numba", test_params)
+@pytest.mark.parametrize("pp_version", found_versions)
 def test_convert_format(pp_version, use_numba):
     if version.parse(pp_version) >= version.parse(minimal_version_two_nets):
         names = ["_gas", "_water"]

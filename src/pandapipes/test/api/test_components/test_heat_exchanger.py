@@ -11,7 +11,6 @@ import pandapipes
 from pandapipes.test import data_path
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_heat_exchanger(use_numba):
     """
 
