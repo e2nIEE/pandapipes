@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 pf_logger.setLevel(logging.WARNING)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_update(use_numba, log_results=False):
     """
 

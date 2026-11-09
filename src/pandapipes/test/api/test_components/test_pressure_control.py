@@ -11,7 +11,6 @@ import pytest
 import pandapipes
 from pandapipes.test import data_path
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pressure_control_from_measurement_parameters(use_numba):
     """
         :return:
@@ -98,7 +97,6 @@ def test_non_working_distance_control():
         assert "The following controlled junction(s) were identified as disconnected" in str(e.value)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pressure_control_after_index_gap(use_numba):
     """
     PressureControlComponent._register_hydraulic_equations used to look up

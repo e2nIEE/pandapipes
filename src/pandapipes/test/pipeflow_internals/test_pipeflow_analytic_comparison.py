@@ -52,7 +52,6 @@ def create_source_2pipes_sink(
     pandapipes.create_sink(net, junction=j3, mdot_kg_per_s=mdot_kg_per_s)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_gas_internal_nodes(use_numba):
     """
 
@@ -128,7 +127,6 @@ def test_gas_internal_nodes(use_numba):
     assert np.all(v_diff < 0.4)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_single_pipe(use_numba):
     """
 
@@ -192,7 +190,6 @@ def test_temperature_internal_nodes_single_pipe(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_tee_2ab_1zu(use_numba):
     """
 
@@ -245,7 +242,6 @@ def test_temperature_internal_nodes_tee_2ab_1zu(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     """
 
@@ -304,7 +300,6 @@ def test_temperature_internal_nodes_tee_2zu_1ab(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     """
 
@@ -363,7 +358,6 @@ def test_temperature_internal_nodes_tee_2zu_1ab_direction_changed(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_2zu_2ab(use_numba):
     """
 
@@ -419,7 +413,6 @@ def test_temperature_internal_nodes_2zu_2ab(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_masche_1load(use_numba):
     """
 
@@ -481,7 +474,6 @@ def test_temperature_internal_nodes_masche_1load(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_temperature_internal_nodes_masche_1load_changed_direction(use_numba):
     """
 

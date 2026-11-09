@@ -10,7 +10,6 @@ import pytest
 import pandapipes
 from pandapipes.test import data_path
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_valve(use_numba):
     pytest.xfail(
         reason="Fails on Windows CI due to numerical instability / test pollution. "
@@ -74,7 +73,6 @@ def test_valve(use_numba):
     assert np.all(v_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_valve_to_pipe(use_numba):
     """
 
@@ -155,7 +153,6 @@ def test_valve_to_pipe(use_numba):
     assert np.all(np.isclose(net.res_ext_grid.values, net2.res_ext_grid.values, equal_nan=True))
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_valve_to_pipe2(use_numba):
     net = pandapipes.create_empty_network("net", add_stdtypes=True)
 

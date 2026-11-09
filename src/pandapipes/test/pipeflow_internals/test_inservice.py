@@ -146,7 +146,6 @@ def create_net_wo_ext_grid():
     return net
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_inservice_gas(create_test_net, use_numba):
     """
 
@@ -181,7 +180,6 @@ def test_inservice_gas(create_test_net, use_numba):
                        rtol=1e-10, atol=0)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_inservice_water(create_test_net, use_numba):
     """
 
@@ -216,7 +214,6 @@ def test_inservice_water(create_test_net, use_numba):
                        rtol=1e-10, atol=0)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_hydraulic(create_test_net, use_numba):
     """
 
@@ -255,7 +252,6 @@ def test_connectivity_hydraulic(create_test_net, use_numba):
                                                True, True, False]))
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_hydraulic2(create_test_net, use_numba):
     net = copy.deepcopy(create_test_net)
 
@@ -298,7 +294,6 @@ def test_connectivity_hydraulic2(create_test_net, use_numba):
                             use_numba=use_numba, check_connectivity=False)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
 
@@ -337,7 +332,6 @@ def test_connectivity_heat1(complex_heat_connectivity_grid, use_numba):
                        rtol=1e-10, atol=0)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat2(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
     net.pipe.at[7, "in_service"] = True
@@ -369,7 +363,6 @@ def test_connectivity_heat2(complex_heat_connectivity_grid, use_numba):
                        rtol=1e-10, atol=0)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat3(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
     net.pipe.at[5, "in_service"] = True
@@ -401,7 +394,6 @@ def test_connectivity_heat3(complex_heat_connectivity_grid, use_numba):
                        rtol=1e-10, atol=0)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
 
@@ -421,7 +413,6 @@ def test_connectivity_heat4(complex_heat_connectivity_grid, use_numba):
     assert pandapipes.nets_equal(net, net2, check_only_results=True)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
     net = copy.deepcopy(complex_heat_connectivity_grid)
     net.pipe.loc[[7, 8], 'in_service'] = True
@@ -445,7 +436,6 @@ def test_connectivity_heat5(complex_heat_connectivity_grid, use_numba):
                             check_connectivity=False, mode='sequential', use_numba=use_numba)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_exclude_unconnected_junction(use_numba):
     """
     test if unconnected junctions that do not have the highest index are excluded correctly
@@ -501,7 +491,6 @@ def check_mass_flows(net):
                       net.res_sink.loc[~get_oos(net, "sink")].mdot_kg_per_s.sum())
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos1(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
 
@@ -532,7 +521,6 @@ def test_mixed_indexing_oos1(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos2(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
     net.pipe.at[10, "in_service"] = False
@@ -554,7 +542,6 @@ def test_mixed_indexing_oos2(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos3(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
     net.pipe.at[7, "in_service"] = False
@@ -575,7 +562,6 @@ def test_mixed_indexing_oos3(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos4(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
     net.valve.at[2, "opened"] = False
@@ -596,7 +582,6 @@ def test_mixed_indexing_oos4(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos5(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
     net.pipe.at[6, "in_service"] = False
@@ -617,7 +602,6 @@ def test_mixed_indexing_oos5(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     net = copy.deepcopy(create_mixed_indexing_grid)
     net.valve.at[3, "opened"] = False
@@ -648,7 +632,6 @@ def test_mixed_indexing_oos6(create_mixed_indexing_grid, use_numba):
     assert check_mass_flows(net)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
     net = create_net_wo_ext_grid
     ex1 = pandapipes.create_ext_grid(net, junction=3, t_k=300)

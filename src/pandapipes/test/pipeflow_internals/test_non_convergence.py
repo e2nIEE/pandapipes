@@ -11,7 +11,6 @@ from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
 from pandapipes.properties.fluids import FluidPropertyConstant
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pipeflow_non_convergence(use_numba):
     net = gas_versatility()
     pandapipes.get_fluid(net).add_property("molar_mass", FluidPropertyConstant(16.6))

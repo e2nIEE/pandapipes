@@ -13,7 +13,6 @@ from pandapipes.std_types.std_type_class import PumpStdType
 from pandapipes.test import data_path
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_from_measurement_parameteres(use_numba):
     """
         :return:
@@ -53,7 +52,6 @@ def test_pump_from_measurement_parameteres(use_numba):
     assert np.all(v_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_from_regression_parameteres(use_numba):
     """
 
@@ -96,7 +94,6 @@ def test_pump_from_regression_parameteres(use_numba):
     assert np.all(v_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_from_std_type(use_numba):
     """
 
@@ -135,7 +132,6 @@ def test_pump_from_std_type(use_numba):
     assert np.all(v_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_bypass_on_reverse_flow(use_numba):
     """
     reverse flow = no pressure lift
@@ -166,7 +162,6 @@ def test_pump_bypass_on_reverse_flow(use_numba):
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_bypass_high_vdot(use_numba):
     """
     High flow: pressure lift not <0, always >=0
@@ -197,7 +192,6 @@ def test_pump_bypass_high_vdot(use_numba):
     assert np.isclose(net.res_junction.loc[1, "p_bar"], net.res_junction.loc[2, "p_bar"])
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_compression_power(use_numba):
     # based on example by "oporras"
     from pandapipes.component_models import R_UNIVERSAL
@@ -242,7 +236,6 @@ def test_compression_power(use_numba):
     assert np.isclose(pow_pump_MW[0], net.res_pump.compr_power_mw[0])
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_std_type_after_index_gap(use_numba):
     """
     Pump._compute_pl looks up the pump's characteristic curve via
@@ -294,7 +287,6 @@ def test_pump_std_type_pressure_derivative():
     assert pump.get_pressure(vdot[-1]) == 0
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pump_quadratic_convergence(use_numba):
     """The pump's pressure lift depends on its own mass flow - with its derivative in the jacobi
     matrix, Newton-Raphson converges quadratically (8 iterations here instead of 13 when the lift

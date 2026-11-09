@@ -2,9 +2,12 @@ Change Log
 =============
 [0.x.x] - 20xx-xx-xx
 -------------------------------
+- [ADDED] ``--only=numba|numpy`` CLI option to run only one branch of the ``use_numba`` test parametrization
 - [ADDED]
   FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them
   to the pipeflow.
+- [CHANGED]
+  ``use_numba`` test parametrization ids are now ``[numba]``/``[numpy]`` instead of ``[True]``/``[False]``
 - [CHANGED]
   Friction model selection is now object‑based. Passing a string
   name (e.g. "colebrook") is still supported for backward compatibility.

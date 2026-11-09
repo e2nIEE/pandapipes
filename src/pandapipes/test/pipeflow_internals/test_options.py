@@ -13,7 +13,6 @@ from pandapipes.pf.pipeflow_setup import _iteration_check
 from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_set_user_pf_options(create_test_net, use_numba):
     """
 
@@ -66,7 +65,6 @@ def test_set_user_pf_options(create_test_net, use_numba):
     assert net._options['tol_m'] == 1e-6
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_iter(create_test_net, use_numba):
     """
 

@@ -39,7 +39,6 @@ def _heating_loop():
     return net, j_cons_in
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_transient_hydraulics_follow_simulated_temperatures(use_numba):
     """In sequential mode, each step's hydraulics must use the previous step's temperatures.
 
@@ -65,7 +64,6 @@ def test_transient_hydraulics_follow_simulated_temperatures(use_numba):
     assert mdot[-1] < 0.5 * mdot[0]
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_transient_front_travel_time(use_numba):
     """A temperature step has to reach the end of a loss-free pipe after length / velocity."""
     length_m, d_m, velocity = 2000., 0.1, 1.

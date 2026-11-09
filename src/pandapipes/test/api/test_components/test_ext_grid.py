@@ -12,7 +12,6 @@ import pandapipes
 from pandapipes.test import data_path
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_ext_grid_sorting(use_numba):
     net = pandapipes.create_empty_network(fluid="hgas")
     j1 = pandapipes.create_junction(net, 1, 293.15, index=1)
@@ -46,7 +45,6 @@ def test_ext_grid_sorting(use_numba):
 
 
 @pytest.mark.parametrize("n_ext_grids", [2, 3, 5])
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_multiple_ext_grids_single_junction_split_evenly(n_ext_grids, use_numba):
     """N ext_grids directly on the SAME junction (no pipe in between at all) are indistinguishable
     to the pressure-based Newton system - all see the same pressure, so the node's mass balance
@@ -65,7 +63,6 @@ def test_multiple_ext_grids_single_junction_split_evenly(n_ext_grids, use_numba)
     assert np.isclose(net.res_ext_grid.mdot_kg_per_s.sum(), -5.0)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_p_type(use_numba):
     """
 
@@ -95,7 +92,6 @@ def test_p_type(use_numba):
 
     assert np.all(p_diff < 0.01)
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_t_type_single_pipe(use_numba):
     """
 
@@ -140,7 +136,6 @@ def test_t_type_single_pipe(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_t_type_tee(use_numba):
     """
 
@@ -192,7 +187,6 @@ def test_t_type_tee(use_numba):
     assert np.all(temp_diff < 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_t_type_tee_2zu_2ab(use_numba):
     """
 
@@ -266,7 +260,6 @@ def test_t_type_tee_2zu_2ab(use_numba):
 
     assert np.all(temp_diff < 0.01)
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_t_type_tee_2zu_2ab2(use_numba):
     """
 
@@ -340,7 +333,6 @@ def test_t_type_tee_2zu_2ab2(use_numba):
 
     assert np.all(temp_diff < 0.01)
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_t_type_tee_2zu_2ab3(use_numba):
     """
 

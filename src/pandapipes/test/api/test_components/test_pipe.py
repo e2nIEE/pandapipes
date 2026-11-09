@@ -9,7 +9,6 @@ from pandapipes.properties.fluids import _add_fluid_to_net
 import copy
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pipe_velocity_results(use_numba):
     """
         This test verifies the entries in the result table for a pipe network with pipes consisting
@@ -79,7 +78,6 @@ def test_pipe_velocity_results(use_numba):
 
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pipe_sections_temperature(use_numba):
     """
         This test verifies the results of the temperatures for a pipe network with pipes consisting
@@ -158,7 +156,6 @@ def test_namechange_pipes_from_parameters(create_net_3_juncs):
         assert net.pipe.u_w_per_m2k.values.tolist() == u
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_zero_flow_pipes(use_numba):
     net = pandapipes.create_empty_network("net", add_stdtypes=False)
     d = 209.1
