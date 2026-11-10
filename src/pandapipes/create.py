@@ -1711,7 +1711,7 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
                              control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
-                             type="pressure_control", *, inner_diameter_mm=100.0, **kwargs):
+                             type="pressure_control", **kwargs):
     """Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
@@ -1766,6 +1766,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
         >>>                          controlled_p_bar=[5, 4.9])
 
     """
+    inner_diameter_mm = kwargs.pop("inner_diameter_mm", 100.0)
     add_new_component(net, PressureControlComponent)
 
     index = _get_multiple_index_with_check(net, "press_control", index, len(from_junctions))
