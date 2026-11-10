@@ -61,6 +61,7 @@ class PressureControlComponent(BranchWOInternalsComponent):
                 ("controlled_junction", "u4"),
                 ("controlled_p_bar", "f8"),
                 ("control_active", "bool"),
+                ("inner_diameter_mm", "f8"),
                 ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
@@ -97,6 +98,18 @@ class PressureControlComponent(BranchWOInternalsComponent):
         registry.add(PitEntries(*build_pit_entries(
             rows, [IdxBranch.LOSS_COEFFICIENT, IdxBranch.DIRECTED], [tbl.loss_coefficient.values, True],
         )))
+        if "inner_diameter_mm" in tbl.columns:
+            diameter_mm = tbl["inner_diameter_mm"].fillna(100.0).to_numpy(dtype=float)
+
+            if np.any(~np.isfinite(diameter_mm) | (diameter_mm <= 0)):
+                raise ValueError("Pressure control inner_diameter_mm must be finite and positive.")
+
+            diameter_m = diameter_mm / 1000.0
+            registry.add_override(PitEntries(*build_pit_entries(
+                rows,
+                [IdxBranch.D, IdxBranch.DO],
+                [diameter_m, diameter_m],
+            ), mode=PitWriteMode.UNIQUE))
 
     @classmethod
     def create_component_array(cls, net, component_pits):

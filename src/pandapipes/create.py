@@ -1017,6 +1017,8 @@ def create_pressure_control(
         in_service=True,
         type="pressure_control",
         check_controllability=True,
+        *,
+        inner_diameter_mm=100.0,
         **kwargs
 ):
     """Adds one pressure control that enforces a pressure at a specific junction.
@@ -1091,7 +1093,7 @@ def create_pressure_control(
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction, to_junction=to_junction,
                  controlled_junction=controlled_junction, control_active=bool(control_active),
                  loss_coefficient=loss_coefficient, controlled_p_bar=controlled_p_bar, in_service=bool(in_service),
-                 type=type, **kwargs)
+                 type=type, inner_diameter_mm=inner_diameter_mm, **kwargs)
 
     if controlled_junction != from_junction and controlled_junction != to_junction:
         logger.warning("The pressure controller %d controls the pressure at a junction that it is "
@@ -1709,7 +1711,7 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
                              control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
-                             type="pressure_control", **kwargs):
+                             type="pressure_control", *, inner_diameter_mm=100.0, **kwargs):
     """Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
     same length or single values.
@@ -1772,7 +1774,7 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
                "control_active": control_active, "loss_coefficient": loss_coefficient, "in_service": in_service,
-               "type": type}
+               "type": type, "inner_diameter_mm": inner_diameter_mm}
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 
     controlled_elsewhere = (controlled_junctions != from_junctions) & (controlled_junctions != to_junctions)

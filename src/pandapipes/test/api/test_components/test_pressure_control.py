@@ -139,3 +139,50 @@ def test_pressure_control_after_index_gap(use_numba):
 
     assert np.isclose(net.res_junction.at[j1, "p_bar"], 20.)
     assert np.isclose(net.res_junction.at[j3, "p_bar"], 15.)
+
+
+@pytest.mark.parametrize("control_active", [True, False])
+@pytest.mark.parametrize("diameter_mm", [None, 50.0, 100.0])
+def test_pressure_control_diameter_and_loss(control_active, diameter_mm):
+    net = pandapipes.create_empty_network(fluid="water")
+    temperature_k = 293.15
+    p_in_bar = 5.0
+    p_target_bar = 4.0
+    mdot = 2.0
+    loss_coefficient = 10.0
+
+    j0 = pandapipes.create_junction(net, p_in_bar, temperature_k)
+    j1 = pandapipes.create_junction(net, p_in_bar, temperature_k)
+    pandapipes.create_ext_grid(net, j0
+
+, p_in_bar, type="p")
+    pandapipes.create_sink(net, j1, mdot)
+
+    if diameter_mm is None:
+        pandapipes.create_pressure_control(
+            net, j0, j1, j1, p_target_bar,
+            control_active=control_active,
+            loss_coefficient=loss_coefficient,
+        )
+        # Simulate an older network without a diameter column.
+        net.press_control.drop(columns="inner_diameter_mm", inplace=True)
+        diameter_mm = 100.0
+    else:
+        pandapipes.create_pressure_controls(
+            net, [j0], [j1], [j1], p_target_bar,
+            control_active=control_active,
+            loss_coefficient=loss_coefficient,
+            inner_diameter_mm=[diameter_mm],
+        )
+
+    pandapipes.pipeflow(net, mode="hydraulics", use_numba=False)
+
+    if control_active:
+        expected_p_bar = p_target_bar
+    else:
+        rho = net.fluid.get_density(temperature_k)
+        area_m2 = np.pi * (diameter_mm / 1000.0) ** 2 / 4
+        velocity = mdot / (rho * area_m2)
+        expected_p_bar = p_in_bar - loss_coefficient * rho * velocity**2 / (2 * 1e5)
+
+    assert net.res_junction.at[j1, "p_bar"] == pytest.approx(expected_p_bar, abs=1e-7)
