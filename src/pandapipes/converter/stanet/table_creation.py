@@ -17,6 +17,7 @@ import pandapipes
 from pandapipes.properties import get_fluid
 from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.component_models.component_toolbox import vrange
+from pandapipes.io.convert_format import DEFAULT_PRESS_CONTROL_DIAMETER_MM
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
 try:
@@ -466,12 +467,23 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         add_geo = kwargs.pop('add_geodata', False)
         if add_geo:
             add_info['geodata'] = control_table[['XRECHTS', 'YHOCH']].T.apply(Point)
+        # the diameter is the reference area for ZETA, so both have to be imported together
+        if "DM" in control_table.columns:
+            pc_diameter = control_table.DM.values.astype(np.float64)[is_pc]
+            pc_diameter = np.where(np.isnan(pc_diameter), DEFAULT_PRESS_CONTROL_DIAMETER_MM,
+                                   pc_diameter)
+        else:
+            logger.warning("No diameter ('DM') given for the STANET controllers. Falling back to "
+                           "%.0f mm as the reference area for their ZETA values."
+                           % DEFAULT_PRESS_CONTROL_DIAMETER_MM)
+            pc_diameter = DEFAULT_PRESS_CONTROL_DIAMETER_MM
         pandapipes.create_pressure_controls(
             net, from_junctions[is_pc], to_junctions[is_pc], to_junctions[is_pc],
             control_table.PMESS.astype(np.float64).values[is_pc],
             name=names[is_pc],
             in_service=in_service[is_pc],
             control_active=control_active[is_pc],
+            inner_diameter_mm=pc_diameter,
             loss_coefficient=control_table.ZETA.values.astype(np.float64)[is_pc],
             stanet_nr=control_table.RECNO.values[is_pc].astype(np.int32),
             stanet_id=stanet_id[is_pc],

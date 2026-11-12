@@ -1,5 +1,10 @@
 Change Log
 =============
+[0.17.0] - unreleased
+-------------------------------
+- [ADDED] `inner_diameter_mm` for pressure controls as reference area of their `loss_coefficient`, incl. convert_format fallback to 100 mm
+- [ADDED] STANET converter imports the controller diameter `DM` next to `ZETA`
+
 [0.16.0] - 2026-10-16
 -------------------------------
 - [FIXED] considering pump derivatives
