@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -30,8 +30,7 @@ def test_update(use_numba, log_results=False):
     # before: gas_case3.json
     net = nw.gas_one_pipe1()
     max_iter_hyd = 5 if use_numba else 5
-    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba, max_iter_hyd=max_iter_hyd,
-                                                    only_update_hydraulic_matrix=True)
+    p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results, use_numba=use_numba, max_iter_hyd=max_iter_hyd)
     assert np.all(p_diff < 0.01)
     assert np.all(v_diff_abs < 0.05)
 

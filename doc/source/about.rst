@@ -7,9 +7,9 @@ for the input and output data representation and implements a Newton-Raphson sol
 analysis, in analogy to `pandapower <www.pandapower.org>`_ and aims at a similar level of automation
 for the analysis and optimization of piping grids.
 
-.. image:: /pics/pp.svg
-		:width: 250em
-		:align: left
+.. image:: /pics/pandapipes_color.svg
+    :width: 250em
+    :align: left
 
 .. |br| raw:: html
 
@@ -41,14 +41,14 @@ Institute for Energy Economics and Energy System Technology (IEE), Kassel. Major
 made by the research group of the Department for Sustainable Electrical Energy Systems (e2n), University of Kassel.
 
 .. image:: /pics/iee.png
-		:width: 18em
-		:align: left
+    :width: 18em
+    :align: left
 
 |br|
 
 .. image:: /pics/e2n.png
-		:width: 15em
-		:align: right
+    :width: 15em
+    :align: right
 
 
 

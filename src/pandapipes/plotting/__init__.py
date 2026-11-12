@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -16,17 +16,16 @@ from pandapower.plotting.collections import add_collections_to_axes, add_cmap_to
 
 
 class GC(GraphicsContextBase):
-    """
-
-    """
+    """Graphics context with a rounded line cap style."""
 
     def __init__(self):
+        """Initialize the graphics context and set the cap style to round."""
         super().__init__()
-        self._capstyle = 'round'
+        self.set_capstyle('round')
 
 
 def custom_new_gc(self):
-    """
+    """Return a new custom graphics context.
 
     :param self:
     :type self:

@@ -251,3 +251,10 @@ texinfo_documents = [
 
 # Additional magic lines (beacuse of: https://github.com/phn/pytpm/issues/3)
 numpydoc_show_class_members = False
+
+# needed to preserve typealiases in the docs
+autodoc_type_aliases = {
+    "Float64_1D": "Float64_1D",
+    "FrictionFactorResult": "FrictionFactorResult",
+    "LambdaEstimator": "LambdaEstimator",
+}

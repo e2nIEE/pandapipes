@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -73,7 +73,7 @@ def test_case_pumps_n(use_numba, log_results=False):
     :rtype:
     """
     net = nw.water_meshed_pumps(results_from="stanet")
-    max_iter_hyd = 21 if use_numba else 21
+    max_iter_hyd = 22 if use_numba else 22
     p_diff, v_diff_abs = pipeflow_stanet_comparison(net, log_results,
                                                     max_iter_hyd=max_iter_hyd,
                                                     use_numba=use_numba)

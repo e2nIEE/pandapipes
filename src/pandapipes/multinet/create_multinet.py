@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -15,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_empty_multinet(name=""):
-    """
-    This function initializes the multinet datastructure.
+    """Initializes the multinet datastructure.
 
     :param name: Name for the multi net
     :type name: string, default None
@@ -34,8 +33,7 @@ def create_empty_multinet(name=""):
 
 
 def add_net_to_multinet(multinet, net, net_name='power', overwrite=False):
-    """
-    Add a pandapipes or pandapower net to the multinet structure.
+    """Add a pandapipes or pandapower net to the multinet structure.
 
     :param multinet: multinet to which a pandapipes/pandapower net will be added
     :type multinet: pandapipes.MultiNet
@@ -56,8 +54,7 @@ def add_net_to_multinet(multinet, net, net_name='power', overwrite=False):
 
 
 def add_nets_to_multinet(multinet, overwrite=False, **networks):
-    """
-    Add multiple nets to a multinet. 'networks' is one or more keyword arguments with nets.
+    """Add multiple nets to a multinet. 'networks' is one or more keyword arguments with nets.
 
     :param multinet: multinet to which several pandapipes/pandapower nets are added
     :type multinet: pandapipes.MultiNet

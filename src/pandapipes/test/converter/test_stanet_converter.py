@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -82,6 +82,10 @@ def test_mini_exampelonia_sliders_open():
     assert os.path.isfile(mininet_path), f"test file not found: {mininet_path}"
 
     net = stanet_to_pandapipes(mininet_path, add_layers=False)
+    main_pipe_sections = net.pipe["type"] == "main_pipe"
+    assert (net.pipe.loc[main_pipe_sections, "k_mm"] > 0).all(),(
+        "All main_pipe sections must have k_mm > 0."
+    )
     max_iter_hyd = 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd)
 

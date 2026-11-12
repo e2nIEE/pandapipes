@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -13,19 +13,20 @@ logger = logging.getLogger(__name__)
 
 
 class NodeComponent(Component):
-    """
-
-    """
+    """Abstract base class for node components."""
 
     @classmethod
     def table_name(cls):
         raise NotImplementedError
 
     @classmethod
+    def get_component_input(cls):
+        raise NotImplementedError
+
+    @classmethod
     def create_node_lookups(cls, net, ft_lookups, table_lookup, idx_lookups, current_start,
                             current_table, internals):
-        """
-        Function which creates node lookups.
+        """Function which creates node lookups.
 
         :param net: The pandapipes network
         :type net: pandapipesNet
@@ -43,22 +44,6 @@ class NodeComponent(Component):
         :type internals:
         :return: No Output.
         """
-        raise NotImplementedError
-
-    @classmethod
-    def create_pit_node_entries(cls, net, node_pit):
-        """
-
-        :param net: The pandapipes network
-        :type net: pandapipesNet
-        :param node_pit:
-        :type node_pit:
-        :return: No Output.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def get_component_input(cls):
         raise NotImplementedError
 
     @classmethod
