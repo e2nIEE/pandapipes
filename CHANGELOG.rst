@@ -5,6 +5,10 @@ Change Log
 - [ADDED]
   FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them
   to the pipeflow.
+- [ADDED]
+  WorstPointPressureDropController for district heating networks. It keeps the pressure difference at
+  the worst point (heat consumer with the lowest pressure difference) at a target value by adapting the
+  circulation pump pressures, incl. tutorial WorstPointPressureDropController.ipynb.
 - [CHANGED]
   Friction model selection is now object‑based. Passing a string
   name (e.g. "colebrook") is still supported for backward compatibility.

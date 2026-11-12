@@ -1,4 +1,9 @@
+import logging
+
 from pandapower.control.basic_controller import BasicCtrl
+
+logger = logging.getLogger(__name__)
+
 
 class WorstPointPressureDropController(BasicCtrl):
     """
@@ -107,6 +112,10 @@ class WorstPointPressureDropController(BasicCtrl):
         """
         Check if the controller has converged.
 
+        As this is called after every pipeflow of the control loop, the worst point and its
+        pressure difference (``dp_min``, ``heat_consumer_idx``) are updated here from the latest
+        results. This also accounts for a shift of the worst point to another heat consumer.
+
         :param net: The pandapipes network
         :type net: pandapipesNet
         :return: True if converged, False otherwise
@@ -116,14 +125,10 @@ class WorstPointPressureDropController(BasicCtrl):
         if all(net.heat_consumer["qext_w"] == 0):
             return True
 
-        current_dp_bar = net.res_heat_consumer["p_from_bar"].at[self.heat_consumer_idx] - \
-                        net.res_heat_consumer["p_to_bar"].at[self.heat_consumer_idx]
+        self.dp_min, self.heat_consumer_idx = self.calculate_worst_point(net)
 
         # Check if the pressure difference is within tolerance
-        dp_within_tolerance = abs(current_dp_bar - self.target_dp_min_bar) < self.tolerance
-
-        if dp_within_tolerance:
-            return dp_within_tolerance
+        return bool(abs(self.dp_min - self.target_dp_min_bar) < self.tolerance)
 
     def control_step(self, net):
         """
@@ -138,7 +143,7 @@ class WorstPointPressureDropController(BasicCtrl):
         # Adjust the pump pressure or switch to standby mode when heat flow is zero
         if all(net.heat_consumer["qext_w"] == 0):
             # Switch to standby mode
-            print("No heat flow detected. Switching to standby mode.")
+            logger.info("No heat flow detected. Switching to standby mode.")
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"] = self.min_plift  # Minimum lift pressure
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "p_flow_bar"] = self.min_pflow  # Minimum flow pressure
             return super(WorstPointPressureDropController, self).control_step(net)
@@ -161,14 +166,14 @@ class WorstPointPressureDropController(BasicCtrl):
             if new_preturn < self.min_preturn:
                 new_plift = current_pflow_bar - self.min_preturn
 
-            net.circ_pump_pressure["plift_bar"].at[self.circ_pump_pressure_idx] = new_plift
+            net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"] = new_plift
         else:  # fixed_preturn
             # Mode 2: Keep p_return constant, adjust both plift and pflow
             plift_adjustment = dp_error * self.proportional_gain
             pflow_adjustment = dp_error * self.proportional_gain
             new_plift = current_plift_bar + plift_adjustment
             new_pflow = current_pflow_bar + pflow_adjustment
-            net.circ_pump_pressure["plift_bar"].at[self.circ_pump_pressure_idx] = new_plift
-            net.circ_pump_pressure["p_flow_bar"].at[self.circ_pump_pressure_idx] = new_pflow
+            net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"] = new_plift
+            net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "p_flow_bar"] = new_pflow
 
         return super(WorstPointPressureDropController, self).control_step(net)

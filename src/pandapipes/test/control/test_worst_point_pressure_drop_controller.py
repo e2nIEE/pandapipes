@@ -122,5 +122,26 @@ def test_worst_point_controller_fixed_pflow_mode(district_heating_net):
     assert final_preturn >= 2.0 - 0.01, \
         f"Return pressure should not fall below min_preturn (2.0 bar), got {final_preturn:.4f} bar"
 
+def test_worst_point_controller_convergence_state(district_heating_net):
+    """Test that is_converged returns a bool and dp_min reflects the final state after control."""
+    net = district_heating_net
+
+    controller = WorstPointPressureDropController(net, target_dp_min_bar=1.0, tolerance=0.05,
+                                                  proportional_gain=0.3)
+    net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
+    initial_dp_min = controller.dp_min
+
+    # Initial worst point pressure difference is far from the target
+    assert controller.is_converged(net) is False
+
+    run_control(net, mode="bidirectional", max_iter=100)
+
+    final_dp_min, _ = controller.calculate_worst_point(net)
+    assert controller.is_converged(net) is True
+    assert controller.dp_min == pytest.approx(final_dp_min), \
+        "dp_min should be updated to the worst point pressure difference after control"
+    assert abs(controller.dp_min - initial_dp_min) > 0.1, \
+        "Controller should have changed the worst point pressure difference"
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
