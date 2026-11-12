@@ -17,12 +17,18 @@ class WorstPointPressureDropController(BasicCtrl):
 
     Key Features:
 
-    - **Automatic Worst Point Detection:** Identifies the heat exchanger with the lowest pressure difference where heat flow is present.
-    - **Pressure Regulation:** Adjusts the circulation pump's lift and flow pressures to ensure the pressure difference at the worst point meets a specified minimum target.
-    - **Proportional Control:** Uses a proportional gain to determine the adjustment magnitude based on the deviation from the target pressure difference.
-    - **Control Modes:** Supports two operating modes - fixed flow pressure (adjusts only plift) or fixed return pressure (adjusts both plift and pflow).
-    - **Standby Mode:** If no heat flow is detected, the controller switches the pump to a standby mode with minimum lift and flow pressures.
-    - **Convergence Check:** Determines if the pressure difference is within a specified tolerance of the target, signaling convergence.
+    - **Automatic Worst Point Detection:** Identifies the heat exchanger with the lowest pressure
+      difference where heat flow is present.
+    - **Pressure Regulation:** Adjusts the circulation pump's lift and flow pressures to ensure the
+      pressure difference at the worst point meets a specified minimum target.
+    - **Proportional Control:** Uses a proportional gain to determine the adjustment magnitude
+      based on the deviation from the target pressure difference.
+    - **Control Modes:** Supports two operating modes - fixed flow pressure (adjusts only plift)
+      or fixed return pressure (adjusts both plift and pflow).
+    - **Standby Mode:** If no heat flow is detected, the controller switches the pump to a standby
+      mode with minimum lift and flow pressures.
+    - **Convergence Check:** Determines if the pressure difference is within a specified
+      tolerance of the target, signaling convergence.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -34,7 +40,9 @@ class WorstPointPressureDropController(BasicCtrl):
     :type tolerance: float, optional
     :param proportional_gain: Proportional gain for the controller, defaults to 0.2
     :type proportional_gain: float, optional
-    :param mode: Control mode - 'fixed_pflow' (adjusts only plift, keeps p_flow constant) or 'fixed_preturn' (adjusts both plift and pflow, keeps p_return constant), defaults to 'fixed_preturn'
+    :param mode: Control mode - 'fixed_pflow' (adjusts only plift, keeps p_flow constant) or
+        'fixed_preturn' (adjusts both plift and pflow, keeps p_return constant), defaults to
+        'fixed_preturn'
     :type mode: str, optional
     :param min_plift: Minimum lift pressure in bar, defaults to 1.5
     :type min_plift: float, optional
@@ -48,7 +56,7 @@ class WorstPointPressureDropController(BasicCtrl):
     def __init__(self, net, circ_pump_pressure_idx=0, target_dp_min_bar=1, tolerance=0.2,
                  proportional_gain=0.2, mode='fixed_preturn', min_plift=1.5, min_pflow=3.5,
                  min_preturn=2.0, **kwargs):
-        super(WorstPointPressureDropController, self).__init__(net, **kwargs)
+        super().__init__(net, **kwargs)
         self.circ_pump_pressure_idx = circ_pump_pressure_idx
         self.target_dp_min_bar = target_dp_min_bar
         self.tolerance = tolerance
@@ -163,7 +171,7 @@ class WorstPointPressureDropController(BasicCtrl):
             logger.info("No heat flow detected. Switching to standby mode.")
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"] = self.min_plift  # Minimum lift pressure
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "p_flow_bar"] = self.min_pflow  # Minimum flow pressure
-            return super(WorstPointPressureDropController, self).control_step(net)
+            return super().control_step(net)
 
         # Check whether the heat flow in the heat exchanger is zero
         current_dp_bar = net.res_heat_consumer["p_from_bar"].at[self.heat_consumer_idx] - \
@@ -193,4 +201,4 @@ class WorstPointPressureDropController(BasicCtrl):
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"] = new_plift
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "p_flow_bar"] = new_pflow
 
-        return super(WorstPointPressureDropController, self).control_step(net)
+        return super().control_step(net)
