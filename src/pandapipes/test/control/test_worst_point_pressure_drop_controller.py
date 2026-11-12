@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import pandapipes as pp
-from pandapipes.control import BadPointPressureLiftController
+from pandapipes.control import WorstPointPressureDropController
 from pandapipes.control.run_control import run_control
 
 @pytest.fixture
@@ -38,14 +38,14 @@ def district_heating_net():
     pp.pipeflow(net, mode="bidirectional", iter=100)
     return net
 
-def test_bad_point_pressure_lift_controller(district_heating_net):
+def test_worst_point_pressure_drop_controller(district_heating_net):
     """Test that controller maintains target pressure difference at worst point (default mode: fixed_preturn)."""
     net = district_heating_net
     target_dp = 1.5
     tolerance = 0.1
 
     # Add controller to network with default mode (fixed_preturn)
-    controller = BadPointPressureLiftController(net, target_dp_min_bar=target_dp,
+    controller = WorstPointPressureDropController(net, target_dp_min_bar=target_dp,
                                                 tolerance=tolerance, proportional_gain=0.3)
     net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
 
@@ -72,14 +72,14 @@ def test_bad_point_pressure_lift_controller(district_heating_net):
     assert abs(final_preturn - initial_preturn) < 0.01, \
         f"Return pressure should remain constant in fixed_preturn mode, changed by {final_preturn - initial_preturn:.4f} bar"
 
-def test_bad_point_controller_standby_mode(district_heating_net):
+def test_worst_point_controller_standby_mode(district_heating_net):
     """Test that controller enters standby mode when no heat demand is present."""
     net = district_heating_net
 
     # Remove heat demand
     net.heat_consumer["qext_w"] = 0
 
-    controller = BadPointPressureLiftController(net, target_dp_min_bar=1.5,
+    controller = WorstPointPressureDropController(net, target_dp_min_bar=1.5,
                                                 min_plift=1.5, min_pflow=3.5)
     controller.control_step(net)
 
@@ -87,14 +87,14 @@ def test_bad_point_controller_standby_mode(district_heating_net):
     assert net.circ_pump_pressure["plift_bar"].iloc[0] == 1.5
     assert net.circ_pump_pressure["p_flow_bar"].iloc[0] == 3.5
 
-def test_bad_point_controller_fixed_pflow_mode(district_heating_net):
+def test_worst_point_controller_fixed_pflow_mode(district_heating_net):
     """Test that controller works correctly in fixed_pflow mode."""
     net = district_heating_net
     target_dp = 1.5
     tolerance = 0.1
 
     # Add controller in fixed_pflow mode
-    controller = BadPointPressureLiftController(net, target_dp_min_bar=target_dp,
+    controller = WorstPointPressureDropController(net, target_dp_min_bar=target_dp,
                                                 tolerance=tolerance, proportional_gain=0.3,
                                                 mode='fixed_pflow', min_preturn=2.0)
     net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]

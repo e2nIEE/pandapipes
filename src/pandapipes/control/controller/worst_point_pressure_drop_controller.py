@@ -1,11 +1,11 @@
 from pandapower.control.basic_controller import BasicCtrl
 
-class BadPointPressureLiftController(BasicCtrl):
+class WorstPointPressureDropController(BasicCtrl):
     """
     A controller for maintaining the pressure difference at the worst point 
     (German: Differenzdruckregelung im Schlechtpunkt) in the network.
     
-    The BadPointPressureLiftController is a custom controller designed for district heating networks 
+    The WorstPointPressureDropController is a custom controller designed for district heating networks 
     modeled with pandapipes. Its main purpose is to maintain a minimum pressure difference at the 
     network's "worst point"—the heat exchanger with the lowest pressure difference (Schlechtpunktregelung).
 
@@ -42,7 +42,7 @@ class BadPointPressureLiftController(BasicCtrl):
     def __init__(self, net, circ_pump_pressure_idx=0, target_dp_min_bar=1, tolerance=0.2,
                  proportional_gain=0.2, mode='fixed_preturn', min_plift=1.5, min_pflow=3.5,
                  min_preturn=2.0, **kwargs):
-        super(BadPointPressureLiftController, self).__init__(net, **kwargs)
+        super(WorstPointPressureDropController, self).__init__(net, **kwargs)
         self.circ_pump_pressure_idx = circ_pump_pressure_idx
         self.target_dp_min_bar = target_dp_min_bar
         self.tolerance = tolerance
@@ -141,7 +141,7 @@ class BadPointPressureLiftController(BasicCtrl):
             print("No heat flow detected. Switching to standby mode.")
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"] = self.min_plift  # Minimum lift pressure
             net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "p_flow_bar"] = self.min_pflow  # Minimum flow pressure
-            return super(BadPointPressureLiftController, self).control_step(net)
+            return super(WorstPointPressureDropController, self).control_step(net)
 
         # Check whether the heat flow in the heat exchanger is zero
         current_dp_bar = net.res_heat_consumer["p_from_bar"].at[self.heat_consumer_idx] - \
@@ -171,4 +171,4 @@ class BadPointPressureLiftController(BasicCtrl):
             net.circ_pump_pressure["plift_bar"].at[self.circ_pump_pressure_idx] = new_plift
             net.circ_pump_pressure["p_flow_bar"].at[self.circ_pump_pressure_idx] = new_pflow
 
-        return super(BadPointPressureLiftController, self).control_step(net)
+        return super(WorstPointPressureDropController, self).control_step(net)

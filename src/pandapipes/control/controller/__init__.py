@@ -1,1 +1,1 @@
-from pandapipes.control.controller.bad_point_pressure_lift_controller import BadPointPressureLiftController
+from pandapipes.control.controller.worst_point_pressure_drop_controller import WorstPointPressureDropController
