@@ -1,17 +1,23 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+import json
 import os
 
 import pandapipes
 import pytest
 from pandas.testing import assert_frame_equal
+from pandapipes.io.io_utils import DeserializationNotAllowed
 from pandapipes.test.multinet.test_control_multinet import get_gas_example, get_power_example_simple
 from pandapipes.multinet.create_multinet import create_empty_multinet, add_nets_to_multinet
 from pandapipes.multinet import MultiNet
-from pandapower import nets_equal as nets_equal_pandapower
 from pandapipes.toolbox import nets_equal
+
+try:
+    from pandapower import nets_equal as nets_equal_pandapower
+except ImportError:
+    from pandapower.toolbox.comparison import nets_equal as nets_equal_pandapower
 
 
 # @pytest.fixture()
@@ -35,21 +41,21 @@ def load_net():
     pandapipes.create_ext_grid(net, junction=j1, p_bar=1.1, t_k=293.15, name="Grid Connection")
 
     pandapipes.create_pipe_from_parameters(net, from_junction=j1, to_junction=j2, length_km=10,
-                                           diameter_m=0.05, name="Pipe 1", geodata=[(0, 0), (2, 0)])
+                                           inner_diameter_mm=50, name="Pipe 1", geodata=[(0, 0), (2, 0)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j3, length_km=2,
-                                           diameter_m=0.05, name="Pipe 2",
+                                           inner_diameter_mm=50, name="Pipe 2",
                                            geodata=[(2, 0), (2, 4), (7, 4)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j2, to_junction=j4, length_km=2.5,
-                                           diameter_m=0.05, name="Pipe 3",
+                                           inner_diameter_mm=50, name="Pipe 3",
                                            geodata=[(2, 0), (2, -4), (7, -4)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j3, to_junction=j5, length_km=1,
-                                           diameter_m=0.05, name="Pipe 4",
+                                           inner_diameter_mm=50, name="Pipe 4",
                                            geodata=[(7, 4), (7, 3), (5, 3)])
     pandapipes.create_pipe_from_parameters(net, from_junction=j4, to_junction=j6, length_km=1,
-                                           diameter_m=0.05, name="Pipe 5",
+                                           inner_diameter_mm=50, name="Pipe 5",
                                            geodata=[(7, -4), (7, -3), (5, -3)])
 
-    pandapipes.create_valve(net, junction=j5, element=j6, et='ju', diameter_m=0.05,
+    pandapipes.create_valve(net, junction=j5, element=j6, et='ju', inner_diameter_mm=50,
                             opened=True)
 
     pandapipes.create_sink(net, junction=j4, mdot_kg_per_s=5.45e-5, name="Sink 1")
@@ -77,6 +83,73 @@ def test_pickle(tmp_path):
 
     # check if saved and loaded versions are identical
     assert pandapipes.nets_equal(net, net2), "Error in comparison after saving to Pickle."
+
+
+def test_json_component_list(tmp_path):
+    """
+    Checks that the component classes of a network survive a json round trip.
+
+    The other io tests cannot detect this: nets_equal does not compare the component list, so a
+    network whose components are written incorrectly (e.g. as plain strings) still compares equal
+    after loading and only fails later, when the network is used.
+    :return:
+    :rtype:
+    """
+    net = load_net()
+    filename = os.path.abspath(str(tmp_path)) + "test_net_components.json"
+
+    # save and load test network
+    pandapipes.to_json(net, filename)
+    net2 = pandapipes.from_json(filename)
+
+    # the components must come back as classes, in the same order, as the order defines in which
+    # sequence the components are processed during the pipeflow
+    assert all(isinstance(comp, type) for comp in net2.component_list)
+    assert net2.component_list == net.component_list
+
+    # the loaded network must still be usable
+    pandapipes.pipeflow(net2)
+    assert net2.converged
+
+
+def test_deserialization_does_not_call_unknown_classes():
+    """
+    Checks that a class read from a file is not called, even if its module is already imported.
+
+    Modules that are imported anyway cannot be blocked at import time, so everything that is not a
+    component or a type written by pandapipes/pandapower itself has to be rejected before it is
+    called.
+    :return:
+    :rtype:
+    """
+    manipulated = json.dumps({"_module": "os", "_class": "system", "_object": "echo hacked"})
+
+    with pytest.raises(DeserializationNotAllowed):
+        pandapipes.from_json_string(manipulated)
+
+
+def test_deserialization_of_foreign_class_in_component_list():
+    """
+    Checks that a class which is not a component is not loaded, even if it stands in component_list.
+
+    The component list is the one place where a network legitimately contains classes, so it is
+    also the obvious place to smuggle one in. Everything that is not a component has to go through
+    the same checks as any other class of a file.
+
+    :param manipulated_component: entry that replaces a component in the component list
+    :type manipulated_component: dict
+    :return:
+    :rtype:
+    """
+    net_dict = json.loads(pandapipes.to_json(load_net()))
+    manipulated_component = \
+        {"_module": "builtins",
+         "_class": "eval",
+         "_object": "__import__('os').system('echo hacked')"}
+    net_dict["_object"]["component_list"][0] = manipulated_component
+
+    with pytest.raises(DeserializationNotAllowed):
+        pandapipes.from_json_string(json.dumps(net_dict))
 
 
 def test_json(tmp_path):

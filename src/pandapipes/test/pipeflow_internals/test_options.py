@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -35,7 +35,6 @@ def test_set_user_pf_options(create_test_net, use_numba):
 
     pandapipes.pf.pipeflow_setup.set_user_pf_options(net, hello='bye', **test_options)
     test_options.update({'hello': 'bye'})
-    test_options.update({'hyd_flag': True})
 
     assert net.user_pf_options == test_options
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -7,8 +7,7 @@ import logging
 
 
 def get_all_branch_component_models():
-    """
-    Get all models of available branch components
+    """Get all models of available branch components.
 
     :return: branch model
     :rtype: list
@@ -32,8 +31,7 @@ def get_all_branch_component_models():
 
 
 def get_all_branch_component_table_names():
-    """
-    Get all table names of available branch components
+    """Get all table names of available branch components.
 
     :return: table names
     :rtype: list

@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_km",
                              edge_factories_override=None, additional_edge_factories=None,
                              exclude_branch_elements=(), ignore_in_service_branch_elements=()):
-    """
-    This function uses the igraph library to create an igraph graph for a given pandapipes network.
+    """Use the igraph library to create an igraph graph for a given pandapipes network.
+
     Any branch component is respected.
     Performance vs. networkx: https://graph-tool.skewed.de/performance
 
@@ -37,7 +37,6 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
     :Example:
         graph, meshed, roots = build_igraph_from_pp(net)
     """
-
     try:
         import igraph as ig
     except (DeprecationWarning, ImportError):
@@ -93,10 +92,10 @@ def build_igraph_from_ppipes(net, junctions=None, weight_column_lookup="length_k
 
 def create_generic_coordinates(net, mg=None, library="igraph", geodata_table="junction_geodata",
                                junctions=None, overwrite=False, **kwargs):
-    """
-    This function will add arbitrary geo-coordinates for all junctions based on an analysis of
-    branches and rings. It will remove out of service junctions/pipes from the net. The coordinates
-    will be created either by igraph or by using networkx library.
+    """Add arbitrary geo-coordinates for all junctions based on an analysis of branches and rings.
+
+    It will remove out of service junctions/pipes from the net. The coordinates will be created
+    either by igraph or by using networkx library.
 
     :param net: pandapipes network
     :type net: pandapipesNet

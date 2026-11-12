@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -24,8 +24,8 @@ def create_valve_pipe_collection(net, valve_pipes=None, valve_pipe_geodata=None,
                                  use_junction_geodata=False, infofunc=None, fill_closed=True,
                                  respect_valves=False, size=5., cmap=None, norm=None,
                                  picker=False, z=None, cbar_title="Pipe Loading  [%]", clim=None, **kwargs):
-    """
-    Creates a matplotlib patch collection of pandapipes junction-junctiion valve_pipes.
+    """Creates a matplotlib patch collection of pandapipes junction-junctiion valve_pipes.
+
     Valve_pipes are plotted in the center between two junctions with a "helper" line
     (dashed and thin) being drawn between the junctions as well.
 

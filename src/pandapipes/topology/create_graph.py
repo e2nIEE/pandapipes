@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -46,10 +46,11 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                    weighting_heat_consumers=None,
                    respect_status_junctions=True, nogojunctions=None, notravjunctions=None, multi=True,
                    respect_status_branches_all=None, **kwargs):
-    """
-    Converts a pandapipes network into a NetworkX graph, which is a simplified representation of a
-    network's topology, reduced to nodes and edges. Junctions are being represented by nodes, edges
-    represent physical connections between junctions (typically pipes or pumps).
+    """Converts a pandapipes network into a NetworkX graph.
+
+    This is a simplified representation of a network's topology, reduced to nodes and edges.
+    Junctions are being represented by nodes, edges represent physical connections between
+    junctions (typically pipes or pumps).
 
     :param net: The pandapipes network to be converted
     :type net: pandapipesNet
@@ -117,6 +118,7 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
                           for bc in ["pipes", "valves", "pumps", "press_controls",
                                      "mass_circ_pumps", "pressure_circ_pumps", "valve_pipes",
                                      "flow_controls", "heat_consumers"]})
+    switch_components = {"pipes": "pi"}
 
     for comp in net.component_list:
         if not issubclass(comp, BranchComponent):
@@ -130,7 +132,8 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
             if respect_status_branches_all not in [True, False] else respect_status_branches_all
         # some formulation to add weight
         weight_getter = branch_params.get("weighting_%ss" % table_name, None)
-        add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter)
+        valve_et_filter = switch_components.get(include_kw) if respect_status_valves else None
+        add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter, valve_et_filter)
 
     # add all junctions that were not added when creating branches
     if len(mg.nodes()) < len(net.junction.index):
@@ -159,15 +162,36 @@ def create_nxgraph(net, include_pipes=True, respect_status_pipes=True,
     return mg
 
 
-def add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter):
+def add_branch_component(comp, mg, net, table_name, include_comp, respect_status, weight_getter, valve_et_filter):
     tab = get_edge_table(net, table_name, include_comp)
 
     if tab is not None:
+        if table_name == "valve" and "et" in tab.columns:
+            # Only "ju" (junction-to-junction) valves are genuine standalone
+            # edges between two junctions. A "pi" valve is a switch mounted
+            # on a pipe: its "element" is a *pipe* index, not a junction, so
+            # naively using from_to_node_cols() below would add that pipe
+            # index into the graph as if it were a junction node. "pi"
+            # valves are already accounted for via valve_et_filter, which
+            # marks the referenced pipe itself in/out of service further
+            # down - mirroring how pandapower's own switch table only ever
+            # builds direct edges for et == "b" (bus-to-bus) and leaves
+            # "l"/"t"/"t3" switches to their host element's in-service mask
+            # instead of adding them as their own edge.
+            tab = tab[tab["et"].values == "ju"]
         in_service_name = comp.active_identifier()
         from_col, to_col = comp.from_to_node_cols()
         indices, parameter, in_service = init_par(tab, respect_status, in_service_name)
         indices[:, F_JUNCTION] = tab[from_col].values
         indices[:, T_JUNCTION] = tab[to_col].values
+
+        if valve_et_filter is not None:
+            mask = (net.valve.et.values == valve_et_filter) & ~net.valve.opened.values.astype(bool)
+            if mask.any():
+                open_pipes = net.valve.element.values[mask]
+                open_pipes_mask = np.isin(indices[:, INDEX], open_pipes)
+                in_service &= ~open_pipes_mask
+
         if weight_getter is not None:
             parameter[:, WEIGHT] = weight_getter[0](net, tab, *weight_getter[1])
         add_edges(mg, indices, parameter, in_service, net, table_name)

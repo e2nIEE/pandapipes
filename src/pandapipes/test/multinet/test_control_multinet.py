@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -26,7 +26,7 @@ def get_gas_example():
     net_gas.sink.drop(index=0, inplace=True)
     net_gas.junction.pn_bar = 30
     net_gas.ext_grid.p_bar = 30
-    net_gas.pipe.diameter_m = 0.8
+    net_gas.pipe.inner_diameter_mm = 800
 
     return net_gas
 

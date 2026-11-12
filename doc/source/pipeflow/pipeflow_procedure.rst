@@ -18,7 +18,7 @@ calculation bases, but some level of abstraction is required as well. The calcul
 performed with the pandas tables defined in the pandapipes network, but on the basis of an internal
 structure called "pandapipes internal tables" or "pit", which can be found in net["_pit"]. This
 internal structure consists of two numpy arrays, one for all network nodes and one for all branches.
-With the help of this internal structure, a system matrix is built up, i.e. a system of equations
+With the help of this internal structure, a jacobi matrix is built up, i.e. a system of equations
 in order to solve for pressure and velocity based on initial guesses and formulations for the
 derivatives. That means that a Newton-Raphson solver (c.f. `Newton-Raphson method on Wikipedia
 <https://en.wikipedia.org/wiki/Newton%27s_method>`_, or :cite:`Dahmen2008`) is implemented in
@@ -35,7 +35,7 @@ pandapipes which works as follows:
   the current guesses of *p* and *v*. In addition, the derivatives with respect to *p* and *v* are
   calculated.
 * The residual vectors and the derivatives of the components are stacked to a jacobian matrix and
-  a load vector from which a linear system of equations is derived internally and solved, thus
+  a residual vector from which a linear system of equations is derived internally and solved, thus
   deriving the next Newton step for *p* and *v*.
 
 In order to calculate the values correctly, some boundary conditions have to be given, which are:
@@ -71,7 +71,7 @@ the help of the `scipy csgraph functionalities
 connectivity check disconnected network areas can be set out of service automatically, reducing the
 error-proneness of the calculation process.
 
-.. autofunction:: pandapipes.pf.pipeflow_setup.check_connectivity
+.. autofunction:: pandapipes.pf.pipeflow_setup.identify_active_nodes_branches
 
 
 .. _internal_matrix:
@@ -81,7 +81,7 @@ Internal Structure
 
 As mentioned previously, the calculation is based on the pandapipes internal tables (pit) structure.
 The included node and branch arrays contain all the information necessary for :ref:`constructing the
-Jacobian matrix <jacobian>`, such as the load vectors and their derivatives. However, it is
+Jacobian matrix <jacobian>`, such as the residual vectors and their derivatives. However, it is
 important that only the really active parts of the network are considered. In order to simplify some
 of the calculations, an internal pit is created which does not contain the nodes and branches that
 were set out of service by the user or the :ref:`connectivity check <connectivity_check>`. It can be
@@ -98,7 +98,9 @@ The functions used to create the internal pit and extract results back from it a
 
 .. autofunction:: pandapipes.pf.pipeflow_setup.reduce_pit
 
-.. autofunction:: pandapipes.pf.result_extraction.extract_results_active_pit
+Results are written back from the internal pit via
+:func:`~pandapipes.pf.result_extraction.extract_results_active_pit_hydraulics` and
+:func:`~pandapipes.pf.result_extraction.extract_results_active_pit_heat_transfer`.
 
 
 .. _jacobian:
@@ -108,12 +110,11 @@ Constructing the Jacobian Matrix
 
 Once the internal structure is created, the Newton steps can be performed. That means that the
 residual and its derivatives with respect to the estimated variables (*p*, *v*, *T*) are calculated
-and written to the branch pit. Then the system matrix is constructed which means that all the
+and written to the branch pit. Then the jacobi matrix is constructed which means that all the
 derivatives are written into one large sparse matrix in which the row indices represent the node
 indices followed by the branch indices and the column indices represent the indices of the solution
 variables (typically they also belong to nodes and branches). It contains all the derivatives. The
-load vector (residual vector) is constructed by summarizing all the node related residuals from the
-branch pit at all nodes (e.g. incoming and outgoing mass flows) and appending the residuals
+residual vector is constructed by summarizing all the node related residuals from the branch pit at all nodes (e.g. incoming and outgoing mass flows) and appending the residuals
 calculated for the branches to it. The linearized system of equations for the hydraulic magnitudes
 in the end looks like this:
 
@@ -176,16 +177,16 @@ in the end looks like this:
     \end{bmatrix}
     \end{align*}
 
-In this formulation, *F* stands for the residual or load vector value, *n* is the number of nodes
+In this formulation, *F* stands for the residual vector value, *n* is the number of nodes
 and *b* the number of branches in the system. So the matrix on the left is the Jacobian matrix, the
 vector that it is multiplied with is the vector with the estimates' step and the vector on the right
-is the load vector.
+is the residual vector.
 
 .. note:: Normally the meshing in a network is rather low, so the coupling between nodes is rather \
           loose which means that most entries in the Jacobian matrix are in fact 0 and it can be \
           expressed as a sparse matrix. More information can also be found in :cite:`Ferziger2002`.
 
 
-.. autofunction:: pandapipes.pf.build_system_matrix.build_system_matrix
+.. autofunction:: pandapipes.pf.calculation.solve_hydraulics
 
 

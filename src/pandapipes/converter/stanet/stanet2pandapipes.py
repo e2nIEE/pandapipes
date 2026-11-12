@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 import warnings
@@ -175,7 +175,7 @@ def stanet_to_pandapipes(stanet_path, name="net", remove_unused_household_connec
 
 
 def add_rated_p_values(net, **kwargs):
-    """
+    """Set the rated pressure (pn_bar) of the net's junctions.
 
     :param net:
     :type net:

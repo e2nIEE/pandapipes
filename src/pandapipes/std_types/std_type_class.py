@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -10,25 +10,27 @@ from scipy.interpolate import interp1d
 
 from pandapipes import logger
 from pandapower.io_utils import JSONSerializableClass
+from pandapipes.pandapipes_net import Sector
 
 
 
 class StdType(JSONSerializableClass):
-    """
+    """Base class for a standard type object."""
 
-    """
-
-    def __init__(self, name, component):
-        """
+    def __init__(self, name, component, sector=Sector.ALL):
+        """Initialize a standard type object.
 
         :param name: name of the standard type object
         :type name: str
         :param component: the specific standard type
         :type component: str
+        :param sector: sector the Std Type is assigned to
+        :type sector: Sector, default Sector.ALL
         """
         super(StdType, self).__init__()
         self.name = name
         self.component = component
+        self.sector = sector
 
     @classmethod
     def from_dict(cls, d):
@@ -41,9 +43,8 @@ class StdType(JSONSerializableClass):
 
 class InterpolationStdType(StdType):
 
-    def __init__(self, name, component, int_fct):
-        """
-        The interpolation standrad type object interpolates and extrapolates between the given values
+    def __init__(self, name, component, int_fct, sector=Sector.ALL):
+        """The interpolation standrad type object interpolates and extrapolates between the given values.
 
         :param name: Name of the interpolation standard type object
         :type name: str
@@ -51,10 +52,12 @@ class InterpolationStdType(StdType):
         :type component: str
         :param int_fct: Defines the interpolation function
         :type int_fct: fct
+        :param sector: sector the Std Type is assigned to
+        :type sector: Sector, default Sector.ALL
         :return: An object of the interpolation standard type class
         :rtype: InterpolationStdType
         """
-        super(InterpolationStdType, self).__init__(name, component)
+        super(InterpolationStdType, self).__init__(name, component, sector)
         self.int_fct = int_fct
         self._x_list = None
         self._y_list = None
@@ -100,9 +103,8 @@ class InterpolationStdType(StdType):
 
 class RegressionStdType(StdType):
 
-    def __init__(self, name, component, reg_par):
-        """
-        The regression standrad type object creates a regression based on the given data and regression parameters
+    def __init__(self, name, component, reg_par, sector=Sector.ALL):
+        """The regression standrad type object creates a regression based on the given data and regression parameters.
 
         :param name: Name of the regression object
         :type name: str
@@ -110,11 +112,12 @@ class RegressionStdType(StdType):
         :type component: str
         :param reg_par: The determined regression parameters based on the given data and polynominal degree
         :type reg_par: list
+        :param sector: sector the Std Type is assigned to
+        :type sector: Sector, default Sector.ALL
         :return: An object of the regression standard type class
         :rtype: RegressionStdType
         """
-
-        super(RegressionStdType, self).__init__(name, component)
+        super(RegressionStdType, self).__init__(name, component, sector)
         self.reg_par = reg_par
         self._x_values = None
         self._y_values = None
@@ -144,9 +147,9 @@ class RegressionStdType(StdType):
     @classmethod
     def _from_path(cls, path):
         data = cls.load_data(path)
-        x_values, y_values, degree = _retrieve_data(data)
-        reg_par = regression_function(x_values, y_values, degree[0])
-        return reg_par, x_values, y_values, degree[0]
+        x_values, y_values, degree, sector = _retrieve_data(data)
+        reg_par = regression_function(x_values.astype(float), y_values.astype(float), float(degree[0]))
+        return reg_par, x_values, y_values, degree[0], sector[0]
 
     @classmethod
     def _from_list(cls, x_values, y_values, degree):
@@ -160,23 +163,25 @@ class RegressionStdType(StdType):
 
 class PumpStdType(RegressionStdType):
 
-    def __init__(self, name, reg_par):
-        """
-        Creates a concrete pump std type. The class is a child class of the RegressionStdType, therefore, the here
+    def __init__(self, name, reg_par, sector=Sector.ALL):
+        """Create a concrete pump std type.
+
+        The class is a child class of the RegressionStdType, therefore, the here
         derived values are calculated based on a previously performed regression. The regression parameters need to
         be passed or alternatively, can be determined through the here defined class methods.
 
         :param name: Name of the pump object
         :type name: str
+        :param sector: sector the pump is assigned to
+        :type sector: Sector, default Sector.ALL
         :param reg_par: If the parameters of a regression function are already determined they \
                 can be directly be set by initializing a pump object
         :type reg_par: List of floats
         """
-        super(PumpStdType, self).__init__(name, 'pump', reg_par)
+        super(PumpStdType, self).__init__(name, 'pump', reg_par, sector)
 
     def get_pressure(self, vdot_m3_per_s):
-        """
-        Calculate the pressure lift based on a polynomial from a regression.
+        """Calculate the pressure lift based on a polynomial from a regression.
 
         It is ensured that the pressure lift is always >= 0. For reverse flows, bypassing is
         assumed.
@@ -187,44 +192,64 @@ class PumpStdType(RegressionStdType):
                 in [bar]
         :rtype: float
         """
-        # no reverse flow - for vdot < 0, assume bypassing
-        n = np.arange(len(self.reg_par), 0, -1)
-        if np.iterable(vdot_m3_per_s):
-            results = np.zeros(len(vdot_m3_per_s), dtype=float)
-            if any(vdot_m3_per_s < 0):
-                logger.debug("Reverse flow observed in a %s pump. "
-                             "Bypassing without pressure change is assumed" % str(self.name))
-            mask = vdot_m3_per_s >= 0
-            # no negative pressure lift - bypassing always allowed:
-            results[mask] = \
-                np.where(mask, np.sum(self.reg_par * (vdot_m3_per_s[mask][:, None] * 3600) ** (n - 1), axis=1), 0)
-        else:
-            if vdot_m3_per_s < 0:
-                logger.debug("Reverse flow observed in a %s pump. "
-                             "Bypassing without pressure change is assumed" % str(self.name))
-                results = 0
-            else:
-                results = max(0, sum(self.reg_par * (vdot_m3_per_s * 3600) ** (n - 1)))
-        return results
+        _, lift, active = self._evaluate_curve(vdot_m3_per_s)
+        results = np.where(active, lift, 0.)
+        return results if np.iterable(vdot_m3_per_s) else float(results)
+
+    def get_pressure_derivative(self, vdot_m3_per_s):
+        """Calculate the derivative of the pressure lift with respect to the volume flow rate.
+
+        Consistent with get_pressure: the derivative is 0 wherever get_pressure is cut off, i.e.
+        for reverse flows (bypassing) and where the polynomial would yield a negative lift.
+
+        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s].
+        :type vdot_m3_per_s: float, array-like
+        :return: The derivative of the pressure lift in [bar / (m^3/s)]
+        :rtype: float, array-like
+        """
+        vdot, _, active = self._evaluate_curve(vdot_m3_per_s)
+        # the polynomial is defined in m^3/h
+        derivative = 3600 * np.polyval(np.polyder(self.reg_par), np.maximum(vdot, 0) * 3600)
+        results = np.where(active, derivative, 0.)
+        return results if np.iterable(vdot_m3_per_s) else float(results)
+
+    def _evaluate_curve(self, vdot_m3_per_s):
+        """Evaluate the regression polynomial and mark where the pump actually lifts pressure.
+
+        For vdot < 0, bypassing without pressure change is assumed; a negative lift from the
+        polynomial is cut off as well.
+
+        :param vdot_m3_per_s: Volume flow rate of a fluid in [m^3/s].
+        :type vdot_m3_per_s: float, array-like
+        :return: (vdot, lift, active) - volume flow as array, uncut polynomial lift in [bar] and
+                 the mask where the lift is applied
+        :rtype: tuple(np.ndarray)
+        """
+        vdot = np.asarray(vdot_m3_per_s, dtype=float)
+        if np.any(vdot < 0):
+            logger.debug("Reverse flow observed in a %s pump. "
+                         "Bypassing without pressure change is assumed" % str(self.name))
+        # the polynomial is defined in m^3/h
+        lift = np.polyval(self.reg_par, np.maximum(vdot, 0) * 3600)
+        return vdot, lift, (vdot >= 0) & (lift > 0)
 
     @classmethod
     def from_path(cls, name, path):
-        reg_par, x_values, y_values, degree = cls._from_path(path)
-        reg_st = cls(name, reg_par)
+        reg_par, x_values, y_values, degree, sector = cls._from_path(path)
+        reg_st = cls(name, reg_par, sector)
         cls.init_std_type(reg_st, x_values, y_values, degree)
         return reg_st
 
     @classmethod
-    def from_list(cls, name, x_values, y_values, degree):
+    def from_list(cls, name, x_values, y_values, degree, sector=Sector.ALL):
         reg_par, x_values, y_values, degree = cls._from_list(x_values, y_values, degree)
-        pump_st = cls(name, reg_par)
+        pump_st = cls(name, reg_par, sector)
         cls.init_std_type(pump_st, x_values, y_values, degree)
         return pump_st
 
     @classmethod
     def load_data(cls, path):
-        """
-        load_data.
+        """load_data.
 
         :param path:
         :type path:
@@ -232,13 +257,12 @@ class PumpStdType(RegressionStdType):
         :rtype:
         """
         path = os.path.join(path)
-        data = pd.read_csv(path, sep=';', dtype=np.float64)
+        data = pd.read_csv(path, sep=';')
         return data
 
 
 def regression_function(x_values, y_values, degree):
-    """
-    Regression function: performs a regression based on the given x-, y-values and the polynominal degree.
+    """Regression function: performs a regression based on the given x-, y-values and the polynominal degree.
 
     :param x_values: given data on x-axis
     :type x_values: array_like
@@ -256,8 +280,7 @@ def regression_function(x_values, y_values, degree):
 
 
 def interpolation_function(x_values, y_values, fill_value='extrapolate'):
-    """
-    interpolation function: performs an interpolation based on the given x- and y-values.
+    """interpolation function: performs an interpolation based on the given x- and y-values.
 
     :param x_values: given data on x-axis
     :type x_values: array_like
@@ -276,8 +299,7 @@ def _retrieve_data(loaded_data):
     return data_list
 
 def get_data(path, std_type_category):
-    """
-    retrieve data
+    """retrieve data.
 
     :param path: path the data can be retrieved from
     :type path: str

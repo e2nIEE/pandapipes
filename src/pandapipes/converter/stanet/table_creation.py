@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -14,12 +14,15 @@ import numpy as np
 import pandas as pd
 
 import pandapipes
+from pandapipes.properties import get_fluid
+from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.component_models.component_toolbox import vrange
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
 try:
     from shapely.geometry import LineString
     from shapely.ops import substring
+    from shapely import Point
     SHAPELY_INSTALLED = True
 except ImportError:
     SHAPELY_INSTALLED = False
@@ -53,8 +56,8 @@ class ValveMode(StrEnum):
 
 
 def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add_layers):
-    """
-    Creates pandapipes junctions from given STANET nodes.
+    """Creates pandapipes junctions from given STANET nodes.
+
     :param net: pandapipes Net
     :type net: pandapipesNet
     :param stored_data: STANET data
@@ -86,7 +89,7 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
         add_info["stanet_layer"] = node_table.LAYER.values.astype(str)
     temperatures = pd.Series(net_params["medium_temp_K"], index=node_table.index, dtype=np.float64)
     eg_ind = ((node_table.FSTATUS == '?') & (node_table.DSTATUS == '!')).values
-    eg_temps = node_table.loc[eg_ind, "TMESS"].values + 273.15
+    eg_temps = node_table.loc[eg_ind, "TMESS"].values.astype(float) + 273.15
     if net_params["calculate_temp"]:
         temperatures.loc[eg_ind] = eg_temps
     else:
@@ -103,14 +106,14 @@ def create_junctions_from_nodes(net, stored_data, net_params, index_mapping, add
         stanet_active=node_table.ISACTIVE.values.astype(np.bool_),
         stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE], **add_info)
     for eg_junc, p_bar, t_k in zip(junction_indices[eg_ind], eg_press, eg_temps):
-        pandapipes.create_ext_grid(net, eg_junc, p_bar, t_k, type="pt",
+        pandapipes.create_ext_grid(net, eg_junc, float(p_bar), float(t_k), type="pt",
                                    stanet_system=CLIENT_TYPES_OF_PIPES[MAIN_PIPE_TYPE])
     index_mapping["nodes"] = dict(zip(stanet_nrs, junction_indices))
 
 
 def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mode, add_layers):
-    """
-    Creates pandapipes valves and pipes from STANET data.
+    """Creates pandapipes valves and pipes from STANET data.
+
     :param net: pipe network
     :type net: pandapipesNet
     :param stored_data: dictionary of STANET element tables
@@ -178,7 +181,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
                 fjunc,
                 tjunc,
                 length_km=row.RORL / 1000,
-                diameter_m=float(row.DM / 1000),
+                inner_diameter_mm=float(row.DM),
                 k_mm=row.RAU,
                 opened=row.AUF == "J",
                 loss_coefficient=row.ZETA,
@@ -232,7 +235,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
             from_juncs,
             j_aux,
             length_km=valid_valves.RORL.to_numpy().astype(np.float64) / 1000,
-            diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,
+            inner_diameter_mm=valid_valves.DM.to_numpy().astype(np.float64),
             k_mm=valid_valves.RAU.to_numpy().astype(np.float64),
             loss_coefficient=valid_valves.ZETA.to_numpy().astype(np.float64),
             name=pipe_names,
@@ -255,7 +258,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
         fj,
         to_juncs,
         et="ju",
-        diameter_m=valid_valves.DM.to_numpy().astype(np.float64) / 1000,
+        inner_diameter_mm=valid_valves.DM.to_numpy().astype(np.float64),
         opened=valid_valves.AUF.to_numpy() == "J",
         loss_coefficient=0,
         name=valve_names,
@@ -269,8 +272,7 @@ def create_valve_and_pipe(net, stored_data, index_mapping, net_params, valve_mod
 
 def create_slider_valves(net, stored_data, index_mapping, add_layers,
                          guess_opened_from_types=False):
-    """
-    Creates pandapipes slider valves from STANET data.
+    """Creates pandapipes slider valves from STANET data.
 
     :param net: pandapipes net to which to add slider valves
     :type net: pandapipesNet
@@ -339,9 +341,9 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers,
         if any(slider_valves.DM == 0):
             logger.warning(f"{sum(slider_valves.DM == 0)} sliders have an inner diameter of 0 m! "
                            f"The diameter will be set to 1 m.")
-            slider_valves.DM[slider_valves.DM == 0] = 1e3
+            slider_valves.loc[slider_valves.DM == 0, 'DM'] = 1e3
         pandapipes.create_valves(
-            net, from_junctions, to_junctions, et='ju', diameter_m=slider_valves.DM.values / 1000,
+            net, from_junctions, to_junctions, et='ju', inner_diameter_mm=slider_valves.DM.values.astype(float),
             opened=slider_valves.TYP.astype(np.int32).replace(opened_types).values,
             loss_coefficient=slider_valves.ZETA.values, name=slider_valves.STANETID.values,
             type="slider_valve_" + valve_system,
@@ -353,8 +355,8 @@ def create_slider_valves(net, stored_data, index_mapping, add_layers,
 
 # noinspection PyTypeChecker
 def create_pumps(net, pump_table, index_mapping, add_layers):
-    """
-    Creates pandapipes pumps from STANET data.
+    """Creates pandapipes pumps from STANET data.
+
     :param net:
     :type net:
     :param pump_table:
@@ -399,8 +401,8 @@ def create_pumps(net, pump_table, index_mapping, add_layers):
 
 
 def create_control_components(net, stored_data, index_mapping, net_params, add_layers, **kwargs):
-    """
-    Creates pandapipes controller from STANET data.
+    """Creates pandapipes controller from STANET data.
+
     :param net:
     :type net:
     :param stored_data:
@@ -417,6 +419,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     """
     if "controllers" not in stored_data:
         return
+    fluid = get_fluid(net)
     logger.info("Creating control components.")
     control_table = stored_data["controllers"]
     node_mapping = index_mapping["nodes"]
@@ -431,22 +434,26 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
     fully_closed = control_table.ZU.values == "J"
     flow = control_table.FLUSS.values.astype(np.float64) * net_params["rho"] / 3600
 
-    consider_controlled = kwargs.get("consider_control_status", False)
-
     if not all([np.all((control_table[col] == "J") | (control_table[col] == "N"))
                 for col in ["OFFEN", "ZU", "AKTIV"]]):
         logger.warning("There is an error in the control table! Please check the columns 'OFFEN',"
                        " 'ZU' and 'AKTIV', which should only contain 'J' or 'N'.")
 
-    control_active = (control_table.AKTIV.values == "J").astype(np.bool_)
-    if consider_controlled:
-        control_active &= ~fully_open
-    in_service = control_table.ISACTIVE.values.astype(np.bool_)
-    if consider_controlled:
-        in_service &= ~(control_table.ZU.values == "J")
+    in_service = (control_table.AKTIV.values != "N").astype(np.bool_)
+    in_service &= control_table.ISACTIVE.values.astype(np.bool_)
 
+    control_active = np.ones(len(control_table), dtype=bool)
+
+    #todo: after implementing a new pressure controller RTYP should replace RSTATUS
+    is_nan = pd.isnull(control_table.RTYP.values)
+    is_pc_stat = control_table.RSTATUS.values[is_nan] == "P"
+    is_fc_stat = control_table.RSTATUS.values[is_nan] == "Q"
     is_pc = control_table.RTYP.values == "P"
     is_fc = control_table.RTYP.values == "Q"
+    is_pc[is_nan] |= is_pc_stat
+    is_fc[is_nan] |= is_fc_stat
+    equal_zero = control_table.QSOLL.values[is_pc].astype(float) == 0
+    control_table.QSOLL.values[is_pc & equal_zero] = np.nan
     if not np.all(is_pc | is_fc):
         raise UserWarning("There are controllers of types %s that cannot be converted!" \
                                   % set(control_table.RTYP.values[~is_pc & ~is_fc]))
@@ -456,6 +463,9 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         add_info = dict()
         if add_layers:
             add_info["stanet_layer"] = control_table.LAYER.values[is_pc].astype(str)
+        add_geo = kwargs.pop('add_geodata', False)
+        if add_geo:
+            add_info['geodata'] = control_table[['XRECHTS', 'YHOCH']].T.apply(Point)
         pandapipes.create_pressure_controls(
             net, from_junctions[is_pc], to_junctions[is_pc], to_junctions[is_pc],
             control_table.PMESS.astype(np.float64).values[is_pc],
@@ -473,8 +483,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
             stanet_is_closed=fully_closed[is_pc],
             stanet_flow_kgps=flow[is_pc],
             stanet_active=control_table.ISACTIVE.values[is_pc].astype(np.bool_),
-            **add_info
-        )
+            max_mdot_kg_per_s=control_table.QSOLL.values[is_pc].astype(float) / 3600 * fluid.get_density(NORMAL_TEMPERATURE),
+            **add_info)
 
         drop_eg = net.ext_grid.loc[net.ext_grid.junction.isin(to_junctions[is_pc])].index
         net.ext_grid.drop(drop_eg, inplace=True)
@@ -513,8 +523,7 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
 
 
 def get_connection_types(connection_table):
-    """
-    Returns the connection types contained in the STANET raw values.
+    """Returns the connection types contained in the STANET raw values.
 
     :param connection_table: table of connections on pipes
     :type connection_table: pd.DataFrame
@@ -530,8 +539,8 @@ def get_connection_types(connection_table):
 
 
 def create_junctions_from_connections(net, connection_table, net_params, index_mapping, add_layers):
-    """
-    Creates pandapipes junctions from STANET connections.
+    """Creates pandapipes junctions from STANET connections.
+
     :param net:
     :type net:
     :param connection_table:
@@ -583,7 +592,7 @@ def create_junctions_from_connections(net, connection_table, net_params, index_m
 
 
 def determine_junctions_from_connection_nodes(pipe_sections, index_mapping):
-    """
+    """Determine the from/to junctions of pipe sections based on their connection nodes.
 
     :param pipe_sections:
     :type pipe_sections:
@@ -615,8 +624,8 @@ def determine_junctions_from_connection_nodes(pipe_sections, index_mapping):
 
 def create_pipes_from_connections(net, stored_data, connection_table, index_mapping, pipe_geodata,
                                   add_layers):
-    """
-    Creates pandapipes pipes from STANET connections.
+    """Creates pandapipes pipes from STANET connections.
+
     :param net:
     :type net:
     :param stored_data:
@@ -659,15 +668,15 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
                          pipe_data.loc[pipe_nums, "ANFNR"].values[previous_different])
     con_to = np.insert(cons.RECNO.values, next_different_num + 1,
                        pipe_data.loc[pipe_nums, "ENDNR"].values[next_different])
-    vm_from = np.insert(cons.VMB.values, next_different_num, cons.VMA.values[next_different_num])
-    vm_to = np.insert(cons.VMA.values, next_different_num, cons.VMB.values[next_different_num])
+    vm_from = np.insert(cons.VMB.values.astype(float), next_different_num, cons.VMA.values[next_different_num].astype(float),)
+    vm_to = np.insert(cons.VMA.values.astype(float), next_different_num, cons.VMB.values[next_different_num].astype(float),)
     vm = (vm_from + vm_to) / 2
 
     pipe_sections = pd.DataFrame({
         "SNUM": pipe_numbers, "rel_length": rel_lengths, "start_pos": start_pos, "end_pos": end_pos,
         "from_type": type_from, "to_type": type_to, "from_node": con_from, "to_node": con_to,
         "full_geo": pipe_geodata.loc[pipe_numbers], "vm": vm,
-        "length": rel_lengths * pipe_data.RORL.loc[pipe_numbers].values,
+        "length": rel_lengths * pipe_data.RORL.loc[pipe_numbers].values.astype(float),
         "aux": np.ones(len(pipe_numbers), dtype=np.int32)
     })
     pipe_sections["section_no"] = pipe_sections.groupby("SNUM").aux.cumsum()
@@ -695,8 +704,11 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     if "WDZAHL" in pipes.columns:
         alpha = pipes.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
-        net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
-        pipes.DM.values / 1000, pipes.RAU.values, pipes.ZETA.values, type="main_pipe",
+        net, pipe_sections.fj.values, pipe_sections.tj.values, length_km=pipe_sections.length.values / 1000,
+        inner_diameter_mm=pipes.DM.values.astype(float),
+        k_mm=pipes.RAU.values.astype(float),
+        loss_coefficient=pipes.ZETA.values.astype(float),
+        type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
         u_w_per_m2k=alpha,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
@@ -713,8 +725,8 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
 
 
 def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, add_flow=False):
-    """
-    Creates pandapipes heat exchangers from STANET connections.
+    """Creates pandapipes heat exchangers from STANET connections.
+
     :param net:
     :type net:
     :param stored_data:
@@ -761,7 +773,7 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
         # TODO: there is no qext given!!!
         pandapipes.create_heat_exchanger(
             net, node_mapping[from_stanet_nr], node_mapping[to_stanet_nr], qext_w=qext,
-            diameter_m=float(row.DM / 1000), loss_coefficient=row.ZETA,
+            inner_diameter_mm=float(row.DM), loss_coefficient=row.ZETA,
             in_service=bool(row.ISACTIVE), name="heat_exchanger_%s_%s" % (row.ANFNAM, row.ENDNAM),
             stanet_nr=int(row.RECNO), stanet_id=str(row.STANETID), v_stanet=row.VM,
             stanet_active=bool(row.ISACTIVE), **add_info
@@ -770,8 +782,8 @@ def create_heat_exchangers_stanet(net, stored_data, index_mapping, add_layers, a
 
 def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, index_mapping,
                                            pipe_geodata, add_layers):
-    """
-    
+    """Create pipes for the entries of the pipe table not covered by the connection table.
+
     :param net:
     :type net:
     :param stored_data:
@@ -829,7 +841,7 @@ def create_pipes_from_remaining_pipe_table(net, stored_data, connection_table, i
         alpha = p_tbl.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
         net, from_junctions, to_junctions, length_km=p_tbl.RORL.values.astype(np.float64) / 1000,
-        type="main_pipe", diameter_m=p_tbl.DM.values.astype(np.float64) / 1000,
+        type="main_pipe", inner_diameter_mm=p_tbl.DM.values.astype(np.float64),
         loss_coefficient=p_tbl.ZETA.values, stanet_std_type=p_tbl.ROHRTYP.values,
         k_mm=p_tbl.RAU.values, in_service=p_tbl.ISACTIVE.values.astype(np.bool_),
         name=["pipe_%s_%s" % (anf, end) for anf, end in zip(from_names[valid], to_names[valid])],
@@ -1034,7 +1046,7 @@ def get_tables_in_stanet_indices(stored_data, connection_table, house_table, met
 
 def create_nodes_house_connections(net, stored_data, connection_table, meter_table, house_table,
                                    index_mapping, net_params, add_layers):
-    """
+    """Create junctions for houses and other house connection infrastructure.
 
     :param net:
     :type net:
@@ -1152,8 +1164,8 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     if "WDZAHL" in hp_data.columns:
         alpha = hp_data.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
-        net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
-        hp_data.DM.values / 1000, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
+        net, hp_data.fj.values, hp_data.tj.values, length_km=hp_data.length.values / 1000,
+        inner_diameter_mm=hp_data.DM.values, k_mm=hp_data.RAU.values, loss_coefficient=hp_data.ZETA.values, type="house_pipe",
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
         u_w_per_m2k=alpha, geodata=hp_data.section_geo.values,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
@@ -1166,7 +1178,7 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
 
 
 def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers):
-    """
+    """Create sinks and sources for meters.
 
     :param net:
     :type net:
@@ -1269,7 +1281,7 @@ def create_sinks_meters(net, meter_table, index_mapping, net_params, add_layers)
 
 def create_sinks_from_nodes(net, node_table, index_mapping, net_params, sinks_defined,
                             control_flows, add_layers):
-    """
+    """Create sinks for fixed feed-in or consumption nodes.
 
     :param net:
     :type net:

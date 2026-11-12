@@ -139,50 +139,13 @@ pipe sections.
 
 
 
-Friction models
-^^^^^^^^^^^^^^^
+Friction factor models
+^^^^^^^^^^^^^^^^^^^^^^
 
-Three friction models are used to calculate the velocity dependent friction factor:
-
-- Nikuradse
-- Prandtl-Colebrook
-- Swamee-Jain
-
-Nikuradse is chosen by default. In this case, the friction factor is calculated by:
-
-.. math::
-   :nowrap:
-
-   \begin{align*}
-    \lambda &= \frac{64}{Re} + \frac{1}{(-2 \cdot \log (\frac{k}{3.71 \cdot d}))^2}\\
-   \end{align*}
-
-
-Note that in literature, Nikuradse is known as a model for turbulent flows. In pandapipes, the formula for the
-Nikuradse model is also applied for laminar flow.
-
-If Prandtl-Colebrook is selected, the friction factor is calculated iteratively according to
-
-.. math::
-   :nowrap:
-
-   \begin{align*}
-     \frac{1}{\sqrt{\lambda}} &= -2 \cdot \log (\frac{2.51}{Re \cdot \sqrt{\lambda}} + \frac{k}{3.71 \cdot d})\\
-   \end{align*}
-
-Equations for pressure losses due to friction were taken from :cite:`Eberhard1990` and
-:cite:`Cerbe2008`.
-
-The equation according to Swamee-Jain :cite:`Swamee1976` is an approximation of the calculation method according
-to Prandtl-Colebrook. It is an explicit formula for the friction factor of the transition
-zone of turbulent flows in pipes and is defined as follows:
-
-.. math::
-   :nowrap:
-
-   \begin{align*}
-    \lambda &= \frac{0.25}{(\log(\frac{k}{3.7 \cdot d} + \frac{5.74}{Re^{0.9}}))^2}\\
-   \end{align*}
+The pipeflow solver uses a friction factor model to compute the Darcy‑Weisbach
+friction factor :math:`\lambda` and its derivative with respect to mass flow.
+Several built‑in models are available; you can also provide a custom model.
+For details, see :ref:`friction_factor_models`.
 
 
 Heat transfer mode

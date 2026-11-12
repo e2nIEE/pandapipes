@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -6,9 +6,11 @@ import os
 import warnings
 import re
 
+import numpy as np
 import pandas as pd
 from pandapipes import pp_dir
 from pandapipes.std_types.std_type_class import get_data, PumpStdType
+from pandapipes.pandapipes_net import SectorsIncluded
 
 try:
     import pandaplan.core.pplog as logging
@@ -19,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_std_type(net, component, std_type_name, typedata, overwrite=False, check_required=True):
-    """
-    Create a new standard type for a specific component with the given data.
+    """Create a new standard type for a specific component with the given data.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -63,8 +64,7 @@ def create_std_type(net, component, std_type_name, typedata, overwrite=False, ch
 
 
 def create_std_types(net, component, type_dict, overwrite=False):
-    """
-    Create several new standard types for a specific component with the given data.
+    """Create several new standard types for a specific component with the given data.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -80,8 +80,7 @@ def create_std_types(net, component, type_dict, overwrite=False):
 
 
 def copy_std_types(to_net, from_net, component, overwrite=False):
-    """
-    Transfers all standard types of one network to another.
+    """Transfers all standard types of one network to another.
 
     :param to_net: The pandapipes network to which the standard types are copied
     :type to_net: pandapipesNet
@@ -104,9 +103,7 @@ def copy_std_types(to_net, from_net, component, overwrite=False):
 
 
 def load_std_type(net, name, component):
-    """
-    Loads standard type data from the data base. Issues a warning if
-    stdtype is unknown.
+    """Loads standard type data from the data base. Issues a warning if stdtype is unknown.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -126,8 +123,7 @@ def load_std_type(net, name, component):
 
 
 def std_type_exists(net, name, component):
-    """
-    Checks if a standard type exists.
+    """Checks if a standard type exists.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -143,8 +139,7 @@ def std_type_exists(net, name, component):
 
 
 def delete_std_type(net, name, component):
-    """
-    Deletes standard type parameters from database.
+    """Deletes standard type parameters from database.
 
     :param net: pandapipes Network
     :type net: pandapipesNet
@@ -161,8 +156,7 @@ def delete_std_type(net, name, component):
 
 
 def available_std_types(net, component):
-    """
-    Returns all standard types available for this network as a table.
+    """Returns all standard types available for this network as a table.
 
     :param net: pandapipes Network
     :type net: pandapipesNet
@@ -184,9 +178,7 @@ def available_std_types(net, component):
 
 
 def change_std_type(net, cid, name, component):
-    """
-    Changes the type of a given component in pandapower. Changes only parameter that are given
-    for the type.
+    """Changes the type of a given component in pandapower. Changes only parameter that are given for the type.
 
     :param net: pandapipes network
     :type net: pandapipesNet
@@ -208,8 +200,7 @@ def change_std_type(net, cid, name, component):
 
 
 def create_pump_std_type(net, name, pump_object, overwrite=False):
-    """
-    Create a new pump standard type object and add it to the pump standard types in net.
+    """Create a new pump standard type object and add it to the pump standard types in net.
 
     :param net: The pandapipes network to which the standard type is added.
     :type net: pandapipesNet
@@ -229,19 +220,21 @@ def create_pump_std_type(net, name, pump_object, overwrite=False):
 
 
 def add_basic_std_types(net):
-    """
+    """Add basic standard types to a pandapipes network.
 
     :param net: pandapipes network in which the standard types should be added
     :type net: pandapipesNet
-
     """
     pump_files = os.listdir(os.path.join(pp_dir, "std_types", "library", "Pump"))
     for pump_file in pump_files:
         pump_name = str(pump_file.split(".")[0])
-        pump = PumpStdType.from_path(pump_name, os.path.join(pp_dir, "std_types", "library", "Pump",
-                                                             pump_file))
-        create_pump_std_type(net, pump_name, pump, True)
+        pump = PumpStdType.from_path(pump_name, os.path.join(pp_dir, "std_types", "library", "Pump", pump_file))
+        for p in pump.sector.split(','):
+            if p in SectorsIncluded[net.sector]:
+                create_pump_std_type(net, pump_name, pump, True)
 
     pipe_file = os.path.join(pp_dir, "std_types", "library", "Pipe.csv")
-    data = get_data(pipe_file, "pipe").to_dict()
-    create_std_types(net, "pipe", data, True)
+    data = get_data(pipe_file, "pipe")
+    sector = data.loc["sector", :].str.split(',').explode()
+    cols = sector.index[np.isin(sector.values, [s.value for s in SectorsIncluded[net.sector]])].drop_duplicates()
+    create_std_types(net, "pipe", data[cols].to_dict(), True)

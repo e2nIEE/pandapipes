@@ -1,16 +1,15 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from pandapower.control import run_control as run_control_pandapower, \
     prepare_run_ctrl as prepare_run_control_pandapower
 import pandapipes as ppipe
-from pandapipes.pipeflow import PipeflowNotConverged
+from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
 
 
 def run_control(net, ctrl_variables=None, max_iter=30, **kwargs):
-    """
-    Function to run a control of the pandapipes network.
+    """Function to run a control of the pandapipes network.
 
     :param net: The pandapipes network
     :type net: pandapipesNet
@@ -29,8 +28,7 @@ def run_control(net, ctrl_variables=None, max_iter=30, **kwargs):
 
 
 def prepare_run_ctrl(net, ctrl_variables, **kwargs):
-    """
-    Function that defines default control variables.
+    """Function that defines default control variables.
 
     :param net: The pandapipes network
     :type net: pandapipesNet

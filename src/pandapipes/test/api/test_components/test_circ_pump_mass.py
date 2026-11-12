@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 by Fraunhofer Institute for Energy Economics
+# Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
+from pandapipes.properties.fluids import FluidPropertyConstant, FluidPropertyLinear
 from pandapipes.test import data_path
 
 
@@ -25,17 +26,17 @@ def test_circulation_pump_constant_mass(use_numba):
     j3 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
     j4 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=283.15)
 
-    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380, diameter_m=0.1022)
-    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370, diameter_m=0.1022)
+    pandapipes.create_pipe_from_parameters(net, j1, j2, k_mm=1., length_km=0.43380, inner_diameter_mm=102.2)
+    pandapipes.create_pipe_from_parameters(net, j3, j4, k_mm=1., length_km=0.26370, inner_diameter_mm=102.2)
     pandapipes.create_circ_pump_const_mass_flow(net, j4, j1, 5, 5, 300, type='pt')
-    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000)
+    pandapipes.create_heat_exchanger(net, j2, j3, qext_w=200000, inner_diameter_mm=100)
     pandapipes.create_sink(net, j1, 2)
     pandapipes.create_source(net, j4, 2)
 
     pandapipes.create_fluid_from_lib(net, "water", overwrite=True)
 
     max_iter_hyd = 3 if use_numba else 3
-    max_iter_therm = 7 if use_numba else 7
+    max_iter_therm = 3 if use_numba else 3
     pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                         stop_condition="tol", friction_model="nikuradse",
                         mode='sequential', transient=False, nonlinear_method="automatic",
@@ -59,3 +60,30 @@ def test_circulation_pump_constant_mass(use_numba):
     assert np.all(v_diff < 0.01)
     assert np.all(mdot_diff < 0.01)
     assert np.all(deltap_diff < 0.01)
+
+
+@pytest.mark.parametrize("capacity", ["water", "constant", "linear"])
+@pytest.mark.parametrize("load_w", [0.0, 150000.0, -100000.0])
+def test_circulation_pump_mass_lossless_heat_balance(capacity, load_w):
+    net = pandapipes.create_empty_network(fluid="water")
+    fluid = pandapipes.get_fluid(net)
+    if capacity == "constant":
+        fluid.add_property("heat_capacity", FluidPropertyConstant(4200),
+                           overwrite=True, warn_on_duplicates=False)
+    elif capacity == "linear":
+        fluid.add_property("heat_capacity", FluidPropertyLinear(2, 3000),
+                           overwrite=True, warn_on_duplicates=False)
+    junctions = [pandapipes.create_junction(net, pn_bar=4, tfluid_k=353.15) for _ in range(3)]
+    pandapipes.create_circ_pump_const_mass_flow(net, junctions[0], junctions[1],
+                                                p_flow_bar=4, mdot_flow_kg_per_s=2,
+                                                t_flow_k=363.15)
+    pandapipes.create_heat_exchanger(net, junctions[2], junctions[0],
+                                     qext_w=load_w, inner_diameter_mm=100)
+    pandapipes.create_pipe_from_parameters(net, junctions[1], junctions[2],
+                                           length_km=.01, inner_diameter_mm=100,
+                                           u_w_per_m2k=0, k_mm=.1)
+    pandapipes.pipeflow(net, mode="sequential", use_numba=False,
+                        max_iter_hyd=30, max_iter_therm=100, tol_T=1e-9, tol_res=1e-9)
+    assert net.converged
+    # No heat loss, no accumulation: source heat must equal the imposed load.
+    assert net.res_circ_pump_mass.loc[0, "qext_w"] == pytest.approx(load_w, abs=1e-3)
