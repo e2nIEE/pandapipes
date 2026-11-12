@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from pandapower.control.basic_controller import BasicCtrl
 
 logger = logging.getLogger(__name__)
@@ -116,19 +117,35 @@ class WorstPointPressureDropController(BasicCtrl):
         pressure difference (``dp_min``, ``heat_consumer_idx``) are updated here from the latest
         results. This also accounts for a shift of the worst point to another heat consumer.
 
+        Without any heat demand, the controller has converged once the circulation pump runs
+        in standby mode (``min_plift`` and ``min_pflow``).
+
         :param net: The pandapipes network
         :type net: pandapipesNet
         :return: True if converged, False otherwise
         :rtype: bool
         """
+        self.dp_min, self.heat_consumer_idx = self.calculate_worst_point(net)
 
         if all(net.heat_consumer["qext_w"] == 0):
-            return True
-
-        self.dp_min, self.heat_consumer_idx = self.calculate_worst_point(net)
+            return self.is_in_standby(net)
 
         # Check if the pressure difference is within tolerance
         return bool(abs(self.dp_min - self.target_dp_min_bar) < self.tolerance)
+
+    def is_in_standby(self, net):
+        """
+        Check if the circulation pump runs in standby mode, i.e. with minimum lift and flow
+        pressure.
+
+        :param net: The pandapipes network
+        :type net: pandapipesNet
+        :return: True if the pump runs in standby mode, False otherwise
+        :rtype: bool
+        """
+        plift_bar = net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "plift_bar"]
+        pflow_bar = net.circ_pump_pressure.at[self.circ_pump_pressure_idx, "p_flow_bar"]
+        return bool(np.isclose(plift_bar, self.min_plift) and np.isclose(pflow_bar, self.min_pflow))
 
     def control_step(self, net):
         """

@@ -143,5 +143,40 @@ def test_worst_point_controller_convergence_state(district_heating_net):
     assert abs(controller.dp_min - initial_dp_min) > 0.1, \
         "Controller should have changed the worst point pressure difference"
 
+def test_worst_point_controller_standby_mode_in_control_loop(district_heating_net):
+    """Test that run_control switches the pump to standby mode without heat demand and back to
+    pressure control once the heat demand returns."""
+    net = district_heating_net
+    target_dp = 1.0
+    tolerance = 0.2
+    min_plift, min_pflow = 0.5, 3.0
+
+    controller = WorstPointPressureDropController(net, target_dp_min_bar=target_dp,
+                                                  tolerance=tolerance, min_plift=min_plift,
+                                                  min_pflow=min_pflow)
+    net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
+    qext_w = net.heat_consumer["qext_w"].copy()
+
+    # No heat demand: the pump has to be switched to standby mode by the control loop
+    net.heat_consumer["qext_w"] = 0
+    assert controller.is_converged(net) is False, \
+        "Controller should not be converged as long as the pump is not in standby mode"
+
+    run_control(net, mode="bidirectional", max_iter=100)
+
+    assert net.converged, "Network should converge with controller"
+    assert controller.is_in_standby(net), "Pump should be in standby mode without heat demand"
+    assert net.circ_pump_pressure.at[0, "plift_bar"] == pytest.approx(min_plift)
+    assert net.circ_pump_pressure.at[0, "p_flow_bar"] == pytest.approx(min_pflow)
+
+    # Heat demand returns: the controller leaves standby mode and reaches the target again
+    net.heat_consumer["qext_w"] = qext_w
+    run_control(net, mode="bidirectional", max_iter=100)
+
+    dp_min, _ = controller.calculate_worst_point(net)
+    assert not controller.is_in_standby(net), "Pump should leave standby mode with heat demand"
+    assert abs(dp_min - target_dp) < tolerance, \
+        f"Controller should reach target {target_dp} bar, got {dp_min:.3f} bar"
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
