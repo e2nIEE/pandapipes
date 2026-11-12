@@ -214,24 +214,6 @@ def derivatives_node_thermal_np(node_pit, branch_pit,
     return fn, dfn_dt
 
 
-def calc_lambda_nikuradse_incomp_np(m, d, k, eta, area):
-    m_abs = np.abs(m)
-    re = m_abs * d / (eta * area)
-    lambda_laminar = np.zeros_like(m)
-    lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
-    lambda_nikuradse = 1 / ((-2 * np.log10(k / (3.71 * d))) ** 2)
-    return re, lambda_laminar, lambda_nikuradse
-
-
-def calc_lambda_nikuradse_comp_np(m, d, k, eta, area):
-    m_abs = np.abs(m)
-    re = np.divide(m_abs * d, eta * area)
-    lambda_laminar = np.zeros_like(m)
-    lambda_laminar[~np.isclose(re, 0)] = 64 / re[~np.isclose(re, 0)]
-    lambda_nikuradse = np.divide(1, (2 * np.log10(d / k) + 1.14) ** 2)
-    return re, lambda_laminar, lambda_nikuradse
-
-
 def calc_medium_pressure_with_derivative_np(p_init_i_abs, p_init_i1_abs):
     val = 2 / 3
     p_m = p_init_i_abs.copy()
@@ -255,58 +237,6 @@ def calc_medium_pressure_with_derivative_np(p_init_i_abs, p_init_i1_abs):
                           * factor
 
     return p_m, der_p_m, der_p_m1
-
-
-def colebrook_np(re, d, k, lambda_nikuradse, max_iter, lengths, tolerance=1e-4):
-    """Function calculates the friction factor of a pipe using the Colebrook-White equation.
-
-    It is an implicit equation which is solved using the Newton-Raphson method. For pipes with
-    zero flow or zero length, the initial guess is returned. This should be uncritical, as the
-    pressure loss term will equal zero (lambda * u^2 * l / d).
-
-    :param re: Reynolds number [dimensionless]
-    :type re: np.array
-    :param d: Diameter [m]
-    :type d: np.array
-    :param k: Roughness [m]
-    :type k: np.array
-    :param lambda_nikuradse: Initial guess for lambda (from Nikuradse)
-    :type lambda_nikuradse: np.array
-    :param max_iter: Maximum number of iterations for the Colebrook-White calculation
-    :type max_iter: int
-    :param lengths: Length of the pipes [m] - only used to identify zero-length pipes
-    :type lengths: np.array
-    :param tolerance: Tolerance for the Colebrook-White calculation
-    :type tolerance: float
-    :return: lambda_cb, converged
-    1. lambda_cb: Friction factor according to Colebrook-White
-    2. converged: True, if the Colebrook-White calculation converged for all pipes
-    :rtype: (np.array, bool)
-    """
-    def colebrook_white_implicit(lambda_cb, re_nz, k_nz, d_nz):
-        return lambda_cb ** (-1 / 2) + 2 * np.log10(2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz))
-
-    def cw_derivative(lambda_cb, re_nz, k_nz, d_nz):
-        return -1 / 2 * lambda_cb ** (-3 / 2) - (2.51 / re_nz) * lambda_cb ** (-3 / 2) / (
-                    np.log(10) * (2.51 / (re_nz * np.sqrt(lambda_cb)) + k_nz / (3.71 * d_nz)))
-
-    mask = ~np.isclose(re, 0) & ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)
-    lambda_res = lambda_nikuradse
-
-    if not mask.any():
-        return True, lambda_res
-
-    res = newton(colebrook_white_implicit, lambda_res[mask], maxiter=max_iter, args=(re[mask], k[mask], d[mask]),
-                 tol=tolerance, full_output=True, fprime=cw_derivative)  # , fprime2=cw_derivative_2)
-
-    if lambda_res[mask].size == 1:
-        lambda_res[mask] = res[0]
-        converged = res[1].converged
-    else:
-        lambda_res[mask] = res.root
-        converged = np.all(res.converged)
-
-    return converged, lambda_res
 
 
 def calc_derived_values_np(node_pit, from_nodes, to_nodes):
