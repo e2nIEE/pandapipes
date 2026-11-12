@@ -10,7 +10,7 @@ def district_heating_net():
     net = pp.create_empty_network(fluid="water")
 
     supply_temperature_k = 85 + 273.15
-    pipetype = "110/202 PLUS"
+    pipetype = "ISOPLUS_DRE100_STD"
 
     # Create ring network
     j1 = pp.create_junction(net, pn_bar=1.05, tfluid_k=supply_temperature_k, geodata=(0, 10))
