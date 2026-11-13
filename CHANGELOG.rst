@@ -2,6 +2,7 @@ Change Log
 =============
 [0.x.x] - 20xx-xx-xx
 -------------------------------
+- [FIXED] NaN in pipe `sections` is replaced by 1 with a warning (#797)
 - [ADDED]
   FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them
   to the pipeflow.

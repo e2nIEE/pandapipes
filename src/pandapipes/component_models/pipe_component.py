@@ -76,6 +76,14 @@ class Pipe(BranchWInternalsComponent):
         :return:
         :rtype:
         """
+        sections = net[cls.table_name()].sections
+        nan_sections = sections.isna()
+        if nan_sections.any():
+            logger.warning(
+                f"The number of sections is NaN for the pipes with the following indices: "
+                f"{sections.index[nan_sections].tolist()}. The number of sections is set to 1."
+            )
+            net[cls.table_name()].loc[nan_sections, "sections"] = 1
         return np.array(net[cls.table_name()].sections.values).astype(np.int32)
 
     @classmethod

@@ -1,9 +1,10 @@
 # Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+import logging
+
 import numpy as np
 import pytest
-
 import pandapipes
 from pandapipes.properties.fluids import _add_fluid_to_net
 import copy
@@ -173,3 +174,33 @@ def test_zero_flow_pipes(use_numba):
     pandapipes.pipeflow(net, mode='bidirectional', iter=5, use_numba=use_numba)
     assert net.res_pipe.t_outlet_k.at[1] == 293.15
     assert net.res_junction.t_k.at[2] == 293.15
+
+
+def test_pipe_sections_nan(caplog):
+    """NaN in pipe sections is replaced by 1 and a warning is logged"""
+    from pandapipes.networks.simple_heat_transfer_networks import heat_transfer_delta
+    net = heat_transfer_delta()
+    net.pipe.at[0, "sections"] = np.nan
+    pandapipes.pipeflow(net)
+    assert net.pipe.sections.at[0] == 1
+    assert "number of sections is NaN" in caplog.text
+
+
+def test_create_pipe_sections_nan(caplog):
+    """NaN in sections is replaced by 1 and a warning is logged already when the pipe is created"""
+    caplog.set_level(logging.WARNING, logger="pandapipes.create")
+    net = pandapipes.create_empty_network(add_stdtypes=False)
+    pandapipes.create_junctions(net, 2, pn_bar=5, tfluid_k=293.15)
+    pandapipes.create_pipe_from_parameters(net, 0, 1, 1.0, 100., sections=np.nan)
+    assert net.pipe.sections.at[0] == 1
+    assert "following indices: [0]" in caplog.text
+
+
+def test_create_pipes_sections_nan(caplog):
+    """NaN entries in a list of sections are replaced by 1 when the pipes are created"""
+    caplog.set_level(logging.WARNING, logger="pandapipes.create")
+    net = pandapipes.create_empty_network(add_stdtypes=False)
+    pandapipes.create_junctions(net, 3, pn_bar=5, tfluid_k=293.15)
+    pandapipes.create_pipes_from_parameters(net, [0, 1, 0], [1, 2, 2], 1.0, 100., sections=[2, np.nan, 3])
+    assert net.pipe.sections.tolist() == [2, 1, 3]
+    assert "following indices: [1]" in caplog.text

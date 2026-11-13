@@ -539,6 +539,8 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
          "in_service": bool(in_service), "type": type, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
 
+    _check_pipe_sections(net, index)
+
     if geodata is not None:
         net["pipe_geodata"].at[index, "coords"] = geodata
 
@@ -627,6 +629,8 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
                           'create a pipe setting specific, individual parameters. If you want to '
                           'create a pipe from net.std_types, please use `create_pipe`')
     _set_entries(net, "pipe", index, **v, **kwargs)
+
+    _check_pipe_sections(net, index)
 
     if geodata is not None:
         net["pipe_geodata"].at[index, "coords"] = geodata
@@ -1518,6 +1522,8 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
                "sections": sections, "in_service": in_service, "type": type, "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
+    _check_pipe_sections(net, index)
+
     if geodata is not None:
         _add_multiple_branch_geodata(net, "pipe", geodata, index)
     return index
@@ -1615,6 +1621,8 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
                           'create a pipe setting specific, individual parameters. If you want to '
                           'create a pipe from net.std_types, please use `create_pipe`')
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
+    
+    _check_pipe_sections(net, index)
 
     if geodata is not None:
         _add_multiple_branch_geodata(net, "pipe", geodata, index)
@@ -2018,6 +2026,15 @@ def _check_std_type(net, std_type, table, function_name):
     if std_type not in net['std_types'][table]:
         raise UserWarning('%s is not given in std_types (%s). Either change std_type or define new '
                           'one' % (std_type, table))
+
+
+def _check_pipe_sections(net, index):
+    sections = net.pipe.loc[np.atleast_1d(index), "sections"]
+    nan_index = sections.index[sections.isna()].tolist()
+    if nan_index:
+        logger.warning(f"The number of sections is NaN for the pipes with the following indices: "
+                       f"{nan_index}. The number of sections is set to 1.")
+        net.pipe.loc[nan_index, "sections"] = 1
 
 
 def _add_multiple_branch_geodata(net, table, geodata, index):
