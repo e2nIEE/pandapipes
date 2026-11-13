@@ -24,6 +24,7 @@ def model_payload():
 @pytest.mark.parametrize(
     "model_class, expected_lambda, expected_dlambda_dre",
     (
+        (fm.Laminar, 0.032, -1.6e-5),
         (fm.Nikuradse, 0.103461, -1.6e-5),
         (fm.SwameeJain, 0.0858357, -6.1399e-6),
         (fm.Colebrook, 0.0818189, -4.7054e-6),
