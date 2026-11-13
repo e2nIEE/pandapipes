@@ -26,7 +26,7 @@ from pandapipes.constants import NORMAL_TEMPERATURE, NORMAL_PRESSURE, R_UNIVERSA
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.derivative_calculation import (
-    calculate_derivatives_hydraulic, calculate_derivatives_branch_thermal,
+    calculate_derivatives_hydraulic_frictionless, calculate_derivatives_branch_thermal,
 )
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_fluid, get_net_option, get_lookup, is_transient_warm_start
@@ -83,9 +83,12 @@ class Pump(BranchWOInternalsComponent):
             return
 
         rows = np.arange(f, t, dtype=np.int32)
-        d_val = 0.1
-        area_val = d_val ** 2 * np.pi / 4
-        mdotinit = 0.1 * area_val * get_fluid(net).get_density(NORMAL_TEMPERATURE)
+        # Starting value for the Newton iteration only - a pump has no geometry, so the mass flow
+        # of a DN 100 pipe at 0.1 m/s is used as a generic order of magnitude to start from.
+        seed_velocity_m_per_s = 0.1
+        seed_area_m2 = 0.1 ** 2 * np.pi / 4
+        mdotinit = (seed_velocity_m_per_s * seed_area_m2
+                    * get_fluid(net).get_density(NORMAL_TEMPERATURE))
         registry.add(PitEntries(*build_pit_entries(
             rows, [IdxBranch.MDOTINIT], [mdotinit],
         )))
@@ -119,8 +122,11 @@ class Pump(BranchWOInternalsComponent):
         b_pit = branch_pit[f:t]
         dpl_dm, dpl_dp = cls._compute_pl(net, b_pit, node_pit)
 
+        # A pump has neither a length nor a loss coefficient, so the only pressure difference it
+        # imposes is its own pressure lift PL - there is no friction term to compute.
         df_dm, df_dp, df_dp1, df_dm_node, residual, residual_fn, residual_tn = (
-            calculate_derivatives_hydraulic(net, b_pit, node_pit, get_hydraulic_options(net))
+            calculate_derivatives_hydraulic_frictionless(net, b_pit, node_pit,
+                                                         get_hydraulic_options(net))
         )
         # PL enters the branch residual with a plus sign, so its own dependence on mdot and on the
         # from-node pressure belongs into the jacobi matrix - without it, PL is only updated from

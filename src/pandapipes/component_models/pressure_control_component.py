@@ -61,6 +61,7 @@ class PressureControlComponent(BranchWOInternalsComponent):
                 ("controlled_junction", "u4"),
                 ("controlled_p_bar", "f8"),
                 ("control_active", "bool"),
+                ("inner_diameter_mm", "f8"),
                 ("loss_coefficient", "f8"),
                 ("in_service", 'bool'),
                 ("type", dtype(object))]
@@ -94,8 +95,12 @@ class PressureControlComponent(BranchWOInternalsComponent):
             return
 
         rows = np.arange(f, t, dtype=np.int32)
+        d_vals = tbl.inner_diameter_mm.values / 1000.
+
         registry.add(PitEntries(*build_pit_entries(
-            rows, [IdxBranch.LOSS_COEFFICIENT, IdxBranch.DIRECTED], [tbl.loss_coefficient.values, True],
+            rows,
+            [IdxBranch.DIRECTED, IdxBranch.LOSS_COEFFICIENT, IdxBranch.D, IdxBranch.DO],
+            [True, tbl.loss_coefficient.values, d_vals, d_vals],
         )))
 
     @classmethod
