@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 import pandapipes
+from pandapipes.properties.fluids import call_lib
 from pandapipes.converter.stanet.table_creation import CLIENT_TYPES_OF_NODES
 from pandapipes.properties.fluids import FluidPropertySutherland, _add_fluid_to_net
 
@@ -190,6 +191,7 @@ def get_net_params(net, stored_data):
     net_params["comp_factor"] = float(net_data.at[0, "KPAR"])
     net_params["friction_model"] = int(net_data.at[0, "LAM"])
     net_params["max_iterations"] = int(net_data.at[0, "IMAX"])
+    net_params["compress_model"] = "linear"
     if "KFAKT" in net_data.columns:
         net_params["compress_model"] = compressibility_models.get(int(net_data.at[0, "KFAKT"]), "linear")
     if net_params["friction_model"] not in known_friction_models.keys():
@@ -212,9 +214,21 @@ def get_net_params(net, stored_data):
     fluid = pandapipes.create_constant_fluid(
         'STANET_fluid', state, density=net_params["rho"], viscosity=net_params["eta"],
         heat_capacity=net_params["cp"], der_compressibility=net_params["comp_factor"])
-    if state == "gas" and net_params["t0_sutherland"] != 0:
-        viscosity = FluidPropertySutherland(net_params["eta"], net_params["t0_sutherland"],
-                                            net_params["t_sutherland"])
+
+    if net_params["medium"] == "W":
+        water = call_lib("water")
+        fluid.add_property(
+            "viscosity",
+            water.all_properties["viscosity"],
+            overwrite=True,
+            warn_on_duplicates=False,
+        )
+    elif state == "gas" and net_params["t0_sutherland"] != 0:
+        viscosity = FluidPropertySutherland(
+            net_params["eta"],
+            net_params["t0_sutherland"],
+            net_params["t_sutherland"],
+        )
         fluid.add_property("viscosity", viscosity, overwrite=True, warn_on_duplicates=False)
 
     if net_params["comp_factor"] == 0:
