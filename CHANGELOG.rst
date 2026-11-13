@@ -8,6 +8,11 @@ Change Log
 - [CHANGED]
   Friction model selection is now object‑based. Passing a string
   name (e.g. "colebrook") is still supported for backward compatibility.
+- [FIXED]
+  Transient calculations with controllers that need several control iterations no longer move
+  the thermal state forward with every iteration. A time step's start state is set up by its
+  first pipeflow, repeated pipeflows of the same `simulation_time_step` start from the same state.
+  To advance in time, `simulation_time_step` has to be increased (as done by `run_timeseries`).
 
 [0.16.0] - 2026-10-16
 -------------------------------

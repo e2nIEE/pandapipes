@@ -418,9 +418,14 @@ def initialize_pit(net):
     :rtype: tuple(np.array)
 
     """
-    if (not get_net_option(net, "transient") or
-            get_net_option(net, "simulation_time_step") == 0
-    ):
+    transient = get_net_option(net, "transient")
+    # the simulation time step is only given for transient calculations
+    step = get_net_option(net, "simulation_time_step") if transient else None
+    # A time step can be solved several times, e.g. in a control loop. Its thermal start state is
+    # set up by its first solve and must not be moved forward by the following ones.
+    repeated_solve = transient and step != 0 and net.get("_old_pit_time_step") == step
+
+    if not transient or step == 0:
         if get_net_option(net, "mode") == "heat":
             if "_pit" not in net:
                 raise UserWarning("There are no hydraulic results given!")
@@ -444,8 +449,16 @@ def initialize_pit(net):
     else:
         pit = net["_pit"]
 
-    if get_net_option(net, "transient") and get_net_option(net,"simulation_time_step") != 0 and net.converged:
+    if transient and step != 0 and net.converged and not repeated_solve:
         create_old_pit(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
+    elif repeated_solve:
+        # the hydraulics take their temperatures from the pit - reset them to the start state, so
+        # that every solve of this time step is based on the same temperatures as the first one
+        set_old_pit_lookups(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
+        pit["node"][:, IdxNode.TINIT] = net["_old_pit"]["node"][
+            :, get_lookup(net, "node", "old_pit_cols")[IdxNode.TINIT]]
+        pit["branch"][:, IdxBranch.TOUTINIT] = net["_old_pit"]["branch"][
+            :, get_lookup(net, "branch", "old_pit_cols")[IdxBranch.TOUTINIT]]
 
     node_pit = pit["node"]
     branch_pit = pit["branch"]
@@ -467,15 +480,16 @@ def initialize_pit(net):
     branch_registry.apply(branch_pit)
     node_registry.apply(node_pit)
 
-    if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
+    if not transient or step == 0:
         # This needs to be done after the pit values are set
         create_old_pit(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
-    elif not net.converged:
+    elif not net.converged and not repeated_solve:
         # the unconverged pit values are no valid thermal state - keep the old pit, which still
         # holds the state the failed time step started from
         set_old_pit_lookups(net, [IdxNode.TINIT], [IdxBranch.TOUTINIT])
         logger.warning("The previous transient time step did not converge. The thermal state of "
                        "the last converged time step is used as starting state instead.")
+    net["_old_pit_time_step"] = step
 
     if len(pit["node"]) == 0:
         logger.warning("There are no nodes defined. "
