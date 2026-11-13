@@ -137,12 +137,12 @@ def one_pipe_net():
 
 
 @pytest.mark.parametrize("use_numba", [True, False])
-def test_one_pipe_net(one_pipe_net, model_class):
+def test_one_pipe_net(one_pipe_net, model_class, use_numba):
     """Integration test: pipeflow converges when using
     each friction factor model (via the model_class fixture).
     """
     model = model_class()
-    pp.pipeflow(one_pipe_net, friction_model=model)
+    pp.pipeflow(one_pipe_net, friction_model=model, use_numba=use_numba)
 
 
 @pytest.mark.parametrize(
@@ -179,7 +179,6 @@ def moody_payload():
     }
 
 
-@pytest.mark.parametrize("model_class", (fm.Nikuradse, fm.SwameeJain, fm.Colebrook))
 def test_calc_moody_matches_the_model_it_was_given(moody_payload, model_class):
     """calc_moody does no friction physics of its own - it only decides which rows the model is
     asked about, and hands back what the model returned for them.
@@ -191,13 +190,13 @@ def test_calc_moody_matches_the_model_it_was_given(moody_payload, model_class):
                    / (moody_payload["eta"] * moody_payload["area"]))
     np.testing.assert_allclose(re, expected_re)
 
-    expected_lambda, expected_der = model.compute_lambda_and_dlambda_dm(
-        moody_payload["k"][:1] / moody_payload["d"][:1], re[:1], moody_payload["m"][:1])
+    expected_lambda, expected_der = model.compute_lambda_and_dlambda_dre(
+        moody_payload["k"][:1] / moody_payload["d"][:1], re[:1])
+    expected_der *= expected_re[:1] / moody_payload["m"][:1]
     np.testing.assert_allclose(lambda_[:1], expected_lambda)
     np.testing.assert_allclose(der_lambda[:1], expected_der)
 
 
-@pytest.mark.parametrize("model_class", (fm.Nikuradse, fm.SwameeJain, fm.Colebrook))
 def test_calc_moody_leaves_out_branches_without_a_friction_term(moody_payload, model_class):
     """A branch at standstill has no Reynolds number to look a lambda up for, and a branch of
     zero length has no friction term in its momentum equation at all - every model would divide
