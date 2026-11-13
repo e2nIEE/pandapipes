@@ -82,7 +82,7 @@ class FrictionFactorModel(Protocol):
 class Laminar(FrictionFactorModel):
     """Implementation of the Laminar friction factor equation."""
 
-    def compute_lambda_and_dlambda_dm(
+    def compute_lambda_and_dlambda_dre(
         self,
         k_over_D: Float64_1D,
         re: Float64_1D,
@@ -342,7 +342,7 @@ class TransitionStrategy(Protocol):
         :param re_turb: Lower Reynolds number of the turbulent regime.
         :param f_lam: Laminar friction factor model.
         :param f_turb: Turbulent friction factor model.
-        :return: Tuple of :math:`\lambda` and :math:`d\lambda/d\dot{m}`.
+        :return: Tuple of :math:`\lambda` and :math:`d\lambda/dRe`.
         """
 
 
@@ -408,11 +408,11 @@ def hermite_log(
     # same-shape arrays for the protocol
     re_lam_arr = np.full_like(re, re_lam)
     re_turb_arr = np.full_like(re, re_turb)
-    lambda_lam, dlambda_dm_lam = f_lam.compute_lambda_and_dlambda_dm(
+    lambda_lam, dlambda_dm_lam = f_lam.compute_lambda_and_dlambda_dre(
         k_over_D,
         re_lam_arr,
     )
-    lambda_turb, dlambda_dm_turb = f_turb.compute_lambda_and_dlambda_dm(
+    lambda_turb, dlambda_dm_turb = f_turb.compute_lambda_and_dlambda_dre(
         k_over_D,
         re_turb_arr,
     )
@@ -552,7 +552,7 @@ class RegimeAwareFrictionModel(FrictionFactorModel):
             msg = f"re_turb = {self.re_turb}, must be > re_lam = {self.re_lam}"
             raise ValueError(msg)
 
-    def compute_lambda_and_dlambda_dm(
+    def compute_lambda_and_dlambda_dre(
         self,
         k_over_D: Float64_1D,
         re: Float64_1D,
