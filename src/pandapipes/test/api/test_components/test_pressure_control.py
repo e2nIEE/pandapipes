@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 import pandapipes
+from pandapipes.io.convert_format import DEFAULT_PRESS_CONTROL_DIAMETER_MM, convert_format
 from pandapipes.test import data_path
 
 @pytest.mark.parametrize("use_numba", [True, False])
@@ -139,3 +140,52 @@ def test_pressure_control_after_index_gap(use_numba):
 
     assert np.isclose(net.res_junction.at[j1, "p_bar"], 20.)
     assert np.isclose(net.res_junction.at[j3, "p_bar"], 15.)
+
+
+@pytest.mark.parametrize("use_numba", [True, False])
+@pytest.mark.parametrize("control_active", [True, False])
+@pytest.mark.parametrize("inner_diameter_mm", [50., 100.])
+def test_pressure_control_diameter_and_loss(use_numba, control_active, inner_diameter_mm):
+    """The inner diameter is the reference area of the loss coefficient.
+
+    While the control is active it has no influence at all - the set point alone determines the
+    outlet pressure. Once the control is switched off, the pressure drop is the one of a lumped
+    loss over that diameter, which is what pins the diameter down to a specific value here: two
+    different diameters have to give two different results.
+    """
+    net = pandapipes.create_empty_network("net", add_stdtypes=False, fluid="water")
+    t_k, p_in_bar, p_set_bar, mdot, loss_coefficient = 293.15, 5., 4., 2., 10.
+
+    j0, j1 = [pandapipes.create_junction(net, pn_bar=p_in_bar, tfluid_k=t_k) for _ in range(2)]
+    pandapipes.create_ext_grid(net, j0, p_in_bar, t_k, type="p")
+    pandapipes.create_sink(net, j1, mdot)
+    pandapipes.create_pressure_control(net, j0, j1, j1, p_set_bar,
+                                       control_active=control_active,
+                                       loss_coefficient=loss_coefficient,
+                                       inner_diameter_mm=inner_diameter_mm)
+
+    pandapipes.pipeflow(net, mode="hydraulics", use_numba=use_numba)
+
+    if control_active:
+        expected_p_bar = p_set_bar
+    else:
+        rho = net.fluid.get_density(t_k)
+        area_m2 = np.pi * (inner_diameter_mm / 1000.) ** 2 / 4
+        velocity = mdot / (rho * area_m2)
+        expected_p_bar = p_in_bar - loss_coefficient * rho * velocity ** 2 / (2 * 1e5)
+
+    assert net.res_junction.at[j1, "p_bar"] == pytest.approx(expected_p_bar, abs=1e-7)
+
+
+def test_pressure_control_diameter_from_old_format():
+    """Nets stored before the diameter existed get the documented 100 mm fallback."""
+    net = pandapipes.create_empty_network("net", add_stdtypes=False, fluid="water")
+
+    j0, j1 = [pandapipes.create_junction(net, pn_bar=5., tfluid_k=293.15) for _ in range(2)]
+    pandapipes.create_pressure_control(net, j0, j1, j1, 4., inner_diameter_mm=42.)
+
+    net.press_control.drop(columns="inner_diameter_mm", inplace=True)
+    net.format_version = "0.14.0"
+    convert_format(net)
+
+    assert net.press_control.at[0, "inner_diameter_mm"] == DEFAULT_PRESS_CONTROL_DIAMETER_MM

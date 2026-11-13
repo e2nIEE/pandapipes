@@ -1011,8 +1011,8 @@ def create_pressure_control(
         controlled_junction,
         controlled_p_bar,
         control_active=True,
-        inner_diameter_mm=100.,
         loss_coefficient=0.,
+        inner_diameter_mm=100.,
         name=None,
         index=None,
         in_service=True,
@@ -1042,12 +1042,12 @@ def create_pressure_control(
     :param control_active: Variable to state whether the pressure control is active (otherwise \
         behaviour similar to open valve)
     :type control_active: bool, default True
-    :param inner_diameter_mm: The inner diameter of the pressure control element, used as the \
-        reference area for the loss coefficient (relevant only if control is not active).
-    :type inner_diameter_mm: float, default 100
     :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
         (used only if control is not active).
     :type loss_coefficient: float, default 0
+    :param inner_diameter_mm: The inner diameter of the pressure control element, used as the \
+        reference area for the loss coefficient (relevant only if control is not active).
+    :type inner_diameter_mm: float, default 100
     :param name: Name of the pressure control element
     :type name: str
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -1713,7 +1713,7 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
 
 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
-                             control_active=True, inner_diameter_mm=100., loss_coefficient=0.,
+                             control_active=True, loss_coefficient=0., inner_diameter_mm=100.,
                              name=None, index=None, in_service=True,
                              type="pressure_control", **kwargs):
     """Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
@@ -1741,12 +1741,12 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     :param control_active: Variable to state whether the pressure control is active (otherwise \
         behaviour similar to open valve)
     :type control_active: bool, default True
-    :param inner_diameter_mm: The inner diameters of the pressure control elements, used as the \
-        reference area for the loss coefficients (relevant only if control is not active).
-    :type inner_diameter_mm: Iterable or float, default 100
     :param loss_coefficient: The pressure loss coefficients introduced by the components' shapes \
         (used only if control is not active).
     :type loss_coefficient: Iterable or float, default 0
+    :param inner_diameter_mm: The inner diameters of the pressure control elements, used as the \
+        reference area for the loss coefficients (relevant only if control is not active).
+    :type inner_diameter_mm: Iterable or float, default 100
     :param name: Name of the pressure control elements
     :type name: Iterable or str
     :param index: Force specified IDs if they are available. If None, the index one higher than the\

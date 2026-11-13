@@ -7,6 +7,8 @@ Change Log
 - [ADDED] FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them to the pipeflow.
 - [ADDED] `inner_diameter_mm` for pressure controls as reference area of their `loss_coefficient`, incl. convert_format fallback to 100 mm
 - [ADDED] STANET converter imports the controller diameter `DM` next to `ZETA`
+- [ADDED] diagnostic value checks for `press_control`, covering the controlled junction and pressure as well as the new `inner_diameter_mm` and `loss_coefficient`
+- [FIXED] diagnostic `InvalidValuesCheck` now reports infinite values alongside nan. `inf` passes every ">0"/">=0" restriction, so it used to slip through the check for all elements
 
 [0.16.0] - 2026-10-16
 -------------------------------

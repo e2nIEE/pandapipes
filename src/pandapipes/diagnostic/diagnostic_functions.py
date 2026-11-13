@@ -107,6 +107,8 @@ class InvalidValuesCheck(DiagnosticFunction):
                 ("controlled_junction", "existing_junction"),
                 ("controlled_p_bar", ">0"),
                 ("control_active", "boolean"),
+                ("inner_diameter_mm", ">0"),
+                ("loss_coefficient", ">=0"),
                 ("in_service", "boolean"),
             ],
             "flow_control": [
