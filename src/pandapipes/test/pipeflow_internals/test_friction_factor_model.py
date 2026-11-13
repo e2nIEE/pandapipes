@@ -163,6 +163,42 @@ def transition_strategy(request):
     return request.param
 
 
+def test_hermite_log_is_single_cubic():
+    r"""Test that ``hermite_log`` produces a single cubic in T.
+
+    The blend is fixed by the boundary data alone, so every evaluation
+    point must lie on the same cubic. If ``M_lam`` / ``M_turb`` are built
+    from the per-point ``re`` instead of ``re_lam`` / ``re_turb``, then
+    then :math:`M_{\mathrm{lam}}(T)` varies with :math:`T` and each point
+    lies on a *different* cubic.
+
+    Method: fit a cubic through the first 4 interior points — four points
+    uniquely determine a cubic — and check the remaining points lie on
+    it. Correct implementation gives residual ~1e-14; the buggy version
+    gives ~1e-2.
+    """
+    re_lam = 2000.0
+    re_turb = 4000.0
+    # interior points: 4 to fit poly, 4 to test
+    re = np.linspace(re_lam, re_turb, 10)[1:-1]
+    k_over_D = np.full_like(re, 0.1)
+
+    lambda_, _ = fm.hermite_log(
+        k_over_D,
+        re,
+        re_lam=re_lam,
+        re_turb=re_turb,
+        f_lam=fm.Laminar(),
+        f_turb=fm.Colebrook(),
+    )
+    # X = ln Re; Y = ln (lambda_ * Re**2) -- same in implementation
+    # T -- normalised X, lies in [0, 1]
+    Ts = (np.log(re) - np.log(re_lam)) / (np.log(re_turb) - np.log(re_lam))
+    Ys = np.log(lambda_) + 2.0 * np.log(re)
+    poly = np.polynomial.Polynomial.fit(Ts[:4], Ys[:4], deg=3)
+    np.testing.assert_allclose(Ys[4:], poly(Ts[4:]), rtol=1e-10, atol=1e-12)
+
+
 def test_transition_strategy_c1_continuity(transition_strategy):
     """Check the transition strategies are C1-continuous at re_lam / re_turb.
 

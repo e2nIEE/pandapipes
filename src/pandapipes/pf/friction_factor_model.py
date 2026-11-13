@@ -183,6 +183,8 @@ LambdaEstimator: TypeAlias = Callable[[Float64_1D, Float64_1D], Float64_1D]
 
 def _default_initial_estimator(k_over_D: Float64_1D, re: Float64_1D) -> Float64_1D:
     """Default lambda estimator used for Colebrook first iteration."""
+    if np.isclose(k_over_D, 0.0).all():
+        return 64 / re
     return 1 / (-2 * np.log10(k_over_D / 3.71)) ** 2
 
 
@@ -381,12 +383,12 @@ def hermite_log(
         \qquad
         M_i = \left.\frac{dY}{dX}\right|_{X_i}.
 
-    The substitutions
+    The substitution
 
     .. math::
         X &= \ln Re \;\Longrightarrow\; \frac{dRe}{dX} = Re,
 
-    give the slope
+    gives the slope
 
     .. math::
         \frac{dY}{dX}
@@ -394,7 +396,7 @@ def hermite_log(
          = \left(\frac{1}{\lambda}\frac{d\lambda}{dRe} + \frac{2}{Re}\right) Re \\
         &= \frac{Re}{\lambda}\frac{d\lambda}{dRe} + 2 \\
          \Longrightarrow\quad
-         M_i &= \frac{Re}{\lambda_i}\frac{d\lambda_i}{dRe} + 2.
+         M_i &= \frac{Re_i}{\lambda_i}\frac{d\lambda_i}{dRe} + 2.
 
 
     The back-transform is
@@ -408,11 +410,11 @@ def hermite_log(
     # same-shape arrays for the protocol
     re_lam_arr = np.full_like(re, re_lam)
     re_turb_arr = np.full_like(re, re_turb)
-    lambda_lam, dlambda_dm_lam = f_lam.compute_lambda_and_dlambda_dre(
+    lambda_lam, dlambda_dre_lam = f_lam.compute_lambda_and_dlambda_dre(
         k_over_D,
         re_lam_arr,
     )
-    lambda_turb, dlambda_dm_turb = f_turb.compute_lambda_and_dlambda_dre(
+    lambda_turb, dlambda_dre_turb = f_turb.compute_lambda_and_dlambda_dre(
         k_over_D,
         re_turb_arr,
     )
@@ -421,8 +423,8 @@ def hermite_log(
     X_turb = math.log(re_turb)
     Y_lam = np.log(lambda_lam) + 2.0 * X_lam
     Y_turb = np.log(lambda_turb) + 2.0 * X_turb
-    M_lam = re / lambda_lam * dlambda_dm_lam + 2.0
-    M_turb = re / lambda_turb * dlambda_dm_turb + 2.0
+    M_lam = re_lam_arr / lambda_lam * dlambda_dre_lam + 2.0
+    M_turb = re_turb_arr / lambda_turb * dlambda_dre_turb + 2.0
 
     span = X_turb - X_lam
     inv_span = 1.0 / span
