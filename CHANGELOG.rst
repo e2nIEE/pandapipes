@@ -8,6 +8,11 @@ Change Log
 - [CHANGED]
   Friction model selection is now object‑based. Passing a string
   name (e.g. "colebrook") is still supported for backward compatibility.
+- [ADDED]
+  `calc_moody`, returning the Reynolds number, the friction factor and its mass flow derivative
+  in one call - the three values a Moody chart ties together, which are only meaningful at the
+  same operating point. It replaces the removed `calc_lambda`/`calc_der_lambda` pair for callers
+  outside the solver.
 - [FIXED]
   Transient calculations with controllers that need several control iterations no longer move
   the thermal state forward with every iteration. A time step's start state is set up by its

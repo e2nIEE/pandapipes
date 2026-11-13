@@ -13,11 +13,59 @@ import numpy as np
 from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
+from pandapipes.pf.friction_factor_model import FrictionFactorModel
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected, _sum_by_group, \
     branch_area
-from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup, PipeflowNotConverged
+from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup, _get_friction_factor_model
 from pandapipes.properties.fluids import get_fluid
 from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, get_branch_cp
+
+
+def calc_moody(m, eta, d, k, area, lengths, friction_model):
+    """Reynolds number, Darcy friction factor lambda and its derivative with respect to mass flow.
+
+    These are the three quantities a Moody chart ties together, and they are only ever needed
+    together: lambda is read off at a given Re, and its derivative follows the same curve. Any
+    caller that computes one of them on its own risks evaluating it at a different operating
+    point than the other two.
+
+    The friction model is only evaluated where it is defined: at zero flow there is no Reynolds
+    number to look a lambda up for, and a branch of zero length has no friction term in its
+    momentum equation at all. Those rows keep lambda and the derivative at 0 instead of being
+    evaluated and discarded. ``re`` is returned unmasked, so a caller can still tell a genuinely
+    stagnant branch from one that was merely skipped.
+
+    :param m: mass flow per branch
+    :type m: numpy.ndarray
+    :param eta: dynamic viscosity per branch, at the branch's own operating point
+    :type eta: numpy.ndarray
+    :param d: inner diameter per branch
+    :type d: numpy.ndarray
+    :param k: roughness per branch
+    :type k: numpy.ndarray
+    :param area: cross section per branch
+    :type area: numpy.ndarray
+    :param lengths: length per branch
+    :type lengths: numpy.ndarray
+    :param friction_model: the model to evaluate, or its name ("nikuradse", "swamee-jain",
+        "colebrook") for backwards compatibility
+    :type friction_model: FrictionFactorModel | str
+    :return: re, lambda_, der_lambda
+    """
+    if not isinstance(friction_model, FrictionFactorModel):
+        opts = {"friction_model": friction_model}
+        _get_friction_factor_model(opts)
+        friction_model = opts["friction_model"]
+
+    re = np.abs(m) * d / (eta * area)
+    mask = ~np.isclose(re, 0) & ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)
+
+    lambda_ = np.zeros_like(re)
+    der_lambda = np.zeros_like(re)
+    lambda_[mask], der_lambda[mask] = friction_model.compute_lambda_and_dlambda_dm(
+        k[mask] / d[mask], re[mask], m[mask])
+
+    return re, lambda_, der_lambda
 
 
 def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
@@ -58,26 +106,9 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
     area = branch_area(b_pit)
 
     # Darcy Friction factor: lambda
-    re = (
-        np.abs(b_pit[:, IdxBranch.MDOTINIT])
-        * b_pit[:, IdxBranch.D]
-        / (eta * area)
-    )
-    mask = (
-        ~np.isclose(re, 0)
-        & ~np.isclose(b_pit[:, IdxBranch.LENGTH], 0, rtol=1e-10, atol=1e-11)
-    )
-    k_over_D = b_pit[mask, IdxBranch.K] / b_pit[mask, IdxBranch.D]
-    lambda_ = np.zeros_like(re)
-    der_lambda = np.zeros_like(re)
-    friction_factor_model = options["friction_model"]
-    lambda_[mask], der_lambda[mask] = (
-        friction_factor_model.compute_lambda_and_dlambda_dm(
-            k_over_D,
-            re[mask],
-            b_pit[mask, IdxBranch.MDOTINIT],
-        )
-    )
+    re, lambda_, der_lambda = calc_moody(
+        b_pit[:, IdxBranch.MDOTINIT], eta, b_pit[:, IdxBranch.D], b_pit[:, IdxBranch.K], area,
+        b_pit[:, IdxBranch.LENGTH], options["friction_model"])
 
     b_pit[:, IdxBranch.RE]     = re
     b_pit[:, IdxBranch.LAMBDA] = lambda_
