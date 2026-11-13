@@ -12,21 +12,9 @@ drop equation depends on the fluid model (incompressible or compressible).
 
 All friction factor models implement the :class:`~FrictionFactorModel`
 protocol and provide both :math:`\lambda` and its derivative
-:math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}`,
+:math:`\frac{\mathrm{d}\lambda}{\mathrm{d}Re}`,
 which is essential for :ref:`constructing the Jacobian matrix <jacobian>`
 in the Newton‑Raphson solver.
-
-.. note::
-    Because the friction factor depends only on the magnitude of the mass flow
-    (via :math:`Re = C|\dot{m}|`), :math:`\lambda(\dot{m})` must be an even
-    function of :math:`\dot{m}`.
-
-    Its derivative :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}`
-    is therefore an odd function – it changes sign when the flow direction reverses.
-
-    Since :math:`\lambda` decreases as the Reynolds number increases
-    (as seen in the Moody chart), :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}`
-    must be negative for positive mass flow.
 
 
 .. autoclass:: FrictionFactorModel
