@@ -13,6 +13,11 @@ Change Log
   in one call - the three values a Moody chart ties together, which are only meaningful at the
   same operating point. It replaces the removed `calc_lambda`/`calc_der_lambda` pair for callers
   outside the solver.
+- [FIXED]
+  Transient calculations with controllers that need several control iterations no longer move
+  the thermal state forward with every iteration. A time step's start state is set up by its
+  first pipeflow, repeated pipeflows of the same `simulation_time_step` start from the same state.
+  To advance in time, `simulation_time_step` has to be increased (as done by `run_timeseries`).
 
 [0.16.0] - 2026-10-16
 -------------------------------

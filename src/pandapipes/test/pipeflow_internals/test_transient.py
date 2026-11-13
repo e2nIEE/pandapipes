@@ -4,10 +4,13 @@
 
 import numpy as np
 import pytest
+from pandapower.control.basic_controller import Controller
+from pandapower.timeseries import OutputWriter
 
 import pandapipes
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.pipeflow_setup import PipeflowNotConverged, is_transient_warm_start
+from pandapipes.timeseries import run_timeseries
 
 T_INIT = 333.15
 T_SUPPLY = 363.15
@@ -108,6 +111,73 @@ def test_transient_state_kept_after_divergence():
     assert net.converged
     t_old_col = net["_lookups"]["node_old_pit_cols"][IdxNode.TINIT]
     assert np.allclose(net["_old_pit"]["node"][:, t_old_col], t_before_failure)
+
+
+def _consumer_inlet_temperatures(steps, solves_per_step):
+    """Solve every time step several times with identical inputs, as a control loop does."""
+    net, j_cons_in = _heating_loop()
+    t_in = []
+    for step in steps:
+        for _ in range(solves_per_step):
+            pandapipes.pipeflow(net, mode="sequential", transient=True, dt=60,
+                                simulation_time_step=step)
+        t_in.append(net.res_junction.t_k.at[j_cons_in])
+    return np.array(t_in)
+
+
+@pytest.mark.parametrize("solves_per_step", [2, 4])
+def test_transient_repeated_solve_keeps_start_state(solves_per_step):
+    """Solving a time step again must not move its thermal start state forward in time.
+
+    The consumer's mass flow depends on its inlet temperature, so this also checks that the
+    hydraulics of a repeated solve see the same temperatures as the first solve of the step.
+    """
+    reference = _consumer_inlet_temperatures(range(20), solves_per_step=1)
+    repeated = _consumer_inlet_temperatures(range(20), solves_per_step=solves_per_step)
+    # the supply front reaches the consumer within the simulated period
+    assert reference[-1] - reference[0] > 20
+    assert np.allclose(repeated, reference, rtol=0, atol=1e-4)
+
+
+class _IteratingController(Controller):
+    """Changes nothing, but needs some control iterations before it reports convergence."""
+
+    def __init__(self, net, iterations, **kwargs):
+        super().__init__(net, initial_run=True, **kwargs)
+        self.iterations = iterations
+        self.remaining = iterations
+
+    def time_step(self, net, time):
+        self.remaining = self.iterations
+
+    def is_converged(self, net):
+        return self.remaining <= 0
+
+    def control_step(self, net):
+        self.remaining -= 1
+
+
+def _transient_timeseries(net, steps):
+    ow = OutputWriter(net, steps, output_path=None, log_variables=[("res_junction", "t_k")])
+    run_timeseries(net, steps, transient=True, mode="sequential", dt=60, verbose=False)
+    return ow.output["res_junction.t_k"].values.copy()
+
+
+@pytest.mark.parametrize("iterations", [1, 3])
+def test_transient_timeseries_with_iterating_controller(iterations):
+    """Control iterations must not move the thermal state forward in time.
+
+    The controller changes nothing, so the results have to equal those of a time series without
+    it - also when the time series is run a second time on the same net.
+    """
+    steps = range(20)
+    net, _ = _heating_loop()
+    reference = _transient_timeseries(net, steps)
+
+    net, _ = _heating_loop()
+    _IteratingController(net, iterations)
+    for _ in range(2):
+        assert np.allclose(_transient_timeseries(net, steps), reference, rtol=0, atol=1e-4)
 
 
 @pytest.mark.parametrize("transient, step, converged, expected", [
