@@ -1012,6 +1012,7 @@ def create_pressure_control(
         controlled_p_bar,
         control_active=True,
         loss_coefficient=0.,
+        inner_diameter_mm=100.,
         name=None,
         index=None,
         in_service=True,
@@ -1044,6 +1045,9 @@ def create_pressure_control(
     :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
         (used only if control is not active).
     :type loss_coefficient: float, default 0
+    :param inner_diameter_mm: The inner diameter of the pressure control element, used as the \
+        reference area for the loss coefficient (relevant only if control is not active).
+    :type inner_diameter_mm: float, default 100
     :param name: Name of the pressure control element
     :type name: str
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
@@ -1071,7 +1075,8 @@ def create_pressure_control(
     """
     from pandapipes.toolbox import check_pressure_controllability
     if (check_controllability and
-            not check_pressure_controllability(net, to_junction, controlled_junction)):
+            not (check_pressure_controllability(net, to_junction, controlled_junction) or
+       check_pressure_controllability(net, from_junction, controlled_junction))):
         return logger.error('The controlled junction of the created pressure control '
                             'is not controllable, as it is either not reachable or '
                             'another pressure controllable component is in between')
@@ -1089,7 +1094,8 @@ def create_pressure_control(
 
     _set_entries(net, "press_control", index, name=name, from_junction=from_junction, to_junction=to_junction,
                  controlled_junction=controlled_junction, control_active=bool(control_active),
-                 loss_coefficient=loss_coefficient, controlled_p_bar=controlled_p_bar, in_service=bool(in_service),
+                 inner_diameter_mm=inner_diameter_mm, loss_coefficient=loss_coefficient,
+                 controlled_p_bar=controlled_p_bar, in_service=bool(in_service),
                  type=type, **kwargs)
 
     if controlled_junction != from_junction and controlled_junction != to_junction:
@@ -1707,7 +1713,8 @@ def create_valves(net, junctions, elements, et, inner_diameter_mm, opened=True, 
 
 
 def create_pressure_controls(net, from_junctions, to_junctions, controlled_junctions, controlled_p_bar,
-                             control_active=True, loss_coefficient=0., name=None, index=None, in_service=True,
+                             control_active=True, loss_coefficient=0., inner_diameter_mm=100.,
+                             name=None, index=None, in_service=True,
                              type="pressure_control", **kwargs):
     """Convenience function for creating many pressure controls at once. Parameters 'from_junctions'\
     and 'to_junctions' must be arrays of equal length. Other parameters may be either arrays of the\
@@ -1734,9 +1741,12 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
     :param control_active: Variable to state whether the pressure control is active (otherwise \
         behaviour similar to open valve)
     :type control_active: bool, default True
-    :param loss_coefficient: The pressure loss coefficient introduced by the component's shape \
+    :param loss_coefficient: The pressure loss coefficients introduced by the components' shapes \
         (used only if control is not active).
-    :type loss_coefficient: float, default 0
+    :type loss_coefficient: Iterable or float, default 0
+    :param inner_diameter_mm: The inner diameters of the pressure control elements, used as the \
+        reference area for the loss coefficients (relevant only if control is not active).
+    :type inner_diameter_mm: Iterable or float, default 100
     :param name: Name of the pressure control elements
     :type name: Iterable or str
     :param index: Force specified IDs if they are available. If None, the index one higher than the\
@@ -1770,7 +1780,8 @@ def create_pressure_controls(net, from_junctions, to_junctions, controlled_junct
 
     entries = {"name": name, "from_junction": from_junctions, "to_junction": to_junctions,
                "controlled_junction": controlled_junctions, "controlled_p_bar": controlled_p_bar,
-               "control_active": control_active, "loss_coefficient": loss_coefficient, "in_service": in_service,
+               "control_active": control_active, "inner_diameter_mm": inner_diameter_mm,
+               "loss_coefficient": loss_coefficient, "in_service": in_service,
                "type": type}
     _set_multiple_entries(net, "press_control", index, **entries, **kwargs)
 

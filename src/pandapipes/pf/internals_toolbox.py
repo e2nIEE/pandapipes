@@ -31,8 +31,39 @@ def branch_area(branch_pit):
     const_term) should call this once and pass the result along, rather than recomputing the
     formula inline at each use site - that repeated-inline-formula pattern is what this
     function replaces.
+
+    Branches whose component has no diameter input at all (pump, flow control, heat consumer,
+    circulation pump) never write D, so it stays at the pit's zero initialization. Those rows
+    get nan rather than a zero area, so that a value accidentally derived from them shows up as
+    nan instead of as a plausible-looking number or an inf from a division by zero.
     """
-    return np.pi * (branch_pit[:, IdxBranch.D] / 2) ** 2
+    d = branch_pit[:, IdxBranch.D]
+    return np.where(d > 0, np.pi * (d / 2) ** 2, np.nan)
+
+
+# Thermal capacity substitute for stagnant branches, see stagnant_branch_area. The value is the
+# cross section of a DN 100 pipe, which is what every branch without a diameter input used to be
+# given implicitly - keeping it means the transient regularization behaves exactly as before,
+# while the number is now stated once, in the only place that actually needs it.
+STAGNANT_BRANCH_REFERENCE_AREA_M2 = np.pi * (0.1 / 2) ** 2
+
+
+def stagnant_branch_area(branch_pit):
+    """Cross-sectional area per branch row, with a fallback for branches that have no diameter.
+
+    The transient heat equations regularize a stagnant branch - one that carries no flow, so that
+    its energy balance has no convective term left - by giving it the thermal capacity of the fluid
+    it contains, which is derived from its cross section. Components such as pump, flow control or
+    pressure control have no fluid volume to speak of, so :func:`branch_area` returns nan for them
+    and an explicit reference area is substituted here.
+
+    This is a numerical regularization, not a property of the branch: without it the stagnant
+    branch's row in the jacobi matrix would contain no temperature at all and the system would be
+    singular. Keeping it in one named place is deliberate - deriving the value from a diameter that
+    the component never defined is exactly the kind of invisible placeholder this avoids.
+    """
+    area = branch_area(branch_pit)
+    return np.where(np.isnan(area), STAGNANT_BRANCH_REFERENCE_AREA_M2, area)
 
 
 def _sum_by_group_sorted(indices, *values):

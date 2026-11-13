@@ -4,6 +4,7 @@ from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRES
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
+from pandapipes.pf.internals_toolbox import STAGNANT_BRANCH_REFERENCE_AREA_M2
 
 try:
     from numba import jit
@@ -183,7 +184,10 @@ def derivatives_branch_thermal_numba(branch_pit,
         dfnt_dtout[i] = cp_n[i] * mdot
 
         if transient:
-            area = np.pi * (branch_pit[i][BRANCH_D] / 2) ** 2
+            # numpy twin: stagnant_branch_area in pf.internals_toolbox - the area is only a
+            # thermal capacity here, so a branch without a diameter gets the reference value
+            d = branch_pit[i][BRANCH_D]
+            area = np.pi * (d / 2) ** 2 if d > 0 else STAGNANT_BRANCH_REFERENCE_AREA_M2
             tvor = branch_pit_old[i][branch_pit_old_lookup[BRANCH_TOUTINIT]]
 
             fb[i] = (
@@ -254,7 +258,9 @@ def derivatives_node_thermal_numba(node_pit, branch_pit,
 
     if transient:
         for i in range(b):
-            area = np.pi * (branch_pit[i][BRANCH_D] / 2) ** 2
+            # numpy twin: stagnant_branch_area in pf.internals_toolbox
+            d = branch_pit[i][BRANCH_D]
+            area = np.pi * (d / 2) ** 2 if d > 0 else STAGNANT_BRANCH_REFERENCE_AREA_M2
             t_amb = branch_pit[i][BRANCH_TEXT]
             alpha = branch_pit[i][BRANCH_ALPHA] * np.pi * branch_pit[i][BRANCH_DO]
 
@@ -279,35 +285,6 @@ def derivatives_node_thermal_numba(node_pit, branch_pit,
 
     return fn, dfn_dt
 
-
-@jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
-def calc_lambda_nikuradse_incomp_numba(m, d, k, eta, area):
-    lambda_nikuradse = np.zeros_like(m)
-    lambda_laminar = np.zeros_like(m)
-    re = np.zeros_like(m)
-    m_abs = np.abs(m)
-    for i in range(m.shape[0]):
-        re[i] = np.divide(m_abs[i] * d[i], eta[i] * area[i])
-        if (abs(re[i]) > 1.e-8):
-            lambda_laminar[i] = 64 / re[i]
-        lambda_nikuradse[i] = np.power(-2 * np.log10(k[i] / (3.71 * d[i])), -2)
-    return re, lambda_laminar, lambda_nikuradse
-
-
-@jit((float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True)
-def calc_lambda_nikuradse_comp_numba(m, d, k, eta, area):
-    lambda_nikuradse = np.zeros_like(m)
-    lambda_laminar = np.zeros_like(m)
-    re = np.zeros_like(m)
-    for i, mi in enumerate(m):
-        m_abs = np.abs(mi)
-        re[i] = np.divide(m_abs * d[i], eta[i] * area[i])
-        if (abs(re[i]) > 1.e-8):
-            lambda_laminar[i] = np.divide(64, re[i])
-        lambda_nikuradse[i] = np.divide(1, (2 * np.log10(np.divide(d[i], k[i])) + 1.14) ** 2)
-    return re, lambda_laminar, lambda_nikuradse
-
-
 @jit((float64[:], float64[:]), nopython=True, cache=False)
 def calc_medium_pressure_with_derivative_numba(p_init_i_abs, p_init_i1_abs):
     p_m = p_init_i_abs.copy()
@@ -325,68 +302,6 @@ def calc_medium_pressure_with_derivative_numba(p_init_i_abs, p_init_i1_abs):
             der_p_m1[i] = (-3 * p_init_i1_abs[i] ** 2 * diff_p_sq
                            + 2 * p_init_i1_abs[i] * diff_p_cub) * diff_p_sq_div ** 2 * val
     return p_m, der_p_m, der_p_m1
-
-
-@jit((float64[:], float64[:], float64[:], float64[:], int64, float64[:], float64), nopython=True, cache=False)
-def colebrook_numba(re, d, k, lambda_nikuradse, max_iter, lengths, tolerance):
-    """Numba counterpart of derivative_toolbox.colebrook_np, for calc_lambda's use_numba=True dispatch.
-
-    Imported there as ``colebrook_numba as colebrook``, mirroring ``colebrook_np as
-    colebrook`` on the non-numba side - both share this same positional signature.
-    scipy.optimize.newton (colebrook_np's own Newton solver) isn't numba-jittable, so this
-    reimplements the same implicit equation
-    ``lambda_cb**(-1/2) + 2*log10(2.51/(re*sqrt(lambda_cb)) + k/(3.71*d)) = 0`` as a hand-rolled,
-    jit-compiled Newton loop instead. Mirrors colebrook_np's own masking - branches with ~zero Re
-    or ~zero length are left at their input lambda_nikuradse guess rather than Newton-iterated
-    (colebrook_np: ``~np.isclose(re, 0) & ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)``,
-    reproduced here via explicit thresholds since np.isclose itself isn't numba-jittable) - and
-    takes the same configurable ``tolerance`` (net option "tolerance_colebrook").
-
-    :return: (converged, lambda_cb) - converged is False if max_iter is reached before every
-        active branch's Newton step drops below tolerance.
-    """
-    n = re.shape[0]
-    lambda_cb = lambda_nikuradse.copy()
-    active = np.zeros(n, dtype=bool)
-    n_active = 0
-    for i in range(n):
-        if abs(re[i]) > 1e-8 and abs(lengths[i]) > 1e-11:
-            active[i] = True
-            n_active += 1
-
-    if n_active == 0:
-        return True, lambda_cb
-
-    converged = False
-    niter = 0
-
-    # Inner Newton-loop for calculation of lambda
-    while not converged and niter < max_iter:
-        max_step = 0.0
-        for i in range(n):
-            if not active[i]:
-                continue
-            sqt = np.sqrt(lambda_cb[i])
-            add_val = np.divide(k[i], (3.71 * d[i]))
-            sqt_div = np.divide(1, sqt)
-            re_div = np.divide(1, re[i])
-            sqt_div3 = sqt_div ** 3
-
-            f = sqt_div + 2 * np.log10(2.51 * re_div * sqt_div + add_val)
-            df_dlambda_cb = - 0.5 * sqt_div3 - 2.51 * re_div * sqt_div3 * np.divide(
-                1, np.log(10) * (2.51 * re_div * sqt_div + add_val))
-            step = - f / df_dlambda_cb
-            lambda_cb[i] += step
-
-            abs_step = abs(step)
-            max_step = max(max_step, abs_step)
-
-        if max_step < tolerance:
-            converged = True
-
-        niter += 1
-
-    return converged, lambda_cb
 
 
 @jit((float64[:, :], int32[:], int32[:]), nopython=True)

@@ -17,6 +17,7 @@ import pandapipes
 from pandapipes.properties import get_fluid
 from pandapipes.constants import NORMAL_TEMPERATURE
 from pandapipes.component_models.component_toolbox import vrange
+from pandapipes.io.convert_format import DEFAULT_PRESS_CONTROL_DIAMETER_MM
 from pandapipes.converter.stanet.valve_pipe_component import create_valve_pipe_from_parameters
 
 try:
@@ -466,12 +467,23 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
         add_geo = kwargs.pop('add_geodata', False)
         if add_geo:
             add_info['geodata'] = control_table[['XRECHTS', 'YHOCH']].T.apply(Point)
+        # the diameter is the reference area for ZETA, so both have to be imported together
+        if "DM" in control_table.columns:
+            pc_diameter = control_table.DM.values.astype(np.float64)[is_pc]
+            pc_diameter = np.where(np.isnan(pc_diameter), DEFAULT_PRESS_CONTROL_DIAMETER_MM,
+                                   pc_diameter)
+        else:
+            logger.warning("No diameter ('DM') given for the STANET controllers. Falling back to "
+                           "%.0f mm as the reference area for their ZETA values.",
+                           DEFAULT_PRESS_CONTROL_DIAMETER_MM)
+            pc_diameter = DEFAULT_PRESS_CONTROL_DIAMETER_MM
         pandapipes.create_pressure_controls(
             net, from_junctions[is_pc], to_junctions[is_pc], to_junctions[is_pc],
             control_table.PMESS.astype(np.float64).values[is_pc],
             name=names[is_pc],
             in_service=in_service[is_pc],
             control_active=control_active[is_pc],
+            inner_diameter_mm=pc_diameter,
             loss_coefficient=control_table.ZETA.values.astype(np.float64)[is_pc],
             stanet_nr=control_table.RECNO.values[is_pc].astype(np.int32),
             stanet_id=stanet_id[is_pc],
@@ -704,8 +716,11 @@ def create_pipes_from_connections(net, stored_data, connection_table, index_mapp
     if "WDZAHL" in pipes.columns:
         alpha = pipes.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
-        net, pipe_sections.fj.values, pipe_sections.tj.values, pipe_sections.length.values / 1000,
-        pipes.DM.values.astype(float), pipes.RAU.values.astype(float), pipes.ZETA.values.astype(float), type="main_pipe",
+        net, pipe_sections.fj.values, pipe_sections.tj.values, length_km=pipe_sections.length.values / 1000,
+        inner_diameter_mm=pipes.DM.values.astype(float),
+        k_mm=pipes.RAU.values.astype(float),
+        loss_coefficient=pipes.ZETA.values.astype(float),
+        type="main_pipe",
         stanet_std_type=pipes.ROHRTYP.values, in_service=pipes.ISACTIVE.values, text_k=text_k,
         u_w_per_m2k=alpha,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(
@@ -1161,8 +1176,8 @@ def create_pipes_house_connections(net, stored_data, connection_table, index_map
     if "WDZAHL" in hp_data.columns:
         alpha = hp_data.WDZAHL.values.astype(np.float64)
     pandapipes.create_pipes_from_parameters(
-        net, hp_data.fj.values, hp_data.tj.values, hp_data.length.values / 1000,
-        hp_data.DM.values, hp_data.RAU.values, hp_data.ZETA.values, type="house_pipe",
+        net, hp_data.fj.values, hp_data.tj.values, length_km=hp_data.length.values / 1000,
+        inner_diameter_mm=hp_data.DM.values, k_mm=hp_data.RAU.values, loss_coefficient=hp_data.ZETA.values, type="house_pipe",
         in_service=hp_data.ISACTIVE.values if houses_in_calculation else False, text_k=text_k,
         u_w_per_m2k=alpha, geodata=hp_data.section_geo.values,
         name=["pipe_%s_%s_%s" % (nf, nt, sec) for nf, nt, sec in zip(

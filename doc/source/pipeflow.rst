@@ -17,11 +17,10 @@ are used and how it is possible to influence the calculation.
 
 .. toctree::
     :maxdepth: 1
-    
+
     pipeflow/run
     pipeflow/options
     pipeflow/pipeflow_procedure
+    pipeflow/friction_factor_models
     pipeflow/calculation_modes
     pipeflow/internal_functions
-
-

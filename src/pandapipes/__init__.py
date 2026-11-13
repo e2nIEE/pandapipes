@@ -17,7 +17,7 @@ except importlib.metadata.PackageNotFoundError:
             if "project" in data and "version" in data["project"]:
                 __version__ = data["project"]["version"]
 
-__format_version__ = '0.14.0'
+__format_version__ = '0.17.0'
 
 import pandas as pd
 import os
@@ -31,6 +31,7 @@ from pandapipes.io.file_io import *
 from pandapipes.pipeflow import *
 from pandapipes.toolbox import *
 from pandapipes.pf.pipeflow_setup import *
+from pandapipes.pf.friction_factor_model import *
 from pandapipes.std_types import *
 import pandapipes.plotting
 from pandapipes.diagnostic.diagnostic_helper import diagnostic

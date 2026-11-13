@@ -1,5 +1,5 @@
 import numpy as np
-
+import pytest
 import pandapipes as pps
 from pandapipes import networks as ntw
 from pandapipes.timeseries import run_timeseries
@@ -19,3 +19,12 @@ def test_person_run_fct_time_series():
     run_timeseries(net, time_steps=range(10), max_iter_hyd=max_iter_hyd, max_iter_therm=max_iter_therm,
                    mode='sequential', run=person_run_fct)
     assert all(net.output_writer.iat[0, 0].np_results['res_junction.p_bar'].flatten() == 15.)
+
+def test_transient_requires_dt():
+    net = pps.create_empty_network()
+
+    with pytest.raises(
+        ValueError,
+        match="The time step 'dt' must be specified in seconds when transient=True.",
+    ):
+        run_timeseries(net, time_steps=[0], transient=True)

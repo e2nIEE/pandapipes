@@ -1,5 +1,19 @@
 Change Log
 =============
+[0.17.0] - 2026-11-13
+-------------------------------
+- [CHANGED] branches without internals no longer get an implicit dummy diameter of 100 mm. Components that have neither a length nor a loss coefficient (pump, flow control) are frictionless by construction and use the new `calculate_derivatives_hydraulic_frictionless` instead of the full Darcy-Weisbach derivatives; every component for which the diameter does matter now writes `D`/`DO` itself
+- [CHANGED] Friction model selection is now object‑based. Passing a string name (e.g. "colebrook") is still supported for backward compatibility.
+- [ADDED] FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them to the pipeflow.
+- [ADDED] `inner_diameter_mm` for pressure controls as reference area of their `loss_coefficient`, incl. convert_format fallback to 100 mm
+- [ADDED] STANET converter imports the controller diameter `DM` next to `ZETA`
+- [ADDED] diagnostic framework tests
+- [ADDED] diagnostic value checks for `press_control`, covering the controlled junction and pressure as well as the new `inner_diameter_mm` and `loss_coefficient`
+- [ADDED] `calc_moody`, returning the Reynolds number, the friction factor and its mass flow derivative in one call - the three values a Moody chart ties together, which are only meaningful at the same operating point. It replaces the removed `calc_lambda`/`calc_der_lambda` pair for callers outside the solver.
+- [FIXED] diagnostic `InvalidValuesCheck` now reports infinite values alongside nan. `inf` passes every ">0"/">=0" restriction, so it used to slip through the check for all elements
+- [FIXED] validating dt before initializing the time-series calculation and raising a clear ValueError when it is missing
+- [FIXED] Check whether ConstControl element indices exist before starting a time series. A missing index now produces a clear ValueError instead of an unrelated error during pipeflow.
+
 [0.16.0] - 2026-10-16
 -------------------------------
 - [FIXED] considering pump derivatives
