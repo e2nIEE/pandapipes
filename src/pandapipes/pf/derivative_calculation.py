@@ -62,9 +62,14 @@ def calc_moody(m, eta, d, k, area, lengths, friction_model):
 
     lambda_ = np.zeros_like(re)
     der_lambda = np.zeros_like(re)
-    lambda_[mask], der_lambda[mask] = friction_model.compute_lambda_and_dlambda_dm(
-        k[mask] / d[mask], re[mask], m[mask])
-
+    lambda_[mask], der_lambda[mask] = friction_model.compute_lambda_and_dlambda_dre(
+        k[mask] / d[mask],
+        re[mask],
+    )
+    # Re = C * |m|, C = Re / |m|
+    # dRe_dm = C * sign(m) = Re / |m| * sign(m) = Re / m
+    # dlambda_dm = dlambda_dRe * dRe_dm = dlambda_dRe * (Re / m)
+    der_lambda[mask] *= re[mask] / m[mask]
     return re, lambda_, der_lambda
 
 

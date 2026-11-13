@@ -10,36 +10,35 @@ from pandapipes.pf.derivative_calculation import calc_moody
 
 @pytest.fixture
 def model_payload():
-    """Typical input arrays (k_over_D, Re, mass flow) for a friction factor model."""
+    """Typical input arrays (k_over_D, Re) for a friction factor model."""
     dtype = np.float64
     return {
         "k_over_D": np.array([0.05], dtype=dtype),
         "re": np.array([2000], dtype=dtype),
-        "m": np.array([1], dtype=dtype),
     }
 
 
 @pytest.mark.parametrize(
-    "model_class, expected_lambda, expected_dlambda_dm",
+    "model_class, expected_lambda, expected_dlambda_dre",
     (
-        (fm.Nikuradse, 0.103461, -0.032),
-        (fm.SwameeJain, 0.085836, -0.012279),
-        (fm.Colebrook, 0.081818, -0.009411),
+        (fm.Nikuradse, 0.103461, -1.6e-5),
+        (fm.SwameeJain, 0.0858357, -6.1399e-6),
+        (fm.Colebrook, 0.0818189, -4.7054e-6),
     ),
 )
-def test_compute_lambda_and_dlambda_dm(
+def test_compute_lambda_and_dlambda_dre(
     model_payload,
     model_class,
     expected_lambda,
-    expected_dlambda_dm,
+    expected_dlambda_dre,
 ):
     """Verify that each friction factor model gives the known correct
     output (and derivative) for a standard input -- a regression test.
     """
     model = model_class()
-    lambda_, dlambda_dm = model.compute_lambda_and_dlambda_dm(**model_payload)
-    np.testing.assert_allclose(lambda_, expected_lambda, atol=1e-6)
-    np.testing.assert_allclose(dlambda_dm, expected_dlambda_dm, atol=1e-6)
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(**model_payload)
+    np.testing.assert_allclose(lambda_, expected_lambda, rtol=1e-6)
+    np.testing.assert_allclose(dlambda_dre, expected_dlambda_dre, rtol=1e-5)
 
 
 @pytest.fixture(
@@ -58,49 +57,20 @@ def test_friction_result_shape_and_dtype(
     model_class,
     model_payload,
 ):
-    """Check lambda and dlambda / dm are returned as 1D float64 arrays.
+    """Check lambda and dlambda / dre are returned as 1D float64 arrays.
 
     Even if the input values are of int type (where possible).
     """
     model = model_class()
     model_payload["re"] = model_payload["re"].astype(np.int64)
-    model_payload["m"] = model_payload["m"].astype(np.int64)
-    lambda_, dlambda_dm = model.compute_lambda_and_dlambda_dm(**model_payload)
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(**model_payload)
 
     re = model_payload["re"]
-    for param in (lambda_, dlambda_dm):
+    for param in (lambda_, dlambda_dre):
         assert isinstance(param, np.ndarray)
         assert param.dtype == np.float64
         assert param.size == re.size
         assert param.shape == re.shape
-
-
-def test_lambda_independent_of_explicit_m(model_class, model_payload):
-    """Test lambda(m) depends only on Re and k_over_D.
-
-    lambda(m) should be not depend on the explicitly passed m:
-    it's used only for derivative computation.
-    """
-    model = model_class()
-    model_payload["m"] = np.array([0.1, 1, 10, 100, 1000])
-    lambdas, _ = model.compute_lambda_and_dlambda_dm(**model_payload)
-
-    lambda0 = lambdas[0]
-    for lambda_ in lambdas[1:]:
-        np.testing.assert_allclose(lambda0, lambda_)
-
-
-def test_dlambda_dm_is_odd(model_class, model_payload):
-    """Test dlambda / dm is an odd function w.r.t. m.
-
-    Since lambda(m) is an even function, its derivative should be
-    an odd one: -f(m) = f(-m).
-    """
-    model = model_class()
-    _, dlambda_dm = model.compute_lambda_and_dlambda_dm(**model_payload)
-    model_payload["m"] *= -1
-    _, dlambda_dm2 = model.compute_lambda_and_dlambda_dm(**model_payload)
-    np.testing.assert_allclose(-dlambda_dm, dlambda_dm2)
 
 
 def test_lambda_decreases_as_Re_increases(model_class, model_payload):
@@ -110,9 +80,8 @@ def test_lambda_decreases_as_Re_increases(model_class, model_payload):
     payload = {
         "re": re,
         "k_over_D": np.full_like(re, model_payload["k_over_D"]),
-        "m": np.full_like(re, model_payload["m"]),
     }
-    lambdas, _ = model.compute_lambda_and_dlambda_dm(**payload)
+    lambdas, _ = model.compute_lambda_and_dlambda_dre(**payload)
     assert all(np.diff(lambdas) < 0), lambdas
 
 
@@ -124,7 +93,7 @@ def test_colebrook_convergence_failure(model_payload):
 
     model = fm.Colebrook(max_iter=1, tolerance=1e-12)
     with pytest.raises(PipeflowNotConverged):
-        model.compute_lambda_and_dlambda_dm(**model_payload)
+        model.compute_lambda_and_dlambda_dre(**model_payload)
 
 
 def test_colebrook_estimator_called_once(model_payload):
@@ -137,14 +106,14 @@ def test_colebrook_estimator_called_once(model_payload):
     )
     for estimator in estimators:
         model = fm.Colebrook(initial_estimator=estimator)
-        model.compute_lambda_and_dlambda_dm(**model_payload)
+        model.compute_lambda_and_dlambda_dre(**model_payload)
         estimator.assert_called_once()
 
     model = fm.Colebrook()
     for estimator in estimators:
         estimator.reset_mock()
         model.initial_estimator = estimator
-        model.compute_lambda_and_dlambda_dm(**model_payload)
+        model.compute_lambda_and_dlambda_dre(**model_payload)
         estimator.assert_called_once()
 
 
@@ -167,12 +136,13 @@ def one_pipe_net():
     return net
 
 
-def test_one_pipe_net(one_pipe_net, model_class):
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_one_pipe_net(one_pipe_net, model_class, use_numba):
     """Integration test: pipeflow converges when using
     each friction factor model (via the model_class fixture).
     """
     model = model_class()
-    pp.pipeflow(one_pipe_net, friction_model=model)
+    pp.pipeflow(one_pipe_net, friction_model=model, use_numba=use_numba)
 
 
 @pytest.mark.parametrize(
@@ -191,7 +161,7 @@ def test_friction_factor_model_as_string_still_works(
     """Backward‑compatibility check: passing the friction model as a string
     (e.g. 'colebrook') still works.
     """
-    pp.pipeflow(one_pipe_net, friction_model=model_name)
+    pp.pipeflow(one_pipe_net, friction_model=model_name, use_numba=False)
     assert isinstance(one_pipe_net["_options"]["friction_model"], expected_model_class)
 
 
@@ -209,7 +179,6 @@ def moody_payload():
     }
 
 
-@pytest.mark.parametrize("model_class", (fm.Nikuradse, fm.SwameeJain, fm.Colebrook))
 def test_calc_moody_matches_the_model_it_was_given(moody_payload, model_class):
     """calc_moody does no friction physics of its own - it only decides which rows the model is
     asked about, and hands back what the model returned for them.
@@ -221,13 +190,13 @@ def test_calc_moody_matches_the_model_it_was_given(moody_payload, model_class):
                    / (moody_payload["eta"] * moody_payload["area"]))
     np.testing.assert_allclose(re, expected_re)
 
-    expected_lambda, expected_der = model.compute_lambda_and_dlambda_dm(
-        moody_payload["k"][:1] / moody_payload["d"][:1], re[:1], moody_payload["m"][:1])
+    expected_lambda, expected_der = model.compute_lambda_and_dlambda_dre(
+        moody_payload["k"][:1] / moody_payload["d"][:1], re[:1])
+    expected_der *= expected_re[:1] / moody_payload["m"][:1]
     np.testing.assert_allclose(lambda_[:1], expected_lambda)
     np.testing.assert_allclose(der_lambda[:1], expected_der)
 
 
-@pytest.mark.parametrize("model_class", (fm.Nikuradse, fm.SwameeJain, fm.Colebrook))
 def test_calc_moody_leaves_out_branches_without_a_friction_term(moody_payload, model_class):
     """A branch at standstill has no Reynolds number to look a lambda up for, and a branch of
     zero length has no friction term in its momentum equation at all - every model would divide

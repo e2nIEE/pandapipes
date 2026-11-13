@@ -13,9 +13,9 @@ based on the Reynolds number. All models conform to the
 Each model also computes the derivative
 
 .. math::
-    \frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}
+    \frac{\mathrm{d}\lambda}{\mathrm{d}Re}
 
-of the friction factor with respect to mass flow. This derivative is essential
+of the friction factor with respect to Re. This derivative is essential
 for building the Jacobian matrix in the Newton‑Raphson pipe flow solver.
 """
 
@@ -36,43 +36,22 @@ FrictionFactorResult: TypeAlias = tuple[
 
 @runtime_checkable
 class FrictionFactorModel(Protocol):
-    r"""Protocol for computing the Darcy‑Weisbach friction factor
-    :math:`\lambda` and its derivative with respect to mass flow
-    :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}`.
+    r"""Protocol for computing the Darcy-Weisbach friction factor
+    :math:`\lambda` and its derivative with respect to the Reynolds number
+    :math:`Re`, namely :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}Re}`.
     """
 
-    def compute_lambda_and_dlambda_dm(
+    def compute_lambda_and_dlambda_dre(
         self,
         k_over_D: Float64_1D,
         re: Float64_1D,
-        m: Float64_1D,
     ) -> FrictionFactorResult:
         r"""Compute the friction factor and its derivative.
 
-        The friction factor :math:`\lambda` is an even function of the mass flow
-        :math:`\dot{m}`:
-
-        .. math::
-            \lambda(-\dot{m}) = \lambda(\dot{m}).
-
-        Its derivative :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}` is
-        therefore an odd function:
-
-        .. math::
-            \frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}(-\dot{m})
-            = - \frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}(\dot{m}).
-
-        These symmetry properties must be respected by any implementation.
-
-        .. note::
-                pandapipes guarantees that :math:`Re > 0` and :math:`\dot{m} \neq 0`
-                are passed to this method.
-
         :param k_over_D: Relative roughness :math:`k/D`.
         :param re: Reynolds number :math:`Re`.
-        :param m: Mass flow :math:`\dot{m}`.
         :return: Tuple of :math:`\lambda` and
-            :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}`.
+            :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}Re}`.
         """
         ...
 
@@ -84,11 +63,10 @@ class SwameeJain(FrictionFactorModel):
     This is a direct (non‑iterative) approximation valid for turbulent flow.
     """
 
-    def compute_lambda_and_dlambda_dm(
+    def compute_lambda_and_dlambda_dre(
         self,
         k_over_D: Float64_1D,
         re: Float64_1D,
-        m: Float64_1D,
     ) -> FrictionFactorResult:
         r"""Swamee-Jain friction factor:
 
@@ -102,16 +80,15 @@ class SwameeJain(FrictionFactorModel):
             a = 0.25(\ln 10)^2, \quad
             x = \frac{k/D}{3.7} + \frac{5.74}{Re^{0.9}}.
 
-        :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}` is obtained as follows:
+        :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}Re}` is obtained as follows:
 
         .. math::
             \begin{aligned}
-                \frac{d\lambda}{dm}
-                &= \frac{d\lambda}{dx} \cdot \frac{dx}{dRe} \cdot \frac{dRe}{dm} \\
+                \frac{d\lambda}{dRe}
+                &= \frac{d\lambda}{dx} \cdot \frac{dx}{dRe} \\
                 &= \left( -\frac{2a}{x(\ln x)^3} \right)
-                \left( -5.74 \cdot 0.9 \, Re^{-1.9} \right)
-                \left( \frac{Re}{m} \right) \\
-                &= b \, \frac{Re^{-0.9}}{x(\ln x)^3 \, m},
+                \left( -5.74 \cdot 0.9 \, Re^{-1.9} \right) \\
+                &= b \, \frac{Re^{-1.9}}{x(\ln x)^3},
             \end{aligned}
 
         where:
@@ -131,53 +108,32 @@ class SwameeJain(FrictionFactorModel):
 
         # b = 0.25 * ln(10)**2 * (-2) * 5.74 * (-0.9)
         b = 13.69480281936570206128078428173834769740
-        dlambda_dm = b * inv_re_09 / (log_cubed * inner_log_term * m)
-        return lambda_, dlambda_dm
+        dlambda_dre = b / (log_cubed * inner_log_term * re**1.9)
+        return lambda_, dlambda_dre
 
 
 @dataclass(slots=True)
 class Nikuradse(FrictionFactorModel):
     """Implementation of the Nikuradse friction factor equation."""
 
-    def compute_lambda_and_dlambda_dm(
+    def compute_lambda_and_dlambda_dre(
         self,
         k_over_D: Float64_1D,
         re: Float64_1D,
-        m: Float64_1D,
     ) -> FrictionFactorResult:
         r"""The model computes :math:`\lambda` as the sum of a laminar term and the fully
         rough Nikuradse term:
 
         .. math::
-           \lambda = \frac{64}{Re} \;+\; \frac{1}{\left( -2\log_{10} \left( \frac{k/D}{3.71} \right) \right)^2}.
-
-        :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}\dot{m}}` is obtained as follows:
-
-        .. math::
-           \lambda = \frac{64}{\mathrm{Re}} + \text{const}
-           \;\Longrightarrow\;
-           \frac{d\lambda}{d\dot{m}} = -\frac{64}{\mathrm{Re}^2}\frac{d\mathrm{Re}}{d\dot{m}}.
-
-        With :math:`\mathrm{Re} = C|\dot{m}|`, we have
-
-        .. math::
-           \frac{d\mathrm{Re}}{d\dot{m}} = C \,\mathrm{sgn}(\dot{m}),
-           \qquad \mathrm{sgn}(\dot{m}) = \frac{\dot{m}}{|\dot{m}|}.
-
-        Therefore,
-
-        .. math::
-           \frac{d\lambda}{d\dot{m}}
-           &= -\frac{64}{(C|\dot{m}|)^2} \cdot C \frac{\dot{m}}{|\dot{m}|} \\
-           &= -\frac{64}{C |\dot{m}| \dot{m}} \\
-           &= -\frac{64}{\mathrm{Re} \cdot \dot{m}}.
+           \lambda &= \frac{64}{Re} \;+\; \frac{1}{\left( -2\log_{10} \left( \frac{k/D}{3.71} \right) \right)^2} \\
+           \frac{\mathrm{d}\lambda}{\mathrm{d}Re} &= -\frac{64}{Re^2}.
         """
         laminar = 64 / re
         nikuradse = 1 / (-2 * np.log10(k_over_D / 3.71)) ** 2
         lambda_ = laminar + nikuradse
 
-        dlambda_dm = -64 / (re * m)
-        return lambda_, dlambda_dm
+        dlambda_dre = -64 / re**2
+        return lambda_, dlambda_dre
 
 
 LambdaEstimator: TypeAlias = Callable[[Float64_1D, Float64_1D], Float64_1D]
@@ -229,11 +185,10 @@ class Colebrook(FrictionFactorModel):
             msg = "'tolerance' should be > 0"
             raise ValueError(msg)
 
-    def compute_lambda_and_dlambda_dm(
+    def compute_lambda_and_dlambda_dre(
         self,
         k_over_D: Float64_1D,
         re: Float64_1D,
-        m: Float64_1D,
     ) -> FrictionFactorResult:
         r"""The Colebrook equation is solved iteratively:
 
@@ -242,17 +197,17 @@ class Colebrook(FrictionFactorModel):
             \qquad
             x = \frac{k/D}{3.71} + \frac{2.51}{Re\,\sqrt{\lambda}}.
 
-        To derive :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}m}`, define the implicit function
+        To derive :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}Re}`, define the implicit function
 
         .. math::
-            F(\lambda, m) = \lambda^{-1/2} + 2\log_{10}(x) = 0.
+            F(\lambda, Re) = \lambda^{-1/2} + 2\log_{10}(x) = 0.
 
-        Using :math:`Re = C|m|` (so :math:`dRe/dm = Re/m`), the partial derivatives are:
+        The partial derivatives are:
 
         .. math::
             \begin{aligned}
-            \frac{\partial F}{\partial m}
-            &= - \frac{5.02}{\ln(10)\,Re\,x\,\sqrt{\lambda}} \frac{1}{m}, \\[6pt]
+            \frac{\partial F}{\partial Re}
+            &= - \frac{5.02}{\ln(10)\,Re^2\,x\,\sqrt{\lambda}} , \\[6pt]
             \frac{\partial F}{\partial \lambda}
             &= - \frac{1}{2\lambda^{3/2}}
                - \frac{2.51}{\ln(10)\,Re\,x\,\lambda^{3/2}}.
@@ -261,14 +216,14 @@ class Colebrook(FrictionFactorModel):
         Implicit differentiation gives
 
         .. math::
-            \frac{\mathrm{d}\lambda}{\mathrm{d}m} =
-                -\left( \frac{\partial F}{\partial m} \right) / \left( \frac{\partial F}{\partial \lambda} \right).
+            \frac{\mathrm{d}\lambda}{\mathrm{d}Re} =
+                -\left( \frac{\partial F}{\partial Re} \right) / \left( \frac{\partial F}{\partial \lambda} \right).
 
         Substituting and simplifying (the :math:`\sqrt{\lambda}` and :math:`x` terms cancel) yields:
 
         .. math::
-            \frac{d\lambda}{dm} =
-            - \frac{10.04\,\lambda}{m\left(\ln(10)\,Re\,x + 5.02\right)}.
+            \frac{d\lambda}{dRe} =
+            - \frac{10.04\,\lambda}{\left(\ln(10)\,Re\,x + 5.02\right) Re}.
         """
         # TODO: move this import to top level if possible
         from pandapipes.pf.pipeflow_setup import PipeflowNotConverged
@@ -300,5 +255,6 @@ class Colebrook(FrictionFactorModel):
             )
             raise PipeflowNotConverged(msg)
         ln10 = 2.302585092994045684017991454684364207601
-        dlambda_dm = -10.04 * lambda_ / ((ln10 * inner_log_term * re + 5.02) * m)
-        return lambda_, dlambda_dm
+        inner_log_term = a + b / np.sqrt(lambda_)
+        dlambda_dre = -10.04 * lambda_ / ((ln10 * inner_log_term * re + 5.02) * re)
+        return lambda_, dlambda_dre
