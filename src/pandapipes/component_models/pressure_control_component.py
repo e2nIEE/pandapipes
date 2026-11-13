@@ -98,14 +98,10 @@ class PressureControlComponent(BranchWOInternalsComponent):
         d_vals = tbl.inner_diameter_mm.values / 1000.
 
         registry.add(PitEntries(*build_pit_entries(
-            rows, [IdxBranch.DIRECTED], [True],
-        )))
-        # D/DO are pre-filled with a dummy value by the base class, so they have to be overridden
-        registry.add_override(PitEntries(*build_pit_entries(
             rows,
-            [IdxBranch.D, IdxBranch.DO, IdxBranch.LOSS_COEFFICIENT],
-            [d_vals, d_vals, tbl.loss_coefficient.values],
-        ), mode=PitWriteMode.UNIQUE))
+            [IdxBranch.DIRECTED, IdxBranch.LOSS_COEFFICIENT, IdxBranch.D, IdxBranch.DO],
+            [True, tbl.loss_coefficient.values, d_vals, d_vals],
+        )))
 
     @classmethod
     def create_component_array(cls, net, component_pits):

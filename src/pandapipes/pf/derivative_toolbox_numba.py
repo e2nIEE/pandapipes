@@ -4,6 +4,7 @@ from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRES
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
+from pandapipes.pf.internals_toolbox import STAGNANT_BRANCH_REFERENCE_AREA_M2
 
 try:
     from numba import jit
@@ -183,7 +184,10 @@ def derivatives_branch_thermal_numba(branch_pit,
         dfnt_dtout[i] = cp_n[i] * mdot
 
         if transient:
-            area = np.pi * (branch_pit[i][BRANCH_D] / 2) ** 2
+            # numpy twin: stagnant_branch_area in pf.internals_toolbox - the area is only a
+            # thermal capacity here, so a branch without a diameter gets the reference value
+            d = branch_pit[i][BRANCH_D]
+            area = np.pi * (d / 2) ** 2 if d > 0 else STAGNANT_BRANCH_REFERENCE_AREA_M2
             tvor = branch_pit_old[i][branch_pit_old_lookup[BRANCH_TOUTINIT]]
 
             fb[i] = (
@@ -254,7 +258,9 @@ def derivatives_node_thermal_numba(node_pit, branch_pit,
 
     if transient:
         for i in range(b):
-            area = np.pi * (branch_pit[i][BRANCH_D] / 2) ** 2
+            # numpy twin: stagnant_branch_area in pf.internals_toolbox
+            d = branch_pit[i][BRANCH_D]
+            area = np.pi * (d / 2) ** 2 if d > 0 else STAGNANT_BRANCH_REFERENCE_AREA_M2
             t_amb = branch_pit[i][BRANCH_TEXT]
             alpha = branch_pit[i][BRANCH_ALPHA] * np.pi * branch_pit[i][BRANCH_DO]
 

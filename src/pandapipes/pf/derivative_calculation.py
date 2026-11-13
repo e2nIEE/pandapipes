@@ -10,7 +10,7 @@
 # file's top level reproduces that exact crash immediately.
 import numpy as np
 
-from pandapipes.constants import NORMAL_TEMPERATURE
+from pandapipes.constants import GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, P_CONVERSION
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected, _sum_by_group, \
@@ -98,6 +98,52 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
     b_pit[:, IdxBranch.DP_FRICT_LOSS] = dp_frict_loss
 
     return df_dm, df_dp, df_dp1, df_dm_nodes, residual_vec, residual_vec_nodes_from, residual_vec_nodes_to
+
+
+def calculate_derivatives_hydraulic_frictionless(net, branch_pit_slice, node_pit, options):
+    """Momentum derivatives for branches that cannot have a friction loss at all.
+
+    A component without a length and without a loss coefficient input (pump, flow control) has
+    no friction term: Darcy-Weisbach's ``length * lambda / D + loss_coefficient`` is identically
+    zero for it, which cancels the whole ``const_term * mdot**2 * friction_term`` product in
+    :func:`calculate_derivatives_hydraulic` and leaves nothing but the static pressure balance
+    computed here. Routing those components through the full Darcy derivatives instead would
+    evaluate Reynolds number, lambda and the cross section area of a branch that has no diameter
+    in the first place - which is what used to force them to write a dummy D into the pit.
+
+    Same signature and return tuple as :func:`calculate_derivatives_hydraulic`, so a component
+    only has to swap the call.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param branch_pit_slice: view of the global branch pit for the component's active branches
+    :param node_pit: global node internal table
+    :param options: solver options dict (use_numba, friction_model, …)
+    :return: df_dm, df_dp, df_dp1, df_dm_nodes, residual_vec, residual_vec_nodes_from, residual_vec_nodes_to
+    """
+    b_pit = branch_pit_slice
+    from_nodes = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
+    to_nodes = b_pit[:, IdxBranch.TO_NODE].astype(np.int32)
+    _, height_difference, p_init_i_abs, p_init_i1_abs = get_derived_values(
+        node_pit, from_nodes, to_nodes, options["use_numba"])
+    rho = get_branch_real_density(get_fluid(net), node_pit, b_pit)
+
+    const_height = rho * GRAVITATION_CONSTANT * height_difference / P_CONVERSION
+    residual_vec = p_init_i_abs - p_init_i1_abs + b_pit[:, IdxBranch.PL] + const_height
+
+    df_dm = np.zeros(len(b_pit))
+    df_dp = np.ones(len(b_pit))
+    df_dp1 = -np.ones(len(b_pit))
+    df_dm_nodes = np.ones(len(b_pit))
+    if get_fluid(net).is_gas:
+        # carried over from derivatives_hydraulic_comp_np, which applies the same safeguard to
+        # keep the branch's own equation from degenerating at (near) zero flow
+        df_dm[np.isclose(np.abs(b_pit[:, IdxBranch.MDOTINIT]), 0)] = 1.
+
+    b_pit[:, IdxBranch.DP_FRICT_LOSS] = 0.
+
+    return (df_dm, df_dp, df_dp1, df_dm_nodes, residual_vec, b_pit[:, IdxBranch.MDOTINIT],
+            b_pit[:, IdxBranch.MDOTINIT])
 
 
 def calculate_derivatives_branch_thermal(net, branch_pit_slice, node_pit, branch_pit_old_slice, options):

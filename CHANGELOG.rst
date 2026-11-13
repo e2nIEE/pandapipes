@@ -2,14 +2,11 @@ Change Log
 =============
 [0.17.0] - unreleased
 -------------------------------
-- [ADDED]
-  FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them
-  to the pipeflow.
+- [CHANGED] branches without internals no longer get an implicit dummy diameter of 100 mm. Components that have neither a length nor a loss coefficient (pump, flow control) are frictionless by construction and use the new `calculate_derivatives_hydraulic_frictionless` instead of the full Darcy-Weisbach derivatives; every component for which the diameter does matter now writes `D`/`DO` itself
+- [CHANGED] Friction model selection is now object‑based. Passing a string name (e.g. "colebrook") is still supported for backward compatibility.
+- [ADDED] FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them to the pipeflow.
 - [ADDED] `inner_diameter_mm` for pressure controls as reference area of their `loss_coefficient`, incl. convert_format fallback to 100 mm
 - [ADDED] STANET converter imports the controller diameter `DM` next to `ZETA`
-- [CHANGED]
-  Friction model selection is now object‑based. Passing a string
-  name (e.g. "colebrook") is still supported for backward compatibility.
 
 [0.16.0] - 2026-10-16
 -------------------------------
