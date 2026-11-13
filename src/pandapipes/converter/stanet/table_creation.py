@@ -474,8 +474,8 @@ def create_control_components(net, stored_data, index_mapping, net_params, add_l
                                    pc_diameter)
         else:
             logger.warning("No diameter ('DM') given for the STANET controllers. Falling back to "
-                           "%.0f mm as the reference area for their ZETA values."
-                           % DEFAULT_PRESS_CONTROL_DIAMETER_MM)
+                           "%.0f mm as the reference area for their ZETA values.",
+                           DEFAULT_PRESS_CONTROL_DIAMETER_MM)
             pc_diameter = DEFAULT_PRESS_CONTROL_DIAMETER_MM
         pandapipes.create_pressure_controls(
             net, from_junctions[is_pc], to_junctions[is_pc], to_junctions[is_pc],
