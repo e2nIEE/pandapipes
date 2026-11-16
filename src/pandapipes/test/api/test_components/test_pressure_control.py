@@ -140,7 +140,6 @@ def test_pressure_control_after_index_gap(use_numba):
     assert np.isclose(net.res_junction.at[j3, "p_bar"], 15.)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 @pytest.mark.parametrize("control_active", [True, False])
 @pytest.mark.parametrize("inner_diameter_mm", [50., 100.])
 def test_pressure_control_diameter_and_loss(use_numba, control_active, inner_diameter_mm):

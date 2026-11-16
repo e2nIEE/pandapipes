@@ -136,7 +136,6 @@ def one_pipe_net():
     return net
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_one_pipe_net(one_pipe_net, model_class, use_numba):
     """Integration test: pipeflow converges when using
     each friction factor model (via the model_class fixture).
@@ -213,7 +212,6 @@ def test_calc_moody_leaves_out_branches_without_a_friction_term(moody_payload, m
 
 @pytest.mark.parametrize("fluid", ["water", "lgas"])
 @pytest.mark.parametrize("k_mm", [0.1, 0.])
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_parallel_stagnant_pipes_converge(use_numba, k_mm, fluid):
     """The quadratic friction loss has no slope at zero flow. Parallel pipes without loss
     coefficient that carry no flow rely on the laminar slope to keep the Jacobian regular.
