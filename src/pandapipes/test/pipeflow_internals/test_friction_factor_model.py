@@ -5,6 +5,7 @@ import pytest
 
 import pandapipes as pp
 from pandapipes.pf import friction_factor_model as fm
+from pandapipes.pf.derivative_calculation import calc_moody
 
 
 @pytest.fixture
@@ -192,3 +193,59 @@ def test_friction_factor_model_as_string_still_works(
     """
     pp.pipeflow(one_pipe_net, friction_model=model_name)
     assert isinstance(one_pipe_net["_options"]["friction_model"], expected_model_class)
+
+
+@pytest.fixture
+def moody_payload():
+    """Three branches: a normal one, one at standstill and one of zero length."""
+    d = np.full(3, 0.1)
+    return {
+        "m": np.array([2., 0., 2.]),
+        "eta": np.full(3, 1e-3),
+        "d": d,
+        "k": np.full(3, 0.1e-3),
+        "area": np.pi * (d / 2) ** 2,
+        "lengths": np.array([1., 1., 0.]),
+    }
+
+
+@pytest.mark.parametrize("model_class", (fm.Nikuradse, fm.SwameeJain, fm.Colebrook))
+def test_calc_moody_matches_the_model_it_was_given(moody_payload, model_class):
+    """calc_moody does no friction physics of its own - it only decides which rows the model is
+    asked about, and hands back what the model returned for them.
+    """
+    model = model_class()
+    re, lambda_, der_lambda = calc_moody(friction_model=model, **moody_payload)
+
+    expected_re = (moody_payload["m"] * moody_payload["d"]
+                   / (moody_payload["eta"] * moody_payload["area"]))
+    np.testing.assert_allclose(re, expected_re)
+
+    expected_lambda, expected_der = model.compute_lambda_and_dlambda_dm(
+        moody_payload["k"][:1] / moody_payload["d"][:1], re[:1], moody_payload["m"][:1])
+    np.testing.assert_allclose(lambda_[:1], expected_lambda)
+    np.testing.assert_allclose(der_lambda[:1], expected_der)
+
+
+@pytest.mark.parametrize("model_class", (fm.Nikuradse, fm.SwameeJain, fm.Colebrook))
+def test_calc_moody_leaves_out_branches_without_a_friction_term(moody_payload, model_class):
+    """A branch at standstill has no Reynolds number to look a lambda up for, and a branch of
+    zero length has no friction term in its momentum equation at all - every model would divide
+    by zero on the first of the two if it were evaluated anyway.
+    """
+    re, lambda_, der_lambda = calc_moody(friction_model=model_class(), **moody_payload)
+
+    np.testing.assert_array_equal(lambda_[1:], 0.)
+    np.testing.assert_array_equal(der_lambda[1:], 0.)
+    # the zero-length branch does carry flow, so its Reynolds number is reported either way
+    assert re[1] == 0.
+    assert re[2] > 0.
+
+
+def test_calc_moody_accepts_a_model_name(moody_payload):
+    """Same backwards compatibility as the pipeflow option itself."""
+    by_name = calc_moody(friction_model="swamee-jain", **moody_payload)
+    by_instance = calc_moody(friction_model=fm.SwameeJain(), **moody_payload)
+
+    for from_name, from_instance in zip(by_name, by_instance):
+        np.testing.assert_allclose(from_name, from_instance)

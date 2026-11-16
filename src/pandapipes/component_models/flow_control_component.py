@@ -15,7 +15,7 @@ from pandapipes.component_models.component_toolbox import (
 from pandapipes.component_models.junction_component import Junction
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.pf.derivative_calculation import (
-    calculate_derivatives_hydraulic, calculate_derivatives_branch_thermal,
+    calculate_derivatives_hydraulic_frictionless, calculate_derivatives_branch_thermal,
 )
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
@@ -104,9 +104,11 @@ class FlowControlComponent(BranchWOInternalsComponent):
         if not len(branch_idx):
             return
 
-        # Compute derivatives for all active branches (writes RE, LAMBDA back to pit)
+        # A flow control has neither a length nor a loss coefficient, so it cannot lose any
+        # pressure to friction - only the prescribed mass flow below acts on the branch.
         df_dm, df_dp, df_dp1, df_dm_node, residual, residual_fn, residual_tn = (
-            calculate_derivatives_hydraulic(net, branch_pit[f:t], node_pit, get_hydraulic_options(net))
+            calculate_derivatives_hydraulic_frictionless(net, branch_pit[f:t], node_pit,
+                                                         get_hydraulic_options(net))
         )
 
         b_pit = branch_pit[f:t]

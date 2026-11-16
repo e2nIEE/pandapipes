@@ -87,15 +87,18 @@ class BranchWOInternalsComponent(BranchComponent):
         if not get_net_option(net, "transient") or get_net_option(net, "simulation_time_step") == 0:
             toutinit_vals = cls._toutinit_vals(net, to_junctions, junction_table_name)
             ambient_t = get_net_option(net, 'ambient_temperature')
-            d_val = 0.1
+            # D/DO are deliberately not written here: a component without internals has no
+            # geometry of its own unless it declares a diameter input (heat exchanger, pressure
+            # control), and those write D/DO themselves. Filling in a placeholder for all the
+            # others instead would be invisible at the call site and silently scale every term
+            # derived from the cross section area.
             registry.add(PitEntries(*build_pit_entries(
                 rows,
                 [IdxBranch.FROM_NODE, IdxBranch.TO_NODE, IdxBranch.TOUTINIT, IdxBranch.ELEMENT_IDX,
-                 IdxBranch.ACTIVE, IdxBranch.LENGTH, IdxBranch.K, IdxBranch.TEXT, IdxBranch.ALPHA,
-                 IdxBranch.D, IdxBranch.DO],
+                 IdxBranch.ACTIVE, IdxBranch.LENGTH, IdxBranch.K, IdxBranch.TEXT, IdxBranch.ALPHA],
                 [from_nodes.astype(float), to_nodes.astype(float), toutinit_vals,
                  tbl.index.values.astype(float), tbl[cls.active_identifier()].values.astype(float),
-                 0., 1e-3, float(ambient_t), 0., d_val, d_val],
+                 0., 1e-3, float(ambient_t), 0.],
             )))
 
     @classmethod
