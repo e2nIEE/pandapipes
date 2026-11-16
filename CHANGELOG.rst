@@ -1,5 +1,9 @@
 Change Log
 =============
+[0.x.x] - 20xx-xx-xx
+-------------------------------
+- [FIXED] Transient calculations with controllers that need several control iterations no longer move the thermal state forward with every iteration. A time step's start state is set up by its first pipeflow, repeated pipeflows of the same `simulation_time_step` start from the same state. To advance in time, `simulation_time_step` has to be increased (as done by `run_timeseries`).
+
 [0.17.0] - 2026-11-13
 -------------------------------
 - [CHANGED] branches without internals no longer get an implicit dummy diameter of 100 mm. Components that have neither a length nor a loss coefficient (pump, flow control) are frictionless by construction and use the new `calculate_derivatives_hydraulic_frictionless` instead of the full Darcy-Weisbach derivatives; every component for which the diameter does matter now writes `D`/`DO` itself
