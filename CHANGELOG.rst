@@ -1,5 +1,9 @@
 Change Log
 =============
+[0.x.x] - 20xx-xx-xx
+-------------------------------
+- [ADDED] WorstPointPressureDropController for district heating networks. It keeps the pressure difference at the worst point (heat consumer with the lowest pressure difference) at a target value by adapting the circulation pump pressures, incl. tutorial WorstPointPressureDropController.ipynb.
+
 [0.17.0] - 2026-11-13
 -------------------------------
 - [CHANGED] branches without internals no longer get an implicit dummy diameter of 100 mm. Components that have neither a length nor a loss coefficient (pump, flow control) are frictionless by construction and use the new `calculate_derivatives_hydraulic_frictionless` instead of the full Darcy-Weisbach derivatives; every component for which the diameter does matter now writes `D`/`DO` itself
