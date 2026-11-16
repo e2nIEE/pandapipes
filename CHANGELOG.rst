@@ -1,5 +1,12 @@
 Change Log
 =============
+[0.18.0] - 2026-11-16
+-------------------------------
+- [CHANGED] `FrictionFactorModel` now exposes `compute_lambda_and_dlambda_dre(k_over_D, re)` instead of `compute_lambda_and_dlambda_dm(k_over_D, re, m)`
+- [CHANGED] ``use_numba`` test parametrization ids are now ``[numba]``/``[numpy]`` instead of ``[True]``/``[False]``
+- [ADDED] ``--only=numba|numpy`` CLI option to run only one branch of the ``use_numba`` test parametrization
+- [FIXED] velocities close to zero caused singular error. Fixed by introducing correct derivative.
+
 [0.17.0] - 2026-11-13
 -------------------------------
 - [CHANGED] branches without internals no longer get an implicit dummy diameter of 100 mm. Components that have neither a length nor a loss coefficient (pump, flow control) are frictionless by construction and use the new `calculate_derivatives_hydraulic_frictionless` instead of the full Darcy-Weisbach derivatives; every component for which the diameter does matter now writes `D`/`DO` itself

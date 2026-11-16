@@ -21,7 +21,6 @@ pf_logger.setLevel(logging.WARNING)
 
 # ---------- TEST AREA: combined networks ----------
 # district_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_district_grid_n(use_numba, log_results=False):
     """
 
@@ -41,7 +40,6 @@ def test_case_district_grid_n(use_numba, log_results=False):
 
 
 # district_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_district_grid_pc(use_numba, log_results=False):
     """
 
@@ -63,7 +61,6 @@ def test_case_district_grid_pc(use_numba, log_results=False):
 
 # ---------- TEST AREA: meshed networks ----------
 # pumps_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_pumps_n(use_numba, log_results=False):
     """
 
@@ -82,7 +79,6 @@ def test_case_pumps_n(use_numba, log_results=False):
 
 
 # delta_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_delta_n(use_numba, log_results=False):
     """
 
@@ -102,7 +98,6 @@ def test_case_delta_n(use_numba, log_results=False):
 
 
 # two_valves_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_n(use_numba, log_results=False):
     net = nw.water_meshed_2valves(method="n", results_from="stanet")
     max_iter_hyd = 3 if use_numba else 3
@@ -114,7 +109,6 @@ def test_case_meshed_2valves_n(use_numba, log_results=False):
 
 
 # two_valves_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_pc(use_numba, log_results=False):
     net = nw.water_meshed_2valves(method="pc", results_from="stanet")
     max_iter_hyd = 3 if use_numba else 3
@@ -128,7 +122,6 @@ def test_case_meshed_2valves_pc(use_numba, log_results=False):
 
 # ---------- TEST AREA: one pipe ----------
 # pipe_1_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe1_n(use_numba, log_results=False):
     """
 
@@ -147,7 +140,6 @@ def test_case_one_pipe1_n(use_numba, log_results=False):
 
 
 # pipe_1_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe1_pc(use_numba, log_results=False):
     """
 
@@ -167,7 +159,6 @@ def test_case_one_pipe1_pc(use_numba, log_results=False):
 
 
 # pipe_2_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe2_n(use_numba, log_results=False):
     """
 
@@ -186,7 +177,6 @@ def test_case_one_pipe2_n(use_numba, log_results=False):
 
 
 # pipe_2_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe2_pc(use_numba, log_results=False):
     """
 
@@ -206,7 +196,6 @@ def test_case_one_pipe2_pc(use_numba, log_results=False):
 
 
 # pipe_3_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe3_n(use_numba, log_results=False):
     """
 
@@ -225,7 +214,6 @@ def test_case_one_pipe3_n(use_numba, log_results=False):
 
 
 # pipe_3_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe3_pc(use_numba, log_results=False):
     """
 
@@ -246,7 +234,6 @@ def test_case_one_pipe3_pc(use_numba, log_results=False):
 
 # ---------- TEST AREA: strand net ----------
 # strand_net_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_simple_strand_net_n(use_numba, log_results=False):
     """
 
@@ -265,7 +252,6 @@ def test_case_simple_strand_net_n(use_numba, log_results=False):
 
 
 # strand_net_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_simple_strand_net_pc(use_numba, log_results=False):
     """
 
@@ -285,7 +271,6 @@ def test_case_simple_strand_net_pc(use_numba, log_results=False):
 
 
 # two_pipes_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_two_pipes_n(use_numba, log_results=False):
     """
 
@@ -304,7 +289,6 @@ def test_case_two_pipes_n(use_numba, log_results=False):
 
 
 # two_pipes_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_two_pipes_pc(use_numba, log_results=False):
     """
 
@@ -324,7 +308,6 @@ def test_case_two_pipes_pc(use_numba, log_results=False):
 
 
 # cross_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_cross_pc(use_numba, log_results=False):
     """
 
@@ -345,7 +328,6 @@ def test_case_cross_pc(use_numba, log_results=False):
 
 
 # pump_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_pump_n(use_numba, log_results=False):
     """
 
@@ -365,7 +347,6 @@ def test_case_pump_n(use_numba, log_results=False):
 
 # ---------- TEST AREA: t_cross ----------
 # t-cross_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_tcross_n(use_numba, log_results=False):
     """
 
@@ -384,7 +365,6 @@ def test_case_tcross_n(use_numba, log_results=False):
 
 
 # t-cross_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_tcross_pc(use_numba, log_results=False):
     """
 
@@ -405,7 +385,6 @@ def test_case_tcross_pc(use_numba, log_results=False):
 
 # ---------- TEST AREA: two pressure junctions ----------
 # two_pipes_N
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_2eg_two_pipes_n(use_numba, log_results=False):
     """
 
@@ -424,7 +403,6 @@ def test_case_2eg_two_pipes_n(use_numba, log_results=False):
 
 
 # two_pipes_PC
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_2eg_two_pipes_pc(use_numba, log_results=False):
     """
 

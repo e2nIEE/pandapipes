@@ -12,7 +12,6 @@ from pandapipes.properties.fluids import FluidPropertyConstant, FluidPropertyLin
 from pandapipes.test import data_path
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_circulation_pump_constant_pressure(use_numba):
     """
         :return:
