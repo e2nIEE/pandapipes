@@ -22,7 +22,6 @@ pf_logger.setLevel(logging.WARNING)
 
 # ---------- TEST AREA: combined networks ----------
 # mixed_net
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_mixed_pc(use_numba, log_results=False):
     net = nw.water_combined_mixed()
     max_iter_hyd = 12 if use_numba else 12
@@ -32,7 +31,6 @@ def test_case_combined_mixed_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_mixed_sj(use_numba, log_results=False):
     net = nw.water_combined_mixed(method="swamee-jain")
     max_iter_hyd = 12 if use_numba else 12
@@ -43,7 +41,6 @@ def test_case_combined_mixed_sj(use_numba, log_results=False):
 
 
 # versatility
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_versatility_pc(use_numba, log_results=False):
     net = nw.water_combined_versatility()
     max_iter_hyd = 15 if use_numba else 15
@@ -55,7 +52,6 @@ def test_case_combined_versatility_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_combined_versatility_sj(use_numba, log_results=False):
     net = nw.water_combined_versatility(method="swamee-jain")
     max_iter_hyd = 15 if use_numba else 15
@@ -69,7 +65,6 @@ def test_case_combined_versatility_sj(use_numba, log_results=False):
 
 # ---------- TEST AREA: meshed networks ----------
 # delta
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_delta_pc(use_numba, log_results=False):
     net = nw.water_meshed_delta()
     max_iter_hyd = 16 if use_numba else 16
@@ -80,7 +75,6 @@ def test_case_meshed_delta_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_delta_sj(use_numba, log_results=False):
     net = nw.water_meshed_delta(method="swamee-jain")
     max_iter_hyd = 16 if use_numba else 16
@@ -92,7 +86,6 @@ def test_case_meshed_delta_sj(use_numba, log_results=False):
 
 
 # two_valves
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_pc(use_numba, log_results=False):
     net = nw.water_meshed_2valves()
     max_iter_hyd = 21 if use_numba else 21
@@ -103,7 +96,6 @@ def test_case_meshed_2valves_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_2valves_sj(use_numba, log_results=False):
     net = nw.water_meshed_2valves(method="swamee-jain")
     max_iter_hyd = 22 if use_numba else 22
@@ -115,7 +107,6 @@ def test_case_meshed_2valves_sj(use_numba, log_results=False):
 
 
 # pumps
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_pumps_pc(use_numba, log_results=False):
     net = nw.water_meshed_pumps()
     max_iter_hyd = 9 if use_numba else 9
@@ -126,7 +117,6 @@ def test_case_meshed_pumps_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_pumps_sj(use_numba, log_results=False):
     net = nw.water_meshed_pumps(method="swamee-jain")
     max_iter_hyd = 9 if use_numba else 9
@@ -138,7 +128,6 @@ def test_case_meshed_pumps_sj(use_numba, log_results=False):
 
 
 # heights
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_heights_pc(use_numba, log_results=False):
     net = nw.water_meshed_heights()
     max_iter_hyd = 12 if use_numba else 12
@@ -149,7 +138,6 @@ def test_case_meshed_heights_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_meshed_heights_sj(use_numba, log_results=False):
     net = nw.water_meshed_heights(method="swamee-jain")
     max_iter_hyd = 12 if use_numba else 12
@@ -162,7 +150,6 @@ def test_case_meshed_heights_sj(use_numba, log_results=False):
 
 # ---------- TEST AREA: one pipe ----------
 # pipe_1
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe_1_pc(use_numba, log_results=False):
     net = nw.water_one_pipe1()
     max_iter_hyd = 3 if use_numba else 3
@@ -173,7 +160,6 @@ def test_case_one_pipe_1_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe_1_sj(use_numba, log_results=False):
     net = nw.water_one_pipe1(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -185,7 +171,6 @@ def test_case_one_pipe_1_sj(use_numba, log_results=False):
 
 
 # pipe_2
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe_2_pc(use_numba, log_results=False):
     net = nw.water_one_pipe2()
     max_iter_hyd = 3 if use_numba else 3
@@ -196,7 +181,6 @@ def test_case_one_pipe_2_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe_2_sj(use_numba, log_results=False):
     net = nw.water_one_pipe2(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -208,7 +192,6 @@ def test_case_one_pipe_2_sj(use_numba, log_results=False):
 
 
 # pipe_3
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe_3_pc(use_numba, log_results=False):
     net = nw.water_one_pipe3()
     max_iter_hyd = 3 if use_numba else 3
@@ -219,7 +202,6 @@ def test_case_one_pipe_3_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_one_pipe_3_sj(use_numba, log_results=False):
     net = nw.water_one_pipe3(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -232,7 +214,6 @@ def test_case_one_pipe_3_sj(use_numba, log_results=False):
 
 # ---------- TEST AREA: strand net ----------
 # cross_3ext
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_cross3ext_pc(use_numba, log_results=False):
     net = nw.water_strand_cross()
     max_iter_hyd = 17 if use_numba else 17
@@ -244,7 +225,6 @@ def test_case_strand_net_cross3ext_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_cross3ext_sj(use_numba, log_results=False):
     net = nw.water_strand_cross(method="swamee-jain")
     max_iter_hyd = 17 if use_numba else 17
@@ -257,7 +237,6 @@ def test_case_strand_net_cross3ext_sj(use_numba, log_results=False):
 
 
 # strand_net
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_pc(use_numba, log_results=False):
     net = nw.water_simple_strand_net()
     max_iter_hyd = 3 if use_numba else 3
@@ -268,7 +247,6 @@ def test_case_strand_net_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_sj(use_numba, log_results=False):
     net = nw.water_simple_strand_net(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -280,7 +258,6 @@ def test_case_strand_net_sj(use_numba, log_results=False):
 
 
 # two_pipes
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_2pipes_pc(use_numba, log_results=False):
     net = nw.water_strand_2pipes()
     max_iter_hyd = 3 if use_numba else 3
@@ -291,7 +268,6 @@ def test_case_strand_net_2pipes_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_2pipes_sj(use_numba, log_results=False):
     net = nw.water_strand_2pipes(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -303,7 +279,6 @@ def test_case_strand_net_2pipes_sj(use_numba, log_results=False):
 
 
 # two_pumps
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_2pumps_pc(use_numba, log_results=False):
     net = nw.water_strand_net_2pumps()
     max_iter_hyd = 3 if use_numba else 3
@@ -314,7 +289,6 @@ def test_case_strand_net_2pumps_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_strand_net_2pumps_sj(use_numba, log_results=False):
     net = nw.water_strand_net_2pumps(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -327,7 +301,6 @@ def test_case_strand_net_2pumps_sj(use_numba, log_results=False):
 
 # ---------- TEST AREA: t_cross ----------
 # t_cross
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_tcross_pc(use_numba, log_results=False):
     net = nw.water_tcross()
     max_iter_hyd = 3 if use_numba else 3
@@ -338,7 +311,6 @@ def test_case_tcross_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_tcross_sj(use_numba, log_results=False):
     net = nw.water_tcross(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -350,7 +322,6 @@ def test_case_tcross_sj(use_numba, log_results=False):
 
 
 # valves
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_tcross_valves_pc(use_numba, log_results=False):
     net = nw.water_tcross_valves()
     max_iter_hyd = 3 if use_numba else 3
@@ -361,7 +332,6 @@ def test_case_tcross_valves_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_tcross_valves_sj(use_numba, log_results=False):
     net = nw.water_tcross_valves(method="swamee-jain")
     max_iter_hyd = 3 if use_numba else 3
@@ -374,7 +344,6 @@ def test_case_tcross_valves_sj(use_numba, log_results=False):
 
 # ---------- TEST AREA: two pressure junctions ----------
 # two_pipes
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_2eg_two_pipes_pc(use_numba, log_results=False):
     net = nw.water_2eg_two_pipes()
     max_iter_hyd = 7 if use_numba else 7
@@ -384,7 +353,6 @@ def test_case_2eg_two_pipes_pc(use_numba, log_results=False):
     assert np.all(v_diff_abs < 0.05)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_case_2eg_two_pipes_sj(use_numba, log_results=False):
     net = nw.water_2eg_two_pipes(method="swamee-jain")
     max_iter_hyd = 7 if use_numba else 7

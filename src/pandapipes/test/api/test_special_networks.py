@@ -14,7 +14,6 @@ from pandapipes.test.pipeflow_internals.test_inservice import create_test_net
 from pandapipes.test.test_toolbox import create_net_changed_indices
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_one_node_net(use_numba):
     """
 
@@ -43,7 +42,6 @@ def test_one_node_net(use_numba):
     assert np.isclose(net.res_ext_grid.values + net.res_sink.values - net.res_source.values, 0)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_two_node_net(use_numba):
     """
 
@@ -81,7 +79,6 @@ def test_two_node_net(use_numba):
                              np.zeros((2, 1))))
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_random_net_and_one_node_net(create_test_net, use_numba):
     """
 
@@ -123,7 +120,6 @@ def test_wild_indexing(create_net_changed_indices):
     assert net.converged
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_valve_flow_contrl_heat_consumer(use_numba):
     net = pandapipes.create_empty_network(fluid='water')
     j1f, j2f, j3f, j4f, j1r, j2r, j3r, j4r, j5 = pandapipes.create_junctions(net, 9, 5, 400)

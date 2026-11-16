@@ -15,7 +15,6 @@ from pandapipes.timeseries.run_time_series import run_timeseries
 from pandapipes import topology as top
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_schutterwald(use_numba):
     net = networks.schutterwald_gas(True, None)
     max_iter_hyd = 3
@@ -38,7 +37,6 @@ def test_schutterwald(use_numba):
     assert net3.converged
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_schutterwald_heat(use_numba):
     net = networks.schutterwald_heat(80)
     pandapipes.pipeflow(net, mode="sequential", use_numba=use_numba)
@@ -46,7 +44,6 @@ def test_schutterwald_heat(use_numba):
     assert np.all(net.res_junction.t_k.to_numpy() > net.user_pf_options["ambient_temperature"] - 0.01)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_schutterwald_heat_transient(use_numba):
     net = networks.schutterwald_heat(80)
     dt_simulation = 120

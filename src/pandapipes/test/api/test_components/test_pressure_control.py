@@ -12,7 +12,6 @@ import pandapipes
 from pandapipes.io.convert_format import DEFAULT_PRESS_CONTROL_DIAMETER_MM, convert_format
 from pandapipes.test import data_path
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pressure_control_from_measurement_parameters(use_numba):
     """
         :return:
@@ -99,7 +98,6 @@ def test_non_working_distance_control():
         assert "The following controlled junction(s) were identified as disconnected" in str(e.value)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_pressure_control_after_index_gap(use_numba):
     """
     PressureControlComponent._register_hydraulic_equations used to look up
@@ -142,7 +140,6 @@ def test_pressure_control_after_index_gap(use_numba):
     assert np.isclose(net.res_junction.at[j3, "p_bar"], 15.)
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 @pytest.mark.parametrize("control_active", [True, False])
 @pytest.mark.parametrize("inner_diameter_mm", [50., 100.])
 def test_pressure_control_diameter_and_loss(use_numba, control_active, inner_diameter_mm):

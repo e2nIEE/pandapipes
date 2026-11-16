@@ -1,8 +1,10 @@
 Change Log
 =============
-[0.xx.x] - unreleased
+[0.18.0] - 2026-11-16
 -------------------------------
 - [CHANGED] `FrictionFactorModel` now exposes `compute_lambda_and_dlambda_dre(k_over_D, re)` instead of `compute_lambda_and_dlambda_dm(k_over_D, re, m)`
+- [CHANGED] ``use_numba`` test parametrization ids are now ``[numba]``/``[numpy]`` instead of ``[True]``/``[False]``
+- [ADDED] ``--only=numba|numpy`` CLI option to run only one branch of the ``use_numba`` test parametrization
 
 [0.17.0] - 2026-11-13
 -------------------------------
