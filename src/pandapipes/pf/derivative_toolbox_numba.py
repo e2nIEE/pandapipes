@@ -4,6 +4,7 @@ from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRES
     NORMAL_TEMPERATURE
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
+from pandapipes.pf.internals_toolbox import STAGNANT_BRANCH_REFERENCE_AREA_M2
 
 try:
     from numba import jit
@@ -33,6 +34,7 @@ BRANCH_TEXT = IdxBranch.TEXT
 BRANCH_ALPHA = IdxBranch.ALPHA
 BRANCH_FROM_NODE = IdxBranch.FROM_NODE
 BRANCH_TOUTINIT = IdxBranch.TOUTINIT
+BRANCH_RE = IdxBranch.RE
 
 NODE_TINIT = IdxNode.TINIT
 NODE_HEIGHT = IdxNode.HEIGHT
@@ -40,9 +42,17 @@ NODE_PINIT = IdxNode.PINIT
 NODE_PAMB = IdxNode.PAMB
 
 
-@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
+@jit((float64[:], float64[:, :], int64, float64, float64), nopython=True, cache=False)
+def _add_laminar_slope_at_standstill(df_dm, branch_pit, i, const_term_m, eta_area):
+    # numpy twin: derivative_toolbox._add_laminar_slope_at_standstill
+    if abs(branch_pit[i][BRANCH_RE]) <= 1e-8:
+        df_dm[i] -= const_term_m * 64 * eta_area * np.divide(branch_pit[i][BRANCH_LENGTH], branch_pit[i][BRANCH_D] ** 2)
+
+
+@jit((float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]),
+     nopython=True, cache=False)
 def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                       height_difference, rho, area):
+                                       height_difference, rho, eta, area):
     le = der_lambda.shape[0]
     residual_vec = np.zeros_like(der_lambda)
     df_dm = np.zeros_like(der_lambda)
@@ -65,6 +75,7 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
 
         df_dm[i] = -1. * const_term * (2 * m_abs_deriv * friction_term + der_lambda[i]
                                    * np.divide(branch_pit[i][BRANCH_LENGTH], branch_pit[i][BRANCH_D]) * m_init2)
+        _add_laminar_slope_at_standstill(df_dm, branch_pit, i, const_term, eta[i] * area[i])
 
         residual_vec[i] = p_diff + branch_pit[i][BRANCH_PL] + const_height - const_term * m_init2 * friction_term
 
@@ -75,9 +86,9 @@ def derivatives_hydraulic_incomp_numba(branch_pit, der_lambda, p_init_i_abs, p_i
 
 
 @jit((float64[:, :], float64[:, :], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
-      float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
+      float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]), nopython=True, cache=False)
 def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                     height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, area):
+                                     height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, eta, area):
     le = lambda_.shape[0]
     residual_vec = np.zeros_like(lambda_)
     df_dm = np.zeros_like(lambda_)
@@ -113,15 +124,10 @@ def derivatives_hydraulic_comp_numba(node_pit, branch_pit, lambda_, der_lambda, 
         df_dp[i] = 1. - const_term * p_sum_div * (der_comp[i] - comp_fact[i] * p_sum_div)
         df_dp1[i] = -1. - const_term * p_sum_div * (der_comp1[i] - comp_fact[i] * p_sum_div)
 
-        df_dm[i] = -1. * normal_term * comp_fact[i] * p_sum_div * tm * (2 * m_abs_deriv * friction_term
+        const_term_m = normal_term * comp_fact[i] * p_sum_div * tm
+        df_dm[i] = -1. * const_term_m * (2 * m_abs_deriv * friction_term
             + np.divide(der_lambda[i] * branch_pit[i][BRANCH_LENGTH] * m_init2, branch_pit[i][BRANCH_D]))
-        # matches derivatives_hydraulic_comp_np's df_dm[np.isclose(m_init_abs, 0)] = 1. - at
-        # exactly zero flow, m_init2 is 0 so only the friction_term part of df_dm survives, and
-        # for a zero-length/zero-loss-coefficient branch (e.g. a parallel dummy branch)
-        # friction_term is 0 too, leaving df_dm exactly 0: a singular Jacobian diagonal entry for
-        # that branch's momentum row.
-        if m_init_abs <= 1e-8:
-            df_dm[i] = 1.
+        _add_laminar_slope_at_standstill(df_dm, branch_pit, i, const_term_m, eta[i] * area[i])
 
         residual_vec_nodes_from[i] = branch_pit[i][BRANCH_MDOTINIT]
         residual_vec_nodes_to[i] = branch_pit[i][BRANCH_MDOTINIT]
@@ -183,7 +189,10 @@ def derivatives_branch_thermal_numba(branch_pit,
         dfnt_dtout[i] = cp_n[i] * mdot
 
         if transient:
-            area = np.pi * (branch_pit[i][BRANCH_D] / 2) ** 2
+            # numpy twin: stagnant_branch_area in pf.internals_toolbox - the area is only a
+            # thermal capacity here, so a branch without a diameter gets the reference value
+            d = branch_pit[i][BRANCH_D]
+            area = np.pi * (d / 2) ** 2 if d > 0 else STAGNANT_BRANCH_REFERENCE_AREA_M2
             tvor = branch_pit_old[i][branch_pit_old_lookup[BRANCH_TOUTINIT]]
 
             fb[i] = (
@@ -254,7 +263,9 @@ def derivatives_node_thermal_numba(node_pit, branch_pit,
 
     if transient:
         for i in range(b):
-            area = np.pi * (branch_pit[i][BRANCH_D] / 2) ** 2
+            # numpy twin: stagnant_branch_area in pf.internals_toolbox
+            d = branch_pit[i][BRANCH_D]
+            area = np.pi * (d / 2) ** 2 if d > 0 else STAGNANT_BRANCH_REFERENCE_AREA_M2
             t_amb = branch_pit[i][BRANCH_TEXT]
             alpha = branch_pit[i][BRANCH_ALPHA] * np.pi * branch_pit[i][BRANCH_DO]
 
