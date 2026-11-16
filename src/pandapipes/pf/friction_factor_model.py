@@ -39,6 +39,9 @@ class FrictionFactorModel(Protocol):
     r"""Protocol for computing the Darcy-Weisbach friction factor
     :math:`\lambda` and its derivative with respect to the Reynolds number
     :math:`Re`, namely :math:`\frac{\mathrm{d}\lambda}{\mathrm{d}Re}`.
+
+    The conversion to :math:`\mathrm{d}\lambda / \mathrm{d}\dot{m}`, which the
+    solver requires, is applied at the call site.
     """
 
     def compute_lambda_and_dlambda_dre(
