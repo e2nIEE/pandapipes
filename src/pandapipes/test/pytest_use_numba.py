@@ -1,7 +1,8 @@
 """Parametrize any test requesting the `use_numba` fixture.
 
-Loaded via ``addopts`` in ``.pytest.toml``. Every ``use_numba`` test runs twice by
-default (ids ``[numba]`` / ``[numpy]``); ``--only=numba|numpy`` restricts to one mode.
+Loaded via ``pytest_plugins`` in the test package's ``conftest.py``. Every ``use_numba``
+test runs twice by default (ids ``[numba]`` / ``[numpy]``); ``--only=numba|numpy``
+restricts to one mode.
 """
 import pytest
 

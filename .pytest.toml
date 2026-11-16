@@ -1,4 +1,3 @@
 [pytest]
-addopts = ["-p pandapipes.test.pytest_use_numba"]
 markers = ["slow: mark tests which are slow"]
 testpaths = ["src/pandapipes/test"]
