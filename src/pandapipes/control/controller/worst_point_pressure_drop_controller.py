@@ -1,12 +1,12 @@
 import logging
 
 import numpy as np
-from pandapower.control.basic_controller import BasicCtrl
+from pandapower.control.basic_controller import Controller
 
 logger = logging.getLogger(__name__)
 
 
-class WorstPointPressureDropController(BasicCtrl):
+class WorstPointPressureDropController(Controller):
     """
     A controller for maintaining the pressure difference at the worst point 
     (German: Differenzdruckregelung im Schlechtpunkt) in the network.
@@ -50,7 +50,10 @@ class WorstPointPressureDropController(BasicCtrl):
     :type min_pflow: float, optional
     :param min_preturn: Minimum return pressure in bar (for fixed_pflow mode), defaults to 2.0
     :type min_preturn: float, optional
-    :param kwargs: Additional keyword arguments
+    :param kwargs: Additional keyword arguments of pandapower's Controller, e.g. ``name``,
+        ``in_service``, ``order``, ``level``, ``index`` or ``initial_run``. The controller adds
+        itself to ``net.controller``; by default it runs in level 0 after an initial pipeflow, so
+        that profiles written by ConstControl (level -1) are already applied.
     :type kwargs: dict, optional
     """
     def __init__(self, net, circ_pump_pressure_idx=0, target_dp_min_bar=1, tolerance=0.2,

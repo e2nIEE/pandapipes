@@ -1,8 +1,13 @@
 import numpy as np
+import pandas as pd
 import pytest
+from pandapower.control import ConstControl
+from pandapower.timeseries import DFData, OutputWriter
+
 import pandapipes as pp
 from pandapipes.control import WorstPointPressureDropController
 from pandapipes.control.run_control import run_control
+from pandapipes.timeseries import run_timeseries
 
 @pytest.fixture
 def district_heating_net():
@@ -47,7 +52,6 @@ def test_worst_point_pressure_drop_controller(district_heating_net):
     # Add controller to network with default mode (fixed_preturn)
     controller = WorstPointPressureDropController(net, target_dp_min_bar=target_dp,
                                                 tolerance=tolerance, proportional_gain=0.3)
-    net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
 
     # Get initial return pressure
     initial_pflow = net.circ_pump_pressure["p_flow_bar"].iloc[0]
@@ -97,7 +101,6 @@ def test_worst_point_controller_fixed_pflow_mode(district_heating_net):
     controller = WorstPointPressureDropController(net, target_dp_min_bar=target_dp,
                                                 tolerance=tolerance, proportional_gain=0.3,
                                                 mode='fixed_pflow', min_preturn=2.0)
-    net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
 
     # Get initial values
     initial_pflow = net.circ_pump_pressure["p_flow_bar"].iloc[0]
@@ -128,7 +131,6 @@ def test_worst_point_controller_convergence_state(district_heating_net):
 
     controller = WorstPointPressureDropController(net, target_dp_min_bar=1.0, tolerance=0.05,
                                                   proportional_gain=0.3)
-    net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
     initial_dp_min = controller.dp_min
 
     # Initial worst point pressure difference is far from the target
@@ -154,7 +156,6 @@ def test_worst_point_controller_standby_mode_in_control_loop(district_heating_ne
     controller = WorstPointPressureDropController(net, target_dp_min_bar=target_dp,
                                                   tolerance=tolerance, min_plift=min_plift,
                                                   min_pflow=min_pflow)
-    net.controller.loc[len(net.controller)] = [controller, True, -1, -1, False, False]
     qext_w = net.heat_consumer["qext_w"].copy()
 
     # No heat demand: the pump has to be switched to standby mode by the control loop
@@ -177,6 +178,78 @@ def test_worst_point_controller_standby_mode_in_control_loop(district_heating_ne
     assert not controller.is_in_standby(net), "Pump should leave standby mode with heat demand"
     assert abs(dp_min - target_dp) < tolerance, \
         f"Controller should reach target {target_dp} bar, got {dp_min:.3f} bar"
+
+
+def _dp_min_active(net):
+    """Lowest pressure difference of all heat consumers with heat demand."""
+    dp = net.res_heat_consumer["p_from_bar"] - net.res_heat_consumer["p_to_bar"]
+    return dp[net.heat_consumer["qext_w"] != 0].min()
+
+
+def test_worst_point_controller_registers_itself(district_heating_net):
+    """Test that the controller adds itself to net.controller and accepts the arguments of
+    pandapower's Controller."""
+    net = district_heating_net
+
+    controller = WorstPointPressureDropController(net, name="worst point", order=2, level=1)
+    passive = WorstPointPressureDropController(net, in_service=False)
+
+    assert list(net.controller.object) == [controller, passive]
+    assert net.controller.at[controller.index, "name"] == "worst point"
+    assert net.controller.at[controller.index, "order"] == 2
+    assert net.controller.at[controller.index, "level"] == 1
+    assert not net.controller.at[passive.index, "in_service"]
+
+
+def test_worst_point_controller_reacts_to_changed_demand(district_heating_net):
+    """Test that run_control calculates the network again after the heat demand changed, instead
+    of judging convergence from the results of the previous run."""
+    net = district_heating_net
+    target_dp = 1.0
+    tolerance = 0.05
+
+    WorstPointPressureDropController(net, target_dp_min_bar=target_dp, tolerance=tolerance)
+    run_control(net, mode="bidirectional", max_iter=100)
+    dp_before = _dp_min_active(net)
+
+    net.heat_consumer.loc[1, "qext_w"] = 300000
+    run_control(net, mode="bidirectional", max_iter=100)
+    dp_controlled = _dp_min_active(net)
+
+    # the results have to belong to the new heat demand
+    pp.pipeflow(net, mode="bidirectional", iter=100)
+    assert _dp_min_active(net) == pytest.approx(dp_controlled)
+    assert dp_controlled != pytest.approx(dp_before)
+    assert abs(dp_controlled - target_dp) < tolerance
+
+
+def test_worst_point_controller_time_series(district_heating_net):
+    """Test the controller together with ConstControl profiles of the heat demand, including time
+    steps without any heat demand."""
+    net = district_heating_net
+    target_dp = 1.0
+    tolerance = 0.05
+    min_plift, min_pflow = 0.5, 3.0
+    profiles = pd.DataFrame({"q0": [100e3, 150e3, 0., 120e3],
+                             "q1": [200e3, 250e3, 0., 60e3]})
+
+    ConstControl(net, "heat_consumer", "qext_w", element_index=[0, 1],
+                 profile_name=["q0", "q1"], data_source=DFData(profiles))
+    WorstPointPressureDropController(net, target_dp_min_bar=target_dp, tolerance=tolerance,
+                                     min_plift=min_plift, min_pflow=min_pflow)
+    ow = OutputWriter(net, range(len(profiles)), output_path=None, log_variables=[
+        ("res_heat_consumer", "p_from_bar"), ("res_heat_consumer", "p_to_bar"),
+        ("circ_pump_pressure", "plift_bar"), ("circ_pump_pressure", "p_flow_bar")])
+
+    run_timeseries(net, range(len(profiles)), mode="bidirectional", iter=100, verbose=False)
+
+    dp = ow.output["res_heat_consumer.p_from_bar"] - ow.output["res_heat_consumer.p_to_bar"]
+    dp_min = dp.where(profiles.values != 0).min(axis=1)
+    with_demand = profiles.sum(axis=1) > 0
+    assert (abs(dp_min[with_demand] - target_dp) < tolerance).all()
+    assert ow.output["circ_pump_pressure.plift_bar"].at[2, 0] == pytest.approx(min_plift)
+    assert ow.output["circ_pump_pressure.p_flow_bar"].at[2, 0] == pytest.approx(min_pflow)
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
