@@ -1,5 +1,9 @@
 Change Log
 =============
+[0.x.x] - 20xx-xx-xx
+-------------------------------
+- [FIXED] circulation pumps (`circ_pump_pressure`, `circ_pump_mass`) of type "pt" or "t" apply a changed `t_flow_k` in transient calculations. Since the start state of a time step is taken from the previous solution, the flow temperature was only set in the first time step and later changes were ignored.
+
 [0.17.0] - 2026-11-13
 -------------------------------
 - [CHANGED] branches without internals no longer get an implicit dummy diameter of 100 mm. Components that have neither a length nor a loss coefficient (pump, flow control) are frictionless by construction and use the new `calculate_derivatives_hydraulic_frictionless` instead of the full Darcy-Weisbach derivatives; every component for which the diameter does matter now writes `D`/`DO` itself

@@ -110,6 +110,50 @@ def test_transient_state_kept_after_divergence():
     assert np.allclose(net["_old_pit"]["node"][:, t_old_col], t_before_failure)
 
 
+def _heating_loop_const_mass_flow():
+    """Closed heating loop driven by a circulation pump with constant mass flow."""
+    net = pandapipes.create_empty_network(fluid="water")
+    j_flow, j_hex_in, j_hex_out, j_return = [
+        pandapipes.create_junction(net, pn_bar=5, tfluid_k=T_INIT) for _ in range(4)]
+    pandapipes.create_pipe_from_parameters(net, j_flow, j_hex_in, length_km=0.2,
+                                           inner_diameter_mm=80, k_mm=0.05, sections=10,
+                                           u_w_per_m2k=0., text_k=283.15)
+    pandapipes.create_heat_exchanger(net, j_hex_in, j_hex_out, qext_w=200e3,
+                                     inner_diameter_mm=80)
+    pandapipes.create_pipe_from_parameters(net, j_hex_out, j_return, length_km=0.5,
+                                           inner_diameter_mm=80, k_mm=0.05, sections=10,
+                                           u_w_per_m2k=0., text_k=283.15)
+    pandapipes.create_circ_pump_const_mass_flow(net, j_return, j_flow, p_flow_bar=5,
+                                                mdot_flow_kg_per_s=2., t_flow_k=T_SUPPLY,
+                                                type="pt")
+    return net
+
+
+@pytest.mark.parametrize("mode", ["sequential", "bidirectional"])
+@pytest.mark.parametrize("pump_table", ["circ_pump_pressure", "circ_pump_mass"])
+def test_transient_circ_pump_flow_temperature_change(pump_table, mode):
+    """A flow temperature changed between transient time steps has to reach the network."""
+    if pump_table == "circ_pump_pressure":
+        net, _ = _heating_loop()
+    else:
+        net = _heating_loop_const_mass_flow()
+    t_new = T_SUPPLY - 20.
+    j_flow = net[pump_table].flow_junction.iat[0]
+    t_pump, t_flow = [], []
+
+    def change_and_collect(net, step):
+        t_pump.append(net["res_" + pump_table].t_to_k.iat[0])
+        t_flow.append(net.res_junction.t_k.at[j_flow])
+        if step == 9:
+            net[pump_table].loc[:, "t_flow_k"] = t_new
+
+    _run_transient_steps(net, range(20), dt=60, callback=change_and_collect, mode=mode)
+
+    assert t_pump[9] == pytest.approx(T_SUPPLY)
+    assert t_pump[10:] == pytest.approx([t_new] * 10)
+    assert t_flow[10:] == pytest.approx([t_new] * 10)
+
+
 @pytest.mark.parametrize("transient, step, converged, expected", [
     (True, 3, True, True),
     (True, 0, True, False),
