@@ -83,15 +83,21 @@ class CirculationPump(BranchWOInternalsComponent):
     def register_pit_branch_entries(cls, net, branch_pit, node_pit, registry) -> None:
         super().register_pit_branch_entries(net, branch_pit, node_pit, registry)
 
-    @classmethod
-    def _toutinit_vals(cls, net, to_junctions, junction_table_name):
         tbl = net[cls.table_name()]
+        if not len(tbl):
+            return
+
+        # The flow temperature is a boundary condition: the thermal equation keeps the outlet
+        # temperature at TOUTINIT. It is therefore written on every call - also in transient
+        # follow-up time steps, where the base class keeps the previous solution - so that
+        # changes of t_flow_k between time steps reach the network.
+        f, _ = get_lookup(net, "branch", "from_to")[cls.table_name()]
         mask_t = np.isin(tbl.type.values, ["pt", "t"])
-        return np.where(
-            mask_t,
-            tbl.t_flow_k.values,
-            net[junction_table_name].loc[to_junctions, "tfluid_k"].values,
-        )
+        if np.any(mask_t):
+            rows = f + np.flatnonzero(mask_t).astype(np.int32)
+            registry.add_override(PitEntries(*build_pit_entries(
+                rows, [IdxBranch.TOUTINIT], [tbl.t_flow_k.values[mask_t]],
+            )))
 
     @classmethod
     def get_result_table(cls, net):
