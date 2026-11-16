@@ -102,7 +102,8 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
         p_m, der_p_m, der_p_m1 = (p_init_i_abs + p_init_i1_abs) / 2, None, None
 
     rho = get_branch_real_density(fluid, node_pit, b_pit)
-    eta = get_branch_real_eta(fluid, node_pit, b_pit, p_m)
+    # broadcast, as a fluid with constant viscosity yields a scalar
+    eta = np.broadcast_to(get_branch_real_eta(fluid, node_pit, b_pit, p_m), len(b_pit)).astype(np.float64)
     area = branch_area(b_pit)
 
     # Darcy Friction factor: lambda
@@ -115,7 +116,8 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
 
     if not gas_mode:
         residual_vec, residual_vec_nodes_from, residual_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss = (
-            derivatives_hydraulic_incomp(b_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho, area))
+            derivatives_hydraulic_incomp(b_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho,
+                                         eta, area))
     else:
         rho_n = np.full(len(b_pit), fluid.get_density(NORMAL_TEMPERATURE))
         comp_fact = fluid.get_compressibility(p_m, tinit_branch)
@@ -124,7 +126,7 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
         der_comp1 = dc * der_p_m1
         residual_vec, residual_vec_nodes_from, residual_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss = (
             derivatives_hydraulic_comp(node_pit, b_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
-                height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, area))
+                height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, eta, area))
 
     b_pit[:, IdxBranch.DP_FRICT_LOSS] = dp_frict_loss
 
@@ -166,10 +168,6 @@ def calculate_derivatives_hydraulic_frictionless(net, branch_pit_slice, node_pit
     df_dp = np.ones(len(b_pit))
     df_dp1 = -np.ones(len(b_pit))
     df_dm_nodes = np.ones(len(b_pit))
-    if get_fluid(net).is_gas:
-        # carried over from derivatives_hydraulic_comp_np, which applies the same safeguard to
-        # keep the branch's own equation from degenerating at (near) zero flow
-        df_dm[np.isclose(np.abs(b_pit[:, IdxBranch.MDOTINIT]), 0)] = 1.
 
     b_pit[:, IdxBranch.DP_FRICT_LOSS] = 0.
 

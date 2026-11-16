@@ -242,6 +242,25 @@ def test_calc_moody_leaves_out_branches_without_a_friction_term(moody_payload, m
     assert re[2] > 0.
 
 
+@pytest.mark.parametrize("fluid", ["water", "lgas"])
+@pytest.mark.parametrize("k_mm", [0.1, 0.])
+@pytest.mark.parametrize("use_numba", [True, False])
+def test_parallel_stagnant_pipes_converge(use_numba, k_mm, fluid):
+    """The quadratic friction loss has no slope at zero flow. Parallel pipes without loss
+    coefficient that carry no flow rely on the laminar slope to keep the Jacobian regular.
+    """
+    net = pp.create_empty_network(fluid=fluid)
+    j = pp.create_junctions(net, 4, pn_bar=5, tfluid_k=293.15)
+    pp.create_ext_grid(net, j[0], p_bar=5, t_k=293.15)
+    pp.create_pipes_from_parameters(net, [j[0], j[1], j[1], j[2]], [j[1], j[2], j[2], j[3]],
+                                    length_km=0.1, inner_diameter_mm=50, k_mm=k_mm)
+    pp.create_sink(net, j[1], mdot_kg_per_s=0.05)
+
+    pp.pipeflow(net, use_numba=use_numba)
+
+    np.testing.assert_allclose(net.res_pipe.mdot_from_kg_per_s.values[1:], 0., atol=1e-8)
+
+
 def test_calc_moody_accepts_a_model_name(moody_payload):
     """Same backwards compatibility as the pipeflow option itself."""
     by_name = calc_moody(friction_model="swamee-jain", **moody_payload)
