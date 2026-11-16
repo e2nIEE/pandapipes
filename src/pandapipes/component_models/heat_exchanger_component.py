@@ -19,7 +19,7 @@ from pandapipes.pf.derivative_calculation import calculate_derivatives_hydraulic
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 from pandapipes.pf.pipeflow_setup import get_fluid, get_lookup
 from pandapipes.pf.result_extraction import extract_branch_results_without_internals
-from pandapipes.pf.system_index import PitEntries, PitWriteMode
+from pandapipes.pf.system_index import PitEntries
 
 try:
     import pandaplan.core.pplog as logging
@@ -71,11 +71,11 @@ class HeatExchanger(BranchWOInternalsComponent):
         rows = np.arange(f, t, dtype=np.int32)
         d_vals = tbl.inner_diameter_mm.values / 1000.
 
-        registry.add_override(PitEntries(*build_pit_entries(
+        registry.add(PitEntries(*build_pit_entries(
             rows,
             [IdxBranch.QEXT, IdxBranch.D, IdxBranch.DO, IdxBranch.LOSS_COEFFICIENT],
             [tbl.qext_w.values, d_vals, d_vals, tbl.loss_coefficient.values],
-        ), mode=PitWriteMode.UNIQUE))
+        )))
 
     @classmethod
     def register_equations(cls, net, branch_pit, node_pit, sys_idx, registry, mode) -> None:

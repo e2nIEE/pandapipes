@@ -5,7 +5,7 @@
 import logging
 import numpy as np
 from scipy.optimize import newton
-from pandapipes.pf.internals_toolbox import _sum_by_group, branch_area
+from pandapipes.pf.internals_toolbox import _sum_by_group, stagnant_branch_area
 from pandapipes.pf.pipeflow_setup import branches_not_zero_flow
 from pandapipes.constants import P_CONVERSION, GRAVITATION_CONSTANT, NORMAL_PRESSURE, \
     NORMAL_TEMPERATURE
@@ -109,7 +109,11 @@ def derivatives_branch_thermal_np(branch_pit,
     dfnt_dtout = cp_n * mdot
 
     if transient:
-        area = branch_area(branch_pit)
+        # the area only enters as a thermal capacity: multiplied by the length in the regular
+        # equation below (and thus irrelevant for a zero length branch), and as the regularization
+        # of a stagnant zero length branch further down, which is the one place it has to fall back
+        # to a reference value for the components that have no diameter
+        area = stagnant_branch_area(branch_pit)
         tvor = branch_pit_old[:, branch_pit_old_lookup[IdxBranch.TOUTINIT]]
 
         fb = (
@@ -177,7 +181,9 @@ def derivatives_node_thermal_np(node_pit, branch_pit,
     dfn_dt = np.zeros_like(t_init_n)
 
     if transient:
-        area = branch_area(branch_pit)
+        # see derivatives_branch_thermal_np: the area is the thermal capacity regularizing the
+        # stagnant node, so branches without a diameter fall back to a reference area
+        area = stagnant_branch_area(branch_pit)
         alpha = branch_pit[:, IdxBranch.ALPHA] * np.pi * branch_pit[:, IdxBranch.DO]
         t_amb = branch_pit[:, IdxBranch.TEXT]
 
