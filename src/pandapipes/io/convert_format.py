@@ -10,6 +10,11 @@ from pandapipes.component_models.circulation_pump_mass_component import Circulat
 from pandapipes.component_models.circulation_pump_pressure_component import CirculationPumpPressure
 from pandapipes.component_models.valve_component import Valve
 from pandapipes.component_models.pipe_component import Pipe
+from pandapipes.component_models.pressure_control_component import PressureControlComponent
+
+# fallback for nets stored before pressure controls had an own diameter, also used by the STANET
+# converter whenever a controller comes without one
+DEFAULT_PRESS_CONTROL_DIAMETER_MM = 100.
 
 try:
     import pandaplan.core.pplog as logging
@@ -70,6 +75,17 @@ def _add_missing_columns(net):
         if comp.table_name() in net:
             if "outer_diameter_mm" not in net[comp.table_name()].columns:
                 net[comp.table_name()]["outer_diameter_mm"] = np.nan
+    if PressureControlComponent.table_name() in net:
+        _add_press_control_diameter(net)
+
+
+def _add_press_control_diameter(net):
+    pc_tbl = net[PressureControlComponent.table_name()]
+    if "inner_diameter_mm" not in pc_tbl.columns:
+        pc_tbl["inner_diameter_mm"] = DEFAULT_PRESS_CONTROL_DIAMETER_MM
+    else:
+        pc_tbl["inner_diameter_mm"] = pc_tbl["inner_diameter_mm"].fillna(
+            DEFAULT_PRESS_CONTROL_DIAMETER_MM)
 
 
 def _rename_attributes(net):

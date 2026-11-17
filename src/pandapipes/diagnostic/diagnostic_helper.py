@@ -35,9 +35,11 @@ class DiagnosticFunction(ABC, Generic[N, T]):
 
 
 def check_number(element, element_index, column):
+    # inf is reported alongside nan: it passes every ">0"/">=0" comparison but is just as
+    # unusable as nan, and it would propagate silently through everything derived from it
+    # instead of being named here.
     try:
-        nan_check = np.isnan(element[column])
-        if nan_check or isinstance(element[column], bool):
+        if not np.isfinite(element[column]) or isinstance(element[column], bool):
             return element_index
     except TypeError:
         return element_index

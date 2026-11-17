@@ -253,6 +253,9 @@ class TestInvalidValuesCheck:
             "valve": [
                 (0, "inner_diameter_mm", 0.0, ">0"),
             ],
+            "press_control": [
+                (0, "inner_diameter_mm", 0.0, ">0"),
+            ],
             "flow_control": [
                 (0, "controlled_mdot_kg_per_s", 0.0, ">0"),
             ],
@@ -284,6 +287,9 @@ class TestInvalidValuesCheck:
                 (0, "scaling", -1.0, ">=0"),
             ],
             "valve": [
+                (0, "loss_coefficient", -1.0, ">=0"),
+            ],
+            "press_control": [
                 (0, "loss_coefficient", -1.0, ">=0"),
             ],
             "heat_consumer": [
@@ -401,6 +407,27 @@ class TestInvalidValuesCheck:
         changes = {
             "heat_consumer": [
                 (0, "qext_w", "1000", "number"),
+            ],
+        }
+
+        _run_invalid_values_case(test_nets, changes)
+
+    def test_non_finite(self, test_nets):
+        # inf satisfies every ">0"/">=0" comparison, so it has to be caught by the number check
+        # itself rather than by the restriction
+        changes = {
+            "pipe": [
+                (0, "length_km", np.inf, ">0"),
+                (1, "loss_coefficient", np.inf, ">=0"),
+            ],
+            "valve": [
+                (0, "inner_diameter_mm", np.inf, ">0"),
+            ],
+            "press_control": [
+                (0, "inner_diameter_mm", np.inf, ">0"),
+            ],
+            "heat_consumer": [
+                (0, "qext_w", -np.inf, "number"),
             ],
         }
 

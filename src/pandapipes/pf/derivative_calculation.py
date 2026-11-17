@@ -10,14 +10,80 @@
 # file's top level reproduces that exact crash immediately.
 import numpy as np
 
-from pandapipes.constants import NORMAL_TEMPERATURE
+from pandapipes.constants import GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, P_CONVERSION
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
-from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected, _sum_by_group, \
-    branch_area
-from pandapipes.pf.pipeflow_setup import get_net_option, get_lookup, PipeflowNotConverged
+from pandapipes.pf.friction_factor_model import FrictionFactorModel
+from pandapipes.pf.internals_toolbox import (
+    get_from_nodes_corrected,
+    get_to_nodes_corrected,
+    _sum_by_group,
+    branch_area,
+)
+from pandapipes.pf.pipeflow_setup import (
+    get_net_option,
+    get_lookup,
+    _get_friction_factor_model,
+)
 from pandapipes.properties.fluids import get_fluid
-from pandapipes.properties.properties_toolbox import get_branch_real_density, get_branch_real_eta, get_branch_cp
+from pandapipes.properties.properties_toolbox import (
+    get_branch_real_density,
+    get_branch_real_eta,
+    get_branch_cp,
+)
+
+
+def calc_moody(m, eta, d, k, area, lengths, friction_model):
+    """Reynolds number, Darcy friction factor lambda and its derivative with respect to mass flow.
+
+    These are the three quantities a Moody chart ties together, and they are only ever needed
+    together: lambda is read off at a given Re, and its derivative follows the same curve. Any
+    caller that computes one of them on its own risks evaluating it at a different operating
+    point than the other two.
+
+    The friction model is only evaluated where it is defined: at zero flow there is no Reynolds
+    number to look a lambda up for, and a branch of zero length has no friction term in its
+    momentum equation at all. Those rows keep lambda and the derivative at 0 instead of being
+    evaluated and discarded. ``re`` is returned unmasked, so a caller can still tell a genuinely
+    stagnant branch from one that was merely skipped.
+
+    :param m: mass flow per branch
+    :type m: numpy.ndarray
+    :param eta: dynamic viscosity per branch, at the branch's own operating point
+    :type eta: numpy.ndarray
+    :param d: inner diameter per branch
+    :type d: numpy.ndarray
+    :param k: roughness per branch
+    :type k: numpy.ndarray
+    :param area: cross section per branch
+    :type area: numpy.ndarray
+    :param lengths: length per branch
+    :type lengths: numpy.ndarray
+    :param friction_model: the model to evaluate, or its name ("nikuradse", "swamee-jain",
+        "colebrook") for backwards compatibility
+    :type friction_model: FrictionFactorModel | str
+    :return: re, lambda_, der_lambda
+    """
+    if not isinstance(friction_model, FrictionFactorModel):
+        opts = {"friction_model": friction_model}
+        _get_friction_factor_model(opts)
+        friction_model = opts["friction_model"]
+
+    c = d / (eta * area)
+    re = c * np.abs(m)
+    mask = ~np.isclose(re, 0) & ~np.isclose(lengths, 0, rtol=1e-10, atol=1e-11)
+
+    lambda_ = np.zeros_like(re)
+    der_lambda = np.zeros_like(re)
+    lambda_[mask], der_lambda[mask] = friction_model.compute_lambda_and_dlambda_dre(
+        k[mask] / d[mask],
+        re[mask],
+    )
+    # jacobian needs dlambda_dm, not dlambda_dre, hence the conversion:
+    # Re = c * |m| -> dRe_dm = c * sign(m)
+    # dlambda_dm = dlambda_dRe * dRe_dm
+    der_lambda[mask] *= c[mask] * np.sign(m[mask])
+    return re, lambda_, der_lambda
 
 
 def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
@@ -34,11 +100,14 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
         from pandapipes.pf.derivative_toolbox_numba import (
             derivatives_hydraulic_incomp_numba as derivatives_hydraulic_incomp,
             derivatives_hydraulic_comp_numba as derivatives_hydraulic_comp,
-            calc_medium_pressure_with_derivative_numba as calc_medium_pressure_with_derivative)
+            calc_medium_pressure_with_derivative_numba as calc_medium_pressure_with_derivative,
+        )
     else:
-        from pandapipes.pf.derivative_toolbox import (derivatives_hydraulic_incomp_np as derivatives_hydraulic_incomp,
-                                                      derivatives_hydraulic_comp_np as derivatives_hydraulic_comp,
-                                                      calc_medium_pressure_with_derivative_np as calc_medium_pressure_with_derivative)
+        from pandapipes.pf.derivative_toolbox import (
+            derivatives_hydraulic_incomp_np as derivatives_hydraulic_incomp,
+            derivatives_hydraulic_comp_np as derivatives_hydraulic_comp,
+            calc_medium_pressure_with_derivative_np as calc_medium_pressure_with_derivative,
+        )
     fluid = get_fluid(net)
     gas_mode = fluid.is_gas
 
@@ -46,61 +115,157 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
     from_nodes = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
     to_nodes = b_pit[:, IdxBranch.TO_NODE].astype(np.int32)
     tinit_branch, height_difference, p_init_i_abs, p_init_i1_abs = get_derived_values(
-        node_pit, from_nodes, to_nodes, options["use_numba"])
+        node_pit, from_nodes, to_nodes, options["use_numba"]
+    )
 
     if gas_mode:
-        p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(p_init_i_abs, p_init_i1_abs)
+        p_m, der_p_m, der_p_m1 = calc_medium_pressure_with_derivative(
+            p_init_i_abs, p_init_i1_abs
+        )
     else:
         p_m, der_p_m, der_p_m1 = (p_init_i_abs + p_init_i1_abs) / 2, None, None
 
     rho = get_branch_real_density(fluid, node_pit, b_pit)
-    eta = get_branch_real_eta(fluid, node_pit, b_pit, p_m)
+    # broadcast, as a fluid with constant viscosity yields a scalar
+    eta = np.broadcast_to(
+        get_branch_real_eta(fluid, node_pit, b_pit, p_m), len(b_pit)
+    ).astype(np.float64)
     area = branch_area(b_pit)
 
     # Darcy Friction factor: lambda
-    re = (
-        np.abs(b_pit[:, IdxBranch.MDOTINIT])
-        * b_pit[:, IdxBranch.D]
-        / (eta * area)
-    )
-    mask = (
-        ~np.isclose(re, 0)
-        & ~np.isclose(b_pit[:, IdxBranch.LENGTH], 0, rtol=1e-10, atol=1e-11)
-    )
-    k_over_D = b_pit[mask, IdxBranch.K] / b_pit[mask, IdxBranch.D]
-    lambda_ = np.zeros_like(re)
-    der_lambda = np.zeros_like(re)
-    friction_factor_model = options["friction_model"]
-    lambda_[mask], der_lambda[mask] = (
-        friction_factor_model.compute_lambda_and_dlambda_dm(
-            k_over_D,
-            re[mask],
-            b_pit[mask, IdxBranch.MDOTINIT],
-        )
+    re, lambda_, der_lambda = calc_moody(
+        b_pit[:, IdxBranch.MDOTINIT],
+        eta,
+        b_pit[:, IdxBranch.D],
+        b_pit[:, IdxBranch.K],
+        area,
+        b_pit[:, IdxBranch.LENGTH],
+        options["friction_model"],
     )
 
-    b_pit[:, IdxBranch.RE]     = re
+    b_pit[:, IdxBranch.RE] = re
     b_pit[:, IdxBranch.LAMBDA] = lambda_
 
     if not gas_mode:
-        residual_vec, residual_vec_nodes_from, residual_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss = (
-            derivatives_hydraulic_incomp(b_pit, der_lambda, p_init_i_abs, p_init_i1_abs, height_difference, rho, area))
+        (
+            residual_vec,
+            residual_vec_nodes_from,
+            residual_vec_nodes_to,
+            df_dm,
+            df_dm_nodes,
+            df_dp,
+            df_dp1,
+            dp_frict_loss,
+        ) = derivatives_hydraulic_incomp(
+            b_pit,
+            der_lambda,
+            p_init_i_abs,
+            p_init_i1_abs,
+            height_difference,
+            rho,
+            eta,
+            area,
+        )
     else:
         rho_n = np.full(len(b_pit), fluid.get_density(NORMAL_TEMPERATURE))
         comp_fact = fluid.get_compressibility(p_m, tinit_branch)
         dc = fluid.get_der_compressibility()
         der_comp = dc * der_p_m
         der_comp1 = dc * der_p_m1
-        residual_vec, residual_vec_nodes_from, residual_vec_nodes_to, df_dm, df_dm_nodes, df_dp, df_dp1, dp_frict_loss = (
-            derivatives_hydraulic_comp(node_pit, b_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
-                height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, area))
+        (
+            residual_vec,
+            residual_vec_nodes_from,
+            residual_vec_nodes_to,
+            df_dm,
+            df_dm_nodes,
+            df_dp,
+            df_dp1,
+            dp_frict_loss,
+        ) = derivatives_hydraulic_comp(
+            node_pit,
+            b_pit,
+            lambda_,
+            der_lambda,
+            p_init_i_abs,
+            p_init_i1_abs,
+            height_difference,
+            comp_fact,
+            der_comp,
+            der_comp1,
+            rho,
+            rho_n,
+            eta,
+            area,
+        )
 
     b_pit[:, IdxBranch.DP_FRICT_LOSS] = dp_frict_loss
 
-    return df_dm, df_dp, df_dp1, df_dm_nodes, residual_vec, residual_vec_nodes_from, residual_vec_nodes_to
+    return (
+        df_dm,
+        df_dp,
+        df_dp1,
+        df_dm_nodes,
+        residual_vec,
+        residual_vec_nodes_from,
+        residual_vec_nodes_to,
+    )
 
 
-def calculate_derivatives_branch_thermal(net, branch_pit_slice, node_pit, branch_pit_old_slice, options):
+def calculate_derivatives_hydraulic_frictionless(
+    net, branch_pit_slice, node_pit, options
+):
+    """Momentum derivatives for branches that cannot have a friction loss at all.
+
+    A component without a length and without a loss coefficient input (pump, flow control) has
+    no friction term: Darcy-Weisbach's ``length * lambda / D + loss_coefficient`` is identically
+    zero for it, which cancels the whole ``const_term * mdot**2 * friction_term`` product in
+    :func:`calculate_derivatives_hydraulic` and leaves nothing but the static pressure balance
+    computed here. Routing those components through the full Darcy derivatives instead would
+    evaluate Reynolds number, lambda and the cross section area of a branch that has no diameter
+    in the first place - which is what used to force them to write a dummy D into the pit.
+
+    Same signature and return tuple as :func:`calculate_derivatives_hydraulic`, so a component
+    only has to swap the call.
+
+    :param net: The pandapipes network
+    :type net: pandapipesNet
+    :param branch_pit_slice: view of the global branch pit for the component's active branches
+    :param node_pit: global node internal table
+    :param options: solver options dict (use_numba, friction_model, …)
+    :return: df_dm, df_dp, df_dp1, df_dm_nodes, residual_vec, residual_vec_nodes_from, residual_vec_nodes_to
+    """
+    b_pit = branch_pit_slice
+    from_nodes = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
+    to_nodes = b_pit[:, IdxBranch.TO_NODE].astype(np.int32)
+    _, height_difference, p_init_i_abs, p_init_i1_abs = get_derived_values(
+        node_pit, from_nodes, to_nodes, options["use_numba"]
+    )
+    rho = get_branch_real_density(get_fluid(net), node_pit, b_pit)
+
+    const_height = rho * GRAVITATION_CONSTANT * height_difference / P_CONVERSION
+    residual_vec = p_init_i_abs - p_init_i1_abs + b_pit[:, IdxBranch.PL] + const_height
+
+    df_dm = np.zeros(len(b_pit))
+    df_dp = np.ones(len(b_pit))
+    df_dp1 = -np.ones(len(b_pit))
+    df_dm_nodes = np.ones(len(b_pit))
+
+    b_pit[:, IdxBranch.DP_FRICT_LOSS] = 0.0
+
+    return (
+        df_dm,
+        df_dp,
+        df_dp1,
+        df_dm_nodes,
+        residual_vec,
+        b_pit[:, IdxBranch.MDOTINIT],
+        b_pit[:, IdxBranch.MDOTINIT],
+    )
+
+
+def calculate_derivatives_branch_thermal(
+    net, branch_pit_slice, node_pit, branch_pit_old_slice, options
+):
     """Compute branch-level thermal derivatives for *branch_pit_slice*.
 
     Stagnant node equations are excluded — see calculate_derivatives_node_thermal.
@@ -110,9 +275,13 @@ def calculate_derivatives_branch_thermal(net, branch_pit_slice, node_pit, branch
     branch_pit_old_lookup = get_lookup(net, "branch", "old_pit_cols")
 
     if options["use_numba"]:
-        from pandapipes.pf.derivative_toolbox_numba import derivatives_branch_thermal_numba as deriv_fn
+        from pandapipes.pf.derivative_toolbox_numba import (
+            derivatives_branch_thermal_numba as deriv_fn,
+        )
     else:
-        from pandapipes.pf.derivative_toolbox import derivatives_branch_thermal_np as deriv_fn
+        from pandapipes.pf.derivative_toolbox import (
+            derivatives_branch_thermal_np as deriv_fn,
+        )
 
     fluid = get_fluid(net)
     b_pit = branch_pit_slice
@@ -130,18 +299,27 @@ def calculate_derivatives_branch_thermal(net, branch_pit_slice, node_pit, branch
     rho = get_branch_real_density(fluid, node_pit, b_pit)
     transient = get_net_option(net, "transient")
     dt = get_net_option(net, "dt")
-    amb = get_net_option(net, 'ambient_temperature')
+    amb = get_net_option(net, "ambient_temperature")
 
     return deriv_fn(
         b_pit,
-        b_pit_old, branch_pit_old_lookup,
-        t_init_i, t_init_i1, t_init_nt,
-        cp_n, cp_b,
-        rho, dt, transient, amb,
+        b_pit_old,
+        branch_pit_old_lookup,
+        t_init_i,
+        t_init_i1,
+        t_init_nt,
+        cp_n,
+        cp_b,
+        rho,
+        dt,
+        transient,
+        amb,
     )
 
 
-def calculate_derivatives_node_thermal(net, branch_pit, node_pit, node_pit_old, options):
+def calculate_derivatives_node_thermal(
+    net, branch_pit, node_pit, node_pit_old, options
+):
     """Compute stagnant node thermal derivatives from the FULL active thermal branch pit.
 
     Must be called with the complete branch pit so that nodes_flow is computed globally.
@@ -151,9 +329,13 @@ def calculate_derivatives_node_thermal(net, branch_pit, node_pit, node_pit_old, 
     node_pit_old_lookup = get_lookup(net, "node", "old_pit_cols")
 
     if options["use_numba"]:
-        from pandapipes.pf.derivative_toolbox_numba import derivatives_node_thermal_numba as deriv_fn
+        from pandapipes.pf.derivative_toolbox_numba import (
+            derivatives_node_thermal_numba as deriv_fn,
+        )
     else:
-        from pandapipes.pf.derivative_toolbox import derivatives_node_thermal_np as deriv_fn
+        from pandapipes.pf.derivative_toolbox import (
+            derivatives_node_thermal_np as deriv_fn,
+        )
 
     fluid = get_fluid(net)
     from_nodes = get_from_nodes_corrected(branch_pit)
@@ -164,18 +346,28 @@ def calculate_derivatives_node_thermal(net, branch_pit, node_pit, node_pit_old, 
     rho = get_branch_real_density(fluid, node_pit, branch_pit)
     transient = get_net_option(net, "transient")
     dt = get_net_option(net, "dt")
-    amb = get_net_option(net, 'ambient_temperature')
+    amb = get_net_option(net, "ambient_temperature")
 
     return deriv_fn(
-        node_pit, branch_pit,
-        node_pit_old, node_pit_old_lookup,
-        from_nodes, to_nodes,
-        t_init_i, t_init_n,
-        cp_b, rho, dt, transient, amb,
+        node_pit,
+        branch_pit,
+        node_pit_old,
+        node_pit_old_lookup,
+        from_nodes,
+        to_nodes,
+        t_init_i,
+        t_init_n,
+        cp_b,
+        rho,
+        dt,
+        transient,
+        amb,
     )
 
 
-def calculate_load_hydraulic(net, junctions, mdot, scaling, in_service, sign, junction_table_name):
+def calculate_load_hydraulic(
+    net, junctions, mdot, scaling, in_service, sign, junction_table_name
+):
     """Compute the aggregated nodal mass-flow loads for a ConstFlow-type component.
 
     :param junctions: per-row junction table index (not a pit position) - grouped by
@@ -190,8 +382,11 @@ def calculate_load_hydraulic(net, junctions, mdot, scaling, in_service, sign, ju
     helper = in_service * scaling * sign
     mf = np.nan_to_num(mdot)
     juncts, loads_sum = _sum_by_group(
-        get_net_option(net, "use_numba"), junctions, -mf * helper)
-    junction_idx_lookup = get_lookup(net, "node", "index_active_hydraulics")[junction_table_name]
+        get_net_option(net, "use_numba"), junctions, -mf * helper
+    )
+    junction_idx_lookup = get_lookup(net, "node", "index_active_hydraulics")[
+        junction_table_name
+    ]
     index = junction_idx_lookup[juncts.astype(np.int32)]
     valid = index >= 0
     return index[valid].astype(np.int32), loads_sum[valid]
@@ -200,6 +395,8 @@ def calculate_load_hydraulic(net, junctions, mdot, scaling, in_service, sign, ju
 def get_derived_values(node_pit, from_nodes, to_nodes, use_numba):
     if use_numba:
         from pandapipes.pf.derivative_toolbox_numba import calc_derived_values_numba
+
         return calc_derived_values_numba(node_pit, from_nodes, to_nodes)
     from pandapipes.pf.derivative_toolbox import calc_derived_values_np
+
     return calc_derived_values_np(node_pit, from_nodes, to_nodes)

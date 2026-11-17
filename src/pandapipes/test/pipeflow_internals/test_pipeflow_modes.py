@@ -34,7 +34,6 @@ def simple_test_net():
     return net
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_hydraulic_only(simple_test_net, use_numba):
     """
 
@@ -69,7 +68,6 @@ def test_hydraulic_only(simple_test_net, use_numba):
     assert (np.all(v_diff < 0.05))
 
 
-@pytest.mark.parametrize("use_numba", [True, False])
 def test_heat_only(use_numba):
     net = pandapipes.create_empty_network("net")
     d = 75
