@@ -31,7 +31,7 @@ BRANCH_PL = IdxBranch.PL
 BRANCH_TL = IdxBranch.TL
 BRANCH_QEXT = IdxBranch.QEXT
 BRANCH_TEXT = IdxBranch.TEXT
-BRANCH_ALPHA = IdxBranch.ALPHA
+BRANCH_U = IdxBranch.U
 BRANCH_FROM_NODE = IdxBranch.FROM_NODE
 BRANCH_TOUTINIT = IdxBranch.TOUTINIT
 BRANCH_RE = IdxBranch.RE
@@ -180,7 +180,7 @@ def derivatives_branch_thermal_numba(branch_pit,
         mdot = np.abs(branch_pit[i][BRANCH_MDOTINIT])
         t_amb = branch_pit[i][BRANCH_TEXT]
         length = branch_pit[i][BRANCH_LENGTH]
-        alpha = branch_pit[i][BRANCH_ALPHA] * np.pi * branch_pit[i][BRANCH_DO]
+        alpha = branch_pit[i][BRANCH_U] * np.pi * branch_pit[i][BRANCH_DO]
         tl = branch_pit[i][BRANCH_TL]
         qext = branch_pit[i][BRANCH_QEXT]
 
@@ -267,7 +267,7 @@ def derivatives_node_thermal_numba(node_pit, branch_pit,
             d = branch_pit[i][BRANCH_D]
             area = np.pi * (d / 2) ** 2 if d > 0 else STAGNANT_BRANCH_REFERENCE_AREA_M2
             t_amb = branch_pit[i][BRANCH_TEXT]
-            alpha = branch_pit[i][BRANCH_ALPHA] * np.pi * branch_pit[i][BRANCH_DO]
+            alpha = branch_pit[i][BRANCH_U] * np.pi * branch_pit[i][BRANCH_DO]
 
             fn_zero = not nodes_flow[from_nodes[i]]
             tn_zero = not nodes_flow[to_nodes[i]]
