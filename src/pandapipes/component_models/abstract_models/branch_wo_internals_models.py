@@ -95,7 +95,7 @@ class BranchWOInternalsComponent(BranchComponent):
             registry.add(PitEntries(*build_pit_entries(
                 rows,
                 [IdxBranch.FROM_NODE, IdxBranch.TO_NODE, IdxBranch.TOUTINIT, IdxBranch.ELEMENT_IDX,
-                 IdxBranch.ACTIVE, IdxBranch.LENGTH, IdxBranch.K, IdxBranch.TEXT, IdxBranch.ALPHA],
+                 IdxBranch.ACTIVE, IdxBranch.LENGTH, IdxBranch.K, IdxBranch.TEXT, IdxBranch.U],
                 [from_nodes.astype(float), to_nodes.astype(float), toutinit_vals,
                  tbl.index.values.astype(float), tbl[cls.active_identifier()].values.astype(float),
                  0., 1e-3, float(ambient_t), 0.],

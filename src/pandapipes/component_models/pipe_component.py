@@ -173,7 +173,7 @@ class Pipe(BranchWInternalsComponent):
 
             registry.add(PitEntries(*build_pit_entries(
                 rows,
-                [IdxBranch.FROM_NODE, IdxBranch.TO_NODE, IdxBranch.LENGTH, IdxBranch.K, IdxBranch.ALPHA, IdxBranch.TEXT, IdxBranch.TOUTINIT],
+                [IdxBranch.FROM_NODE, IdxBranch.TO_NODE, IdxBranch.LENGTH, IdxBranch.K, IdxBranch.U, IdxBranch.TEXT, IdxBranch.TOUTINIT],
                 [from_nodes.astype(float), to_nodes.astype(float),
                  length_vals, k_vals, alpha_vals, text_vals, toutinit_vals],
             )))

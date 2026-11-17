@@ -15,4 +15,4 @@
 :math:`Re`;Reynolds number
 :math:`k`;Pipe roughness
 :math:`Q`;Heat flow
-:math:`\alpha`;Heat transfer coefficient
+:math:`u`;Overall heat transfer coefficient

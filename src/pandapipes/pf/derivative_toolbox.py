@@ -110,7 +110,7 @@ def derivatives_branch_thermal_np(branch_pit,
     mdot = np.abs(branch_pit[:, IdxBranch.MDOTINIT])
     t_amb = branch_pit[:, IdxBranch.TEXT]
     length = branch_pit[:, IdxBranch.LENGTH]
-    alpha = branch_pit[:, IdxBranch.ALPHA] * np.pi * branch_pit[:, IdxBranch.DO]
+    alpha = branch_pit[:, IdxBranch.U] * np.pi * branch_pit[:, IdxBranch.DO]
     tl = branch_pit[:, IdxBranch.TL]
     qext = branch_pit[:, IdxBranch.QEXT]
 
@@ -196,7 +196,7 @@ def derivatives_node_thermal_np(node_pit, branch_pit,
         # see derivatives_branch_thermal_np: the area is the thermal capacity regularizing the
         # stagnant node, so branches without a diameter fall back to a reference area
         area = stagnant_branch_area(branch_pit)
-        alpha = branch_pit[:, IdxBranch.ALPHA] * np.pi * branch_pit[:, IdxBranch.DO]
+        alpha = branch_pit[:, IdxBranch.U] * np.pi * branch_pit[:, IdxBranch.DO]
         t_amb = branch_pit[:, IdxBranch.TEXT]
 
         if np.any(~nodes_flow):

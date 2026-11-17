@@ -570,7 +570,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: int, default 1
-    :param u_w_per_m2k: Heat transfer coefficient in [W/(m^2*K)]
+    :param u_w_per_m2k: Overall heat transfer coefficient in [W/(m^2*K)]
     :type u_w_per_m2k: float, default 0
     :param text_k: Ambient temperature of pipe in [K]
     :type text_k: float, default None, will be set equal to the net ambient temperature
@@ -1558,7 +1558,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
     :param sections: The number of internal pipe sections. Important for gas and temperature\
             calculations, where variables are dependent on pipe length.
     :type sections: Iterable or int, default 1
-    :param u_w_per_m2k: Heat transfer coefficients in [W/(m^2*K)]
+    :param u_w_per_m2k: Overall heat transfer coefficients in [W/(m^2*K)]
     :type u_w_per_m2k: Iterable or float, default 0
     :param text_k: Ambient temperatures of pipes in [K]
     :type text_k: Iterable or float, default None, will be set equal to the net ambient temperature
