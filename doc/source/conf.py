@@ -28,6 +28,13 @@ def clean_dataclass_signature(
     signature,
     return_annotation,
 ):
+    """Render dataclass ``default_factory`` and callable defaults by name.
+
+    Autodoc renders ``field: T = <factory>`` and
+    ``field: T = <function hermite_log>``. This hook replaces them with
+    ``field: T = Laminar()`` and ``field: T = hermite_log`` so the class
+    signature in the docs shows the actual default, not a placeholder.
+    """
     if what != "class" or not is_dataclass(obj) or signature is None:
         return signature, return_annotation
 
@@ -60,6 +67,7 @@ def clean_protocol_signature(
     signature,
     return_annotation,
 ):
+    """Hide the ``(*args, **kwargs)`` signature autodoc emits for ``Protocol``."""
     if (
         what != "class"
         or not isinstance(obj, type)
