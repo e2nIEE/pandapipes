@@ -88,8 +88,8 @@ the turbulent side of the transition.
 
 .. rubric:: Choosing a Strategy
 
-:func:`Smoothstep<smoothstep>` is cheaper per call — the blend weight is a
-polynomial in :math:`t`, with no :math:`\log` or :math:`\exp` — and is
+:func:`Smoothstep<smoothstep>` is cheaper per call -- the blend weight is a
+polynomial in :math:`t`, with no :math:`\log` or :math:`\exp` -- and is
 provided as a lower-cost alternative for callers whose convergence is
 insensitive to the transition shape.
 

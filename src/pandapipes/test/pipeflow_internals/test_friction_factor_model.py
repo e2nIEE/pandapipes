@@ -66,7 +66,7 @@ _REGIME_AWARE_MODELS = (
 
 @pytest.fixture(params=[*_INDIVIDUAL_MODELS, *_REGIME_AWARE_MODELS])
 def model_class(request):
-    """Fixture that yields each friction‑factor model class."""
+    """Fixture that yields each friction-factor model class."""
     return request.param
 
 
@@ -102,27 +102,53 @@ def test_empty_inputs(model_class):
 
 @pytest.mark.parametrize("model_class", _INDIVIDUAL_MODELS)
 def test_lambda_decreases_as_Re_increases(model_class):
-    """lambda decreases as Re increases, as observed experimentally (Moody chart)."""
+    """lambda decreases as Re increases, as observed on the Moody chart.
+
+    Checks the integral property (monotone decrease in the sampled
+    lambda values) and the pointwise property (dlambda_dre < 0)
+    on a log-spaced grid.
+    """
     model = model_class()
-    re = np.array((5_000, 10_000, 100_000, 1_000_000), dtype=np.float64)
+    re = np.logspace(np.log10(5_000), np.log10(1e6), 100)
     k_over_D = np.full_like(re, 0.05)
-    lambdas, _ = model.compute_lambda_and_dlambda_dre(k_over_D, re)
-    assert all(np.diff(lambdas) < 0), lambdas
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    assert np.all(np.diff(lambda_) < 0), lambda_
+    assert np.all(dlambda_dre < 0)
 
 
 @pytest.mark.parametrize("model_class", _REGIME_AWARE_MODELS)
 def test_regime_aware_derivative_positive_in_transition(model_class):
-    r"""lambda increases as Re increases in the transition regime.
+    """lambda and dlambda_dre increase with Re in the interior of the transition.
 
-    Note that :math:`d\lambda/dRe` may still be negative near the
-    boundaries, so we test only in the middle of the regime.
+    Near the boundaries the derivative of the blend weight vanishes,
+    so the base slopes dominate and dlambda_dre stays negative. This
+    test samples only the 0.25 .. 0.75 window of the normalised
+    transition span, independent of sample count.
     """
     model = model_class()
     # interior points only
-    re = np.linspace(model.re_lam, model.re_turb, 5)[1:-1]
+    re_span = model.re_turb - model.re_lam
+    re_lo = model.re_lam + 0.25 * re_span
+    re_hi = model.re_lam + 0.75 * re_span
+    re = np.linspace(re_lo, re_hi, 100)
     k_over_D = np.full_like(re, 0.1)
-    _, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    assert np.all(np.diff(lambda_) > 0)
     assert np.all(dlambda_dre > 0)
+
+def test_dlambda_dre_consistent_with_lambda(model_class):
+    """dlambda_dre matches the finite difference of lambda.
+
+    lambda and dlambda_dre are separate code paths, so the analytic
+    dlambda_dre is checked against a second-order central difference
+    of lambda on a dense log-spaced grid.
+    """
+    model = model_class()
+    re = np.logspace(np.log10(1_000), np.log10(1e6), 10_000)
+    k_over_D = np.full_like(re, 0.05)
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    fd = np.gradient(lambda_, re)
+    np.testing.assert_allclose(dlambda_dre, fd, atol=1e-7, rtol=0)
 
 
 def test_colebrook_convergence_failure(model_payload):
@@ -172,8 +198,8 @@ def test_hermite_log_is_single_cubic():
     then :math:`M_{\mathrm{lam}}(T)` varies with :math:`T` and each point
     lies on a *different* cubic.
 
-    Method: fit a cubic through the first 4 interior points — four points
-    uniquely determine a cubic — and check the remaining points lie on
+    Method: fit a cubic through the first 4 interior points -- four points
+    uniquely determine a cubic -- and check the remaining points lie on
     it. Correct implementation gives residual ~1e-14; the buggy version
     gives ~1e-2.
     """
