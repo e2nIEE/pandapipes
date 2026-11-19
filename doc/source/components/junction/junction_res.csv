@@ -1,3 +1,3 @@
 **Parameter**;**Datatype**;**Explanation**
-p_bar;float;The junction pressure [bar]
+p_bar;float;The junction gauge pressure relative to local ambient pressure [bar]
 t_k;float;The junction temperature [K]
