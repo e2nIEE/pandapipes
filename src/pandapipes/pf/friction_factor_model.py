@@ -385,7 +385,7 @@ def hermite_log(
     The substitution
 
     .. math::
-        X &= \ln Re \;\Longrightarrow\; \frac{dRe}{dX} = Re,
+        X = \ln Re \;\Longrightarrow\; \frac{dRe}{dX} = Re
 
     gives the slope
 
