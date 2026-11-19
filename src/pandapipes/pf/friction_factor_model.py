@@ -24,8 +24,9 @@ from __future__ import annotations
 
 import dataclasses
 import math
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Protocol, TypeAlias, runtime_checkable
+from typing import Protocol, TypeAlias, runtime_checkable
 
 import numpy as np
 
@@ -183,8 +184,6 @@ LambdaEstimator: TypeAlias = Callable[[Float64_1D, Float64_1D], Float64_1D]
 
 def _default_initial_estimator(k_over_D: Float64_1D, re: Float64_1D) -> Float64_1D:
     """Default lambda estimator used for Colebrook first iteration."""
-    if np.isclose(k_over_D, 0.0).all():
-        return 64 / re
     return 1 / (-2 * np.log10(k_over_D / 3.71)) ** 2
 
 
@@ -361,8 +360,8 @@ def hermite_log(
 
     The blend matches both :math:`\lambda` and :math:`d\lambda/dRe` at the endpoints
     :math:`Re_{\mathrm{lam}}` and :math:`Re_{\mathrm{turb}}`, so the friction
-    factor and its mass-flow derivative are continuous across the regime
-    boundaries.
+    factor and its derivative with respect to Reynolds number are continuous
+    across the regime boundaries.
 
     The interpolation is carried out in the log-log coordinates
 
