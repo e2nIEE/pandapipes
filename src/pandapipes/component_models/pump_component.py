@@ -166,12 +166,14 @@ class Pump(BranchWOInternalsComponent):
         from_nodes = b_pit[:, IdxBranch.FROM_NODE].astype(np.int32)
         fluid = get_fluid(net)
         rho_n = fluid.get_density(NORMAL_TEMPERATURE)
+
         if fluid.is_gas:
-            p_from = node_pit[from_nodes, IdxNode.PAMB] + node_pit[from_nodes, IdxNode.PINIT]
+            p_from = (node_pit[from_nodes, IdxNode.PAMB] + node_pit[from_nodes, IdxNode.PINIT])
             t_from = node_pit[from_nodes, IdxNode.TINIT]
+            normal_z = fluid.get_compressibility(NORMAL_PRESSURE, NORMAL_TEMPERATURE)
             normfactor = (NORMAL_PRESSURE * t_from
                           * fluid.get_compressibility(p_from, t_from)
-                          / (p_from * NORMAL_TEMPERATURE))
+                          / (p_from * NORMAL_TEMPERATURE * normal_z))
         else:
             normfactor = np.ones(len(b_pit))
 
