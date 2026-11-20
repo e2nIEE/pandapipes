@@ -1,10 +1,9 @@
 # Copyright (c) 2020-2026 by Fraunhofer Institute for Energy Economics
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-import logging
-
 import numpy as np
 import pytest
+from pandera.errors import SchemaError
 import pandapipes
 from pandapipes.properties.fluids import _add_fluid_to_net
 import copy
@@ -176,31 +175,27 @@ def test_zero_flow_pipes(use_numba):
     assert net.res_junction.t_k.at[2] == 293.15
 
 
-def test_pipe_sections_nan(caplog):
-    """NaN in pipe sections is replaced by 1 and a warning is logged"""
+def test_pipe_sections_nan():
+    """Running a pipeflow with NaN in pipe sections raises a SchemaError"""
     from pandapipes.networks.simple_heat_transfer_networks import heat_transfer_delta
     net = heat_transfer_delta()
     net.pipe.at[0, "sections"] = np.nan
-    pandapipes.pipeflow(net)
-    assert net.pipe.sections.at[0] == 1
-    assert "number of sections is NaN" in caplog.text
+    with pytest.raises(SchemaError, match="sections"):
+        pandapipes.pipeflow(net)
 
 
-def test_create_pipe_sections_nan(caplog):
-    """NaN in sections is replaced by 1 and a warning is logged already when the pipe is created"""
-    caplog.set_level(logging.WARNING, logger="pandapipes.create")
+def test_create_pipe_sections_nan():
+    """Creating a pipe with NaN sections raises a SchemaError"""
     net = pandapipes.create_empty_network(add_stdtypes=False)
     pandapipes.create_junctions(net, 2, pn_bar=5, tfluid_k=293.15)
-    pandapipes.create_pipe_from_parameters(net, 0, 1, 1.0, 100., sections=np.nan)
-    assert net.pipe.sections.at[0] == 1
-    assert "following indices: [0]" in caplog.text
+    with pytest.raises(SchemaError, match="sections"):
+        pandapipes.create_pipe_from_parameters(net, 0, 1, 1.0, 100., sections=np.nan)
 
 
-def test_create_pipes_sections_nan(caplog):
-    """NaN entries in a list of sections are replaced by 1 when the pipes are created"""
-    caplog.set_level(logging.WARNING, logger="pandapipes.create")
+def test_create_pipes_sections_nan():
+    """Creating several pipes where one has NaN sections raises a SchemaError"""
     net = pandapipes.create_empty_network(add_stdtypes=False)
     pandapipes.create_junctions(net, 3, pn_bar=5, tfluid_k=293.15)
-    pandapipes.create_pipes_from_parameters(net, [0, 1, 0], [1, 2, 2], 1.0, 100., sections=[2, np.nan, 3])
-    assert net.pipe.sections.tolist() == [2, 1, 3]
-    assert "following indices: [1]" in caplog.text
+    with pytest.raises(SchemaError, match="sections"):
+        pandapipes.create_pipes_from_parameters(net, [0, 1, 0], [1, 2, 2], 1.0, 100.,
+                                                sections=[2, np.nan, 3])

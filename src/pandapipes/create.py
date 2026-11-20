@@ -16,6 +16,7 @@ from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtG
 from pandapipes.component_models.component_toolbox import add_new_component, retrieve_u
 from pandapipes.component_models.flow_control_component import FlowControlComponent
 from pandapipes.component_models.heat_consumer_component import HeatConsumer
+from pandapipes.component_models.pipe_component import pipe_schema
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries, add_default_components, Sector
 from pandapipes.properties import call_lib
 from pandapipes.properties.fluids import Fluid, _add_fluid_to_net
@@ -539,7 +540,7 @@ def create_pipe(net, from_junction, to_junction, std_type, length_km, loss_coeff
          "in_service": bool(in_service), "type": type, "text_k": text_k}
     _set_entries(net, "pipe", index, **v, **kwargs)
 
-    _check_pipe_sections(net, index)
+    _validate_pipes(net, index)
 
     if geodata is not None:
         net["pipe_geodata"].at[index, "coords"] = geodata
@@ -630,7 +631,7 @@ def create_pipe_from_parameters(net, from_junction, to_junction, length_km, inne
                           'create a pipe from net.std_types, please use `create_pipe`')
     _set_entries(net, "pipe", index, **v, **kwargs)
 
-    _check_pipe_sections(net, index)
+    _validate_pipes(net, index)
 
     if geodata is not None:
         net["pipe_geodata"].at[index, "coords"] = geodata
@@ -1522,7 +1523,7 @@ def create_pipes(net, from_junctions, to_junctions, std_type, length_km,
                "sections": sections, "in_service": in_service, "type": type, "text_k": text_k}
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
 
-    _check_pipe_sections(net, index)
+    _validate_pipes(net, index)
 
     if geodata is not None:
         _add_multiple_branch_geodata(net, "pipe", geodata, index)
@@ -1622,7 +1623,7 @@ def create_pipes_from_parameters(net, from_junctions, to_junctions, length_km,
                           'create a pipe from net.std_types, please use `create_pipe`')
     _set_multiple_entries(net, "pipe", index, **entries, **kwargs)
     
-    _check_pipe_sections(net, index)
+    _validate_pipes(net, index)
 
     if geodata is not None:
         _add_multiple_branch_geodata(net, "pipe", geodata, index)
@@ -2028,13 +2029,8 @@ def _check_std_type(net, std_type, table, function_name):
                           'one' % (std_type, table))
 
 
-def _check_pipe_sections(net, index):
-    sections = net.pipe.loc[np.atleast_1d(index), "sections"]
-    nan_index = sections.index[sections.isna()].tolist()
-    if nan_index:
-        logger.warning(f"The number of sections is NaN for the pipes with the following indices: "
-                       f"{nan_index}. The number of sections is set to 1.")
-        net.pipe.loc[nan_index, "sections"] = 1
+def _validate_pipes(net, index):
+    pipe_schema.validate(net.pipe.loc[np.atleast_1d(index)])
 
 
 def _add_multiple_branch_geodata(net, table, geodata, index):

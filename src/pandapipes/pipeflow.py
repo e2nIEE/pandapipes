@@ -2,6 +2,7 @@
 # and Energy System Technology (IEE), Kassel, and University of Kassel. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
+from pandapipes.component_models.pipe_component import pipe_schema
 from pandapipes.pf.calculation import execute_heat, execute_hydraulics, execute_bidirectional
 from pandapipes.pf.pipeflow_setup import (
     get_net_option, init_options, create_lookups, initialize_pit, init_all_result_tables,
@@ -61,6 +62,8 @@ def  init_pipeflow(net, **kwargs):
     :param kwargs: A list of options controlling the solver behaviour
     :return: No output
     """
+    if "pipe" in net:
+        pipe_schema.validate(net.pipe)
     init_options(net, **kwargs)
     init_all_result_tables(net)
     create_lookups(net)

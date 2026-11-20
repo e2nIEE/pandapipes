@@ -4,7 +4,9 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandera.pandas as pa
 from numpy import dtype
+from pandas.api.types import is_integer_dtype
 
 from pandapipes.component_models.abstract_models import BranchWInternalsComponent
 from pandapipes.component_models.component_toolbox import (
@@ -31,6 +33,24 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+pipe_schema = pa.DataFrameSchema(
+    {
+        "sections": pa.Column(
+            checks=[
+                pa.Check(is_integer_dtype, error="sections must be a whole number"),
+                pa.Check.ge(1),
+            ],
+            nullable=False,
+            description="number of internal pipe sections",
+        ),
+    },
+    strict=False,
+)
+"""Pandera schema for the pipe table.
+Defines the requirements for the columns of the pipe table (dtype, allowed values, NaN allowed or
+not). The schema can be extended by adding further columns and checks. Columns that are not
+listed here are allowed and are not checked."""
 
 
 class Pipe(BranchWInternalsComponent):
@@ -77,14 +97,7 @@ class Pipe(BranchWInternalsComponent):
         :rtype:
         """
         sections = net[cls.table_name()].sections
-        nan_sections = sections.isna()
-        if nan_sections.any():
-            logger.warning(
-                f"The number of sections is NaN for the pipes with the following indices: "
-                f"{sections.index[nan_sections].tolist()}. The number of sections is set to 1."
-            )
-            net[cls.table_name()].loc[nan_sections, "sections"] = 1
-        return np.array(net[cls.table_name()].sections.values).astype(np.int32)
+        return np.array(sections.values).astype(np.int32)
 
     @classmethod
     def get_component_input(cls):

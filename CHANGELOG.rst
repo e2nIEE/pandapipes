@@ -2,7 +2,7 @@ Change Log
 =============
 [0.x.x] - 20xx-xx-xx
 -------------------------------
-- [FIXED] NaN in pipe `sections` is replaced by 1 with a warning (#797)
+- [CHANGED] The pipe table is validated with a pandera schema when pipes are created and before a pipeflow. NaN or values < 1 in pipe ``sections`` raise a SchemaError instead of being replaced by 1 (#797)
 - [ADDED]
   FrictionFactorModel protocol. Users can now implement their own friction factor models and pass them
   to the pipeflow.
