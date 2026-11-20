@@ -102,9 +102,10 @@ def get_branch_results_gas(net, branch_pit, node_pit, from_nodes, to_nodes, v_mp
     numerator_to = NORMAL_PRESSURE * t_to / NORMAL_TEMPERATURE
     numerator = NORMAL_PRESSURE * tm / NORMAL_TEMPERATURE
 
-    normfactor_from = numerator_from * fluid.get_compressibility(p_abs_from, t_from) / p_abs_from
-    normfactor_to = numerator_to * fluid.get_compressibility(p_abs_to, t_to) / p_abs_to
-    normfactor_mean = numerator * fluid.get_compressibility(p_abs_mean, tm) / p_abs_mean
+    normal_z = fluid.get_compressibility(NORMAL_PRESSURE, NORMAL_TEMPERATURE)
+    normfactor_from = (numerator_from * fluid.get_compressibility(p_abs_from, t_from) / (p_abs_from * normal_z))
+    normfactor_to = (numerator_to * fluid.get_compressibility(p_abs_to, t_to) / (p_abs_to * normal_z))
+    normfactor_mean = (numerator * fluid.get_compressibility(p_abs_mean, tm) / (p_abs_mean * normal_z))
 
     v_gas_from = v_mps * normfactor_from
     v_gas_to = v_mps * normfactor_to
@@ -129,9 +130,14 @@ def get_branch_results_gas_numba(net, branch_pit, node_pit, from_nodes, to_nodes
         args_from.append(t_from)
         args_to.append(t_to)
         args_mean.append((t_from + t_to) / 2)
-    comp_from = fluid.get_compressibility(*args_from)
-    comp_to = fluid.get_compressibility(*args_to)
-    comp_mean = fluid.get_compressibility(*args_mean)
+    # comp_from = fluid.get_compressibility(*args_from)
+    # comp_to = fluid.get_compressibility(*args_to)
+    # comp_mean = fluid.get_compressibility(*args_mean)
+
+    normal_z = fluid.get_compressibility(NORMAL_PRESSURE, NORMAL_TEMPERATURE)
+    comp_from = fluid.get_compressibility(*args_from) / normal_z
+    comp_to = fluid.get_compressibility(*args_to) / normal_z
+    comp_mean = fluid.get_compressibility(*args_mean) / normal_z
 
     v_gas_from, v_gas_to, v_gas_mean, normfactor_from, normfactor_to, normfactor_mean = \
         get_gas_vel_numba(node_pit, branch_pit, comp_from, comp_to, comp_mean, p_abs_from, p_abs_to,

@@ -10,7 +10,7 @@
 # file's top level reproduces that exact crash immediately.
 import numpy as np
 
-from pandapipes.constants import GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, P_CONVERSION
+from pandapipes.constants import GRAVITATION_CONSTANT, NORMAL_TEMPERATURE, P_CONVERSION,NORMAL_PRESSURE
 from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.friction_factor_model import FrictionFactorModel
@@ -168,8 +168,9 @@ def calculate_derivatives_hydraulic(net, branch_pit_slice, node_pit, options):
         )
     else:
         rho_n = np.full(len(b_pit), fluid.get_density(NORMAL_TEMPERATURE))
-        comp_fact = fluid.get_compressibility(p_m, tinit_branch)
-        dc = fluid.get_der_compressibility()
+        normal_z = fluid.get_compressibility(NORMAL_PRESSURE, NORMAL_TEMPERATURE)
+        comp_fact = fluid.get_compressibility(p_m, tinit_branch) / normal_z
+        dc = fluid.get_der_compressibility() / normal_z
         der_comp = dc * der_p_m
         der_comp1 = dc * der_p_m1
         (

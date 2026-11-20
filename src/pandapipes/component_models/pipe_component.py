@@ -341,7 +341,9 @@ class Pipe(BranchWInternalsComponent):
                 p_from = node_pit[from_nodes, IdxNode.PAMB] + node_pit[from_nodes, IdxNode.PINIT]
                 p_to = node_pit[to_nodes, IdxNode.PAMB] + node_pit[to_nodes, IdxNode.PINIT]
                 p_mean = np.where(p_from == p_to, p_from, 2 / 3 * (p_from ** 3 - p_to ** 3) / (p_from ** 2 - p_to ** 2))
-                factor = NORMAL_PRESSURE * node_pit[m_nodes, IdxNode.TINIT] / NORMAL_TEMPERATURE
+                # factor = NORMAL_PRESSURE * node_pit[m_nodes, IdxNode.TINIT] / NORMAL_TEMPERATURE
+                normal_z = fluid.get_compressibility(NORMAL_PRESSURE, NORMAL_TEMPERATURE)
+                factor = (NORMAL_PRESSURE * node_pit[m_nodes, IdxNode.TINIT] / (NORMAL_TEMPERATURE * normal_z))
 
                 args_from, args_to, args_mean = [p_from], [p_to], [p_mean]
                 if (hasattr(fluid.all_properties["compressibility"], "allow_2d")
