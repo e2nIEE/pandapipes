@@ -7,7 +7,7 @@ import pandapipes as pp
 import numpy as np
 import os
 import pytest
-from pandapipes.io import convert_format
+from pandapipes.io.convert_format import convert_format
 from packaging import version
 
 folder = os.path.join(pp_dir, "test", "api", "old_versions")
