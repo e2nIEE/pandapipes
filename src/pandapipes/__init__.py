@@ -28,7 +28,7 @@ pp_dir = os.path.dirname(os.path.realpath(__file__))
 from pandapipes.properties.fluids import *
 from pandapipes.create import *
 from pandapipes.io.file_io import *
-from pandapipes.io.serialization import serializable
+from pandapipes.io.serialization import serializable, SerializableNotRegistered
 from pandapipes.pipeflow import *
 from pandapipes.toolbox import *
 from pandapipes.pf.pipeflow_setup import *

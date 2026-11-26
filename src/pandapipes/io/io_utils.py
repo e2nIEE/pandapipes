@@ -19,7 +19,7 @@ from pandapipes.component_models.abstract_models.base_component import Component
 from pandapipes.component_models.abstract_models.branch_models import Component
 from pandapipes.multinet.create_multinet import MultiNet, create_empty_multinet
 from pandapipes.pandapipes_net import pandapipesNet, get_basic_net_entries
-from pandapipes.io.serialization import _resolve
+from pandapipes.io.serialization import _restore_registered
 
 try:
     import pandaplan.core.pplog as logging
@@ -111,9 +111,9 @@ class FromSerializableRegistryPpipe(FromSerializableRegistry):
 
     @from_serializable.register()
     def rest(self):
-        cls = _resolve(self.class_name, self.module_name)
-        if cls is not None:
-            return cls()
+        obj = _restore_registered(self.class_name, self.module_name, self.obj)
+        if obj is not None:
+            return obj
         try:
             module = importlib.import_module(self.module_name)
         except ModuleNotFoundError as e:

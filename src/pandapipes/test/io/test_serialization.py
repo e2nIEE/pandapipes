@@ -110,3 +110,21 @@ def test_decode_warns_when_name_resolves_to_class_from_another_module():
 
     with pytest.warns(UserWarning, match="resolved to"):
         pp.from_json_string(json_str)
+
+
+def test_serialized_but_not_in_registry_raises(empty_registry):
+    @pp.serializable
+    class Lost: ...
+
+    net = pp.create_empty_network("", "lgas", add_stdtypes=False)
+    pp.set_user_pf_options(net, friction_model=Lost())
+    pp.init_options(net)
+
+    json_str = pp.to_json(net, None)
+    serialization._REGISTRY.clear()
+
+    with pytest.raises(
+        pp.SerializableNotRegistered,
+        match="'Lost'.*but is not in the registry",
+    ):
+        pp.from_json_string(json_str)
