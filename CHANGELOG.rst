@@ -3,6 +3,7 @@ Change Log
 [0.x.x] - 20xx-xx-xx
 -------------------------------
 - [ADDED] WorstPointPressureDropController for district heating networks. It keeps the pressure difference at the worst point (heat consumer with the lowest pressure difference) at a target value by adapting the circulation pump pressures, incl. tutorial WorstPointPressureDropController.ipynb.
+
 [0.xx.x] - unreleased
 -------------------------------
 - [CHANGED] completed renaming of `alpha_w_per_m2k` to `u_w_per_m2k`
