@@ -15,8 +15,19 @@ from pandapipes.idx_node import IdxNode
 logger = logging.getLogger(__name__)
 
 
+def _add_laminar_slope_at_standstill(df_dm, branch_pit, const_term_m, eta, area):
+    """At standstill the quadratic friction loss ``lambda * m * |m|`` has no slope, which leaves
+    e.g. parallel stagnant pipes with a singular Jacobian. Its actual slope there is the laminar
+    one (Hagen-Poiseuille, ``lambda = 64 / Re``). ``const_term_m`` is the factor in front of
+    ``lambda * m * |m| * L / d`` in the momentum residual.
+    """
+    stagnant = np.isclose(branch_pit[:, IdxBranch.RE], 0)
+    df_dm[stagnant] -= (const_term_m[stagnant] * 64 * eta[stagnant] * area[stagnant]
+                        * branch_pit[stagnant, IdxBranch.LENGTH] / branch_pit[stagnant, IdxBranch.D] ** 2)
+
+
 def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                    height_difference, rho, area):
+                                    height_difference, rho, eta, area):
     # Formulas for pressure loss in incompressible flow
     # Use medium density ((rho_from + rho_to) / 2) for Darcy Weisbach according to
     # https://www.schweizer-fn.de/rohr/rohrleitung/rohrleitung.php#fluessigkeiten
@@ -37,6 +48,7 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
 
     df_dm = - const_term * (2 * m_abs_deriv * friction_term + der_lambda
                             * length / d * m_init2)
+    _add_laminar_slope_at_standstill(df_dm, branch_pit, const_term, eta, area)
 
     residual_vec = p_diff + pl + const_height - const_term * m_init2 * friction_term
 
@@ -54,7 +66,7 @@ def derivatives_hydraulic_incomp_np(branch_pit, der_lambda, p_init_i_abs, p_init
 
 
 def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_init_i_abs, p_init_i1_abs,
-                                  height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, area):
+                                  height_difference, comp_fact, der_comp, der_comp1, rho, rho_n, eta, area):
     # Formulas for gas pressure loss according to laminar version
     m_init_abs = np.abs(branch_pit[:, IdxBranch.MDOTINIT])
     m_abs_deriv = np.maximum(m_init_abs, 1e-8)
@@ -76,7 +88,7 @@ def derivatives_hydraulic_comp_np(node_pit, branch_pit, lambda_, der_lambda, p_i
     const_term_m = const_term * p_sum_div * tm * comp_fact
     df_dm = - const_term_m * (2 * m_abs_deriv * friction_term +
                             np.divide(der_lambda * branch_pit[:, IdxBranch.LENGTH] * m_init2, branch_pit[:, IdxBranch.D]))
-    df_dm[np.isclose(m_init_abs, 0)] = 1.
+    _add_laminar_slope_at_standstill(df_dm, branch_pit, const_term_m, eta, area)
 
     residual_vec = p_diff + branch_pit[:, IdxBranch.PL] + const_height \
                    - const_term * comp_fact * m_init2 * friction_term * p_sum_div * tm
@@ -98,7 +110,7 @@ def derivatives_branch_thermal_np(branch_pit,
     mdot = np.abs(branch_pit[:, IdxBranch.MDOTINIT])
     t_amb = branch_pit[:, IdxBranch.TEXT]
     length = branch_pit[:, IdxBranch.LENGTH]
-    alpha = branch_pit[:, IdxBranch.ALPHA] * np.pi * branch_pit[:, IdxBranch.DO]
+    alpha = branch_pit[:, IdxBranch.U] * np.pi * branch_pit[:, IdxBranch.DO]
     tl = branch_pit[:, IdxBranch.TL]
     qext = branch_pit[:, IdxBranch.QEXT]
 
@@ -184,7 +196,7 @@ def derivatives_node_thermal_np(node_pit, branch_pit,
         # see derivatives_branch_thermal_np: the area is the thermal capacity regularizing the
         # stagnant node, so branches without a diameter fall back to a reference area
         area = stagnant_branch_area(branch_pit)
-        alpha = branch_pit[:, IdxBranch.ALPHA] * np.pi * branch_pit[:, IdxBranch.DO]
+        alpha = branch_pit[:, IdxBranch.U] * np.pi * branch_pit[:, IdxBranch.DO]
         t_amb = branch_pit[:, IdxBranch.TEXT]
 
         if np.any(~nodes_flow):

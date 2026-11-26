@@ -67,7 +67,7 @@ def flow_control_patches(coords, size, **kwargs):
         dx = 1.5 * size * np.sin(angle - np.pi/2)
         dy = 1.5 * size * np.cos(angle - np.pi/2)
 
-        polys.append(FancyArrow(center[0], center[1], dx, dy, head_length=0,
+        polys.append(FancyArrow(center[0], center[1], dx, dy, width=0, head_length=0,
                                 head_width=2*size*controlled_ind, color=col))
     return lines, polys, {"filled", "controlled"}
 

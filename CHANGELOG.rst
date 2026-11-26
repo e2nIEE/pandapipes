@@ -3,6 +3,16 @@ Change Log
 [0.x.x] - 20xx-xx-xx
 -------------------------------
 - [ADDED] WorstPointPressureDropController for district heating networks. It keeps the pressure difference at the worst point (heat consumer with the lowest pressure difference) at a target value by adapting the circulation pump pressures, incl. tutorial WorstPointPressureDropController.ipynb.
+[0.xx.x] - unreleased
+-------------------------------
+- [CHANGED] completed renaming of `alpha_w_per_m2k` to `u_w_per_m2k`
+
+[0.18.0] - 2026-11-16
+-------------------------------
+- [CHANGED] `FrictionFactorModel` now exposes `compute_lambda_and_dlambda_dre(k_over_D, re)` instead of `compute_lambda_and_dlambda_dm(k_over_D, re, m)`
+- [CHANGED] ``use_numba`` test parametrization ids are now ``[numba]``/``[numpy]`` instead of ``[True]``/``[False]``
+- [ADDED] ``--only=numba|numpy`` CLI option to run only one branch of the ``use_numba`` test parametrization
+- [FIXED] velocities close to zero caused singular error. Fixed by introducing correct derivative.
 
 [0.17.0] - 2026-11-13
 -------------------------------
