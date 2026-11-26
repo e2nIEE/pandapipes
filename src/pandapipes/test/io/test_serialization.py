@@ -59,17 +59,18 @@ def test_reregistering_same_class_is_silent():
         pp.serializable(A)
 
 
-def test_friction_model_encodes_by_class_name(model_class):
+def test_encode_emits_class_name_module_and_marker():
     net = pp.create_empty_network("", "lgas", add_stdtypes=False)
-    pp.set_user_pf_options(net, friction_model=model_class())
+    pp.set_user_pf_options(net, friction_model=fm.Colebrook())
     pp.init_options(net)
 
     net_dict = json.loads(pp.to_json(net, None))
     friction_model = net_dict["_object"]["user_pf_options"]["friction_model"]
     assert isinstance(friction_model, Mapping)
     # pins pandapower's key names on purpose: a rename there should fail here first
-    assert friction_model["_class"] == model_class.__name__
+    assert friction_model["_class"] == fm.Colebrook.__name__
     assert friction_model["_module"] == fm.__name__
+    assert friction_model["_object"] == serialization._MARKER
 
 
 def test_friction_model_roundtrips(model_class):
