@@ -1,6 +1,6 @@
 **Parameter**;**Datatype**;**Value Range**;**Explanation**
 name;string;;Name of the junction
-pn_bar;float;:math:`>` 0;Rated pressure of the junction [bar]. Also the initial value for the calculation.
+pn_bar;float;:math:`>` 0;Rated gauge pressure of the junction relative to local ambient pressure [bar]. Also the initial value for the calculation.
 tfluid_k;float;:math:`\ge` 0   ;Fluid temperature at junction [K]
 height_m;float;:math:`\ge` 0   ;The height above sea level of the junction [m]
 in_service;boolean;True / False;Specifies if the bus is in service.
