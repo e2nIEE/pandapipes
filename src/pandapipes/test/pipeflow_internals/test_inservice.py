@@ -641,7 +641,7 @@ def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
         net.ext_grid.at[ex2, 'in_service'] = False
         pandapipes.pipeflow(net, max_iter_hyd=max_iter_hyd, tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
-    assert ~net.converged
+    assert not net.converged
     net.ext_grid.at[ex1, 'in_service'] = False
     net.ext_grid.at[ex2, 'in_service'] = True
 
@@ -654,7 +654,7 @@ def test_pipeflow_all_oos(create_net_wo_ext_grid, use_numba):
         pandapipes.pipeflow(net, mode='sequential', max_iter_hyd=max_iter_hyd,
                             tol_p=1e-7, tol_m=1e-7, friction_model="nikuradse",
                             use_numba=use_numba, check_connectivity=True)
-    assert ~net.converged
+    assert not net.converged
 
 
 if __name__ == "__main__":
