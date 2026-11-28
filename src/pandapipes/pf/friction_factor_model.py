@@ -27,6 +27,8 @@ from typing import Callable, Protocol, TypeAlias, runtime_checkable
 
 import numpy as np
 
+from pandapipes.io.serialization import serializable
+
 Float64_1D: TypeAlias = np.ndarray[tuple[int], np.dtype[np.float64]]
 FrictionFactorResult: TypeAlias = tuple[
     Float64_1D,
@@ -59,6 +61,7 @@ class FrictionFactorModel(Protocol):
         ...
 
 
+@serializable
 @dataclass(slots=True)
 class SwameeJain(FrictionFactorModel):
     """Implementation of the Swamee‑Jain explicit friction factor equation.
@@ -115,6 +118,7 @@ class SwameeJain(FrictionFactorModel):
         return lambda_, dlambda_dre
 
 
+@serializable
 @dataclass(slots=True)
 class Nikuradse(FrictionFactorModel):
     """Implementation of the Nikuradse friction factor equation."""
@@ -147,6 +151,7 @@ def _default_initial_estimator(k_over_D: Float64_1D, re: Float64_1D) -> Float64_
     return 1 / (-2 * np.log10(k_over_D / 3.71)) ** 2
 
 
+@serializable
 @dataclass(slots=True)
 class Colebrook(FrictionFactorModel):
     r"""Implementation of the Colebrook‑White friction factor equation.
@@ -174,13 +179,11 @@ class Colebrook(FrictionFactorModel):
         >>> colebrook = pp.Colebrook(initial_estimator=lambda k_over_D, re: 64 / re)
     """
 
-    initial_estimator: LambdaEstimator | None = None
+    initial_estimator: LambdaEstimator = _default_initial_estimator
     tolerance: float = 1e-4
     max_iter: int = 100
 
     def __post_init__(self):
-        if self.initial_estimator is None:
-            self.initial_estimator = _default_initial_estimator
         if not self.max_iter > 0:
             msg = "'max_iter' should be > 0"
             raise ValueError(msg)

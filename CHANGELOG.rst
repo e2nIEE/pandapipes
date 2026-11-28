@@ -2,6 +2,8 @@ Change Log
 =============
 [0.x.x] - 20xx-xx-xx
 -------------------------------
+- [FIXED] JSON serialization of friction factor models
+- [ADDED] `pp.serializable` for registering custom classes for name-only JSON round-trip
 - [ADDED] WorstPointPressureDropController for district heating networks. It keeps the pressure difference at the worst point (heat consumer with the lowest pressure difference) at a target value by adapting the circulation pump pressures, incl. tutorial WorstPointPressureDropController.ipynb.
 
 [0.xx.x] - unreleased

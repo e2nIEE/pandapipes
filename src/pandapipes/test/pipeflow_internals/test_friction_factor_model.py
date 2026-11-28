@@ -41,18 +41,6 @@ def test_compute_lambda_and_dlambda_dre(
     np.testing.assert_allclose(dlambda_dre, expected_dlambda_dre, rtol=1e-5)
 
 
-@pytest.fixture(
-    params=[
-        fm.Nikuradse,
-        fm.SwameeJain,
-        fm.Colebrook,
-    ]
-)
-def model_class(request):
-    """Fixture that yields each friction‑factor model class."""
-    return request.param
-
-
 def test_friction_result_shape_and_dtype(
     model_class,
     model_payload,
