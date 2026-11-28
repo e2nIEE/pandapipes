@@ -17,7 +17,8 @@ from pandapipes.pf.derivative_calculation import calculate_derivatives_node_ther
 from pandapipes.pf.system_index import PitEntries, ComponentEquations, ThermVarEq
 from pandapipes.pf.pipeflow_setup import add_table_lookup, get_table_number, \
     get_lookup, get_net_option, is_transient_warm_start
-
+from pandapipes.properties.fluids import Fluid, get_fluid
+from pandapipes.properties.properties_toolbox import water_saturation_temperature_k
 
 class Junction(NodeComponent):
     """Junction node component."""
@@ -197,6 +198,24 @@ class Junction(NodeComponent):
                 warn(UserWarning('Pipeflow converged, however, the results are physically incorrect '
                                  'as pressure is negative at nodes %s'
                                  % junction_pit[junction_pit[:, IdxNode.PINIT] < 0, IdxNode.ELEMENT_IDX]))
+
+
+        fluid = get_fluid(net)
+        if isinstance(fluid, Fluid) and fluid.name == "water" and fluid.fluid_type == "liquid":
+            active_junctions = get_lookup(net, "node", "active_hydraulics")[f:t]
+            if mode != "hydraulics":
+                active_junctions = active_junctions & get_lookup(net, "node", "active_heat_transfer")[f:t]
+
+            active_pit = junction_pit[active_junctions]
+            pressure_mpa = (active_pit[:, IdxNode.PINIT] + active_pit[:, IdxNode.PAMB]) * 0.1
+            temperature_k = active_pit[:, IdxNode.TINIT]
+            boiling_temperature_k = water_saturation_temperature_k(pressure_mpa)
+
+            above_boiling = np.isfinite(temperature_k) & (temperature_k > boiling_temperature_k)
+            if np.any(above_boiling):
+                junction_ids = active_pit[above_boiling, IdxNode.ELEMENT_IDX].astype(int)
+                warn(f"Water temperature exceeds the boiling point at junctions {junction_ids.tolist()}.",
+                     UserWarning)
 
         res_table["p_bar"].values[:] = junction_pit[:, IdxNode.PINIT]
         res_table["t_k"].values[:] = junction_pit[:, IdxNode.TINIT]

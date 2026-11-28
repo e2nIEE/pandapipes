@@ -142,3 +142,26 @@ def test_bidirectional_automatic_damping_no_crash():
                         max_iter_bidirect=20)
 
     assert net.converged
+
+
+@pytest.mark.parametrize("pressure_bar, should_warn", [(0.2, True), (3.0, False)])
+def test_water_boiling_warning(pressure_bar, should_warn, recwarn):
+    net = pandapipes.create_empty_network(fluid="water")
+    temperature_k = 393.15  # 120 °C
+
+    j1 = pandapipes.create_junction(net, pn_bar=pressure_bar, tfluid_k=temperature_k)
+    j2 = pandapipes.create_junction(net, pn_bar=pressure_bar, tfluid_k=temperature_k)
+
+    pandapipes.create_ext_grid(net, j1, p_bar=pressure_bar, t_k=temperature_k, type="pt")
+    pandapipes.create_pipe_from_parameters(net, j1, j2, length_km=0.1, inner_diameter_mm=100)
+    pandapipes.create_sink(net, j2, mdot_kg_per_s=0.5)
+
+    pandapipes.pipeflow(net, mode="sequential")
+
+    assert net.converged
+
+    got_warning = any(
+        "exceeds the boiling point" in str(warning.message)
+        for warning in recwarn
+    )
+    assert got_warning == should_warn

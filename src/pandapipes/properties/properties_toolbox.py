@@ -9,6 +9,30 @@ from pandapipes.idx_branch import IdxBranch
 from pandapipes.idx_node import IdxNode
 from pandapipes.pf.internals_toolbox import get_from_nodes_corrected, get_to_nodes_corrected
 
+def water_saturation_temperature_k(absolute_pressure_mpa):
+    """Calculate the water saturation temperature in K from absolute pressure in MPa."""
+    n1, n2, n3, n4, n5, n6, n7, n8, n9, n10 = (
+        0.11670521452767e4,
+        -0.72421316703206e6,
+        -0.17073846940092e2,
+        0.12020824702470e5,
+        -0.32325550322333e7,
+        0.14915108613530e2,
+        -0.48232657361591e4,
+        0.40511340542057e6,
+        -0.23855557567849,
+        0.65017534844798e3,
+    )
+
+    pressure = np.asarray(absolute_pressure_mpa, dtype=float)
+    valid = (pressure >= 0.000611213) & (pressure <= 22.064)
+    beta = np.where(valid, pressure, np.nan) ** 0.25
+    e = beta**2 + n3 * beta + n6
+    f = n1 * beta**2 + n4 * beta + n7
+    g = n2 * beta**2 + n5 * beta + n8
+    d = 2 * g / (-f - np.sqrt(f**2 - 4 * e * g))
+    return (n10 + d - np.sqrt((n10 + d)**2 - 4 * (n9 + n10 * d))) / 2
+
 
 def calculate_mixture_viscosity(components_viscosities, components_molar_proportions,
                                 components_molar_mass):
