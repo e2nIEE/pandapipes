@@ -184,9 +184,11 @@ class HeatConsumer(BranchWOInternalsComponent):
             from_nodes = get_from_nodes_corrected(b_pit).astype(np.int32)
             t_in  = node_pit[from_nodes, IdxNode.TINIT]
             t_out = b_pit[:, IdxBranch.TOUTINIT]
+            qext = b_pit[:, IdxBranch.QEXT]
             df_dm_qetr = -cp * (t_out - t_in)
-            mask_equal = t_out >= t_in
-            mask_zero  = b_pit[:, IdxBranch.QEXT] == 0
+            # negative qext: consumer acts as secondary heat generator, so t_out must exceed t_in
+            mask_equal = np.where(qext < 0, t_in >= t_out, t_out >= t_in)
+            mask_zero  = qext == 0
             mask_ign   = mask_equal | mask_zero
 
             # A degenerate QE_TR consumer (t_out already >= t_in, or qext_w == 0) has no valid
