@@ -450,5 +450,174 @@ def pipeflow_with_mark(net, **kwargs):
     net['mark'] = "pipeflow"
 
 
+@pytest.fixture
+def open_loop_net():
+    net = pandapipes.create_empty_network("open_loop_net", add_stdtypes=False, fluid="water")
+    junction0 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=350, name="Connection to ExtGrid")
+    junction1 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=350, name="Junction 1")
+    junction2 = pandapipes.create_junction(net, pn_bar=5, tfluid_k=350, name="Junction 2")
+    pandapipes.create_pipe_from_parameters(net, junction0, junction1, length_km=0.1,
+                                           inner_diameter_mm=100, name="Pipe 1")
+    pandapipes.create_pipe_from_parameters(net, junction1, junction2, length_km=0.1,
+                                           inner_diameter_mm=100, name="Pipe 2")
+    pandapipes.create_ext_grid(net, junction=junction0, p_bar=5, t_k=363.15,
+                               name="Grid Connection")
+    pandapipes.create_sink(net, junction=junction1, mdot_kg_per_s=1.0, name="Sink 1")
+    pandapipes.create_sink(net, junction=junction2, mdot_kg_per_s=0.5, name="Sink 2")
+    pandapipes.create_source(net, junction=junction0, mdot_kg_per_s=0.2, name="Source 1")
+    return net
+
+
+def test_convert_open_to_closed_loop_structure(open_loop_net):
+    net = pandapipes.convert_open_to_closed_loop(open_loop_net, deltat_k=20, cp_w_per_kg=4182)
+
+    # original net is not modified
+    assert len(open_loop_net.junction) == 3
+    assert len(open_loop_net.pipe) == 2
+    assert len(open_loop_net.ext_grid) == 1
+    assert len(open_loop_net.sink) == 2
+    assert len(open_loop_net.source) == 1
+
+    # junctions and pipes are doubled, return line is labeled
+    assert len(net.junction) == 6
+    assert len(net.pipe) == 4
+    assert set(net.junction["system"]) == {"flow", "return"}
+    assert set(net.pipe["system"]) == {"flow", "return"}
+
+    # open loop boundary elements are removed (tables and components)
+    assert "ext_grid" not in net
+    assert "sink" not in net
+    assert "source" not in net
+    for comp in net.component_list:
+        assert comp.table_name() not in ["ext_grid", "sink", "source"]
+
+    # the pumps and heat consumers replace the boundary elements
+    assert len(net.circ_pump_pressure) == 1
+    assert len(net.heat_consumer) == 3
+    pump = net.circ_pump_pressure.iloc[0]
+    # flow junction is the original ext_grid junction, return junction is its mirror
+    assert pump.flow_junction == open_loop_net.ext_grid.junction.values[0]
+    assert pump.return_junction not in open_loop_net.junction.index
+    assert np.isclose(pump.p_flow_bar, 5)
+    assert np.isclose(pump.t_flow_k, 363.15)
+
+    # sinks keep their mass flow and deltat_k, sources become heat feed-in (negative qext_w)
+    hc = net.heat_consumer
+    sink_hc = hc[hc.qext_w.isna()]
+    assert all(np.isclose(sink_hc.controlled_mdot_kg_per_s.values, [1.0, 0.5]))
+    assert all(np.isclose(sink_hc.deltat_k, 20))
+    source_hc = hc[~hc.qext_w.isna()]
+    assert len(source_hc) == 1
+    assert np.isclose(source_hc.qext_w.values[0], -0.2 * 4182 * 20)
+    assert np.isclose(source_hc.controlled_mdot_kg_per_s.values[0], 0.2)
+    # each heat consumer connects a flow line junction with its return mirror
+    for row in hc.itertuples():
+        assert net.junction.at[row.from_junction, "system"] == "flow"
+        assert net.junction.at[row.to_junction, "system"] == "return"
+
+
+def test_convert_open_to_closed_loop_pipeflow(open_loop_net):
+    net = pandapipes.convert_open_to_closed_loop(open_loop_net, deltat_k=20, cp_w_per_kg=4182)
+    pandapipes.pipeflow(net, mode="sequential")
+    assert net["converged"]
+
+    # the pump must transport the mass flow of all heat consumers (sum of the controlled
+    # mass flows of the converted sinks and sources)
+    pump_mdot = net["res_circ_pump_pressure"].mdot_from_kg_per_s.values[0]
+    assert np.isclose(pump_mdot, 1.0 + 0.5 + 0.2)
+
+
+def test_convert_closed_to_open_loop_structure():
+    net_open = pandapipes.create_empty_network("net", add_stdtypes=False, fluid="water")
+    j0 = pandapipes.create_junction(net_open, pn_bar=5, tfluid_k=350)
+    j1 = pandapipes.create_junction(net_open, pn_bar=5, tfluid_k=350)
+    j2 = pandapipes.create_junction(net_open, pn_bar=5, tfluid_k=350)
+    pandapipes.create_pipe_from_parameters(net_open, j0, j1, length_km=0.1, inner_diameter_mm=100)
+    pandapipes.create_pipe_from_parameters(net_open, j1, j2, length_km=0.1, inner_diameter_mm=100)
+    pandapipes.create_ext_grid(net_open, junction=j0, p_bar=5, t_k=363.15)
+    pandapipes.create_sink(net_open, junction=j1, mdot_kg_per_s=1.0)
+    pandapipes.create_sink(net_open, junction=j2, mdot_kg_per_s=0.5)
+    pandapipes.create_source(net_open, junction=j0, mdot_kg_per_s=0.2)
+    ext_grid_junction = j0
+
+    net = pandapipes.convert_open_to_closed_loop(net_open, deltat_k=20, cp_w_per_kg=4182)
+    net = pandapipes.convert_closed_to_open_loop(net)
+
+    # closed loop boundary elements are removed, open loop elements are recreated
+    assert "circ_pump_pressure" not in net
+    assert "circ_pump_mass" not in net
+    assert "heat_consumer" not in net
+    for comp in net.component_list:
+        assert comp.table_name() not in ["circ_pump_pressure", "circ_pump_mass", "heat_consumer"]
+
+    assert len(net.junction) == 3
+    assert len(net.pipe) == 2
+    assert len(net.ext_grid) == 1
+    assert len(net.sink) == 2
+    assert len(net.source) == 1
+    # junction indices of original flow line are kept
+    assert set(net.junction.index) == {j0, j1, j2}
+    assert net.ext_grid.junction.values[0] == ext_grid_junction
+
+    # mass flows and set points are restored
+    assert np.allclose(sorted(net.sink.mdot_kg_per_s.values), [0.5, 1.0])
+    assert np.isclose(net.source.mdot_kg_per_s.values[0], 0.2)
+    assert np.isclose(net.ext_grid.p_bar.values[0], 5)
+    assert np.isclose(net.ext_grid.t_k.values[0], 363.15)
+    assert "system" not in net.junction.columns
+    assert "system" not in net.pipe.columns
+
+    pandapipes.pipeflow(net, mode="sequential")
+    assert net["converged"]
+
+
+def test_convert_open_to_closed_loop_kwargs(open_loop_net):
+    net = pandapipes.convert_open_to_closed_loop(open_loop_net, deltat_k=20, p_flow_bar=4,
+                                                 t_flow_k=370, cp_w_per_kg=4182, name="Test pump")
+    pump = net.circ_pump_pressure.iloc[0]
+    assert np.isclose(pump.p_flow_bar, 4)
+    assert np.isclose(pump.t_flow_k, 370)
+    assert pump["name"] == "Test pump"
+
+
+def test_convert_open_to_closed_loop_errors(open_loop_net):
+    # deltat_k is required
+    with pytest.raises(AttributeError):
+        pandapipes.convert_open_to_closed_loop(open_loop_net)
+    # net with circulation pumps is probably already closed
+    net = copy.deepcopy(open_loop_net)
+    pandapipes.create_circ_pump_const_pressure(net, 0, 1, 5, 1)
+    with pytest.raises(UserWarning):
+        pandapipes.convert_open_to_closed_loop(net, deltat_k=20)
+    # net with heat consumers is probably already closed
+    net = copy.deepcopy(open_loop_net)
+    pandapipes.create_heat_consumer(net, 0, 1, qext_w=1000, deltat_k=10)
+    with pytest.raises(UserWarning):
+        pandapipes.convert_open_to_closed_loop(net, deltat_k=20)
+    # more than one in-service ext_grid
+    net = copy.deepcopy(open_loop_net)
+    pandapipes.create_ext_grid(net, junction=1, p_bar=3, t_k=300)
+    with pytest.raises(UserWarning):
+        pandapipes.convert_open_to_closed_loop(net, deltat_k=20)
+
+
+def test_convert_closed_to_open_loop_errors(open_loop_net):
+    # net with ext_grid/sink/source is probably already open
+    with pytest.raises(UserWarning):
+        pandapipes.convert_closed_to_open_loop(open_loop_net)
+    # no in-service circulation pump
+    net = pandapipes.convert_open_to_closed_loop(open_loop_net, deltat_k=20, cp_w_per_kg=4182)
+    net.circ_pump_pressure.in_service = False
+    with pytest.raises(UserWarning):
+        pandapipes.convert_closed_to_open_loop(net)
+    # two in-service circulation pumps
+    net = pandapipes.convert_open_to_closed_loop(open_loop_net, deltat_k=20, cp_w_per_kg=4182)
+    pandapipes.create_circ_pump_const_pressure(net, net.circ_pump_pressure.flow_junction.values[0],
+                                               net.circ_pump_pressure.return_junction.values[0],
+                                               5, 1)
+    with pytest.raises(UserWarning):
+        pandapipes.convert_closed_to_open_loop(net)
+
+
 if __name__ == '__main__':
     n = pytest.main(["test_toolbox.py"])
