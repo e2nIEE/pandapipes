@@ -1,3 +1,6 @@
+import dataclasses
+from dataclasses import dataclass
+from functools import partial
 from unittest.mock import Mock
 
 import numpy as np
@@ -21,6 +24,7 @@ def model_payload():
 @pytest.mark.parametrize(
     "model_class, expected_lambda, expected_dlambda_dre",
     (
+        (fm.Laminar, 0.032, -1.6e-5),
         (fm.Nikuradse, 0.103461, -1.6e-5),
         (fm.SwameeJain, 0.0858357, -6.1399e-6),
         (fm.Colebrook, 0.0818189, -4.7054e-6),
@@ -41,15 +45,28 @@ def test_compute_lambda_and_dlambda_dre(
     np.testing.assert_allclose(dlambda_dre, expected_dlambda_dre, rtol=1e-5)
 
 
-@pytest.fixture(
-    params=[
-        fm.Nikuradse,
-        fm.SwameeJain,
-        fm.Colebrook,
-    ]
+_INDIVIDUAL_MODELS = (
+    fm.Laminar,
+    fm.Nikuradse,
+    fm.SwameeJain,
+    fm.Colebrook,
 )
+
+_REGIME_AWARE_MODELS = (
+    pytest.param(
+        partial(fm.RegimeAwareFrictionModel, transition_strategy=fm.hermite_log),
+        id="Regime_Aware_Hermite",
+    ),
+    pytest.param(
+        partial(fm.RegimeAwareFrictionModel, transition_strategy=fm.smoothstep),
+        id="Regime_Aware_Smoothstep",
+    ),
+)
+
+
+@pytest.fixture(params=[*_INDIVIDUAL_MODELS, *_REGIME_AWARE_MODELS])
 def model_class(request):
-    """Fixture that yields each friction‑factor model class."""
+    """Fixture that yields each friction-factor model class."""
     return request.param
 
 
@@ -73,16 +90,65 @@ def test_friction_result_shape_and_dtype(
         assert param.shape == re.shape
 
 
-def test_lambda_decreases_as_Re_increases(model_class, model_payload):
-    """lambda decreases as Re increases, as observed experimentally (Moody chart)."""
+def test_empty_inputs(model_class):
+    """Models must handle empty arrays gracefully (e.g., empty regime masks)."""
     model = model_class()
-    re = np.array((5_000, 10_000, 100_000, 1_000_000), dtype=np.float64)
-    payload = {
-        "re": re,
-        "k_over_D": np.full_like(re, model_payload["k_over_D"]),
-    }
-    lambdas, _ = model.compute_lambda_and_dlambda_dre(**payload)
-    assert all(np.diff(lambdas) < 0), lambdas
+    re = np.array([])
+    k_over_D = np.array([])
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    assert lambda_.shape == (0,)
+    assert dlambda_dre.shape == (0,)
+
+
+@pytest.mark.parametrize("model_class", _INDIVIDUAL_MODELS)
+def test_lambda_decreases_as_Re_increases(model_class):
+    """lambda decreases as Re increases, as observed on the Moody chart.
+
+    Checks the integral property (monotone decrease in the sampled
+    lambda values) and the pointwise property (dlambda_dre < 0)
+    on a log-spaced grid.
+    """
+    model = model_class()
+    re = np.logspace(np.log10(5_000), np.log10(1e6), 100)
+    k_over_D = np.full_like(re, 0.05)
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    assert np.all(np.diff(lambda_) < 0), lambda_
+    assert np.all(dlambda_dre < 0)
+
+
+@pytest.mark.parametrize("model_class", _REGIME_AWARE_MODELS)
+def test_regime_aware_derivative_positive_in_transition(model_class):
+    """lambda and dlambda_dre increase with Re in the interior of the transition.
+
+    Near the boundaries the derivative of the blend weight vanishes,
+    so the base slopes dominate and dlambda_dre stays negative. This
+    test samples only the 0.25 .. 0.75 window of the normalised
+    transition span, independent of sample count.
+    """
+    model = model_class()
+    # interior points only
+    re_span = model.re_turb - model.re_lam
+    re_lo = model.re_lam + 0.25 * re_span
+    re_hi = model.re_lam + 0.75 * re_span
+    re = np.linspace(re_lo, re_hi, 100)
+    k_over_D = np.full_like(re, 0.1)
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    assert np.all(np.diff(lambda_) > 0)
+    assert np.all(dlambda_dre > 0)
+
+def test_dlambda_dre_consistent_with_lambda(model_class):
+    """dlambda_dre matches the finite difference of lambda.
+
+    lambda and dlambda_dre are separate code paths, so the analytic
+    dlambda_dre is checked against a second-order central difference
+    of lambda on a dense log-spaced grid.
+    """
+    model = model_class()
+    re = np.logspace(np.log10(1_000), np.log10(1e6), 10_000)
+    k_over_D = np.full_like(re, 0.05)
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+    fd = np.gradient(lambda_, re)
+    np.testing.assert_allclose(dlambda_dre, fd, atol=1e-7, rtol=0)
 
 
 def test_colebrook_convergence_failure(model_payload):
@@ -115,6 +181,158 @@ def test_colebrook_estimator_called_once(model_payload):
         model.initial_estimator = estimator
         model.compute_lambda_and_dlambda_dre(**model_payload)
         estimator.assert_called_once()
+
+
+@pytest.fixture(params=[fm.hermite_log, fm.smoothstep])
+def transition_strategy(request):
+    """Fixture that yields each transition strategy function."""
+    return request.param
+
+
+def test_hermite_log_is_single_cubic():
+    r"""Test that ``hermite_log`` produces a single cubic in T.
+
+    The blend is fixed by the boundary data alone, so every evaluation
+    point must lie on the same cubic. If ``M_lam`` / ``M_turb`` are built
+    from the per-point ``re`` instead of ``re_lam`` / ``re_turb``, then
+    then :math:`M_{\mathrm{lam}}(T)` varies with :math:`T` and each point
+    lies on a *different* cubic.
+
+    Method: fit a cubic through the first 4 interior points -- four points
+    uniquely determine a cubic -- and check the remaining points lie on
+    it. Correct implementation gives residual ~1e-14; the buggy version
+    gives ~1e-2.
+    """
+    re_lam = 2000.0
+    re_turb = 4000.0
+    # interior points: 4 to fit poly, 4 to test
+    re = np.linspace(re_lam, re_turb, 10)[1:-1]
+    k_over_D = np.full_like(re, 0.1)
+
+    lambda_, _ = fm.hermite_log(
+        k_over_D,
+        re,
+        re_lam=re_lam,
+        re_turb=re_turb,
+        f_lam=fm.Laminar(),
+        f_turb=fm.Colebrook(),
+    )
+    # X = ln Re; Y = ln (lambda_ * Re**2) -- same in implementation
+    # T -- normalised X, lies in [0, 1]
+    Ts = (np.log(re) - np.log(re_lam)) / (np.log(re_turb) - np.log(re_lam))
+    Ys = np.log(lambda_) + 2.0 * np.log(re)
+    poly = np.polynomial.Polynomial.fit(Ts[:4], Ys[:4], deg=3)
+    np.testing.assert_allclose(Ys[4:], poly(Ts[4:]), rtol=1e-10, atol=1e-12)
+
+
+def test_transition_strategy_c1_continuity(transition_strategy):
+    """Check the transition strategies are C1-continuous at re_lam / re_turb.
+
+    At either boundary the blended result (and its derivative) must
+    exactly reproduce the laminar or turbulent model it joins up with.
+    """
+    re_lam = 2000
+    re_turb = 4000
+    re = np.array([re_lam, re_turb], dtype=np.float64)
+    k_over_D = np.full_like(re, 0.1)
+    f_lam = fm.Laminar()
+    f_turb = fm.Colebrook()
+    lambda_, dlambda_dre = transition_strategy(
+        k_over_D,
+        re,
+        re_lam=re_lam,
+        re_turb=re_turb,
+        f_lam=f_lam,
+        f_turb=f_turb,
+    )
+    lambda_lam, dlambda_dre_lam = f_lam.compute_lambda_and_dlambda_dre(k_over_D, re)
+    lambda_turb, dlambda_dre_turb = f_turb.compute_lambda_and_dlambda_dre(k_over_D, re)
+    np.testing.assert_allclose(lambda_[0], lambda_lam[0])
+    np.testing.assert_allclose(dlambda_dre[0], dlambda_dre_lam[0])
+    np.testing.assert_allclose(lambda_[1], lambda_turb[1])
+    np.testing.assert_allclose(dlambda_dre[1], dlambda_dre_turb[1])
+
+
+@dataclass(slots=True)
+class SpyFrictionModel:
+    """A stub friction model returning constant values and recording
+    the Re values it was called with -- used to spy on regime dispatch.
+
+    Implements both the sub-model interface (`compute_lambda_and_dlambda_dre`)
+    and the transition-strategy call interface (`__call__`).
+    """
+
+    lambda_: float
+    dlambda_dre: float
+    re_seen: list = dataclasses.field(default_factory=list)
+
+    def __call__(self, k_over_D, re, *, re_lam, re_turb, f_lam, f_turb):
+        self.re_seen.extend(re.tolist())
+        return np.full_like(re, self.lambda_), np.full_like(re, self.dlambda_dre)
+
+    def compute_lambda_and_dlambda_dre(self, k_over_D, re):
+        self.re_seen.extend(re.tolist())
+        return np.full_like(re, self.lambda_), np.full_like(re, self.dlambda_dre)
+
+
+def test_regime_aware_respects_regimes():
+    """Verify that each sub-model only sees Re values from its own regime.
+
+    Each Re is dispatched to exactly one of {laminar, transition, turbulent}
+    based on re_lam / re_turb, and the stitched result reflects that.
+    """
+    laminar = SpyFrictionModel(1, 2)
+    turbulent = SpyFrictionModel(3, 4)
+    transition_strategy = SpyFrictionModel(5, 6)
+    model = fm.RegimeAwareFrictionModel(
+        laminar=laminar,
+        turbulent=turbulent,
+        transition_strategy=transition_strategy,
+        re_lam=2000,
+        re_turb=4000,
+    )
+
+    re = np.array([1999, 2000, 2001, 3999, 4000, 4001], dtype=np.float64)
+    k_over_D = np.full_like(re, 0.1)
+
+    expected_lambda = np.repeat(
+        [
+            laminar.lambda_,
+            transition_strategy.lambda_,
+            turbulent.lambda_,
+        ],
+        repeats=2,
+    )
+    expected_dlambda_dre = np.repeat(
+        [
+            laminar.dlambda_dre,
+            transition_strategy.dlambda_dre,
+            turbulent.dlambda_dre,
+        ],
+        repeats=2,
+    )
+    lambda_, dlambda_dre = model.compute_lambda_and_dlambda_dre(k_over_D, re)
+
+    np.testing.assert_allclose(lambda_, expected_lambda)
+    np.testing.assert_allclose(dlambda_dre, expected_dlambda_dre)
+    assert laminar.re_seen == [1999, 2000]
+    assert transition_strategy.re_seen == [2001, 3999]
+    assert turbulent.re_seen == [4000, 4001]
+
+
+def test_regime_aware_validates_re_thresholds():
+    """Verify that invalid re_lam / re_turb configurations are rejected."""
+    payload = {
+        "laminar": SpyFrictionModel(1, 2),
+        "turbulent": SpyFrictionModel(5, 6),
+        "transition_strategy": SpyFrictionModel(3, 4),
+    }
+    with pytest.raises(ValueError, match="^re_lam"):
+        fm.RegimeAwareFrictionModel(**payload, re_lam=-1, re_turb=1)
+    with pytest.raises(ValueError, match="^re_turb"):
+        fm.RegimeAwareFrictionModel(**payload, re_lam=2, re_turb=1)
+    with pytest.raises(ValueError, match="^re_turb"):
+        fm.RegimeAwareFrictionModel(**payload, re_lam=2, re_turb=2)
 
 
 @pytest.fixture
